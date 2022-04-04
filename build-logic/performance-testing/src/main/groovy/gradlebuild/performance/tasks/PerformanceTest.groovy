@@ -167,6 +167,7 @@ abstract class PerformanceTest extends DistributionTest {
                 [resultsJson],
                 databaseParameters,
                 channel,
+                [] as Set,
                 branchName,
                 commitId.get(),
                 classpath,

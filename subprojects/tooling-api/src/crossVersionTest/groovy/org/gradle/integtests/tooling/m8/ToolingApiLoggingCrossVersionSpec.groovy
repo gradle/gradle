@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @LeaksFileHandles
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
@@ -88,6 +90,7 @@ project.logger.debug("debug logging yyy");
         shouldNotContainProviderLogging(err)
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "client receives same standard output and standard error as if running from the command-line"() {
         toolingApi.verboseLogging = false
 

@@ -28,14 +28,18 @@ import org.gradle.performance.results.OutputDirSelector;
 import org.gradle.profiler.BuildAction;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
-import org.gradle.profiler.GradleBuildInvocationResult;
 import org.gradle.profiler.GradleBuildInvoker;
 import org.gradle.profiler.GradleScenarioDefinition;
 import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
 import org.gradle.profiler.RunTasksAction;
+import org.gradle.profiler.ScenarioDefinition;
+import org.gradle.profiler.ScenarioInvoker;
 import org.gradle.profiler.instrument.PidInstrumentation;
+import org.gradle.profiler.result.BuildInvocationResult;
+import org.gradle.profiler.studio.invoker.StudioGradleScenarioDefinition;
+import org.gradle.profiler.studio.invoker.StudioGradleScenarioInvoker;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
@@ -50,7 +54,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -96,18 +99,17 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
-            Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
-                scenarioDefinition,
-                scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
-            );
-            AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
-            if (gradleExperiment.getInvocation().isUseToolingApi()) {
-                initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
+            if (buildSpec.isUseAndroidStudio()) {
+                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs());
+                StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
+                doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
+            } else {
+                if (gradleExperiment.getInvocation().isUseToolingApi()) {
+                    initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
+                }
+                doRunScenario(scenarioDefinition, scenarioInvoker, invocationSettings, results);
             }
-            scenarioInvoker.run(scenarioDefinition,
-                invocationSettings,
-                consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter));
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -118,6 +120,20 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             }
             ConnectorServices.reset();
         }
+    }
+
+    private <S extends ScenarioDefinition, R extends BuildInvocationResult> void doRunScenario(
+        S scenarioDefinition,
+        ScenarioInvoker<S, R> scenarioInvoker,
+        InvocationSettings invocationSettings,
+        MeasuredOperationList results
+    ) throws IOException, InterruptedException {
+        Consumer<R> scenarioReporter = getResultCollector().scenario(
+            scenarioDefinition,
+            scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
+        );
+        Consumer<R> resultConsumer = consumerFor(scenarioDefinition, results, scenarioReporter);
+        scenarioInvoker.run(scenarioDefinition, invocationSettings, resultConsumer);
     }
 
     private void initializeNativeServicesForTapiClient(GradleInvocationSpec buildSpec, GradleScenarioDefinition scenarioDefinition) {
@@ -142,12 +158,19 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     private InvocationSettings createInvocationSettings(String testId, GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
-        GradleBuildInvoker daemonInvoker = invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli;
-        GradleBuildInvoker invoker = invocationSpec.isUseDaemon()
-            ? daemonInvoker
-            : (daemonInvoker == GradleBuildInvoker.ToolingApi
-            ? daemonInvoker.withColdDaemon()
-            : GradleBuildInvoker.CliNoDaemon);
+        GradleBuildInvoker invoker;
+        if (invocationSpec.isUseAndroidStudio()) {
+            invoker = GradleBuildInvoker.AndroidStudio;
+        } else if (invocationSpec.isUseToolingApi()) {
+            invoker = invocationSpec.isUseDaemon()
+                ? GradleBuildInvoker.ToolingApi
+                : GradleBuildInvoker.ToolingApi.withColdDaemon();
+        } else {
+            invoker = invocationSpec.isUseDaemon()
+                ? GradleBuildInvoker.Cli
+                : GradleBuildInvoker.CliNoDaemon;
+        }
+
         boolean measureGarbageCollection = experiment.isMeasureGarbageCollection()
             // Measuring GC needs build services which have been introduced in Gradle 6.1
             && experiment.getInvocation().getGradleDistribution().getVersion().getBaseVersion().compareTo(GradleVersion.version("6.1")) >= 0;
@@ -161,6 +184,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
             .setMeasureGarbageCollection(measureGarbageCollection)
             .setBuildLog(invocationSpec.getBuildLog())
+            .setStudioInstallDir(invocationSpec.getStudioInstallDir())
+            .setStudioSandboxDir(invocationSpec.getStudioSandboxDir())
             .build();
     }
 

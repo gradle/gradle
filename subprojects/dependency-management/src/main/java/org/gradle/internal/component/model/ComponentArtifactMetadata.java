@@ -19,6 +19,9 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+
+import java.util.Optional;
 
 /**
  * Meta-data for an artifact that belongs to some component.
@@ -43,4 +46,28 @@ public interface ComponentArtifactMetadata {
      * Collects the build dependencies of this artifact, which are required to build this artifact
      */
     TaskDependency getBuildDependencies();
+
+    /**
+     * Allows metadata with non-standard packaging to add a "fallback" artifact, to be resolved only when resolution fails.
+     *
+     * Typical use-cases are:
+     * <ol>
+     *     <li>Maven POM declares {@code pom} packaging, but actually the artifact is a {@code jar}.</li>
+     *     <li>Maven POM declares an atypical packaging which does not match the artifact's type/extension property.  See <a href="https://repo1.maven.org/maven2/org/glassfish/ha/ha-api/3.1.7/">hk2-jar example</a>.
+     * </ol>
+     *
+     * In these cases, supplying the alternative artifact metadata is a way to allow a re-fetch a different artifact file for the same component.
+     *
+     * <p>Defaults to {@link Optional#empty()}
+     *
+     * @return an optional artifact metadata, which if present will be resolved if this artifact's resolution fails
+     * @see DefaultModuleComponentArtifactMetadata#DefaultModuleComponentArtifactMetadata(org.gradle.api.artifacts.component.ModuleComponentIdentifier, org.gradle.internal.component.model.IvyArtifactName, org.gradle.internal.component.model.ComponentArtifactMetadata)
+     */
+    default Optional<ComponentArtifactMetadata> getAlternativeArtifact() {
+        return Optional.empty();
+    }
+
+    default boolean isOptionalArtifact() {
+        return false;
+    }
 }

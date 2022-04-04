@@ -46,7 +46,7 @@ Note that the location of the Gradle user home may have been changed beforehand 
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
-When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
+When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting in much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
 _By default, the build cache is *not* enabled._
 
 `org.gradle.caching.debug=(true,false)`::
@@ -60,6 +60,11 @@ _Default is `false`._
 `org.gradle.console=(auto,plain,rich,verbose)`::
 Customize console output coloring or verbosity.
 _Default depends on how Gradle is invoked. See <<command_line_interface.adoc#sec:command_line_logging, command-line logging>> for additional details._
+
+`org.gradle.continuous.quietperiod=(# of quiet period millis)`::
+When using <<command_line_interface.adoc#sec:continuous_build,continuous build>>, Gradle will wait for the quiet period to pass before triggering another build.
+Any additional changes within this quiet period restart waiting for the quiet period.
+_Default is `250` milliseconds._
 
 `org.gradle.daemon=(true,false)`::
 When set to `true` the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> is used to run the build.
@@ -234,7 +239,7 @@ The `JAVA_OPTS` environment variable controls the command line client, which is 
 
 .Changing JVM settings for the client VM
 ----
-JAVA_OPTS="-Xmx64m -XX:MaxPermSize=64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+JAVA_OPTS="-Xmx64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
 
 [NOTE]
@@ -300,6 +305,7 @@ systemProp.https.proxyHost=www.somehost.org
 systemProp.https.proxyPort=8080
 systemProp.https.proxyUser=userid
 systemProp.https.proxyPassword=password
+# NOTE: this is not a typo.
 systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 ----
 

@@ -40,6 +40,7 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -69,7 +70,7 @@ public class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
 
-    private static final List<String> GROOVY3_LIBS = Arrays.asList(
+    private static final List<String> GROOVY_LIBS = Arrays.asList(
         "groovy",
         "groovy-ant", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil",
         "groovy-nio", "groovy-sql", "groovy-test",
@@ -127,25 +128,11 @@ public class GroovyRuntime {
 
                 VersionNumber groovyVersion = groovyJar.getVersion();
 
-                // Groovy 3 does not have groovy-all yet we may have the required pieces on classpath via localGroovy()
-                if (groovyVersion.getMajor() == 3) {
-                    return inferGroovy3Classpath(groovyVersion);
+                if (groovyVersion.getMajor() <= 2) {
+                    return inferGroovyAllClasspath(groovyJar.getDependencyNotation(), groovyVersion);
+                } else {
+                    return inferGroovyClasspath(groovyVersion);
                 }
-
-                String notation = groovyJar.getDependencyNotation();
-
-                List<Dependency> dependencies = new ArrayList<>();
-                addDependencyTo(dependencies, notation);
-
-                if (groovyVersion.compareTo(GROOVY_VERSION_WITH_SEPARATE_ANT) >= 0) {
-                    // add groovy-ant to bring in Groovydoc for Groovy 2.0+
-                    addGroovyDependency(notation, dependencies, "groovy-ant");
-                }
-                if (groovyVersion.compareTo(GROOVY_VERSION_REQUIRING_TEMPLATES) >= 0) {
-                    // add groovy-templates for Groovy 2.5+
-                    addGroovyDependency(notation, dependencies, "groovy-templates");
-                }
-                return detachedRuntimeClasspath(dependencies.toArray(new Dependency[0]));
             }
 
             private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
@@ -158,16 +145,33 @@ public class GroovyRuntime {
                 dependencies.add(project.getDependencies().create(notation));
             }
 
-            private FileCollection inferGroovy3Classpath(VersionNumber groovyVersion) {
+            private FileCollection inferGroovyAllClasspath(String notation, VersionNumber groovyVersion) {
+                List<Dependency> dependencies = new ArrayList<>();
+                addDependencyTo(dependencies, notation);
+
+                if (groovyVersion.compareTo(GROOVY_VERSION_WITH_SEPARATE_ANT) >= 0) {
+                    // add groovy-ant to bring in Groovydoc for Groovy 2.0+
+                    addGroovyDependency(notation, dependencies, "groovy-ant");
+                }
+                if (groovyVersion.compareTo(GROOVY_VERSION_REQUIRING_TEMPLATES) >= 0) {
+                    // add groovy-templates for Groovy 2.5+
+                    addGroovyDependency(notation, dependencies, "groovy-templates");
+                }
+
+                return detachedRuntimeClasspath(dependencies.toArray(new Dependency[0]));
+            }
+
+            private FileCollection inferGroovyClasspath(VersionNumber groovyVersion) {
+                // We may already have the required pieces on classpath via localGroovy()
                 Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
                 List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
-                if (groovyClasspath.size() == GROOVY3_LIBS.size()) {
+                if (groovyClasspath.size() == GROOVY_LIBS.size()) {
                     return project.getLayout().files(groovyClasspath);
                 }
 
                 return detachedRuntimeClasspath(
-                    GROOVY3_LIBS.stream()
-                        .map(libName -> project.getDependencies().create("org.codehaus.groovy:" + libName + ":" + groovyVersion))
+                    GROOVY_LIBS.stream()
+                        .map(libName -> project.getDependencies().create(groovyModuleDependency(libName, groovyVersion)))
                         .toArray(Dependency[]::new)
                 );
             }
@@ -195,7 +199,7 @@ public class GroovyRuntime {
     }
 
     private static Set<String> groovyJarNamesFor(VersionNumber groovyVersion) {
-        return GROOVY3_LIBS.stream()
+        return GROOVY_LIBS.stream()
             .map(libName -> libName + "-" + groovyVersion + ".jar")
             .collect(toSet());
     }

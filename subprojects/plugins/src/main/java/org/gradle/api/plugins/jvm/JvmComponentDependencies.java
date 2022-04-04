@@ -111,4 +111,27 @@ public interface JvmComponentDependencies {
      * @since 7.5
      */
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
+
+    /**
+     * Add a dependency to the set of annotationProcessor dependencies.
+     * <p><br>
+     * <code>annotationProcessor</code> dependencies containing annotation processors to be run at compile time.
+     *
+     * @param dependencyNotation dependency to add
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     * @since 7.5
+     */
+    void annotationProcessor(Object dependencyNotation);
+
+    /**
+     * Add a dependency to the set of annotationProcessor dependencies.
+     * <p><br>
+     * <code>annotationProcessor</code> dependencies containing annotation processors to be run at compile time.
+     *
+     * @param dependencyNotation dependency to add
+     * @param configuration additional configuration for the provided dependency
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     * @since 7.5
+     */
+    void annotationProcessor(Object dependencyNotation, Action<? super Dependency> configuration);
 }

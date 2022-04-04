@@ -721,4 +721,72 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile(jarFileName).assertExists()
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
+
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle/issues/20166")
+    def "signs single Maven publication with similar artifacts"() {
+        given:
+        // Two with same filename, mind the directory names
+        file("res", "a", "same.txt") << "Base filename"
+        file("res", "b", "same.txt") << "Base filename, different directory"
+        // Third, different filename, different base directory case
+        file("res", "c", "different.txt") << "Different filename"
+
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        group = 'sign'
+                        artifactId = '$artifactId'
+                        version = '$version'
+
+                        // Base filename
+                        artifact("res/a/same.txt") {
+                            classifier 'a'
+                            extension 'txt'
+                        }
+                        // Base filename + Different classifier
+                        // Original problem with #20166
+                        artifact("res/b/same.txt") {
+                            classifier 'b'
+                            extension 'txt'
+                        }
+                        // Different filename
+                        artifact("res/c/different.txt") {
+                            classifier 'c'
+                            extension 'txt'
+                        }
+                    }
+                }
+                repositories {
+                    maven {
+                        name "m2"
+                        url "file://\$buildDir/m2Repo/"
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.maven
+            }
+        """
+
+        when:
+        run "publishMavenPublicationToM2Repository"
+
+        then:
+        executedAndNotSkipped(":publishMavenPublicationToM2Repository")
+
+        and:
+        m2RepoFile("$artifactId-${version}-a.txt").assertExists()
+        m2RepoFile("$artifactId-${version}-a.txt.asc").assertExists()
+        m2RepoFile("$artifactId-${version}-b.txt").assertExists()
+        m2RepoFile("$artifactId-${version}-b.txt.asc").assertExists()
+        m2RepoFile("$artifactId-${version}-c.txt").assertExists()
+        m2RepoFile("$artifactId-${version}-c.txt.asc").assertExists()
+    }
 }

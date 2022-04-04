@@ -169,7 +169,7 @@ if (project.hasProperty('skipCache')) {
         skipped ':retrieve'
     }
 
-    def "will use jar artifact for pom with packaging that maps to jar"() {
+    def "will use jar artifact for pom with packaging (#packaging) that maps to jar"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
         projectARepo1.hasPackaging(packaging).publish()

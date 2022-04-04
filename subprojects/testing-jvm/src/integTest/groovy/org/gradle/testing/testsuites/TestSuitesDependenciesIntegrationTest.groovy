@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-
 class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
     private versionCatalog = file('gradle', 'libs.versions.toml')
 
@@ -496,6 +495,114 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'checkConfiguration'
+    }
+
+    def "Test suites support annotationProcessor dependencies"() {
+        given: "a test suite that uses Google's Auto Value as an example of an annotation processor"
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation 'com.google.auto.value:auto-value-annotations:1.9'
+                            annotationProcessor 'com.google.auto.value:auto-value:1.9'
+                        }
+                    }
+                }
+            }
+            """.stripIndent()
+
+        file("src/test/java/Animal.java") << """
+            import com.google.auto.value.AutoValue;
+
+            @AutoValue
+            abstract class Animal {
+              static Animal create(String name, int numberOfLegs) {
+                return new AutoValue_Animal(name, numberOfLegs);
+              }
+
+              abstract String name();
+              abstract int numberOfLegs();
+            }
+            """.stripIndent()
+
+        file("src/test/java/AnimalTest.java") << """
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertEquals;
+
+            public class AnimalTest {
+                @Test
+                public void testCreateAnimal() {
+                    Animal dog = Animal.create("dog", 4);
+                    assertEquals("dog", dog.name());
+                    assertEquals(4, dog.numberOfLegs());
+                }
+            }
+            """.stripIndent()
+
+        expect: "tests using a class created by running that annotation processor will succeed"
+        succeeds('test')
+    }
+
+    def "Test suites support platforms"() {
+        given: "a test suite that uses a platform dependency"
+        settingsFile << """rootProject.name = 'Test'
+
+            include 'platform', 'consumer'""".stripIndent()
+        file('platform/build.gradle') << """plugins {
+                id 'java-platform'
+            }
+
+            dependencies {
+                constraints {
+                    api 'org.apache.commons:commons-lang3:3.8.1'
+                }
+            }
+            """.stripIndent()
+
+        file('consumer/build.gradle') << """plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation project.dependencies.platform(project(':platform'))
+                            implementation 'org.apache.commons:commons-lang3'
+                        }
+                    }
+                }
+            }
+            """.stripIndent()
+
+        file("consumer/src/test/java/SampleTest.java") << """
+            import org.apache.commons.lang3.StringUtils;
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertTrue;
+
+            public class SampleTest {
+                @Test
+                public void testCommons() {
+                    assertTrue(StringUtils.isAllLowerCase("abc"));
+                }
+            }
+            """.stripIndent()
+
+        expect: "tests using a class from that platform will succeed"
+        succeeds('test')
     }
 
     def "can add a dependency to a test suite using map notation in Groovy DSL"() {

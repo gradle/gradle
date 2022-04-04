@@ -37,11 +37,7 @@ public abstract class TaskNode extends Node {
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
-    private int ordinal;
-
-    public TaskNode(int ordinal) {
-        this.ordinal = ordinal;
-    }
+    private int ordinal = UNKNOWN_ORDINAL;
 
     @Override
     public boolean doCheckDependenciesComplete() {
@@ -69,6 +65,10 @@ public abstract class TaskNode extends Node {
     public Set<Node> getMustSuccessors() {
         return mustSuccessors;
     }
+
+    public abstract Set<Node> getLifecycleSuccessors();
+
+    public abstract void setLifecycleSuccessors(Set<Node> successors);
 
     @Override
     public Set<Node> getFinalizers() {
@@ -167,11 +167,6 @@ public abstract class TaskNode extends Node {
 
     public abstract TaskInternal getTask();
 
-    @Override
-    public boolean isPublicNode() {
-        return true;
-    }
-
     private void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {
             DeprecationLogger.deprecateAction("Using " + hookName + " to reference tasks from another build")
@@ -188,6 +183,16 @@ public abstract class TaskNode extends Node {
     public void maybeSetOrdinal(int ordinal) {
         if (this.ordinal == UNKNOWN_ORDINAL || this.ordinal > ordinal) {
             this.ordinal = ordinal;
+        }
+    }
+
+    public void maybeInheritOrdinalAsDependency(TaskNode node) {
+        maybeSetOrdinal(node.getOrdinal());
+    }
+
+    public void maybeInheritOrdinalAsFinalizer(TaskNode node) {
+        if (this.ordinal == UNKNOWN_ORDINAL || this.ordinal < node.getOrdinal()) {
+            this.ordinal = node.getOrdinal();
         }
     }
 }

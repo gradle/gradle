@@ -586,29 +586,14 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            assert (schema.size() == 17 || schema.size() == 19)
-
+            
+            // check some built-in tasks
             assert schema["help"] == "Help"
-
             assert schema["projects"] == "ProjectReportTask"
             assert schema["tasks"] == "TaskReportTask"
             assert schema["properties"] == "PropertyReportTask"
 
-            assert schema["dependencyInsight"] == "DependencyInsightReportTask"
-            assert schema["dependencies"] == "DependencyReportTask"
-            assert schema["buildEnvironment"] == "BuildEnvironmentReportTask"
-
-            assert schema["components"] == "ComponentReport"
-            assert schema["model"] == "ModelReport"
-            assert schema["dependentComponents"] == "DependentComponentsReport"
-
-            if (schema.size() == 19) {
-                assert schema["init"] == "InitBuild"
-                assert schema["wrapper"] == "Wrapper"
-            }
-
-            assert schema["prepareKotlinBuildScriptModel"] == "DefaultTask"
-
+            // check some tasks from the project itself
             assert schema["foo"] == "Foo"
             assert schema["bar"] == "Foo"
             assert schema["builtInTask"] == "Copy"
@@ -632,5 +617,41 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
+    }
+
+    def "can override description and group without @Internal annotation"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @Override
+                public String getDescription() {
+                    return "My custom task description.";
+                }
+                @Override
+                public String getGroup() {
+                    return "custom group";
+                }
+                @TaskAction
+                void doWork() {
+                    println("Hello from CustomTask")
+                }
+            }
+            tasks.register("customTask", CustomTask)
+        """
+
+        when:
+        succeeds("tasks")
+
+        then:
+        outputContains("""
+Custom group tasks
+------------------
+customTask - My custom task description.
+""")
+
+        when:
+        succeeds("customTask")
+
+        then:
+        outputContains("Hello from CustomTask")
     }
 }

@@ -24,9 +24,7 @@ import gradlebuild.basics.buildConfigurationId
 import gradlebuild.basics.buildId
 import gradlebuild.basics.buildServerUrl
 import gradlebuild.basics.environmentVariable
-import gradlebuild.basics.isBuildCommitDistribution
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
 import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
@@ -45,17 +43,15 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import java.net.InetAddress
 import java.net.URLEncoder
-import java.util.concurrent.atomic.AtomicBoolean
 
 plugins {
+    id("gradlebuild.cache-miss-monitor")
     id("gradlebuild.module-identity")
 }
 
 val serverUrl = "https://ge.gradle.org"
 val gitCommitName = "gitCommitId"
 val tcBuildTypeName = "tcBuildType"
-
-val cacheMissTagged = AtomicBoolean(false)
 
 // We can not use plugin {} because this is registered by a settings plugin.
 // We do 'findByType' to make this script compile in pre-compiled script compilation.
@@ -70,7 +66,6 @@ extractCiData()
 if (isCiServer) {
     if (!isTravis && !isJenkins) {
         extractAllReportsFromCI()
-        monitorUnexpectedCacheMisses()
     }
 }
 
@@ -91,62 +86,6 @@ project.the<ModuleIdentityExtension>().apply {
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
     buildScan?.tag("SYNC")
 }
-
-fun monitorUnexpectedCacheMisses() {
-    gradle.taskGraph.afterTask {
-        if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
-            buildScan?.tag("CACHE_MISS")
-        }
-    }
-}
-
-fun buildCacheEnabled() = gradle.startParameter.isBuildCacheEnabled
-
-fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
-
-fun Task.isCacheMiss() = !state.skipped && state.failure == null && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
-
-fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
-
-fun isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
-
-fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this is ClasspathManifest) && !this.isKotlinJsIrLink()
-
-// https://youtrack.jetbrains.com/issue/KT-49915
-fun Task.isKotlinJsIrLink() = this.javaClass.simpleName.startsWith("KotlinJsIrLink")
-
-fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
-
-fun isExpectedAsciidoctorCacheMiss() =
-// Expected cache-miss for asciidoctor task:
-// 1. CompileAll is the seed build for docs:distDocs
-// 2. BuildDistributions is the seed build for other asciidoctor tasks
-// 3. buildScanPerformance test, which doesn't depend on compileAll
-// 4. buildScanPerformance test, which doesn't depend on compileAll
-    isInBuild(
-        "Check_CompileAllBuild",
-        "Check_BuildDistributions",
-        "Component_GradlePlugin_Performance_PerformanceLatestMaster",
-        "Component_GradlePlugin_Performance_PerformanceLatestReleased"
-    )
-
-fun isExpectedCompileCacheMiss() =
-// Expected cache-miss:
-// 1. CompileAll is the seed build
-// 2. Gradleception which re-builds Gradle with a new Gradle version
-// 3. buildScanPerformance test, which doesn't depend on compileAll
-// 4. buildScanPerformance test, which doesn't depend on compileAll
-// 5. BuildCommitDistribution may build a commit which is not built before
-    isInBuild(
-        "Check_CompileAllBuild",
-        "Component_GradlePlugin_Performance_PerformanceLatestMaster",
-        "Component_GradlePlugin_Performance_PerformanceLatestReleased",
-        "Check_Gradleception"
-    ) || isBuildCommitDistribution
-
-fun isInBuild(vararg buildTypeIds: String) = buildConfigurationId.orNull?.let { currentBuildTypeId ->
-    buildTypeIds.any { currentBuildTypeId.endsWith(it) }
-} ?: false
 
 fun extractCheckstyleAndCodenarcData() {
 

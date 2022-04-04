@@ -212,7 +212,7 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "killExistingProcessesStartedByGradle"
             gradleParams =
-                buildToolGradleParameters(daemon).joinToString(separator = " ")
+                (buildToolGradleParameters(daemon) + buildScanTag("CleanUpBuild")).joinToString(separator = " ")
         }
     }
 }

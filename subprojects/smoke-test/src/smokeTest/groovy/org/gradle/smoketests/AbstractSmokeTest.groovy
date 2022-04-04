@@ -35,7 +35,6 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -85,7 +84,7 @@ abstract class AbstractSmokeTest extends Specification {
         static asciidoctor = Versions.of("3.3.2")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "4.7.6"
+        static spotbugs = "5.0.6"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "7.1.0"
@@ -136,11 +135,11 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.3.1"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.24.20"
+        static artifactoryPlugin = "4.27.1"
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "6.2.0"
+        static aspectj = "6.4.1"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("4.1.2")
@@ -158,10 +157,10 @@ abstract class AbstractSmokeTest extends Specification {
         static apt = Versions.of("0.21")
 
         // https://plugins.gradle.org/plugin/io.gitlab.arturbosch.detekt
-        static detekt = Versions.of("1.18.1")
+        static detekt = Versions.of("1.19.0")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("6.0.0")
+        static spotless = Versions.of("6.3.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
         static jib = Versions.of("3.1.4")
@@ -183,6 +182,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
         static newNode = Versions.of("3.1.1")
+
+        // https://github.com/davidmc24/gradle-avro-plugin
+        static avro = Versions.of("1.3.0")
+
+        // https://plugins.gradle.org/plugin/io.spring.nohttp
+        static nohttp = Versions.of("0.0.10")
+
+        // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
+        static jenkinsJpi = Versions.of("0.43.0")
     }
 
     static class Versions implements Iterable<String> {
@@ -328,57 +336,6 @@ abstract class AbstractSmokeTest extends Specification {
             runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
-    }
-
-    protected static String deprecationOfFileTreeForEmptySources(String propertyName) {
-        return "Relying on FileTrees for ignoring empty directories when using @SkipWhenEmpty has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. " +
-            "Annotate the property ${propertyName} with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
-    }
-
-    protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
-        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
-            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
-        }
-        if (agpVersion.startsWith("4.")) {
-            expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
-        }
-        return runner
-    }
-
-    protected static void expectAgpFileTreeDeprecationWarnings(SmokeTestGradleRunner runner, String... tasks) {
-        tasks.each {
-            TASK_TO_FILE_TREE_PROPERTY_WARNING[it].addToRunner(runner)
-        }
-    }
-
-    private static final Map<String, FileTreeDeprecation> TASK_TO_FILE_TREE_PROPERTY_WARNING = [
-        "compileDebugAidl": fileTreeDeprecation("sourceFiles", "https://issuetracker.google.com/issues/205285261"),
-        "compileDebugRenderscript": fileTreeDeprecation("sourceDirs", "https://issuetracker.google.com/issues/205285261"),
-        "stripDebugDebugSymbols": fileTreeDeprecation("inputFiles", "https://issuetracker.google.com/issues/205285261"),
-        "bundleLibResDebug": fileTreeDeprecation("resources", "https://issuetracker.google.com/issues/204425803"),
-        "mergeDebugNativeLibs": legacyFileTreeDeprecation("projectNativeLibs"),
-    ]
-
-    static interface FileTreeDeprecation {
-        void addToRunner(SmokeTestGradleRunner runner)
-    }
-
-    private static FileTreeDeprecation legacyFileTreeDeprecation(String propertyName) {
-        return new FileTreeDeprecation() {
-            void addToRunner(SmokeTestGradleRunner runner) {
-                runner.expectLegacyDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName))
-            }
-        }
-    }
-
-    private static FileTreeDeprecation fileTreeDeprecation(String propertyName, String followup) {
-        return new FileTreeDeprecation() {
-            void addToRunner(SmokeTestGradleRunner runner) {
-                runner.expectDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName), followup)
-            }
-        }
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

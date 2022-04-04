@@ -57,7 +57,7 @@ class PerformanceTestBuildTypeTest {
         val performanceTest = PerformanceTest(
             buildModel,
             Stage(
-                StageNames.READY_FOR_MERGE,
+                StageNames.PULL_REQUEST_FEEDBACK,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
                     SpecificBuild.Gradleception,
@@ -90,8 +90,10 @@ class PerformanceTestBuildTypeTest {
             "-PperformanceBaselines=%performance.baselines%",
             "-PtestJavaVersion=8",
             "-PtestJavaVendor=oracle",
+            "-PautoDownloadAndroidStudio=true",
+            "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.adoptiumopenjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",

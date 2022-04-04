@@ -27,6 +27,11 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         this.right = right;
     }
 
+    @Override
+    public String toString() {
+        return String.format("or(%s, %s)", left, right);
+    }
+
     @Nullable
     @Override
     public Class<T> getType() {
@@ -43,15 +48,27 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         return left.calculatePresence(consumer) || right.calculatePresence(consumer);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
-        if (!leftValue.isMissing()) {
-            // favour left execution time value if present for better configuration cache integration
-            // of idioms like `property.convention(provider.orElse(somethingElse))`
+        if (leftValue.isFixedValue()) {
             return leftValue;
         }
-        return super.calculateExecutionTimeValue();
+        ExecutionTimeValue<? extends T> rightValue = right.calculateExecutionTimeValue();
+        if (leftValue.isMissing()) {
+            return rightValue;
+        }
+        if (rightValue.isMissing()) {
+            // simplify
+            return leftValue;
+        }
+        return ExecutionTimeValue.changingValue(
+            new OrElseProvider(
+                leftValue.getChangingValue(),
+                rightValue.toProvider()
+            )
+        );
     }
 
     @Override

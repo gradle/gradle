@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({ GroovyCoverage.SUPPORTS_PARAMETERS })
 class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -33,7 +35,7 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.codehaus.groovy:groovy:${version}"
+                implementation "${groovyModuleDependency("groovy", versionNumber)}"
             }
         """
     }

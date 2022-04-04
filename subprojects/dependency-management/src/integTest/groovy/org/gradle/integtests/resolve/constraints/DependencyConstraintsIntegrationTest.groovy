@@ -724,7 +724,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void 'dependency constraint on failed variant resolution needs to be in the right state'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         writeSpec {
@@ -751,7 +750,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         outputContains("org:bar: FAILED")
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void 'multiple dependency constraints on single module are all taken into account (#one then #two)'() {
         def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
         def bar20 = mavenRepo.module('org', 'bar', '2.0').publish()
@@ -785,5 +783,67 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         one   | two
         '1.5'   | '2.0'
         '2.0'   | '1.5'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19882")
+    void 'can use constraints on project to upgrade third party to higher version project'() {
+        def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
+        def foo10 = mavenRepo.module('org', 'foo', '1.0').dependencyConstraint(bar10).publish()
+
+        writeSpec {
+            rootProject {
+                dependencies {
+                    conf "org:foo:1.0"
+                    conf project(":bar")
+                }
+            }
+            project("foo") {
+                group = 'org'
+                version = '1.1'
+                configurations {
+                    conf
+                    'default' { extendsFrom 'conf' }
+                }
+
+                dependencies {
+                    conf project(":bar")
+                }
+            }
+            project("bar") {
+                group = 'org'
+                version = '1.1'
+                configurations {
+                    conf
+                    'default' { extendsFrom 'conf' }
+                }
+                dependencies {
+                    constraints {
+                        conf project(":foo")
+                    }
+                }
+            }
+        }
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge("org:foo:1.0", "project :foo", "org:foo:1.1") {
+                    configuration = 'default'
+                    noArtifacts()
+                    project(":bar", "org:bar:1.1") {
+                        configuration = 'default'
+                        noArtifacts()
+                        constraint("project :foo", "org:foo:1.1")
+                    }
+                }
+                project(":bar", "org:bar:1.1") {
+                    configuration = 'default'
+                    noArtifacts()
+                }
+            }
+        }
     }
 }

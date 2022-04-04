@@ -25,7 +25,7 @@ import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
@@ -34,7 +34,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
     def originMetadata = Mock(OriginMetadata)
     def beforeExecutionState = Stub(BeforeExecutionState) {
-        getImplementation() >> ImplementationSnapshot.of("Test", HashCode.fromInt(123))
+        getImplementation() >> ImplementationSnapshot.of("Test", TestHashCodes.hashCodeFrom(123))
         getAdditionalImplementations() >> ImmutableList.of()
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()

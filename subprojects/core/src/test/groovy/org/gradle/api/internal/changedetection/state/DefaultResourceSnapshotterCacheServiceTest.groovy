@@ -21,6 +21,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
@@ -30,12 +31,12 @@ import spock.lang.Specification
 class DefaultResourceSnapshotterCacheServiceTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
-    def snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
+    def snapshot = new RegularFileSnapshot(path, "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
     def snapshotContext = new DefaultRegularFileSnapshotContext({path}, snapshot)
     def snapshotterCache = new DefaultResourceSnapshotterCacheService(new TestInMemoryPersistentIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
-        def expectedHash = HashCode.fromInt(123)
+        def expectedHash = TestHashCodes.hashCodeFrom(123)
 
         when:
         def actualHash = snapshotterCache.hashFile(snapshotContext, delegate, configurationHash)
@@ -46,7 +47,7 @@ class DefaultResourceSnapshotterCacheServiceTest extends Specification {
     }
 
     def "caches the result"() {
-        def expectedHash = HashCode.fromInt(123)
+        def expectedHash = TestHashCodes.hashCodeFrom(123)
         when:
         def actualHash = snapshotterCache.hashFile(snapshotContext, delegate, configurationHash)
         then:

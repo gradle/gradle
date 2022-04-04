@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchableFileSystemDetector.class);
 
-    // !IMPORTANT! If changed, make sure to update the documentation in gradle_damon.adoc
+    // !IMPORTANT! If changed, make sure to update the documentation in gradle_daemon.adoc
     private static final ImmutableSet<String> SUPPORTED_FILE_SYSTEM_TYPES = ImmutableSet.of(
         // APFS on macOS
         "apfs",
@@ -38,6 +38,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
         "ext3",
         "ext4",
         "btrfs",
+        "xfs",
         // NTFS on macOS
         "ntfs",
         // NTFS on Windows

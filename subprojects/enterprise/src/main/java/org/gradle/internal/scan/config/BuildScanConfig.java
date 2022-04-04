@@ -17,7 +17,6 @@
 package org.gradle.internal.scan.config;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Represents the aspects of build scan configuration that Gradle contributes.
@@ -26,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-@UsedByScanPlugin
 public interface BuildScanConfig {
 
     /**

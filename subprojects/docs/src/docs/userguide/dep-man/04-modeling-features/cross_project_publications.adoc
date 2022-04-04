@@ -118,7 +118,7 @@ Let's enhance our previous example which happens to be a Java Library project.
 Java libraries expose a couple of variants to their consumers, `apiElements` and `runtimeElements`. Now, we're adding a 3rd one, `instrumentedJars`.
 
 Therefore, we need to understand what our new variant is used for in order to set the proper attributes on it.
-Let's look at the attributes we find on the `runtimeElements` configuration:
+Let's look at the attributes we find on the `runtimeElements` configuration on the producer:
 
 .gradle outgoingVariants --variant runtimeElements
 ----
@@ -182,7 +182,22 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=ask-for-instrumented-classes]"]
 ====
 
-Now, we're telling that whenever we're going to resolve the test runtime classpath, what we are looking for is _instrumented classes_.
+We can look at another report _on the consumer side_ to view exactly what attributes of each dependency will be requested:
+
+.gradle resolvableConfigurations --configuration testRuntimeClasspath
+----
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = instrumented-jar
+    - org.gradle.usage               = java-runtime
+----
+
+The `resolvableConfigurations` report is the complement of the `outgoingVariants` report.
+By running both of these reports on the consumer and producer sides of a relationship, respectively, you can see exactly what attributes are involved in matching during dependency resolution and better predict the outcome when configurations are resolved.
+
+Now, we're saying that whenever we're going to resolve the test runtime classpath, what we are looking for is _instrumented classes_.
 There is a problem though: in our dependencies list, we have JUnit, which, obviously, is _not_ instrumented.
 So if we stop here, Gradle is going to fail, explaining that there's no variant of JUnit which provide instrumented classes.
 This is because we didn't explain that it's fine to use the regular jar, if no instrumented version is available.

@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.configuration.Help;
 
@@ -51,6 +53,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
      * @since 6.0
      */
     public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
+
+    /**
+     * The name of the requested configurations report task.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public static final String RESOLVABLE_CONFIGURATIONS_TASK = "resolvableConfigurations";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
@@ -72,6 +82,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowAll().convention(false);
+        });
+        tasks.register(RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
+            task.setDescription("Displays the configurations that can be resolved in " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+            task.getShowAll().convention(false);
+            task.getRecursive().convention(false);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);
@@ -159,6 +177,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays the insight into a specific dependency in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowingAllVariants().convention(false);
             ComponentRegistry componentRegistry = ((ProjectInternal) task.getProject()).getServices().get(ComponentRegistry.class);
             new DslObject(task).getConventionMapping().map("configuration", () -> {
                 BuildableJavaComponent javaProject = componentRegistry.getMainComponent();

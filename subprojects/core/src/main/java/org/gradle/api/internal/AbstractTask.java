@@ -1042,7 +1042,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         for (Provider<? extends BuildService<?>> service : requiredServices) {
             SharedResource resource = serviceRegistry.forService(service);
             if (resource.getMaxUsages() > 0) {
-                locks.add(resource.getResourceLock(1));
+                locks.add(resource.getResourceLock());
             }
         }
         return locks.build();

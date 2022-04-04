@@ -58,11 +58,6 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             LocalTaskNode localTaskNode = (LocalTaskNode) node;
             TaskInternal task = localTaskNode.getTask();
             TaskStateInternal state = task.getState();
-            if (state.getExecuted()) {
-                // Task has already been run. This can happen when the owning build is used both at configuration time and execution time
-                // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
-                return true;
-            }
             ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy = context.getService(ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy.class);
             TaskExecutionContext ctx = new DefaultTaskExecutionContext(
                 localTaskNode,

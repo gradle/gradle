@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r54
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles

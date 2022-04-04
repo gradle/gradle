@@ -28,6 +28,8 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.concurrent.Callable
+
 abstract class AbstractJvmPluginServicesTest extends Specification {
     def configurations = Mock(ConfigurationContainer)
     def tasks = Mock(TaskContainerInternal)
@@ -36,6 +38,13 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     def project = Stub(ProjectInternal) {
         getObjects() >> TestUtil.objectFactory()
         getProviders() >> TestUtil.providerFactory()
+        provider(_ as Callable<Object>) >> {
+            Callable producer -> TestUtil.providerFactory().provider(
+                {
+                    producer.call()
+                }
+            )
+        }
         getLayout() >> Stub(ProjectLayout) {
             getBuildDirectory() >> TestUtil.objectFactory().directoryProperty()
         }
