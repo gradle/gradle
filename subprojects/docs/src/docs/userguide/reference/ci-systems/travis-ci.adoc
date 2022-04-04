@@ -63,7 +63,7 @@ The following section will describe how to build the project with the help of Tr
 == Configure Travis CI
 
 Travis CI is a free, cloud-based CI solution provider making it an excellent choice for open source projects.
-You can build any project as long as it is hosted on GitHub as public repository.
+You can build any project as long as it is hosted on GitHub as a public repository.
 Travis CI doesn't not provide built-in options to post-process produced artifacts of the build e.g. host the JAR file or the HTML test reports.
 You will have to use external services (like S3) to https://docs.travis-ci.com/user/uploading-artifacts/[transfer the files].
 

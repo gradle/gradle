@@ -68,15 +68,15 @@ The following section will describe how to build the project with the help of Gi
 == Configure GitHub Actions
 
 GitHub Actions is a free, cloud-based CI solution provider built directly into GitHub making it an excellent choice for open source projects hosted on GitHub.
-You can build any project as long as it is hosted on GitHub as public repository.
+You can build any project as long as it is hosted on GitHub.
 GitHub Actions can be configured to make your build outputs and test results available for download.
 
 === Configure the GitHub Actions workflow
 
-You create a GitHub Actions workflow by adding a `.github/workflows/<workflow-name>.yml` file to your repository.
+You can create a GitHub Actions workflow by adding a `.github/workflows/<workflow-name>.yml` file to your repository.
 This workflow definition file contains all relevant instructions for building the project on GitHub Actions.
 
-The following workflow file instructs GitHub Actions to build your Gradle project with the default JDK, using th Java project with JDK 8, using the Gradle Wrapper to run the build.
+The following workflow file instructs GitHub Actions to build your Gradle project using the Gradle Wrapper, executed by the default Java distribution for GitHub Actions.
 Create a new file named `.github/workflows/build-project.yml` with the following content, and push it to the GitHub repository.
 
 [listing]
