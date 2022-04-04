@@ -100,13 +100,13 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         Action<ExecutionListener> rawAction = Mock()
 
         when:
-        def action = factory.convert([])
+        def commandLineExecution = factory.convert([])
 
         then:
-        action
+        commandLineExecution
 
         when:
-        action.execute(executionListener)
+        commandLineExecution.execute(executionListener)
 
         then:
         1 * loggingManager.start()
@@ -119,8 +119,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "reports command-line parse failure"() {
         when:
-        def action = factory.convert(['--broken'])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(['--broken'])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('--broken')
@@ -138,8 +138,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         def failure = new CommandLineArgumentException("<broken>")
 
         when:
-        def action = factory.convert(['--some-option'])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(['--some-option'])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('<broken>')
@@ -156,8 +156,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "continues on failure to parse logging configuration"() {
         when:
-        def action = factory.convert(["--logging=broken"])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(["--logging=broken"])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('--logging')
@@ -175,8 +175,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         def failure = new RuntimeException("<broken>")
 
         when:
-        def action = factory.convert([])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert([])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('<broken>')
@@ -189,8 +189,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "displays usage message"() {
         when:
-        def action = factory.convert([option])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert([option])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
@@ -209,8 +209,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         System.setProperty("org.gradle.appname", "gradle-app");
 
         when:
-        def action = factory.convert(['-?'])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(['-?'])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
@@ -236,8 +236,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         ].join(System.lineSeparator())
 
         when:
-        def action = factory.convert(options)
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(options)
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdOut.contains(expectedText)
@@ -284,8 +284,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         }
 
         when:
-        def action = factoryWithComposer.convert(options)
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(options)
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdOut.contains(expectedText)
