@@ -13,7 +13,6 @@ In this guide, we'll discuss how to configure link:https://travis-ci.org/[Travis
 * A text editor
 * A command prompt
 * The Java Development Kit (JDK), version 1.8 or higher
-* A https://gradle.org/install[Gradle distribution], version {gradle-version} or better
 
 == Setup a typical project
 
