@@ -58,7 +58,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         }
 
         @Override
-        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, Collection<CommandLineActionCreator> actionCreators) {
+        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
             actionCreators.add(actionFactory1)
             actionCreators.add(actionFactory2)
         }
@@ -78,7 +78,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     }
 
     def "delegates to each action factory to configure the command-line parser and create the action"() {
-        def rawAction = Mock(Runnable)
+        def rawAction = Mock(Action<? super ExecutionListener>)
 
         when:
         def action = factory.convert(["--some-option"])
@@ -93,7 +93,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option("some-option") }
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
-        1 * rawAction.run()
+        1 * rawAction.execute(executionListener)
     }
 
     def "configures logging before parsing command-line"() {
@@ -270,32 +270,38 @@ class DefaultCommandLineActionFactoryTest extends Specification {
             "OS:           ${OperatingSystem.current()}",
             ""
         ].join(System.lineSeparator())
+        final CommandLineActionFactory factoryWithComposer = new DefaultCommandLineActionFactory() {
+            @Override
+            LoggingServiceRegistry createLoggingServices() {
+                return loggingServices
+            }
+
+            @Override
+            protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
+                actionCreators.add(new ComposingCreator(actionCreators));
+                actionCreators.add(actionFactory1)
+            }
+        }
 
         when:
-        def action = factory.convert(options)
+        def action = factoryWithComposer.convert(options)
         action.execute(executionListener)
 
         then:
         outputs.stdOut.contains(expectedText)
-        outputs.stdOut.contains("action1")
-        !action1Intermediary || outputs.stdOut.contains("action2")
+        !actionCalled || outputs.stdOut.contains("action1")
 
         and:
-        1 * actionFactory1.createAction(!null, !null) >> {
-            def action1 = { println "action1" }
-            action1Intermediary ? action1 as ComposableAction : action1 as Runnable
-        }
-        action2Called * actionFactory2.createAction(!null, !null) >> {
-            { println "action2" } as Runnable
+        actionCalled * actionFactory1.createAction(!null, !null) >> {
+            { println "action1" } as Action<? super ExecutionListener>
         }
         1 * loggingManager.start()
         0 * executionListener._
 
         where:
-        options            | action1Intermediary | action2Called
-        ['-V']             | false               | 0
-        ['--show-version'] | false               | 0
-        ['-V']             | true                | 1
-        ['--show-version'] | true                | 1
+        options            | actionCalled
+        ['-v']             | 0
+        ['-V']             | 1
+        ['--show-version'] | 1
     }
 }

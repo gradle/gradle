@@ -16,8 +16,10 @@
 
 package org.gradle.launcher.cli;
 
+import org.gradle.api.Action;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 
 import javax.annotation.Nullable;
 
@@ -32,5 +34,5 @@ public interface CommandLineActionCreator {
      * command-line args.
      */
     @Nullable
-    Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine);
+    Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine);
 }

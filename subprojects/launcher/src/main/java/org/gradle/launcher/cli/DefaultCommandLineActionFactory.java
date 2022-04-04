@@ -48,7 +48,6 @@ import org.gradle.util.internal.DefaultGradleVersion;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,7 +57,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
     private static final String HELP = "h";
     private static final String VERSION = "v";
-    private static final String VERSION_CONTINUE = "V";
+    public static final String VERSION_CONTINUE = "V";
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -81,8 +80,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     @VisibleForTesting
-    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, Collection<CommandLineActionCreator> actionCreators) {
+    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
         actionCreators.add(new BuildActionsFactory(loggingServices));
+    }
+
+    private void createComposingCreator(List<CommandLineActionCreator> actionCreators) {
+        actionCreators.add(0, new ComposingCreator(actionCreators));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -112,15 +115,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
 
         @Override
-        public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
-                return new ShowUsageAction(parser);
+                return Actions.toAction(new ShowUsageAction(parser));
             }
             if (commandLine.hasOption(VERSION)) {
-                return new ShowVersionAction();
-            }
-            if (commandLine.hasOption(VERSION_CONTINUE)) {
-                return new ShowVersionAndContinueAction();
+                return Actions.toAction(new ShowVersionAction());
             }
             return null;
         }
@@ -157,7 +157,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
     }
 
-    private static class ShowVersionAction implements Runnable {
+    public static class ShowVersionAction implements Runnable {
         @Override
         public void run() {
             DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
@@ -183,10 +183,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
             System.out.println(String.format(sb.toString()));
         }
-    }
-
-    private static class ShowVersionAndContinueAction extends ShowVersionAction implements ComposableAction {
-
     }
 
     private static class WithLogging implements CommandLineExecution {
@@ -267,6 +263,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             List<CommandLineActionCreator> actionCreators = new ArrayList<>();
             actionCreators.add(new BuiltInActions());
             createBuildActionFactoryActionCreator(loggingServices, actionCreators);
+            createComposingCreator(actionCreators);
 
             CommandLineParser parser = new CommandLineParser();
             for (CommandLineActionCreator actionCreator : actionCreators) {
@@ -285,18 +282,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
 
         private Action<? super ExecutionListener> createAction(Iterable<CommandLineActionCreator> actionCreators, CommandLineParser parser, ParsedCommandLine commandLine) {
-            List<Action<? super ExecutionListener>> actions = new ArrayList<>();
             for (CommandLineActionCreator actionCreator : actionCreators) {
-                Runnable action = actionCreator.createAction(parser, commandLine);
+                Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine);
                 if (action != null) {
-                    actions.add(Actions.toAction(action));
-                    if (!(action instanceof ComposableAction)) {
-                        break;
-                    }
+                    return action;
                 }
-            }
-            if (!actions.isEmpty()) {
-                return Actions.composite(actions);
             }
             throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
         }
