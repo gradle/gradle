@@ -81,8 +81,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     @VisibleForTesting
-    protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-        actions.add(new BuildActionsFactory(loggingServices));
+    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, Collection<CommandLineActionCreator> actionCreators) {
+        actionCreators.add(new BuildActionsFactory(loggingServices));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -103,7 +103,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         out.println();
     }
 
-    private static class BuiltInActions implements CommandLineAction {
+    private static class BuiltInActions implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
@@ -264,19 +264,19 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            List<CommandLineAction> actions = new ArrayList<CommandLineAction>();
-            actions.add(new BuiltInActions());
-            createActionFactories(loggingServices, actions);
+            List<CommandLineActionCreator> actionCreators = new ArrayList<>();
+            actionCreators.add(new BuiltInActions());
+            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
 
             CommandLineParser parser = new CommandLineParser();
-            for (CommandLineAction action : actions) {
-                action.configureCommandLineParser(parser);
+            for (CommandLineActionCreator actionCreator : actionCreators) {
+                actionCreator.configureCommandLineParser(parser);
             }
 
             Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);
-                action = createAction(actions, parser, commandLine);
+                action = createAction(actionCreators, parser, commandLine);
             } catch (CommandLineArgumentException e) {
                 action = new CommandLineParseFailureAction(parser, e);
             }
@@ -284,10 +284,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             action.execute(executionListener);
         }
 
-        private Action<? super ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
+        private Action<? super ExecutionListener> createAction(Iterable<CommandLineActionCreator> actionCreators, CommandLineParser parser, ParsedCommandLine commandLine) {
             List<Action<? super ExecutionListener>> actions = new ArrayList<>();
-            for (CommandLineAction factory : factories) {
-                Runnable action = factory.createAction(parser, commandLine);
+            for (CommandLineActionCreator actionCreator : actionCreators) {
+                Runnable action = actionCreator.createAction(parser, commandLine);
                 if (action != null) {
                     actions.add(Actions.toAction(action));
                     if (!(action instanceof ComposableAction)) {

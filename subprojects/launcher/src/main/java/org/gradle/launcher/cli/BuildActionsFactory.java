@@ -54,7 +54,7 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
-class BuildActionsFactory implements CommandLineAction {
+class BuildActionsFactory implements CommandLineActionCreator {
     private final ParametersConverter parametersConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;

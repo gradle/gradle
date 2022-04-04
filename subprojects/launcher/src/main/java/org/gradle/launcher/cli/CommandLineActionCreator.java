@@ -21,7 +21,7 @@ import org.gradle.cli.ParsedCommandLine;
 
 import javax.annotation.Nullable;
 
-public interface CommandLineAction {
+public interface CommandLineActionCreator {
     /**
      * Configures the given parser with the options used by this action.
      */

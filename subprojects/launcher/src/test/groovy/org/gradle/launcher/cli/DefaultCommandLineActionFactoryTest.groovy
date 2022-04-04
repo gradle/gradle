@@ -49,8 +49,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     final ExecutionListener executionListener = Mock()
     final LoggingServiceRegistry loggingServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()
-    final CommandLineAction actionFactory1 = Mock()
-    final CommandLineAction actionFactory2 = Mock()
+    final CommandLineActionCreator actionFactory1 = Mock()
+    final CommandLineActionCreator actionFactory2 = Mock()
     final CommandLineActionFactory factory = new DefaultCommandLineActionFactory() {
         @Override
         LoggingServiceRegistry createLoggingServices() {
@@ -58,9 +58,9 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         }
 
         @Override
-        protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-            actions.add(actionFactory1)
-            actions.add(actionFactory2)
+        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, Collection<CommandLineActionCreator> actionCreators) {
+            actionCreators.add(actionFactory1)
+            actionCreators.add(actionFactory2)
         }
     }
 
