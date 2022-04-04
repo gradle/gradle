@@ -362,6 +362,11 @@ public interface ValueSupplier {
     abstract class ExecutionTimeValue<T> {
         private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
 
+        /**
+         * Returns {@code true} when the value is <b>definitely</b> missing.
+         *
+         * A {@code false} return value doesn't mean the value is <b>definitely</b> present, it might still be missing at runtime.
+         */
         public boolean isMissing() {
             return false;
         }
@@ -428,6 +433,12 @@ public interface ValueSupplier {
     }
 
     class MissingExecutionTimeValue extends ExecutionTimeValue<Object> {
+
+        @Override
+        public String toString() {
+            return "missing";
+        }
+
         @Override
         public boolean isMissing() {
             return true;
@@ -456,6 +467,11 @@ public interface ValueSupplier {
         private FixedExecutionTimeValue(T value, boolean changingContent) {
             this.value = value;
             this.changingContent = changingContent;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("fixed(%s)", value);
         }
 
         @Override
@@ -497,6 +513,11 @@ public interface ValueSupplier {
 
         private ChangingExecutionTimeValue(ProviderInternal<T> provider) {
             this.provider = provider;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("changing(%s)", provider);
         }
 
         @Override

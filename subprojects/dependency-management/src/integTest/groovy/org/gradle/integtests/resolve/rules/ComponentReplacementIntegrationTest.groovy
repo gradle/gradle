@@ -39,6 +39,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                     }
                     println "All files:"
                     configurations.conf.each { println it.name }
+                    // Hit legacy API to trigger both result loading logic
+                    configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
                 }
             }
         """
@@ -440,6 +442,16 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a:2', 'b', 'c', 'to', 'm', 'n', 'o', 'p', 'q'
     }
 
+    @Issue("gradle/gradle#19026")
+    @ToBeFixedForConfigurationCache
+    def "handles replacement when target is a dependency of replaced"() {
+        declaredDependencies 'data', 'common'
+        declaredReplacements 'standalone->original'
+        publishedMavenModules 'data->standalone->original', 'common->a->original'
+        expect:
+        resolvedModules 'data', 'common', 'a', 'original'
+    }
+
     @ToBeFixedForConfigurationCache
     def "can provide custom replacement reason"() {
         declaredDependencies 'a', 'b'
@@ -466,15 +478,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         run 'dependencyInsight', '--configuration=conf', '--dependency=a'
 
         then:
-        result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
-   variant "runtime" [
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+        result.groupedOutput.task(':dependencyInsight').output.contains("""
    Selection reasons:
-      - Selected by rule : $expected
+      - Selected by rule: $expected
 
 org:a:1 -> org:b:1""")
 

@@ -458,7 +458,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotWriteFileToDirectory {
             property('outputFile')
                 .file(task.outputFile)
                 .isNotFile()
@@ -478,7 +478,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotWriteFileToDirectory {
             property('outputFiles')
                 .file(task.outputFiles[0])
                 .isNotFile()
@@ -499,7 +499,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotCreateParentDirectories {
             property('outputFile')
                 .file(task.outputFile)
                 .ancestorIsNotDirectory(task.outputFile.parentFile)
@@ -520,7 +520,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotCreateParentDirectories {
             property('outputFiles')
                 .file(task.outputFiles[0])
                 .ancestorIsNotDirectory(task.outputFiles[0].parentFile)

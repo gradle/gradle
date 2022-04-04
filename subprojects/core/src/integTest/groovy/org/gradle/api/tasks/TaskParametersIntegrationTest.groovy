@@ -726,7 +726,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(cannotWriteToFile {
+        failureDescriptionContains(cannotWriteFileToDirectory {
             property('output')
                 .file(outputDir)
                 .isNotFile()

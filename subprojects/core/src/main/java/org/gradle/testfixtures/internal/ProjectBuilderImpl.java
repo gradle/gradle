@@ -65,7 +65,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -122,6 +121,11 @@ public class ProjectBuilderImpl {
         BuildScopeServices buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
+        // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
+        ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
+        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
+        WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = workerLeaseService.maybeStartWorker();
+
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
 
@@ -140,17 +144,14 @@ public class ProjectBuilderImpl {
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
-        // Take a root worker lease and lock the project, these won't ever be released as ProjectBuilder has no lifecycle
-        ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
-        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getOwner().getAccessLock()));
+        // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
                 (Stoppable) workerLeaseService::runAsIsolatedTask,
-                (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
+                (Stoppable) workerLease::leaseFinish,
                 buildServices,
                 buildTreeState,
                 buildSessionState,

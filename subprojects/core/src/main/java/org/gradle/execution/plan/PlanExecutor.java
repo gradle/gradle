@@ -17,20 +17,26 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 
 /**
- * Will be merged with {@link org.gradle.internal.operations.BuildOperationExecutor}
+ * Responsible for running the work of a build tree, packaged as zero or more {@link ExecutionPlan} instances.
  */
+@ServiceScope(Scopes.BuildTree.class)
+@ThreadSafe
 public interface PlanExecutor {
-
     /**
-     * Executes an {@link ExecutionPlan}.
+     * Executes an {@link ExecutionPlan}, blocking until complete.
      *
      * @param executionPlan the plan to execute.
      * @param failures collection to collect failures happening during execution into. Does not need to be thread-safe.
      * @param nodeExecutor the actual executor responsible to execute the nodes. Must be thread-safe.
      */
     void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor);
+
+    void assertHealthy();
 }

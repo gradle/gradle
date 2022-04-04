@@ -67,4 +67,18 @@ class StaticReleaseNotesTest extends Specification {
         then:
         brokenAnchorLinks.empty
     }
+
+    def "no absolute links to docs.gradle.org"() {
+        when:
+        def links = renderedDocument.select("a")
+
+        def absoluteLinks = links.grep {
+            def href = it.attr("href")
+            return href.startsWith("https://docs.gradle.org/current") || href.startsWith("/")
+        }
+
+
+        then:
+        assert absoluteLinks.empty : "all links to docs.gradle.org/current need to be relative"
+    }
 }

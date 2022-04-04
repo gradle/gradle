@@ -61,6 +61,8 @@ dependencies {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
+    // TODO: Make these available for all integration tests? Maybe all tests?
+    integTestImplementation(libs.jetbrainsAnnotations)
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

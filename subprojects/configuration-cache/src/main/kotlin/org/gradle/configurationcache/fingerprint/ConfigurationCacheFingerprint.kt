@@ -36,8 +36,8 @@ sealed class ConfigurationCacheFingerprint {
         val fingerprints: List<InputFile>
     ) : ConfigurationCacheFingerprint()
 
-    data class TaskInputs(
-        val taskPath: String,
+    data class WorkInputs(
+        val workDisplayName: String,
         val fileSystemInputs: FileCollectionInternal,
         val fileSystemInputsFingerprint: HashCode
     ) : ConfigurationCacheFingerprint()

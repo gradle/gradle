@@ -160,7 +160,21 @@ $ gradle  mAL:cT
 include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
 ----
 
-You can also use these abbreviations with the -x command-line option.
+You can also use these abbreviations with the `-x` command-line option.
+
+=== Tracing name expansion
+
+For complex projects, it might not be obvious if the intended tasks were executed. When using abbreviated names, a single typo can lead to the execution of unexpected tasks.
+
+When INFO, or <<logging.adoc#logLevels, more verbose logging is enabled>>, the output will contain extra information about the project and task name expansion. For example, when executing the `mAL:cT` command on the previous example, the following log messages will be visible:
+
+
+----
+No exact project with name ‘:mAL’ has been found. Checking for abbreviated names.
+Found exactly one project that matches the abbreviated name ‘:mAL’: ':my-awesome-library'.
+No exact task with name ‘:cT’ has been found. Checking for abbreviated names.
+Found exactly one task name, that matches the abbreviated name ‘:cT’: ':compileTest'.
+----
 
 == Common tasks
 
@@ -296,6 +310,14 @@ Running `gradle properties` gives you a list of the properties of the selected p
 ----
 $ gradle -q api:properties
 include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
+----
+
+You can also query a single property with the optional `--property` argument.
+
+.Information about a single property
+----
+$ gradle -q api:properties --property allprojects
+include::{snippetsPath}/tutorial/projectReports/tests/propertyReport.out[]
 ----
 
 [[sec:command_line_completion]]
@@ -589,7 +611,8 @@ You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url
 [[sec:continuous_build]]
 == Continuous Build
 
-Continuous Build allows you to automatically re-execute the requested tasks when task inputs change. You can execute the build in this mode using the `-t` or `--continuous` command-line option.
+Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.
+You can execute the build in this mode using the `-t` or `--continuous` command-line option.
 
 For example, you can continuously run the `test` task and all dependent tasks by running:
 
@@ -597,51 +620,69 @@ For example, you can continuously run the `test` task and all dependent tasks by
 $ gradle test --continuous
 ----
 
-Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks. This means that unrelated changes (such as changes to build scripts) will not trigger a rebuild. In order to incorporate build logic changes, the continuous build must be restarted manually.
+Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks.
+This means that unrelated changes (such as changes to build scripts) will not trigger a rebuild.
+In order to incorporate build logic changes, the continuous build must be restarted manually.
+
+Continuous build uses file system watching to detect changes to the inputs.
+If file system watching does not work on your system, then continuous build won't work either.
+In particular, continuous build does not work when using `--no-daemon`.
+See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
+
+When Gradle detects a change to the inputs, it will not trigger the build immediately.
+Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
+You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
 
 === Terminating Continuous Build
 
-If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`). If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar). If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
+If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`).
+If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar).
+If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
 
 [[continuous_build_limitations]]
-=== Limitations and quirks
+=== Limitations
 
-There are several issues to be aware with the current implementation of continuous build. These are likely to be addressed in future Gradle releases.
+Under some circumstances continuous build may not detect changes to inputs.
+
+[[sec:continuous_build_missing_files]]
+==== Creating input directories
+
+Sometimes, creating an input directory that was previously missing does not trigger a build, due to the way file system watching works.
+For example, creating the `src/main/java` directory may not trigger a build.
+Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered file tree>> and no files are matching the filter, the creation of matching files may not trigger a build.
+
+[[sec:continuous_build_untracked]]
+==== Inputs of untracked tasks
+
+Changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
+
+[[sec:continuous_build_project_dir]]
+==== Changes to files outside of project directories
+
+Gradle only watches for changes to files inside the project directory.
+Changes to files outside of the project directory will go undetected and not trigger a build.
 
 [[sec:build_cycles]]
 ==== Build cycles
 
-Gradle starts watching for changes just before a task executes. If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build. If every time the task executes, the inputs are modified again, the build will be triggered again. This isn't unique to continuous build. A task that modifies its own inputs will never be considered up-to-date when run "normally" without continuous build.
+Gradle starts watching for changes just before a task executes.
+If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build.
+If every time the task executes, the inputs are modified again, the build will be triggered again.
+This isn't unique to continuous build.
+A task that modifies its own inputs will never be considered up-to-date when run "normally" without continuous build.
 
-If your build enters a build cycle like this, you can track down the task by looking at the list of files reported changed by Gradle. After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input. In some cases, it may be obvious (e.g., a Java file is compiled with `compileJava`). In other cases, you can use `--info` logging to find the task that is out-of-date due to the identified files.
-
-[[sec:continuous_build_limitations_jdk9]]
-==== Restrictions with Java 9
-
-Due to class access restrictions related to Java 9, Gradle cannot set some operating system specific options, which means that:
-
-* On macOS, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
-* On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.
-
-[[sec:performance_and_stability]]
-==== Performance and stability
-
-The JDK file watching facility relies on inefficient file system polling on macOS (see: https://bugs.openjdk.java.net/browse/JDK-7133447[JDK-7133447]). This can significantly delay notification of changes on large projects with many source files.
-
-Additionally, the watching mechanism may deadlock under _heavy_ load on macOS (see: https://bugs.openjdk.java.net/browse/JDK-8079620[JDK-8079620]). This will manifest as Gradle appearing not to notice file changes. If you suspect this is occurring, exit continuous build and start again.
-
-On Linux, OpenJDK's implementation of the file watch service can sometimes miss file system events (see: https://bugs.openjdk.java.net/browse/JDK-8145981[JDK-8145981]).
+If your build enters a build cycle like this, you can track down the task by looking at the list of files reported changed by Gradle.
+After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input.
+In some cases, it may be obvious (e.g., a Java file is compiled with `compileJava`).
+In other cases, you can use `--info` logging to find the task that is out-of-date due to the identified files.
 
 [[sec:changes_to_symbolic_links]]
 ==== Changes to symbolic links
 
- * Creating or removing symbolic link to files will initiate a build.
- * Modifying the target of a symbolic link will not cause a rebuild.
- * Creating or removing symbolic links to directories will not cause rebuilds.
- * Creating new files in the target directory of a symbolic link will not cause a rebuild.
- * Deleting the target directory will not cause a rebuild.
+In general, Gradle will not detect changes to symbolic links or to files referenced via symbolic links.
 
 [[sec:changes_to_build_logic_are_not_considered]]
 ==== Changes to build logic are not considered
 
-The current implementation does not recalculate the build model on subsequent builds. This means that changes to task configuration, or any other change to the build model, are effectively ignored.
+The current implementation does not recalculate the build model on subsequent builds.
+This means that changes to task configuration, or any other change to the build model, are effectively ignored.

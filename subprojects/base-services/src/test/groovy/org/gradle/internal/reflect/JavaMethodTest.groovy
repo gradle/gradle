@@ -82,4 +82,8 @@ class JavaMethodTest extends Specification {
         e.message == /Could not find method unknown() on JavaMethodTestSubjectSubclass./
     }
 
+    def "default methods are discovered"() {
+        expect:
+        JavaMethod.of(JavaMethodTestSubjectSubclass, String, "defaultMethod").invoke(new JavaMethodTestSubjectSubclass()) == "parent-interface"
+    }
 }

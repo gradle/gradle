@@ -45,8 +45,8 @@ import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginR
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
+import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
-import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
@@ -67,11 +67,13 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     private static class SettingsScopeServices {
 
         protected PluginManagementSpec createPluginManagementSpec(
-            Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
-            PluginResolutionStrategyInternal internalPluginResolutionStrategy, FileResolver fileResolver,
+            Instantiator instantiator,
+            PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider,
+            PluginResolutionStrategyInternal internalPluginResolutionStrategy,
+            FileResolver fileResolver,
             BuildIncluder buildIncluder
         ) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy, fileResolver, buildIncluder);
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoryHandlerProvider, internalPluginResolutionStrategy, fileResolver, buildIncluder);
         }
     }
 
@@ -80,10 +82,6 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             registration.add(PluginResolverFactory.class);
             registration.add(DefaultPluginRequestApplicator.class);
             registration.add(PluginVersionTracker.class);
-        }
-
-        PluginRepositoriesProvider createPluginResolverFactory(PluginDependencyResolutionServices dependencyResolutionServices) {
-            return dependencyResolutionServices.getPluginRepositoriesProvider();
         }
 
         AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {

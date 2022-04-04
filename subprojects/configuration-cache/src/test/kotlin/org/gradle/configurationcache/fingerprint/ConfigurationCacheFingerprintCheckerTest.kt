@@ -42,6 +42,7 @@ import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.Try
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.hamcrest.CoreMatchers.equalTo
@@ -59,12 +60,12 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("unchanged.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("unchanged.gradle.kts") to TestHashCodes.hashCodeFrom(1)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(2),
-                    File("unchanged.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(2),
+                    File("unchanged.gradle.kts") to TestHashCodes.hashCodeFrom(1)
                 )
             ),
             equalTo("init script 'init.gradle.kts' has changed")
@@ -76,14 +77,14 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("before.gradle.kts") to HashCode.fromInt(2),
-                    File("other.gradle.kts") to HashCode.fromInt(3)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("before.gradle.kts") to TestHashCodes.hashCodeFrom(2),
+                    File("other.gradle.kts") to TestHashCodes.hashCodeFrom(3)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("after.gradle.kts") to HashCode.fromInt(42),
-                    File("other.gradle.kts") to HashCode.fromInt(3)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("after.gradle.kts") to TestHashCodes.hashCodeFrom(42),
+                    File("other.gradle.kts") to TestHashCodes.hashCodeFrom(3)
                 )
             ),
             equalTo("content of 2nd init script, 'after.gradle.kts', has changed")
@@ -95,11 +96,11 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("added.init.gradle.kts") to HashCode.fromInt(2)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("added.init.gradle.kts") to TestHashCodes.hashCodeFrom(2)
                 )
             ),
             equalTo("init script 'added.init.gradle.kts' has been added")
@@ -111,12 +112,12 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("added.init.gradle.kts") to HashCode.fromInt(2),
-                    File("another.init.gradle.kts") to HashCode.fromInt(3)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("added.init.gradle.kts") to TestHashCodes.hashCodeFrom(2),
+                    File("another.init.gradle.kts") to TestHashCodes.hashCodeFrom(3)
                 )
             ),
             equalTo("init script 'added.init.gradle.kts' and 1 more have been added")
@@ -128,11 +129,11 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("removed.init.gradle.kts") to HashCode.fromInt(2)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("removed.init.gradle.kts") to TestHashCodes.hashCodeFrom(2)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1)
                 )
             ),
             equalTo("init script 'removed.init.gradle.kts' has been removed")
@@ -144,12 +145,12 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("removed.init.gradle.kts") to HashCode.fromInt(2),
-                    File("another.init.gradle.kts") to HashCode.fromInt(3)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1),
+                    File("removed.init.gradle.kts") to TestHashCodes.hashCodeFrom(2),
+                    File("another.init.gradle.kts") to TestHashCodes.hashCodeFrom(3)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to TestHashCodes.hashCodeFrom(1)
                 )
             ),
             equalTo("init script 'removed.init.gradle.kts' and 1 more have been removed")
@@ -162,12 +163,12 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             checkFingerprintGiven(
                 mock {
-                    on { hashCodeOf(scriptFile) } doReturn HashCode.fromInt(1)
+                    on { hashCodeOf(scriptFile) } doReturn TestHashCodes.hashCodeFrom(1)
                     on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
                 },
                 ConfigurationCacheFingerprint.InputFile(
                     scriptFile,
-                    HashCode.fromInt(2)
+                    TestHashCodes.hashCodeFrom(2)
                 )
             ),
             equalTo("file 'displayNameOf(scriptFile)' has changed")

@@ -275,11 +275,12 @@ public class NodeState implements DependencyGraphNode {
         // Clear previous traversal state, if any
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
-            upcomingNoLongerPendingConstraints = null;
             edgesToRecompute = null;
             potentiallyActivatedConstraints = null;
             ownStrictVersionConstraints = null;
         }
+        // We are processing dependencies, anything in the previous state will be handled
+        upcomingNoLongerPendingConstraints = null;
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
@@ -1042,7 +1043,7 @@ public class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : virtualEdges) {
                 outgoingDependency.markUnused();
                 outgoingDependency.removeFromTargetConfigurations();
-                outgoingDependency.getSelector().release();
+                outgoingDependency.getSelector().release(resolveState.getConflictTracker());
             }
         }
         virtualEdges = null;
@@ -1150,7 +1151,7 @@ public class NodeState implements DependencyGraphNode {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
                 if (from.removeOutgoingEdge(incomingEdge)) {
-                    incomingEdge.getSelector().release();
+                    incomingEdge.getSelector().release(resolveState.getConflictTracker());
                 }
             }
             pendingDependencies.registerConstraintProvider(from);
@@ -1237,7 +1238,7 @@ public class NodeState implements DependencyGraphNode {
             // We can ignore if we are already removing edges anyway
             outgoingEdges.remove(edgeState);
             edgeState.markUnused();
-            edgeState.getSelector().release();
+            edgeState.getSelector().release(resolveState.getConflictTracker());
         }
     }
 

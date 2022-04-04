@@ -37,6 +37,7 @@ import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -336,11 +337,26 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginExtension pluginExtension) {
-        return project.getTasks().register(JAR_TASK_NAME, Jar.class, jar -> {
+        TaskProvider<Jar> jarTaskProvider = project.getTasks().register(JAR_TASK_NAME, Jar.class);
+        jarTaskProvider.configure(jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
             jar.setGroup(BasePlugin.BUILD_GROUP);
             jar.from(mainSourceSetOf(pluginExtension).getOutput());
         });
+
+        /* Unless there are other concerns, we'd prefer to run jar tasks prior to test tasks, as this might offer a small performance improvement
+           for common usage.  In practice, running test tasks tends to take longer than building a jar; especially as a project matures. If tasks
+            in downstream projects require the jar from this project, and the jar and test tasks in this project are available to be run in either order,
+            running jar first so that other projects can continue executing tasks in parallel while this project runs its tests could be an improvement.
+            However, while we want to prioritize cross-project dependencies to maximize parallelism if possible, we don't want to add an explicit
+            dependsOn() relationship between the jar task and the test task, so that any projects which need to run test tasks first will not need modification.
+         */
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            // Attempt to avoid configuring jar task if possible, it will likely be configured anyway the by apiElements variant
+            test.shouldRunAfter(project.getTasks().withType(Jar.class));
+        });
+
+        return jarTaskProvider;
     }
 
     private static SourceSet mainSourceSetOf(JavaPluginExtension pluginExtension) {
@@ -383,7 +399,8 @@ public class JavaPlugin implements Plugin<Project> {
         // Define some additional variants
         jvmServices.configureClassesDirectoryVariant(sourceSet.getRuntimeElementsConfigurationName(), sourceSet);
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
-        ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
+        ConfigurationVariantInternal resourcesVariant = (ConfigurationVariantInternal) runtimeVariants.create("resources");
+        resourcesVariant.setDescription("Directories containing the project's assembled resource files for use at runtime.");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         resourcesVariant.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
         resourcesVariant.artifact(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {

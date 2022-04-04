@@ -997,7 +997,7 @@ class ProblemReportingCrossProjectModelAccess(
             )
             coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
             // Configure the target project, if it would normally be configured before the referring project
-            if (delegate.compareTo(referrer) < 0) {
+            if (delegate.compareTo(referrer) < 0 && delegate.parent != null) {
                 delegate.owner.ensureConfigured()
             }
         }

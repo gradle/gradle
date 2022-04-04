@@ -26,7 +26,6 @@ import org.gradle.internal.resources.ResourceLock;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private final WorkNodeAction action;
@@ -54,10 +53,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void prepareForExecution() {
-    }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         TaskDependencyContainer dependencies = action::visitDependencies;
         for (Node node : dependencyResolver.resolveDependenciesFor(null, dependencies)) {
@@ -66,28 +61,8 @@ public class ActionNode extends Node implements SelfExecutingNode {
         }
     }
 
-    @Override
-    public Set<Node> getFinalizers() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public void resolveMutations() {
-        // Assume has no outputs that can be destroyed or that overlap with another node
-    }
-
     public WorkNodeAction getAction() {
         return action;
-    }
-
-    @Override
-    public boolean isPublicNode() {
-        return false;
-    }
-
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
     }
 
     @Override

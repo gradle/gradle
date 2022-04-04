@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization
 
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.internal.classpath.ClassPath
@@ -27,6 +28,8 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 
 import java.io.File
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -407,3 +410,22 @@ fun Decoder.readDouble(): Double =
 inline
 fun <reified T : Any> ReadContext.readClassOf() =
     readClass().asSubclass(T::class.java)
+
+
+/**
+ * Workaround for serializing JDK types with complex/opaque state on Java 17+.
+ *
+ * **IMPORTANT** Should be avoided for composite/container types as all components would be serialized
+ * using Java serialization.
+ */
+internal
+fun WriteContext.encodeUsingJavaSerialization(value: Any) {
+    ObjectOutputStream(outputStream).useToRun {
+        writeObject(value)
+    }
+}
+
+
+internal
+fun ReadContext.decodeUsingJavaSerialization(): Any? =
+    ObjectInputStream(inputStream).readObject()

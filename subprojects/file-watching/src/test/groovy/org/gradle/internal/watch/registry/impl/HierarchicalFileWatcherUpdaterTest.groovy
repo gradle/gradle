@@ -20,7 +20,7 @@ import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.WatchMode
+import org.gradle.internal.watch.registry.WatchMode
 
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
 

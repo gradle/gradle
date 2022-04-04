@@ -48,7 +48,13 @@ include::sample[dir="groovy",files="settings.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[]"]
 ====
 
-Note that it is not yet possible to execute tasks in an included build from the command line. Instead, the build user must create delegating tasks in the composite.
+After doing so, you can reference any tasks in the included builds directly on the command line in order to execute.
+
+```
+gradle :my-app:app:run
+```
+
+Alternately, you can create delegating tasks in the composite project to execute tasks without specifying the full task path.
 
 ====
 include::sample[dir="groovy",files="build.gradle[tags=run]"]
@@ -58,5 +64,3 @@ include::sample[dir="kotlin",files="build.gradle.kts[tags=run]"]
 ```
 gradle run
 ```
-
-We are working on a mechanism to permit tasks in included builds to be referred to directly on the command line. Stay tuned!

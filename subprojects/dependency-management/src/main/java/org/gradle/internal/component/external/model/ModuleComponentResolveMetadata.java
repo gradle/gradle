@@ -60,10 +60,19 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
+    ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier);
+
     /**
      * Returns the variants of this component
      */
     ImmutableList<? extends ComponentVariant> getVariants();
+
+    /**
+     * @return true if component has variants or derives them via rules, false otherwise
+     */
+    default boolean hasVariants() {
+        return !getVariants().isEmpty() || getVariantDerivationStrategy().derivesVariants();
+    }
 
     @Nullable
     ImmutableAttributesFactory getAttributesFactory();

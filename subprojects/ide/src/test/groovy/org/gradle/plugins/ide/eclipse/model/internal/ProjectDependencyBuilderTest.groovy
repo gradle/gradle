@@ -28,7 +28,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
 
     def "should create dependency using project name for project without eclipse plugin applied"() {
         when:
-        def dependency = builder.build(projectId, null, null, false)
+        def dependency = builder.build(projectId, null, null, false, false)
 
         then:
         dependency.path == "/project-name"
@@ -45,7 +45,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         artifactRegistry.getIdeProject(EclipseProjectMetadata, projectId) >> projectMetadata
 
         when:
-        def dependency = builder.build(projectId, null, null, false)
+        def dependency = builder.build(projectId, null, null, false, false)
 
         then:
         dependency.path == '/foo'

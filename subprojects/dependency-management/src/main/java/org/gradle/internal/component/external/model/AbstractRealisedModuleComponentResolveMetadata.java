@@ -50,17 +50,13 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
     private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
     private final ImmutableMap<String, ConfigurationMetadata> configurations;
 
-    public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata) {
-        super(metadata);
-        this.configurations = metadata.configurations;
-    }
-
     public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);
         this.configurations = metadata.configurations;
     }
 
-    public AbstractRealisedModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata mutableMetadata, ImmutableList<? extends ComponentVariant> variants,
+    public AbstractRealisedModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata mutableMetadata,
+                                                          ImmutableList<? extends ComponentVariant> variants,
                                                           Map<String, ConfigurationMetadata> configurations) {
         super(mutableMetadata, variants);
         this.configurations = ImmutableMap.<String, ConfigurationMetadata>builder().putAll(configurations).build();

@@ -44,6 +44,9 @@ class ConfigurationCacheStartParameter(
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
 
+    val isDebug: Boolean
+        get() = startParameter.isConfigurationCacheDebug
+
     val failOnProblems: Boolean
         get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.FAIL
 

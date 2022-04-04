@@ -317,6 +317,35 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
     }
 
+    def 'can aggregate tests from root project when subproject does not have tests'() {
+        given:
+        buildFile << '''
+            apply plugin: 'org.gradle.test-report-aggregation'
+
+            dependencies {
+                testReportAggregation project(":application")
+                testReportAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testAggregateTestReport(AggregateTestReport) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+        '''
+        // remove tests from transitive
+        file("transitive/src/test").deleteDir()
+
+        when:
+        succeeds(':testAggregateTestReport')
+
+        then:
+        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-test/aggregated-results')
+        aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest')
+    }
+
     def 'can apply custom attributes to refine test results'() {
         setup:
         file('application/build.gradle') << '''
@@ -441,6 +470,33 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         applicationTestResults.assertTestClassesExecuted('application.AdderTest')
 
         def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/unit-test/aggregated-results")
+        aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
+    }
+
+    def 'test aggregated report can be put into a custom location'() {
+        given:
+        // Reordering the plugins so that Java is applied later
+        file("application/build.gradle").text = """
+                plugins {
+                    id 'org.gradle.test-report-aggregation'
+                    id 'java'
+                }
+
+                java {
+                    testReportDir = layout.buildDirectory.dir("non-default-location")
+                }
+                dependencies {
+                    implementation project(":direct")
+                }
+            """
+
+        when:
+        succeeds(":application:testAggregateTestReport", "--continue")
+
+        then:
+        result.assertTaskExecuted(":application:testAggregateTestReport")
+
+        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/non-default-location/unit-test/aggregated-results")
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 

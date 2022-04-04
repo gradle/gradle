@@ -337,7 +337,7 @@ Either way, the Java Library Plugin adds a specific link:{groovyDslPath}/org.gra
 
 The task's name follows the convention of `process__SourceSet__Resources` — or `processResources` for the `main` source set — and it will automatically copy any files in _src/[sourceSet]/resources_ to a directory that will be included in the production JAR. This target directory will also be included in the runtime classpath of the tests.
 
-Since `processResources` is an instance of the `Copy` task, you can perform any of the processing described in the <<working_with_files.adoc#sec:copying_files,Working With Files>> chapter.
+Since `processResources` is an instance of the `ProcessResources` task, you can perform any of the processing described in the <<working_with_files.adoc#sec:copying_files,Working With Files>> chapter.
 
 [[sec:properties_files]]
 === Java properties files and reproducible builds

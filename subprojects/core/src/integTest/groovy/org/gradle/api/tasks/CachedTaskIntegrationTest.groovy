@@ -47,7 +47,6 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         metadata.contains("gradleVersion=")
         metadata.contains("creationTime=")
         metadata.contains("executionTime=")
-        metadata.contains("rootPath=")
         metadata.contains("operatingSystem=")
         metadata.contains("hostName=")
         metadata.contains("userName=")

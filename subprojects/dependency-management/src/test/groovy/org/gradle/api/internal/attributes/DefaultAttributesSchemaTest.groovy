@@ -30,7 +30,6 @@ import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
-    def factory = AttributeTestUtil.attributesFactory()
 
     def "can create an attribute of scalar type #type"() {
         when:
@@ -48,19 +47,19 @@ class DefaultAttributesSchemaTest extends Specification {
         ]
     }
 
-    def "can create an attribute of scalar type #type.name[]"() {
+    def "can create an attribute of array type #type"() {
         when:
-        Attribute.of('foo', Eval.me("${type.name}[]"))
+        Attribute.of('foo', type)
 
         then:
         noExceptionThrown()
 
         where:
         type << [
-            String,
-            Number,
-            MyEnum,
-            Flavor
+            String[].class,
+            Number[].class,
+            MyEnum[].class,
+            Flavor[].class
         ]
     }
 
@@ -339,7 +338,147 @@ class DefaultAttributesSchemaTest extends Specification {
         best == [value1] as Set
     }
 
-    interface Flavor extends Named {}
+    def "precedence order can be set"() {
+        when:
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "a", "b", "c" ]
+        when:
+        schema.attributeDisambiguationPrecedence = [Attribute.of("c", ConcreteNamed)]
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "c" ]
+        when:
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor))
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "c", "a" ]
+    }
+
+    def "precedence order cannot be changed for the same attribute"() {
+        when:
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor))
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Attribute 'a' precedence has already been set."
+    }
+    
+    def "precedence order is honored with merged schema"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        when:
+        def x = Attribute.of("x", String)
+        producer.attributeDisambiguationPrecedence(x, Attribute.of("a", String))
+
+        def a = Attribute.of("a", Flavor)
+        def b = Attribute.of("b", String)
+        def c = Attribute.of("c", ConcreteNamed)
+        schema.attributeDisambiguationPrecedence(a, b, c)
+
+        def requested = AttributeTestUtil.attributesTyped(
+                // attribute that doesn't have a precedence in consumer
+                (x): "x",
+                // attribute that has a lower precedence than the next one
+                (c): AttributeTestUtil.named(ConcreteNamed, "c"),
+                // attribute with the highest precedence
+                (a): flavor("a"),
+                // attribute that doesn't have a precedence
+                (Attribute.of("z", String)): "z"
+        )
+
+        then:
+        def result = schema.mergeWith(producer).orderByPrecedence(requested)
+        result.sortedOrder == [2, 1, 0]
+        result.unsortedOrder as List == [3]
+    }
+
+    def "precedence order is honored with merged schema when producer has attributes with the same name"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        when:
+        def producerA = Attribute.of("a", String)
+        def x = Attribute.of("x", String)
+        producer.attributeDisambiguationPrecedence(x, producerA)
+
+        def a = Attribute.of("a", Flavor)
+        def b = Attribute.of("b", String)
+        def c = Attribute.of("c", ConcreteNamed)
+        schema.attributeDisambiguationPrecedence(a, b, c)
+
+        def requested = AttributeTestUtil.attributesTyped(
+                // attribute that doesn't have a precedence in consumer
+                (x): "x",
+                // attribute that has a precedence in consumer
+                (c): AttributeTestUtil.named(ConcreteNamed, "c"),
+                // attribute with the highest precedence in consumer, but lowest in producer
+                (producerA): "a",
+                // attribute that doesn't have a precedence
+                (Attribute.of("z", String)): "z"
+        )
+
+        then:
+        def result = schema.mergeWith(producer).orderByPrecedence(requested)
+        result.sortedOrder == [1, 0, 2]
+        result.unsortedOrder as List == [3]
+    }
+
+    def "precedence order is honored"() {
+        def x = Attribute.of("x", String)
+        def a = Attribute.of("a", Flavor)
+        def b = Attribute.of("b", String)
+        def c = Attribute.of("c", ConcreteNamed)
+        schema.attributeDisambiguationPrecedence(a, b, c)
+
+        def requested = AttributeTestUtil.attributesTyped(
+                // attribute that doesn't have a precedence
+                (x): "x",
+                // attribute that has a lower precedence than the next one
+                (c): AttributeTestUtil.named(ConcreteNamed, "c"),
+                // attribute with the highest precedence
+                (a): flavor("a"),
+                // attribute that doesn't have a precedence
+                (Attribute.of("z", String)): "z"
+        )
+        expect:
+        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
+        result.sortedOrder == [2, 1]
+        result.unsortedOrder as List == [0, 3]
+    }
+
+    def "requested attributes are not sorted when there is no attribute precedence"() {
+        def x = Attribute.of("x", String)
+        def a = Attribute.of("a", Flavor)
+        def c = Attribute.of("c", ConcreteNamed)
+
+        def requested = AttributeTestUtil.attributesTyped(
+                (x): "x",
+                (c): AttributeTestUtil.named(ConcreteNamed, "c"),
+                (a): flavor("a"),
+                (Attribute.of("z", String)): "z"
+        )
+        expect:
+        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
+        result.sortedOrder == []
+        result.unsortedOrder as List == [0, 1, 2, 3]
+    }
+
+    def "requested attributes are not sorted when there is a different set of attributes used for precedence"() {
+        def x = Attribute.of("x", String)
+        def a = Attribute.of("a", Flavor)
+        def c = Attribute.of("c", ConcreteNamed)
+
+        schema.attributeDisambiguationPrecedence(Attribute.of("notA", Flavor), Attribute.of("notB", String), Attribute.of("notC", ConcreteNamed))
+
+        def requested = AttributeTestUtil.attributesTyped(
+                (x): "x",
+                (c): AttributeTestUtil.named(ConcreteNamed, "c"),
+                (a): flavor("a"),
+                (Attribute.of("z", String)): "z"
+        )
+        expect:
+        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
+        result.sortedOrder == []
+        result.unsortedOrder as List == [0, 1, 2, 3]
+    }
+
+    static interface Flavor extends Named {}
 
     enum MyEnum {
         FOO,
@@ -350,8 +489,7 @@ class DefaultAttributesSchemaTest extends Specification {
         TestUtil.objectInstantiator().named(Flavor, name)
     }
 
-    static class ConcreteNamed implements Named {
-        String name
+    static abstract class ConcreteNamed implements Named {
     }
 
 }

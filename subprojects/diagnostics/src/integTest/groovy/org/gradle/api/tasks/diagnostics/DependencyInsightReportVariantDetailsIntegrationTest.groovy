@@ -16,10 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import com.google.common.base.Strings
+import groovy.transform.Immutable
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.diagnostics.internal.text.StyledTable
+import org.gradle.api.tasks.diagnostics.internal.text.StyledTableUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.logging.text.StyledTextOutput
+
+import static org.gradle.api.tasks.diagnostics.DependencyInsightReportVariantDetailsIntegrationTest.AttributeValueTuple.of
 
 class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -30,7 +36,6 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows selected variant details"() {
         given:
         settingsFile << "include 'a', 'b', 'c'"
@@ -53,26 +58,275 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
 
         then:
         outputContains """project :$expectedProject
-   variant "$expectedVariant" [
-      org.gradle.category            = library
-      org.gradle.dependency.bundling = external
-      $expectedAttributes
-      org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-
-      Requested attributes not found in the selected variant:
-         org.gradle.jvm.environment     = standard-jvm
-   ]
+${variantOf(expectedVariant, [
+            "org.gradle.category": of("library", "library"),
+            "org.gradle.dependency.bundling": of("external", "external"),
+            "org.gradle.jvm.version": of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+            "org.gradle.libraryelements": of("jar", requestedLibraryElements),
+            "org.gradle.usage": of(usage, usage),
+            "org.gradle.jvm.environment": of("", "standard-jvm"),
+        ])}
 
 project :$expectedProject
 \\--- $configuration"""
 
         where:
-        configuration      | expectedProject | expectedVariant   | expectedAttributes
-        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage               = java-api\n      org.gradle.libraryelements     = jar (compatible with: classes)'
-        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage               = java-runtime\n      org.gradle.libraryelements     = jar'
+        configuration      | expectedProject | expectedVariant   | usage          | requestedLibraryElements
+        'compileClasspath' | 'b'             | 'apiElements'     | 'java-api'     | 'classes'
+        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'java-runtime' | 'jar'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
+    def "shows all variant details for compileClasspath"() {
+        given:
+        settingsFile << "include 'a', 'b', 'c'"
+        file('a/build.gradle') << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                api project(':b')
+                implementation project(':c')
+            }
+
+            task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = true
+                dependencySpec = { it.requested in ProjectComponentSelector }
+                configuration = configurations.compileClasspath
+            }
+        """
+        ['b', 'c'].each {
+            file("${it}/build.gradle") << """
+                apply plugin: 'java-library'
+            """
+        }
+
+        when:
+        run "a:insight"
+
+        then:
+        ['b', 'c'].each { expectedProject ->
+            outputContains """project :$expectedProject
+-------------------
+Selected Variant(s)
+-------------------
+
+${variantOf('apiElements', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('jar', 'classes'),
+                'org.gradle.usage': of('java-api', 'java-api'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+])}
+
+---------------------
+Unselected Variant(s)
+---------------------
+
+${variantOf('apiElements-classes', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('classes', 'classes'),
+                'org.gradle.usage': of('java-api', 'java-api'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('mainSourceElements', [
+                'org.gradle.verificationtype': of('main-sources', ''),
+                'org.gradle.category': of('verification', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm'),
+                'org.gradle.jvm.version': of('', JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('', 'classes'),
+                'org.gradle.usage': of('', 'java-api'),
+            ])}
+
+${variantOf('runtimeElements', [
+                artifactType: of('jar', ''),
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('jar', 'classes'),
+                'org.gradle.usage': of('java-runtime', 'java-api'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('runtimeElements-classes', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('classes', 'classes'),
+                'org.gradle.usage': of('java-runtime', 'java-api'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('runtimeElements-resources', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('resources', 'classes'),
+                'org.gradle.usage': of('java-runtime', 'java-api'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('testResultsElementsForTest', [
+                'org.gradle.testsuite.name': of('test', ''),
+                'org.gradle.testsuite.target.name': of('test', ''),
+                'org.gradle.testsuite.type': of('unit-test', ''),
+                'org.gradle.verificationtype': of('test-results', ''),
+                'org.gradle.category': of('verification', 'library'),
+                'org.gradle.dependency.bundling': of('', 'external'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm'),
+                'org.gradle.jvm.version': of('', JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('', 'classes'),
+                'org.gradle.usage': of('', 'java-api'),
+            ])}
+
+
+project :$expectedProject
+\\--- compileClasspath
+"""
+        }
+    }
+
+    def "shows all variant details for runtimeClasspath"() {
+        given:
+        settingsFile << "include 'a', 'b', 'c'"
+        file('a/build.gradle') << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                api project(':b')
+                implementation project(':c')
+            }
+
+            task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = true
+                dependencySpec = { it.requested in ProjectComponentSelector }
+                configuration = configurations.runtimeClasspath
+            }
+        """
+        ['b', 'c'].each {
+            file("${it}/build.gradle") << """
+                apply plugin: 'java-library'
+            """
+        }
+
+        when:
+        run "a:insight"
+
+        then:
+        ['b', 'c'].each { expectedProject ->
+            outputContains """project :$expectedProject
+-------------------
+Selected Variant(s)
+-------------------
+
+${variantOf('runtimeElements', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('jar', 'jar'),
+                'org.gradle.usage': of('java-runtime', 'java-runtime'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+---------------------
+Unselected Variant(s)
+---------------------
+
+${variantOf('apiElements', [
+                artifactType: of('jar', ''),
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('jar', 'jar'),
+                'org.gradle.usage': of('java-api', 'java-runtime'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf("apiElements-classes", [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('classes', 'jar'),
+                'org.gradle.usage': of('java-api', 'java-runtime'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('mainSourceElements', [
+                'org.gradle.verificationtype': of('main-sources', ''),
+                'org.gradle.category': of('verification', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm'),
+                'org.gradle.jvm.version': of('', JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('', 'jar'),
+                'org.gradle.usage': of('', 'java-runtime'),
+            ])}
+
+${variantOf('runtimeElements-classes', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('classes', 'jar'),
+                'org.gradle.usage': of('java-runtime', 'java-runtime'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('runtimeElements-resources', [
+                'org.gradle.category': of('library', 'library'),
+                'org.gradle.dependency.bundling': of('external', 'external'),
+                'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('resources', 'jar'),
+                'org.gradle.usage': of('java-runtime', 'java-runtime'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm')
+            ])}
+
+${variantOf('testResultsElementsForTest', [
+                'org.gradle.testsuite.name': of('test', ''),
+                'org.gradle.testsuite.target.name': of('test', ''),
+                'org.gradle.testsuite.type': of('unit-test', ''),
+                'org.gradle.verificationtype': of('test-results', ''),
+                'org.gradle.category': of('verification', 'library'),
+                'org.gradle.dependency.bundling': of('', 'external'),
+                'org.gradle.jvm.environment': of('', 'standard-jvm'),
+                'org.gradle.jvm.version': of('', JavaVersion.current().majorVersion),
+                'org.gradle.libraryelements': of('', 'jar'),
+                'org.gradle.usage': of('', 'java-runtime'),
+            ])}
+
+
+project :$expectedProject
+\\--- runtimeClasspath
+"""
+        }
+    }
+
+    def "fails to show all variant details for compileClasspath if it was already resolved"() {
+        given:
+        settingsFile << "include 'a'"
+        file('a/build.gradle') << """
+            apply plugin: 'java-library'
+
+            dependencies {
+            }
+
+            configurations.compileClasspath.resolve()
+
+            task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = true
+                dependencySpec = { it.requested in ProjectComponentSelector }
+                configuration = configurations.compileClasspath
+            }
+        """
+
+        when:
+        fails "a:insight"
+
+        then:
+        failureCauseContains("The configuration 'compileClasspath' is not mutable. In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed.")
+    }
+
     def "shows published variant details"() {
         given:
         mavenRepo.with {
@@ -105,19 +359,18 @@ project :$expectedProject
 
         then:
         outputContains """org.test:leaf:1.0
-   variant "api" [
-      org.gradle.usage               = java-api
-      org.gradle.category            = library
-      org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.test                = published attribute (not requested)
-      org.gradle.status              = release (not requested)
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.blah                = something
-         org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-   ]
+  Variant api:
+    | Attribute Name                 | Provided            | Requested    |
+    |--------------------------------|---------------------|--------------|
+    | org.gradle.status              | release             |              |
+    | org.gradle.test                | published attribute |              |
+    | org.gradle.category            | library             | library      |
+    | org.gradle.libraryelements     | jar                 | classes      |
+    | org.gradle.usage               | java-api            | java-api     |
+    | org.gradle.blah                |                     | something    |
+    | org.gradle.dependency.bundling |                     | external     |
+    | org.gradle.jvm.environment     |                     | standard-jvm |
+    | org.gradle.jvm.version         |                     | ${JavaVersion.current().majorVersion.padRight("standard-jvm".length())} |
 
 org.test:leaf:1.0
 \\--- org.test:a:1.0
@@ -125,7 +378,6 @@ org.test:leaf:1.0
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "Asking for variant details of 'FAILED' modules doesn't break the report"() {
         given:
         mavenRepo.module("org", "top").dependsOnModules("middle").publish()
@@ -141,7 +393,8 @@ org.test:leaf:1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'middle' }
+                showingAllVariants = false
+                dependencySpec = { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -157,7 +410,6 @@ org:middle:1.0 FAILED
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows the target configuration name as variant display name for external dependencies which are not variant-aware"() {
         given:
         def leaf = mavenRepo.module('org', 'leaf', '1.0').publish()
@@ -174,7 +426,8 @@ org:middle:1.0 FAILED
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'leaf' }
+                showingAllVariants = false
+                dependencySpec = { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
@@ -185,12 +438,13 @@ org:middle:1.0 FAILED
         then:
         output.contains """
 org:leaf:1.0
-   variant "runtime" [
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.category        | library      |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
 
 org:leaf:1.0
 \\--- org:top:1.0
@@ -198,7 +452,6 @@ org:leaf:1.0
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows missing attributes when the target variant doesn't have any of its own"() {
         given:
         def leaf = mavenRepo.module('org', 'leaf', '1.0').publish()
@@ -217,7 +470,8 @@ org:leaf:1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'leaf' }
+                showingAllVariants = false
+                dependencySpec = { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
@@ -227,14 +481,14 @@ org:leaf:1.0
 
         then:
         output.contains """org:leaf:1.0
-   variant "runtime" [
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-      Requested attributes not found in the selected variant:
-         usage                      = dummy
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.category        | library      |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | usage                      |              | dummy     |
 
 org:leaf:1.0
 \\--- org:top:1.0
@@ -242,7 +496,6 @@ org:leaf:1.0
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "correctly reports attributes declared on dependencies"() {
         given:
         mavenRepo.module('org', 'testA', '1.0').publish()
@@ -291,25 +544,27 @@ org:leaf:1.0
         then:
         outputContains """
 org:testA:1.0
-   variant "runtime" [
-      custom                     = dep_value
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.category        | library      |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | custom                     | dep_value    | dep_value |
 
 org:testA:1.0
 \\--- conf
 
 org:testB:1.0
-   variant "runtime" [
-      custom                     = dep_value
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.category        | library      |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | custom                     | dep_value    | dep_value |
 
 org:testB:+ -> 1.0
 \\--- conf
@@ -317,5 +572,22 @@ org:testB:+ -> 1.0
 
     }
 
+    private String variantOf(String name, Map<String, AttributeValueTuple> attributes) {
+        return "  Variant $name:\n" + StyledTableUtil.toString(new StyledTable(
+            Strings.repeat(' ', 4),
+            ["Attribute Name", "Provided", "Requested"],
+            attributes.collect { new StyledTable.Row([it.key, it.value.provided, it.value.requested], StyledTextOutput.Style.Normal) }
+        ))
+    }
+
+    @Immutable
+    private static class AttributeValueTuple {
+        final String provided
+        final String requested
+
+        static AttributeValueTuple of(String provided, String requested) {
+            new AttributeValueTuple(provided, requested)
+        }
+    }
 
 }

@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":security"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -50,7 +51,7 @@ dependencies {
     testImplementation(project(":build-cache-packaging"))
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.nekohtml)
+    testImplementation(libs.jsoup)
     testImplementation(libs.groovyXml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))

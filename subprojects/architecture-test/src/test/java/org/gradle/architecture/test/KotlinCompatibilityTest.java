@@ -151,12 +151,19 @@ public class KotlinCompatibilityTest {
         }
 
         public boolean nullableIsSymmetric() {
-            Set<Boolean> gettersAreNullable = getters.stream().map(this::getterAnnotatedWithNullable).collect(toSet());
-            Set<Boolean> settersAreNullable = setters.stream().map(this::setterAnnotatedWithNullable).collect(toSet());
-            if (gettersAreNullable.size() > 1 || settersAreNullable.size() > 1) {
+            long nullableGetterCount = getters.stream().filter(this::getterAnnotatedWithNullable).count();
+            long nullableSetterCount = setters.stream().filter(this::setterAnnotatedWithNullable).count();
+
+            boolean gettersArePartiallyNull = 0 < nullableGetterCount && nullableGetterCount < getters.size();
+            boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
+            if (gettersArePartiallyNull || settersArePartiallyNull) {
                 return false;
             }
-            return gettersAreNullable.equals(settersAreNullable);
+
+            boolean nonNullGetters = nullableGetterCount == 0;
+            boolean nonNullSetters = nullableSetterCount == 0;
+            // Either both are non-null, or both are nullable
+            return nonNullGetters == nonNullSetters;
         }
 
         private boolean getterAnnotatedWithNullable(JavaMethod getter) {

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -73,7 +74,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes hash properties"() {
-        def value = new HashCodeSnapshot(HashCode.fromInt(123))
+        def value = new HashCodeSnapshot(TestHashCodes.hashCodeFrom(123))
 
         when:
         write(value)
@@ -210,7 +211,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with lambda"() {
-        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', HashCode.fromInt(1234))
+        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
@@ -242,7 +243,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     private JavaSerializedValueSnapshot snapshot(byte[] value) {
-        return new JavaSerializedValueSnapshot(HashCode.fromInt(123), value)
+        return new JavaSerializedValueSnapshot(TestHashCodes.hashCodeFrom(123), value)
     }
 
     private ValueSnapshot getWritten() {

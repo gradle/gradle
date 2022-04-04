@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.testng.IConfigurationListener2
+import org.testng.IConfigurationListener
 import org.testng.ITestContext
 import org.testng.ITestListener
 import org.testng.ITestResult
@@ -26,9 +26,9 @@ class TestNGListenerAdapterFactorySpec extends Specification {
     MyListener listener = Mock()
     MyListener2 otherListener = Mock()
 
-    def "adapts to IConfigurationListener2 interface if available on class path"() {
+    def "adapts to IConfigurationListener interface if available on class path"() {
         expect:
-        factory.createAdapter(listener) instanceof IConfigurationListener2
+        factory.createAdapter(listener) instanceof IConfigurationListener
     }
 
     def "equals and hashcode methods works as expected"() {
@@ -49,18 +49,16 @@ class TestNGListenerAdapterFactorySpec extends Specification {
      */
     def "adapts to internal IConfigurationListener interface if available on class path"() {}
 
-    def "adapter forwards all IConfigurationListener2 calls"() {
-        IConfigurationListener2 adapter = factory.createAdapter(listener)
+    def "adapter forwards all IConfigurationListener calls"() {
+        IConfigurationListener adapter = factory.createAdapter(listener)
         ITestResult result = Mock()
 
         when:
-        adapter.beforeConfiguration(result)
         adapter.onConfigurationSuccess(result)
         adapter.onConfigurationFailure(result)
         adapter.onConfigurationSkip(result)
 
         then:
-        1 * listener.beforeConfiguration(result)
         1 * listener.onConfigurationSuccess(result)
         1 * listener.onConfigurationFailure(result)
         1 * listener.onConfigurationSkip(result)
@@ -91,5 +89,5 @@ class TestNGListenerAdapterFactorySpec extends Specification {
     }
 }
 
-interface MyListener extends ITestListener, IConfigurationListener2 {}
-interface MyListener2 extends ITestListener, IConfigurationListener2 {}
+interface MyListener extends ITestListener, IConfigurationListener {}
+interface MyListener2 extends ITestListener, IConfigurationListener {}
