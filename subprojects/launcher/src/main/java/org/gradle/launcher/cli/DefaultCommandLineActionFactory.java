@@ -46,6 +46,7 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.util.internal.DefaultGradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +93,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         return new GradleLauncherMetaData();
     }
 
-    public ServiceRegistry createLoggingServices() {
+    @VisibleForTesting
+    ServiceRegistry createLoggingServices() {
         return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 
@@ -125,6 +127,44 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             return null;
         }
     }
+
+    @VisibleForTesting
+    static class ComposingCreator implements CommandLineActionCreator {
+        private final List<? extends CommandLineActionCreator> delegates;
+
+        public ComposingCreator(List<? extends CommandLineActionCreator> delegates) {
+            this.delegates = new ArrayList<>(delegates);
+        }
+
+        @Override
+        public void configureCommandLineParser(CommandLineParser parser) {
+            // No-op
+        }
+
+        @Nullable
+        @Override
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+            if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
+                Action<? super ExecutionListener> action1 = Actions.toAction(new DefaultCommandLineActionFactory.ShowVersionAction());
+                Action<? super ExecutionListener> action2 = createSecondAction(parser, commandLine);
+                if (action1 != null && action2 != null) {
+                    return Actions.composite(action1, action2);
+                }
+            }
+            return null;
+        }
+
+        private Action<? super ExecutionListener> createSecondAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+            for (CommandLineActionCreator actionCreator : delegates) {
+                Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine);
+                if (action != null) {
+                    return action;
+                }
+            }
+            return null;
+        }
+    }
+
 
     private static class CommandLineParseFailureAction implements Action<ExecutionListener> {
         private final Exception exception;

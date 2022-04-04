@@ -278,7 +278,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
             @Override
             protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
-                actionCreators.add(new ComposingCreator(actionCreators));
+                actionCreators.add(new DefaultCommandLineActionFactory.ComposingCreator(actionCreators));
                 actionCreators.add(actionFactory1)
             }
         }
