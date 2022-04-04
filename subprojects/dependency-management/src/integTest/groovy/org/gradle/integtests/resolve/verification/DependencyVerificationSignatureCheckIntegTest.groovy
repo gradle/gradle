@@ -1680,7 +1680,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20098")
-    def "doesn't fail validating signature for variant that has file name different than real name"() {
+    def "doesn't fail for a variant that has a file name in the Gradle Module Metadata different to actual artifact"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
@@ -1704,17 +1704,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
         }.withModuleMetadata().publish()
         buildFile << """
-            FileCollection customConfiguration = configurations.create("customConfiguration")
             dependencies {
-                add("customConfiguration", "org:foo:1.0") {
+                implementation("org:foo:1.0") {
                     attributes {
                         attribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String), "linux64")
                     }
-                }
-            }
-            tasks.register("myTask") {
-                doFirst {
-                    customConfiguration.resolve()
                 }
             }
         """
@@ -1723,7 +1717,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         serveValidKey()
 
         then:
-        succeeds "myTask"
+        succeeds ":compileJava"
     }
 
     private static void tamperWithFile(File file) {
