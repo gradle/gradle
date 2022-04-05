@@ -213,6 +213,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     /**
      * This {@link Action} is also a {@link CommandLineActionCreator} that, when run, will create new {@link Action}s that
      * will be immediately executed.
+     *
+     * This class accomplishes this be maintaining a list of {@link CommandLineActionCreator}s which can each attempt to
+     * create an {@link Action} from the given CLI args, and handles the logic for deciding whether or not to continue processing
+     * based on whether the result is a {@link ContinuingAction} or not.  It allows for injecting alternate Creators which
+     * won't actually attempt to run a build via the containing class' {@link #createBuildActionFactoryActionCreator(ServiceRegistry, List)}
+     * method - this is why this class is not {@code static}.
      */
     private class ParseAndBuildAction extends NonParserConfiguringCommandLineActionCreator implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
