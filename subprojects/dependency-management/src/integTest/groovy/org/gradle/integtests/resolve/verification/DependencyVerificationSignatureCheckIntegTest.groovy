@@ -1686,7 +1686,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             verifySignatures()
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "module", "module")
-            addTrustedKeyByFileName("org:foo:1.0", "foo-linux64-1.0.klib", validPublicKeyHexString)
+            addTrustedKeyByFileName("org:foo:1.0", "foo.klib", validPublicKeyHexString)
         }
 
         given:
