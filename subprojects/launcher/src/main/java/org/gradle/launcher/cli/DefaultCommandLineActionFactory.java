@@ -46,7 +46,6 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.util.internal.DefaultGradleVersion;
 
-import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -197,7 +196,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      * This {@link Action} is also a {@link CommandLineActionCreator} that, when run, will create new {@link Action}s that
      * will be immediately executed.
      */
-    private class ParseAndBuildAction extends NonConfigurableCommandLineActionCreator implements Action<ExecutionListener>{
+    private class ParseAndBuildAction extends NonConfigurableCommandLineActionCreator implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
         private List<CommandLineActionCreator> actionCreators;
