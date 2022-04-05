@@ -232,6 +232,7 @@
          </trusted-key>
          <trusted-key id="cf17e92c9ffa55316b5db83901d734ee5ee9c3f8" group="org.eclipse.sisu"/>
          <trusted-key id="cf4b3a3f53bef9a2ce2cbfb895962c5e716c39aa" group="com.autonomousapps"/>
+         <trusted-key id="d40633bfd9fdb773c896e9025dfb46c505b694fe" group="com.github.bbottema"/>
          <trusted-key id="d54a395b5cf3f86eb45f6e426b1b008864323b92">
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
@@ -279,7 +280,6 @@
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
-         <trusted-key id="d40633bfd9fdb773c896e9025dfb46c505b694fe" group="com.github.bbottema"/>
       </trusted-keys>
    </configuration>
    <components>
