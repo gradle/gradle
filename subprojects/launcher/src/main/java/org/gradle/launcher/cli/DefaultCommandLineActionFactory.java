@@ -233,15 +233,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             actionCreators = new ArrayList<>();
             actionCreators.add(new BuiltInActionCreator());
             actionCreators.add(new ContinuingActionCreator());
-            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
-
-            for (CommandLineActionCreator actionCreator : actionCreators) {
-                actionCreator.configureCommandLineParser(parser);
-            }
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
+            // This must be added only during execute, because the actual constructor is called by various tests and this will not succeed if called then
+            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
+            configureCreators();
+
             Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);
@@ -251,6 +250,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             }
 
             action.execute(executionListener);
+        }
+
+        private void configureCreators() {
+            actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
         }
 
         @Override
