@@ -81,16 +81,18 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         def rawAction = Mock(Action<? super ExecutionListener>)
 
         when:
-        def action = factory.convert(["--some-option"])
+        def commandLineExecution = factory.convert(["--some-option"])
 
         then:
-        action
+        commandLineExecution
 
         when:
-        action.execute(executionListener)
+        commandLineExecution.execute(executionListener)
 
         then:
-        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option("some-option") }
+        1 * actionFactory1.configureCommandLineParser(!null) >> {
+            CommandLineParser parser -> parser.option("some-option")
+        }
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
         1 * rawAction.execute(executionListener)
@@ -219,20 +221,20 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     def "displays version message"() {
         def version = DefaultGradleVersion.current()
         def expectedText = [
-            "",
-            "------------------------------------------------------------",
-            "Gradle ${version.version}",
-            "------------------------------------------------------------",
-            "",
-            "Build time:   $version.buildTimestamp",
-            "Revision:     $version.gitRevision",
-            "",
-            "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
-            "Groovy:       $GroovySystem.version",
-            "Ant:          $Main.antVersion",
-            "JVM:          ${Jvm.current()}",
-            "OS:           ${OperatingSystem.current()}",
-            ""
+                "",
+                "------------------------------------------------------------",
+                "Gradle ${version.version}",
+                "------------------------------------------------------------",
+                "",
+                "Build time:   $version.buildTimestamp",
+                "Revision:     $version.gitRevision",
+                "",
+                "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
+                "Groovy:       $GroovySystem.version",
+                "Ant:          $Main.antVersion",
+                "JVM:          ${Jvm.current()}",
+                "OS:           ${OperatingSystem.current()}",
+                ""
         ].join(System.lineSeparator())
 
         when:
@@ -255,33 +257,21 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     def "displays version message and continues build"() {
         def version = DefaultGradleVersion.current()
         def expectedText = [
-            "",
-            "------------------------------------------------------------",
-            "Gradle ${version.version}",
-            "------------------------------------------------------------",
-            "",
-            "Build time:   $version.buildTimestamp",
-            "Revision:     $version.gitRevision",
-            "",
-            "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
-            "Groovy:       $GroovySystem.version",
-            "Ant:          $Main.antVersion",
-            "JVM:          ${Jvm.current()}",
-            "OS:           ${OperatingSystem.current()}",
-            ""
+                "",
+                "------------------------------------------------------------",
+                "Gradle ${version.version}",
+                "------------------------------------------------------------",
+                "",
+                "Build time:   $version.buildTimestamp",
+                "Revision:     $version.gitRevision",
+                "",
+                "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
+                "Groovy:       $GroovySystem.version",
+                "Ant:          $Main.antVersion",
+                "JVM:          ${Jvm.current()}",
+                "OS:           ${OperatingSystem.current()}",
+                ""
         ].join(System.lineSeparator())
-        final CommandLineActionFactory factoryWithComposer = new DefaultCommandLineActionFactory() {
-            @Override
-            LoggingServiceRegistry createLoggingServices() {
-                return loggingServices
-            }
-
-            @Override
-            protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
-                actionCreators.add(new DefaultCommandLineActionFactory.ComposingCreator(actionCreators));
-                actionCreators.add(actionFactory1)
-            }
-        }
 
         when:
         def commandLineExecution = factory.convert(options)
@@ -289,19 +279,26 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         then:
         outputs.stdOut.contains(expectedText)
-        !actionCalled || outputs.stdOut.contains("action1")
+        outputs.stdOut.contains("action1")
+        !action1Intermediary || outputs.stdOut.contains("action2")
 
         and:
-        actionCalled * actionFactory1.createAction(!null, !null) >> {
-            { println "action1" } as Action<? super ExecutionListener>
+        1 * actionFactory1.createAction(!null, !null) >> {
+            def action1 = { println "action1" }
+            action1Intermediary ? action1 as ContinuingAction<ExecutionListener> : action1 as Action<ExecutionListener>
+
+        }
+        action2Called * actionFactory2.createAction(!null, !null) >> {
+            { println "action2" } as Action<ExecutionListener>
         }
         1 * loggingManager.start()
         0 * executionListener._
 
         where:
-        options            | actionCalled
-        ['-v']             | 0
-        ['-V']             | 1
-        ['--show-version'] | 1
+        options            | action1Intermediary | action2Called
+        ['-V']             | false               | 0
+        ['--show-version'] | false               | 0
+        ['-V']             | true                | 1
+        ['--show-version'] | true                | 1
     }
 }

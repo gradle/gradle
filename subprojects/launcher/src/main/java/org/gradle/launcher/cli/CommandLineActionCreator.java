@@ -23,15 +23,19 @@ import org.gradle.launcher.bootstrap.ExecutionListener;
 
 import javax.annotation.Nullable;
 
+/**
+ * A factory for creating {@link Action}s from CLI commands.
+ */
 public interface CommandLineActionCreator {
     /**
-     * Configures the given parser with the options used by this action.
+     * Configures the given action creator with a command-line parser.
      */
     void configureCommandLineParser(CommandLineParser parser);
 
     /**
-     * Creates an executable action from the given command-line args. Returns null if this action was not selected by the given
-     * command-line args.
+     * Creates an executable action from the given command-line args.
+     *
+     * @return {@code null} if this action was not selected by the given command-line args.
      */
     @Nullable
     Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine);
