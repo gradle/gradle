@@ -27,11 +27,6 @@ GitHub Actions can be configured to make your build outputs and test results ava
 If you have an existing Gradle project hosted on GitHub, then you can skip this step and move directly to <<configure-github-actions,the next section>>.
 
 If not, follow these step to initialize a new Gradle project on GitHub.
-As example, this guide is going to focus on a Java-based project.
-More specifically, a Gradle plugin written in Java and tested with https://www.spekframework.org/[Spek].
-First, we'll get the project set up on your local machine before covering the same steps on CI.
-
-Just follow these steps:
 
 === Create a new GitHub repository for your project
 
@@ -43,7 +38,7 @@ image::ci-systems/github-actions-create-repository.png[Create new GitHub reposit
 
 [listing.terminal.sample-command]
 ----
-$ git clone https://github.com/<YOUR-GITHUB-USER>/github-actions-gradle-sample.git
+$ git clone git@github.com:<YOUR-GITHUB-USER>/github-actions-gradle-sample.git
 Cloning into 'github-actions-gradle-sample'...
 $ cd github-actions-gradle-sample
 ----
@@ -84,14 +79,6 @@ gradleEnterprise {
 }
 ```
 
-Commit the changes and push to the repository:
-
-[listing.terminal.sample-command]
-----
-$ git commit -a -m "Publish Build Scans from GitHub Actions"
-$ git push
-----
-
 === Test building the project
 
 The project uses the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> for building the project.
@@ -112,11 +99,16 @@ Publishing build scan...
 https://gradle.com/s/7mtynxxmesdio
 ----
 
-== [[configure-github-actions,Configure GitHub Actions]]
+If the build works as expected, commit the changes and push to the repository.
 
-The following steps describe how to configure a GitHub Actions workflow to build your project.
 
-=== Configure the GitHub Actions workflow
+[listing.terminal.sample-command]
+----
+$ git commit -a -m "Publish Build Scans from GitHub Actions"
+$ git push
+----
+
+== Configure a GitHub Actions workflow
 
 You can create a GitHub Actions workflow by adding a `.github/workflows/<workflow-name>.yml` file to your repository.
 This workflow definition file contains all relevant instructions for building the project on GitHub Actions.
@@ -147,7 +139,8 @@ Commit the changes and push to the repository:
 
 [listing.terminal.sample-command]
 ----
-$ git commit -a -m "Add GitHub Actions workflow"
+$ git add .
+$ git commit -m "Add GitHub Actions workflow"
 $ git push
 ----
 
