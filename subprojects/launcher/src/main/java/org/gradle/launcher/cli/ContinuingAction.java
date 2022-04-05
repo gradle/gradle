@@ -19,9 +19,9 @@ package org.gradle.launcher.cli;
 import org.gradle.api.Action;
 
 /**
- * This marker interface extends {@link Action} to indicate that a {@link CommandLineActionCreator}
+ * This marker interface extends {@link Action} to indicate that {@link CommandLineActionCreator}s
  * should continue processing the command line after creating this action.
  *
- * @param <T> The type of object which this action accepts.
+ * @param <T> The type of object which this action accepts
  */
 public interface ContinuingAction<T> extends Action<T> {}

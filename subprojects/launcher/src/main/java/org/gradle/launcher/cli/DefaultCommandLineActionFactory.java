@@ -46,6 +46,7 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.util.internal.DefaultGradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,18 +80,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
-    @VisibleForTesting
-    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
-        actionCreators.add(new BuildActionsFactory(loggingServices));
-    }
-
     private static GradleLauncherMetaData clientMetaData() {
         return new GradleLauncherMetaData();
-    }
-
-    @VisibleForTesting
-    ServiceRegistry createLoggingServices() {
-        return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {
@@ -103,6 +94,28 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         out.println();
     }
 
+    /**
+     * This method is left visible so that tests can override it to inject {@link CommandLineActionCreator}s which
+     * don't actually attempt to run the build per normally.
+     *
+     * @param loggingServices logging services to use when instantiating any {@link CommandLineActionCreator}s
+     * @param actionCreators collection of {@link CommandLineActionCreator}s to which to add a new {@link BuildActionsFactory}
+     */
+    @VisibleForTesting
+    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
+        actionCreators.add(new BuildActionsFactory(loggingServices));
+    }
+
+    /**
+     * This method is left visible so that tests can override it to inject mocked {@link ServiceRegistry}s.
+     *
+     * @return the created {@link ServiceRegistry}
+     */
+    @VisibleForTesting
+    protected ServiceRegistry createLoggingServices() {
+        return LoggingServiceRegistry.newCommandLineProcessLogging();
+    }
+
     private static class BuiltInActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
@@ -112,6 +125,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
 
         @Override
+        @Nullable
         public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
                 return new ShowUsageAction(parser);
@@ -123,8 +137,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
     }
 
-    private static class ContinuingActionCreator extends NonConfigurableCommandLineActionCreator {
+    /**
+     * This {@link CommandLineActionCreator} is responsible for handling any command line options that produce {@link ContinuingAction}s.
+     */
+    private static class ContinuingActionCreator extends NonParserConfiguringCommandLineActionCreator {
         @Override
+        @Nullable
         public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
                 return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction().execute(executionListener);
@@ -196,7 +214,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      * This {@link Action} is also a {@link CommandLineActionCreator} that, when run, will create new {@link Action}s that
      * will be immediately executed.
      */
-    private class ParseAndBuildAction extends NonConfigurableCommandLineActionCreator implements Action<ExecutionListener> {
+    private class ParseAndBuildAction extends NonParserConfiguringCommandLineActionCreator implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
         private List<CommandLineActionCreator> actionCreators;
@@ -250,7 +268,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
     }
 
-    private static abstract class NonConfigurableCommandLineActionCreator implements CommandLineActionCreator {
+    /**
+     * Abstract type for any {@link CommandLineActionCreator} that does not make use of the {@link#configureCommandLineParser(CommandLineParser)}
+     * method.
+     */
+    private static abstract class NonParserConfiguringCommandLineActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             // no-op

@@ -53,7 +53,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     final CommandLineActionCreator actionFactory2 = Mock()
     final CommandLineActionFactory factory = new DefaultCommandLineActionFactory() {
         @Override
-        LoggingServiceRegistry createLoggingServices() {
+        protected LoggingServiceRegistry createLoggingServices() {
             return loggingServices
         }
 
