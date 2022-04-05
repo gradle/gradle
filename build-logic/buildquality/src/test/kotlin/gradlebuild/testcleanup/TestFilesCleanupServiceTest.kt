@@ -186,7 +186,6 @@ class TestFilesCleanupServiceTest {
         assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
         result.output.assertContains("successful-test-with-leftover/build/tmp/test files/leftover")
 
-        assertArchivedFilesSeen("report-successful-test-with-leftover-leftover.zip")
         assertLeftoverFilesCleanedUpEventually("successful-test-with-leftover/build/tmp/test files")
     }
 
@@ -219,9 +218,9 @@ class TestFilesCleanupServiceTest {
 
         assertArchivedFilesSeen(
             "report-failed-test-with-leftover-test.zip",
-            "report-failed-report-with-leftover-leftover.zip",
             "report-failed-report-with-leftover-reports.zip",
-            "report-failed-test-with-leftover-leftover.zip"
+            "report-failed-test-with-leftover-leftover.zip",
+            "report-successful-report-reports.zip"
         )
         assertLeftoverFilesCleanedUpEventually(
             "failed-report-with-leftover/build/tmp/test files",

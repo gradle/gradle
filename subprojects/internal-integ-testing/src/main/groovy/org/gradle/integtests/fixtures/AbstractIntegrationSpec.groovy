@@ -47,11 +47,12 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
-
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -459,6 +460,10 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
+    }
+
+    protected void failureHasCause(Pattern pattern) {
+        failure.assertThatCause(matchesRegexp(pattern))
     }
 
     protected void failureDescriptionStartsWith(String description) {

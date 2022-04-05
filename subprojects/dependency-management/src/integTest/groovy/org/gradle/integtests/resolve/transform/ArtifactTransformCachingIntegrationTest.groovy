@@ -646,7 +646,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3413")
+    @Flaky
     def "can use configuration parameter of type #type"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """

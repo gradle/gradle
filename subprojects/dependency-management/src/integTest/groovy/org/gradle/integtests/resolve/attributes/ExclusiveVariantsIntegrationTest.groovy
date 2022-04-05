@@ -17,10 +17,8 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "matching attribute combinations and capabilities triggers a warning"() {
         given:
         buildFile << """
@@ -51,11 +49,10 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }""".stripIndent()
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         succeeds("outgoingVariants")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "matching attribute combinations using the default capability, triggers a warning"() {
         given:
         settingsFile << "rootProject.name = 'sample'"
@@ -91,11 +88,10 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
-        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "matching attribute combinations, where one uses the default capability and one uses a matching explicit capability, triggers a warning"() {
         given:
         settingsFile << "rootProject.name = 'sample'"
@@ -136,11 +132,10 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
-        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations can be repeated if capabilities differ without a warning"() {
         given:
         settingsFile << "rootProject.name = 'sample'"
@@ -182,7 +177,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("outgoingVariants")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations can be repeated if capabilities differ, including the default capability without a warning"() {
         given:
         buildFile << """
@@ -224,7 +218,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("outgoingVariants")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute and capability combinations can be repeated across projects without a warning"() {
         given:
         def subADir = createDir("subA")
@@ -288,7 +281,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("allOutgoingVariants")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute and capability combinations, including the default capability, can be repeated across projects without a warning"() {
         given:
         def subADir = createDir("subA")
@@ -350,7 +342,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("allOutgoingVariants")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations and capabilities on resolvable configurations can match without a warning"() {
         given:
         buildFile << """
@@ -382,7 +373,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("outgoingVariants")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations and capabilities on legacy resolvable configurations can match without a warning"() {
         given:
         buildFile << """

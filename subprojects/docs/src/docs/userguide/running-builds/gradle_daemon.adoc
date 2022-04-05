@@ -217,6 +217,7 @@ The feature supports the following file system types:
 - btrfs
 - ext3
 - ext4
+- XFS
 - HFS+
 - NTFS
 

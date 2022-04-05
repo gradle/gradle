@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins for integration with native projects in XCode and Visual Studio IDEs"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

@@ -38,7 +38,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.gradle.util.internal.GUtil.safeZipEntryName;
+import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 /**
  * Provides a generic transform from a zipped file to an extracted directory.  The extracted directory

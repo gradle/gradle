@@ -45,6 +45,25 @@ import javax.inject.Inject;
  * by build logic during the configuration phase, in which case the source would be automatically
  * considered as an input to the work graph cache.
  * </p>
+ * <p>
+ * It is possible to have some Gradle services to be injected into the implementation, similar to
+ * tasks and plugins. It can be done by adding a parameter to the constructor and annotating the
+ * constructor with the {@code @Inject} annotation:
+ * <pre>
+ * public class MyValueSource implements ValueSource&lt;...&gt; {
+ *     &#064;Inject
+ *     public MyValueSource(ExecOperations execOperations) {
+ *         ...
+ *     }
+ * }
+ * </pre>
+ * Currently, only a small subset of services is supported:
+ * <ul>
+ *     <li>{@link org.gradle.process.ExecOperations} provides means to execute external processes.
+ *     It is possible to use this service even during the configuration time. However, as the
+ *     returned value is used to check the configuration cache, the {@link #obtain()} method will
+ *     be called during each build. Calling slow commands here will slow things down.</li>
+ * </ul>
  *
  * <p>
  * A value source implementation will most likely take parameters. To do this create a

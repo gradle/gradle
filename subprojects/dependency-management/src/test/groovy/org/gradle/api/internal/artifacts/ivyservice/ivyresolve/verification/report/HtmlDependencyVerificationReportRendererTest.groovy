@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report
 
-import groovy.xml.XmlSlurper
-import groovy.xml.slurpersupport.GPathResult
-import groovy.xml.slurpersupport.NodeChild
-import org.cyberneko.html.parsers.SAXParser
+
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure
@@ -37,11 +34,15 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.security.internal.PublicKeyResultBuilder
 import org.gradle.security.internal.PublicKeyService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static java.nio.charset.StandardCharsets.UTF_8
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.FAILED
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.IGNORED_KEY
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.MISSING_KEY
@@ -58,7 +59,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     File reportsDir = temporaryFolder.testDirectory
     File currentReportDir
     File currentReportFile
-    GPathResult report
+    Document report
 
     @Subject
     HtmlDependencyVerificationReportRenderer renderer = new HtmlDependencyVerificationReportRenderer(
@@ -287,22 +288,21 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     private void generateReport() {
         currentReportFile = renderer.writeReport()
         currentReportDir = currentReportFile.parentFile
-        def parser = new SAXParser()
-        def slurper = new XmlSlurper(parser)
-        report = slurper.parse(currentReportFile)
+        Jsoup.parse(currentReportFile, UTF_8.name())
+        report = Jsoup.parse(currentReportFile, UTF_8.name())
     }
 
     private boolean bodyContains(String text) {
-        def node = report.BODY.depthFirst().find { norm(it).contains(text) }
+        def node = report.body().select("*").find { norm(it).contains(text) }
         node != null // this is just so that we can put a breakpoint for debugging
     }
 
     private boolean bodyContainsExact(String text) {
-        def node = report.BODY.depthFirst().find { norm(it) == text }
+        def node = report.body().select("*").find { norm(it) == text }
         node != null // this is just so that we can put a breakpoint for debugging
     }
 
-    private static String norm(NodeChild node) {
+    private static String norm(Element node) {
         norm(node.text())
     }
 
@@ -312,32 +312,33 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     }
 
     private List<ReportedError> errorsFor(String section) {
-        NodeChild handle = report.BODY.depthFirst().find { it.@class == "uk-accordion-title" && it.text().startsWith(section) }
-        handle.parent().DIV.TABLE.TBODY.TR.collect {
+        Element handle = report.body().select(".uk-accordion-title").find { it.text().startsWith(section) }
+        handle.parent().select("tbody tr").collect {
             new ReportedError(it)
         }
     }
 
     private static class ReportedError {
-        final NodeChild row
+        final Element row
         final String module
         final String artifact
         final List<String> problems = []
         final boolean hasSignature
 
-        ReportedError(NodeChild row) {
+        ReportedError(Element row) {
             this.row = row
-            module = norm(row.TD[0])
-            def artifactText = norm(row.TD[1])
+            def tableDataElements = row.select("td")
+            module = norm(tableDataElements.get(0))
+            def artifactText = norm(tableDataElements.get(1))
             artifact = artifactText - ' (.asc)'
             hasSignature = artifactText.contains(" (.asc)")
-            row.TD[2].P.collect(problems) {
+            tableDataElements.get(2).select("p").collect(problems) {
                 norm(it)
             }
         }
 
         String getArtifactTooltip() {
-            (row.TD[1].DIV.@'uk-tooltip').text() - 'title: '
+            row.select("td > div[uk-tooltip]").attr("uk-tooltip") - 'title: '
         }
 
         String getProblem() {

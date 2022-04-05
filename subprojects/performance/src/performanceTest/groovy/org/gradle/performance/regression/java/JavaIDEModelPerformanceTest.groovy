@@ -33,7 +33,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.4-20211230003842+0000"]
+        runner.targetVersions = ["7.5-20220216231956+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
@@ -86,7 +86,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference()
     }
 
     def "get IDE model for IDEA"() {
@@ -134,7 +134,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference()
     }
 
     private setupRunner() {

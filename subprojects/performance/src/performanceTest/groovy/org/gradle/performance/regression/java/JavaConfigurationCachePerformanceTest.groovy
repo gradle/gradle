@@ -36,7 +36,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
 
     def setup() {
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
-        runner.targetVersions = ["7.4-20220106002224+0000"]
+        runner.targetVersions = ["7.5-20220107231310+0000"]
         runner.minimumBaseVersion = "6.6"
     }
 

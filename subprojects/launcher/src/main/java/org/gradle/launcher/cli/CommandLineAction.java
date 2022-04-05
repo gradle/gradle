@@ -19,6 +19,8 @@ package org.gradle.launcher.cli;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
+import javax.annotation.Nullable;
+
 public interface CommandLineAction {
     /**
      * Configures the given parser with the options used by this action.
@@ -29,5 +31,6 @@ public interface CommandLineAction {
      * Creates an executable action from the given command-line args. Returns null if this action was not selected by the given
      * command-line args.
      */
+    @Nullable
     Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine);
 }

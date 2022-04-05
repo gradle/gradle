@@ -36,8 +36,9 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
-import org.jetbrains.annotations.NotNull;
+import org.gradle.process.ExecOperations;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
@@ -45,6 +46,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
+    private final ExecOperations execOperations;
     private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
@@ -55,12 +57,14 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
+        ExecOperations execOperations,
         ServiceLookup services
     ) {
         this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.gradleProperties = gradleProperties;
+        this.execOperations = execOperations;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
@@ -96,18 +100,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Override
-    @NotNull
+    @Nonnull
     public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
         @Nullable P parameters
     ) {
-        return new ConfigurationTimeProvider<>(
+        return new ValueSourceProvider<>(
             new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
         );
     }
 
-    @NotNull
+    @Nonnull
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
@@ -115,6 +119,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(GradleProperties.class, gradleProperties);
+        services.add(ExecOperations.class, execOperations);
         if (isolatedParameters != null) {
             services.add(parametersType, isolatedParameters);
         }
@@ -139,13 +144,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Nullable
-    private <P extends ValueSourceParameters> P isolateParameters(P parameters) {
+    private <P extends ValueSourceParameters> P isolateParameters(@Nullable P parameters) {
         // TODO - consider if should hold the project lock to do the isolation
         return isolatableFactory.isolate(parameters).isolate();
-    }
-
-    private <T, P extends ValueSourceParameters> void valueObtained(DefaultObtainedValue<T, P> obtainedValue) {
-        broadcaster.getSource().valueObtained(obtainedValue);
     }
 
     private String couldNotCreateProviderOf(Class<?> valueSourceType) {
@@ -177,16 +178,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    private static class ConfigurationTimeProvider<T, P extends ValueSourceParameters>
-        extends ValueSourceProvider<T, P> {
-
-        public ConfigurationTimeProvider(LazilyObtainedValue<T, P> value) {
-            super(value);
-        }
-    }
-
-    public abstract static class ValueSourceProvider<T, P extends ValueSourceParameters>
-        extends AbstractMinimalProvider<T> {
+    public static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         protected final LazilyObtainedValue<T, P> value;
 
@@ -196,6 +188,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
             return value.sourceType;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("valueof(%s)", getValueSourceType().getSimpleName());
         }
 
         @Nullable
@@ -276,25 +273,25 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         public Try<T> obtain() {
-            if (obtainValueForThe1stTime()) {
-                valueObtained(obtainedValue());
-            }
-            return value;
-        }
-
-        private boolean obtainValueForThe1stTime() {
-            boolean valueWasObtained = false;
+            ValueSource<T, P> source;
+            // Return value from local to avoid nullability warnings when returning value from the field directly.
+            Try<T> obtained;
             synchronized (this) {
-                if (value == null) {
-                    // TODO - add more information to exception
-                    value = Try.ofFailable(() -> source().obtain());
-                    valueWasObtained = true;
+                Try<T> cached = value;
+                if (cached != null) {
+                    return cached;
                 }
+                // TODO - add more information to exceptions
+                // Fail fast when source can't be instantiated.
+                source = source();
+                value = obtained = Try.ofFailable(source::obtain);
             }
-            return valueWasObtained;
+            // Value obtained for the 1st time, notify listeners.
+            broadcaster.getSource().valueObtained(obtainedValue(obtained), source);
+            return obtained;
         }
 
-        @NotNull
+        @Nonnull
         private ValueSource<T, P> source() {
             return instantiateValueSource(
                 sourceType,
@@ -303,10 +300,10 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             );
         }
 
-        @NotNull
-        private DefaultObtainedValue<T, P> obtainedValue() {
+        @Nonnull
+        private DefaultObtainedValue<T, P> obtainedValue(Try<T> obtained) {
             return new DefaultObtainedValue<>(
-                value,
+                obtained,
                 sourceType,
                 parametersType,
                 parameters

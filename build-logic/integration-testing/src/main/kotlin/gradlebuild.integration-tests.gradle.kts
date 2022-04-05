@@ -15,6 +15,7 @@
  */
 
 import gradlebuild.basics.testing.TestType
+import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
@@ -38,6 +39,6 @@ configureIde(TestType.INTEGRATION)
 
 createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION) {
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested
-    systemProperty("spock.configuration", "MultiVersionTestSpockConfig.groovy")
+    includeSpockAnnotation("org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory")
     (options as JUnitPlatformOptions).includeEngines("spock")
 }

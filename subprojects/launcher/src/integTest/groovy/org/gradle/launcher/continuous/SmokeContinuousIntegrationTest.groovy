@@ -18,6 +18,7 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
@@ -26,31 +27,94 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    def setup() {
-        if (OperatingSystem.current().isWindows()) {
-            ignoreShutdownTimeoutException = true
-        }
+
+    def "detects no changes when no files are in the project"() {
+        given:
+        def markerFile = file("input/marker")
+        buildFile << """
+            task myTask {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              outputs.files "build/marker"
+              doLast {
+                println "exists: " + inputFile.exists()
+              }
+            }
+        """
+
+        when:
+        succeeds("myTask")
+        then:
+        output.contains "exists: false"
+
+        when:
+        waitBeforeModification(markerFile)
+        markerFile.text = "created"
+        then:
+        // There are different reason why this doesn't work for hierarchical and non-hierarchical watchers.
+        // We may want to support this use-case at some point.
+        // For hierarchical watchers, we don't watch the project directory if the VFS only contains missing files in there.
+        // For non-hierarchical watchers, we watch the parent directory of the missing file, the project directory in this case.
+        // When the `input` directory is created, we invalidate the VFS and stop watching since the missing snapshot now has been removed.
+        // Though we don't consider the path `input` as an input to the build, since it is a parent of the declared input
+        // `input/marker`. So we don't trigger a rebuild.
+        exitsContinuousBuildSinceNotWatchingAnyLocationsExceptForConfigCache()
     }
 
-    @ToBeFixedForConfigurationCache
+    def "does not detect changes when no snapshotting happens (#description)"() {
+        given:
+        def markerFile = file("input/marker")
+        buildFile << """
+            task myTask {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              doLast {
+                println "value: " + inputFile.text
+              }
+            }
+        """
+
+        when:
+        markerFile.text = "original"
+        succeeds("myTask")
+        then:
+        output.contains "value: original"
+
+        when:
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
+        then:
+        // If we don't snapshot anything, then we are also not watching anything,
+        // since we only watch things in the VFS.
+        // This is a limitation of the current implementation.
+        exitsContinuousBuildSinceNotWatchingAnyLocationsExceptForConfigCache()
+
+        where:
+        description      | taskConfiguration
+        "no outputs"     | ""
+        "untracked task" | "outputs.file('output/marker'); doNotTrackState('for test')"
+    }
+
     def "basic smoke test"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
 
         when:
         markerFile.text = "original"
 
         buildFile << """
-            task echo {
-              inputs.files "marker"
+            task myTask {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              outputs.files "build/marker"
               doLast {
-                println "value: " + file("marker").text
+                println "value: " + inputFile.text
               }
             }
         """
 
         then:
-        succeeds("echo")
+        succeeds("myTask")
         output.contains "value: original"
 
         when:
@@ -58,30 +122,104 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "changed"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         output.contains "value: changed"
     }
 
-    @ToBeFixedForConfigurationCache
+    def "detects changes in filtered file tree inputs"() {
+        def sources = file("sources").createDir()
+        def excludedFile = sources.file("sub/some/excluded").createFile()
+        def includedFile = sources.file("sub/some/included.txt").createFile()
+
+        buildFile << taskOnlyIncludingTxtFiles
+
+        when:
+        succeeds("myTask")
+        then:
+        outputContains("includedFiles: 1")
+
+        when:
+        includedFile.text = "changed"
+        then:
+        buildTriggeredAndSucceeded()
+        outputContains("includedFiles: 1")
+
+        when:
+        excludedFile.text = "changed"
+        then:
+        noBuildTriggered()
+
+        when:
+        sources.file("sub/some/otherIncluded.txt").createFile()
+        then:
+        buildTriggeredAndSucceeded()
+        outputContains("includedFiles: 2")
+
+        when:
+        sources.file("sub/other/included.txt").createFile()
+        then:
+        if (OperatingSystem.current().linux) {
+            // On Linux, we don't watch sub, since it is a filtered directory,
+            // and it doesn't contain any file or unfiltered directory
+            noBuildTriggered()
+        } else {
+            buildTriggeredAndSucceeded()
+            outputContains("includedFiles: 3")
+        }
+    }
+
+    def "does not detect changes in filtered file tree inputs when first matching file is created"() {
+        def sources = file("sources").createDir()
+        sources.file("sub/some/excluded").createFile()
+        def includedFile = sources.file("sub/some/included.txt")
+
+        buildFile << taskOnlyIncludingTxtFiles
+
+        when:
+        succeeds("myTask")
+        then:
+        outputContains("includedFiles: 0")
+
+        when:
+        includedFile.text = "created"
+        then:
+        exitsContinuousBuildSinceNotWatchingAnyLocationsExceptForConfigCache()
+    }
+
+    String taskOnlyIncludingTxtFiles = """
+            task myTask {
+              def inputFileTree = fileTree("sources").include("**/*.txt")
+              inputs.files(inputFileTree)
+                .ignoreEmptyDirectories()
+                .withPropertyName("sources")
+              outputs.files "build/marker"
+              doLast {
+                println "includedFiles: " + inputFileTree.files.size()
+              }
+            }
+        """
+
     def "notifications work with quiet logging"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
 
         when:
         markerFile.text = "original"
 
         buildFile << """
-            task echo {
-              inputs.files "marker"
+            task myTask {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              outputs.files "build/marker"
               doLast {
-                println "value: " + file("marker").text
+                println "value: " + inputFile.text
               }
             }
         """
 
         then:
         executer.withArgument("-q")
-        succeeds("echo")
+        succeeds("myTask")
         output.contains "value: original"
 
         when:
@@ -89,19 +227,22 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "changed"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         output.contains "value: changed"
     }
 
     def "can recover from build failure"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
+        file("inputFile").createFile()
 
         when:
         buildFile << """
-            task build {
-              def f = file("marker")
+            task myTask {
+              def f = file("input/marker")
               inputs.files f
+              inputs.files "inputFile"
+              outputs.files "build/marker"
               doLast {
                 if (f.file) {
                   println "value: " + f.text
@@ -114,7 +255,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile << "original"
 
         then:
-        succeeds "build"
+        succeeds "myTask"
         output.contains "value: original"
 
         when:
@@ -122,7 +263,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.delete()
 
         then:
-        fails()
+        buildTriggeredAndFailed()
         failure.assertHasCause "java.lang.Exception: file does not exist"
 
         when:
@@ -130,7 +271,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile << "changed"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         output.contains "value: changed"
     }
 
@@ -143,10 +284,12 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
             task a {
               inputs.file "a"
+              outputs.files "build/marker"
               doLast {}
             }
             task b {
               inputs.file "b"
+              outputs.files "build/marker"
               doLast {}
             }
         """
@@ -159,7 +302,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile << "original"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executed(":a")
 
         and:
@@ -182,8 +325,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         fails("a")
-        !gradle.running
-        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        exitContinuousBuildSinceNoDeclaredInputs()
     }
 
     def "exits when build fails with configuration error"() {
@@ -194,8 +336,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         fails("a")
-        !gradle.running
-        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        exitContinuousBuildSinceNoDeclaredInputs()
     }
 
     def "exits when no executed tasks have file system inputs"() {
@@ -206,23 +347,23 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds("a")
-        !gradle.running
-        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        exitContinuousBuildSinceNoDeclaredInputs()
     }
 
-    @ToBeFixedForConfigurationCache
     def "reuses build script classes"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
 
         when:
         markerFile.text = "original"
 
         buildFile << """
-            task echo {
-              inputs.files file("marker")
+            task myTask {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              outputs.files "build/marker"
               doLast {
-                println "value: " + file("marker").text
+                println "value: " + inputFile.text
                 println "reuse: " + Reuse.initialized
                 Reuse.initialized = true
               }
@@ -233,7 +374,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("echo")
+        succeeds("myTask")
         output.contains "value: original"
         output.contains "reuse: false"
 
@@ -242,7 +383,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "changed"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         output.contains "value: changed"
         output.contains "reuse: true"
 
@@ -251,7 +392,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "considered to be long lived process"() {
         when:
         buildFile << """
-            task echo {
+            task myTask {
               doLast {
                 println "isLongLivingProcess: " + services.get($GradleBuildEnvironment.name).isLongLivingProcess()
               }
@@ -259,7 +400,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("echo")
+        succeeds("myTask")
         output.contains "isLongLivingProcess: true"
     }
 
@@ -268,6 +409,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildScript """
             task a {
                 inputs.files files({ throw new Exception("boom") })
+                outputs.files "build/marker"
                 doLast {}
             }
         """
@@ -282,10 +424,12 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildScript """
             task a {
                 inputs.files file("inputA")
+                outputs.files "build/outputA"
                 doLast {}
             }
             task b {
                 inputs.files files({ throw new Exception("boom") })
+                outputs.files "build/outputB"
                 dependsOn a
                 doLast {}
             }
@@ -296,13 +440,15 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         failureDescriptionContains("Could not determine the dependencies of task ':b'.")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Relies on input files not being resolvable")
     def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
         when:
         def bFlag = file("bFlag")
+        file("inputA").createFile()
         buildScript """
             task a {
                 inputs.files file("inputA")
+                outputs.files "build/outputA"
                 doLast {}
             }
             task b {
@@ -314,6 +460,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
                     throw new Exception("boom")
                 })
+                outputs.files "build/outputB"
                 dependsOn a
 
                 doLast { }
@@ -326,22 +473,26 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         bFlag.text = "b executed"
         then:
-        fails()
+        buildTriggeredAndFailed()
         failureDescriptionContains("Could not determine the dependencies of task ':b'.")
     }
 
     def "ignores non source when source is empty"() {
         when:
+        file("source").createDir()
         buildScript """
-            task build {
-              inputs.files(fileTree("source")).skipWhenEmpty()
+            task myTask {
+              inputs.files(fileTree("source"))
+                .skipWhenEmpty()
+                .ignoreEmptyDirectories()
               inputs.files fileTree("ancillary")
+              outputs.files "build/output"
               doLast {}
             }
         """
 
         then:
-        succeeds("build")
+        succeeds("myTask")
 
         when:
         file("ancillary/test.txt") << "foo"
@@ -353,13 +504,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         file("source/test.txt") << "foo"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         when:
         file("ancillary/test.txt") << "-bar"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
     }
 
     @Ignore("This goes into a continuous loop since .gradle files change")
@@ -381,6 +532,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         task a {
             dependsOn before
             inputs.dir projectDir
+            outputs.files "build/output"
             doLast {}
         }
         """
@@ -393,7 +545,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile.text = "A"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":a")
 
         when: "file is changed"
@@ -401,7 +553,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile.text = "B"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":a")
 
         when:
@@ -409,7 +561,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile.delete()
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":a")
     }
 
@@ -417,7 +569,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "exit hint does not mention enter when not on windows"() {
         when:
         file("a").touch()
-        buildScript "task a { inputs.file 'a'; doLast {} }"
+        buildScript "task a { inputs.file 'a'; outputs.file 'b'; doLast {} }"
 
         then:
         succeeds "a"
@@ -428,7 +580,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "exit hint mentions enter when on windows"() {
         when:
         file("a").touch()
-        buildScript "task a { inputs.file 'a'; doLast {} }"
+        buildScript """
+            task a {
+                inputs.file 'a'
+                outputs.file 'build/b'
+                doLast {}
+            }
+        """
 
         then:
         succeeds "a"
@@ -443,12 +601,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
         task inner {
             inputs.file "src/topLevel.txt"
+            outputs.file "build/inner.txt"
             doLast {}
         }
 
         task outer {
             dependsOn inner
             inputs.dir "src"
+            outputs.file "build/outer.txt"
             doLast {}
         }
         """
@@ -462,7 +622,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         topLevelFile.text = "hello"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":inner", ":outer")
 
         when: "file is changed"
@@ -470,8 +630,42 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         nestedFile.text = "B"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":outer")
     }
 
+    def "fails when using continuous build and watching is disabled"() {
+        buildFile << """
+            task myTask
+        """
+
+        expect:
+        fails("myTask", "--no-watch-fs")
+        failureDescriptionContains("Continuous build does not work when file system watching is disabled")
+    }
+
+    private void exitContinuousBuildSinceNoDeclaredInputs() {
+        assert !gradle.running
+        assert output.contains("Exiting continuous build as Gradle did not detect any file system inputs.")
+    }
+
+    private void exitsContinuousBuildSinceNotWatchingAnyLocationsExceptForConfigCache() {
+        if (GradleContextualExecuter.configCache) {
+            // When using the configuration cache, the build files are stored in the VFS, so we start watching.
+            // That means for hierarchical watchers, we'll also detect the change above.
+            // For Linux though, the reason why we don't detect the change still apply.
+            if (OperatingSystem.current().linux) {
+                noBuildTriggered()
+            } else {
+                buildTriggeredAndSucceeded()
+            }
+        } else {
+            exitsContinuousBuildSinceNotWatchingAnyLocations()
+        }
+    }
+
+    private void exitsContinuousBuildSinceNotWatchingAnyLocations() {
+        assert !gradle.running
+        assert output.contains("Exiting continuous build as Gradle does not watch any file system locations.")
+    }
 }

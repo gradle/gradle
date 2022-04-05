@@ -60,12 +60,42 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
                     // component we cannot mix precise usages with more generic ones)
                 libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
                 libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
+                libraryWithSourcesVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
+                libraryWithJavadocVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
                 platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true, shadowedEnforcedPlatformCapability),
                 platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true, shadowedEnforcedPlatformCapability));
         }
         return null;
+    }
+
+    /**
+     * Synthesizes a "sources" variant since maven metadata cannot represent it
+     *
+     * @return synthetic metadata for the sources-classifier jar
+     */
+    private static DefaultConfigurationMetadata libraryWithSourcesVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, ModuleComponentResolveMetadata metadata) {
+        return runtimeConfiguration.mutate()
+            .withName("sources")
+            .withAttributes(attributesFactory.sourcesVariant(originAttributes))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("source", "jar", "sources")))
+            .withoutConstraints()
+            .build();
+    }
+
+    /**
+     * Synthesizes a "javadoc" variant since maven metadata cannot represent it
+     *
+     * @return synthetic metadata for the javadoc-classifier jar
+     */
+    private static DefaultConfigurationMetadata libraryWithJavadocVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, ModuleComponentResolveMetadata metadata) {
+        return runtimeConfiguration.mutate()
+            .withName("javadoc")
+            .withAttributes(attributesFactory.javadocVariant(originAttributes))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("javadoc", "jar", "javadoc")))
+            .withoutConstraints()
+            .build();
     }
 
     private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {

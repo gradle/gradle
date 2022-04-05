@@ -226,19 +226,19 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule variant(String variant, Map<String, String> attributes) {
+    public T variant(String variant, Map<String, String> attributes) {
         backingModule.variant(variant, attributes);
         return t();
     }
 
     @Override
-    public MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value=VariantMetadataSpec.class, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
+    public T variant(String variant, Map<String, String> attributes, @DelegatesTo(value=VariantMetadataSpec.class, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
         backingModule.variant(variant, attributes, variantConfiguration);
         return t();
     }
 
     @Override
-    public MavenModule adhocVariants() {
+    public T adhocVariants() {
         backingModule.adhocVariants();
         return t();
     }
@@ -282,6 +282,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public T withModuleMetadata() {
         backingModule.withModuleMetadata();
+        return t();
+    }
+
+    @Override
+    public MavenModule asGradlePlatform() {
+        backingModule.asGradlePlatform();
         return t();
     }
 

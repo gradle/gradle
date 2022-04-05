@@ -32,7 +32,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Path
@@ -49,13 +48,11 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     int ordinal = 0
 
     DefaultExecutionPlan executionPlan
-    def lease = Stub(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
-        _ * lease.tryLock() >> true
-        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
+        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs))
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), coordinator)
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {
@@ -66,7 +63,90 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
+        TaskStateInternal state = Mock()
+        _ * task.state >> state
+        if (options.failure != null) {
+            failure(task, options.failure)
+        }
         return task
+    }
+
+    def "does not attempt to run finalizer of task whose dependencies have failed"() {
+        given:
+        Task a = task("a", failure: new RuntimeException())
+        Task b = task("b")
+        Task c = task("c", type: Async, dependsOn: [a], finalizedBy: [b])
+
+        when:
+        addToGraphAndPopulate(c)
+        def firstTaskNode = selectNextTaskNode()
+
+        then:
+        firstTaskNode.task == a
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
+            executionPlan.selectNext() == ExecutionPlan.NO_NODES_READY_TO_START
+            executionPlan.executionState() == ExecutionPlan.State.NoNodesReadyToStart
+        }
+
+        when:
+        finishedExecuting(firstTaskNode)
+
+        then:
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
+            executionPlan.selectNext() == ExecutionPlan.NO_MORE_NODES_TO_START
+            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.allExecutionComplete()
+        }
+    }
+
+    def "finalizer tasks and their dependencies are executed on task failure but dependents of failed task are not"() {
+        Task a = task("a")
+        Task b = task("b", finalizedBy: [a], failure: new RuntimeException())
+        Task c = task("c", dependsOn: [b])
+
+        when:
+        addToGraphAndPopulate(c)
+
+        def firstTaskNode = selectNextTaskNode()
+
+        then:
+        firstTaskNode.task == b
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
+            executionPlan.selectNext() == ExecutionPlan.NO_NODES_READY_TO_START
+            executionPlan.executionState() == ExecutionPlan.State.NoNodesReadyToStart
+        }
+
+        when:
+        finishedExecuting(firstTaskNode)
+
+        then:
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
+        }
+
+        when:
+        def secondTaskNode = selectNextTaskNode()
+
+        then:
+        secondTaskNode.task == a
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.selectNext() == ExecutionPlan.NO_MORE_NODES_TO_START
+            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+        }
+
+        when:
+        finishedExecuting(secondTaskNode)
+
+        then:
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.selectNext() == ExecutionPlan.NO_MORE_NODES_TO_START
+            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+        }
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {
@@ -106,8 +186,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(taskNode1)
-        executionPlan.finishedExecuting(taskNode2)
+        finishedExecuting(taskNode1)
+        finishedExecuting(taskNode2)
         def taskNode3 = selectNextTaskNode()
         def taskNode4 = selectNextTaskNode()
 
@@ -148,7 +228,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         lockedProjects.size() == 1
 
         when:
-        executionPlan.finishedExecuting(nonAsyncTaskNode)
+        finishedExecuting(nonAsyncTaskNode)
         def asyncTask = selectNextTask()
         then:
         asyncTask == b
@@ -169,7 +249,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         lockedProjects.empty
 
         when:
-        executionPlan.finishedExecuting(firstTaskNode)
+        finishedExecuting(firstTaskNode)
         def secondTask = selectNextTask()
         then:
         secondTask == b
@@ -210,12 +290,12 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(firstTaskNode)
+        finishedExecuting(firstTaskNode)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(secondTaskNode)
+        finishedExecuting(secondTaskNode)
         then:
         selectNextTask() == c
 
@@ -437,13 +517,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
-        executionPlan.finishedExecuting(producerInfo)
+        finishedExecuting(producerInfo)
         def consumerInfo = selectNextTaskNode()
 
         assert consumerInfo.task == consumer
         assert selectNextTask() == null
 
-        executionPlan.finishedExecuting(consumerInfo)
+        finishedExecuting(consumerInfo)
         def destroyerInfo = selectNextTaskNode()
 
         assert destroyerInfo.task == destroyer
@@ -512,13 +592,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert destroyerInfo.task == destroyer
         assert selectNextTask() == null
 
-        executionPlan.finishedExecuting(destroyerInfo)
+        finishedExecuting(destroyerInfo)
         def producerInfo = selectNextTaskNode()
 
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
-        executionPlan.finishedExecuting(producerInfo)
+        finishedExecuting(producerInfo)
         def consumerInfo = selectNextTaskNode()
 
         assert consumerInfo.task == consumer
@@ -582,7 +662,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTaskNode() == null
 
         when:
-        executionPlan.finishedExecuting(dependencyNode)
+        finishedExecuting(dependencyNode)
 
         then:
         def destroyerNode = selectNextTaskNode()
@@ -590,7 +670,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTaskNode() == null
 
         when:
-        executionPlan.finishedExecuting(destroyerNode)
+        finishedExecuting(destroyerNode)
 
         then:
         selectNextTask() == producer
@@ -618,7 +698,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTaskNode() == null
 
         when:
-        executionPlan.finishedExecuting(dependencyNode)
+        finishedExecuting(dependencyNode)
 
         then:
         def producerNode = selectNextTaskNode()
@@ -626,7 +706,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTaskNode() == null
 
         when:
-        executionPlan.finishedExecuting(producerNode)
+        finishedExecuting(producerNode)
 
         then:
         selectNextTask() == destroyer
@@ -651,13 +731,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(firstInfo)
+        finishedExecuting(firstInfo)
 
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(secondInfo)
+        finishedExecuting(secondInfo)
         def finalizerInfo = selectNextTaskNode()
 
         then:
@@ -687,26 +767,26 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(dependencyOfDependencyNode)
+        finishedExecuting(dependencyOfDependencyNode)
         def dependencyNode = selectNextTaskNode()
         then:
         dependencyNode.task == dependency
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(dependencyNode)
+        finishedExecuting(dependencyNode)
         def otherTaskWithDependencyNode = selectNextTaskNode()
         then:
         otherTaskWithDependencyNode.task == otherTaskWithDependency
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(otherTaskWithDependencyNode)
+        finishedExecuting(otherTaskWithDependencyNode)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(finalizedNode)
+        finishedExecuting(finalizedNode)
         then:
         selectNextTask() == finalizer
         selectNextTask() == null
@@ -732,7 +812,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         mustRunAfterNode.task == mustRunAfter
 
         when:
-        executionPlan.finishedExecuting(dependencyNode)
+        finishedExecuting(dependencyNode)
 
         def finalizedNode = selectNextTaskNode()
         then:
@@ -740,7 +820,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finalizedNode.task == finalized
 
         when:
-        executionPlan.finishedExecuting(finalizedNode)
+        finishedExecuting(finalizedNode)
 
         def finalizerNode = selectNextTaskNode()
         then:
@@ -765,14 +845,14 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         dependencyNode.task == dependency
 
         when:
-        executionPlan.finishedExecuting(dependencyNode)
+        finishedExecuting(dependencyNode)
 
         def finalizedNode = selectNextTaskNode()
         then:
         finalizedNode.task == finalized
 
         when:
-        executionPlan.finishedExecuting(finalizedNode)
+        finishedExecuting(finalizedNode)
 
         def finalizerNode = selectNextTaskNode()
         then:
@@ -780,7 +860,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finalizerNode.task == finalizer
 
         when:
-        executionPlan.finishedExecuting(finalizerNode)
+        finishedExecuting(finalizerNode)
         then:
         selectNextTask() == mustRunAfter
         selectNextTask() == null
@@ -794,26 +874,38 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         when:
         addToGraphAndPopulate(finalized)
-        def finalizedInfo = selectNextTaskNode()
+        def finalizedNode = selectNextTaskNode()
 
         then:
-        finalizedInfo.task == finalized
+        finalizedNode.task == finalized
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(finalizedInfo)
-        selectNextTask()
+        finishedExecuting(finalizedNode)
 
         then:
-        Exception e = thrown()
-        e.message.contains("Execution failed for task :finalizer")
+        selectNextTask() == null
+        coordinator.withStateLock {
+            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.allExecutionComplete()
+        }
 
         when:
-        executionPlan.abortAllAndFail(e)
+        def failures = []
+        coordinator.withStateLock {
+            executionPlan.collectFailures(failures)
+        }
 
         then:
-        executionPlan.getNode(finalized).isSuccessful()
-        executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
+        failures.size() == 1
+        def e = failures.first()
+        e.message.contains("Execution failed for task :finalizer")
+
+        then:
+        coordinator.withStateLock {
+            executionPlan.getNode(finalized).isSuccessful()
+            executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
+        }
     }
 
     def "no task is started when invalid task is running"() {
@@ -834,11 +926,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def noTaskSelected = selectNextTask()
         then:
         noTaskSelected == null
-        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == second }) >> false
-        0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
-        executionPlan.finishedExecuting(invalidTaskNode)
+        finishedExecuting(invalidTaskNode)
         def validTask = selectNextTask()
         then:
         validTask == second
@@ -866,53 +956,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
-        executionPlan.finishedExecuting(validTaskNode)
+        finishedExecuting(validTaskNode)
         def invalidTask = selectNextTask()
         then:
         invalidTask == second
-    }
-
-    def "a skipped invalid task does not hold up rest of build"() {
-        given:
-        executionPlan.continueOnFailure = true
-        def failure = new RuntimeException("BOOM!")
-        def brokenState = Stub(TaskStateInternal) {
-            getFailure() >> failure
-            rethrowFailure() >> { throw failure }
-        }
-        def broken = task("broken", type: Async)
-        def invalid = task("invalid", type: Async, dependsOn: [broken])
-        def regular = task("task", type: Async)
-
-        when:
-        addToGraphAndPopulate(broken, invalid, regular)
-        def firstTaskNode = selectNextTaskNode()
-
-        then:
-        firstTaskNode.state == Node.ExecutionState.EXECUTING
-        firstTaskNode.task == broken
-        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == broken }) >> false
-        0 * nodeValidator.hasValidationProblems(_ as Node)
-
-        when:
-        executionPlan.finishedExecuting(firstTaskNode)
-        def secondTaskNode = selectNextTaskNode()
-
-        then:
-        secondTaskNode.state == Node.ExecutionState.SKIPPED
-        secondTaskNode.task == invalid
-        _ * broken.state >> brokenState
-        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == invalid }) >> true
-        0 * nodeValidator.hasValidationProblems(_ as Node)
-
-        when:
-        def thirdTaskNode = selectNextTaskNode()
-
-        then:
-        thirdTaskNode.state == Node.ExecutionState.EXECUTING
-        thirdTaskNode.task == regular
-        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == regular }) >> false
-        0 * nodeValidator.hasValidationProblems(_ as Node)
     }
 
     private void tasksAreNotExecutedInParallel(Task first, Task second) {
@@ -923,7 +970,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert selectNextTask() == null
         assert lockedProjects.empty
 
-        executionPlan.finishedExecuting(firstTaskNode)
+        finishedExecuting(firstTaskNode)
         def secondTask = selectNextTask()
 
         assert [firstTaskNode.task, secondTask] as Set == [first, second] as Set
@@ -1000,23 +1047,47 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
+    private void finishedExecuting(Node node) {
+        coordinator.withStateLock {
+            executionPlan.finishedExecuting(node)
+        }
+    }
+
     private TaskInternal selectNextTask() {
         selectNextTaskNode()?.task
     }
 
-    private TaskNode selectNextTaskNode() {
-        def nextTaskNode
-        recordLocks {
-            nextTaskNode = executionPlan.selectNext(lease, resourceLockState)
+    private LocalTaskNode selectNextTaskNode() {
+        def result = null
+        coordinator.withStateLock {
+            def selection
+            recordLocks {
+                selection = executionPlan.selectNext()
+            }
+            if (selection == ExecutionPlan.NO_NODES_READY_TO_START) {
+                assert executionPlan.executionState() == ExecutionPlan.State.NoNodesReadyToStart
+                assert !executionPlan.allExecutionComplete()
+                return
+            }
+            if (selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
+                assert executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+                return
+            }
+            // ignore nodes that aren't tasks
+            def nextNode = selection.node
+            if (!(nextNode instanceof LocalTaskNode)) {
+                if (nextNode instanceof SelfExecutingNode) {
+                    nextNode.execute(null)
+                }
+                executionPlan.finishedExecuting(nextNode)
+                result = selectNextTaskNode()
+                return
+            }
+            if (nextNode?.task instanceof Async) {
+                nextNode.projectToLock.unlock()
+            }
+            result = nextNode
         }
-        // ignore nodes that aren't tasks
-        if (nextTaskNode != null && !(nextTaskNode instanceof TaskNode)) {
-            executionPlan.finishedExecuting(nextTaskNode)
-            return selectNextTaskNode()
-        }
-        if (nextTaskNode?.task instanceof Async) {
-            nextTaskNode.projectToLock.unlock()
-        }
-        return nextTaskNode
+        return result
     }
 }

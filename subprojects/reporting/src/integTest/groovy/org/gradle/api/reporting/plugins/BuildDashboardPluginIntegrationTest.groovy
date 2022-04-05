@@ -20,8 +20,12 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -80,7 +84,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
             """
             configurations.codenarc {
-                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+                resolutionStrategy.force '${groovyModuleDependency("groovy", GroovySystem.version)}'
             }
             """ : ""}
 """
@@ -353,6 +357,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @ToBeFixedForConfigurationCache(because = ":buildDashboard")
+    // JaCoCo does not support Java 18 yet
+    @Requires(TestPrecondition.JDK17_OR_EARLIER)
     void 'dashboard includes JaCoCo reports'() {
         given:
         goodCode()

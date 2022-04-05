@@ -53,8 +53,8 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
             return Integer.parseInt(proxyPortString);
         } catch (NumberFormatException e) {
             String key = propertyPrefix + ".proxyPort";
-            LOGGER.warn("Invalid value for java system property '{}': {}. Default port '{}' will be used.",
-                    key, System.getProperty(key), defaultPort);
+            LOGGER.warn("Invalid value for java system property '{}': '{}'. Value is not a valid number. Default port '{}' will be used.",
+                key, proxyPortString, defaultPort);
             return defaultPort;
         }
     }
@@ -70,5 +70,10 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public int getDefaultPort() {
         return defaultPort;
+    }
+
+    private static String getAndTrimSystemProperty(String key) {
+        String value = System.getProperty(key);
+        return value != null ? value.trim() : null;
     }
 }

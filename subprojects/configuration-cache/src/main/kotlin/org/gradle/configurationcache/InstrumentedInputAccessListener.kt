@@ -16,11 +16,14 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.file.FileCollection
+import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 
 
 private
@@ -28,6 +31,8 @@ val allowedProperties = setOf(
     "os.name",
     "os.version",
     "os.arch",
+    // TODO(https://github.com/gradle/gradle/issues/18432) Remove this from the list when a proper support for the modifications is in place.
+    "java.awt.headless", // Some popular plugins modify this property at runtime.
     "java.version",
     "java.version.date",
     "java.vendor",
@@ -60,11 +65,15 @@ val allowedProperties = setOf(
 
 @ServiceScope(Scopes.BuildTree::class)
 class InstrumentedInputAccessListener(
-    listenerManager: ListenerManager
+    listenerManager: ListenerManager,
+    configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
 ) : Instrumented.Listener {
 
     private
     val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
+
+    private
+    val externalProcessListener = configurationCacheProblemsListener
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
         if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
@@ -78,5 +87,23 @@ class InstrumentedInputAccessListener(
             return
         }
         broadcast.envVariableRead(key, value, consumer)
+    }
+
+    override fun externalProcessStarted(command: String, consumer: String) {
+        if (Workarounds.canStartExternalProcesses(consumer)) {
+            return
+        }
+        externalProcessListener.onExternalProcessStarted(command, consumer)
+    }
+
+    override fun fileOpened(file: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        broadcast.fileOpened(file, consumer)
+    }
+
+    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
+        broadcast.fileCollectionObserved(fileCollection, consumer)
     }
 }

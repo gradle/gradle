@@ -44,6 +44,24 @@ public interface WorkerThreadRegistry {
     void runAsWorkerThread(Runnable action);
 
     /**
+     * Starts a new lease for the current thread. Marks the reservation of a lease. Blocks until a lease is available.
+     *
+     * <p>Note that the caller must call {@link WorkerLeaseRegistry.WorkerLeaseCompletion#leaseFinish()} to mark the completion of the lease and to release the lease for other threads to use.
+     *
+     * <p>It is generally better to use {@link WorkerThreadRegistry#runAsWorkerThread(Runnable)} instead of this method.</p>
+     */
+    WorkerLeaseRegistry.WorkerLeaseCompletion startWorker();
+
+    /**
+     * Returns the current worker lease for the current thread or starts a new one if the current thread is not a worker.
+     *
+     * <p>Note that the caller must call {@link WorkerLeaseRegistry.WorkerLeaseCompletion#leaseFinish()} to mark the completion of the lease and to release the lease for other threads to use.
+     *
+     * <p>It is generally better to use {@link WorkerThreadRegistry#runAsWorkerThread(Runnable)} instead of this method.</p>
+     */
+    WorkerLeaseRegistry.WorkerLeaseCompletion maybeStartWorker();
+
+    /**
      * Returns {@code true} when this thread is enlisted in resource locking.
      */
     boolean isWorkerThread();

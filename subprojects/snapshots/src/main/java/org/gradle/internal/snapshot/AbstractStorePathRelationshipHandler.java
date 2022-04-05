@@ -34,7 +34,7 @@ public abstract class AbstractStorePathRelationshipHandler<T> implements ChildMa
 
     @Override
     public ChildMap<T> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, T child) {
-        T newChild = handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), child);
+        T newChild = handler.handleAsDescendantOfChild(targetPath.pathFromChild(childPath), child);
         return withReplacedChild(newChild);
     }
 
@@ -55,7 +55,7 @@ public abstract class AbstractStorePathRelationshipHandler<T> implements ChildMa
         String commonPrefix = childPath.substring(0, commonPrefixLength);
         String newChildPath = childPath.substring(commonPrefixLength + 1);
         ChildMap.Entry<T> newChild = new ChildMap.Entry<>(newChildPath, child);
-        String siblingPath = targetPath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
+        String siblingPath = targetPath.pathFromChild(commonPrefix).getAsString();
         ChildMap.Entry<T> sibling = new ChildMap.Entry<>(siblingPath, handler.createChild());
         ChildMap<T> newChildren = ChildMapFactory.childMap(caseSensitivity, newChild, sibling);
         return withReplacedChild(commonPrefix, handler.createNodeFromChildren(newChildren));

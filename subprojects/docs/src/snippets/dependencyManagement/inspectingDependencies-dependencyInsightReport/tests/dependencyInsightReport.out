@@ -1,9 +1,10 @@
 commons-codec:commons-codec:1.7
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
+  Variant default:
+    | Attribute Name    | Provided | Requested |
+    |-------------------|----------|-----------|
+    | org.gradle.status | release  |           |
    Selection reasons:
-      - By conflict resolution : between versions 1.7 and 1.6
+      - By conflict resolution: between versions 1.7 and 1.6
 
 commons-codec:commons-codec:1.7
 \--- scm

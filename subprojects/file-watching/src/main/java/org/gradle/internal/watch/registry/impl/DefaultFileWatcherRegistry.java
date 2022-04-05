@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +136,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         });
         thread.start();
         return thread;
+    }
+
+    @Override
+    public boolean isWatchingAnyLocations() {
+        return !fileWatcherUpdater.getWatchedFiles().isEmpty();
     }
 
     @Override

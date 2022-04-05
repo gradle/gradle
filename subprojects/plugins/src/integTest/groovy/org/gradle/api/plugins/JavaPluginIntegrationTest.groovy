@@ -19,10 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsOutgoingVariants
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.InspectsConfigurationReport
+import spock.lang.Issue
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
     def appliesBasePluginsAndAddsConventionObject() {
         given:
@@ -46,7 +46,6 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "expect"
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set"() {
         buildFile << """
             plugins {
@@ -58,28 +57,25 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "outgoingVariants"
 
         outputContains("""
-            --------------------------------------------------
-            Variant mainSourceElements (i)
-            --------------------------------------------------
-            Description = List of source directories contained in the Main SourceSet.
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+List of source directories contained in the Main SourceSet.
 
-            Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
-            Attributes
-                - org.gradle.category            = verification
-                - org.gradle.dependency.bundling = external
-                - org.gradle.verificationtype    = main-sources
-
-            Artifacts
-                - src${File.separator}main${File.separator}java (artifactType = directory)
-                - src${File.separator}main${File.separator}resources (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)""")
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set containing additional directories"() {
         buildFile << """
             plugins {
@@ -94,26 +90,24 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "outgoingVariants"
 
         outputContains("""
-            --------------------------------------------------
-            Variant mainSourceElements (i)
-            --------------------------------------------------
-            Description = List of source directories contained in the Main SourceSet.
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+List of source directories contained in the Main SourceSet.
 
-            Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
-            Attributes
-                - org.gradle.category            = verification
-                - org.gradle.dependency.bundling = external
-                - org.gradle.verificationtype    = main-sources
-
-            Artifacts
-                - src${File.separator}main${File.separator}java (artifactType = directory)
-                - src${File.separator}more${File.separator}java (artifactType = directory)
-                - src${File.separator}main${File.separator}resources (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)
+    - src${File.separator}more${File.separator}java (artifactType = directory)""")
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     def "mainSourceElements can be consumed by another task via Dependency Management"() {
@@ -236,5 +230,244 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
 
         expect:
         succeeds('testResolve')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19914")
+    def "calling jar task doesn't force realization of test task"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException("Test task should not have been realized")
+            }""".stripIndent()
+
+        file("src/main/java/com/example/SampleClass.java") << """
+            package com.example;
+
+            public class SampleClass {
+                public String hello() {
+                    return "hello";
+                }
+            }
+            """.stripIndent()
+
+        file("src/test/java/com/example/SampleTest.java") << """
+            package com.example;
+
+            import org.junit.Test;
+            import static org.junit.Assert.assertEquals;
+
+            public class SampleTest {
+                @Test
+                public void checkHello() {
+                    SampleClass sampleClass = new SampleClass();
+                    assertEquals("hello", sampleClass.hello());
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds "jar"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19914")
+    def "calling test task doesn't force execution of jar task"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
+
+            tasks.withType(Jar).configureEach {
+                doLast {
+                    throw new RuntimeException("Jar task should not have been executed")
+                }
+            }""".stripIndent()
+
+        file("src/main/java/com/example/SampleClass.java") << """
+            package com.example;
+
+            public class SampleClass {
+                public String hello() {
+                    return "hello";
+                }
+            }
+            """.stripIndent()
+
+        file("src/test/java/com/example/SampleTest.java") << """
+            package com.example;
+
+            import org.junit.Test;
+            import static org.junit.Assert.assertEquals;
+
+            public class SampleTest {
+                @Test
+                public void checkHello() {
+                    SampleClass sampleClass = new SampleClass();
+                    assertEquals("hello", sampleClass.hello());
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds "test"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19914")
+    def "running test and jar tasks in that order should result in jar running first"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }""".stripIndent()
+
+        file("src/main/java/com/example/SampleClass.java") << """
+            package com.example;
+
+            public class SampleClass {
+                public String hello() {
+                    return "hello";
+                }
+            }
+            """.stripIndent()
+
+        file("src/test/java/com/example/SampleTest.java") << """
+            package com.example;
+
+            import org.junit.Test;
+            import static org.junit.Assert.assertEquals;
+
+            public class SampleTest {
+                @Test
+                public void checkHello() {
+                    SampleClass sampleClass = new SampleClass();
+                    assertEquals("hello", sampleClass.hello());
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds "test", "jar"
+        result.assertTaskOrder(":jar", ":test")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19914")
+    def "when project B depends on A, running tests in B should cause As jar task to run prior to As tests"() {
+        given:
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+        """.stripIndent()
+
+        def subADir = createDir("subA")
+        subADir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }""".stripIndent()
+
+
+        subADir.file("src/main/java/com/exampleA/SampleClassA.java") << """
+            package com.exampleA;
+
+            public class SampleClassA {
+                public String hello() {
+                    return "hello";
+                }
+            }
+            """.stripIndent()
+
+        subADir.file("src/test/java/com/exampleA/SampleTestA.java") << """
+            package com.exampleA;
+
+            import org.junit.Test;
+            import static org.junit.Assert.assertEquals;
+
+            public class SampleTestA {
+                @Test
+                public void checkHello() {
+                    SampleClassA sampleClass = new SampleClassA();
+                    assertEquals("hello", sampleClass.hello());
+                }
+            }""".stripIndent()
+
+        def subBDir = createDir("subB")
+        subBDir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                implementation project(':subA')
+                testImplementation 'junit:junit:4.13'
+            }
+            """.stripIndent()
+
+        subBDir.file("src/main/java/com/exampleB/SampleClassB.java") << """
+            package com.exampleB;
+
+            import com.exampleA.SampleClassA;
+
+            public class SampleClassB {
+                public String hello() {
+                    SampleClassA sampleClassA = new SampleClassA();
+                    return sampleClassA.hello() + " there";
+                }
+            }
+            """.stripIndent()
+
+        subBDir.file("src/test/java/com/exampleB/SampleTestB.java") << """
+            package com.exampleB;
+
+            import org.junit.Test;
+            import static org.junit.Assert.assertEquals;
+
+            public class SampleTestB {
+                @Test
+                public void checkHello() {
+                    SampleClassB sampleClass = new SampleClassB();
+                    assertEquals("hello there", sampleClass.hello());
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds ":subB:test"
+        result.assertTaskOrder(":subA:jar", ":subB:test")
+        result.assertTaskNotExecuted(":subA:test")
     }
 }
