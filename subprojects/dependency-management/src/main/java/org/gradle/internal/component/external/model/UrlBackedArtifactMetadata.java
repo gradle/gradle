@@ -42,10 +42,10 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
         this.componentIdentifier = componentIdentifier;
         this.fileName = fileName;
         this.relativeUrl = relativeUrl;
-        id = createArtifactId(componentIdentifier);
+        id = createArtifactId(componentIdentifier, fileName);
     }
 
-    private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentIdentifier componentIdentifier) {
+    private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentIdentifier componentIdentifier, String fileName) {
         if (componentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
             // This special case is for Maven snapshots with Gradle Module Metadata when we need to remap the file name, which
             // corresponds to the unique timestamp, to the SNAPSHOT version, for backwards compatibility

@@ -246,11 +246,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
 
             public SignatureArtifactMetadata(ModuleComponentArtifactIdentifier artifact, @Nullable IvyArtifactName ivyArtifactName) {
                 this.moduleComponentIdentifier = artifact.getComponentIdentifier();
-                this.artifactIdentifier = getArtifactId(artifact, ivyArtifactName);
+                this.artifactIdentifier = createArtifactId(artifact, ivyArtifactName);
             }
 
-            private ModuleComponentArtifactIdentifier getArtifactId(ModuleComponentArtifactIdentifier artifact, @Nullable IvyArtifactName originalIvyArtifactName) {
-                if (artifact instanceof DefaultModuleComponentArtifactIdentifier || originalIvyArtifactName != null) {
+            private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentArtifactIdentifier artifact, @Nullable IvyArtifactName originalIvyArtifactName) {
+                if (originalIvyArtifactName != null || artifact instanceof DefaultModuleComponentArtifactIdentifier) {
                     IvyArtifactName ivyArtifactName = originalIvyArtifactName != null ? originalIvyArtifactName : ((DefaultModuleComponentArtifactIdentifier) artifact).getName();
                     String extension = ivyArtifactName.getExtension() != null ? ivyArtifactName.getExtension() : ivyArtifactName.getType();
                     ModuleComponentIdentifier moduleComponentIdentifier = artifact.getComponentIdentifier();
