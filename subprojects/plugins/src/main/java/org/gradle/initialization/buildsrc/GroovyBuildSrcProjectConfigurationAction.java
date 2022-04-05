@@ -30,7 +30,17 @@ public class GroovyBuildSrcProjectConfigurationAction implements BuildSrcProject
         project.getPluginManager().apply(GroovyPlugin.class);
 
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi());
+        String apiVersion = System.getProperty("org.gradle.api.version");
+        if (apiVersion == null || apiVersion.isEmpty()) {
+            dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi());
+        } else {
+            String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
+            project.getRepositories().maven(repository -> {
+                repository.setName("gradleApiRepository");
+                repository.setUrl(repositoryUrl);
+            });
+            dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi(apiVersion));
+        }
         dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.localGroovy());
     }
 }
