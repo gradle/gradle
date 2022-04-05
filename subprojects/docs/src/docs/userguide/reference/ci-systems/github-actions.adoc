@@ -6,70 +6,115 @@ TIP: Top engineering teams using GitHub Actions have been able to reduce CI buil
 Building Gradle projects doesn't stop with the developer's machine.
 https://en.wikipedia.org/wiki/Continuous_integration[Continuous Integration] (CI) has been a long-established practice for running a build for every single change committed to version control to tighten the feedback loop.
 
-In this guide, we'll discuss how to configure link:https://github.com/features/actions/[GitHub Actions] for a typical Gradle project.
+In this guide, we'll discuss how to configure link:https://github.com/features/actions/[GitHub Actions] for a Gradle project hosted on GitHub.
+
+== Introduction
+
+GitHub Actions is a free, cloud-based CI solution provider built directly into GitHub making it an excellent choice for open source projects hosted on GitHub.
+You can build any project as long as it is hosted on GitHub.
+GitHub Actions can be configured to make your build outputs and test results available for download.
 
 == What you'll need
 
 * A text editor
 * A command prompt
 * The Java Development Kit (JDK), version 1.8 or higher
+* A local Gradle installation, to initialize a new Gradle project
 * A GitHub account
 
-== Setup a typical project
+== Setup a Gradle project on GitHub
 
+If you have an existing Gradle project hosted on GitHub, then you can skip this step and move directly to <<configure-github-actions,the next section>>.
+
+If not, follow these step to initialize a new Gradle project on GitHub.
 As example, this guide is going to focus on a Java-based project.
 More specifically, a Gradle plugin written in Java and tested with https://www.spekframework.org/[Spek].
 First, we'll get the project set up on your local machine before covering the same steps on CI.
 
 Just follow these steps:
 
-=== Fork the https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
+=== Create a new GitHub repository for your project
 
-Open https://github.com/gradle/gradle-site-plugin and click the "Fork" button top right. Create the fork under your personal GitHub account.
+Via the GitHub user interface, create a new repository named `github-actions-gradle-sample`.
+
+image::ci-systems/github-actions-create-repository.png[Create new GitHub repository]
 
 === Clone the repository locally
 
 [listing.terminal.sample-command]
 ----
-$ git clone https://github.com/<github-user>/gradle-site-plugin.git
-Cloning into 'gradle-site-plugin'...
-$ cd gradle-site-plugin
+$ git clone https://github.com/<YOUR-GITHUB-USER>/github-actions-gradle-sample.git
+Cloning into 'github-actions-gradle-sample'...
+$ cd github-actions-gradle-sample
 ----
 
-=== Build the project
+=== Initialize the Gradle project and commit to the repository
 
-As a developer of a Java project, you'll typical want to compile the source code, run the tests and assemble the JAR artifact. That's no different for Gradle plugins. The following command achieves exactly that:
+Use `gradle init` to create a fresh Gradle project. You can choose any of the available options during `init`, but we recommend choosing "library" as the project type.
+
+Once the project is generated, commit the changes and push to the repository.
 
 [listing.terminal.sample-command]
 ----
-$ ./gradlew build
-
-BUILD SUCCESSFUL
-14 actionable tasks: 14 executed
+$ gradle init
+$ git add .
+$ git commit -m "Initial commit"
+$ git push
 ----
 
-The project provides the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> as part of the repository.
+=== Enable Build Scan publishing
+
+<<https://scans.gradle.com/,Gradle Build Scans>> are a great way to view your build results, and provide valuable insights into your build.
+In order to publish Build Scans from GitHub Actions, you'll need to pre-approve the Terms & Conditions.
+
+To do so, add the following content to the top of your `settings.gradle[.kts]` file. The "CI" environment variable is set by GitHub Actions:
+```
+plugins {
+    id("com.gradle.enterprise") version("3.9")
+}
+
+gradleEnterprise {
+    if (System.getenv("CI") != null) {
+        buildScan {
+            publishAlways()
+            termsOfServiceUrl = "https://gradle.com/terms-of-service"
+            termsOfServiceAgree = "yes"
+        }
+    }
+}
+```
+
+Commit the changes and push to the repository:
+
+[listing.terminal.sample-command]
+----
+$ git commit -a -m "Publish Build Scans from GitHub Actions"
+$ git push
+----
+
+=== Test building the project
+
+The project uses the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> for building the project.
 It is a recommended practice for any Gradle project as it enables your project to built on CI without having to install the Gradle runtime.
 
-=== Build scan integration
+Before asking GitHub Actions to build your project, it's useful to ensure that it builds locally.
+Adding the "CI" environment variable will emulate running the build on GitHub Actions.
 
-The sample project is equipped with support for generating link:https://scans.gradle.com/[build scans].
-Running the build with the command line option `--scan` renders a link in the console.
+The following command achieves that:
 
 [listing.terminal.sample-command]
 ----
-$ ./gradlew build --scan
+$ CI=true ./gradlew build
+
+BUILD SUCCESSFUL
+
 Publishing build scan...
 https://gradle.com/s/7mtynxxmesdio
 ----
 
-The following section will describe how to build the project with the help of GitHub Actions.
+== [[configure-github-actions,Configure GitHub Actions]]
 
-== Configure GitHub Actions
-
-GitHub Actions is a free, cloud-based CI solution provider built directly into GitHub making it an excellent choice for open source projects hosted on GitHub.
-You can build any project as long as it is hosted on GitHub.
-GitHub Actions can be configured to make your build outputs and test results available for download.
+The following steps describe how to configure a GitHub Actions workflow to build your project.
 
 === Configure the GitHub Actions workflow
 
@@ -77,7 +122,7 @@ You can create a GitHub Actions workflow by adding a `.github/workflows/<workflo
 This workflow definition file contains all relevant instructions for building the project on GitHub Actions.
 
 The following workflow file instructs GitHub Actions to build your Gradle project using the Gradle Wrapper, executed by the default Java distribution for GitHub Actions.
-Create a new file named `.github/workflows/build-project.yml` with the following content, and push it to the GitHub repository.
+Create a new file named `.github/workflows/build-gradle-project.yml` with the following content, and push it to the GitHub repository.
 
 [listing]
 ----
@@ -94,8 +139,16 @@ jobs:
       uses: actions/checkout@v2
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
-    - name: Run build with Gradle wrapper
-      run: ./gradlew build --scan
+    - name: Run build with Gradle Wrapper
+      run: ./gradlew build
+----
+
+Commit the changes and push to the repository:
+
+[listing.terminal.sample-command]
+----
+$ git commit -a -m "Add GitHub Actions workflow"
+$ git push
 ----
 
 == View the GitHub Actions results
