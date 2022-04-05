@@ -82,11 +82,6 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         when:
         def commandLineExecution = factory.convert(["--some-option"])
-
-        then:
-        commandLineExecution
-
-        when:
         commandLineExecution.execute(executionListener)
 
         then:
@@ -103,11 +98,6 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         when:
         def commandLineExecution = factory.convert([])
-
-        then:
-        commandLineExecution
-
-        when:
         commandLineExecution.execute(executionListener)
 
         then:
