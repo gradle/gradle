@@ -65,7 +65,9 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     @Shared
     def tooManyRequests = status(429)
     @Shared
-    def unauthorized = status(403)
+    def forbidden = status(403)
+    @Shared
+    def unauthorized = status(401)
 
     @Subject
     ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess access
@@ -269,12 +271,47 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
+    @Unroll
+    def "blocks repo immediately when receives #desc"() {
+        access = createAccess(1)
+
+        given:
+        def artifact = Mock(ComponentArtifactMetadata)
+        def artifactId = Mock(ComponentArtifactIdentifier)
+        def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
+        def result = Mock(BuildableArtifactResolveResult)
+        artifact.getId() >> artifactId
+        delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
+
+        when: 'repo is not disabled'
+        access.resolveArtifact(artifact, moduleSources, result)
+
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * result.failed(_ as ArtifactResolveException)
+
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        access.resolveArtifact(artifact, moduleSources, result)
+
+        then: 'resolution fails directly'
+        1 * result.failed(_ as ArtifactResolveException)
+        0 * delegate._
+
+        where:
+        desc | exception
+        "unauthorized (401)" | unauthorized
+        "forbidden (403)" | forbidden
+    }
+
     List<List<?>> retryCombinations() {
         def retries = []
         (1..3).each { ret ->
             // no retries on runtime errors, missing resources, authentication errors
             retries << [ret, runtimeError, 1]
             retries << [ret, missing, 1]
+            retries << [ret, forbidden, 1]
             retries << [ret, unauthorized, 1]
             // retries on connect timeouts, too many requests, client timeouts
             retries << [ret, connectTimeout, ret]

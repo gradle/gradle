@@ -26,6 +26,9 @@ import java.util.List;
 
 public class NetworkingIssueVerifier {
 
+    // Too many requests (not available through HttpStatus.XXX)
+    private static final int SC_TOO_MANY_REQUESTS = 429;
+
     /**
      * Determines if an error should cause a retry. We will currently retry:
      * <ul>
@@ -58,7 +61,25 @@ public class NetworkingIssueVerifier {
     }
 
     private static boolean isTransientClientError(int statusCode) {
-        return statusCode == HttpStatus.SC_REQUEST_TIMEOUT ||
-            statusCode == 429; // Too many requests (not available through HttpStatus.XXX)
+        return statusCode == HttpStatus.SC_REQUEST_TIMEOUT || statusCode == SC_TOO_MANY_REQUESTS;
+    }
+
+    public static <E extends Throwable> boolean isLikelyPermanentNetworkIssue(E failure) {
+        if (failure instanceof HttpErrorStatusCodeException) {
+            return isClientAuthenticationError(((HttpErrorStatusCodeException) failure).getStatusCode());
+        }
+        if (failure instanceof DefaultMultiCauseException) {
+            List<? extends Throwable> causes = ((DefaultMultiCauseException) failure).getCauses();
+            for (Throwable cause : causes) {
+                if (isLikelyPermanentNetworkIssue(cause)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isClientAuthenticationError(int statusCode) {
+        return statusCode == HttpStatus.SC_UNAUTHORIZED || statusCode == HttpStatus.SC_FORBIDDEN;
     }
 }
