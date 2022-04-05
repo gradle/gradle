@@ -100,8 +100,9 @@ Specifies the Java home for the Gradle build process. The value can be set to ei
 _A reasonable default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._
 
 `org.gradle.jvmargs=(JVM arguments)`::
-Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance. This does not affect the JVM settings for the Gradle client VM.
-_The default is `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`._
+Specifies JVM arguments to be used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance. This does not affect the JVM settings for the Gradle client VM.
+Supplied values are merged with the defaults, with the exception of <<#sec:configuring_jvm_memory,JVM memory settings>>.
+_The default values are `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`._
 
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
@@ -325,11 +326,14 @@ You should check for existence of optional project properties before you access 
 
 You can adjust JVM options for Gradle in the following ways:
 
-The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`
+The `org.gradle.jvmargs` Gradle property specifies arguments for the JVM running the build. The default values are `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`.
 
-.Changing JVM settings for the build VM
+JVM arguments provided via `org.gradle.jvmargs` are combined with the defaults, with the exception of `-Xms` and `-Xmx`: setting either these values will remove the default for the other.
+This avoids the case where a default value is incompatible with a user-supplied value, such as having a minimum memory setting higher than the maximum.
+
+.Changing JVM memory settings for the build VM
 ----
-org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xms256m -Xmx2g
 ----
 
 The `JAVA_OPTS` environment variable controls the command line client, which is only used to display console output. It defaults to `-Xmx64m`
