@@ -27,6 +27,77 @@ import static org.hamcrest.Matchers.not
 @TargetGradleVersion(">=7.5")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
+    def "can fetch classpath of settings script"() {
+
+        given:
+        withBuildSrc()
+
+        and:
+        def settingsDependency = withEmptyJar("settings-dependency.jar")
+        def settings = withSettings("""
+            buildscript {
+                dependencies {
+                    classpath(files("${normalizedPathOf(settingsDependency)}"))
+                }
+            }
+        """)
+
+        and:
+        def projectDependency = withEmptyJar("project-dependency.jar")
+        file("build.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath(files("${normalizedPathOf(projectDependency)}"))
+                }
+            }
+        """
+
+        when:
+        def classPath = canonicalClassPathFor(projectDir, settings)
+
+        then:
+        assertAppropriatelyContainsBuildSrc(classPath)
+        assertContainsGradleKotlinDslJars(classPath)
+        assertIncludes(classPath, settingsDependency)
+        assertExcludes(classPath, projectDependency)
+    }
+
+    def "can fetch classpath of settings script plugin"() {
+
+        given:
+        withBuildSrc()
+        withDefaultSettings()
+
+        and:
+        def settingsDependency = withEmptyJar("settings-dependency.jar")
+        def settings = withFile("my.settings.gradle.kts", """
+            buildscript {
+                dependencies {
+                    classpath(files("${normalizedPathOf(settingsDependency)}"))
+                }
+            }
+        """)
+
+        and:
+        def projectDependency = withEmptyJar("project-dependency.jar")
+        withFile("build.gradle", """
+            buildscript {
+                dependencies {
+                    classpath(files("${normalizedPathOf(projectDependency)}"))
+                }
+            }
+        """)
+
+        when:
+        def classPath = canonicalClassPathFor(projectDir, settings)
+
+        then:
+        assertAppropriatelyContainsBuildSrc(classPath)
+        assertContainsGradleKotlinDslJars(classPath)
+        assertIncludes(classPath, settingsDependency)
+        assertExcludes(classPath, projectDependency)
+    }
+
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
     def "sourcePath does not include buildSrc source roots"() {
 

@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
 
 import static org.hamcrest.MatcherAssert.assertThat
 
-@TargetGradleVersion(">=5.4")
+@TargetGradleVersion(">=5.4 <7.5")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch classpath of settings script"() {
