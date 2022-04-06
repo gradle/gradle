@@ -52,7 +52,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -368,8 +367,8 @@ public class Groovydoc extends SourceTask {
     /**
      * Sets whether to include classes and members with private access and above.
      *
-     * @deprecated Equivalent to calling {@link #setAccess(String)} with {@code "private"}
-     *             if {@code includePrivate} is {@code true}, {@code "public"} otherwise
+     * @deprecated Equivalent to calling {@link #getAccess()}{@code .set(...)} with {@link GroovydocAccess#PRIVATE}
+     *             if {@code includePrivate} is {@code true}, {@link GroovydocAccess#PUBLIC} otherwise
      */
     @Deprecated
     public void setIncludePrivate(boolean includePrivate) {
