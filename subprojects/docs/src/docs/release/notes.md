@@ -25,9 +25,10 @@ We would like to thank the following community members for their contributions t
 [Taeik Lim](https://github.com/acktsap),
 [David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [Peter Gafert](https://github.com/codecholeric),
-[Alex Landau](https://github.com/AlexLandau)
+[Alex Landau](https://github.com/AlexLandau),
+[Tyler Burke](https://github.com/T-A-B)
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
@@ -139,7 +140,7 @@ Root project 'example-project'
 buildFile: /path/to/project/build.gradle
 
 BUILD SUCCESSFUL in 550ms
-1 actionable task: 1 executed 
+1 actionable task: 1 executed
 ```
 
 ### Support for Java 18
