@@ -102,5 +102,13 @@
         ],
         "selected": "cglib:cglib",
         "upgrade": "3.2.6"
+    },
+    {
+        "name": "jsch",
+        "providedBy": [
+            "com.jcraft:jsch", "com.github.mwiede:jsch"
+        ],
+        "selected": "com.github.mwiede:jsch",
+        "upgrade": "0.2.0"
     }
 ]
