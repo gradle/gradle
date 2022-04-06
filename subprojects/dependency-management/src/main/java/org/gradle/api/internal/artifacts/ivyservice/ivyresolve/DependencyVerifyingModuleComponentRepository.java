@@ -157,13 +157,25 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         private File maybeFetchComponentMetadataSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact) {
-            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(artifact);
+            ModuleComponentArtifactIdentifier signatureArtifactId;
+            if (artifact instanceof DefaultModuleComponentArtifactIdentifier) {
+                signatureArtifactId = createSignatureArtifactIdFromIvyArtifactName(artifact.getComponentIdentifier(), ((DefaultModuleComponentArtifactIdentifier) artifact).getName());
+            } else {
+                signatureArtifactId = new ModuleComponentFileArtifactIdentifier(artifact.getComponentIdentifier(), artifact.getFileName() + ".asc");
+            }
+            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(signatureArtifactId);
             return maybeFetchSignatureFile(moduleSources, signatureArtifactMetadata);
         }
 
         private File maybeFetchArtifactSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact, IvyArtifactName ivyArtifactName) {
-            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(artifact, ivyArtifactName);
+            ModuleComponentArtifactIdentifier signatureArtifactId = createSignatureArtifactIdFromIvyArtifactName(artifact.getComponentIdentifier(), ivyArtifactName);
+            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(signatureArtifactId);
             return maybeFetchSignatureFile(moduleSources, signatureArtifactMetadata);
+        }
+
+        private ModuleComponentArtifactIdentifier createSignatureArtifactIdFromIvyArtifactName(ModuleComponentIdentifier moduleComponentIdentifier, IvyArtifactName ivyArtifactName) {
+            String extension = ivyArtifactName.getExtension() != null ? ivyArtifactName.getExtension() : ivyArtifactName.getType();
+            return new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, ivyArtifactName.getName(), "asc", extension + ".asc", ivyArtifactName.getClassifier());
         }
 
         private File maybeFetchSignatureFile(ModuleSources moduleSources, SignatureArtifactMetadata signatureArtifactMetadata) {
@@ -241,22 +253,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             private final ModuleComponentArtifactIdentifier artifactIdentifier;
 
             public SignatureArtifactMetadata(ModuleComponentArtifactIdentifier artifact) {
-                this(artifact, null);
-            }
-
-            public SignatureArtifactMetadata(ModuleComponentArtifactIdentifier artifact, @Nullable IvyArtifactName ivyArtifactName) {
                 this.moduleComponentIdentifier = artifact.getComponentIdentifier();
-                this.artifactIdentifier = createArtifactId(artifact, ivyArtifactName);
-            }
-
-            private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentArtifactIdentifier artifact, @Nullable IvyArtifactName originalIvyArtifactName) {
-                if (originalIvyArtifactName != null || artifact instanceof DefaultModuleComponentArtifactIdentifier) {
-                    IvyArtifactName ivyArtifactName = originalIvyArtifactName != null ? originalIvyArtifactName : ((DefaultModuleComponentArtifactIdentifier) artifact).getName();
-                    String extension = ivyArtifactName.getExtension() != null ? ivyArtifactName.getExtension() : ivyArtifactName.getType();
-                    ModuleComponentIdentifier moduleComponentIdentifier = artifact.getComponentIdentifier();
-                    return new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, ivyArtifactName.getName(), "asc", extension + ".asc", ivyArtifactName.getClassifier());
-                }
-                return new ModuleComponentFileArtifactIdentifier(artifact.getComponentIdentifier(), artifact.getFileName() + ".asc");
+                this.artifactIdentifier = artifact;
             }
 
             @Override
