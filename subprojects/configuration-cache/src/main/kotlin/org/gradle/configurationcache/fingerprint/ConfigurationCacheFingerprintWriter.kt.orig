@@ -81,9 +81,13 @@ class ConfigurationCacheFingerprintWriter(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
+<<<<<<< HEAD
     private val environmentChangeTracker: EnvironmentChangeTracker,
+) : ValueSourceProviderFactory.Listener,
+=======
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
+>>>>>>> cd7c1c9b530 (Do not track configuration inputs when inside the ValueSource)
     WorkInputListener,
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
@@ -205,7 +209,11 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
-        if (inputTrackingDisabledForThread || isSystemPropertyMutated(key)) {
+<<<<<<< HEAD
+        if (isSystemPropertyMutated(key)) {
+=======
+        if (inputTrackingDisabledForThread) {
+>>>>>>> cd7c1c9b530 (Do not track configuration inputs when inside the ValueSource)
             return
         }
         sink().systemPropertyRead(key, value)
@@ -239,9 +247,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        if (inputTrackingDisabledForThread) {
-            return
-        }
+<<<<<<< HEAD
         val filteredSnapshot = snapshot.mapValues { e ->
             if (isSystemPropertyMutated(e.key)) {
                 ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
@@ -250,6 +256,12 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
         buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, filteredSnapshot))
+=======
+        if (inputTrackingDisabledForThread) {
+            return
+        }
+        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
+>>>>>>> cd7c1c9b530 (Do not track configuration inputs when inside the ValueSource)
     }
 
     override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
