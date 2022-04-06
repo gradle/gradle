@@ -101,7 +101,7 @@ _A reasonable default is derived from your environment (`JAVA_HOME` or the path 
 
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies JVM arguments to be used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance. This does not affect the JVM settings for the Gradle client VM.
-Supplied values are merged with the defaults, with the exception of <<#sec:configuring_jvm_memory,JVM memory settings>>.
+Supplied values are merged with the defaults, with special handling for <<#sec:configuring_jvm_memory,JVM memory settings>> (see link).
 _The default values are `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`._
 
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
@@ -328,7 +328,7 @@ You can adjust JVM options for Gradle in the following ways:
 
 The `org.gradle.jvmargs` Gradle property specifies arguments for the JVM running the build. The default values are `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`.
 
-JVM arguments provided via `org.gradle.jvmargs` are combined with the defaults, with the exception of `-Xms` and `-Xmx`: setting either these values will remove the default for the other.
+JVM arguments provided via `org.gradle.jvmargs` are combined with the defaults, with special handling for `-Xms` and `-Xmx`: setting either these values will remove the default for the other.
 This avoids the case where a default value is incompatible with a user-supplied value, such as having a minimum memory setting higher than the maximum.
 
 .Changing JVM memory settings for the build VM
