@@ -160,7 +160,21 @@ $ gradle  mAL:cT
 include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
 ----
 
-You can also use these abbreviations with the -x command-line option.
+You can also use these abbreviations with the `-x` command-line option.
+
+=== Tracing name expansion
+
+For complex projects, it might not be obvious if the intended tasks were executed. When using abbreviated names, a single typo can lead to the execution of unexpected tasks.
+
+When INFO, or <<logging.adoc#logLevels, more verbose logging is enabled>>, the output will contain extra information about the project and task name expansion. For example, when executing the `mAL:cT` command on the previous example, the following log messages will be visible:
+
+
+----
+No exact project with name ‘:mAL’ has been found. Checking for abbreviated names.
+Found exactly one project that matches the abbreviated name ‘:mAL’: ':my-awesome-library'.
+No exact task with name ‘:cT’ has been found. Checking for abbreviated names.
+Found exactly one task name, that matches the abbreviated name ‘:cT’: ':compileTest'.
+----
 
 == Common tasks
 
@@ -296,6 +310,14 @@ Running `gradle properties` gives you a list of the properties of the selected p
 ----
 $ gradle -q api:properties
 include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
+----
+
+You can also query a single property with the optional `--property` argument.
+
+.Information about a single property
+----
+$ gradle -q api:properties --property allprojects
+include::{snippetsPath}/tutorial/projectReports/tests/propertyReport.out[]
 ----
 
 [[sec:command_line_completion]]

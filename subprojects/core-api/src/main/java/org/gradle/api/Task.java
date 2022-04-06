@@ -91,7 +91,7 @@ import java.util.Set;
  * <ul>
  *
  * <li>A {@code String}, {@code CharSequence} or {@code groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
- * allows you to refer to tasks in other projects.</li>
+ * allows you to refer to tasks in other projects. These task references will not cause task creation.</li>
  *
  * <li>A {@link Task}.</li>
  *

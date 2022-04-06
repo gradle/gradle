@@ -26,7 +26,6 @@ import org.gradle.internal.resources.ResourceLock;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private final WorkNodeAction action;
@@ -60,16 +59,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
             addDependencySuccessor(node);
             processHardSuccessor.execute(node);
         }
-    }
-
-    @Override
-    public Set<Node> getFinalizers() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public void resolveMutations() {
-        // Assume has no outputs that can be destroyed or that overlap with another node
     }
 
     public WorkNodeAction getAction() {

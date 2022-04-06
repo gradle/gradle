@@ -406,7 +406,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
     @Issue("https://github.com/gradle/gradle/issues/19710")
     def "modification of allowed properties does not invalidate cache"() {
         buildFile("""
-            System.setProperty("java.awt.headless", "true")
+            def oldValue = System.setProperty("java.awt.headless", "true")
+            println("previous value = \$oldValue")
 
             // Attempt to capture the modified property value.
             println("configuration time value=\${System.getProperty("java.awt.headless")}")
@@ -420,7 +421,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("printProperty")
+        configurationCacheRun("-Djava.awt.headless=false", "printProperty")
 
         then:
         configurationCache.assertStateStored()
@@ -428,12 +429,12 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("execution time value=true")
 
         when:
-        configurationCacheRun("printProperty")
+        configurationCacheRun("-Djava.awt.headless=false", "printProperty")
 
         then:
         configurationCache.assertStateLoaded()
         // TODO(https://github.com/gradle/gradle/issues/18432) This should be changed to "true".
-        outputContains("execution time value=null")
+        outputContains("execution time value=false")
     }
 
     def "reports build logic reading environment variables with getenv(String) using GString parameters"() {

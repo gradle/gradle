@@ -25,7 +25,17 @@ class DependencyInsightOutputNormalizer implements OutputNormalizer {
 
     @Override
     String normalize(String output, ExecutionMetadata executionMetadata) {
-        output.replaceAll("org\\.gradle\\.jvm\\.version[ ]+= [0-9]+", "org.gradle.jvm.version = 11")
+        output.replaceAll("(?x)" +
+            "# Captures first half of the table\n" +
+            "(\\s+\\|\\s+org\\.gradle\\.jvm\\.version\\s+\\|\\s+\\|\\s+)" +
+            "# Decides between a single digit + spacing (e.g. '8 '), or two digits (e.g. 17)\n" +
+            "# This is the value being replaced.\n" +
+            "(?:\\d\\s|\\d{2})" +
+            "# Capture the tail end of the table\n" +
+            "(\\s+\\|)",
+            // Replace the value with 11 for consistent testing
+            "\$111\$2"
+        )
             .replaceAll("org\\.gradle\\.jvm\\.version[ ]'[0-9]+'", "org.gradle.jvm.version '11'")
             .replaceAll("'org\\.gradle\\.jvm\\.version' with value '[0-9]+'", "'org.gradle.jvm.version' with value '11'")
             .replaceAll("compatib(le|ility) with Java [0-9]+", "compatib\$1 with Java 11")

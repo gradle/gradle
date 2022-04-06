@@ -50,14 +50,13 @@ public class JarFilePackageLister {
                 final Enumeration<? extends ZipEntry> zipFileEntries = zipFile.entries();
 
                 while (zipFileEntries.hasMoreElements()) {
-                    final ZipEntry zipFileEntry = zipFileEntries.nextElement();
+                    final ZipEntry zipEntry = zipFileEntries.nextElement();
+                    final String entryName = zipEntry.getName();
+                    final String packageName = zipEntry.isDirectory() ? entryName :
+                        entryName.substring(0, entryName.lastIndexOf("/") + 1);
 
-                    if (zipFileEntry.isDirectory()) {
-                        final String zipFileEntryName = zipFileEntry.getName();
-
-                        if (!zipFileEntryName.startsWith("META-INF")) {
-                            listener.receivePackage(zipFileEntryName);
-                        }
+                    if (!packageName.startsWith("META-INF")) {
+                        listener.receivePackage(packageName);
                     }
                 }
             } finally {

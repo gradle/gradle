@@ -85,7 +85,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
-    private final NodeValidator nodeValidator;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final ResourceLockCoordinationService lockCoordinator;
@@ -118,7 +117,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         String displayName,
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
-        NodeValidator nodeValidator,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
         ResourceLockCoordinationService lockCoordinator
@@ -126,7 +124,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
-        this.nodeValidator = nodeValidator;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinator = lockCoordinator;
@@ -215,10 +212,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.resolveDependencies(dependencyResolver, targetNode -> {
                     if (!visiting.contains(targetNode)) {
                         queue.addFirst(targetNode);
-                    }
-                    if (node instanceof TaskNode && targetNode instanceof TaskNode) {
-                        // if the dependency doesn't already have an ordinal assigned, then inherit the ordinal from this node
-                        ((TaskNode) targetNode).maybeSetOrdinal(((TaskNode) node).getOrdinal());
                     }
                 });
                 if (node.isRequired()) {
@@ -348,6 +341,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         }
                     }
                     nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
+                    if (node instanceof TaskNode && successor instanceof TaskNode) {
+                        ((TaskNode) successor).maybeInheritOrdinalAsDependency((TaskNode) node);
+                    }
                 }
                 path.push(node);
             } else {
@@ -367,6 +363,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (!visitingNodes.containsKey(finalizer)) {
                         int position = finalizerTaskPosition(finalizer, nodeQueue);
                         nodeQueue.add(position, new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
+                        if (node instanceof TaskNode && finalizer instanceof TaskNode) {
+                            ((TaskNode) finalizer).maybeInheritOrdinalAsFinalizer((TaskNode) node);
+                        }
                     }
                 }
 
@@ -424,8 +423,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
             if (taskClassifier.isDestroyer()) {
                 // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
-                Node ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
-                taskNode.getHardSuccessors().forEach(ordinalNode::addDependencySuccessor);
+                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
+                ordinalNode.addDependenciesFrom(taskNode);
 
                 if (taskNode.getOrdinal() > 0) {
                     // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
@@ -435,8 +434,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
             } else if (taskClassifier.isProducer()) {
                 // Create (or get) a producer ordinal node that depends on the dependencies of this task node
-                Node ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
-                taskNode.getHardSuccessors().forEach(ordinalNode::addDependencySuccessor);
+                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
+                ordinalNode.addDependenciesFrom(taskNode);
 
                 if (taskNode.getOrdinal() > 0) {
                     // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
@@ -574,7 +573,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             });
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(firstCycle.get(0), writer);
-        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
+        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
     }
 
     @Override
@@ -636,6 +635,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public State executionState() {
+        lockCoordinator.assertHasStateLock();
         if (executionQueue.isEmpty()) {
             return State.NoMoreNodesToStart;
         } else if (maybeNodesSelectable) {
@@ -646,7 +646,31 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
+    public Diagnostics healthDiagnostics() {
+        lockCoordinator.assertHasStateLock();
+        State state = executionState();
+        // If no nodes are ready and nothing is running, then cannot make progress
+        boolean cannotMakeProgress = state == State.NoNodesReadyToStart && runningNodes.isEmpty();
+        if (cannotMakeProgress) {
+            List<String> nodes = new ArrayList<>(executionQueue.size());
+            for (Node node : executionQueue) {
+                if (!node.isReady()) {
+                    nodes.add(node + " (not ready)");
+                } else if (!node.allDependenciesComplete()) {
+                    nodes.add(node + " (dependencies not complete)");
+                } else {
+                    nodes.add(node.toString());
+                }
+            }
+            return new Diagnostics(false, nodes);
+        } else {
+            return new Diagnostics(true, Collections.emptyList());
+        }
+    }
+
+    @Override
     public NodeSelection selectNext() {
+        lockCoordinator.assertHasStateLock();
         if (executionQueue.isEmpty()) {
             return NO_MORE_NODES_TO_START;
         }
@@ -670,24 +694,28 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 foundReadyNode = true;
 
-                if (!tryAcquireLocksForNode(node, resources)) {
-                    releaseLocks(resources);
-                    continue;
+                Node prepareNode = node.getPrepareNode();
+                if (prepareNode != null) {
+                    if (!prepareNode.isRequired()) {
+                        prepareNode.require();
+                    }
+                    if (prepareNode.isReady()) {
+                        if (attemptToStart(prepareNode, resources)) {
+                            node.addDependencySuccessor(prepareNode);
+                            node.forceAllDependenciesCompleteUpdate();
+                            return NodeSelection.of(prepareNode);
+                        } else {
+                            // Cannot start prepare node, so skip to next node
+                            continue;
+                        }
+                    }
+                    // else prepare node has already completed
                 }
 
-                MutationInfo mutations = getResolvedMutationInfo(node);
-
-                if (conflictsWithOtherNodes(node, mutations)) {
-                    releaseLocks(resources);
-                    continue;
+                if (attemptToStart(node, resources)) {
+                    iterator.remove();
+                    return NodeSelection.of(node);
                 }
-
-                node.startExecution(this::recordNodeExecutionStarted);
-                if (mutations.hasValidationProblem) {
-                    invalidNodeRunning = true;
-                }
-                iterator.remove();
-                return NodeSelection.of(node);
             } else if (!node.isComplete()) {
                 // Node is not yet complete
                 // - its dependencies are not yet complete
@@ -715,6 +743,27 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
+    private boolean attemptToStart(Node node, List<ResourceLock> resources) {
+        resources.clear();
+        if (!tryAcquireLocksForNode(node, resources)) {
+            releaseLocks(resources);
+            return false;
+        }
+
+        MutationInfo mutations = getResolvedMutationInfo(node);
+
+        if (conflictsWithOtherNodes(node, mutations)) {
+            releaseLocks(resources);
+            return false;
+        }
+
+        node.startExecution(this::recordNodeExecutionStarted);
+        if (mutations.hasValidationProblem) {
+            invalidNodeRunning = true;
+        }
+        return true;
+    }
+
     private void releaseLocks(List<ResourceLock> resources) {
         for (ResourceLock resource : resources) {
             resource.unlock();
@@ -722,7 +771,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryAcquireLocksForNode(Node node, List<ResourceLock> resources) {
-        resources.clear();
         if (!tryLockProjectFor(node, resources)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;
@@ -786,10 +834,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private MutationInfo getResolvedMutationInfo(Node node) {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
-            node.resolveMutations();
-            mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
             outputHierarchy.recordNodeAccessingLocations(node, mutations.outputPaths);
             destroyableHierarchy.recordNodeAccessingLocations(node, mutations.destroyablePaths);
+            mutations.resolved = true;
         }
         return mutations;
     }
@@ -909,6 +956,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void finishedExecuting(Node node) {
+        lockCoordinator.assertHasStateLock();
         if (!node.isExecuting()) {
             throw new IllegalStateException(String.format("Cannot finish executing %s as it is in an unexpected state.", node));
         }
@@ -974,6 +1022,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void abortAllAndFail(Throwable t) {
+        lockCoordinator.assertHasStateLock();
         abortExecution(true);
         this.failureCollector.addFailure(t);
     }
@@ -1006,6 +1055,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void cancelExecution() {
+        lockCoordinator.assertHasStateLock();
         buildCancelled = abortExecution() || buildCancelled;
     }
 
@@ -1046,12 +1096,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public boolean allExecutionComplete() {
-        for (Node node : nodeMapping) {
-            if (!node.isComplete()) {
-                return false;
-            }
-        }
-        return true;
+        return executionQueue.isEmpty() && runningNodes.isEmpty();
     }
 
     @Override

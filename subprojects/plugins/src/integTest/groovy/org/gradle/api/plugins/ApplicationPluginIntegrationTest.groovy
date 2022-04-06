@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins
 
-
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -526,6 +525,7 @@ startScripts {
         succeeds("startScripts")
     }
 
+    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled }) // This test already fails silently on Windows, but adding an explicit check for the existence of xargs made it fail explicitly.
     def "can run under posix sh environment"() {
         buildFile << """
 task execStartScript(type: Exec) {
@@ -544,7 +544,7 @@ task execStartScript(type: Exec) {
     @IgnoreIf({ !GradleContextualExecuter.embedded })
     def "can pass absolute Unix-like paths to script on Windows"() {
         file("run.sh") << '''#!/bin/sh
-# convert paths into absolute Unix-like paths 
+# convert paths into absolute Unix-like paths
 BUILD_FILE=$(cygpath --absolute --unix build.gradle)
 SRC_DIR=$(cygpath --absolute --unix src)
 # pass them to the generated start script

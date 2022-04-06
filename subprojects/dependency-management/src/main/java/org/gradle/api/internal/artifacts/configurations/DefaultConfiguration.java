@@ -209,6 +209,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
+    private boolean returnAllVariants = false;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -1283,6 +1284,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Path getIdentityPath() {
         return identityPath;
+    }
+
+    @Override
+    public void setReturnAllVariants(boolean returnAllVariants) {
+        if (!canBeMutated) {
+            throw new IllegalStateException("Configuration is unmodifiable");
+        }
+        this.returnAllVariants = returnAllVariants;
+    }
+
+    @Override
+    public boolean getReturnAllVariants() {
+        return this.returnAllVariants;
     }
 
     @Override

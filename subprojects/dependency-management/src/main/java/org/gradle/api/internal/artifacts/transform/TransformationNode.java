@@ -89,11 +89,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     @Override
-    public void resolveMutations() {
-        // Assume for now that no other node is going to destroy the transform outputs, or overlap with them
-    }
-
-    @Override
     public String toString() {
         return transformationStep.getDisplayName();
     }
@@ -118,11 +113,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     protected abstract CalculatedValueContainer<TransformationSubject, ?> getTransformedArtifacts();
-
-    @Override
-    public Set<Node> getFinalizers() {
-        return Collections.emptySet();
-    }
 
     @Nullable
     @Override

@@ -15,8 +15,18 @@ We would like to thank the following community members for their contributions t
 [David Burström](https://github.com/davidburstrom),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder),
-[Konstantin Gribov](https://github.com/grossws)
-[aSemy](https://github.com/aSemy)
+[Konstantin Gribov](https://github.com/grossws),
+[aSemy](https://github.com/aSemy),
+[Rene Groeschke](https://github.com/breskeby),
+[Jonathan Leitschuh](https://github.com/JLLeitschuh),
+[Jamie Tanna](https://github.com/jamietanna),
+[Xin Wang](https://github.com/scaventz),
+[Atsuto Yamashita](https://github.com/att55),
+[Taeik Lim](https://github.com/acktsap),
+[David Op de Beeck](https://github.com/DavidOpDeBeeck),
+[Peter Gafert](https://github.com/codecholeric),
+[Alex Landau](https://github.com/AlexLandau)
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -35,31 +45,16 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!--
+### JVM toolchains improvements
 
-================== TEMPLATE ==============================
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
+By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
+#### Checkstyle tasks execute in parallel by default
 
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
+The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API and JVM toolchains. Checkstyle analysis now runs as an external worker process. Checkstyle tasks may now run in parallel within one project.
 
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+In Java projects, Checkstyle will use the same version of Java required by the project. In other types of projects, Checkstyle will use the same version of Java that is used by the Gradle daemon.
 
 ### Improved test sources separation in the `eclipse` plugin
 
@@ -94,7 +89,7 @@ The `outgoingVariants` report has been improved to present information more clea
 - Capabilities, Attributes, Artifacts lists all fully sorted
 - Rich Console output coloring improved to highlight important information
 
-See the [OutgoingVariantsReport](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
+See the [OutgoingVariantsReport](dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
 
 #### Resolvable Configurations
 
@@ -106,7 +101,7 @@ There is a new `resolvableConfigurations` report available which will display in
 - A `--configuration` option can limit this report to a single configuration
 - A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable, these will be hidden by default
 -
-See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
+See the [ResolvableConfigurations](dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
 
 #### Dependency Insights
 
@@ -114,7 +109,7 @@ See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradl
 
 ### Description Available on Secondary Variants
 
-When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
+When defining secondary variants, there is a new [ConfigurationVariant](javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
 These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
 ### Continuous build is responsive on Windows and macOS
 
@@ -129,11 +124,31 @@ This means that Gradle picks up changes nearly instantly on all platforms and fi
 
 For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
+### Query a single property with the `properties` task
 
--->
+The built-in `properties` task prints all project properties to the console. Now, the task takes an optional `--property` argument which configures it to display the selected property only.
+```
+$ gradle properties --property buildFile
+
+> Task :properties
+
+------------------------------------------------------------
+Root project 'example-project'
+------------------------------------------------------------
+
+buildFile: /path/to/project/build.gradle
+
+BUILD SUCCESSFUL in 550ms
+1 actionable task: 1 executed 
+```
+
+### Support for Java 18
+
+Gradle now supports running on and building with [Java 18](https://openjdk.java.net/projects/jdk/18/).
+
+### Support for Groovy 4
+
+Gradle now supports building software using Groovy 4.0.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -141,11 +156,7 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-- The [TargetJvmEnvironmant](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmEnvironmant.html) interface is now stable.
-
-<!--
-### Example promoted
--->
+- The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
 
 ## Fixed issues
 

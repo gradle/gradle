@@ -114,6 +114,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
+        Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
         this.attachedDependencies = false;
         // This complexity is to keep the built-in test suite from automatically adding dependencies
@@ -134,7 +135,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
 
         addDefaultTestTarget();
 

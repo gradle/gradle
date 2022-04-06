@@ -91,7 +91,11 @@ enum class Os(
 
     fun javaInstallationLocations(): String {
         val paths = enumValues<JvmVersion>().joinToString(",") { version ->
-            val vendor = if (version.major >= 11) JvmVendor.adoptiumopenjdk else JvmVendor.oracle
+            val vendor = when {
+                version.major == 18 -> JvmVendor.openjdk
+                version.major >= 11 -> JvmVendor.adoptiumopenjdk
+                else -> JvmVendor.oracle
+            }
             javaHome(DefaultJvm(version, vendor), this)
         }
         return """"-Porg.gradle.java.installations.paths=$paths""""
