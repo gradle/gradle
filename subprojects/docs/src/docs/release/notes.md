@@ -46,32 +46,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
 ### JVM toolchains improvements
 
 [Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
@@ -116,7 +90,7 @@ The `outgoingVariants` report has been improved to present information more clea
 - Capabilities, Attributes, Artifacts lists all fully sorted
 - Rich Console output coloring improved to highlight important information
 
-See the [OutgoingVariantsReport](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
+See the [OutgoingVariantsReport](dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
 
 #### Resolvable Configurations
 
@@ -128,7 +102,7 @@ There is a new `resolvableConfigurations` report available which will display in
 - A `--configuration` option can limit this report to a single configuration
 - A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable, these will be hidden by default
 -
-See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
+See the [ResolvableConfigurations](dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
 
 #### Dependency Insights
 
@@ -136,7 +110,7 @@ See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradl
 
 ### Description Available on Secondary Variants
 
-When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
+When defining secondary variants, there is a new [ConfigurationVariant](javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
 These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
 ### Continuous build is responsive on Windows and macOS
 
@@ -169,6 +143,14 @@ BUILD SUCCESSFUL in 550ms
 1 actionable task: 1 executed 
 ```
 
+### Support for Java 18
+
+Gradle now supports running on and building with [Java 18](https://openjdk.java.net/projects/jdk/18/).
+
+### Support for Groovy 4
+
+Gradle now supports building software using Groovy 4.0.
+
 ### Groovydoc exposes more options
 The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
 
@@ -179,27 +161,13 @@ The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now expo
 
 These defaults are the same as what was previously used, so there should be no changes to the default behavior.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
-
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
-- The [TargetJvmEnvironmant](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmEnvironmant.html) interface is now stable.
-
-<!--
-### Example promoted
--->
-
-### Support for Groovy 4
-
-Gradle now supports building software using Groovy 4.0.
+- The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
 
 ## Fixed issues
 

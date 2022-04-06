@@ -39,7 +39,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     }
 
     @ToBeFixedForConfigurationCache
-    def "can publish to a S3 Maven repository"() {
+    def "can publish to a S3 Maven repository bucket=#bucket"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", bucket)
         buildFile << publicationBuild(mavenRepo.uri, """
