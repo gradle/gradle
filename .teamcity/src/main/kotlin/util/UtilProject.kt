@@ -12,6 +12,8 @@ object UtilProject : Project({
     buildType(RerunFlakyTest(Os.MACOS))
     buildType(WarmupEc2Agent)
 
+    buildType(PublishKotlinDslPlugin)
+
     params {
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
