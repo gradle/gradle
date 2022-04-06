@@ -179,3 +179,33 @@ dependencies {
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
 }
+
+/** `com.github.mwiede:jsch` is a drop-in replacement for `com.jcraft:jsch` */
+@CacheableRule
+object JschReplacementVersionRule : ComponentMetadataRule {
+
+    /** Groups that provide the jsch jar */
+    private val jschProviders = setOf(
+        "com.jcraft",
+        "com.github.mwiede",
+    )
+    private const val jschName = "jsch"
+    private const val capabilityGroup = "org.gradle.internal.capability"
+    const val jschCapabilityModule = "$capabilityGroup:$jschName"
+
+    override fun execute(context: ComponentMetadataContext) = context.details.run {
+        if (id.group in jschProviders && id.name == jschName) {
+            allVariants {
+                withCapabilities {
+                    addCapability(capabilityGroup, jschName, id.version)
+                }
+            }
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy.capabilitiesResolution {
+        withCapability(JschReplacementVersionRule.jschCapabilityModule) { selectHighestVersion() }
+    }
+}
