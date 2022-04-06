@@ -21,7 +21,7 @@ dependencies {
         api("com.gradle:gradle-enterprise-gradle-plugin:3.9")
         api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.3") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.20.1")
-        api("com.gradle.publish:plugin-publish-plugin:0.21.0")
+        api("com.gradle.publish:plugin-publish-plugin:1.0.0-rc-1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
