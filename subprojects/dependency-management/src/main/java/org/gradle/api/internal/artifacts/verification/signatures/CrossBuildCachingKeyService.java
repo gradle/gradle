@@ -115,7 +115,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             // if a key was found in the cache, it's permanent
             return false;
         }
-        long elapsed = key.timestamp - timeProvider.getCurrentTime();
+        long elapsed = timeProvider.getCurrentTime() - key.timestamp;
         return refreshKeys || elapsed > MISSING_KEY_TIMEOUT;
     }
 

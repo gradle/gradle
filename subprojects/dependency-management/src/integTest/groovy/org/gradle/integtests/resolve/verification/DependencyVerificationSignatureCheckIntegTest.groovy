@@ -25,6 +25,8 @@ import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
 import spock.lang.Issue
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
@@ -768,6 +770,72 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         where:
         terse << [true, false]
+    }
+
+    def "caches missing keys for 24h hours"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        terseConsoleOutput(false)
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        assertVerificationError(false) {
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
+
+1 problem was found storing the configuration cache.
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+        }
+
+        when: "publish keys"
+        keyServerFixture.withDefaultSigningKey()
+        fails ":compileJava", "-Dorg.gradle.internal.test.clockoffset=${TimeUnit.HOURS.toMillis(23)}"
+
+        then:
+        assertVerificationError(false) {
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
+
+1 problem was found storing the configuration cache.
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+        }
+
+        when: "24 hours passed"
+        succeeds ":compileJava", "-Dorg.gradle.internal.test.clockoffset=${TimeUnit.HOURS.toMillis(24) + TimeUnit.MINUTES.toMillis(5)}"
+
+        then:
+        noExceptionThrown()
     }
 
 
