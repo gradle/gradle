@@ -30,6 +30,10 @@
 
    ./gradlew -i -write-verification-metadata sha256,pgp -export-keys resolveAllDependencies
 
+   (Note: '-write-verification-metadata' and '-export-keys' should both start with double hyphens,
+   for example 'dash-dash-export-keys', but due to an XML constraint double hyphens are forbidden
+   in comments.)
+
    Then check the diff, remove the unnecessary entries (for old dependencies) and make sure
    the new ones are correct.
 
