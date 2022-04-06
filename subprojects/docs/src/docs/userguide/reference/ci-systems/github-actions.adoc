@@ -24,7 +24,7 @@ GitHub Actions can be configured to make your build outputs and test results ava
 
 == Setup a Gradle project on GitHub
 
-If you have an existing Gradle project hosted on GitHub, then you can skip this step and move directly to <<configure-github-actions,the next section>>.
+If you have an existing Gradle project hosted on GitHub, then you can skip this step and move directly to <<#sec:configure_github_actions,Configure GitHub Actions>>.
 
 If not, follow these step to initialize a new Gradle project on GitHub.
 
@@ -57,9 +57,9 @@ $ git commit -m "Initial commit"
 $ git push
 ----
 
-=== Enable Build Scan publishing
+=== Enable Build Scan™ publishing
 
-<<https://scans.gradle.com/,Gradle Build Scans>> are a great way to view your build results, and provide valuable insights into your build.
+https://scans.gradle.com[Gradle Build Scans] are a great way to view your build results, and provide valuable insights into your build.
 In order to publish Build Scans from GitHub Actions, you'll need to pre-approve the Terms & Conditions.
 
 To do so, add the following content to the top of your `settings.gradle[.kts]` file. The "CI" environment variable is set by GitHub Actions:
@@ -108,7 +108,8 @@ $ git commit -a -m "Publish Build Scans from GitHub Actions"
 $ git push
 ----
 
-== Configure a GitHub Actions workflow
+[[sec:configure_github_actions]]
+== Configure GitHub Actions
 
 You can create a GitHub Actions workflow by adding a `.github/workflows/<workflow-name>.yml` file to your repository.
 This workflow definition file contains all relevant instructions for building the project on GitHub Actions.
