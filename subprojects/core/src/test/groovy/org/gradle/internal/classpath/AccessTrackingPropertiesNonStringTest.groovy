@@ -265,7 +265,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         result == expectedResult
         1 * listener.onAccess(key, expectedResult)
+        then:
         1 * listener.onRemove(key)
+        then:
         0 * listener._
 
         where:
@@ -282,7 +284,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        then:
         1 * listener.onRemove(key)
+        then:
         0 * listener._
 
         when:
@@ -291,7 +295,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeAllResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        then:
         1 * listener.onRemove(key)
+        then:
         0 * listener._
 
         where:
@@ -303,7 +309,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
     def "keySet() removeAll() is tracked for non-strings"() {
         when:
-        def result = getMapUnderTestToRead().keySet().removeAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
+        def result = getMapUnderTestToWrite().keySet().removeAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         result
         1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
@@ -331,7 +337,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeAllResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        then:
         1 * listener.onRemove(key)
+        then:
         0 * listener._
 
         where:

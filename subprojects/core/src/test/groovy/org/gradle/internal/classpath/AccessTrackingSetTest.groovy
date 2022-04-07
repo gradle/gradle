@@ -116,46 +116,60 @@ class AccessTrackingSetTest extends Specification {
         then:
         !result
         1 * listener.onAccess('missing')
+        then:
         1 * listener.onRemove('missing')
+        then:
         0 * listener._
     }
 
     def "removeAll of existing elements is tracked"() {
         when:
-        def result = set.removeAll('existing', 'other')
+        def result = set.removeAll(['existing', 'other'])
 
         then:
         result
         1 * listener.onAccess('existing')
-        1 * listener.onAccess('other')
+        then:
         1 * listener.onRemove('existing')
+        then:
+        1 * listener.onAccess('other')
+        then:
         1 * listener.onRemove('other')
+        then:
         0 * listener._
     }
 
     def "removeAll of missing elements is tracked"() {
         when:
-        def result = set.removeAll('missing', 'alsoMissing')
+        def result = set.removeAll(['missing', 'alsoMissing'])
 
         then:
         !result
         1 * listener.onAccess('missing')
-        1 * listener.onAccess('alsoMissing')
+        then:
         1 * listener.onRemove('missing')
+        then:
+        1 * listener.onAccess('alsoMissing')
+        then:
         1 * listener.onRemove('alsoMissing')
+        then:
         0 * listener._
     }
 
     def "removeAll of existing and missing elements is tracked"() {
         when:
-        def result = set.removeAll('existing', 'missing')
+        def result = set.removeAll(['existing', 'missing'])
 
         then:
         result
         1 * listener.onAccess('existing')
-        1 * listener.onAccess('missing')
+        then:
         1 * listener.onRemove('existing')
+        then:
+        1 * listener.onAccess('missing')
+        then:
         1 * listener.onRemove('missing')
+        then:
         0 * listener._
     }
 

@@ -137,7 +137,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         result == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        then:
         1 * onRemove.accept(key)
+        then:
         0 * onAccess._
         0 * onRemove._
 
@@ -154,7 +156,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         result == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        then:
         expectedReportedRemovalsCount * onRemove.accept(key)
+        then:
         0 * onAccess._
         0 * onRemove._
 
@@ -175,7 +179,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        then:
         1 * onRemove.accept(key)
+        then:
         0 * onAccess._
         0 * onRemove._
 
@@ -185,7 +191,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeAllResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        then:
         1 * onRemove.accept(key)
+        then:
         0 * onAccess._
         0 * onRemove._
 
@@ -202,7 +210,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        then:
         1 * onRemove.accept(key)
+        then:
         0 * onAccess._
         0 * onRemove._
 
@@ -212,7 +222,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeAllResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        then:
         1 * onRemove.accept(key)
+        then:
         0 * onAccess._
         0 * onRemove._
 
@@ -256,6 +268,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         0 * onAccess._
+
         where:
         methodName          | operation
         "toString()"        | call(p -> p.toString())
@@ -271,7 +284,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         result == oldValue
         1 * onAccess.accept(key, oldValue)
+        then:
         1 * onChange.accept(key, newValue)
+
         where:
         key          | oldValue        | newValue
         'existing'   | 'existingValue' | 'changed'
@@ -311,8 +326,10 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         result == oldValue
-        changeCount * onChange.accept(key, 'newValue')
         1 * onAccess.accept(key, oldValue)
+        then:
+        changeCount * onChange.accept(key, 'newValue')
+        then:
         0 * onChange._
         0 * onAccess._
 
@@ -322,7 +339,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         'missing'  | null            | 1
     }
 
-    def "method replaceAll reports change"() {
+    def "method replaceAll changes map"() {
         when:
         def map = getMapUnderTestToWrite()
         map.replaceAll((k, v) -> {
@@ -334,7 +351,38 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         (Map<?, ?>) map == [existing: 'newValue', other: 'otherValue']
+    }
+
+    def "method replaceAll reports access to every item"() {
+        when:
+        getMapUnderTestToWrite().replaceAll((k, v) -> {
+            if (k == 'existing') {
+                return 'newValue'
+            }
+            return v
+        })
+
+        then:
+        1 * onAccess.accept('existing', 'existingValue')
+        1 * onAccess.accept('other', 'otherValue')
+        then:
+        0 * onAccess._
+    }
+
+    def "method replaceAll reports access before change"() {
+        when:
+        getMapUnderTestToWrite().replaceAll((k, v) -> {
+            if (k == 'existing') {
+                return 'newValue'
+            }
+            return v
+        })
+
+        then:
+        1 * onAccess.accept('existing', 'existingValue')
+        then:
         1 * onChange.accept('existing', 'newValue')
+        then:
         0 * onChange._
     }
 
@@ -360,8 +408,10 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         getMapUnderTestToWrite().replace(key, oldValue, 'newValue')
 
         then:
-        changeCount * onChange.accept(key, 'newValue')
         1 * onAccess.accept(key, expectedOldValue)
+        then:
+        changeCount * onChange.accept(key, 'newValue')
+        then:
         0 * onChange._
         0 * onAccess._
 
@@ -392,8 +442,10 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         getMapUnderTestToWrite().replace(key, 'newValue')
 
         then:
-        changeCount * onChange.accept(key, 'newValue')
         1 * onAccess.accept(key, oldValue)
+        then:
+        changeCount * onChange.accept(key, 'newValue')
+        then:
         0 * onChange._
         0 * onAccess._
 
@@ -427,10 +479,13 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         getMapUnderTestToWrite().computeIfAbsent(key, k -> newValue)
 
         then:
-        changeCount * onChange.accept(key, newValue)
         1 * onAccess.accept(key, oldValue)
-        0 * onChange._
+        then:
+        changeCount * onChange.accept(key, newValue)
+        then:
         0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
 
         where:
         key        | newValue   | oldValue        | changeCount
@@ -462,11 +517,14 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         getMapUnderTestToWrite().computeIfPresent(key, (k, v) -> newValue)
 
         then:
+        1 * onAccess.accept(key, oldValue)
+        then:
         changeCount * onChange.accept(key, newValue)
         removeCount * onRemove.accept(key)
-        1 * onAccess.accept(key, oldValue)
+        then:
         0 * onChange._
         0 * onAccess._
+        0 * onRemove._
 
         where:
         key        | newValue   | oldValue        | changeCount | removeCount
@@ -498,11 +556,14 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         getMapUnderTestToWrite().compute(key, (k, v) -> newValue)
 
         then:
+        1 * onAccess.accept(key, oldValue)
+        then:
         changeCount * onChange.accept(key, newValue)
         removeCount * onRemove.accept(key)
-        1 * onAccess.accept(key, oldValue)
+        then:
         0 * onChange._
         0 * onAccess._
+        0 * onRemove._
 
         where:
         key        | newValue   | oldValue        | changeCount | removeCount
@@ -533,11 +594,14 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         getMapUnderTestToWrite().merge(key, newValue, func)
 
         then:
+        1 * onAccess.accept(key, oldValue)
+        then:
         changeCount * onChange.accept(key, changed)
         removeCount * onRemove.accept(key)
-        1 * onAccess.accept(key, oldValue)
-        0 * onChange._
+
+        then:
         0 * onAccess._
+        0 * onChange._
         0 * onRemove._
 
         where:
@@ -565,10 +629,16 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         when:
         def entry = getMapUnderTestToWrite().entrySet().find { entry -> entry.getKey() == 'existing' }
 
+        // reset a mock
         entry.setValue('newValue')
 
         then:
+        // 1st invocation comes from "find()" call, 2nd is for the setValue result.
+        // TODO(mlopatkin) replace 1st call with a proper aggregating access handling.
+        2 * onAccess.accept('existing', 'existingValue')
+        then:
         1 * onChange.accept('existing', 'newValue')
+        then:
         0 * onChange._
     }
 
