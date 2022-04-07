@@ -39,10 +39,15 @@ Note that this plugin takes no action unless applied in concert with the <<jvm_t
 
 There are now two ways to collect code coverage results across multiple subprojects:
 
-1. From the distribution's project, such as an Android application or WAR subproject -> link:../samples/sample_jvm_multi_project_with_code_coverage_distribution.html[distribution sample]
+1. From the distribution's project, such as an application or WAR subproject -> link:../samples/sample_jvm_multi_project_with_code_coverage_distribution.html[distribution sample]
 2. Using a standalone project to specify subprojects -> link:../samples/sample_jvm_multi_project_with_code_coverage_standalone.html[standalone sample]
 
 Example 2 could also be used to aggregate results via the root project.
+
+[WARNING]
+====
+The JaCoCo Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
+====
 
 [[sec:jacoco_report_aggregation_tasks]]
 == Tasks
