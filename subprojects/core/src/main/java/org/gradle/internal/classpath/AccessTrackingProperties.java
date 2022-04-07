@@ -156,7 +156,7 @@ class AccessTrackingProperties extends Properties {
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
         Map.Entry<?, ?> entry = AccessTrackingUtils.tryConvertingToEntry(potentialEntry);
         if (entry != null) {
-            getAndReport(entry.getKey());
+            getAndReportAccess(entry.getKey());
         }
     }
 
@@ -176,7 +176,7 @@ class AccessTrackingProperties extends Properties {
                 // Strings and primitive wrappers are tested with "equals", user types are tested for reference
                 // equality to avoid problems with poorly-defined user-provided equality.
                 if (!simpleOrRefEquals(newValue, v)) {
-                    listener.onChange(k, newValue);
+                    reportChange(k, newValue);
                 }
                 return newValue;
             });
@@ -189,10 +189,10 @@ class AccessTrackingProperties extends Properties {
         synchronized (delegate) {
             oldValue = delegate.putIfAbsent(key, value);
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (oldValue == null) {
             // Properties disallow null values, so it is safe to assume that the map was changed.
-            listener.onChange(key, value);
+            reportChange(key, value);
         }
         return oldValue;
 
@@ -206,12 +206,12 @@ class AccessTrackingProperties extends Properties {
             oldValue = delegate.get(key);
             hadValue = delegate.remove(key, value);
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (hadValue) {
             // The configuration cache uses onRemove callback to remember that the property has to be removed.
             // Of course, the property has to be removed in the cached run only if it was removed in the
             // non-cached run first. Changing the value of the property would invalidate the cache and recalculate the removal.
-            listener.onRemove(key);
+            reportRemoval(key);
         }
         return hadValue;
 
@@ -225,12 +225,12 @@ class AccessTrackingProperties extends Properties {
             oldValue = delegate.get(key);
             changed = delegate.replace(key, expectedOldValue, newValue);
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (changed) {
             // The configuration cache uses onChange callback to remember that the property has to be changed.
             // Of course, the property has to be changed in the cached run only if it was changed in the
             // non-cached run first. Changing the value of the property externally would invalidate the cache and recalculate the replacement.
-            listener.onChange(key, newValue);
+            reportChange(key, newValue);
         }
         return changed;
 
@@ -242,9 +242,9 @@ class AccessTrackingProperties extends Properties {
         synchronized (delegate) {
             oldValue = delegate.replace(key, value);
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (oldValue != null) {
-            listener.onChange(key, value);
+            reportChange(key, value);
         }
         return oldValue;
 
@@ -260,9 +260,9 @@ class AccessTrackingProperties extends Properties {
                 computedValue = delegate.computeIfAbsent(key, mappingFunction);
             }
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (computedValue != null) {
-            listener.onChange(key, computedValue);
+            reportChange(key, computedValue);
             return computedValue;
         }
         return oldValue;
@@ -278,12 +278,12 @@ class AccessTrackingProperties extends Properties {
                 computedValue = delegate.computeIfPresent(key, remappingFunction);
             }
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (oldValue != null) {
             if (computedValue != null) {
-                listener.onChange(key, computedValue);
+                reportChange(key, computedValue);
             } else {
-                listener.onRemove(key);
+                reportRemoval(key);
             }
         }
         return computedValue;
@@ -298,11 +298,11 @@ class AccessTrackingProperties extends Properties {
             oldValue = delegate.get(key);
             newValue = delegate.compute(key, remappingFunction);
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (newValue != null) {
-            listener.onChange(key, newValue);
+            reportChange(key, newValue);
         } else if (oldValue != null) {
-            listener.onRemove(key);
+            reportRemoval(key);
         }
         return newValue;
     }
@@ -316,11 +316,11 @@ class AccessTrackingProperties extends Properties {
             oldValue = delegate.get(key);
             newValue = delegate.merge(key, value, remappingFunction);
         }
-        reportKeyAndValue(key, oldValue);
+        reportAccess(key, oldValue);
         if (newValue != null) {
-            listener.onChange(key, newValue);
+            reportChange(key, newValue);
         } else if (oldValue != null) {
-            listener.onRemove(key);
+            reportRemoval(key);
         }
         return newValue;
 
@@ -338,7 +338,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean containsKey(Object key) {
-        return getAndReport(key) != null;
+        return getAndReportAccess(key) != null;
     }
 
     @Override
@@ -347,8 +347,8 @@ class AccessTrackingProperties extends Properties {
         synchronized (delegate) {
             oldValue = delegate.put(key, value);
         }
-        reportKeyAndValue(key, oldValue);
-        listener.onChange(key, value);
+        reportAccess(key, oldValue);
+        reportChange(key, value);
         return oldValue;
 
     }
@@ -364,8 +364,8 @@ class AccessTrackingProperties extends Properties {
         synchronized (delegate) {
             result = delegate.remove(key);
         }
-        reportKeyAndValue(key, result);
-        listener.onRemove(key);
+        reportAccess(key, result);
+        reportRemoval(key);
         return result;
 
     }
@@ -384,7 +384,7 @@ class AccessTrackingProperties extends Properties {
         synchronized (delegate) {
             delegate.clear();
         }
-        listener.onClear();
+        reportClear();
     }
 
     @Override
@@ -394,20 +394,20 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public String getProperty(String key, String defaultValue) {
-        Object oValue = getAndReport(key);
+        Object oValue = getAndReportAccess(key);
         String value = oValue instanceof String ? (String) oValue : null;
         return value != null ? value : defaultValue;
     }
 
     @Override
     public Object getOrDefault(Object key, Object defaultValue) {
-        Object value = getAndReport(key);
+        Object value = getAndReportAccess(key);
         return value != null ? value : defaultValue;
     }
 
     @Override
     public Object get(Object key) {
-        return getAndReport(key);
+        return getAndReportAccess(key);
     }
 
     @Override
@@ -487,19 +487,31 @@ class AccessTrackingProperties extends Properties {
         return delegate.hashCode();
     }
 
-    private Object getAndReport(Object key) {
+    private Object getAndReportAccess(Object key) {
         Object value = delegate.get(key);
-        reportKeyAndValue(key, value);
+        reportAccess(key, value);
         return value;
     }
 
-    private void reportKeyAndValue(Object key, Object value) {
+    private void reportAccess(Object key, Object value) {
         listener.onAccess(key, value);
     }
 
     private void reportAggregatingAccess() {
         // Mark all map contents as inputs if some aggregating access is used.
-        delegate.forEach(this::reportKeyAndValue);
+        delegate.forEach(this::reportAccess);
+    }
+
+    private void reportChange(Object key, Object value) {
+        listener.onChange(key, value);
+    }
+
+    private void reportRemoval(Object key) {
+        listener.onRemove(key);
+    }
+
+    private void reportClear() {
+        listener.onClear();
     }
 
     /**
@@ -531,7 +543,7 @@ class AccessTrackingProperties extends Properties {
         return new AccessTrackingSet.Listener() {
             @Override
             public void onAccess(Object o) {
-                getAndReport(o);
+                getAndReportAccess(o);
             }
 
             @Override
@@ -541,12 +553,12 @@ class AccessTrackingProperties extends Properties {
 
             @Override
             public void onRemove(Object object) {
-                listener.onRemove(object);
+                reportRemoval(object);
             }
 
             @Override
             public void onClear() {
-                listener.onClear();
+                reportClear();
             }
         };
     }
@@ -567,13 +579,13 @@ class AccessTrackingProperties extends Properties {
             public void onRemove(Object potentialEntry) {
                 Map.Entry<?, ?> entry = AccessTrackingUtils.tryConvertingToEntry(potentialEntry);
                 if (entry != null) {
-                    listener.onRemove(entry.getKey());
+                    reportRemoval(entry.getKey());
                 }
             }
 
             @Override
             public void onClear() {
-                listener.onClear();
+                reportClear();
             }
         };
     }
@@ -616,7 +628,7 @@ class AccessTrackingProperties extends Properties {
         public Object setValue(Object value) {
             Object oldValue = delegate.setValue(value);
             listener.onAccess(getKey(), oldValue);
-            listener.onChange(getKey(), value);
+            reportChange(getKey(), value);
             return oldValue;
         }
     }
