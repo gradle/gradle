@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.ToBeImplemented
+import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
@@ -28,6 +31,9 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
@@ -433,6 +439,103 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         run("fooReport", "barReport")
         then:
         executedAndNotSkipped(":fooReport", ":barReport")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/20391")
+    def "running tasks in parallel with exclusions does not cause incorrect builds"() {
+        server.start()
+        file("lib/src/MyClass.java").text = "public class MyClass {}"
+
+        settingsFile """
+            include "dist"
+            include "lib"
+        """
+
+        file("dist/build.gradle").text = """
+            abstract class ZipSrc extends DefaultTask {
+                @Internal
+                boolean alreadyResolved
+
+                @Internal
+                abstract DirectoryProperty getSources()
+
+                @InputFiles
+                abstract ConfigurableFileCollection getSourceFiles()
+
+                @OutputFile
+                abstract RegularFileProperty getZipFile()
+
+                ZipSrc() {
+                    sourceFiles.from(sources.map {
+                        if (!alreadyResolved) {
+                            alreadyResolved = true
+                        } else {
+                            println "resolving input"
+                            ${server.callFromBuild("zipFileSnapshottingStarted")}
+                        }
+                        it.asFileTree.matching {
+                            include "src/**"
+                            include "build.gradle"
+                        }
+                    })
+                }
+
+                @TaskAction
+                void zipSources() {
+                    ${server.callFromBuild("zipFileSnapshottingFinished")}
+                    zipFile.get().asFile.text = "output"
+                }
+            }
+
+            task srcZip(type: ZipSrc) {
+                sources = rootProject.file("lib")
+                zipFile = file("build/srcZip.zip")
+            }
+        """
+
+        file("lib/build.gradle").text = """
+
+            abstract class Compile extends DefaultTask {
+                @InputDirectory
+                abstract DirectoryProperty getSources()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void compile() {
+                    ${server.callFromBuild("compileAction1")}
+                    ${server.callFromBuild("compileAction2")}
+                    outputFile.get().asFile.text = "classes"
+                }
+            }
+
+            task compile(type: Compile) {
+                sources.fileValue(file("src"))
+                outputFile = file("classes.jar")
+            }
+        """
+
+        // This is to make sure that:
+        //   - The snapshotting of the zip task finishes after the outputs have been broadcast by the compile task
+        //   - The snapshotting of the zip task finishes before the snapshotting of the outputs of the compile task
+        server.expectConcurrent("zipFileSnapshottingStarted", "compileAction1")
+        server.expectConcurrent("zipFileSnapshottingFinished", "compileAction2")
+        when:
+        run "srcZip", "compile", "--parallel"
+        then:
+        executedAndNotSkipped(":dist:srcZip", ":lib:compile")
+        file("lib/classes.jar").text == "classes"
+        // TODO: task should run
+        //        server.expect("compileAction1")
+        //        server.expect("compileAction2")
+        when:
+        assert file("lib/classes.jar").delete()
+        run ":lib:compile"
+        then:
+        // TODO: task should run
+        //   executedAndNotSkipped(":lib:compile")
+        skipped(":lib:compile")
     }
 
     @ValidationTestFor(
