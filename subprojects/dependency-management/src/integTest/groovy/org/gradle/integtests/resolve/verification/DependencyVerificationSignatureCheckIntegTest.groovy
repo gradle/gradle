@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -1743,6 +1745,47 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20098")
+    def "doesn't fail for a variant that has a file name in the Gradle Module Metadata different to actual artifact"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "module", "module")
+            addTrustedKeyByFileName("org:foo:1.0", "foo.klib", validPublicKeyHexString)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+            withoutDefaultVariants()
+            withVariant("linux64") {
+                attribute(Usage.USAGE_ATTRIBUTE.name, "linux64")
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.LIBRARY)
+                useDefaultArtifacts = false
+                artifact("foo.klib", "foo-linux64-1.0.klib")
+            }
+        }.withModuleMetadata().publish()
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0") {
+                    attributes {
+                        attribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String), "linux64")
+                    }
+                }
+            }
+        """
+
+        when:
+        serveValidKey()
+
+        then:
+        succeeds ":compileJava"
     }
 
     private static void tamperWithFile(File file) {
