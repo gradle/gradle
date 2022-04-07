@@ -131,7 +131,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     public Object[] toArray() {
         // this is basically a reimplementation of the standardToArray that doesn't call this.size()
         // and avoids double-reporting of the aggregating access.
-        return toArray(new Object[delegate.size()]);
+        return toArray(new Object[0]);
     }
 
     @Override
