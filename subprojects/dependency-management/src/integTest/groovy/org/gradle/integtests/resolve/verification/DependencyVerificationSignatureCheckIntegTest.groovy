@@ -1622,8 +1622,11 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         javaLibrary()
         def module = mavenHttpRepo.module("org", "foo", "1.0")
             .withSourceAndJavadoc()
+            .withSignature {
+                signAsciiArmored(it)
+            }
             .publish()
-
+        serveValidKey()
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
