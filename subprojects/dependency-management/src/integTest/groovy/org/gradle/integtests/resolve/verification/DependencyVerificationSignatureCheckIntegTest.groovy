@@ -1301,7 +1301,35 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         where:
         terse << [true, false]
+    }
 
+    def "fallbacks to checksum and fails if artifact has an entry in the verification-metadata but no checksum and .asc file when #description=#enableVerifySignatures"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            enableVerifySignatures ? verifySignatures() : {}
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0")
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+        """
+
+        when:
+        serveValidKey()
+
+        then:
+        fails ":compileJava"
+
+        where:
+        description         | enableVerifySignatures
+        "verify-signatures" | true
+        "verify-signatures" | false
     }
 
     def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
