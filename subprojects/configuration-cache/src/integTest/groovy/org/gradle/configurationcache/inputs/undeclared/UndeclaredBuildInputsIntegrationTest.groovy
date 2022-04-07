@@ -286,7 +286,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         ]
     }
 
-    def "build logic can set up property at configuration phase"() {
+    def "system property set at the configuration phase is restored when running from cache"() {
         given:
         buildFile("""
             $propertySetter
@@ -320,7 +320,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         "1"           | """System.properties["some.property"]=$propertyValue"""
     }
 
-    def "build logic can remove property at configuration phase"() {
+    def "system property removed at the configuration phase is removed when running from cache"() {
         given:
         buildFile("""
             $propertyRemover
@@ -431,7 +431,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         'System.setProperties(new Properties())' | _
     }
 
-    def "updated system property can be removed"() {
+    def "system property removed after update at the configuration phase is removed when running from cache"() {
         given:
         buildFile("""
             System.setProperty("some.property", "some.value")
@@ -460,7 +460,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("some.property present = false")
     }
 
-    def "system property with a string key is removed even if it is set externally"() {
+    def "system property added and removed at the configuration phase is removed when running from cache even if set externally"() {
         given:
         buildFile("""
             System.properties.putAll(someProperty: "some.value")  // Use putAll to avoid recording property as an input
