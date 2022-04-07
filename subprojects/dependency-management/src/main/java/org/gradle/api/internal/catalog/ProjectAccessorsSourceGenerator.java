@@ -32,7 +32,7 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
                                         String packageName) {
         ProjectAccessorsSourceGenerator generator = new ProjectAccessorsSourceGenerator(writer);
         try {
-            String className = toClassName(current.getPath(), rootProjectName(current));
+            String className = toClassName(current.getPath(), rootProject(current).getName());
             generator.generate(packageName, className, current);
             return className;
         } catch (IOException e) {

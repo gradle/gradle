@@ -40,7 +40,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     public static final String BUILD_SCRIPT_BASENAME = "build";
 
-    private String name;
+    private final String implicitName; // project name derived from the containing folder
+    private String explicitName; // project name explicitly specified in the build script
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
@@ -64,7 +65,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         @Nullable ScriptFileResolver scriptFileResolver
     ) {
         this.parent = parent;
-        this.name = name;
+        this.implicitName = name;
         this.fileResolver = fileResolver;
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
@@ -97,7 +98,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     @Override
     public String getName() {
-        return name;
+        return explicitName == null ? implicitName : explicitName;
     }
 
     @Override
@@ -105,7 +106,11 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         NameValidator.validate(name, "project name",
             INVALID_NAME_IN_INCLUDE_HINT);
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
-        this.name = name;
+        this.explicitName = name;
+    }
+
+    public boolean hasExplicitName() {
+        return explicitName != null;
     }
 
     @Override
