@@ -17,13 +17,9 @@
 package org.gradle.internal.work
 
 import org.gradle.api.Transformer
-import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.MutableBoolean
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -35,11 +31,10 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 import static org.gradle.util.Path.path
 
-class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
+class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServiceTest {
     @Rule
     SetSystemProperties properties = new SetSystemProperties()
-    def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallel())
+    def workerLeaseService = workerLeaseService()
 
     def "can lock and unlock a project"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
@@ -736,17 +731,5 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
             }
         })
         return held.get()
-    }
-
-    ParallelismConfiguration parallel(boolean parallelEnabled) {
-        return new DefaultParallelismConfiguration(parallelEnabled, 1)
-    }
-
-    ParallelismConfiguration notParallel() {
-        return parallel(false)
-    }
-
-    ParallelismConfiguration parallel() {
-        return parallel(true)
     }
 }

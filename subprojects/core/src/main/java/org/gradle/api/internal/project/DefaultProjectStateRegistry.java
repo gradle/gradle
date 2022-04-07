@@ -39,7 +39,6 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -195,11 +194,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
             ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-            if (locks.contains(allProjectsLock)) {
-                // Holds the lock so run the action
-                return factory.create();
-            }
-            return workerLeaseService.withLocks(Collections.singletonList(allProjectsLock), () -> workerLeaseService.withoutLocks(locks, factory));
+            return workerLeaseService.withReplacedLocks(locks, allProjectsLock, factory);
         }
     }
 
@@ -376,14 +371,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
                 }
             } else {
-                // we don't currently hold the project lock
-                if (!currentLocks.isEmpty()) {
-                    // we hold other project locks that we should release first
-                    return workerLeaseService.withoutLocks(currentLocks, () -> withProjectLock(projectLock, function));
-                } else {
-                    // we just need to get the lock for this project
-                    return withProjectLock(projectLock, function);
-                }
+                return workerLeaseService.withReplacedLocks(currentLocks, projectLock, () -> function.apply(getMutableModel()));
             }
         }
 
@@ -398,10 +386,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     canDoAnythingToThisProject.remove(currentThread);
                 }
             }
-        }
-
-        private <S> S withProjectLock(ResourceLock projectLock, final Function<? super ProjectInternal, ? extends S> function) {
-            return workerLeaseService.withLocks(Collections.singleton(projectLock), () -> function.apply(getMutableModel()));
         }
 
         @Override
