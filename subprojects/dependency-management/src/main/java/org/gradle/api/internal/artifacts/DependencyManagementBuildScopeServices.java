@@ -737,9 +737,9 @@ class DependencyManagementBuildScopeServices {
             new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreExecutionStateStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new ResolveInputChangesStep<>(

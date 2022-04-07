@@ -56,7 +56,10 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
                 builder.add(destroyableRoot.getAbsolutePath());
             }
         });
-        outputChangeListener.beforeOutputChange(builder.build());
-        return delegate.execute(work, context);
+        ImmutableList<String> outputs = builder.build();
+        outputChangeListener.beforeOutputChange(outputs);
+        R result = delegate.execute(work, context);
+        outputChangeListener.beforeOutputChange(outputs);
+        return result;
     }
 }

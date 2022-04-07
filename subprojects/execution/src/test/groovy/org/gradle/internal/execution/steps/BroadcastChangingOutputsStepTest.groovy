@@ -35,6 +35,11 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         def outputDir = file("output-dir")
         def localStateDir = file("local-state-dir")
         def destroyableDir = file("destroyable-dir")
+        def changingOutputs = [
+            outputDir.absolutePath,
+            destroyableDir.absolutePath,
+            localStateDir.absolutePath
+        ]
 
         when:
         def result = step.execute(work, context)
@@ -49,14 +54,13 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         }
 
         then:
-        1 * outputChangeListener.beforeOutputChange([
-            outputDir.absolutePath,
-            destroyableDir.absolutePath,
-            localStateDir.absolutePath
-        ])
+        1 * outputChangeListener.beforeOutputChange(changingOutputs)
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * outputChangeListener.beforeOutputChange(changingOutputs)
         0 * _
     }
 }

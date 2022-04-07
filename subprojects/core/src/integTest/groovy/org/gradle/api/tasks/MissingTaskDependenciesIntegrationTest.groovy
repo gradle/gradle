@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -441,7 +440,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":fooReport", ":barReport")
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/20391")
+    @Issue("https://github.com/gradle/gradle/issues/20391")
     def "running tasks in parallel with exclusions does not cause incorrect builds"() {
         server.start()
         file("lib/src/MyClass.java").text = "public class MyClass {}"
@@ -526,16 +525,13 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         then:
         executedAndNotSkipped(":dist:srcZip", ":lib:compile")
         file("lib/classes.jar").text == "classes"
-        // TODO: task should run
-        //        server.expect("compileAction1")
-        //        server.expect("compileAction2")
+        server.expect("compileAction1")
+        server.expect("compileAction2")
         when:
         assert file("lib/classes.jar").delete()
         run ":lib:compile"
         then:
-        // TODO: task should run
-        //   executedAndNotSkipped(":lib:compile")
-        skipped(":lib:compile")
+        executedAndNotSkipped(":lib:compile")
     }
 
     @ValidationTestFor(

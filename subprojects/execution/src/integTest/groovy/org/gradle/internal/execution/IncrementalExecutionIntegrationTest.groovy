@@ -167,8 +167,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CreateOutputsStep<>(
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
