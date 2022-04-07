@@ -36,8 +36,6 @@ import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
 
-import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
-
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
     Consumer<FileSystemLocationSnapshot> completeSnapshotConsumer = Stub()
 
