@@ -120,7 +120,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "package scope can be enabled"() {
         when:
-        buildFile << "groovydoc { access = 'package' }"
+        buildFile << "groovydoc { access = GroovydocAccess.PACKAGE }"
         run "groovydoc"
 
         then:
@@ -133,7 +133,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "private scope can be enabled"() {
         when:
-        buildFile << "groovydoc { access = 'private' }"
+        buildFile << "groovydoc { access = GroovydocAccess.PRIVATE }"
         run "groovydoc"
 
         then:
@@ -148,13 +148,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         when:
         buildFile << "groovydoc { includePrivate = true; println(includePrivate) }"
         executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.setIncludePrivate(boolean) method has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the getAccess() method instead." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.isIncludePrivate() method has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the getAccess() method instead." +
+            "The Groovydoc.includePrivate property has been deprecated." +
+                " This is scheduled to be removed in Gradle 8.0. Please use the access property instead." +
                 " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
         )
         run "groovydoc"
@@ -187,13 +182,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
             }
         """
         executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.setIncludePrivate(boolean) method has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the getAccess() method instead." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.isIncludePrivate() method has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the getAccess() method instead." +
+            "The Groovydoc.includePrivate property has been deprecated." +
+                " This is scheduled to be removed in Gradle 8.0. Please use the access property instead." +
                 " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
         )
 
@@ -203,7 +193,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "can limit to only public members"() {
         when:
-        buildFile << "groovydoc { access = 'public' }"
+        buildFile << "groovydoc { access = GroovydocAccess.PUBLIC }"
         run "groovydoc"
 
         then:
