@@ -105,6 +105,7 @@ fun configureCompileTask(options: CompileOptions) {
     options.release.set(8)
     options.encoding = "utf-8"
     options.isIncremental = true
+    options.isFork = true
     options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
     options.forkOptions.memoryMaximumSize = "1g"
     options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
