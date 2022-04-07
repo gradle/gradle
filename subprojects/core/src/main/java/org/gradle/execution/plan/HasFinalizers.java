@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import java.util.Set;
 
-/**
- * An action to run as soon as the given task completes, to perform some work before the outputs of the task are consumed by other tasks.
- *
- * <p>This should evolve into some real node to the graph with similar behaviour, but as a first step this is simply bolted on.
- */
-public interface FinalizeAction extends Action<Task> {
-    TaskDependencyContainer getDependencies();
+abstract class HasFinalizers extends NodeGroup {
+    public abstract NodeGroup getOrdinalGroup();
+
+    public abstract Set<FinalizerGroup> getFinalizerGroups();
 }

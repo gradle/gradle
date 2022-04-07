@@ -48,6 +48,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
+        executionPlan?.close()
         new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
@@ -287,7 +288,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(finalized)
     }
 
-    def "finalizer tasks and their dependencies are not executed if finalized task did not run"() {
+    def "finalizer tasks and their dependencies are not executed if finalized task did not run due to failed dependency"() {
         Task finalizerDependency = task("finalizerDependency")
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
         Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
@@ -299,6 +300,20 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency]
+    }
+
+    def "finalizer tasks and their dependencies are not executed if finalized task did not run due to failure in unrelated task"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task broken = task("broken", failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([broken, finalized])
+
+        then:
+        executionPlan.tasks as List == [broken, finalized, finalizerDependency, finalizer]
+        executedTasks == [broken]
     }
 
     def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not run"() {
@@ -578,7 +593,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2293")
-    def "circular dependency detected with finalizedBy cycle in the graph"() {
+    def "circular dependency detected with finalizedBy cycle in the graph where task finalizes itself"() {
         Task a = createTask("a")
         Task b = createTask("b")
         relationships(a, finalizedBy: [b])
@@ -597,7 +612,30 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 """)
     }
 
-    def "stops returning tasks on task execution failure"() {
+    def "circular dependency detected with finalizedBy cycle in the graph"() {
+        Task a = createTask("a")
+        Task b = createTask("b")
+        Task c = createTask("c")
+        relationships(a, finalizedBy: [b])
+        relationships(b, finalizedBy: [c])
+        relationships(c, finalizedBy: [a])
+
+        when:
+        addToGraphAndPopulate([a])
+
+        then:
+        CircularReferenceException e = thrown()
+        e.message == toPlatformLineSeparators("""Circular dependency between the following tasks:
+:a
+\\--- :c
+     \\--- :b
+          \\--- :a (*)
+
+(*) - details omitted (listed previously)
+""")
+    }
+
+    def "stops returning tasks on first task execution failure"() {
         def failures = []
         RuntimeException exception = new RuntimeException("failure")
 
@@ -636,44 +674,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         failures.size() == 1
         failures[0] instanceof BuildCancelledException
-    }
-
-    def "stops returning tasks on first task failure when no failure handler provided"() {
-        def failures = []
-        RuntimeException failure = new RuntimeException("failure")
-        Task a = task("a", failure: failure)
-        Task b = task("b")
-
-        when:
-        addToGraphAndPopulate([a, b])
-
-        then:
-        executedTasks == [a]
-
-        when:
-        executionPlan.collectFailures(failures)
-
-        then:
-        failures == [failure]
-    }
-
-    def "stops execution on task failure when failure handler indicates that execution should stop"() {
-        def failures = []
-        RuntimeException failure = new RuntimeException("failure")
-        Task a = task("a", failure: failure)
-        Task b = task("b")
-
-        when:
-        addToGraphAndPopulate([a, b])
-
-        then:
-        executedTasks == [a]
-
-        when:
-        executionPlan.collectFailures(failures)
-
-        then:
-        failures == [failure]
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
@@ -749,7 +749,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         final Task c = task("c")
         final Task d = task("d", dependsOn: [b, c])
         addToGraphAndPopulate([b])
-        executedTasks == [a]
+        assert executedTasks == [a]
 
         when:
         executionPlan = newExecutionPlan()
@@ -866,7 +866,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b", dependsOn: [a])
         Task c = task("c", dependsOn: [b])
         addToGraphAndPopulate([b])
-        executedTasks == [a]
+        assert executedTasks == [a]
 
         when:
         executionPlan = newExecutionPlan()
@@ -877,6 +877,41 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executedTasks == []
     }
 
+    def "builds graph for task that was filtered in a previous plan"() {
+        given:
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c")
+        def filter = { it != b } as Spec<Task>
+        executionPlan.useFilter(filter)
+        addToGraphAndPopulate([b, c])
+        executes(c)
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([b])
+
+        then:
+        executes(a, b)
+    }
+
+    def "builds graph for task whose execution was cancelled in a previous plan"() {
+        given:
+        Task a = task("a")
+        Task b = task("b")
+        addToGraphAndPopulate([a, b])
+        coordinator.withStateLock {
+            executionPlan.cancelExecution()
+        }
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([a, b])
+
+        then:
+        executes(a, b)
+    }
+
     def "required nodes added to the graph are executed in dependency order"() {
         given:
         def node1 = requiredNode()
@@ -885,7 +920,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executionPlan.addNodes([node3, node1, node2])
 
         when:
-        executionPlan.determineExecutionPlan()
+        populateGraph()
 
         then:
         executesNodes(node1, node2, node3)
@@ -973,6 +1008,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private void populateGraph() {
         executionPlan.determineExecutionPlan()
+        executionPlan.finalizePlan()
     }
 
     void executes(Task... expectedTasks) {
@@ -1008,18 +1044,19 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     List<Node> getExecutedNodes() {
         def nodes = []
         coordinator.withStateLock {
-            while (executionPlan.executionState() != ExecutionPlan.State.NoMoreNodesToStart) {
+            while (executionPlan.executionState() != WorkSource.State.NoMoreWorkToStart) {
+                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart // There should always be a node ready to start when executing sequentially
                 def selection = executionPlan.selectNext()
-                if (selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
+                if (selection.noMoreWorkToStart) {
                     break
                 }
-                assert selection != ExecutionPlan.NO_NODES_READY_TO_START // There should always be a node ready to start when executing sequentially
-                def nextNode = selection.node
+                assert !selection.noWorkReadyToStart // There should always be a node ready to start when executing sequentially
+                def nextNode = selection.item
                 assert !nextNode.isComplete()
                 nodes << nextNode
-                executionPlan.finishedExecuting(nextNode)
+                executionPlan.finishedExecuting(nextNode, null)
             }
-            assert executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             assert executionPlan.allExecutionComplete()
         }
         return nodes

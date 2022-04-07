@@ -161,6 +161,7 @@ class Codecs(
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
         bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
+        bind(ResolveArtifactNodeCodec)
         bind(WorkNodeActionCodec)
         bind(CapabilitySerializer())
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -38,12 +37,10 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -114,25 +111,9 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     protected abstract CalculatedValueContainer<TransformationSubject, ?> getTransformedArtifacts();
 
-    @Nullable
-    @Override
-    public ResourceLock getProjectToLock() {
-        // Transforms do not require project state
-        return null;
-    }
-
-    @Override
-    public List<ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
-    }
-
     @Override
     public Throwable getNodeFailure() {
         return null;
-    }
-
-    @Override
-    public void rethrowNodeFailure() {
     }
 
     @Override
@@ -145,14 +126,13 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        processDependencies(dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
     }
 
-    protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
+    protected void processDependencies(Set<Node> dependencies) {
         for (Node dependency : dependencies) {
             addDependencySuccessor(dependency);
-            processHardSuccessor.execute(dependency);
         }
     }
 

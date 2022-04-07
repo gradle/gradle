@@ -16,15 +16,11 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     private final LocalTaskNode node;
@@ -57,12 +53,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
-        throw UncheckedException.throwAsUncheckedException(failure);
-    }
-
-    @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
     }
 
     @Nullable
@@ -75,11 +66,6 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     @Override
     public ProjectInternal getOwningProject() {
         return node.getOwningProject();
-    }
-
-    @Override
-    public List<? extends ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
     }
 
     @Override

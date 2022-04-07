@@ -21,7 +21,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
@@ -45,7 +44,6 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
@@ -101,7 +99,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         when:
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build) { graphBuilder ->
-                def node = new StuckNode()
+                def node = new DependenciesStuckNode()
                 node.require()
                 node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
@@ -147,9 +145,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
         _ * controller.executeTasks(_) >> {
             plan.determineExecutionPlan()
-            def failures = []
-            services.planExecutor.process(plan, failures) { node -> }
-            return ExecutionResult.maybeFailed(failures)
+            return services.planExecutor.process(plan.finalizePlan()) { node -> }
         }
 
         return new DefaultBuildWorkGraphController(
@@ -193,26 +189,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        void rethrowNodeFailure() {
-        }
-
-        @Override
-        void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        }
-
-        @Override
-        ResourceLock getProjectToLock() {
-            return null
-        }
-
-        @Override
-        ProjectInternal getOwningProject() {
-            return null
-        }
-
-        @Override
-        List<? extends ResourceLock> getResourcesToLock() {
-            return []
+        void resolveDependencies(TaskDependencyResolver dependencyResolver) {
         }
 
         @Override
@@ -230,7 +207,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
     }
 
-    private static class StuckNode extends TestNode {
+    private static class DependenciesStuckNode extends TestNode {
         @Override
         protected boolean doCheckDependenciesComplete() {
             return false
