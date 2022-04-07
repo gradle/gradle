@@ -169,6 +169,8 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
+        api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
+        api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
