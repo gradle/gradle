@@ -532,18 +532,20 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     @Override
     public Set<Task> getRequestedTasks() {
-        Set<Task> requested = new LinkedHashSet<>();
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node entryNode : entryNodes) {
             if (entryNode instanceof LocalTaskNode) {
-                requested.add(((LocalTaskNode) entryNode).getTask());
+                builder.add(((LocalTaskNode) entryNode).getTask());
             }
         }
-        return requested;
+        return builder.build();
     }
 
     @Override
-    public List<Node> getScheduledNodes() {
-        return ImmutableList.copyOf(nodeMapping.nodes);
+    public ScheduledNodes getScheduledNodes() {
+        // Take an immutable copy, as this can be mutated (eg if the result is used after execution has completed and clear() has been called).
+        ImmutableList<Node> nodes = ImmutableList.copyOf(nodeMapping.nodes);
+        return visitor -> lockCoordinator.withStateLock(() -> visitor.accept(nodes));
     }
 
     @Override

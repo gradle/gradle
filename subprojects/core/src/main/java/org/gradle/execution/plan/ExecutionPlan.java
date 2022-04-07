@@ -83,8 +83,8 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public List<Node> getScheduledNodes() {
-            return Collections.emptyList();
+        public ScheduledNodes getScheduledNodes() {
+            return visitor -> visitor.accept(Collections.emptyList());
         }
 
         @Override
@@ -138,12 +138,18 @@ public interface ExecutionPlan extends Describable, Closeable {
      */
     Set<Task> getTasks();
 
+    /**
+     * Returns a snapshot of the requested tasks for this plan.
+     */
     Set<Task> getRequestedTasks();
 
-    List<Node> getScheduledNodes();
+    /**
+     * Returns a snapshot of the current set of scheduled nodes, which can later be visited.
+     */
+    ScheduledNodes getScheduledNodes();
 
     /**
-     * @return The set of all filtered tasks that don't get executed.
+     * Returns a snapshot of the filtered tasks for this plan.
      */
     Set<Task> getFilteredTasks();
 
@@ -159,4 +165,11 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     @Override
     void close();
+
+    /**
+     * An immutable snapshot of the set of scheduled nodes.
+     */
+    interface ScheduledNodes {
+        void visitNodes(Consumer<List<Node>> visitor);
+    }
 }
