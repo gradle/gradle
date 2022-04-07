@@ -34,17 +34,22 @@ import java.util.Optional;
 
 public class AdoptOpenJdkRemoteBinary {
 
+    private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
+    private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
+
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
     private final AdoptOpenJdkDownloader downloader;
-    private final Provider<String> rootUrl;
+    private final Provider<String> adoptOpenJdkRootUrl;
+    private final Provider<String> adoptiumRootUrl;
 
     @Inject
     public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
-        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
+        this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
+        this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
@@ -71,7 +76,7 @@ public class AdoptOpenJdkRemoteBinary {
 
         if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTOPENJDK.asJvmVendor())) {
             DeprecationLogger.deprecateBehaviour("Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.")
-                .willBeRemovedInGradle8().withUpgradeGuideSection(7, "adoptopenjdk_download").nagUser();
+                    .willBeRemovedInGradle8().withUpgradeGuideSection(7, "adoptopenjdk_download").nagUser();
             return true;
         }
 
@@ -87,17 +92,18 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private URI constructUri(JavaToolchainSpec spec) {
-        return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + determineLanguageVersion(spec).toString() +
-            "/" +
-            determineReleaseState() +
-            "/" +
-            determineOs() +
-            "/" +
-            determineArch() +
-            "/jdk/" +
-            determineImplementation(spec) +
-            "/normal/adoptopenjdk");
+        return URI.create(determineServerBaseUri(spec) +
+                "v3/binary/latest/" + determineLanguageVersion(spec) +
+                "/" +
+                determineReleaseState() +
+                "/" +
+                determineOs() +
+                "/" +
+                determineArch() +
+                "/jdk/" +
+                determineImplementation(spec) +
+                "/normal/" +
+                determineOrganization(spec));
     }
 
     private String determineImplementation(JavaToolchainSpec spec) {
@@ -164,12 +170,23 @@ public class AdoptOpenJdkRemoteBinary {
         return "ga";
     }
 
-    private String getServerBaseUri() {
-        String baseUri = rootUrl.getOrElse("https://api.adoptopenjdk.net/");
+    private String determineServerBaseUri(JavaToolchainSpec spec) {
+        String baseUri = adoptiumHasIt(spec) ? adoptiumRootUrl.getOrElse(DEFAULT_ADOPTIUM_ROOT_URL) :
+                adoptOpenJdkRootUrl.getOrElse(DEFAULT_ADOPTOPENJDK_ROOT_URL);
+
         if (!baseUri.endsWith("/")) {
             baseUri += "/";
         }
         return baseUri;
+    }
+
+    private String determineOrganization(JavaToolchainSpec spec) {
+        return adoptiumHasIt(spec) ? "eclipse" : "adoptopenjdk";
+    }
+
+    private boolean adoptiumHasIt(JavaToolchainSpec spec) { //TODO: also consider if ADOPTIUM was explicitly requested as the VENDOR?
+        int version = determineLanguageVersion(spec).asInt();
+        return version == 8 || version == 11 || version >= 16; // https://api.adoptium.net/v3/info/available_releases
     }
 
 }
