@@ -186,7 +186,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
     def "downloads j9 impl if requested"() {
         given:
-        def spec = newSpec(12)
+        def spec = newSpec()
         spec.implementation.set(JvmImplementation.J9)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
@@ -199,7 +199,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         binary.download(spec, targetFile)
 
         then:
-        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
+        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
     }
 
     def newSpec(int jdkVersion = 11, JvmImplementation implementation = null, JvmVendorSpec vendor = null) {

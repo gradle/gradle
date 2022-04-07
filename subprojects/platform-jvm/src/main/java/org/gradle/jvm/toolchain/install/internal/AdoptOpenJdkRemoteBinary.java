@@ -63,12 +63,11 @@ public class AdoptOpenJdkRemoteBinary {
 
     public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = determineLanguageVersion(spec).canCompileOrRun(8);
-        boolean j9Requested = spec.getImplementation().get() == JvmImplementation.J9;
-        boolean matchesVendor = matchesVendor(spec, j9Requested);
+        boolean matchesVendor = matchesVendor(spec);
         return matchesLanguageVersion && matchesVendor;
     }
 
-    private boolean matchesVendor(JavaToolchainSpec spec, boolean j9Requested) {
+    private boolean matchesVendor(JavaToolchainSpec spec) {
         final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
         if (vendorSpec == DefaultJvmVendorSpec.any()) {
             return true;
@@ -80,7 +79,7 @@ public class AdoptOpenJdkRemoteBinary {
             return true;
         }
 
-        if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTIUM.asJvmVendor()) && !j9Requested) {
+        if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTIUM.asJvmVendor()) && !isJ9ExplicitlyRequested(spec)) {
             return true;
         }
 
@@ -106,17 +105,8 @@ public class AdoptOpenJdkRemoteBinary {
                 determineOrganization(spec));
     }
 
-    private String determineImplementation(JavaToolchainSpec spec) {
-        final JvmImplementation implementation = spec.getImplementation().getOrNull();
-        String openj9 = "openj9";
-        if (implementation == JvmImplementation.J9) {
-            return openj9;
-        }
-        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        if (vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor())) {
-            return openj9;
-        }
-        return "hotspot";
+    private static String determineImplementation(JavaToolchainSpec spec) {
+        return isJ9Requested(spec) ? "openj9" : "hotspot";
     }
 
     private String determineVendor(JavaToolchainSpec spec) {
@@ -139,7 +129,7 @@ public class AdoptOpenJdkRemoteBinary {
         return "tar.gz";
     }
 
-    private JavaLanguageVersion determineLanguageVersion(JavaToolchainSpec spec) {
+    private static JavaLanguageVersion determineLanguageVersion(JavaToolchainSpec spec) {
         return spec.getLanguageVersion().get();
     }
 
@@ -166,7 +156,7 @@ public class AdoptOpenJdkRemoteBinary {
         return operatingSystem.getFamilyName();
     }
 
-    private String determineReleaseState() {
+    private static String determineReleaseState() {
         return "ga";
     }
 
@@ -180,13 +170,33 @@ public class AdoptOpenJdkRemoteBinary {
         return baseUri;
     }
 
-    private String determineOrganization(JavaToolchainSpec spec) {
+    private static String determineOrganization(JavaToolchainSpec spec) {
         return adoptiumHasIt(spec) ? "eclipse" : "adoptopenjdk";
     }
 
-    private boolean adoptiumHasIt(JavaToolchainSpec spec) { //TODO: also consider if ADOPTIUM was explicitly requested as the VENDOR?
+    private static boolean adoptiumHasIt(JavaToolchainSpec spec) { //TODO: also consider if ADOPTIUM was explicitly requested as the VENDOR?
+        if (isJ9Requested(spec)) {
+            return false;
+        }
+
         int version = determineLanguageVersion(spec).asInt();
         return version == 8 || version == 11 || version >= 16; // https://api.adoptium.net/v3/info/available_releases
+    }
+
+    private static boolean isJ9Requested(JavaToolchainSpec spec) {
+        if (isJ9ExplicitlyRequested(spec)) {
+            return true;
+        }
+        return isJ9RequestedViaVendor(spec);
+    }
+
+    private static boolean isJ9ExplicitlyRequested(JavaToolchainSpec spec) {
+        return spec.getImplementation().get() == JvmImplementation.J9;
+    }
+
+    private static boolean isJ9RequestedViaVendor(JavaToolchainSpec spec) {
+        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
 }
