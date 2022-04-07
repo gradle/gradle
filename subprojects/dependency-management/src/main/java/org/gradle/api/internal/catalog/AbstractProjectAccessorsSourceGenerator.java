@@ -93,8 +93,7 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
         }
         DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
         if (!descriptor.hasExplicitName()) {
-            LOGGER.warn("Root project name not explicitly set, so it is named based on its enclosing directory. This might impact the generated code and implicitly" +
-                    "the buildscript classpath and caching.");
+            LOGGER.warn("Project accessors enabled, but root project name not explicitly set. This might impact the generated code and implicitly the buildscript classpath and caching.");
         }
     }
 
