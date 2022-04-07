@@ -50,7 +50,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}")
             .assertHasCause("Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.")
-            .assertThatCause(CoreMatchers.startsWith("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/99/ga/"))
+            .assertThatCause(CoreMatchers.startsWith("Could not read 'https://api.adopt"))
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -97,6 +97,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         propertiesFile << """
             org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=http://example.com
+            org.gradle.jvm.toolchain.install.adoptium.baseUri=http://example.com
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
