@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -37,6 +38,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 
 import javax.annotation.Nullable;
@@ -51,10 +53,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-// This import must be here due to a clash in Java 8 between this and java.util.Optional.
-// Be careful running “Optimize Imports” as it will wipe this out.
-// If there's no import below this comment, this has happened.
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -91,7 +89,13 @@ public class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    boolean includePrivate;
+    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
+
+    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
+
+    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
+
+    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
@@ -108,9 +112,10 @@ public class Groovydoc extends SourceTask {
         }
         getAntGroovydoc().execute(
             getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
-            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(),
-            getLinks(), getGroovyClasspath(), getClasspath(),
-            getTemporaryDir(), getServices().get(FileSystemOperations.class)
+            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(),
+            getAccess().get(), getLinks(), getGroovyClasspath(), getClasspath(),
+            getTemporaryDir(), getServices().get(FileSystemOperations.class),
+            getIncludeAuthor().get(), getProcessScripts().get(), getIncludeMainForScripts().get()
         );
     }
 
@@ -344,18 +349,80 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include all classes and members (i.e. including private ones).
+     * Returns whether to include classes with private access and above.
+     *
+     * @deprecated Equivalent to calling {@link #getAccess()}{@code .get()} and checking for equivalence with {@link GroovydocAccess#PRIVATE}
      */
-    @Input
+    @Internal
+    @Deprecated
     public boolean isIncludePrivate() {
-        return includePrivate;
+        DeprecationLogger.deprecateProperty(Groovydoc.class, "includePrivate")
+            .replaceWith("access")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "groovydoc_option_improvements")
+            .nagUser();
+        return getAccess().get() == GroovydocAccess.PRIVATE;
     }
 
     /**
-     * Sets whether to include all classes and members (i.e. including private ones) if set to true.
+     * Sets whether to include classes and members with private access and above.
+     *
+     * @deprecated Equivalent to calling {@link #getAccess()}{@code .set(...)} with {@link GroovydocAccess#PRIVATE}
+     *             if {@code includePrivate} is {@code true}, {@link GroovydocAccess#PUBLIC} otherwise
      */
+    @Deprecated
     public void setIncludePrivate(boolean includePrivate) {
-        this.includePrivate = includePrivate;
+        DeprecationLogger.deprecateProperty(Groovydoc.class, "includePrivate")
+            .replaceWith("access")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "groovydoc_option_improvements")
+            .nagUser();
+        getAccess().set(includePrivate ? GroovydocAccess.PRIVATE : GroovydocAccess.PUBLIC);
+    }
+
+    /**
+     * The most restrictive access level to include in the Groovydoc.
+     *
+     * <p>
+     * For example, to include classes and members with package, protected, and public access, use {@link GroovydocAccess#PACKAGE}.
+     * </p>
+     *
+     * @return the access property
+     * @since 7.5
+     */
+    @Input
+    public Property<GroovydocAccess> getAccess() {
+        return access;
+    }
+
+    /**
+     * Whether to include author paragraphs.
+     *
+     * @since 7.5
+     */
+    @Input
+    public Property<Boolean> getIncludeAuthor() {
+        return includeAuthor;
+    }
+
+    /**
+     * Whether to process scripts.
+     *
+     * @since 7.5
+     */
+    @Input
+    public Property<Boolean> getProcessScripts() {
+        return processScripts;
+    }
+
+    /**
+     * Whether to include main method for scripts.
+     *
+     * @since 7.5
+     */
+    @Input
+    public Property<Boolean> getIncludeMainForScripts() {
+        return includeMainForScripts;
     }
 
     /**

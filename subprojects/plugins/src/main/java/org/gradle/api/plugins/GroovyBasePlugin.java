@@ -38,6 +38,7 @@ import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.api.tasks.javadoc.GroovydocAccess;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -162,6 +163,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension().getDocsDir().dir("groovydoc").get().getAsFile());
             groovydoc.getConventionMapping().map("docTitle", () -> projectExtension(ReportingExtension.class).getApiDocTitle());
             groovydoc.getConventionMapping().map("windowTitle", () -> projectExtension(ReportingExtension.class).getApiDocTitle());
+            groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
+            groovydoc.getIncludeAuthor().convention(false);
+            groovydoc.getProcessScripts().convention(true);
+            groovydoc.getIncludeMainForScripts().convention(true);
         });
     }
 

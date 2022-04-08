@@ -26,6 +26,7 @@ We would like to thank the following community members for their contributions t
 [David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [Peter Gafert](https://github.com/codecholeric),
 [Alex Landau](https://github.com/AlexLandau),
+[Jerry Wiltse](https://github.com/solvingj),
 [Tyler Burke](https://github.com/T-A-B)
 
 <!--
@@ -150,6 +151,16 @@ Gradle now supports running on and building with [Java 18](https://openjdk.java.
 ### Support for Groovy 4
 
 Gradle now supports building software using Groovy 4.0.
+
+### Groovydoc exposes more options
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
+
+- `access`: for controlling the access levels included in the documentation, defaults to `PROTECTED`
+- `includeAuthor`: for controlling whether the author is displayed in the documentation, defaults to `false`
+- `processScripts`: for controlling whether scripts are included in the documentation, defaults to `true`
+- `includeMainForScripts`: for controlling whether a script's `main` method is included in the documentation, defaults to `true`
+
+These defaults are the same as what was previously used, so there should be no changes to the default behavior.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
