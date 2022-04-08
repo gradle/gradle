@@ -24,17 +24,25 @@ import org.junit.Rule
 class SocksProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
     SocksProxyServer proxyServer = new SocksProxyServer()
+    def projectA
 
     def setup() {
+        def repo = mavenHttpRepo("repo")
+        repo.server.useHostname()
+        projectA = repo.module('test', 'projectA', '1.2').publish()
+
         buildFile << """
 repositories {
-    ${mavenCentralRepository()}
+    maven { 
+        url "${repo.uri}"
+        allowInsecureProtocol = true 
+    }
 }
 configurations { compile }
-dependencies { compile 'log4j:log4j:1.2.17' }
+dependencies { compile 'test:projectA:1.2' }
 task listJars {
     doLast {
-        assert configurations.compile.collect { it.name } == ['log4j-1.2.17.jar']
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
     }
 }
 """
@@ -45,12 +53,14 @@ task listJars {
         when:
         fails('listJars')
         then:
-        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
+        failure.assertHasCause("Could not resolve test:projectA:1.2.")
         failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
 
         when:
         proxyServer.start()
         proxyServer.configureProxy(executer)
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
         succeeds('listJars')
         then:
         result.assertTaskExecuted(":listJars")
@@ -60,7 +70,7 @@ task listJars {
         proxyServer.configureProxy(executer)
         fails('listJars', '--refresh-dependencies')
         then:
-        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
+        failure.assertHasCause("Could not resolve test:projectA:1.2.")
         failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
     }
 }

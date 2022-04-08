@@ -55,8 +55,13 @@ class SocksProxyServer extends ExternalResource {
         if (port == 0) {
             port = portFinder.assignPort()
         }
+        // Daemon | Test worker
+        // build -> proxy(localhost) -> repo(localhost)
+        //                           -> 127.0.0.1
+        //
         executer.withArgument('-DsocksProxyHost=localhost')
         executer.withArgument("-DsocksProxyPort=${port}")
+        executer.withArgument("-DsocksNonProxyHosts=127.*")
     }
 
     void stop() {
