@@ -60,9 +60,6 @@ class MavenResolverTest extends Specification {
     }
 
     def "uses artifacts from variant metadata"() {
-        given:
-        module.hasVariants() >> true
-
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
@@ -73,10 +70,6 @@ class MavenResolverTest extends Specification {
     }
 
     def "uses artifacts from all variant metadata, even when POM declares JAR packaging"() {
-        given:
-        module.hasVariants() >> false
-        module.isKnownJarPackaging() >> true
-
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
