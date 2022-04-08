@@ -16,13 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.apache.commons.io.IOUtils
+import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.normalization.java.ApiClassExtractor
+import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Issue
 import spock.lang.Specification
 
 class AbiExtractingClasspathResourceHasherTest extends Specification {
+    @Rule
+    TemporaryFolder temporaryDirectory = new TemporaryFolder()
+
+    def setup() {
+        temporaryDirectory.create()
+    }
 
     def "api class extractors affect the configuration hash"() {
         def apiClassExtractor1 = Mock(ApiClassExtractor)
@@ -42,9 +57,67 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         1 * apiClassExtractor2.appendConfigurationToHasher(_) >> { args -> args[0].putString("second") }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20398")
+    def "falls back to full file hash when abi extraction fails for a regular file"() {
+        def apiClassExtractor = Mock(ApiClassExtractor)
+
+        def resourceHasher = new AbiExtractingClasspathResourceHasher(apiClassExtractor)
+        def fileSnapshotContext = Mock(RegularFileSnapshotContext)
+        def fileSnapshot = Mock(RegularFileSnapshot)
+
+        given:
+        def file = temporaryDirectory.newFile('String.class')
+        file.bytes = bytesOf(String.class)
+
+        when:
+        resourceHasher.hash(fileSnapshotContext)
+
+        then:
+        1 * fileSnapshotContext.getSnapshot() >> fileSnapshot
+        2 * fileSnapshot.getName() >> file.name
+        1 * fileSnapshot.getAbsolutePath() >> file.absolutePath
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+
+        and:
+        1 * fileSnapshot.getHash()
+
+        and:
+        noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20398")
+    def "falls back to full zip entry hash when abi extraction fails for a zip entry"() {
+        def apiClassExtractor = Mock(ApiClassExtractor)
+        def delegate = Mock(ResourceHasher)
+
+        def resourceHasher = new AbiExtractingClasspathResourceHasher(apiClassExtractor)
+        def zipEntryContext = Mock(ZipEntryContext)
+        def zipEntry = Mock(ZipEntry)
+
+        when:
+        resourceHasher.hash(zipEntryContext)
+
+        then:
+        1 * zipEntryContext.getEntry() >> zipEntry
+        2 * zipEntry.getName() >> 'String.class'
+        1 * zipEntry.getContent() >> bytesOf(String.class)
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+
+        and:
+        1 * zipEntry.withInputStream(_)
+
+        and:
+        noExceptionThrown()
+    }
+
     private static HashCode configurationHashOf(ConfigurableNormalizer normalizer) {
         def hasher = Hashing.md5().newHasher()
         normalizer.appendConfigurationToHasher(hasher)
         return hasher.hash()
+    }
+
+    private static byte[] bytesOf(Class<?> clazz) {
+        String classFile = "/${clazz.getName().replaceAll('\\.', '/')}.class"
+        return IOUtils.toByteArray(clazz.getResource(classFile).openStream())
     }
 }

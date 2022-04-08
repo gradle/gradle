@@ -78,11 +78,16 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         ZipEntry zipEntry = zipEntryContext.getEntry();
-        if (!isClassFile(zipEntry.getName())) {
-            return null;
+        try {
+            if (!isClassFile(zipEntry.getName())) {
+                return null;
+            }
+            byte[] content = zipEntry.getContent();
+            return hashClassBytes(content);
+        } catch (Exception e) {
+            LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", zipEntry.getName(), e);
+            return zipEntry.withInputStream(Hashing::hashStream);
         }
-        byte[] content = zipEntry.getContent();
-        return hashClassBytes(content);
     }
 
     private boolean isClassFile(String name) {
