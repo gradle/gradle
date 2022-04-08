@@ -49,6 +49,7 @@ import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
@@ -300,6 +301,9 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
+            withDebugFrame({ "environment state" }) {
+                writeCachedEnvironmentState(gradle)
+            }
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
@@ -310,6 +314,7 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
+            readCachedEnvironmentState(gradle)
             readBuildCacheConfiguration(gradle)
             readGradleEnterprisePluginManager(gradle)
         }
@@ -551,6 +556,19 @@ class ConfigurationCacheState(
             val files = readNonNull<FileCollection>()
             buildOutputCleanupRegistry.registerOutputs(files)
         }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
+        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        write(environmentChangeTracker.getCachedState())
+    }
+
+    private
+    suspend fun DefaultReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
+        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        val storedState = read() as EnvironmentChangeTracker.CachedEnvironmentState
+        environmentChangeTracker.loadFrom(storedState)
     }
 
     private
