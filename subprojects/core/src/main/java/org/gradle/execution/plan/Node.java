@@ -51,10 +51,15 @@ public abstract class Node implements Comparable<Node> {
         FAILED_DEPENDENCY
     }
 
-    enum DependenciesState {
+    public enum DependenciesState {
+        // Still waiting for dependencies to complete
         NOT_COMPLETE,
+        // All dependencies complete, can run this node
         COMPLETE_AND_SUCCESSFUL,
-        COMPLETE_AND_NOT_SUCCESSFUL
+        // All dependencies complete, but cannot run this node due to failure
+        COMPLETE_AND_NOT_SUCCESSFUL,
+        // All dependencies complete, but this node does not need to run
+        COMPLETE_AND_CAN_SKIP
     }
 
     private ExecutionState state = ExecutionState.NOT_SCHEDULED;
@@ -251,13 +256,13 @@ public abstract class Node implements Comparable<Node> {
         completionAction.accept(this);
     }
 
-    public void skipExecution(Consumer<Node> completionAction) {
+    public void markFailedDueToDependencies(Consumer<Node> completionAction) {
         assert state == ExecutionState.SHOULD_RUN;
         state = ExecutionState.FAILED_DEPENDENCY;
         completionAction.accept(this);
     }
 
-    public void abortExecution(Consumer<Node> completionAction) {
+    public void cancelExecution(Consumer<Node> completionAction) {
         assert !isCannotRunInAnyPlan();
         state = ExecutionState.NOT_SCHEDULED;
         completionAction.accept(this);
@@ -293,6 +298,7 @@ public abstract class Node implements Comparable<Node> {
             filtered = false;
             dependenciesProcessed = false;
             state = ExecutionState.NOT_SCHEDULED;
+            dependenciesState = DependenciesState.NOT_COMPLETE;
         }
     }
 
@@ -329,13 +335,16 @@ public abstract class Node implements Comparable<Node> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected boolean doCheckDependenciesComplete() {
+    protected DependenciesState doCheckDependenciesComplete() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
-                return false;
+                return DependenciesState.NOT_COMPLETE;
+            } else if (!shouldContinueExecution(dependency)) {
+                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
             }
         }
-        return group.isSuccessorsCompleteFor(this);
+        // All dependencies are complete and successful, delegate to the group
+        return group.checkSuccessorsCompleteFor(this);
     }
 
     /**
@@ -350,15 +359,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void forceAllDependenciesCompleteUpdate() {
-        if (doCheckDependenciesComplete()) {
-            if (dependencySuccessors.stream().allMatch(this::shouldContinueExecution)) {
-                dependenciesState = DependenciesState.COMPLETE_AND_SUCCESSFUL;
-            } else {
-                dependenciesState = DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
-            }
-        } else {
-            dependenciesState = DependenciesState.NOT_COMPLETE;
-        }
+        dependenciesState = doCheckDependenciesComplete();
     }
 
     /**
@@ -369,10 +370,17 @@ public abstract class Node implements Comparable<Node> {
     }
 
     /**
-     * Can this node execute or should it be discarded? Should only be called when {@link #allDependenciesComplete()} return true.
+     * Can this node execute or should it be discarded? Should only be called when {@link #allDependenciesComplete()} returns true.
      */
     public boolean allDependenciesSuccessful() {
-        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL && group.isSuccessorsSuccessfulFor(this);
+        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL;
+    }
+
+    /**
+     * Should this node be cancelled or marked as failed? Should only be called when {@link #allDependenciesSuccessful()} returns false.
+     */
+    public boolean shouldCancelExecutionDueToDependencies() {
+        return dependenciesState == DependenciesState.COMPLETE_AND_CAN_SKIP;
     }
 
     /**

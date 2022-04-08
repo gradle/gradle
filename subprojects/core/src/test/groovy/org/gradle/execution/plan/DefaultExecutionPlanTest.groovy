@@ -912,6 +912,26 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(a, b)
     }
 
+    def "builds graph for finalizer task whose execution was cancelled in a previous plan"() {
+        given:
+        Task a = task("a", failure: new RuntimeException())
+        Task b = task("b")
+        Task c = task("c", dependsOn: [a], finalizedBy: [b])
+        addToGraphAndPopulate([c])
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        assert executedTasks == [a]
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([b])
+
+        then:
+        executes(b)
+
+        where:
+        continueOnFailure << [true, false]
+    }
+
     def "required nodes added to the graph are executed in dependency order"() {
         given:
         def node1 = requiredNode()

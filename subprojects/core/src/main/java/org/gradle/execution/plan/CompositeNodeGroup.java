@@ -80,37 +80,24 @@ public class CompositeNodeGroup extends HasFinalizers {
     }
 
     @Override
-    public boolean isSuccessorsCompleteFor(Node node) {
+    public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         if (ordinalGroup.isReachableFromEntryPoint()) {
             // Reachable from entry point node, can run at any time
-            return true;
+            return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
         }
-        boolean allComplete = true;
+        Node.DependenciesState state = Node.DependenciesState.COMPLETE_AND_CAN_SKIP;
         for (FinalizerGroup group : finalizerGroups) {
-            boolean complete = group.isSuccessorsCompleteFor(node);
-            if (!complete) {
-                allComplete = false;
-            }
+            Node.DependenciesState groupState = group.checkSuccessorsCompleteFor(node);
             // Can run once any of the finalizer groups is ready to run
-            if (complete && group.isSuccessorsSuccessfulFor(node)) {
-                return true;
+            if (groupState == Node.DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+                return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            }
+            // Wait for any groups that haven't finished
+            if (groupState == Node.DependenciesState.NOT_COMPLETE) {
+                state = Node.DependenciesState.NOT_COMPLETE;
             }
         }
         // No finalizer group is ready to run, and either all of them have failed or some are not yet complete
-        return allComplete;
-    }
-
-    @Override
-    public boolean isSuccessorsSuccessfulFor(Node node) {
-        if (ordinalGroup.isReachableFromEntryPoint()) {
-            // Reachable from entry point node, can run
-            return true;
-        }
-        for (FinalizerGroup group : finalizerGroups) {
-            if (group.isSuccessorsSuccessfulFor(node)) {
-                return true;
-            }
-        }
-        return false;
+        return state;
     }
 }

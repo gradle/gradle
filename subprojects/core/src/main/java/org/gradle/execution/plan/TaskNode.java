@@ -33,18 +33,19 @@ public abstract class TaskNode extends Node {
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
 
     @Override
-    public boolean doCheckDependenciesComplete() {
-        if (!super.doCheckDependenciesComplete()) {
-            return false;
+    public DependenciesState doCheckDependenciesComplete() {
+        DependenciesState state = super.doCheckDependenciesComplete();
+        if (state != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+            return state;
         }
 
         for (Node dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
-                return false;
+                return DependenciesState.NOT_COMPLETE;
             }
         }
 
-        return true;
+        return DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
     public Set<Node> getMustSuccessors() {

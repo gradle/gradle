@@ -621,7 +621,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             if (node.allDependenciesComplete()) {
                 if (!node.allDependenciesSuccessful()) {
                     // Cannot execute this node due to failed dependencies - skip it
-                    node.skipExecution(this::recordNodeCompleted);
+                    if (node.shouldCancelExecutionDueToDependencies()) {
+                        node.cancelExecution(this::recordNodeCompleted);
+                    } else {
+                        node.markFailedDueToDependencies(this::recordNodeCompleted);
+                    }
                     iterator.remove();
                     skippedNode = true;
                     continue;
@@ -1010,7 +1014,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             // If abortAll is set, also stop everything.
             if (abortAll || node.isCanCancel()) {
-                node.abortExecution(this::recordNodeCompleted);
+                node.cancelExecution(this::recordNodeCompleted);
                 iterator.remove();
                 aborted = true;
             }

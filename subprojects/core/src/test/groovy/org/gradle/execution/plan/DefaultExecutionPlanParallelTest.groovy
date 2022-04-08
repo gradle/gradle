@@ -526,6 +526,23 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete(true)
     }
 
+    def "finalizer and dependencies are executed even if the finalized task did not run when finalizer is also an entry point task"() {
+        Task finalizerDependency = task("finalizerDependency", type: Async)
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDependency])
+        Task broken = task("broken", type: Async, failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", type: Async, dependsOn: [broken], finalizedBy: [finalizer])
+
+        when:
+        executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate(finalizer, finalized)
+
+        then:
+        executionPlan.tasks as List == [broken, finalized, finalizerDependency, finalizer]
+        assertTasksReady(broken, finalizerDependency)
+        assertLastTaskReady(finalizer)
+        assertAllWorkComplete()
+    }
+
     def "finalizer that is a dependency of multiple finalizers and an entry point task"() {
         given:
         Task finalizerDep = task("finalizerDep", type: Async)

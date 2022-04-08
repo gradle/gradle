@@ -209,8 +209,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private static class DependenciesStuckNode extends TestNode {
         @Override
-        protected boolean doCheckDependenciesComplete() {
-            return false
+        protected DependenciesState doCheckDependenciesComplete() {
+            return DependenciesState.NOT_COMPLETE
         }
     }
 }
