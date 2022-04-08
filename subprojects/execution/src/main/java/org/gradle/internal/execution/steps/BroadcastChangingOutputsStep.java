@@ -29,7 +29,7 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
     private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends R> delegate;
 
-    public BroadcastChangingOutputsStep(
+    BroadcastChangingOutputsStep(
         OutputChangeListener outputChangeListener,
         Step<? super C, ? extends R> delegate
     ) {

@@ -44,7 +44,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super C, ? extends Result> delegate;
 
-    public CaptureStateAfterExecutionStep(
+    CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
