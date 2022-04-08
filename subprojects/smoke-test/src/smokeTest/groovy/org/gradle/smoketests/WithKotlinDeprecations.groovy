@@ -41,7 +41,7 @@ trait WithKotlinDeprecations {
     void expectKotlinCompileDestinationDirPropertyDeprecation(String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(
-            versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.20'),
+            versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.10'),
             ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION
         )
     }
