@@ -31,7 +31,7 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
 
     private final Step<? super C, ? extends R> delegate;
 
-    CreateOutputsStep(Step<? super C, ? extends R> delegate) {
+    public CreateOutputsStep(Step<? super C, ? extends R> delegate) {
         this.delegate = delegate;
     }
 

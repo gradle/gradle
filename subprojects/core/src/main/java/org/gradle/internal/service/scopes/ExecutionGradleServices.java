@@ -42,9 +42,12 @@ import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
+import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
@@ -57,7 +60,6 @@ import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.StepFactory;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -152,13 +154,15 @@ public class ExecutionGradleServices {
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
-            StepFactory.prepareAndCaptureOutputs(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, outputChangeListener,
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))))));
+        )))))))))))))))))))))))));
         // @formatter:on
     }
 

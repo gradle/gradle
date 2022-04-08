@@ -54,7 +54,9 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
+import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
@@ -66,7 +68,6 @@ import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
-import org.gradle.internal.execution.steps.StepFactory
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -176,12 +177,13 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveCachingStateStep<>(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
-        StepFactory.prepareAndCaptureOutputs(buildOperationExecutor, buildId, outputSnapshotter, outputChangeListener,
+        new BroadcastChangingOutputsStep<>(outputChangeListener,
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
-    ))))))))))))))))
+    )))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(

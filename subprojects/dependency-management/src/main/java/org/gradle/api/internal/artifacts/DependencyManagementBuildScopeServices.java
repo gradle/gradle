@@ -162,9 +162,12 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
+import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
@@ -175,7 +178,6 @@ import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
-import org.gradle.internal.execution.steps.StepFactory;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
@@ -736,12 +738,14 @@ class DependencyManagementBuildScopeServices {
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
-            StepFactory.prepareAndCaptureOutputs(buildOperationExecutor, fixedUniqueId, outputSnapshotter, outputChangeListener,
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))));
+        )))))))))))))))))));
         // @formatter:on
     }
 
