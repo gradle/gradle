@@ -58,8 +58,10 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
         });
         ImmutableList<String> outputs = builder.build();
         outputChangeListener.beforeOutputChange(outputs);
-        R result = delegate.execute(work, context);
-        outputChangeListener.beforeOutputChange(outputs);
-        return result;
+        try {
+            return delegate.execute(work, context);
+        } finally {
+            outputChangeListener.beforeOutputChange(outputs);
+        }
     }
 }
