@@ -158,6 +158,13 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         0 * _
     }
 
+    def "does not accept an ChangesOutputContext"() {
+        when:
+        step.execute(work, Mock(ChangesOutputContext))
+        then:
+        thrown(IllegalArgumentException)
+    }
+
     private void assertOperation(Throwable expectedFailure = null) {
         if (expectedFailure == null) {
             assertSuccessfulOperation(CaptureStateAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", CaptureStateAfterExecutionStep.Operation.Result.INSTANCE)

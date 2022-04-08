@@ -154,12 +154,12 @@ public class ExecutionGradleServices {
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
+            new ResolveInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
-            new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
         )))))))))))))))))))))))));

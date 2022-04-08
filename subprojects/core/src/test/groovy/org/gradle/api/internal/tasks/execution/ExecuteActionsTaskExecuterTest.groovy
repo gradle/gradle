@@ -177,10 +177,10 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveCachingStateStep<>(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
-        new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
-        new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
+        new BroadcastChangingOutputsStep<>(outputChangeListener,
+        new CancelExecutionStep<>(cancellationToken,
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
     )))))))))))))))))

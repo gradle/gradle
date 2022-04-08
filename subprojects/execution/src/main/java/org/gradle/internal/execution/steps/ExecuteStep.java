@@ -37,7 +37,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
-public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
+public class ExecuteStep<C extends ChangesOutputContext> implements Step<C, Result> {
 
     private final BuildOperationExecutor buildOperationExecutor;
 

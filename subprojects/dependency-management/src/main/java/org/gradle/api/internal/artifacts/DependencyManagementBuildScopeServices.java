@@ -738,11 +738,11 @@ class DependencyManagementBuildScopeServices {
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
+            new ResolveInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
         )))))))))))))))))));

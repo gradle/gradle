@@ -21,14 +21,14 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
+class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
     def delegateResult = Mock(Result)
 
     @Override
-    protected WorkspaceContext createContext() {
-        return Stub(WorkspaceContext)
+    protected InputChangesContext createContext() {
+        return Stub(InputChangesContext)
     }
 
     def "notifies listener about specific outputs changing"() {
@@ -57,7 +57,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
 
         then:
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, _ as ChangesOutputContext) >> delegateResult
 
         then:
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
