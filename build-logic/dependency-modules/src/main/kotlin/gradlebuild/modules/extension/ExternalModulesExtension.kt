@@ -21,7 +21,6 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension {
 
     val groovyVersion = "3.0.10"
-    val kotlinVersion = "1.6.10"
     val configurationCacheReportVersion = "1.1"
     val kotlinVersion = "1.6.20"
 
