@@ -99,6 +99,24 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         "jar.get().archiveFile"          | _
     }
 
+    @Issue("gradle/gradle#20390")
+    def "can deserialize copy task with rename"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register('copyAndRename', Copy) {
+                from('foo') { rename { 'bar' } }
+            }
+        """
+
+        when:
+        configurationCacheRun "copyAndRename"
+        configurationCacheRun "copyAndRename"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
     def "configuration cache for help on empty project"() {
         given:
         settingsFile.createFile()
