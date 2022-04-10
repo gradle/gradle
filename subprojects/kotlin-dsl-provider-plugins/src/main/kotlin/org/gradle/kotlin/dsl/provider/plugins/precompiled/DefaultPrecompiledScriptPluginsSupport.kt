@@ -328,7 +328,7 @@ fun TaskContainerScope.configureScriptResolverEnvironment(resolverEnvironment: S
             "-Xscript-resolver-environment=$resolverEnvironment"
         )
         withGroovyBuilder {
-            "kotlinOptions" {
+            getProperty("kotlinOptions").withGroovyBuilder {
                 @Suppress("unchecked_cast")
                 val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
                 setProperty("freeCompilerArgs", freeCompilerArgs + scriptCompilerArgs)

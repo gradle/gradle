@@ -10,7 +10,7 @@ val groovyVersion = "3.0.10"
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
-val defaultBuildKotlinVersion = "1.6.20-RC2"
+val defaultBuildKotlinVersion = "1.6.20"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .getOrElse(defaultBuildKotlinVersion)
