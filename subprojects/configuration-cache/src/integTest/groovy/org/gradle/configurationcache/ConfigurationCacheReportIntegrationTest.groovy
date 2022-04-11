@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+import com.microsoft.playwright.Browser
+import com.microsoft.playwright.BrowserContext
+import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -59,12 +62,15 @@ class ConfigurationCacheReportIntegrationTest extends AbstractConfigurationCache
 
     private String selectInnerTextOf(File configurationCacheReport, String selector, Consumer<String> onPageError) {
         try (Playwright playwright = Playwright.create()) {
-            def browser = playwright.webkit().launch()
-            def context = browser.newContext()
-            def page = context.newPage()
-            page.onPageError(onPageError)
-            page.navigate(configurationCacheReport.toURI().toString())
-            page.innerText(selector)
+            try (Browser browser = playwright.webkit().launch()) {
+                try (BrowserContext context = browser.newContext()) {
+                    try (Page page = context.newPage()) {
+                        page.onPageError(onPageError)
+                        page.navigate(configurationCacheReport.toURI().toString())
+                        page.innerText(selector)
+                    }
+                }
+            }
         }
     }
 }
