@@ -50,7 +50,7 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
         writeLn("        super(factory, finder);");
         writeLn("    }");
         writeLn();
-        writeProjectAccessor(toJavaName(rootProject(current).getName()), current);
+        writeProjectAccessor(toJavaName(rootProjectName(current)), current);
         processChildren(current);
 
         writeLn("}");

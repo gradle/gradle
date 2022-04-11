@@ -39,6 +39,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
@@ -63,6 +64,8 @@ import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -83,6 +86,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependenciesAccessors.class);
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
@@ -148,7 +153,18 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
+        warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
         executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
+    }
+
+    private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptor project) {
+        if (!(project instanceof DefaultProjectDescriptor)) {
+            return;
+        }
+        DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
+        if (!descriptor.hasExplicitName()) {
+            LOGGER.warn("Project accessors enabled, but root project name not explicitly set. This might impact the generated code and implicitly the buildscript classpath and caching.");
+        }
     }
 
     private void executeWork(UnitOfWork work) {
