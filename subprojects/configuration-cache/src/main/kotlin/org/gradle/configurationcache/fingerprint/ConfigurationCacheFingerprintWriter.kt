@@ -126,7 +126,13 @@ class ConfigurationCacheFingerprintWriter(
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
 
     private
+    val systemPropertiesPrefixedBy = newConcurrentHashSet<String>()
+
+    private
     val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+
+    private
+    val environmentVariablesPrefixedBy = newConcurrentHashSet<String>()
 
     private
     val reportedFiles = newConcurrentHashSet<File>()
@@ -252,13 +258,17 @@ class ConfigurationCacheFingerprintWriter(
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
             }
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
-                systemPropertiesPrefixedBy(parameters.prefix.get(), obtainedValue.value.get().uncheckedCast())
+                val prefix = parameters.prefix.get()
+                systemPropertiesPrefixedBy(prefix, obtainedValue.value.get().uncheckedCast())
+                reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
             is EnvironmentVariableValueSource.Parameters -> {
                 envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
             }
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
-                envVariablesPrefixedBy(parameters.prefix.get(), obtainedValue.value.get().uncheckedCast())
+                val prefix = parameters.prefix.get()
+                envVariablesPrefixedBy(prefix, obtainedValue.value.get().uncheckedCast())
+                reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
             is ProcessOutputValueSource.Parameters -> {
                 sink().write(ValueSource(obtainedValue.uncheckedCast()))
@@ -459,6 +469,25 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportUniqueSystemPropertiesPrefixedByInput(prefix: String) {
+        if (systemPropertiesPrefixedBy.add(prefix)) {
+            reportSystemPropertiesPrefixedByInput(prefix)
+        }
+    }
+
+    private
+    fun reportSystemPropertiesPrefixedByInput(prefix: String) {
+        reportInput(null, DocumentationSection.RequirementsSysPropEnvVarRead) {
+            if (prefix.isNotEmpty()) {
+                text("system properties prefixed by ")
+                reference(prefix)
+            } else {
+                text("system properties")
+            }
+        }
+    }
+
+    private
     fun reportUniqueEnvironmentVariableInput(key: String, consumer: String?) {
         if (undeclaredEnvironmentVariables.add(key)) {
             reportEnvironmentVariableInput(key, consumer)
@@ -470,6 +499,25 @@ class ConfigurationCacheFingerprintWriter(
         reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("environment variable ")
             reference(key)
+        }
+    }
+
+    private
+    fun reportUniqueEnvironmentVariablesPrefixedByInput(prefix: String) {
+        if (environmentVariablesPrefixedBy.add(prefix)) {
+            reportEnvironmentVariablesPrefixedByInput(prefix)
+        }
+    }
+
+    private
+    fun reportEnvironmentVariablesPrefixedByInput(prefix: String) {
+        reportInput(null, DocumentationSection.RequirementsSysPropEnvVarRead) {
+            if (prefix.isNotEmpty()) {
+                text("environment variables prefixed by ")
+                reference(prefix)
+            } else {
+                text("environment variables")
+            }
         }
     }
 

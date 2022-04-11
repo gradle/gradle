@@ -709,6 +709,10 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateStored()
         outputContains("Configuration: CI1 = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variables prefixed by 'CI'")
+        }
+
 
         when:
         EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
@@ -726,6 +730,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         configurationCache.assertStateStored()
         outputContains("Configuration: CI1 = 1")
         outputContains("Configuration: CI2 = 2")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variables prefixed by 'CI'")
+        }
     }
 
     def "build logic can read system properties with prefix"() {
@@ -751,6 +758,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateStored()
         outputContains("Configuration: some.property.1 = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system properties prefixed by 'some.property.'")
+        }
 
         when:
         configurationCacheRun("-Dsome.property.1=1", "print")
@@ -766,6 +776,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         configurationCache.assertStateStored()
         outputContains("Configuration: some.property.1 = 1")
         outputContains("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system properties prefixed by 'some.property.'")
+        }
     }
 
     def "system properties overwritten in build logic are not inputs to prefixed system properties"() {
