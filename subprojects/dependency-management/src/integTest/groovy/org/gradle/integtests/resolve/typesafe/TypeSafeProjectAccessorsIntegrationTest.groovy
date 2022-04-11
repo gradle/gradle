@@ -28,6 +28,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "generates type-safe project accessors for multi-project build"() {
+        given:
         settingsFile << """
             include 'one'
             include 'one:other'
@@ -48,6 +49,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "fails if a project doesn't follow convention"() {
+        given:
         settingsFile << """
             include '1library'
         """
@@ -60,6 +62,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "fails if two subprojects have the same java name"() {
+        given:
         settingsFile << """
             include 'super-cool'
             include 'super--cool'
@@ -81,6 +84,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "can configure the project extension name"() {
+        given:
         settingsFile << """
             include 'one'
             include 'one:other'
@@ -105,6 +109,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "can refer to the root project via its name"() {
+        given:
         buildFile << """
             assert project(":").is(projects.typesafeProjectAccessors.dependencyProject)
         """
@@ -117,6 +122,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "can use the #notation notation on type-safe accessor"() {
+        given:
         settingsFile << """
             include 'other'
         """
@@ -141,6 +147,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     }
 
     def "buildSrc project accessors are independent from the main build accessors"() {
+        given:
         file("buildSrc/build.gradle") << """
             assert project(":one").is(projects.one.dependencyProject)
             assert project(":two").is(projects.two.dependencyProject)
@@ -165,5 +172,44 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
 
         then:
         outputContains 'Type-safe project accessors is an incubating feature.'
+    }
+
+    def "warns if root project name not explicitly set"() {
+        //can't use the original test directory, because its name will be used as the project name and
+        //it doesn't follow the project naming convention; so will use an explicitly named sub-folder
+
+        given:
+        file("project/settings.gradle") << """
+            include 'one'
+        """
+        file("project/build.gradle") << """
+            assert project(":one").is(projects.one.dependencyProject)
+        """
+        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("project/settings.gradle"))
+
+        when:
+        inDirectory 'project'
+        args('--no-configuration-cache') //warning won't always be issued when using the configuration-cache
+        run 'help'
+
+        then:
+        outputContains 'Project accessors enabled, but root project name not explicitly set.'
+    }
+
+    def "does not warn if root project name explicitly set"() {
+        given:
+        settingsFile << """
+            include 'one'
+        """
+
+        buildFile << """
+            assert project(":one").is(projects.one.dependencyProject)
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputDoesNotContain'Project accessors enabled, but root project name not explicitly set.'
     }
 }
