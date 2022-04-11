@@ -19,6 +19,8 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.function.Supplier
@@ -391,6 +393,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("some.removed.property = null")
     }
 
+    // Running with --no-daemon causes the test to fail when changing the command line because the
+    // internal property sun.java.command changes.
+    @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
     def "properties set after clearing system properties with #systemPropsCleaner do not become inputs"() {
         given:
         buildFile("""
