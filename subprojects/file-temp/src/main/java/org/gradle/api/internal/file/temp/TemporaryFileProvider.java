@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.temp;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -32,6 +33,10 @@ public interface TemporaryFileProvider {
      * @return The file
      */
     File newTemporaryFile(String... path);
+
+    File newTemporaryDirectory(String... path);
+
+    Factory<File> temporaryDirectoryFactory(String...path);
 
     /**
      * Allocates and creates a new temporary file with the given prefix, suffix,
