@@ -28,6 +28,7 @@ We would like to thank the following community members for their contributions t
 [Alex Landau](https://github.com/AlexLandau),
 [Jerry Wiltse](https://github.com/solvingj),
 [Tyler Burke](https://github.com/T-A-B)
+[Matthew Haughton](https://github.com/3flex)
 
 <!--
 Include only their name, impactful features should be called out separately below.
