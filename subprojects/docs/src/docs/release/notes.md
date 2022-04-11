@@ -169,9 +169,8 @@ These defaults are the same as what was previously used, so there should be no c
 
 With this version of Gradle, the [`thread` parameter](https://pmd.github.io/latest/pmd_userdocs_tools_ant.html#parameters) it offers is now exposed through the PMD extension and tasks.
 This allows configuration of PMD to run its analysis on more than one thread.
-Note that this setting is independent of the [number of workers](userguide/performance.html#parallel_execution) used by Gradle.
 
-See the [documentation](dsl/org.gradle.api.plugins.quality.PmdExtension.html#org.gradle.api.plugins.quality.PmdExtension:threads) for more information.
+See the [documentation](userguide/pmd_plugin.html#sec:pmd_conf_threads) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

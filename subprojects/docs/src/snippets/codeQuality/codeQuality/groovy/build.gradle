@@ -52,3 +52,9 @@ pmd {
     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
 }
 // end::customize-pmd[]
+
+// tag::pmd-threads[]
+pmd {
+    threads = 4
+}
+// end::pmd-threads[]
