@@ -38,21 +38,22 @@ import java.util.Collections;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
+    public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(new ApiClassExtractor(Collections.emptySet()));
 
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
 
-    public AbiExtractingClasspathResourceHasher() {
-        this(new ApiClassExtractor(Collections.emptySet()), FallbackStrategy.FULL_HASH);
-    }
-
-    public AbiExtractingClasspathResourceHasher(ApiClassExtractor extractor) {
-        this(extractor, FallbackStrategy.NONE);
-    }
-
     private AbiExtractingClasspathResourceHasher(ApiClassExtractor extractor, FallbackStrategy fallbackStrategy) {
         this.extractor = extractor;
         this.fallbackStrategy = fallbackStrategy;
+    }
+
+    public static AbiExtractingClasspathResourceHasher withFallback(ApiClassExtractor extractor) {
+        return new AbiExtractingClasspathResourceHasher(extractor, FallbackStrategy.FULL_HASH);
+    }
+
+    public static AbiExtractingClasspathResourceHasher withoutFallback(ApiClassExtractor extractor) {
+        return new AbiExtractingClasspathResourceHasher(extractor, FallbackStrategy.NONE);
     }
 
     @Nullable

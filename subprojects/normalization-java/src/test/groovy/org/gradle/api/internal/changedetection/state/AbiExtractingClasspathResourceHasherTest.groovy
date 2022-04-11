@@ -43,8 +43,8 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         def apiClassExtractor1 = Mock(ApiClassExtractor)
         def apiClassExtractor2 = Mock(ApiClassExtractor)
 
-        def resourceHasher1 = new AbiExtractingClasspathResourceHasher(apiClassExtractor1)
-        def resourceHasher2 = new AbiExtractingClasspathResourceHasher(apiClassExtractor2)
+        def resourceHasher1 = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor1)
+        def resourceHasher2 = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor2)
 
         when:
         def configurationHash1 = configurationHashOf(resourceHasher1)
@@ -61,7 +61,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
     def "falls back to full file hash when abi extraction fails for a regular file"() {
         def apiClassExtractor = Mock(ApiClassExtractor)
 
-        def resourceHasher = new AbiExtractingClasspathResourceHasher(apiClassExtractor)
+        def resourceHasher = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor)
         def fileSnapshotContext = Mock(RegularFileSnapshotContext)
         def fileSnapshot = Mock(RegularFileSnapshot)
 
@@ -90,7 +90,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         def apiClassExtractor = Mock(ApiClassExtractor)
         def delegate = Mock(ResourceHasher)
 
-        def resourceHasher = new AbiExtractingClasspathResourceHasher(apiClassExtractor)
+        def resourceHasher = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor)
         def zipEntryContext = Mock(ZipEntryContext)
         def zipEntry = Mock(ZipEntry)
 
@@ -108,6 +108,53 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
 
         and:
         noExceptionThrown()
+    }
+
+    def "does not fall back to full file hash when fallback is not requested and abi extraction fails for a regular file"() {
+        def apiClassExtractor = Mock(ApiClassExtractor)
+
+        def resourceHasher = AbiExtractingClasspathResourceHasher.withoutFallback(apiClassExtractor)
+        def fileSnapshotContext = Mock(RegularFileSnapshotContext)
+        def fileSnapshot = Mock(RegularFileSnapshot)
+
+        given:
+        def file = temporaryDirectory.newFile('String.class')
+        file.bytes = bytesOf(String.class)
+
+        when:
+        resourceHasher.hash(fileSnapshotContext)
+
+        then:
+        1 * fileSnapshotContext.getSnapshot() >> fileSnapshot
+        1 * fileSnapshot.getName() >> file.name
+        1 * fileSnapshot.getAbsolutePath() >> file.absolutePath
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+
+        and:
+        def e = thrown(Exception)
+        e.message == "Boom!"
+    }
+
+    def "does not fall back to full zip entry hashing when fallback is not requested and abi extraction fails for a zip entry"() {
+        def apiClassExtractor = Mock(ApiClassExtractor)
+        def delegate = Mock(ResourceHasher)
+
+        def resourceHasher = AbiExtractingClasspathResourceHasher.withoutFallback(apiClassExtractor)
+        def zipEntryContext = Mock(ZipEntryContext)
+        def zipEntry = Mock(ZipEntry)
+
+        when:
+        resourceHasher.hash(zipEntryContext)
+
+        then:
+        1 * zipEntryContext.getEntry() >> zipEntry
+        1 * zipEntry.getName() >> 'String.class'
+        1 * zipEntry.getContent() >> bytesOf(String.class)
+        1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
+
+        and:
+        def e = thrown(Exception)
+        e.message == "Boom!"
     }
 
     private static HashCode configurationHashOf(ConfigurableNormalizer normalizer) {
