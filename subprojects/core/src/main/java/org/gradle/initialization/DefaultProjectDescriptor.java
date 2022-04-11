@@ -110,7 +110,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.nameExplicitlySet = true;
     }
 
-    public boolean hasExplicitName() {
+    public boolean isExplicitName() {
         return nameExplicitlySet;
     }
 
