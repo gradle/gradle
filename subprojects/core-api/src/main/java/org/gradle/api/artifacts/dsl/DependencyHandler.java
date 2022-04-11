@@ -384,7 +384,7 @@ public interface DependencyHandler extends ExtensionAware {
     Dependency gradleApi();
 
     /**
-     * Creates a dependency on the API of the current version of Gradle.
+     * Creates a dependency on the API of the specified version of Gradle.
      *
      * @return The dependency.
      */
