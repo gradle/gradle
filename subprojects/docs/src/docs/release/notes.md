@@ -27,6 +27,7 @@ We would like to thank the following community members for their contributions t
 [Peter Gafert](https://github.com/codecholeric),
 [Alex Landau](https://github.com/AlexLandau),
 [Tyler Burke](https://github.com/T-A-B)
+[Matthew Haughton](https://github.com/3flex)
 
 <!--
 Include only their name, impactful features should be called out separately below.
