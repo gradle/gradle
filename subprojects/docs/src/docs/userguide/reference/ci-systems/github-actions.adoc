@@ -10,9 +10,9 @@ In this guide, we'll discuss how to configure link:https://github.com/features/a
 
 == Introduction
 
-GitHub Actions is a free, cloud-based CI solution provider built directly into GitHub making it an excellent choice for open source projects hosted on GitHub.
-You can build any project as long as it is hosted on GitHub.
-GitHub Actions can be configured to make your build outputs and test results available for download.
+GitHub Actions is a cloud-based CI solution provider built directly into GitHub, making it an excellent choice for projects hosted on GitHub.
+
+Using the link:https://github.com/gradle/gradle-build-action[Gradle Build Action] makes it simple to integrate any Gradle project into a GitHub Actions workflow.
 
 == What you'll need
 
@@ -147,7 +147,7 @@ $ git push
 
 == View the GitHub Actions results
 
-Once this workflow file is pushed, you should immediately see the workflow execution in the GitHub Actions page for your repository (eg https://github.com/bigdaz/gradle-site-plugin/actions).
+Once this workflow file is pushed, you should immediately see the workflow execution in the GitHub Actions page for your repository (eg https://github.com/gradle/gradle/actions).
 Any subsequent push to the repository will trigger the workflow to run.
 
 === List all runs of the GitHub Actions workflow
