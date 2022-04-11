@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.ChangingFilesRunner
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -34,7 +34,7 @@ import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREM
 import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
-    def outputChangeListener = Mock(OutputChangeListener)
+    def changingFilesRunner = Mock(ChangingFilesRunner)
     def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
@@ -43,7 +43,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def allFileInputs = EnumSet.allOf(InputFingerprinter.InputPropertyType)
 
     def step = new SkipEmptyWorkStep(
-        outputChangeListener,
+        changingFilesRunner,
         workInputListeners,
         { -> outputsCleaner },
         delegate)
@@ -180,7 +180,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         }
 
         and:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+        1 * changingFilesRunner.changeFiles(rootPaths(previousOutputFile), _) >> { outputs, changeLocationsAction ->
+            changeLocationsAction.run()
+        }
 
         and:
         1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
@@ -215,7 +217,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         }
 
         and:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+        1 * changingFilesRunner.changeFiles(rootPaths(previousOutputFile), _) >> { outputs, changeLocationsAction ->
+            changeLocationsAction.run()
+        }
 
         and:
         1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }

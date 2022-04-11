@@ -40,7 +40,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
-import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.ChangingFilesRunner
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
@@ -141,7 +141,11 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def buildId = UniqueId.generate()
 
     def actionListener = Stub(TaskActionListener)
-    def outputChangeListener = Stub(OutputChangeListener)
+    def changingFilesRunner = Stub(ChangingFilesRunner) {
+        changeFiles(_, _) >> { changingLocations, changeLocationsAction ->
+            changeLocationsAction.get()
+        }
+    }
     def inputListeners = Stub(WorkInputListeners)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
@@ -171,7 +175,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
-        new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
+        new SkipEmptyWorkStep(changingFilesRunner, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,
@@ -179,9 +183,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new SkipUpToDateStep<>(
         new ResolveInputChangesStep<>(
         new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
-        new BroadcastChangingOutputsStep<>(outputChangeListener,
+        new BroadcastChangingOutputsStep<>(changingFilesRunner,
         new CancelExecutionStep<>(cancellationToken,
-        new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+        new RemovePreviousOutputsStep<>(deleter, changingFilesRunner,
         new ExecuteStep<>(buildOperationExecutor
     )))))))))))))))))
     // @formatter:on

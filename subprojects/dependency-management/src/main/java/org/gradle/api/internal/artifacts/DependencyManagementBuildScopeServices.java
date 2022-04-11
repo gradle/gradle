@@ -146,6 +146,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -219,6 +220,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.DefaultChangingFilesRunner;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -713,7 +715,6 @@ class DependencyManagementBuildScopeServices {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
-        InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
@@ -722,7 +723,7 @@ class DependencyManagementBuildScopeServices {
         VirtualFileSystem virtualFileSystem,
         DocumentationRegistry documentationRegistry
     ) {
-        OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
+        ChangingFilesRunner changingFilesRunner = new DefaultChangingFilesRunner(listenerManager.getBroadcaster(OutputChangeListener.class));
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
@@ -740,10 +741,10 @@ class DependencyManagementBuildScopeServices {
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new BroadcastChangingOutputsStep<>(changingFilesRunner,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, changingFilesRunner,
             new ExecuteStep<>(buildOperationExecutor
         )))))))))))))))))));
         // @formatter:on

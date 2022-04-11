@@ -25,9 +25,9 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -49,18 +49,18 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
     private final BuildCacheController buildCache;
     private final Deleter deleter;
-    private final OutputChangeListener outputChangeListener;
+    private final ChangingFilesRunner changingFilesRunner;
     private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
         Deleter deleter,
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
-        this.outputChangeListener = outputChangeListener;
+        this.changingFilesRunner = changingFilesRunner;
         this.delegate = delegate;
     }
 
@@ -136,12 +136,13 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitLocalState(File localStateRoot) {
-                try {
-                    outputChangeListener.beforeOutputChange(ImmutableList.of(localStateRoot.getAbsolutePath()));
-                    deleter.deleteRecursively(localStateRoot);
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);
-                }
+                changingFilesRunner.changeFiles(ImmutableList.of(localStateRoot.getAbsolutePath()), () -> {
+                    try {
+                        return deleter.deleteRecursively(localStateRoot);
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);
+                    }
+                });
             }
         });
     }

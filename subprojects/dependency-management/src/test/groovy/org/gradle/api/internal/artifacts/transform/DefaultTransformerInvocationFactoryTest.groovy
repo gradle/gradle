@@ -40,7 +40,7 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
-import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.ChangingFilesRunner
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -122,7 +122,10 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def buildCacheController = Stub(BuildCacheController)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     def cancellationToken = new DefaultBuildCancellationToken()
-    def outputChangeListener = { affectedOutputPaths -> fileSystemAccess.write(affectedOutputPaths, {}) } as OutputChangeListener
+    def changingFilesRunner = { affectedOutputPaths, action ->
+        fileSystemAccess.write(affectedOutputPaths, {})
+        action.get()
+    } as ChangingFilesRunner
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle(_ as File) >> true
     }
@@ -141,7 +144,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         new CurrentBuildOperationRef(),
         deleter,
         new DefaultExecutionStateChangeDetector(),
-        outputChangeListener,
+        changingFilesRunner,
         workInputListeners,
         outputFilesRepository,
         outputSnapshotter,

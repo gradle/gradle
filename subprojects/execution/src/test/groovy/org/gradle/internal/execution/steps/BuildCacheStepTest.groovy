@@ -22,9 +22,9 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.ChangingFilesRunner
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.ExecutionResult
-import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -46,9 +46,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
     def loadMetadata = Mock(BuildCacheLoadResult)
     def deleter = Mock(Deleter)
-    def outputChangeListener = Mock(OutputChangeListener)
+    def changingFilesRunner = Mock(ChangingFilesRunner)
 
-    def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
+    def step = new BuildCacheStep(buildCacheController, deleter, changingFilesRunner, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     @Override
@@ -80,7 +80,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitLocalState(localStateFile)
         }
-        1 * outputChangeListener.beforeOutputChange([localStateFile.getAbsolutePath()])
+        1 * changingFilesRunner.changeFiles([localStateFile.getAbsolutePath()], _) >> { outputs, changeLocationsAction ->
+            changeLocationsAction.get()
+        }
         1 * deleter.deleteRecursively(_) >> { File root ->
             assert root == localStateFile
             return true

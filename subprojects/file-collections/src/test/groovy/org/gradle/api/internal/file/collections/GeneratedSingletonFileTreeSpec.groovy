@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Action
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,7 +35,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
 
     def "visiting creates file if visitor queries the file location"() {
         def contentWriter = Mock(Action)
-        def generationListener = Mock(Action)
+        def generationListener = Mock(FileCollectionFactory.GenerateFileRunner)
         def tmpDir = tmpDir.createDir("dir")
         def generatedFile = tmpDir.file("file.bin")
         def visitor = Mock(FileVisitor)
@@ -51,7 +52,9 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert details.file == generatedFile
             assert generatedFile.text == "contents!"
         }
-        1 * generationListener.execute(generatedFile)
+        1 * generationListener.generate(generatedFile, _) >> { file, action ->
+            action.run()
+        }
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }
@@ -62,7 +65,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
         def contentWriter = Mock(Action)
         def tmpDir = tmpDir.createDir("dir")
         def generatedFile = tmpDir.file("file.bin")
-        def generationListener = Mock(Action)
+        def generationListener = Mock(FileCollectionFactory.GenerateFileRunner)
         def visitor = Mock(FileVisitor)
 
         def fileTree = new GeneratedSingletonFileTree({ tmpDir }, "file.bin", generationListener, contentWriter, fileSystem)
@@ -83,7 +86,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
         def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def tmpDir = tmpDir.createDir("dir")
         def generatedFile = tmpDir.file("file.bin")
-        def generationListener = Mock(Action)
+        def generationListener = Mock(FileCollectionFactory.GenerateFileRunner)
         def contentWriter = Mock(Action)
 
         def fileTree = new GeneratedSingletonFileTree({ tmpDir }, "file.bin", generationListener, contentWriter, fileSystem)
@@ -97,7 +100,9 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert generatedFile.isFile()
             assert generatedFile.text == "contents!"
         }
-        1 * generationListener.execute(generatedFile)
+        1 * generationListener.generate(generatedFile, _) >> { file, action ->
+            action.run()
+        }
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }

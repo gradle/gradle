@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -35,14 +35,14 @@ import java.util.Optional;
 
 public class BroadcastChangingOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
-    private final OutputChangeListener outputChangeListener;
+    private final ChangingFilesRunner changingFilesRunner;
     private final Step<? super ChangesOutputContext, ? extends R> delegate;
 
     public BroadcastChangingOutputsStep(
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         Step<? super ChangesOutputContext, ? extends R> delegate
     ) {
-        this.outputChangeListener = outputChangeListener;
+        this.changingFilesRunner = changingFilesRunner;
         this.delegate = delegate;
     }
 
@@ -65,73 +65,67 @@ public class BroadcastChangingOutputsStep<C extends InputChangesContext, R exten
                 builder.add(destroyableRoot.getAbsolutePath());
             }
         });
-        ImmutableList<String> outputs = builder.build();
-        outputChangeListener.beforeOutputChange(outputs);
-        try {
-            return delegate.execute(work, new ChangesOutputContext() {
+        return changingFilesRunner.changeFiles(builder.build(), () -> delegate.execute(work, new ChangesOutputContext() {
 
-                @Override
-                public File getWorkspace() {
-                    return context.getWorkspace();
-                }
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
+            }
 
-                @Override
-                public Optional<ExecutionHistoryStore> getHistory() {
-                    return context.getHistory();
-                }
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
+            }
 
-                @Override
-                public Optional<ValidationResult> getValidationProblems() {
-                    return context.getValidationProblems();
-                }
+            @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
 
-                @Override
-                public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                    return context.getPreviousExecutionState();
-                }
+            @Override
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
+            }
 
-                @Override
-                public Optional<InputChangesInternal> getInputChanges() {
-                    return context.getInputChanges();
-                }
+            @Override
+            public Optional<InputChangesInternal> getInputChanges() {
+                return context.getInputChanges();
+            }
 
-                @Override
-                public boolean isIncrementalExecution() {
-                    return context.isIncrementalExecution();
-                }
+            @Override
+            public boolean isIncrementalExecution() {
+                return context.isIncrementalExecution();
+            }
 
-                @Override
-                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                    return context.getInputProperties();
-                }
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
 
-                @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                    return context.getInputFileProperties();
-                }
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
+            }
 
-                @Override
-                public UnitOfWork.Identity getIdentity() {
-                    return context.getIdentity();
-                }
+            @Override
+            public UnitOfWork.Identity getIdentity() {
+                return context.getIdentity();
+            }
 
-                @Override
-                public Optional<String> getNonIncrementalReason() {
-                    return context.getNonIncrementalReason();
-                }
+            @Override
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
+            }
 
-                @Override
-                public WorkValidationContext getValidationContext() {
-                    return context.getValidationContext();
-                }
+            @Override
+            public WorkValidationContext getValidationContext() {
+                return context.getValidationContext();
+            }
 
-                @Override
-                public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                    return context.getBeforeExecutionState();
-                }
-            });
-        } finally {
-            outputChangeListener.beforeOutputChange(outputs);
-        }
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+        }));
     }
 }

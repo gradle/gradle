@@ -17,13 +17,13 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.ChangingFilesRunner
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
 class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
-    def outputChangeListener = Mock(OutputChangeListener)
-    def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
+    def changingFilesRunner = Mock(ChangingFilesRunner)
+    def step = new BroadcastChangingOutputsStep<>(changingFilesRunner, delegate)
     def delegateResult = Mock(Result)
 
     @Override
@@ -54,13 +54,14 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
         }
 
         then:
-        1 * outputChangeListener.beforeOutputChange(changingOutputs)
+        1 * changingFilesRunner.changeFiles(changingOutputs, _) >> { outputs, changeLocationsAction ->
+            changeLocationsAction.get()
+        }
 
         then:
         1 * delegate.execute(work, _ as ChangesOutputContext) >> delegateResult
 
         then:
-        1 * outputChangeListener.beforeOutputChange(changingOutputs)
         0 * _
     }
 }

@@ -30,6 +30,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -146,7 +147,7 @@ public interface FileCollectionFactory {
     /**
      * Creates a file tree containing the given generated file.
      */
-    FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator);
+    FileTreeInternal generated(Factory<File> tmpDir, String fileName, GenerateFileRunner generateFileRunner, Action<OutputStream> contentGenerator);
 
     /**
      * Creates a file tree made up of the union of the given trees.
@@ -156,4 +157,13 @@ public interface FileCollectionFactory {
     FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees);
 
     FileTreeInternal treeOf(MinimalFileTree tree);
+
+    /**
+     * Interface for running a file generation action.
+     *
+     * Implements {@link Serializable} so it is compatible with configuration caching.
+     */
+    interface GenerateFileRunner extends Serializable {
+        void generate(File file, Runnable generateFileAction);
+    }
 }

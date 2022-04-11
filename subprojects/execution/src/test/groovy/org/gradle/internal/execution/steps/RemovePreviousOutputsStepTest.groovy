@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.ChangingFilesRunner
 import org.gradle.internal.execution.UnitOfWork.OutputVisitor
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
@@ -34,10 +34,10 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangesOutputContext> imple
     def previousExecutionState = Mock(PreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
-    def outputChangeListener = Mock(OutputChangeListener)
+    def changingFilesRunner = Mock(ChangingFilesRunner)
     def deleter = TestFiles.deleter()
 
-    def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
+    def step = new RemovePreviousOutputsStep<>(deleter, changingFilesRunner, delegate)
 
     @Override
     protected ChangesOutputContext createContext() {
@@ -188,8 +188,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangesOutputContext> imple
         }
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
-        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] })
-        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] })
+        1 * changingFilesRunner.changeFiles({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] }, _) >> { changingOutputFiles, changeLocationsAction ->
+            changeLocationsAction.run()
+        }
+        1 * changingFilesRunner.changeFiles({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] }, _) >> { changingOutputFiles, changeLocationsAction ->
+            changeLocationsAction.run()
+        }
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {

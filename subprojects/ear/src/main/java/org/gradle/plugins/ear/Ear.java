@@ -34,7 +34,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
@@ -106,11 +106,11 @@ public class Ear extends Jar {
                 //  on each run.
                 //  See https://github.com/gradle/configuration-cache/issues/168
                 Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
-                final OutputChangeListener outputChangeListener = outputChangeListener();
+                final ChangingFilesRunner changingFilesRunner = changingFilesRunner();
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    file -> outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath())),
+                    (file, generationAction) -> changingFilesRunner.changeFiles(singleton(file.getAbsolutePath()), generationAction),
                     outputStream -> {
                         try {
                             outputStream.write(cachedDescriptor.get());
@@ -139,8 +139,8 @@ public class Ear extends Jar {
         return getServices().get(FileCollectionFactory.class);
     }
 
-    private OutputChangeListener outputChangeListener() {
-        return getServices().get(OutputChangeListener.class);
+    private ChangingFilesRunner changingFilesRunner() {
+        return getServices().get(ChangingFilesRunner.class);
     }
 
     private void recordTopLevelModules(FileCopyDetails details) {

@@ -211,8 +211,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter) {
-        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), patternSetFactory);
+    public FileTreeInternal generated(Factory<File> tmpDir, String fileName, GenerateFileRunner generateFileRunner, Action<OutputStream> contentWriter) {
+        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, generateFileRunner, contentWriter, fileSystem), patternSetFactory);
     }
 
     private static final class EmptyFileCollection extends AbstractFileCollection {

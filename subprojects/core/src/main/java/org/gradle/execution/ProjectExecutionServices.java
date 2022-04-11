@@ -42,8 +42,8 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -101,7 +101,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations,
         ListenerManager listenerManager,
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         OutputFilesRepository outputFilesRepository,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         org.gradle.api.execution.TaskActionListener actionListener,
@@ -137,7 +137,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildOperationExecutor,
             cleanupRegistry,
             deleter,
-            outputChangeListener,
+            changingFilesRunner,
             outputFilesRepository,
             executer
         );

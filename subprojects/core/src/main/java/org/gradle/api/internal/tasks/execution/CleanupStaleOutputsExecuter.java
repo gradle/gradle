@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
-import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -48,7 +48,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     private final Logger logger = LoggerFactory.getLogger(CleanupStaleOutputsExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
     private final Deleter deleter;
-    private final OutputChangeListener outputChangeListener;
+    private final ChangingFilesRunner changingFilesRunner;
     private final TaskExecuter executer;
     private final OutputFilesRepository outputFilesRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
@@ -57,14 +57,14 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry cleanupRegistry,
         Deleter deleter,
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         OutputFilesRepository outputFilesRepository,
         TaskExecuter executer
     ) {
         this.cleanupRegistry = cleanupRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.deleter = deleter;
-        this.outputChangeListener = outputChangeListener;
+        this.changingFilesRunner = changingFilesRunner;
         this.executer = executer;
         this.outputFilesRepository = outputFilesRepository;
     }
@@ -89,29 +89,28 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             }
         }
         if (!filesToDelete.isEmpty()) {
-            outputChangeListener.beforeOutputChange(
+            changingFilesRunner.changeFiles(
                 filesToDelete.stream()
                     .map(File::getAbsolutePath)
-                    .collect(Collectors.toList())
-            );
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) throws IOException {
-                    for (File file : filesToDelete) {
-                        if (file.exists()) {
-                            logger.info("Deleting stale output file: {}", file.getAbsolutePath());
-                            deleter.deleteRecursively(file);
+                    .collect(Collectors.toList()),
+                () -> buildOperationExecutor.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) throws IOException {
+                        for (File file : filesToDelete) {
+                            if (file.exists()) {
+                                logger.info("Deleting stale output file: {}", file.getAbsolutePath());
+                                deleter.deleteRecursively(file);
+                            }
                         }
                     }
-                }
 
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor
-                        .displayName(CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
-                        .progressDisplayName("Cleaning stale outputs");
-                }
-            });
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor
+                            .displayName(CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+                            .progressDisplayName("Cleaning stale outputs");
+                    }
+                }));
         }
     }
 

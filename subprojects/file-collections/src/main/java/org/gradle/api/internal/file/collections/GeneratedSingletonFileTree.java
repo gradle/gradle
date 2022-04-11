@@ -21,6 +21,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -42,32 +43,32 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
     private final FileSystem fileSystem;
 
     private final String fileName;
-    private final Action<File> fileGenerationListener;
+    private final FileCollectionFactory.GenerateFileRunner generateFileRunner;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter, FileSystem fileSystem) {
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, FileCollectionFactory.GenerateFileRunner generateFileRunner, Action<OutputStream> contentWriter, FileSystem fileSystem) {
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
-        this.fileGenerationListener = fileGenerationListener;
+        this.generateFileRunner = generateFileRunner;
         this.contentWriter = contentWriter;
         this.fileSystem = fileSystem;
     }
 
     public Spec toSpec() {
-        return new Spec(tmpDirSource, fileName, fileGenerationListener, contentWriter);
+        return new Spec(tmpDirSource, fileName, generateFileRunner, contentWriter);
     }
 
     public static class Spec {
 
         public final Factory<File> tmpDir;
         public final String fileName;
-        public final Action<File> fileGenerationListener;
+        public final FileCollectionFactory.GenerateFileRunner generateFileRunner;
         public final Action<OutputStream> contentGenerator;
 
-        public Spec(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator) {
+        public Spec(Factory<File> tmpDir, String fileName, FileCollectionFactory.GenerateFileRunner generateFileRunner, Action<OutputStream> contentGenerator) {
             this.tmpDir = tmpDir;
             this.fileName = fileName;
-            this.fileGenerationListener = fileGenerationListener;
+            this.generateFileRunner = generateFileRunner;
             this.contentGenerator = contentGenerator;
         }
     }
@@ -137,8 +138,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
             if (file == null) {
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
-                    fileGenerationListener.execute(file);
-                    copyTo(file);
+                    generateFileRunner.generate(file, () -> copyTo(file));
                 } else {
                     updateFileOnlyWhenGeneratedContentChanges();
                 }
@@ -154,12 +154,13 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
         private void updateFileOnlyWhenGeneratedContentChanges() {
             byte[] generatedContent = generateContent();
             if (!hasContent(generatedContent, file)) {
-                try {
-                    fileGenerationListener.execute(file);
-                    Files.write(generatedContent, file);
-                } catch (IOException e) {
-                    throw new org.gradle.api.UncheckedIOException(e);
-                }
+                generateFileRunner.generate(file, () -> {
+                    try {
+                        Files.write(generatedContent, file);
+                    } catch (IOException e) {
+                        throw new org.gradle.api.UncheckedIOException(e);
+                    }
+                });
             }
         }
 

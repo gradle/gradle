@@ -33,7 +33,7 @@ import org.gradle.api.java.archives.internal.ManifestInternal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -66,11 +66,11 @@ public class Jar extends Zip {
 
     private FileTreeInternal manifestFileTree() {
         final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
-        final OutputChangeListener outputChangeListener = outputChangeListener();
+        final ChangingFilesRunner changingFilesRunner = changingFilesRunner();
         return fileCollectionFactory().generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
-            action(file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath()))),
+            (file, generationAction) -> changingFilesRunner.changeFiles(ImmutableList.of(file.getAbsolutePath()), generationAction),
             action(outputStream -> manifest.get().writeTo(outputStream))
         );
     }
@@ -94,8 +94,8 @@ public class Jar extends Zip {
         return getServices().get(FileCollectionFactory.class);
     }
 
-    private OutputChangeListener outputChangeListener() {
-        return getServices().get(OutputChangeListener.class);
+    private ChangingFilesRunner changingFilesRunner() {
+        return getServices().get(ChangingFilesRunner.class);
     }
 
     /**

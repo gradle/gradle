@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OutputsCleaner;
@@ -38,16 +38,16 @@ import java.util.Set;
 public class RemovePreviousOutputsStep<C extends ChangesOutputContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
-    private final OutputChangeListener outputChangeListener;
+    private final ChangingFilesRunner changingFilesRunner;
     private final Step<? super C, ? extends R> delegate;
 
     public RemovePreviousOutputsStep(
         Deleter deleter,
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         Step<? super C, ? extends R> delegate
     ) {
         this.deleter = deleter;
-        this.outputChangeListener = outputChangeListener;
+        this.changingFilesRunner = changingFilesRunner;
         this.delegate = delegate;
     }
 
@@ -95,13 +95,14 @@ public class RemovePreviousOutputsStep<C extends ChangesOutputContext, R extends
                 dir -> !outputDirectoriesToPreserve.contains(dir)
             );
             for (FileSystemSnapshot snapshot : previousOutputs.getOutputFilesProducedByWork().values()) {
-                try {
-                    // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(snapshot).keySet());
-                    cleaner.cleanupOutputs(snapshot);
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
-                }
+                // Previous outputs can be in a different place than the current outputs
+                changingFilesRunner.changeFiles(SnapshotUtil.rootIndex(snapshot).keySet(), () -> {
+                    try {
+                        cleaner.cleanupOutputs(snapshot);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
+                    }
+                });
             }
         });
     }

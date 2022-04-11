@@ -105,11 +105,11 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, snapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def executionHistoryStore = new TestExecutionHistoryStore()
-    def outputChangeListener = new OutputChangeListener() {
-
+    def changingFilesRunner = new ChangingFilesRunner() {
         @Override
-        void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-            fileSystemAccess.write(affectedOutputPaths) {}
+        def <T> T changeFiles(Iterable<String> changingLocations, Supplier<T> changeLocationsAction) {
+            fileSystemAccess.write(changingLocations) {}
+            return changeLocationsAction.get()
         }
     }
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -169,9 +169,9 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new BroadcastChangingOutputsStep<>(changingFilesRunner,
             new CreateOutputsStep<>(
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, changingFilesRunner,
             new ExecuteStep<>(buildOperationExecutor
         )))))))))))))))))))
         // @formatter:on

@@ -180,7 +180,7 @@ class FileTreeCodec(
         is WrappedFileCollectionTreeSpec -> spec.collection.asFileTree
         is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(spec.file, spec.patterns))
         is GeneratedTreeSpec -> spec.spec.run {
-            fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
+            fileCollectionFactory.generated(tmpDir, fileName, generateFileRunner, contentGenerator)
         }
         is ZipTreeSpec -> fileOperations.zipTree(spec.file) as FileTreeInternal
         is TarTreeSpec -> fileOperations.tarTree(spec.file) as FileTreeInternal

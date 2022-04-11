@@ -28,6 +28,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
@@ -115,6 +116,10 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
+    ChangingFilesRunner createChangingFilesRunner(OutputChangeListener outputChangeListener) {
+        return new DefaultChangingFilesRunner(outputChangeListener);
+    }
+
     public ExecutionEngine createExecutionEngine(
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -126,7 +131,7 @@ public class ExecutionGradleServices {
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
@@ -144,7 +149,7 @@ public class ExecutionGradleServices {
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new RemoveUntrackedExecutionStateStep<>(
-            new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
+            new SkipEmptyWorkStep(changingFilesRunner, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
@@ -153,14 +158,14 @@ public class ExecutionGradleServices {
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
+            new BuildCacheStep(buildCacheController, deleter, changingFilesRunner,
             new ResolveInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new BroadcastChangingOutputsStep<>(changingFilesRunner,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, changingFilesRunner,
             new ExecuteStep<>(buildOperationExecutor
         )))))))))))))))))))))))));
         // @formatter:on

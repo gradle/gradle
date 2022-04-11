@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.ChangingFilesRunner;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -56,18 +56,18 @@ import java.util.function.Supplier;
 public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyWorkStep.class);
 
-    private final OutputChangeListener outputChangeListener;
+    private final ChangingFilesRunner changingFilesRunner;
     private final WorkInputListeners workInputListeners;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public SkipEmptyWorkStep(
-        OutputChangeListener outputChangeListener,
+        ChangingFilesRunner changingFilesRunner,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
-        this.outputChangeListener = outputChangeListener;
+        this.changingFilesRunner = changingFilesRunner;
         this.workInputListeners = workInputListeners;
         this.outputsCleanerSupplier = outputsCleanerSupplier;
         this.delegate = delegate;
@@ -263,12 +263,13 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
         OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
-            try {
-                outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
-                outputsCleaner.cleanupOutputs(outputFileSnapshot);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            changingFilesRunner.changeFiles(SnapshotUtil.rootIndex(outputFileSnapshot).keySet(), () -> {
+                try {
+                    outputsCleaner.cleanupOutputs(outputFileSnapshot);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
         }
         return outputsCleaner.getDidWork();
     }
