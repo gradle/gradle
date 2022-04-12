@@ -20,7 +20,6 @@ import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
-import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -88,23 +87,23 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/20398")
     def "falls back to full zip entry hash when abi extraction fails for a zip entry"() {
         def apiClassExtractor = Mock(ApiClassExtractor)
-        def delegate = Mock(ResourceHasher)
 
         def resourceHasher = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor)
         def zipEntryContext = Mock(ZipEntryContext)
         def zipEntry = Mock(ZipEntry)
+        def classContent = bytesOf(String.class)
 
         when:
-        resourceHasher.hash(zipEntryContext)
+        def hash = resourceHasher.hash(zipEntryContext)
 
         then:
         1 * zipEntryContext.getEntry() >> zipEntry
         2 * zipEntry.getName() >> 'String.class'
-        1 * zipEntry.getContent() >> bytesOf(String.class)
+        1 * zipEntry.getContent() >> classContent
         1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
 
         and:
-        1 * zipEntry.withInputStream(_)
+        hash == Hashing.hashBytes(classContent)
 
         and:
         noExceptionThrown()
@@ -137,7 +136,6 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
 
     def "does not fall back to full zip entry hashing when fallback is not requested and abi extraction fails for a zip entry"() {
         def apiClassExtractor = Mock(ApiClassExtractor)
-        def delegate = Mock(ResourceHasher)
 
         def resourceHasher = AbiExtractingClasspathResourceHasher.withoutFallback(apiClassExtractor)
         def zipEntryContext = Mock(ZipEntryContext)
@@ -148,7 +146,7 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
 
         then:
         1 * zipEntryContext.getEntry() >> zipEntry
-        1 * zipEntry.getName() >> 'String.class'
+        2 * zipEntry.getName() >> 'String.class'
         1 * zipEntry.getContent() >> bytesOf(String.class)
         1 * apiClassExtractor.extractApiClassFrom(_) >> { args -> throw new Exception("Boom!") }
 
