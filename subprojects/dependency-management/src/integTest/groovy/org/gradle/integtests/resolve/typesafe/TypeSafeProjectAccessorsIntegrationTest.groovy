@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve.typesafe
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-@UnsupportedWithConfigurationCache(because = "tests make direct access to the projects extension")
 class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
     def setup() {
         settingsFile << """
@@ -27,6 +27,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "generates type-safe project accessors for multi-project build"() {
         given:
         settingsFile << """
@@ -48,6 +49,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "fails if a project doesn't follow convention"() {
         given:
         settingsFile << """
@@ -61,6 +63,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         failureDescriptionContains "Cannot generate project dependency accessors because project '1library' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\\-_])*"
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "fails if two subprojects have the same java name"() {
         given:
         settingsFile << """
@@ -83,6 +86,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         failureDescriptionContains "Cannot generate project dependency accessors because subprojects [super-cool, super--cool] of project : map to the same method name getSuperCool()"
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can configure the project extension name"() {
         given:
         settingsFile << """
@@ -108,6 +112,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can refer to the root project via its name"() {
         given:
         buildFile << """
@@ -121,6 +126,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can use the #notation notation on type-safe accessor"() {
         given:
         settingsFile << """
@@ -146,6 +152,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         notation << [ 'platform', 'testFixtures']
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "buildSrc project accessors are independent from the main build accessors"() {
         given:
         file("buildSrc/build.gradle") << """
@@ -187,13 +194,23 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
         FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("project/settings.gradle"))
 
+        //run once
         when:
         inDirectory 'project'
-        args('--no-configuration-cache') //warning won't always be issued when using the configuration-cache
         run 'help'
-
         then:
         outputContains 'Project accessors enabled, but root project name not explicitly set.'
+
+        //run second time
+        when:
+        inDirectory 'project'
+        run 'help'
+        then:
+        if (GradleContextualExecuter.isConfigCache()) {
+            outputDoesNotContain'Project accessors enabled, but root project name not explicitly set.'
+        } else {
+            outputContains 'Project accessors enabled, but root project name not explicitly set.'
+        }
     }
 
     def "does not warn if root project name explicitly set"() {
@@ -206,9 +223,15 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
             assert project(":one").is(projects.one.dependencyProject)
         """
 
+        //run once
         when:
         run 'help'
+        then:
+        outputDoesNotContain'Project accessors enabled, but root project name not explicitly set.'
 
+        //run second time
+        when:
+        run 'help'
         then:
         outputDoesNotContain'Project accessors enabled, but root project name not explicitly set.'
     }
