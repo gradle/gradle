@@ -17,7 +17,10 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codec
+import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readMapInto
 import org.gradle.configurationcache.serialization.writeCollection
@@ -29,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 internal
-val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList<Any?>(it) }
+val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList(it) }
 
 
 internal
@@ -40,7 +43,67 @@ val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList<Any?
  * Decodes HashSet instances as LinkedHashSet to preserve original iteration order.
  */
 internal
-val hashSetCodec: Codec<HashSet<Any?>> = collectionCodec { LinkedHashSet<Any?>(it) }
+object HashSetCodec : Codec<HashSet<Any?>> {
+
+    override suspend fun WriteContext.encode(value: HashSet<Any?>) {
+        writeCollectionCheckingForCircularElements(value)
+    }
+
+    override suspend fun ReadContext.decode(): HashSet<Any?> =
+        readCollectionCheckingForCircularElementsInto(::LinkedHashSet)
+}
+
+
+private
+suspend fun WriteContext.writeCollectionCheckingForCircularElements(collection: Collection<Any?>) {
+    writeCollection(collection) { element ->
+        if (element != null && element in circularReferences && element.javaClass.overridesHashCode()) {
+            logPropertyProblem("serialize") {
+                text("Circular references can lead to undefined behavior upon deserialization.")
+            }
+            writeBoolean(true)
+        } else {
+            writeBoolean(false)
+        }
+        write(element)
+    }
+}
+
+
+private
+suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionCheckingForCircularElementsInto(
+    factory: (Int) -> T
+): T {
+    val size = readSmallInt()
+    val container = factory(size)
+    for (i in 0 until size) {
+        // upon reading a circular reference, wait until all objects have been initialized
+        // before inserting the elements in the resulting set.
+        val isCircular = readBoolean()
+        val element = read()
+        if (isCircular) {
+            val remainingSize = size - i
+            val remaining = ArrayList<Any?>(remainingSize).apply {
+                add(element)
+                for (j in 1 until remainingSize) {
+                    readBoolean()
+                    add(read())
+                }
+            }
+            onFinish {
+                container.addAll(remaining)
+            }
+            return container
+        }
+        container.add(element)
+    }
+    return container
+}
+
+
+private
+fun Class<*>.overridesHashCode(): Boolean =
+    getMethod("hashCode").declaringClass !== java.lang.Object::class.java
 
 
 internal
@@ -68,11 +131,11 @@ fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
  * Decodes HashMap instances as LinkedHashMap to preserve original iteration order.
  */
 internal
-val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
 
 
 internal
-val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
 
 
 internal
