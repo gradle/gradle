@@ -28,8 +28,9 @@ We would like to thank the following community members for their contributions t
 [Peter Gafert](https://github.com/codecholeric),
 [Alex Landau](https://github.com/AlexLandau),
 [Jerry Wiltse](https://github.com/solvingj),
-[Tyler Burke](https://github.com/T-A-B)
-[Matthew Haughton](https://github.com/3flex)
+[Tyler Burke](https://github.com/T-A-B),
+[Matthew Haughton](https://github.com/3flex),
+[Filip Daca](https://github.com/filip-daca)
 
 <!--
 Include only their name, impactful features should be called out separately below.
