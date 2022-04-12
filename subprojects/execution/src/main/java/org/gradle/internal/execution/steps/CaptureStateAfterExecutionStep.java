@@ -43,9 +43,8 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filt
  * Capture the state of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
- * which uses an {@link ChangesOutputContext}.
- *
- * @param <C> The type parameter for the context, must not be a subtype of {@link ChangesOutputContext}.
+ * which uses an {@link ChangesOutputContext}, which is encoded in the delegate returning a result
+ * of type {@link ChangesToOutputsFinishedResult}.
  */
 public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
@@ -56,7 +55,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        Step<? super C, ? extends Result> delegate
+        Step<? super C, ? extends ChangesToOutputsFinishedResult> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -66,10 +65,6 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
-        if (context instanceof ChangesOutputContext) {
-            // This can't be encoded in the type system, since it can't enforce that something is not an instance.
-            throw new IllegalArgumentException("Context allows changing the outputs. Capturing the state after the execution must run outside of this context.");
-        }
         Result result = delegate.execute(work, context);
         final Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()

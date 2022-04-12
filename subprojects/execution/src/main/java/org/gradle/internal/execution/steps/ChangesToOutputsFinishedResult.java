@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,5 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.AfterExecutionState;
-
-import java.util.Optional;
-
-public interface AfterExecutionResult extends ChangesToOutputsFinishedResult {
-    /**
-     * State after execution, or {@link Optional#empty()} if work is untracked.
-     */
-    Optional<AfterExecutionState> getAfterExecutionState();
+public interface ChangesToOutputsFinishedResult extends Result {
 }
