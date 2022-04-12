@@ -16,6 +16,7 @@ We would like to thank the following community members for their contributions t
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder),
 [Konstantin Gribov](https://github.com/grossws),
+[David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [aSemy](https://github.com/aSemy),
 [Rene Groeschke](https://github.com/breskeby),
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
@@ -168,6 +169,15 @@ These defaults are the same as what was previously used, so there should be no c
 The `-V` flag (long form `--show-version`) instructs Gradle to first print version information and then continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
 
 This flag may be useful in CI enviroments to record Gradle version information in the log as part of a single Gradle execution.
+
+### Run a single PMD task on multiple threads
+
+[PMD](https://pmd.github.io/) is a quality analysis tool that runs on the Java source files of your project.
+
+With this version of Gradle, the [`thread` parameter](https://pmd.github.io/latest/pmd_userdocs_tools_ant.html#parameters) it offers is now exposed through the PMD extension and tasks.
+This allows configuration of PMD to run its analysis on more than one thread.
+
+See the [documentation](userguide/pmd_plugin.html#sec:pmd_conf_threads) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
