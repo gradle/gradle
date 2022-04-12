@@ -165,6 +165,12 @@ The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now expo
 
 These defaults are the same as what was previously used, so there should be no changes to the default behavior.
 
+### --show-version (-V) flag
+
+The `-V` flag (long form `--show-version`) instructs Gradle to first print version information and then continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
+
+This flag may be useful in CI enviroments to record Gradle version information in the log as part of a single Gradle execution.
+
 ### Run a single PMD task on multiple threads
 
 [PMD](https://pmd.github.io/) is a quality analysis tool that runs on the Java source files of your project.
