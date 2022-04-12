@@ -39,6 +39,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     private static boolean supportsDisablingScriptsInGroovydoc() {
         // Groovy 3 to 4 doesn't support script flags at all. The Parrot parser doesn't check them.
+        // https://issues.apache.org/jira/browse/GROOVY-10578
         return supportsScriptsInGroovydoc() && versionNumber < VersionNumber.parse("3.0.0")
     }
 
