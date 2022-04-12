@@ -106,7 +106,7 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 <6> Specifies the categories your plugin covers. Makes the plugin more likely to be discovered by people needing its functionality.
     Overrides any tags provided at the plugin bundle level.
 
-NOTE: The ability to specify custom tags per plugin was only added in Gradle 7.5. When using an older version of Gradle the same result
+NOTE: The ability to specify custom tags per plugin was only added in Gradle 7.6. When using an older version of Gradle the same result
 can be achieved by using the `pluginTags` map in the `pluginBundle` block. Please refer to the {plugin-reference-documentation} for an example.
 
 As an example consider the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], which is already published to the {portal}.
