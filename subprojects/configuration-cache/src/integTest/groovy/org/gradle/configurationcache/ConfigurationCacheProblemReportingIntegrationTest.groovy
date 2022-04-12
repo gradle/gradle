@@ -1198,4 +1198,37 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             totalProblemsCount = 1
         }
     }
+
+    def "report circular references as problems"() {
+        given:
+        buildFile '''
+
+            class Circular {
+                def children = new Children()
+            }
+
+            class Children {
+                def dependencies = new HashSet<Object>()
+            }
+
+            def circular = new Circular()
+            circular.children.dependencies.add(circular)
+
+            tasks.register('broken') {
+                doLast {
+                    println("Circular: " + circular)
+                }
+            }
+        '''
+
+        when:
+        configurationCacheFails "broken"
+
+        then:
+        outputContains "Configuration cache entry discarded with 1 problem."
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: Circular references can lead to undefined behavior upon deserialization.")
+            withProblemsWithStackTraceCount(0)
+        }
+    }
 }

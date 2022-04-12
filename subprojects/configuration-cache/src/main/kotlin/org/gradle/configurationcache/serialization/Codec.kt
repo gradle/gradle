@@ -234,10 +234,21 @@ internal
 inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
+        if (identities.isCircular(id)) {
+            logPropertyProblem("serialize") {
+                text("Circular references can lead to undefined behavior upon deserialization.")
+            }
+        }
         writeSmallInt(id)
     } else {
-        writeSmallInt(identities.putInstance(reference))
-        encode(reference)
+        val newId = identities.putInstance(reference)
+        writeSmallInt(newId)
+        identities.enter(newId)
+        try {
+            encode(reference)
+        } finally {
+            identities.leave(newId)
+        }
     }
 }
 
