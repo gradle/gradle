@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.VersionNumber
-import spock.lang.Requires
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+import static org.junit.Assume.assumeTrue
 
 @TargetCoverage({ GroovyCoverage.SUPPORTS_GROOVYDOC })
 class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
@@ -35,6 +35,11 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     private static boolean supportsScriptsInGroovydoc() {
         return versionNumber >= VersionNumber.parse("1.7.3")
+    }
+
+    private static boolean supportsDisablingScriptsInGroovydoc() {
+        // Groovy 3 to 4 doesn't support script flags at all. The Parrot parser doesn't check them.
+        return supportsScriptsInGroovydoc() && versionNumber < VersionNumber.parse("3.0.0")
     }
 
     // The flags are available in all versions of Groovydoc, but package/protected only works in 1.7 and above
@@ -71,8 +76,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         """
     }
 
-    @Requires({ supportsScriptsInGroovydoc() })
     def "scripts are enabled and have main method by default"() {
+        assumeTrue(supportsScriptsInGroovydoc())
         when:
         buildFile << "groovydoc {}"
         run "groovydoc"
@@ -83,8 +88,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         doc.text =~ GROOVY_DOC_MAIN_PATTERN
     }
 
-    @Requires({ supportsScriptsInGroovydoc() })
     def "scripts can be disabled"() {
+        assumeTrue(supportsDisablingScriptsInGroovydoc())
         when:
         buildFile << "groovydoc { processScripts = false }"
         run "groovydoc"
@@ -94,8 +99,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         !doc.exists()
     }
 
-    @Requires({ supportsScriptsInGroovydoc() })
     def "main method can be disabled for scripts"() {
+        assumeTrue(supportsDisablingScriptsInGroovydoc())
         when:
         buildFile << "groovydoc { includeMainForScripts = false }"
         run "groovydoc"
