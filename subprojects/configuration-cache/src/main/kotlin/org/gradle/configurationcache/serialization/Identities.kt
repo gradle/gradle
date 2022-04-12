@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization
 
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import java.util.IdentityHashMap
 
 
@@ -23,6 +24,20 @@ class WriteIdentities {
 
     private
     val instanceIds = IdentityHashMap<Any, Int>()
+
+    private
+    val path = IntArrayList()
+
+    fun enter(id: Int) {
+        path.add(id)
+    }
+
+    fun isCircular(id: Int) =
+        path.contains(id)
+
+    fun leave(id: Int) {
+        require(path.removeLast() == id)
+    }
 
     fun getId(instance: Any) = instanceIds[instance]
 
