@@ -579,9 +579,9 @@
             <sha256 value="e5f60ab215d43f2614872bac5fdf9aaae3fd734bd67e93bf11a40007ec78d3f2" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="com.gradle.publish" name="plugin-publish-plugin" version="0.21.0">
-         <artifact name="plugin-publish-plugin-0.21.0.jar">
-            <sha256 value="880a59b44463be7e6d59d9d1081088014a10c695bcda8a7ad9bb82b0479b874f" origin="Artifact is not signed"/>
+      <component group="com.gradle.publish" name="plugin-publish-plugin" version="1.0.0-rc-1">
+         <artifact name="plugin-publish-plugin-1.0.0-rc-1.jar">
+            <sha256 value="25ca7e09a2e5dc87b1105eb56e1d054d0ccf5e3ca88e70ef65640251fdd80492" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.h2database" name="h2" version="1.4.192">
@@ -1267,69 +1267,14 @@
             <sha256 value="4df958e608da9320829fa338ea5943eac30904d304e25b7e7e9d502853fe54a6" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="1.4.0">
-         <artifact name="gradle-kotlin-dsl-plugins-1.4.0.jar">
-            <sha256 value="3e88d3bdf416a6b1ff52098aad63d4f4fe88b306d19ff814178a61620ddf1ebe" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="1.4.2">
-         <artifact name="gradle-kotlin-dsl-plugins-1.4.2.jar">
-            <sha256 value="613051e58ccd113353a10707b3431ac3c510a2b820d053329cfef299d1fb6b8a" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="1.4.3">
-         <artifact name="gradle-kotlin-dsl-plugins-1.4.3.jar">
-            <sha256 value="a02776e5ac6d8be4b06f463f7eef04fd21890d2c1cd83a7909e5b7e662f5f522" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="1.4.4">
-         <artifact name="gradle-kotlin-dsl-plugins-1.4.4.jar">
-            <sha256 value="57894f9c6e190bfcb03e1729bb48c7a2d9d5aae359571c5248b5c98a6fa180c4" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="1.4.9">
-         <artifact name="gradle-kotlin-dsl-plugins-1.4.9.jar">
-            <sha256 value="f4e33bcad51373112211214bc697845a09b18c98a55b809208a111c43cf84518" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.0.0">
-         <artifact name="gradle-kotlin-dsl-plugins-2.0.0.jar">
-            <sha256 value="8d9049b95f29a961aec6b26abc0f546e288f223b81a86b54a9b8e40712ddef7b" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.1.0">
-         <artifact name="gradle-kotlin-dsl-plugins-2.1.0.jar">
-            <sha256 value="c2f0438c8f49a8a282e2c24f0311a7f9f53f36562921da69d9392e1bea2ecdea" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.1.1">
-         <artifact name="gradle-kotlin-dsl-plugins-2.1.1.jar">
-            <sha256 value="bd28b70e3e38940115261f4970c408d27274914f6708eb436c4e0dd90a78f03b" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.1.2">
-         <artifact name="gradle-kotlin-dsl-plugins-2.1.2.jar">
-            <sha256 value="d7a6bb2da99fae2c2854b70f14e004982b930c7c5aaada612795aaaa334a1653" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.1.3">
-         <artifact name="gradle-kotlin-dsl-plugins-2.1.3.jar">
-            <sha256 value="ac38fb3fef4d5a3ce3b35e2b27f10b1ec937fbedd1228f03f616f1c2080210f2" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.1.5">
-         <artifact name="gradle-kotlin-dsl-plugins-2.1.5.jar">
-            <sha256 value="e8897f2abc7942f6d6c7663ca05d10574206566bc17de1e89d65f7ea84676e6d" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.1.7">
-         <artifact name="gradle-kotlin-dsl-plugins-2.1.7.jar">
-            <sha256 value="4f2d4ae1bffd47a5a5cd83bb963d901edf6f886fc6ffc934d94d4ad05c7d8467" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.2.0">
          <artifact name="gradle-kotlin-dsl-plugins-2.2.0.jar">
             <sha256 value="21acc544c399c1b9dd7f1c2a6c5eacec8f8ceab5a0ad21e064c172d3ee288b89" origin="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.3.0">
+         <artifact name="gradle-kotlin-dsl-plugins-2.3.0.jar">
+            <sha256 value="b14c5993e4b97b85aa0696ec7edb744021bc82795317d9cafa662c5fc9d9f590" origin="Generated by Gradle"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="plugins" version="1.3.5">
@@ -1355,16 +1300,6 @@
       <component group="org.jetbrains" name="annotations" version="13.0">
          <artifact name="annotations-13.0.jar">
             <pgp value="2e3a1affe42b5f53af19f780bcf4173966770193"/>
-         </artifact>
-      </component>
-      <component group="org.jetbrains.kotlin" name="kotlin-gradle-plugin" version="1.6.20-M1">
-         <artifact name="kotlin-gradle-plugin-1.6.20-M1.jar">
-            <ignored-keys>
-               <ignored-key id="6f538074ccebf35f28af9b066a0975f8b1127b83" reason="PGP verification failed"/>
-            </ignored-keys>
-            <sha256 value="8262f8a680a3f3173ba71096a76fce0b28f4c869fb4ea1a78ba6f85badac3a42" origin="Generated by Gradle because PGP signature verification failed!">
-               <also-trust value="d8568b866b1333707baa9068f38d26421dc6847754d7ff2fc7236e1074a52da9"/>
-            </sha256>
          </artifact>
       </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="10.0.0">

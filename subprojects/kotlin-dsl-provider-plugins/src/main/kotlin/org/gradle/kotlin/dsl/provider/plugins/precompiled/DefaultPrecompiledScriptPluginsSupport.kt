@@ -315,7 +315,7 @@ fun Task.configureScriptResolverEnvironmentOnDoFirst(
 
 private
 inline fun <reified T> ObjectFactory.withInstance(block: T.() -> Unit) {
-    with(newInstance<T>(), block)
+    with(newInstance(), block)
 }
 
 
@@ -328,7 +328,7 @@ fun TaskContainerScope.configureScriptResolverEnvironment(resolverEnvironment: S
             "-Xscript-resolver-environment=$resolverEnvironment"
         )
         withGroovyBuilder {
-            "kotlinOptions" {
+            getProperty("kotlinOptions").withGroovyBuilder {
                 @Suppress("unchecked_cast")
                 val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
                 setProperty("freeCompilerArgs", freeCompilerArgs + scriptCompilerArgs)
@@ -399,7 +399,7 @@ fun Project.collectScriptPluginFiles(): Set<File> =
     gradlePlugin.pluginSourceSet.allSource.matching {
         it.include("**/*.gradle.kts")
     }.filter {
-        !it.isDirectory
+        it.isFile
     }.also {
         // Declare build configuration input
         fileCollectionObserved(it, "Kotlin DSL")

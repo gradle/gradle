@@ -1,9 +1,9 @@
 > Task :my-app:app:processResources NO-SOURCE
 > Task :my-utils:string-utils:compileJava
+> Task :my-utils:number-utils:compileJava
 > Task :my-utils:string-utils:processResources NO-SOURCE
 > Task :my-utils:string-utils:classes
 > Task :my-utils:string-utils:jar
-> Task :my-utils:number-utils:compileJava
 > Task :my-utils:number-utils:processResources NO-SOURCE
 > Task :my-utils:number-utils:classes
 > Task :my-utils:number-utils:jar

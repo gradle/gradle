@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
-    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS = "org.gradle.performance.execution.channel.patterns";
 
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);
@@ -85,7 +84,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             .map(PerformanceReportScenario::getPerformanceExperiment)
             .distinct()
             .forEach(experiment -> {
-                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, determineChannelPatterns(), executedBuildIds);
+                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannelPatterns(), executedBuildIds);
                 renderScenarioPage(projectName, outputDirectory, testResults);
             });
 
@@ -96,16 +95,6 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         copyResource("report.js", outputDirectory);
         copyResource("performanceGraph.js", outputDirectory);
         copyResource("performanceReport.js", outputDirectory);
-    }
-
-    private List<String> determineChannelPatterns() {
-        List<String> patterns = new ArrayList<>();
-        patterns.add(ResultsStoreHelper.determineChannel());
-        String extraPatterns = System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS, "");
-        if (!extraPatterns.isEmpty()) {
-            patterns.addAll(Arrays.asList(extraPatterns.split(",")));
-        }
-        return patterns;
     }
 
     protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File output) throws IOException {

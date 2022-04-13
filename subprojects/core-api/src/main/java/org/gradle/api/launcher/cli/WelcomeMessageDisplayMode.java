@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.api.launcher.cli;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.gradle.api.Incubating;
 
-public class FailureCollector {
-
-    private final List<Throwable> failures = new ArrayList<Throwable>();
-
-    public void addFailure(Throwable throwable) {
-        failures.add(throwable);
-    }
-
-    public List<Throwable> getFailures() {
-        return failures;
-    }
-
-    public void clearFailures() {
-        failures.clear();
-    }
+/**
+ * The possible strategies for displaying a welcome message on the command line.
+ *
+ * @since 7.5
+ */
+@Incubating
+public enum WelcomeMessageDisplayMode {
+    ONCE, // the default, show the welcome message once per Gradle version
+    NEVER // suppress the welcome message
 }

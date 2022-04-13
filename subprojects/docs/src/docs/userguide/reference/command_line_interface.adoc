@@ -335,7 +335,10 @@ image::gradle-completion-4.0.gif[]
 Shows a help message with all available CLI options.
 
 `-v`, `--version`::
-Prints Gradle, Groovy, Ant, JVM, and operating system version information.
+Prints Gradle, Groovy, Ant, JVM, and operating system version information and exit without executing any tasks.
+
+`-V`, `--show-version`::
+Prints Gradle, Groovy, Ant, JVM, and operating system version information and continue execution of specified tasks.
 
 `-S`, `--full-stacktrace`::
 Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec:command_line_logging, logging options>>.

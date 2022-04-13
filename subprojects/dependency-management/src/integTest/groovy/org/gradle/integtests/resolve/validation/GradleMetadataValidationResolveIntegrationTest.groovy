@@ -68,7 +68,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         repository {
             'org.test:projectA:1.1' {
                 variant("api") {
-                    artifact("name", null)
+                    artifact("name", null, "name")
                 }
             }
         }

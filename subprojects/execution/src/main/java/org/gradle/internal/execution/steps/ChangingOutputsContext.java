@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
-
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+package org.gradle.internal.execution.steps;
 
 /**
- * An action to run as soon as the given task completes, to perform some work before the outputs of the task are consumed by other tasks.
+ * Context necessary for steps that change the outputs.
  *
- * <p>This should evolve into some real node to the graph with similar behaviour, but as a first step this is simply bolted on.
+ * This context doesn't add any new information, it encodes a requirement
+ * in the type system that a step can change the outputs.
  */
-public interface FinalizeAction extends Action<Task> {
-    TaskDependencyContainer getDependencies();
+public interface ChangingOutputsContext extends InputChangesContext {
 }

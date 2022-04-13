@@ -16,6 +16,7 @@ We would like to thank the following community members for their contributions t
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder),
 [Konstantin Gribov](https://github.com/grossws),
+[David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [aSemy](https://github.com/aSemy),
 [Rene Groeschke](https://github.com/breskeby),
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
@@ -25,9 +26,14 @@ We would like to thank the following community members for their contributions t
 [Taeik Lim](https://github.com/acktsap),
 [David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [Peter Gafert](https://github.com/codecholeric),
-[Alex Landau](https://github.com/AlexLandau)
+[Alex Landau](https://github.com/AlexLandau),
+[Jerry Wiltse](https://github.com/solvingj),
+[Tyler Burke](https://github.com/T-A-B),
+[Matthew Haughton](https://github.com/3flex),
+[Filip Daca](https://github.com/filip-daca)
+[Edgars Jasmans](https://github.com/yasmans)
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
@@ -139,7 +145,7 @@ Root project 'example-project'
 buildFile: /path/to/project/build.gradle
 
 BUILD SUCCESSFUL in 550ms
-1 actionable task: 1 executed 
+1 actionable task: 1 executed
 ```
 
 ### Support for Java 18
@@ -149,6 +155,31 @@ Gradle now supports running on and building with [Java 18](https://openjdk.java.
 ### Support for Groovy 4
 
 Gradle now supports building software using Groovy 4.0.
+
+### Groovydoc exposes more options
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
+
+- `access`: for controlling the access levels included in the documentation, defaults to `PROTECTED`
+- `includeAuthor`: for controlling whether the author is displayed in the documentation, defaults to `false`
+- `processScripts`: for controlling whether scripts are included in the documentation, defaults to `true`
+- `includeMainForScripts`: for controlling whether a script's `main` method is included in the documentation, defaults to `true`
+
+These defaults are the same as what was previously used, so there should be no changes to the default behavior.
+
+### --show-version (-V) flag
+
+The `-V` flag (long form `--show-version`) instructs Gradle to first print version information and then continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
+
+This flag may be useful in CI enviroments to record Gradle version information in the log as part of a single Gradle execution.
+
+### Run a single PMD task on multiple threads
+
+[PMD](https://pmd.github.io/) is a quality analysis tool that runs on the Java source files of your project.
+
+With this version of Gradle, the [`thread` parameter](https://pmd.github.io/latest/pmd_userdocs_tools_ant.html#parameters) it offers is now exposed through the PMD extension and tasks.
+This allows configuration of PMD to run its analysis on more than one thread.
+
+See the [documentation](userguide/pmd_plugin.html#sec:pmd_conf_threads) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -45,8 +45,20 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
-                <td>includePrivate</td>
+                <td>access</td>
+                <td><literal>GroovydocAccess.PROTECTED</literal></td>
+            </tr>
+            <tr>
+                <td>includeAuthor</td>
                 <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>processScripts</td>
+                <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>includeMainForScripts</td>
+                <td><literal>true</literal></td>
             </tr>
             <tr>
                 <td>links</td>

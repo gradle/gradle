@@ -33,12 +33,18 @@ abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
     static def version
 
     static VersionNumber getVersionNumber() {
+        if (version == null) {
+            throw new IllegalStateException("No version present")
+        }
         def m = version.toString() =~ CLASSIFIER_PATTERN
         VersionNumber.parse(m[0][1])
     }
 
     @Nullable
     static String getVersionClassifier() {
+        if (version == null) {
+            throw new IllegalStateException("No version present")
+        }
         def m = version.toString() =~ CLASSIFIER_PATTERN
         return m[0][2]
     }
