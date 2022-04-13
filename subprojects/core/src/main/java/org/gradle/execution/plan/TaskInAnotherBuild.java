@@ -128,21 +128,26 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     }
 
     @Override
-    public boolean allDependenciesSuccessful() {
-        return super.allDependenciesSuccessful() && state == IncludedBuildTaskResource.State.Success;
-    }
+    public DependenciesState doCheckDependenciesComplete() {
+        DependenciesState dependenciesState = super.doCheckDependenciesComplete();
+        if (dependenciesState != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+            return dependenciesState;
+        }
 
-    @Override
-    public boolean doCheckDependenciesComplete() {
-        if (!super.doCheckDependenciesComplete()) {
-            return false;
-        }
         // This node is ready to "execute" when the task in the other build has completed
-        if (state.isComplete()) {
-            return true;
+        if (!state.isComplete()) {
+            state = target.getTaskState();
         }
-        state = target.getTaskState();
-        return state.isComplete();
+        switch (state) {
+            case Waiting:
+                return DependenciesState.NOT_COMPLETE;
+            case Success:
+                return DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            case Failed:
+                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     @Override

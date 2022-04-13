@@ -77,12 +77,10 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -99,7 +97,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.lambdas.SerializableLambdas.factory;
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
 /**
@@ -672,17 +669,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public File getTemporaryDir() {
-        File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
-        GFileUtils.mkdirs(dir);
-        return dir;
+        return getServices().get(TemporaryFileProvider.class).newTemporaryDirectory(getName());
     }
 
     // note: this method is on TaskInternal
     @Override
     public Factory<File> getTemporaryDirFactory() {
-        // Cached during serialization so it can be isolated from this task
-        final Cached<File> temporaryDir = Cached.of(this::getTemporaryDir);
-        return factory(temporaryDir::get);
+        return getServices().get(TemporaryFileProvider.class).temporaryDirectoryFactory(getName());
     }
 
     private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {

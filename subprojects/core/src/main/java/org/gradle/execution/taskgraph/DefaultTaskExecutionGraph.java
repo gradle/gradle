@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation")
 @NonNullApi
@@ -270,8 +271,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public List<Node> getScheduledWorkPlusDependencies() {
-        return executionPlan.getScheduledNodes();
+    public void visitScheduledNodes(Consumer<List<Node>> visitor) {
+        executionPlan.getScheduledNodes().visitNodes(visitor);
     }
 
     @Override

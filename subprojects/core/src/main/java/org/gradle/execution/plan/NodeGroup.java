@@ -74,12 +74,8 @@ public abstract class NodeGroup {
         return Collections.emptyList();
     }
 
-    public boolean isSuccessorsCompleteFor(Node node) {
-        return true;
-    }
-
-    public boolean isSuccessorsSuccessfulFor(Node node) {
-        return true;
+    public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
+        return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
     public void addMember(Node node) {
