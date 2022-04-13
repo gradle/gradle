@@ -18,6 +18,10 @@ package org.gradle.kotlin.dsl.accessors.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.serialization.Cached
 
@@ -42,6 +46,14 @@ abstract class PrintAccessors : DefaultTask() {
     @get:Inject
     protected
     abstract val projectSchemaProvider: ProjectSchemaProvider
+
+    @get:Input
+    @get:Optional
+    abstract val sourceGradleApiVersion: Property<String>
+
+    init {
+        sourceGradleApiVersion.set(GradleApiVersionProvider.getGradleApiSourceVersion().orElse(null))
+    }
 
     private
     val schema = Cached.of { schemaOf(project) }
