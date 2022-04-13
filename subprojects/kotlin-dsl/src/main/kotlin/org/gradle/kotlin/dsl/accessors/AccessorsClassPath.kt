@@ -119,6 +119,7 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
+        const val SOURCE_GRADLE_API_VERSION = "sourceGradleApiVersion"
     }
 
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
@@ -146,6 +147,7 @@ class GenerateProjectAccessors(
     override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
         val hasher = Hashing.newHasher()
         requireNotNull(identityInputs[PROJECT_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        requireNotNull(identityInputs[SOURCE_GRADLE_API_VERSION]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
         return UnitOfWork.Identity { identityHash }
@@ -159,6 +161,7 @@ class GenerateProjectAccessors(
 
     override fun visitIdentityInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY) { hashCodeFor(projectSchema) }
+        visitor.visitInputProperty(SOURCE_GRADLE_API_VERSION) { GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version) }
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
