@@ -18,11 +18,10 @@ package org.gradle.kotlin.dsl.provider
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -206,34 +205,10 @@ class KotlinScriptClassPathProvider(
 
 
 internal
-fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory, dependencyResolutionServices: DependencyResolutionServices): JarsProvider =
+fun gradleApiJarsProviderFor(dependencyResolutionServices: DependencyResolutionServices): JarsProvider =
     {
-        System.getProperty("org.gradle.api.version")?.let { version ->
-            gradleApisFromRepository(dependencyResolutionServices, dependencyFactory, version)
-        } ?: gradleApisFromCurrentGradle(dependencyFactory)
+        GradleApiVersionProvider.resolveGradleSourceApi(dependencyResolutionServices)
     }
-
-private
-fun gradleApisFromRepository(dependencyResolutionServices: DependencyResolutionServices, dependencyFactory: DependencyFactory, version: String): Set<File> {
-    val repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases")
-    dependencyResolutionServices.resolveRepositoryHandler.maven(repositoryUrl)
-    val gradleModules = listOf("api")
-    val detachedConfiguration = dependencyResolutionServices.configurationContainer.detachedConfiguration(
-        *gradleModules.map { dependencyFactory.gradleDependency(it, version) }.toTypedArray()
-    )
-
-    return detachedConfiguration.resolve()
-}
-
-private
-fun gradleApisFromCurrentGradle(dependencyFactory: DependencyFactory): Collection<File> = (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve()
-
-fun DependencyFactory.gradleApi(): Dependency =
-    createDependency(gradleApiNotation)
-
-private
-fun DependencyFactory.gradleDependency(module: String, version: String = "6.1.1"): Dependency =
-    createDependency("org.gradle:gradle-$module:$version")
 
 
 private

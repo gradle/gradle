@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -72,7 +73,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
     val (functionFlags, deprecationBlock) =
         if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
         else publicFunctionFlags to ""
-    val compileAgainstGradleVersion = GradleVersion.version(System.getProperty("org.gradle.api.version", GradleVersion.current().version)).baseVersion
+    val sourceApiGradleVersion = GradleVersion.version(
+        GradleApiVersionProvider.getSourceApiGradleVersion().orElse(GradleVersion.current().version)
+    ).baseVersion
 
     className to sequenceOf(
         AccessorFragment(
@@ -601,7 +604,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 ""
             )
         )
-    ).filter { it.supportedSince?.let { it <= compileAgainstGradleVersion } ?: true }
+    ).filter { it.supportedSince?.let { it <= sourceApiGradleVersion } ?: true }
 }
 
 
