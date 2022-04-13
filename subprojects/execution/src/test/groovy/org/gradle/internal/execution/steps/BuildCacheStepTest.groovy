@@ -80,7 +80,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitLocalState(localStateFile)
         }
-        1 * outputChangeListener.beforeOutputChange([localStateFile.getAbsolutePath()])
+        1 * outputChangeListener.invalidateCachesFor([localStateFile.getAbsolutePath()])
         1 * deleter.deleteRecursively(_) >> { File root ->
             assert root == localStateFile
             return true
