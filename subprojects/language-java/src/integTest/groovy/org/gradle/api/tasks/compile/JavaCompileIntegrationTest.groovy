@@ -834,7 +834,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 implementation project(':a')
             }
         '''
-        file('b/src/main/java/Bar.java') << 'class Bar { public void useFoo() { new Foo("hello!"); } }'
+        file('b/src/main/java/Bar.java') << 'class Bar { public void useFoo(Foo foo) { } }'
 
         when:
         // Run with --debug to ensure that class snapshotting didn't fail.
@@ -858,6 +858,22 @@ record Foo(String property) {
 
         then:
         skipped(":b:compileJava")
+
+        when:
+        // Add new property, breaks API.
+        file('a/src/main/java/Foo.java').delete()
+        file('a/src/main/java/Foo.java') << '''
+record Foo(String property, int newProperty) {
+    public String property() {
+        return property + "!";
+    }
+}
+'''
+
+        succeeds ":b:compileJava"
+
+        then:
+        executedAndNotSkipped(":b:compileJava")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
