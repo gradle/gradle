@@ -19,6 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
+import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -41,6 +43,7 @@ import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.converter.WelcomeMessageBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
@@ -305,6 +308,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
+            BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
@@ -320,6 +324,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
 
+            WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
                 InitialProperties initialProperties = propertiesConverter.convert(parsedCommandLine);
@@ -332,6 +338,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties, loggingConfiguration);
+
+                // Get configuration for showing the welcome message
+                welcomeMessageConverter.convert(parsedCommandLine, properties, welcomeMessageConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
@@ -343,7 +352,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
                         new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                            new WelcomeMessageAction(buildLayout,
+                            new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
             } finally {

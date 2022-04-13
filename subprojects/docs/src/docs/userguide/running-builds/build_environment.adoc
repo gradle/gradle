@@ -134,6 +134,12 @@ When set to `all` or `full`, a stacktrace is present in the output for all excep
 Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
 _Default is `internal`._
 
+`org.gradle.welcome=(never,once)::
+Controls whether Gradle should print a welcome message.
+If set to _never_ then the welcome message will be suppressed.
+If set to _once_ then the message is printed once for each new version of Gradle.
+_Default is `once`._
+
 The following example demonstrates usage of various properties.
 
 .Setting properties with a gradle.properties file
