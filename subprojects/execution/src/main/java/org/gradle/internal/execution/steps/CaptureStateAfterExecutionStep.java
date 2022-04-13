@@ -16,24 +16,34 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -43,30 +53,32 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filt
  * Capture the state of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
- * which uses an {@link ChangesOutputContext}, which is encoded in the delegate returning a result
- * of type {@link ChangesToOutputsFinishedResult}.
+ * which uses an {@link ChangesOutputContext}.
  */
-public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureStateAfterExecutionStep<C extends InputChangesContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
-    private final Step<? super C, ? extends Result> delegate;
+    private final OutputChangeListener outputChangeListener;
+    private final Step<? super ChangesOutputContext, ? extends Result> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        Step<? super C, ? extends ChangesToOutputsFinishedResult> delegate
+        OutputChangeListener outputChangeListener,
+        Step<? super ChangesOutputContext, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.outputSnapshotter = outputSnapshotter;
+        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
-        Result result = delegate.execute(work, context);
-        final Duration duration = result.getDuration();
+        Result result = executeDelegateBroadcastingChanges(work, context);
+        Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
             .flatMap(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
 
@@ -86,6 +98,33 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 return duration;
             }
         };
+    }
+
+    private Result executeDelegateBroadcastingChanges(UnitOfWork work, C context) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                builder.add(root.getAbsolutePath());
+            }
+
+            @Override
+            public void visitLocalState(File localStateRoot) {
+                builder.add(localStateRoot.getAbsolutePath());
+            }
+
+            @Override
+            public void visitDestroyable(File destroyableRoot) {
+                builder.add(destroyableRoot.getAbsolutePath());
+            }
+        });
+        ImmutableList<String> outputsToBeChanged = builder.build();
+        outputChangeListener.beforeOutputChange(outputsToBeChanged);
+        try {
+            return delegate.execute(work, wrapInChangesOutputsContext(context));
+        } finally {
+            outputChangeListener.beforeOutputChange(outputsToBeChanged);
+        }
     }
 
     private Optional<AfterExecutionState> captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
@@ -132,6 +171,70 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
         } else {
             return unfilteredOutputSnapshotsAfterExecution;
         }
+    }
+
+    private ChangesOutputContext wrapInChangesOutputsContext(C context) {
+        return new ChangesOutputContext() {
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
+            }
+
+            @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
+
+            @Override
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<InputChangesInternal> getInputChanges() {
+                return context.getInputChanges();
+            }
+
+            @Override
+            public boolean isIncrementalExecution() {
+                return context.isIncrementalExecution();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
+            }
+
+            @Override
+            public UnitOfWork.Identity getIdentity() {
+                return context.getIdentity();
+            }
+
+            @Override
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
+            }
+
+            @Override
+            public WorkValidationContext getValidationContext() {
+                return context.getValidationContext();
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+        };
     }
 
     /*
