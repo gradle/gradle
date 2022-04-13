@@ -443,8 +443,13 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
 
     @Issue("https://github.com/gradle/gradle/issues/20391")
     def "running tasks in parallel with exclusions does not cause incorrect builds"() {
+        // This test is inspired by our build setup where we found this problem:
+        // We zip the source distribution by using an archive task starting from the root project.
+        // This caused problems when building the JARs in parallel.
+        // We introduced a workaround for our build in https://github.com/gradle/gradle/pull/20366.
+
         // Configuration caching resolves the inputs once more to store the result in the configuration cache.
-        int numResolvedBeforeTaskExecution = GradleContextualExecuter.configCache ? 2 : 1
+        int countResolvedBeforeTaskExecution = GradleContextualExecuter.configCache ? 2 : 1
         server.start()
         file("lib/src/MyClass.java").text = "public class MyClass {}"
 
@@ -456,7 +461,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         file("dist/build.gradle").text = """
             abstract class ZipSrc extends DefaultTask {
                 @Internal
-                int numResolved
+                int countResolved
 
                 @Internal
                 abstract DirectoryProperty getSources()
@@ -469,11 +474,11 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
 
                 ZipSrc() {
                     sourceFiles.from(sources.map {
-                        if (numResolved == ${numResolvedBeforeTaskExecution}) {
+                        if (countResolved == ${countResolvedBeforeTaskExecution}) {
                             println "resolving input"
                             ${server.callFromBuild("zipFileSnapshottingStarted")}
                         }
-                        numResolved++
+                        countResolved++
                         it.asFileTree.matching {
                             include "src/**"
                             include "build.gradle"
