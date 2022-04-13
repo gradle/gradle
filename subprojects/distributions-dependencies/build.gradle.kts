@@ -178,20 +178,21 @@ dependencies {
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
+
+    components {
+        all<JschReplacementVersionRule>()
+    }
 }
 
 /** `com.github.mwiede:jsch` is a drop-in replacement for `com.jcraft:jsch` */
 @CacheableRule
-object JschReplacementVersionRule : ComponentMetadataRule {
+abstract class JschReplacementVersionRule : ComponentMetadataRule {
 
     /** Groups that provide the jsch jar */
     private val jschProviders = setOf(
         "com.jcraft",
         "com.github.mwiede",
     )
-    private const val jschName = "jsch"
-    private const val capabilityGroup = "org.gradle.internal.capability"
-    const val jschCapabilityModule = "$capabilityGroup:$jschName"
 
     override fun execute(context: ComponentMetadataContext) = context.details.run {
         if (id.group in jschProviders && id.name == jschName) {
@@ -201,6 +202,12 @@ object JschReplacementVersionRule : ComponentMetadataRule {
                 }
             }
         }
+    }
+
+    companion object {
+        private const val jschName = "jsch"
+        private const val capabilityGroup = "org.gradle.internal.capability"
+        const val jschCapabilityModule = "$capabilityGroup:$jschName"
     }
 }
 

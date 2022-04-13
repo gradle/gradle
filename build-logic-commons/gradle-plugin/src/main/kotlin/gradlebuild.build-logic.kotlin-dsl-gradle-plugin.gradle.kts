@@ -32,6 +32,10 @@ dependencies {
     implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
+
+    components {
+        all<JschReplacementVersionRule>()
+    }
 }
 
 ktlint {
@@ -56,4 +60,37 @@ tasks.validatePlugins {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+/** `com.github.mwiede:jsch` is a drop-in replacement for `com.jcraft:jsch` */
+@CacheableRule
+abstract class JschReplacementVersionRule : ComponentMetadataRule {
+
+    /** Groups that provide the jsch jar */
+    private val jschProviders = setOf(
+        "com.jcraft",
+        "com.github.mwiede",
+    )
+
+    override fun execute(context: ComponentMetadataContext) = context.details.run {
+        if (id.group in jschProviders && id.name == jschName) {
+            allVariants {
+                withCapabilities {
+                    addCapability(capabilityGroup, jschName, id.version)
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val jschName = "jsch"
+        private const val capabilityGroup = "org.gradle.internal.capability"
+        const val jschCapabilityModule = "$capabilityGroup:$jschName"
+    }
+}
+
+configurations.all {
+    resolutionStrategy.capabilitiesResolution {
+        withCapability(JschReplacementVersionRule.jschCapabilityModule) { selectHighestVersion() }
+    }
 }
