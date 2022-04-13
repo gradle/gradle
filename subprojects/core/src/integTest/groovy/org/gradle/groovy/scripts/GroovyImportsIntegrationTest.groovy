@@ -17,7 +17,6 @@
 package org.gradle.groovy.scripts
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreRest
 
 class GroovyImportsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -38,21 +37,5 @@ import org.apache.commons.math3.util.FastMath
         expect:
         args("--init-script", initScript.toString())
         succeeds("help")
-    }
-
-    @IgnoreRest
-    def "can compile basic script"() {
-        buildScript """
-           println 'hello'
-           @groovy.transform.CompileStatic
-def myMethod(Task task) {
-    task.doNotTrackState("dont")
-}
-        """
-
-        expect:
-        succeeds("help"
-            , "-Dorg.gradle.api.version=6.9.1", "-Dgradle.api.repository.url=file:///Users/wolfs/projects/gradle/provider-api-migration-testbed/gradle-repository/build/repo"
-        )
     }
 }
