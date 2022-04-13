@@ -36,7 +36,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
 
     def setup() {
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
-        runner.targetVersions = ["7.5-20220411001643+0000"]
+        runner.targetVersions = ["7.5-20220413073359+0000"]
         runner.minimumBaseVersion = "6.6"
     }
 
@@ -57,9 +57,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
         runner.runs = daemon == hot ? 60 : 25
-        if (baseLine != null) {
-            runner.minimumBaseVersion = baseLine
-        }
 
         when:
         def result = runner.run()
@@ -68,11 +65,11 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        daemon | action | baseLine
-        hot    | loading | null
-        hot    | storing | "7.5-branch-am_worker_lease-20220413005450+0000"
-        cold   | loading | null
-        cold   | storing | null
+        daemon | action
+        hot    | loading
+        hot    | storing
+        cold   | loading
+        cold   | storing
     }
 
     static String loading = "loading"
