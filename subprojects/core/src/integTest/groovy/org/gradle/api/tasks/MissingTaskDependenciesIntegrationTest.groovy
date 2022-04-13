@@ -473,6 +473,8 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 abstract RegularFileProperty getZipFile()
 
                 ZipSrc() {
+                    // We need a way to count access times, that is why I ended up with configuring it in the task so it has access to countResolved.
+                    // I didn't find a way to make the test configuration cache compatible without the extra sources property and doing this configuration in the task registration.
                     sourceFiles.from(sources.map {
                         if (countResolved == ${countResolvedBeforeTaskExecution}) {
                             println "resolving input"
