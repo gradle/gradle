@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.GroovyPlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
@@ -30,17 +31,8 @@ public class GroovyBuildSrcProjectConfigurationAction implements BuildSrcProject
         project.getPluginManager().apply(GroovyPlugin.class);
 
         DependencyHandler dependencies = project.getDependencies();
-        String apiVersion = System.getProperty("org.gradle.api.version");
-        if (apiVersion == null || apiVersion.isEmpty()) {
-            dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi());
-        } else {
-            String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
-            project.getRepositories().maven(repository -> {
-                repository.setName("gradleApiRepository");
-                repository.setUrl(repositoryUrl);
-            });
-            dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi(apiVersion));
-        }
+        GradleApiVersionProvider.addToConfiguration(project.getConfigurations().getByName(JavaPlugin.API_CONFIGURATION_NAME), dependencies);
+        GradleApiVersionProvider.addGradleSourceApiRepository(project.getRepositories());
         dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.localGroovy());
     }
 }

@@ -75,7 +75,7 @@ object BuildServices {
             moduleRegistry,
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
-            gradleApiJarsProviderFor(dependencyFactory, dependencyManagementServices.create(
+            gradleApiJarsProviderFor(dependencyManagementServices.create(
                 fileResolver,
                 fileCollectionFactory,
                 dependencyMetaDataProvider,

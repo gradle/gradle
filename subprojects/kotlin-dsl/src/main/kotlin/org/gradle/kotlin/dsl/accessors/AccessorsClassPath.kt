@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.ClasspathNormalizer
@@ -602,10 +603,10 @@ fun IO.writeAccessorsTo(
     }
 }
 
-val gradleApiVersion = System.getProperty("org.gradle.api.version", GradleVersion.current().version).apply {
+val sourceGradleApiVersion = GradleApiVersionProvider.getSourceApiGradleVersion().orElse(GradleVersion.current().version).apply {
     println("Gradle API version: $this")
 }
-val supportsProviderConvertible = GradleVersion.version(gradleApiVersion).baseVersion >= GradleVersion.version("7.4")
+val supportsProviderConvertible = GradleVersion.version(sourceGradleApiVersion).baseVersion >= GradleVersion.version("7.4")
 
 internal
 fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """

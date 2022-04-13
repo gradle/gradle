@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
@@ -152,17 +153,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void applyDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
-        String apiVersion = System.getProperty("org.gradle.api.version");
-        if (apiVersion == null || apiVersion.isEmpty()) {
-            dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
-        } else {
-            String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
-            project.getRepositories().maven(repository -> {
-                repository.setName("gradleApiRepository");
-                repository.setUrl(repositoryUrl);
-            });
-            dependencies.add(API_CONFIGURATION, dependencies.gradleApi(apiVersion));
-        }
+        GradleApiVersionProvider.addToConfiguration(project.getConfigurations().getByName(API_CONFIGURATION), dependencies);
+        GradleApiVersionProvider.addGradleSourceApiRepository(project.getRepositories());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
