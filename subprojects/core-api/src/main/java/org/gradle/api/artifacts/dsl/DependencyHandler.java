@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -387,7 +388,9 @@ public interface DependencyHandler extends ExtensionAware {
      * Creates a dependency on the API of the specified version of Gradle.
      *
      * @return The dependency.
+     * @since 7.5
      */
+    @Incubating
     Dependency gradleApi(String version);
 
     /**
