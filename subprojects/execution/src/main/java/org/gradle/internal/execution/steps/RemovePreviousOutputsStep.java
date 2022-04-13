@@ -97,7 +97,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
             for (FileSystemSnapshot snapshot : previousOutputs.getOutputFilesProducedByWork().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(snapshot).keySet());
+                    outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(snapshot).keySet());
                     cleaner.cleanupOutputs(snapshot);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);

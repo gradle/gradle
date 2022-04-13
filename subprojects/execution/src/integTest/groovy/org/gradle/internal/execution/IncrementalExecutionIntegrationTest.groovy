@@ -107,7 +107,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def outputChangeListener = new OutputChangeListener() {
 
         @Override
-        void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+        void invalidateCachesFor(Iterable<String> affectedOutputPaths) {
             fileSystemAccess.write(affectedOutputPaths) {}
         }
     }

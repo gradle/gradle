@@ -119,11 +119,11 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
             }
         });
         ImmutableList<String> outputsToBeChanged = builder.build();
-        outputChangeListener.beforeOutputChange(outputsToBeChanged);
+        outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         try {
             return delegate.execute(work, wrapInChangesOutputsContext(context));
         } finally {
-            outputChangeListener.beforeOutputChange(outputsToBeChanged);
+            outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         }
     }
 

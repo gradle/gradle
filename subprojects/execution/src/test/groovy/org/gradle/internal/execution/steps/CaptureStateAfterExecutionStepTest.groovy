@@ -66,11 +66,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         result.duration == delegateDuration
         assertNoOperation()
 
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegate.execute(work, _) >> delegateResult
         then:
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.empty()
@@ -88,11 +88,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         result.duration == delegateDuration
         assertOperation()
 
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegate.execute(work, _) >> delegateResult
         then:
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
@@ -116,11 +116,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         !result.afterExecutionState.get().reused
         assertOperation()
 
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegate.execute(work, _) >> delegateResult
         then:
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
@@ -164,11 +164,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         result.afterExecutionState.get().originMetadata.executionTime >= result.duration
         !result.afterExecutionState.get().reused
 
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegate.execute(work, _) >> delegateResult
         then:
-        1 * outputChangeListener.beforeOutputChange([])
+        1 * outputChangeListener.invalidateCachesFor([])
         then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
@@ -204,12 +204,12 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         }
 
         then:
-        1 * outputChangeListener.beforeOutputChange(changingOutputs)
+        1 * outputChangeListener.invalidateCachesFor(changingOutputs)
 
         then:
         1 * delegate.execute(work, _ as ChangingOutputsContext) >> delegateResult
         then:
-        1 * outputChangeListener.beforeOutputChange(changingOutputs)
+        1 * outputChangeListener.invalidateCachesFor(changingOutputs)
         then:
         1 * delegateResult.duration >> Duration.ofMillis(10)
         _ * context.beforeExecutionState >> Optional.empty()
