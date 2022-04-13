@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
@@ -24,7 +22,6 @@ import spock.lang.Issue
 
 @FluidDependenciesResolveTest
 class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
-
     @Issue("GRADLE-2477") //this is a feature on its own but also covers one of the reported issues
     def "resolving project dependency triggers configuration of the target project"() {
         settingsFile << "include 'impl'"
@@ -93,5 +90,60 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
         then:
         failureHasCause("Required keys [path] are missing from map")
+    }
+
+    @Issue("GRADLE-20377")
+    def "if project dependency exists, GAV cannot be changed on referenced project; #explanation"() {
+        given: "a project a, with a dep on project b:c, added prior to project b running a subprojects block to change project c's group"
+        file('settings.gradle') << "include 'a', 'b:c', 'b'"
+
+        testDirectory.file('a', 'build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            group 'com.a'
+
+            dependencies {
+                implementation project(":b:c")
+            }
+
+            task checkCompileClasspath {
+                doLast {
+                    assert configurations.compileClasspath.files.size() == 1
+                }
+            }
+        """.stripIndent()
+
+        testDirectory.file('b', 'build.gradle') << """
+            subprojects {
+                group 'com.somethingelse'
+            }
+        """.stripIndent()
+
+        testDirectory.file('b', 'c', 'build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            group 'com.c'
+        """.stripIndent()
+
+        testDirectory.file('gradle.properties') << "org.gradle.configureondemand = $configureOnDemand"
+
+        expect: "build should succeed or fail (with explanation that the group on :b:c: cannot be changed) based on groupRenameAttempted"
+        if (groupRenameAttempted) {
+            fails(taskToRun)
+            failureHasCause("Cannot set group on project ':b:c' because it is already a dependency of project ':a'.  A project's GAV coordinates cannot change after a it becomes a dependency of another project.")
+        } else {
+            succeeds(taskToRun)
+        }
+
+        where:
+        taskToRun                   | configureOnDemand || groupRenameAttempted || explanation
+        ':a:tasks'                  | true              || false                || "calling tasks on project a, with configure on demand set, project b's is never configured and project c is never renamed"
+        ':a:tasks'                  | false             || true                 || "calling tasks on project a, without configure on demand set, project b is configured and project c is renamed"
+        ':a:checkCompileClasspath'  | true              || true                 || "calling checkCompileClasspath on project a forces project b to be configured regardless of configure on demand = true, and project c is renamed"
+        ':a:checkCompileClasspath'  | false             || true                 || "calling checkCompileClasspath on project a forces project b to be configured regardless of configure on demand = false,  and project c is renamed"
     }
 }
