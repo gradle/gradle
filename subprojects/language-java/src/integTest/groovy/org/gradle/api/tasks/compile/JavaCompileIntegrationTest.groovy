@@ -815,6 +815,112 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         !file("build/classes/java/main/ignored/io/ignored/IgnoredExample.class").exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20394")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "class snapshotting ignores changes to a record implementation"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+
+
+        file('a/build.gradle') << """
+            apply plugin: 'java'
+        """
+        file('a/src/main/java/Foo.java') << 'record Foo(String property) {}'
+
+        file('b/build.gradle') << '''
+            apply plugin: 'java'
+
+            dependencies {
+                implementation project(':a')
+            }
+        '''
+        file('b/src/main/java/Bar.java') << 'class Bar { public void useFoo() { new Foo("hello!"); } }'
+
+        when:
+        // Run with --debug to ensure that class snapshotting didn't fail.
+        succeeds ":b:compileJava", "--debug"
+
+        then:
+        executedAndNotSkipped(":b:compileJava")
+
+        when:
+        // Change internal implementation, but not API.
+        file('a/src/main/java/Foo.java').delete()
+        file('a/src/main/java/Foo.java') << '''
+record Foo(String property) {
+    public String property() {
+        return property + "!";
+    }
+}
+'''
+
+        succeeds ":b:compileJava"
+
+        then:
+        skipped(":b:compileJava")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20394")
+    @Requires(TestPrecondition.JDK17_OR_LATER)
+    def "class snapshotting changes when a sealed modifier is changed"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+
+
+        file('a/build.gradle') << """
+            apply plugin: 'java'
+        """
+        file('a/src/main/java/Foo.java') << '''
+sealed interface Foo {
+    non-sealed interface Sub extends Foo {}
+}
+'''
+
+        file('b/build.gradle') << '''
+            apply plugin: 'java'
+
+            dependencies {
+                implementation project(':a')
+            }
+        '''
+        file('b/src/main/java/Bar.java') << 'class Bar implements Foo.Sub {}'
+
+        when:
+        // Run with --debug to ensure that class snapshotting didn't fail.
+        succeeds ":b:compileJava", "--debug"
+
+        then:
+        executedAndNotSkipped(":b:compileJava")
+
+        when:
+        // Remove sealed modifier, forces change to API.
+        file('a/src/main/java/Foo.java').delete()
+        file('a/src/main/java/Foo.java') << '''
+interface Foo {
+    interface Sub extends Foo {}
+}
+'''
+
+        succeeds ":b:compileJava"
+
+        then:
+        executedAndNotSkipped(":b:compileJava")
+
+        when:
+        // Re-add sealed modifier, forces change to API.
+        file('a/src/main/java/Foo.java').delete()
+        file('a/src/main/java/Foo.java') << '''
+sealed interface Foo {
+    non-sealed interface Sub extends Foo {}
+}
+'''
+
+        succeeds ":b:compileJava"
+
+        then:
+        executedAndNotSkipped(":b:compileJava")
+    }
+
     def "fails when sourcepath is set on compilerArgs"() {
         buildFile << '''
             apply plugin: 'java'
