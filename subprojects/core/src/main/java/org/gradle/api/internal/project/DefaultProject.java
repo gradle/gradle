@@ -472,16 +472,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     // Fixes root cause of issue 20377
     private void verifyChangeToGAVPermitted(String changeComponentName) {
         getRootProject().getAllprojects().forEach(p -> {
-            p.getConfigurations().forEach(c -> {
-                c.getDependencies().forEach(d -> {
-                    if (d instanceof ProjectDependency) {
-                        if (((ProjectDependency) d).getDependencyProject().equals(this)) {
-                            throw new RuntimeException("Cannot set " + changeComponentName + " on " + this + " because it is already a dependency of " + p + ".  " +
-                                    "A project's GAV coordinates cannot change after a it becomes a dependency of another project.");
-                        }
-                    }
-                });
-            });
+                if (!p.equals(this)) {
+                    p.getConfigurations().forEach(c -> {
+                        c.getDependencies().forEach(d -> {
+                            if (d instanceof ProjectDependency) {
+                                if (((ProjectDependency) d).getDependencyProject().equals(this)) {
+                                    throw new RuntimeException("Cannot set " + changeComponentName + " on " + this + " because it is already a dependency of " + p + ".  " +
+                                            "A project's GAV coordinates cannot change after a it becomes a dependency of another project.");
+                                }
+                            }
+                        });
+                    });
+                }
         });
     }
 
