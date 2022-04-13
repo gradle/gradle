@@ -34,6 +34,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
@@ -462,7 +463,26 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void setGroup(Object group) {
+        if (this.group != null) {
+            verifyChangeToGAVPermitted("group");
+        }
         this.group = group;
+    }
+
+    // Fixes root cause of issue 20377
+    private void verifyChangeToGAVPermitted(String changeComponentName) {
+        getRootProject().getAllprojects().forEach(p -> {
+            p.getConfigurations().forEach(c -> {
+                c.getDependencies().forEach(d -> {
+                    if (d instanceof ProjectDependency) {
+                        if (((ProjectDependency) d).getDependencyProject().equals(this)) {
+                            throw new RuntimeException("Cannot set " + changeComponentName + " on " + this + " because it is already a dependency of " + p + ".  " +
+                                    "A project's GAV coordinates cannot change after a it becomes a dependency of another project.");
+                        }
+                    }
+                });
+            });
+        });
     }
 
     @Override
@@ -472,6 +492,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void setVersion(Object version) {
+        if (this.version != null) {
+            verifyChangeToGAVPermitted("version");
+        }
         this.version = version;
     }
 
