@@ -207,7 +207,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
 
         then:
-        1 * delegate.execute(work, _ as ChangesOutputContext) >> delegateResult
+        1 * delegate.execute(work, _ as ChangingOutputsContext) >> delegateResult
         then:
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
         then:

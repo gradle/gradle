@@ -23,7 +23,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
 
-class ExecuteStepTest extends StepSpec<ChangesOutputContext> {
+class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
     def workspace = Mock(File)
     def previousOutputs = ImmutableSortedMap.of()
     def previousExecutionState = Stub(PreviousExecutionState) {
@@ -34,8 +34,8 @@ class ExecuteStepTest extends StepSpec<ChangesOutputContext> {
     def inputChanges = Mock(InputChangesInternal)
 
     @Override
-    protected ChangesOutputContext createContext() {
-        Stub(ChangesOutputContext)
+    protected ChangingOutputsContext createContext() {
+        Stub(ChangingOutputsContext)
     }
 
     def setup() {

@@ -53,20 +53,20 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filt
  * Capture the state of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
- * which uses an {@link ChangesOutputContext}.
+ * which uses an {@link ChangingOutputsContext}.
  */
 public class CaptureStateAfterExecutionStep<C extends InputChangesContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final OutputChangeListener outputChangeListener;
-    private final Step<? super ChangesOutputContext, ? extends Result> delegate;
+    private final Step<? super ChangingOutputsContext, ? extends Result> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
         OutputChangeListener outputChangeListener,
-        Step<? super ChangesOutputContext, ? extends Result> delegate
+        Step<? super ChangingOutputsContext, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -173,8 +173,8 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         }
     }
 
-    private ChangesOutputContext wrapInChangesOutputsContext(C context) {
-        return new ChangesOutputContext() {
+    private ChangingOutputsContext wrapInChangesOutputsContext(C context) {
+        return new ChangingOutputsContext() {
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();

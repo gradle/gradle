@@ -28,7 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class RemovePreviousOutputsStepTest extends StepSpec<ChangesOutputContext> implements SnapshotterFixture {
+class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> implements SnapshotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def previousExecutionState = Mock(PreviousExecutionState)
@@ -40,8 +40,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangesOutputContext> imple
     def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
 
     @Override
-    protected ChangesOutputContext createContext() {
-        Stub(ChangesOutputContext)
+    protected ChangingOutputsContext createContext() {
+        Stub(ChangingOutputsContext)
     }
 
     def "deletes only the previous outputs"() {

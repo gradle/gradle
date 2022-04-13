@@ -22,5 +22,5 @@ package org.gradle.internal.execution.steps;
  * This context doesn't add any new information, it encodes a requirement
  * in the type system that a step can change the outputs.
  */
-public interface ChangesOutputContext extends InputChangesContext {
+public interface ChangingOutputsContext extends InputChangesContext {
 }

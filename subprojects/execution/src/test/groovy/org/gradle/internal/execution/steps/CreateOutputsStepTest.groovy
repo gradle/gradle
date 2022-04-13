@@ -20,12 +20,12 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends StepSpec<ChangesOutputContext> {
+class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
     def step = new CreateOutputsStep<>(delegate)
 
     @Override
-    protected ChangesOutputContext createContext() {
-        Stub(ChangesOutputContext)
+    protected ChangingOutputsContext createContext() {
+        Stub(ChangingOutputsContext)
     }
 
     def "outputs are created"() {
