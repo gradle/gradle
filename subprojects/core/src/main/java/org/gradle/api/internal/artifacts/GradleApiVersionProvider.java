@@ -28,26 +28,26 @@ import java.util.Optional;
 import java.util.Set;
 
 public class GradleApiVersionProvider {
-    public static Optional<String> getSourceApiGradleVersion() {
-        return Optional.ofNullable(System.getProperty("org.gradle.api.version"));
+    public static Optional<String> getGradleApiSourceVersion() {
+        return Optional.ofNullable(System.getProperty("org.gradle.api.source-version"));
     }
 
     public static void addGradleSourceApiRepository(RepositoryHandler repositoryHandler) {
-        getSourceApiGradleVersion().ifPresent(version -> {
+        getGradleApiSourceVersion().ifPresent(version -> {
             String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
             repositoryHandler.maven(repo -> repo.setUrl(repositoryUrl));
         });
     }
 
     public static void addToConfiguration(Configuration configuration, DependencyHandler repositoryHandler) {
-        Dependency gradleApiDependency = getSourceApiGradleVersion()
+        Dependency gradleApiDependency = getGradleApiSourceVersion()
             .map(repositoryHandler::gradleApi)
             .orElseGet(repositoryHandler::gradleApi);
         configuration.getDependencies().add(gradleApiDependency);
     }
 
     public static Collection<File> resolveGradleSourceApi(DependencyResolutionServices dependencyResolutionServices) {
-        return getSourceApiGradleVersion()
+        return getGradleApiSourceVersion()
             .map(version -> gradleApisFromRepository(dependencyResolutionServices, version))
             .orElseGet(() -> gradleApisFromCurrentGradle(dependencyResolutionServices.getDependencyHandler()));
     }
