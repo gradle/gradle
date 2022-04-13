@@ -74,7 +74,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
         if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
         else publicFunctionFlags to ""
     val sourceApiGradleVersion = GradleVersion.version(
-        GradleApiVersionProvider.getSourceApiGradleVersion().orElse(GradleVersion.current().version)
+        GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version)
     ).baseVersion
 
     className to sequenceOf(
