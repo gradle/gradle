@@ -19,20 +19,19 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.VariantWithOverloadAttributes;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -56,13 +55,14 @@ public class ProjectArtifactSetResolver {
     /**
      * Creates an {@link ArtifactSet} that represents the available artifacts for the given set of project variants.
      */
-    public ArtifactSet resolveArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes) {
+    public ArtifactSet resolveArtifacts(OriginArtifactSelector.ComponentResolveMetadataForArtifactSelection component, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes selectionAttributes) {
+        Set<? extends VariantResolveMetadata> variants = component.getVariantsForArtifactSelection();
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builderWithExpectedSize(variants.size());
         for (VariantResolveMetadata variant : variants) {
-            ResolvedVariant resolvedVariant = mapVariant(ownerId, moduleSources, exclusions, artifactTypeRegistry, variant);
+            ResolvedVariant resolvedVariant = mapVariant(component.getModuleVersionId(), component.getSources(), exclusions, artifactTypeRegistry, variant);
             result.add(resolvedVariant);
         }
-        return DefaultArtifactSet.createFromVariants(componentIdentifier, result.build(), schema, selectionAttributes);
+        return DefaultArtifactSet.createFromVariants(component.getId(), result.build(), component.getAttributesSchema(), selectionAttributes);
     }
 
     private ResolvedVariant mapVariant(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactTypeRegistry artifactTypeRegistry, VariantResolveMetadata variant) {

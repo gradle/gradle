@@ -24,10 +24,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifacts;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 
 import java.util.Map;
 
@@ -36,7 +35,7 @@ import java.util.Map;
  */
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
-    public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+    public ArtifactSet getArtifactsFor(OriginArtifactSelector.ComponentResolveMetadataForArtifactSelection component, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, component.getVariantsForArtifactSelection(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 }

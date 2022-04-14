@@ -58,10 +58,10 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configurationMetadata, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusions, overriddenAttributes);
+            artifacts = selector.resolveArtifacts(new OriginArtifactSelector.DefaultComponentResolveMetadataForArtifactSelection(component, configurationMetadata.getVariants()), artifactTypeRegistry, exclusions, overriddenAttributes);
             if (artifacts != null) {
                 break;
             }

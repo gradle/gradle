@@ -31,7 +31,6 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -124,9 +123,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadataForArtifactSelection component, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+            return artifactSetResolver.resolveArtifacts(component, artifactTypeRegistry, exclusions, overriddenAttributes);
         } else {
             return null;
         }

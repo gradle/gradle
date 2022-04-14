@@ -40,7 +40,6 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
@@ -177,7 +176,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadataForArtifactSelection component, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         return null;
     }
 
