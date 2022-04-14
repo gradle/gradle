@@ -92,8 +92,7 @@ enum class Os(
     fun javaInstallationLocations(): String {
         val paths = enumValues<JvmVersion>().joinToString(",") { version ->
             val vendor = when {
-                version.major == 18 -> JvmVendor.openjdk
-                version.major >= 11 -> JvmVendor.adoptiumopenjdk
+                version.major >= 11 -> JvmVendor.openjdk
                 else -> JvmVendor.oracle
             }
             javaHome(DefaultJvm(version, vendor), this)
