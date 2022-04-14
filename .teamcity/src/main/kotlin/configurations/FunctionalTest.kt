@@ -39,6 +39,9 @@ class FunctionalTest(
 
     applyTestDefaults(
         model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
+        withoutDependencies = testCoverage.withoutDependencies,
+        buildJvm = testCoverage.buildJvm,
+        arch = testCoverage.arch,
         extraParameters = (
             listOf(functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
                 (if (enableTestDistribution) "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%" else "") +

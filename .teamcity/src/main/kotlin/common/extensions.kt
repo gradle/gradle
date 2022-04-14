@@ -61,7 +61,11 @@ fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep 
     }
 
 fun Requirements.requiresOs(os: Os) {
-    contains("teamcity.agent.jvm.os.name", os.agentRequirement)
+    contains("teamcity.agent.jvm.os.name", os.agentRequirement.lowercase())
+}
+
+fun Requirements.requiresArch(arch: Arch) {
+    contains("teamcity.agent.jvm.os.arch", arch.name.lowercase())
 }
 
 fun Requirements.requiresNoEc2Agent() {
@@ -72,7 +76,7 @@ fun Requirements.requiresNoEc2Agent() {
 
 const val failedTestArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
         build/report-* => $failedTestArtifactDestination
         build/tmp/test files/** => $failedTestArtifactDestination/test-files
@@ -81,7 +85,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 
-    paramsForBuildToolBuild(buildJvm, os)
+    paramsForBuildToolBuild(buildJvm, os, arch)
     params {
         // The promotion job doesn't have a branch, so %teamcity.build.branch% doesn't work.
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
@@ -99,6 +103,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
 
     requirements {
         requiresOs(os)
+        requiresArch(arch)
     }
 
     failureConditions {
@@ -118,16 +123,16 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     }
 }
 
-fun javaHome(jvm: Jvm, os: Os) = "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.64bit%"
+fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) = "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.${arch.suffix}%"
 
-fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os) {
+fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os, arch: Arch = Arch.AMD64) {
     params {
         param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
         param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
         param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
-        param("env.JAVA_HOME", javaHome(buildJvm, os))
+        param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
