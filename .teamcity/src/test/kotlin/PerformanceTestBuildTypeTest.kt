@@ -97,6 +97,7 @@ class PerformanceTestBuildTypeTest {
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
+            "-DenableTestDistribution=%enableTestDistribution%",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
             "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
