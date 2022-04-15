@@ -22,11 +22,11 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -129,7 +129,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadataForArtifactSelection component, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
             // TODO: Artifact cache should be pulled up
-            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, this, new HashMap<>(), artifactTypeRegistry, exclusions, overriddenAttributes, calculatedValueContainerFactory);
+            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, component.getVariantsForArtifactSelection(), component.getAttributesSchema(), artifactResolver, new HashMap<>(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
         } else {
             return null;
         }
