@@ -183,20 +183,21 @@ See the [documentation](userguide/pmd_plugin.html#sec:pmd_conf_threads) for more
 
 ### Configuration cache improvements
 
-#### Modification of system properties at the configuration time
-
-Changes to system properties made at the configuration time are now also applied when the configuration cache entry is reused.
-This includes adding a property, modifying or removing an existing one.
-The types used for property keys and values have to be [supported by the configuration cache](userguide/configuration_cache.html#config_cache:requirements:disallowed_types).
-
 #### Running external processes at the configuration time
 
 Running external processes at the configuration time with Java or Groovy APIs or with `exec` and `javaexec` Gradle APIs is
 now [disallowed](userguide/configuration_cache.html#config_cache:requirements:external_processes) if the configuration cache is enabled.
+Previously, started processes were ignored, and it could be a potential correctness issue if the output of the external process affects the configuration.
 A [new Provider-based API](javadoc/org/gradle/api/provider/ProviderFactory.html#exec-org.gradle.api.Action-) is
-now available to obtain an output of the external process in the configuration-cache-compatible way.
+now available to obtain the output of the external process in the configuration-cache-compatible way.
 If a more complex interaction with the external process is necessary, then a custom [`ValueSource`](javadoc/org/gradle/api/provider/ValueSource.html) implementation
 can be used. The injected [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) service should be used to run the external process.
+
+#### Files read at the configuration time become build configuration inputs
+
+Files read at the configuration time with `FileInputStream` or some Kotlin APIs now become build configuration inputs.
+Previously, file reads were ignored, and it could be a potential correctness issue if the contents of the file affects the configuration.
+The configuration cache is invalidated if the contents of such file change between builds.
 
 #### Accessing the environment in the ValueSource implementation no longer introduces additional build configuration inputs
 
@@ -206,11 +207,6 @@ Any change to the input would invalidate the configuration cache, even if the va
 
 Now, reading a file, an environment variable, or a system property is no longer tracked inside the implementation of the `ValueSource`.
 The value of the `ValueSource` is still recomputed each time the build runs, and the configuration cache entry is only invalidated if the value changes.
-
-#### Files read at the configuration time become build configuration inputs
-
-Files read at the configuration time with `FileInputStream` or some Kotlin APIs now become build configuration inputs.
-The configuration cache is invalidated if the contents of such file change between builds.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
