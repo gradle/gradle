@@ -38,10 +38,24 @@ public final class TestRecordingSocksServer extends SocksServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(org.bbottema.javasocksproxyserver.SocksServer.class);
 
     private List<InetAddress> connectionTargets = new CopyOnWriteArrayList<>();
-    protected boolean stopping = false;
 
-    public boolean madeConnectionTo(InetAddress target) {
+    /**
+     * Check the recorded connections for a specific address - this indicates that a connection would have been made to this address with a non-test {@link SocksServer}.
+     *
+     * @param target IP address to which to verify connection
+     * @return {@code true} if the connection was made to the target; {@code false} otherwise
+     */
+    boolean madeConnectionTo(InetAddress target) {
         return connectionTargets.contains(target);
+    }
+
+    /**
+     * Check that a connection was recorded for any address - this indicates that a connection would have been made to any address with a non-test {@link SocksServer}..
+     *
+     * @return {@code true} if the connection would have been made; {@code false} otherwise
+     */
+    boolean madeAnyConnection() {
+        return connectionTargets.size() > 0;
     }
 
     public synchronized void start(int listenPort) {

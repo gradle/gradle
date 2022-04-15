@@ -50,12 +50,13 @@ task listJars {
         failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
 
         when:
-        proxyServer.start(new TestRecordingSocksServer())
+        def recordingServer = new TestRecordingSocksServer()
+        proxyServer.start(recordingServer)
         proxyServer.configureProxy(executer)
         fails('listJars') // Don't have to succeed here, just record the attempt in the fake proxy and verify it
         then:
         result.assertTaskExecuted(":listJars")
-        assert proxyServer.madeConnectionTo(InetAddress.getByName('repo.maven.apache.org'))
+        recordingServer.madeAnyConnection()
 
         when:
         proxyServer.stop()

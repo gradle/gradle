@@ -35,27 +35,13 @@ import org.junit.rules.ExternalResource
  * To use the proxy with a build, you must call configureProxy(GradleExecuter) before
  * starting the proxy.
  *
- * Use {@link #start(SocksServer)} to start the proxy with an alternate implmentation of {@link SocksServer} (for instance,
+ * Use {@link #start(SocksServer)} to start the proxy with an alternate implementation of {@link SocksServer} (for instance,
  * a {@link TestRecordingSocksServer}, which can record connections which would have been made).
  */
 class SocksProxyServer extends ExternalResource {
     private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
     private SocksServer socksServer
     private int port
-
-    /**
-     * If a recording SocksServer is used, this method can be used to check the recorded connections.
-     *
-     * @param target IP address to which to verify connection
-     * @return {@code true} if the connection was made to the target; {@code false} otherwise
-     */
-    boolean madeConnectionTo(InetAddress target) {
-        if (socksServer instanceof TestRecordingSocksServer) {
-            return ((TestRecordingSocksServer) socksServer).madeConnectionTo(target)
-        } else {
-            throw new IllegalStateException("Cannot check if connection was made to " + target + " because the proxy is not a TestRecordingSocksServer")
-        }
-    }
 
     @Override
     protected void after() {
