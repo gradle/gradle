@@ -39,9 +39,9 @@ public final class TestRecordingProxyHandler extends ProxyHandler {
         Socks4Impl comm;
 
         try {
-            byte SOCKS_Version = getByteFromClient();
+            byte theSOCKSversion = getByteFromClient();
 
-            switch (SOCKS_Version) {
+            switch (theSOCKSversion) {
                 case SocksConstants.SOCKS4_Version:
                     comm = new Socks4Impl(this);
                     break;
@@ -52,7 +52,7 @@ public final class TestRecordingProxyHandler extends ProxyHandler {
                     return;
             }
 
-            comm.authenticate(SOCKS_Version);
+            comm.authenticate(theSOCKSversion);
             comm.getClientCommand();
 
             if (comm.socksCommand == SocksConstants.SC_CONNECT) {

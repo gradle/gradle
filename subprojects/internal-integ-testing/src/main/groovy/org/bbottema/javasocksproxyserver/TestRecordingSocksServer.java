@@ -122,7 +122,7 @@ public final class TestRecordingSocksServer extends SocksServer {
                 LOGGER.debug("Connection from : " + Utils.getSocketInfo(clientSocket));
                 new Thread(new TestRecordingProxyHandler(clientSocket, connectionTargets)).start();
             } catch (InterruptedIOException e) {
-                //	This exception is thrown when accept timeout is expired
+                // This exception is thrown when accept timeout is expired
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             }
