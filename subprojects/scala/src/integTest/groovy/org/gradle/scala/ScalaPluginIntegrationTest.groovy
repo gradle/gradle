@@ -208,7 +208,7 @@ task someTask
 
         then:
         def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
         if (GradleContextualExecuter.isConfigCache()) {
             // Nested in the CC problems report
             failure.assertHasFailures(2)
