@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.bbottema.javasocksproxyserver.TestRecordingSocksServer
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.SocksProxyServer
 import org.hamcrest.CoreMatchers
@@ -24,25 +25,17 @@ import org.junit.Rule
 class SocksProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
     SocksProxyServer proxyServer = new SocksProxyServer()
-    def projectA
 
     def setup() {
-        def repo = mavenHttpRepo("repo")
-        repo.server.useHostname()
-        projectA = repo.module('test', 'projectA', '1.2').publish()
-
         buildFile << """
 repositories {
-    maven { 
-        url "${repo.uri}"
-        allowInsecureProtocol = true 
-    }
+    ${mavenCentralRepository()}
 }
 configurations { compile }
-dependencies { compile 'test:projectA:1.2' }
+dependencies { compile 'log4j:log4j:1.2.17' }
 task listJars {
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert configurations.compile.collect { it.name } == ['log4j-1.2.17.jar']
     }
 }
 """
@@ -53,24 +46,23 @@ task listJars {
         when:
         fails('listJars')
         then:
-        failure.assertHasCause("Could not resolve test:projectA:1.2.")
+        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
         failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
 
         when:
-        proxyServer.start()
+        proxyServer.start(new TestRecordingSocksServer())
         proxyServer.configureProxy(executer)
-        projectA.pom.expectGet()
-        projectA.artifact.expectGet()
-        succeeds('listJars')
+        fails('listJars') // Don't have to succeed here, just record the attempt in the fake proxy and verify it
         then:
         result.assertTaskExecuted(":listJars")
+        assert proxyServer.madeConnectionTo(InetAddress.getByName('repo.maven.apache.org'))
 
         when:
         proxyServer.stop()
         proxyServer.configureProxy(executer)
         fails('listJars', '--refresh-dependencies')
         then:
-        failure.assertHasCause("Could not resolve test:projectA:1.2.")
+        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
         failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
     }
 }
