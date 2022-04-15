@@ -20,7 +20,6 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.time.Duration;
 import java.util.Properties;
 
@@ -33,12 +32,10 @@ public class OriginMetadataFactory {
     private static final String IDENTITY_KEY = "identity";
     private static final String CREATION_TIME_KEY = "creationTime";
     private static final String EXECUTION_TIME_KEY = "executionTime";
-    private static final String ROOT_PATH_KEY = "rootPath";
     private static final String OPERATING_SYSTEM_KEY = "operatingSystem";
     private static final String HOST_NAME_KEY = "hostName";
     private static final String USER_NAME_KEY = "userName";
 
-    private final File rootDir;
     private final String userName;
     private final String operatingSystem;
     private final String currentBuildInvocationId;
@@ -46,14 +43,12 @@ public class OriginMetadataFactory {
     private final HostnameLookup hostnameLookup;
 
     public OriginMetadataFactory(
-        File rootDir,
         String userName,
         String operatingSystem,
         String currentBuildInvocationId,
         PropertiesConfigurator additionalProperties,
         HostnameLookup hostnameLookup
     ) {
-        this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
         this.additionalProperties = additionalProperties;
@@ -69,7 +64,6 @@ public class OriginMetadataFactory {
             properties.setProperty(IDENTITY_KEY, entry.getIdentity());
             properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
             properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime.toMillis()));
-            properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
             properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
             properties.setProperty(HOST_NAME_KEY, hostnameLookup.getHostname());
             properties.setProperty(USER_NAME_KEY, userName);

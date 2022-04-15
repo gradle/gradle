@@ -67,6 +67,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
+        //noinspection GroovyAssignabilityCheck - meant to fail
         container.attributeProvider(testAttribute, testProperty)
         then:
         def e = thrown(IllegalArgumentException)
@@ -79,6 +80,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
+        //noinspection GroovyAssignabilityCheck - meant to fail
         container.attributeProvider(testAttribute, testProperty)
         container.getAttribute(testAttribute)
         then:
@@ -103,8 +105,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
     }
 
     def "equals should return true for 2 containers with different provider instances that return the same value"() {
-        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
-        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
         def testAttribute = Attribute.of("test", String)
         def container1 = new DefaultMutableAttributeContainer(attributesFactory)
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
@@ -119,8 +121,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
     }
 
     def "equals should return false for 2 containers with different provider instances that return different values"() {
-        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
-        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
+        Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
+        Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
         def testAttribute = Attribute.of("test", String)
         def container1 = new DefaultMutableAttributeContainer(attributesFactory)
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
@@ -135,8 +137,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
     }
 
     def "hashCode should return the same result for 2 containers with different provider instances that return the same value"() {
-        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
-        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
         def testAttribute = Attribute.of("test", String)
         def container1 = new DefaultMutableAttributeContainer(attributesFactory)
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
@@ -150,8 +152,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
     }
 
     def "hashCode should return different result for 2 containers with different provider instances that return different values"() {
-        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
-        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
+        Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
+        Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
         def testAttribute = Attribute.of("test", String)
         def container1 = new DefaultMutableAttributeContainer(attributesFactory)
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
@@ -162,5 +164,61 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         then:
         container1.hashCode() != container2.hashCode()
+    }
+
+    def "adding attribute should override replace existing lazy attribute"() {
+        given: "a container with testAttr set to a provider"
+        def testAttr = Attribute.of("test", String)
+        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
+        container.attributeProvider(testAttr, testProvider)
+
+        when: "adding a set value testAttr"
+        container.attribute(testAttr, "set value")
+
+        then: "the set value should be retrievable"
+        "set value" == container.getAttribute(testAttr)
+    }
+
+    def "adding lazy attribute should override replace existing attribute"() {
+        given: "a container with testAttr set to a fixed value"
+        def testAttr = Attribute.of("test", String)
+        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        container.attribute(testAttr, "set value")
+
+        when: "adding a lazy testAttr"
+        Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
+        container.attributeProvider(testAttr, testProvider)
+
+        then: "the lazy provider should be retrievable"
+        "lazy value" == container.getAttribute(testAttr)
+    }
+
+    def "toString should not change the internal state of the class"() {
+        given: "a container and a lazy and non-lazy attribute"
+        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        def testEager = Attribute.of("eager", String)
+        def testLazy = Attribute.of("lazy", String)
+        Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
+
+        when: "the attributes are added to the container"
+        container.attribute(testEager, "eager value")
+        container.attributeProvider(testLazy, testProvider)
+
+        then: "they are located in proper internal collections"
+        container.@state.contains(testEager)
+        !container.@state.contains(testLazy)
+        container.@lazyAttributes.containsKey(testLazy)
+        !container.@lazyAttributes.containsKey(testEager)
+
+        when: "calling toString"
+        def result = container.toString()
+
+        then: "the result should not change the internals of the class"
+        result == "{eager=eager value, lazy=property(java.lang.String, fixed(class java.lang.String, lazy value))}"
+        container.@state.contains(testEager)
+        !container.@state.contains(testLazy)
+        container.@lazyAttributes.containsKey(testLazy)
+        !container.@lazyAttributes.containsKey(testEager)
     }
 }

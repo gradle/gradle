@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
+import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -24,17 +26,36 @@ import org.gradle.internal.operations.CallableBuildOperation
 
 internal
 fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
-    withOperation("Load configuration cache state", block)
+    withOperation("Load configuration cache state", block, LoadDetails, LoadResult)
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
-    withOperation("Store configuration cache state", block)
+fun BuildOperationExecutor.withStoreOperation(cacheKey: String, block: () -> Unit) =
+    withOperation("Store configuration cache state $cacheKey", block, StoreDetails, StoreResult)
 
 
 private
-fun <T : Any> BuildOperationExecutor.withOperation(displayName: String, block: () -> T): T =
+object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
+
+
+private
+object LoadResult : ConfigurationCacheLoadBuildOperationType.Result
+
+
+private
+object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
+
+
+private
+object StoreResult : ConfigurationCacheStoreBuildOperationType.Result
+
+
+private
+fun <T : Any, D : Any, R : Any> BuildOperationExecutor.withOperation(displayName: String, block: () -> T, details: D, result: R): T =
     call(object : CallableBuildOperation<T> {
-        override fun description() = BuildOperationDescriptor.displayName(displayName)
-        override fun call(context: BuildOperationContext) = block()
+        override fun description(): BuildOperationDescriptor.Builder =
+            BuildOperationDescriptor.displayName(displayName).details(details)
+
+        override fun call(context: BuildOperationContext): T =
+            block().also { context.setResult(result) }
     })

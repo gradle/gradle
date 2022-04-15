@@ -78,7 +78,7 @@ project.afterEvaluate {
             val testTaskName = "test${sourceName.capitalize()}UnitTest"
             // Create coverage task of form("testFlavorTypeCoverage" depending on("testFlavorTypeUnitTest"
             tasks.register<JacocoReport>("${testTaskName}Coverage") {
-                dependsOn("$testTaskName")
+                dependsOn(testTaskName)
                 group = "Reporting"
                 description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
                 classDirectories.from(
@@ -102,8 +102,8 @@ project.afterEvaluate {
                 sourceDirectories.from(files(coverageSourceDirs))
                 executionData.from(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
                 reports {
-                    xml.isEnabled = true
-                    html.isEnabled = true
+                    xml.required.set(true)
+                    html.required.set(true)
                 }
             }
         }
@@ -112,7 +112,5 @@ project.afterEvaluate {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-    implementation("org.jetbrains.anko:anko-common:0.9")
-
     testImplementation("junit:junit:4.13")
 }

@@ -88,7 +88,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     }
 
     vcs {
-        root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
+        root(AbsoluteId("GradleBuildTooBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
     }
@@ -212,7 +212,7 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "killExistingProcessesStartedByGradle"
             gradleParams =
-                buildToolGradleParameters(daemon).joinToString(separator = " ")
+                (buildToolGradleParameters(daemon) + buildScanTag("CleanUpBuild")).joinToString(separator = " ")
         }
     }
 }

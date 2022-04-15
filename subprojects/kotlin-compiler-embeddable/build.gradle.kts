@@ -12,5 +12,6 @@ dependencies {
     implementation(libs.futureKotlin("reflect"))
     implementation(libs.futureKotlin("script-runtime"))
     implementation(libs.futureKotlin("daemon-embeddable"))
+    implementation(libs.jna)
     implementation(libs.trove4j)
 }

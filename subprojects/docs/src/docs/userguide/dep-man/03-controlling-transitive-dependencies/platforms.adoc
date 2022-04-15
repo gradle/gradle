@@ -4,12 +4,6 @@
 [[sub:central-declaration-of-dependencies]]
 == Central declaration of dependencies
 
-[WARNING]
-====
-Central declaration of dependencies is an incubating feature.
-It requires the activation of the `VERSION_CATALOGS` <<feature_lifecycle#feature_preview,feature preview>>.
-====
-
 [[sub:version-catalog]]
 === Using a version catalog
 
@@ -183,6 +177,25 @@ Then the plugin is accessible in the `plugins` block and can be consumed in any 
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_plugin]"]
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_plugin]"]
+====
+
+[[sec:multiple]]
+==== Using multiple catalogs
+
+Aside from the conventional `libs` catalog, you can declare any number of catalogs through the `Settings` API.
+This allows you to separate dependency declarations in multiple sources in a way that makes sense for your projects.
+
+.Using a custom catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=extra_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=extra_catalog]"]
+====
+
+[NOTE]
+====
+Each catalog will generate an extension applied to all projects for accessing its content.
+As such it makes sense to reduce the chance of collisions by picking a name that reduces the potential conflicts.
+Gradle will emit a deprecation warning if a catalog does not have a name that ends with `Libs`.
 ====
 
 [[sub:conventional-dependencies-toml]]

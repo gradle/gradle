@@ -162,7 +162,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
@@ -257,8 +256,7 @@ class DependencyManagementBuildScopeServices {
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                                     ObjectFactory objects,
                                                                                     ProviderFactory providers,
-                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                                                                    FeaturePreviews featurePreviews) {
+                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
@@ -267,8 +265,7 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator,
-            featurePreviews
+            collectionCallbackActionDecorator
         );
     }
 
@@ -590,7 +587,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                                                 InstantiatorFactory instantiatorFactory,
                                                                 ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                                FeaturePreviews featurePreviews,
                                                                 CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -607,7 +603,6 @@ class DependencyManagementBuildScopeServices {
             componentMetadataSupplierRuleExecutor,
             instantiatorFactory,
             componentSelectionDescriptorFactory,
-            featurePreviews,
             calculatedValueContainerFactory);
     }
 
@@ -741,15 +736,14 @@ class DependencyManagementBuildScopeServices {
             new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreExecutionStateStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
+            new ResolveInputChangesStep<>(
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter, outputChangeListener,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))));
+        ))))))))))))))))));
         // @formatter:on
     }
 

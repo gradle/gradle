@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
 
@@ -27,5 +29,19 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
      */
     @Nullable
     String getRepositoryName();
+
+    /**
+     * Returns all the variants for this component, even ones that weren't selected.
+     *
+     * <p>
+     * Note: for performance reasons,
+     * {@link org.gradle.api.internal.artifacts.configurations.ConfigurationInternal#setReturnAllVariants(boolean)}
+     * must be set to {@code true} for this to actually return all variants in all cases.
+     * </p>
+     *
+     * @return all variants for this component
+     * @since 7.5
+     */
+    List<ResolvedVariantResult> getAllVariants();
 
 }

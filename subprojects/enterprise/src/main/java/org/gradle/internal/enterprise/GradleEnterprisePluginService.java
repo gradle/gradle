@@ -17,12 +17,12 @@
 package org.gradle.internal.enterprise;
 
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A service for a particular build invocation
+ *
+ * Implemented by the Enterprise plugin.
  */
-@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginService {
 
     /**

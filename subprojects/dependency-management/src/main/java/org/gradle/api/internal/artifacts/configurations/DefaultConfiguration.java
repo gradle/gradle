@@ -47,13 +47,13 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
@@ -85,6 +85,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -208,6 +209,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
+    private boolean returnAllVariants = false;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -1153,8 +1155,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean isIncubating() {
-        final Category category = getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
-        return category != null && category.getName().equals(Category.VERIFICATION);
+        return IncubatingAttributesChecker.isAnyIncubating(getAttributes());
     }
 
     @Override
@@ -1283,6 +1284,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Path getIdentityPath() {
         return identityPath;
+    }
+
+    @Override
+    public void setReturnAllVariants(boolean returnAllVariants) {
+        if (!canBeMutated) {
+            throw new IllegalStateException("Configuration is unmodifiable");
+        }
+        this.returnAllVariants = returnAllVariants;
+    }
+
+    @Override
+    public boolean getReturnAllVariants() {
+        return this.returnAllVariants;
     }
 
     @Override
@@ -1818,7 +1832,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             ImmutableAttributes viewAttributes = config.lockViewAttributes();
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
-            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+            ArtifactView view;
+            if (config.reselectVariant) {
+                view = new ReselectingArtifactView(viewAttributes, config.lockComponentFilter(), this);
+            } else {
+                view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+            }
+            return view;
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
@@ -1860,7 +1880,62 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public FileCollection getFiles() {
+                // TODO maybe make detached configuration is flag is true
                 return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost());
+            }
+        }
+
+        private class ReselectingArtifactView implements ArtifactView {
+            private final ImmutableAttributes viewAttributes;
+            private final Spec<? super ComponentIdentifier> componentFilter;
+            private final ArtifactView delegatingArtifactView;
+
+            ReselectingArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, ConfigurationResolvableDependencies underlyingConfiguration) {
+                this.viewAttributes = viewAttributes;
+                this.componentFilter = componentFilter;
+                this.delegatingArtifactView = createDelegate(underlyingConfiguration);
+            }
+
+            @Override
+            public AttributeContainer getAttributes() {
+                return viewAttributes;
+            }
+
+            @Override
+            public ArtifactCollection getArtifacts() {
+                return delegatingArtifactView.getArtifacts();
+            }
+
+            @Override
+            public FileCollection getFiles() {
+                return delegatingArtifactView.getFiles();
+            }
+
+            private ArtifactView createDelegate(ConfigurationResolvableDependencies underlyingConfiguration) {
+                ProjectInternal project = domainObjectContext.getProject();
+                Configuration detached = project.getConfigurations().detachedConfiguration();
+                detached.withDependencies(dependencies -> {
+                    for (ResolvedComponentResult component :  underlyingConfiguration.getResolutionResult().getAllComponents()) {
+                        ComponentIdentifier componentIdentifier = component.getId();
+                        // TODO are the two implementations (ProjectComponentIdentifier, ModuleComponentIdentifier) sufficient?
+                        if (componentIdentifier instanceof ProjectComponentIdentifier) {
+                            dependencies.add(project.getDependencies().project(Collections.singletonMap("path", ((ProjectComponentIdentifier) componentIdentifier).getProjectPath())));
+                        } else if (componentIdentifier instanceof ModuleComponentIdentifier) {
+                            dependencies.add(project.getDependencies().create(componentIdentifier.toString()));
+                        }
+                    }
+                });
+                detached.setTransitive(false);
+                detached.setVisible(false);
+                for (Attribute attribute : getAttributes().keySet()) {
+                    @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
+                    Object value = getAttributes().getAttribute(key);
+                    detached.getAttributes().attribute(key, value);
+                }
+                return detached.getIncoming().artifactView(view -> {
+                    view.lenient(true);
+                    view.componentFilter(componentFilter);
+                });
             }
         }
 
@@ -1967,6 +2042,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter;
         private boolean lenient;
+        private boolean reselectVariant;
         private boolean attributesUsed;
 
         public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
@@ -1977,7 +2053,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
-                viewAttributes = attributesFactory.mutable(configurationAttributes);
+                if (reselectVariant) {
+                    viewAttributes = attributesFactory.mutable();
+                } else {
+                    viewAttributes = attributesFactory.mutable(configurationAttributes);
+                }
                 attributesUsed = true;
             }
             return viewAttributes;
@@ -2009,6 +2089,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public ArtifactViewConfiguration lenient(boolean lenient) {
             this.lenient = lenient;
+            return this;
+        }
+
+        @Override
+        public ArtifactViewConfiguration withVariantReselection() {
+            this.reselectVariant = true;
             return this;
         }
 

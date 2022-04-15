@@ -61,7 +61,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         when:
         inputFile.text = "second"
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputFile.text == "second"
     }
 
@@ -114,13 +114,13 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         when:
         librarySource.text = librarySource.text.replace("Hello", "Goodbye")
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputContains("Goodbye World")
 
         when:
         mainSource.text = mainSource.text.replace("World", "Friend")
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputContains("Goodbye Friend")
     }
 
@@ -175,7 +175,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         when:
         pluginSource.text = pluginSource.text.replace("Hello", "Goodbye")
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputContains("Goodbye World")
 
         cleanup:
@@ -249,21 +249,21 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         when:
         librarySource.text = librarySource.text.replace("Hello", "Goodbye")
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputContains("Goodbye First")
         outputContains("Goodbye Second")
 
         when:
         mainSourceSub1.text = mainSourceSub1.text.replace("First", '1st')
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputContains("Goodbye 1st")
         outputContains("Goodbye Second")
 
         when:
         mainSourceSub2.text = mainSourceSub2.text.replace("Second", '2nd')
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputContains("Goodbye 1st")
         outputContains("Goodbye 2nd")
     }

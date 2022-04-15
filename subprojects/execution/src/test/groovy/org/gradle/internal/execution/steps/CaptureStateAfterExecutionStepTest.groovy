@@ -17,13 +17,18 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.file.FileCollection
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputSnapshotter
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -32,19 +37,20 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 
 import java.time.Duration
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
-class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
+class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
     def outputSnapshotter = Mock(OutputSnapshotter)
+    def outputChangeListener = Mock(OutputChangeListener)
     def delegateResult = Mock(Result)
 
-    def step = new CaptureStateAfterExecutionStep(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, delegate)
+    def step = new CaptureStateAfterExecutionStep(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputChangeListener, delegate)
 
     @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext) {
+    protected InputChangesContext createContext() {
+        Stub(InputChangesContext) {
             getInputProperties() >> ImmutableSortedMap.of()
             getInputFileProperties() >> ImmutableSortedMap.of()
         }
@@ -58,11 +64,16 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         then:
         !result.afterExecutionState.present
         result.duration == delegateDuration
+        assertNoOperation()
 
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
+        1 * delegate.execute(work, _) >> delegateResult
+        then:
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.empty()
-        assertNoOperation()
         0 * _
     }
 
@@ -75,14 +86,19 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         then:
         !result.afterExecutionState.present
         result.duration == delegateDuration
+        assertOperation()
 
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
+        1 * delegate.execute(work, _) >> delegateResult
+        then:
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
             _ * detectedOverlappingOutputs >> Optional.empty()
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
-        assertOperation()
         0 * _
     }
 
@@ -98,22 +114,27 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         result.afterExecutionState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
         result.afterExecutionState.get().originMetadata.executionTime >= result.duration
         !result.afterExecutionState.get().reused
+        assertOperation()
 
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
+        1 * delegate.execute(work, _) >> delegateResult
+        then:
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
             _ * detectedOverlappingOutputs >> Optional.empty()
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
-        assertOperation()
         0 * _
     }
 
     def "overlapping outputs are captured"() {
         def delegateDuration = Duration.ofMillis(123)
 
-        def staleFile = fileSnapshot("stale", HashCode.fromInt(123))
-        def outputFile = fileSnapshot("outputs", HashCode.fromInt(345))
+        def staleFile = fileSnapshot("stale", TestHashCodes.hashCodeFrom(123))
+        def outputFile = fileSnapshot("outputs", TestHashCodes.hashCodeFrom(345))
 
         def emptyDirectory = directorySnapshot()
         def directoryWithStaleFile = directorySnapshot(staleFile)
@@ -143,7 +164,12 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         result.afterExecutionState.get().originMetadata.executionTime >= result.duration
         !result.afterExecutionState.get().reused
 
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
+        1 * delegate.execute(work, _) >> delegateResult
+        then:
+        1 * outputChangeListener.invalidateCachesFor([])
+        then:
         1 * delegateResult.duration >> delegateDuration
         _ * context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
             detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
@@ -154,6 +180,39 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputsAfterExecution
         assertOperation()
+        0 * _
+    }
+
+    def "notifies listener about specific outputs changing"() {
+        def outputDir = file("output-dir")
+        def localStateDir = file("local-state-dir")
+        def destroyableDir = file("destroyable-dir")
+        def changingOutputs = [
+            outputDir.absolutePath,
+            destroyableDir.absolutePath,
+            localStateDir.absolutePath
+        ]
+
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
+            visitor.visitDestroyable(destroyableDir)
+            visitor.visitLocalState(localStateDir)
+        }
+
+        then:
+        1 * outputChangeListener.invalidateCachesFor(changingOutputs)
+
+        then:
+        1 * delegate.execute(work, _ as ChangingOutputsContext) >> delegateResult
+        then:
+        1 * outputChangeListener.invalidateCachesFor(changingOutputs)
+        then:
+        1 * delegateResult.duration >> Duration.ofMillis(10)
+        _ * context.beforeExecutionState >> Optional.empty()
         0 * _
     }
 

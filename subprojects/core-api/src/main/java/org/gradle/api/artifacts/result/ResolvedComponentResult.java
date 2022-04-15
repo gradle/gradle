@@ -97,10 +97,13 @@ public interface ResolvedComponentResult extends ComponentResult {
      * of each variant are different, but the {@link #getDependencies() method} doesn't give access to each
      * variant individual dependencies.
      *
+     * <p>
+     * The variant must be a {@linkplain #getVariants() selected variant} of this component.
+     * </p>
+     *
      * @param variant the variant to find the dependencies for
-     *
+     * @throws IllegalStateException if the variant is not a selected variant of this component
      * @since 5.6
-     *
      */
     List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant);
 }

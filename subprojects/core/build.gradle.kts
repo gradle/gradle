@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -114,6 +115,9 @@ dependencies {
     }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
+    }
+    testFixturesApi(testFixtures(project(":hashing"))) {
+        because("test fixtures expose test hash codes")
     }
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))

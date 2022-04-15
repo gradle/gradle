@@ -18,11 +18,12 @@ package org.gradle.composite.internal;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-public interface BuildController {
+public interface BuildController extends Stoppable {
     /**
      * Adds tasks and nodes to the work graph of this build.
      */
@@ -47,12 +48,7 @@ public interface BuildController {
     void finalizeWorkGraph();
 
     /**
-     * Must call {@link #scheduleQueuedTasks()} prior to calling this method.
+     * Must call {@link #scheduleQueuedTasks()} and {@link #finalizeWorkGraph()} prior to calling this method.
      */
-    void startExecution(ExecutorService executorService);
-
-    /**
-     * Awaits completion of work execution, returning any failures in the result.
-     */
-    ExecutionResult<Void> awaitCompletion();
+    void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler);
 }

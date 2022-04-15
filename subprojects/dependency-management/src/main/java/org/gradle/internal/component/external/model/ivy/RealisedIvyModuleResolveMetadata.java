@@ -219,7 +219,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
                                                                      List<ModuleDependencyMetadata> dependenciesFromRule,
                                                                      boolean addedByRule,
                                                                      boolean externalVariant) {
-        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, false, addedByRule, externalVariant);
+        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, addedByRule, externalVariant);
         List<ModuleDependencyMetadata> dependencyMetadata;
         if (configurationHelper != null) {
             dependencyMetadata = configurationHelper.filterDependencies(configuration);

@@ -16,8 +16,6 @@
 
 rootProject.name = 'catalog'
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
@@ -86,3 +84,15 @@ dependencyResolutionManagement {
     }
 }
 // end::catalog_with_plugin[]
+
+// tag::extra_catalog[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        testLibs {
+            def junit5 = version('junit5', '5.7.1')
+            library('junit-api', 'org.junit.jupiter', 'junit-jupiter-api').version(junit5)
+            library('junit-engine', 'org.junit.jupiter', 'junit-jupiter-engine').version(junit5)
+        }
+    }
+}
+// end::extra_catalog[]

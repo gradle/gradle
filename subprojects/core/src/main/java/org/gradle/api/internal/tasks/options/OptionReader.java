@@ -23,6 +23,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class OptionReader {
@@ -56,15 +58,22 @@ public class OptionReader {
     }
 
     private void loadClassDescriptorInCache(Object target) {
-        final Collection<OptionElement> optionElements = getOptionElements(target);
+        final Collection<OptionElementAndSignature> optionElements = getOptionElements(target);
         List<JavaMethod<Object, Collection>> optionValueMethods = loadValueMethodForOption(target.getClass());
-        Set<String> processedOptionElements = new HashSet<String>();
-        for (OptionElement optionElement : optionElements) {
-            if (processedOptionElements.contains(optionElement.getOptionName())) {
-                throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
+        Map<String, MethodSignature> processedOptionElements = new HashMap<>();
+        for (OptionElementAndSignature optionElementAndSignature : optionElements) {
+            OptionElement optionElement = optionElementAndSignature.element;
+            MethodSignature signature = optionElementAndSignature.signature;
+
+            if (processedOptionElements.containsKey(optionElement.getOptionName())) {
+                MethodSignature existingSignature = processedOptionElements.get(optionElement.getOptionName());
+                if (!Objects.equals(signature, existingSignature)) {
+                    throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
                         optionElement.getOptionName(), target.getClass().getName()));
+                }
+                continue;
             }
-            processedOptionElements.add(optionElement.getOptionName());
+            processedOptionElements.put(optionElement.getOptionName(), signature);
             JavaMethod<Object, Collection> optionValueMethodForOption = getOptionValueMethodForOption(optionValueMethods, optionElement);
 
             cachedOptionElements.put(target.getClass(), optionElement);
@@ -95,8 +104,19 @@ public class OptionReader {
         return optionValues.value();
     }
 
-    private Collection<OptionElement> getOptionElements(Object target) {
-        List<OptionElement> allOptionElements = new ArrayList<OptionElement>();
+    private static final class OptionElementAndSignature {
+        final OptionElement element;
+        @Nullable
+        final MethodSignature signature;
+
+        OptionElementAndSignature(OptionElement element, @Nullable MethodSignature signature) {
+            this.element = element;
+            this.signature = signature;
+        }
+    }
+
+    private Collection<OptionElementAndSignature> getOptionElements(Object target) {
+        List<OptionElementAndSignature> allOptionElements = new ArrayList<>();
         Set<Class<?>> visitedInterfaces = new HashSet<>();
         Deque<Class<?>> interfacesToCheck = new ArrayDeque<>();
 
@@ -104,7 +124,9 @@ public class OptionReader {
             interfacesToCheck.addAll(Arrays.asList(type.getInterfaces()));
 
             allOptionElements.addAll(getMethodAnnotations(type));
-            allOptionElements.addAll(getFieldAnnotations(type));
+            for (OptionElement element : getFieldAnnotations(type)) {
+                allOptionElements.add(new OptionElementAndSignature(element, null));
+            }
         }
 
         while (interfacesToCheck.size() > 0) {
@@ -144,14 +166,14 @@ public class OptionReader {
         return option;
     }
 
-    private List<OptionElement> getMethodAnnotations(Class<?> type) {
-        List<OptionElement> methodOptionElements = new ArrayList<OptionElement>();
+    private List<OptionElementAndSignature> getMethodAnnotations(Class<?> type) {
+        List<OptionElementAndSignature> methodOptionElements = new ArrayList<>();
         for (Method method : type.getDeclaredMethods()) {
             Option option = findOption(method);
             if (option != null) {
                 OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method,
                     optionValueNotationParserFactory);
-                methodOptionElements.add(methodOptionDescriptor);
+                methodOptionElements.add(new OptionElementAndSignature(methodOptionDescriptor, MethodSignature.from(method)));
             }
         }
         return methodOptionElements;

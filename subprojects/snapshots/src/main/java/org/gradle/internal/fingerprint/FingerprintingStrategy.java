@@ -45,7 +45,5 @@ public interface FingerprintingStrategy {
 
     CurrentFileCollectionFingerprint getEmptyFingerprint();
 
-    String normalizePath(FileSystemLocationSnapshot snapshot);
-
     HashCode getConfigurationHash();
 }

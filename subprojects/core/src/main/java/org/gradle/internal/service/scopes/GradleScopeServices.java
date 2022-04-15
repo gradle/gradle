@@ -29,7 +29,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
@@ -125,11 +124,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry, List<BuiltInCommand> builtInCommands) {
+    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands) {
         List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer, builtInCommands));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
-        return new DefaultBuildConfigurationActionExecuter(taskSelectionActions, projectStateRegistry);
+        return new DefaultBuildConfigurationActionExecuter(taskSelectionActions);
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
@@ -175,7 +174,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
-        ProjectStateRegistry projectStateRegistry,
         ServiceRegistry gradleScopedServices
     ) {
         return new DefaultTaskExecutionGraph(
@@ -187,7 +185,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             graphListeners,
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
-            projectStateRegistry,
             gradleScopedServices
         );
     }

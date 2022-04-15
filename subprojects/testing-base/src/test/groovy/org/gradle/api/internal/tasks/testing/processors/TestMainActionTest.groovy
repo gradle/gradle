@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.processors
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.time.Clock
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -26,6 +27,7 @@ class TestMainActionTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock()
     private final Runnable detector = Mock()
     private final Clock timeProvider = Mock()
+    private final WorkerLeaseRegistry.WorkerLease lease = Mock()
     private final WorkerLeaseService workerLeaseService = Mock()
     private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, workerLeaseService, timeProvider, "rootTestSuiteId456", "Test Run")
 

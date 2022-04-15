@@ -27,6 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -131,6 +132,13 @@ class ConflictContainer<K, T> {
 
     public boolean isEmpty() {
         return conflicts.isEmpty();
+    }
+
+    boolean hasMatchingConflict(Predicate<T> predicate) {
+        if (isEmpty()) {
+            return false;
+        }
+        return conflicts.stream().flatMap(conflict -> conflict.candidates.stream()).anyMatch(predicate);
     }
 
     class Conflict {

@@ -85,7 +85,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
 
         where:
         notation << [
@@ -541,7 +541,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
-                    libraries {
+                    myLibs {
                         library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
@@ -554,7 +554,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
+                implementation myLibs.myLib
             }
         """
 
@@ -577,12 +577,12 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
-                    libraries {
+                    myLibs {
                         library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
-                    other {
+                    otherLibs {
                         library("great", "org.gradle.test", "lib2").version {
                             require "1.1"
                         }
@@ -596,8 +596,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
-                implementation other.great
+                implementation myLibs.myLib
+                implementation otherLibs.great
             }
         """
 
@@ -625,12 +625,12 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
-                    libraries {
+                    myLibs {
                         library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
-                    other {
+                    otherLibs {
                         library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
@@ -643,8 +643,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
-                implementation other.myLib
+                implementation myLibs.myLib
+                implementation otherLibs.myLib
             }
         """
 
@@ -661,6 +661,44 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 module('org.gradle.test:lib:1.0')
             }
         }
+    }
+
+    def "nags when not using a library name ending with 'Libs'"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    notLibsEnding {
+                        library("myLib", "org.gradle.test", "lib").version {
+                            require "1.0"
+                        }
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation notLibsEnding.myLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+
     }
 
     def "extension can be used in any subproject"() {
@@ -967,7 +1005,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                // always 1.0 because calling `getLibVersion` will always loose the rich aspect
+                // always 1.0 because calling `getLibVersion` will always lose the rich aspect
                 // of the version model
                 module("org.gradle.test:lib:1.0")
             }
@@ -1433,7 +1471,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                         plugin("plug", "org.test2").version("1.0")
                         bundle("all", ["lib", "lib2"])
                     }
-                    other {
+                    otherLibs {
                         version("ver", "1.1")
                         library("lib", "org", "test2").versionRef("ver")
                     }
@@ -1446,7 +1484,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             tasks.register("verifyCatalogs") {
                 doLast {
                     def libs = catalogs.named("libs")
-                    def other = catalogs.find("other").get()
+                    def other = catalogs.find("otherLibs").get()
                     assert !catalogs.find("missing").present
                     def lib = libs.findLibrary('lib')
                     assert lib.present

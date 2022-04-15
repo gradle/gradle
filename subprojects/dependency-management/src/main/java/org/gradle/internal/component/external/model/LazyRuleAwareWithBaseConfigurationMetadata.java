@@ -113,11 +113,6 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public boolean requiresMavenArtifactDiscovery() {
-        return false;
-    }
-
-    @Override
     public Set<? extends VariantResolveMetadata> getVariants() {
         return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }

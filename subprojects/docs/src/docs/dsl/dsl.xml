@@ -419,6 +419,12 @@
             <tr>
                 <td>org.gradle.api.reporting.model.ModelReport</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask</td>
+            </tr>
         </table>
     </section>
 

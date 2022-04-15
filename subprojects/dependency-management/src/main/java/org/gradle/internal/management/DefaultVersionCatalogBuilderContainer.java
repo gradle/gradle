@@ -18,14 +18,11 @@ package org.gradle.internal.management;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -35,6 +32,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -50,7 +48,6 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private final Interner<String> strings = Interners.newStrongInterner();
     private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
     private final Supplier<DependencyResolutionServices> dependencyResolutionServices;
-    private final FeaturePreviews featurePreviews;
 
     private final ObjectFactory objects;
     private final ProviderFactory providers;
@@ -62,28 +59,29 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
                                                  ObjectFactory objects,
                                                  ProviderFactory providers,
                                                  Supplier<DependencyResolutionServices> dependencyResolutionServices,
-                                                 UserCodeApplicationContext context,
-                                                 FeaturePreviews featurePreviews) {
+                                                 UserCodeApplicationContext context) {
         super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator);
         this.objects = objects;
         this.providers = providers;
         this.context = context;
         this.dependencyResolutionServices = dependencyResolutionServices;
-        this.featurePreviews = featurePreviews;
     }
 
     private static void validateName(String name) {
         if (!VALID_EXTENSION_PATTERN.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid model name '" + name + "': it must match the following regular expression: " + VALID_EXTENSION_NAME);
         }
+
+        if (!name.equals("libs") && !name.endsWith("Libs")) {
+            DeprecationLogger.deprecateBehaviour("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
+                .willBecomeAnErrorInGradle8()
+                .withUserManual("platforms", "sec:multiple")
+                .nagUser();
+        }
     }
 
     @Override
     public VersionCatalogBuilder create(String name, Action<? super VersionCatalogBuilder> configureAction) throws InvalidUserDataException {
-        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_CATALOGS)) {
-            throw new InvalidUserCodeException("Using dependency catalogs requires the activation of the matching feature preview.\n" +
-                "See the documentation at " + new DocumentationRegistry().getDocumentationFor("platforms", "sub:central-declaration-of-dependencies"));
-        }
         validateName(name);
         return super.create(name, model -> {
             UserCodeApplicationContext.Application current = context.current();

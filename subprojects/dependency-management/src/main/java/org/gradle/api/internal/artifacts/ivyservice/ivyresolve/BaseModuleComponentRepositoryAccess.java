@@ -22,11 +22,9 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
@@ -54,11 +52,6 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
     @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         delegate.resolveArtifactsWithType(component, artifactType, result);
-    }
-
-    @Override
-    public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-        delegate.resolveArtifacts(component, variant, result);
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
 
+import org.gradle.util.internal.ZipSlip.safeZipEntryName
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import java.io.File
@@ -25,7 +26,6 @@ import java.io.InputStream
 import java.io.OutputStream
 
 import java.util.zip.ZipEntry
-import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
@@ -104,20 +104,16 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
 
 fun unzipTo(outputDirectory: File, zipFile: File) {
     ZipFile(zipFile).use { zip ->
-        val outputDirectoryCanonicalPath = outputDirectory.canonicalPath
         for (entry in zip.entries()) {
-            unzipEntryTo(outputDirectory, outputDirectoryCanonicalPath, zip, entry)
+            unzipEntryTo(outputDirectory, zip, entry)
         }
     }
 }
 
 
 private
-fun unzipEntryTo(outputDirectory: File, outputDirectoryCanonicalPath: String, zip: ZipFile, entry: ZipEntry) {
-    val output = outputDirectory.resolve(entry.name)
-    if (!output.canonicalPath.startsWith(outputDirectoryCanonicalPath)) {
-        throw ZipException("Zip entry '${entry.name}' is outside of the output directory")
-    }
+fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
+    val output = outputDirectory.resolve(safeZipEntryName(entry.name))
     if (entry.isDirectory) {
         output.mkdirs()
     } else {

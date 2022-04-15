@@ -6,19 +6,20 @@ description = "Provides a platform that constrains versions of external dependen
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
-val groovyVersion = "3.0.9"
+val groovyVersion = "3.0.10"
 val asmVersion = "9.2"
-
+// To try out better kotlin compilation avoidance and incremental compilation
+// with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .getOrElse(embeddedKotlinVersion)
 
 dependencies {
     constraints {
         // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.8")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.2") // Sync with `settings.gradle.kts`
-        api("org.gradle.guides:gradle-guides-plugin:0.19.1")
-        api("com.gradle.publish:plugin-publish-plugin:0.18.0")
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.9")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3-rc-1") // Sync with `settings.gradle.kts`
+        api("org.gradle.guides:gradle-guides-plugin:0.20.1")
+        api("com.gradle.publish:plugin-publish-plugin:1.0.0-rc-1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
@@ -50,8 +51,8 @@ dependencies {
         api("com.sun.xml.bind:jaxb-core:2.2.11")
         api("com.sun.xml.bind:jaxb-impl:2.2.11")
         api("junit:junit:4.13.2")
-        api("org.spockframework:spock-core:2.0-groovy-3.0")
-        api("org.spockframework:spock-junit4:2.0-groovy-3.0")
+        api("org.spockframework:spock-core:2.1-groovy-3.0")
+        api("org.spockframework:spock-junit4:2.1-groovy-3.0")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
         api("com.beust:jcommander:1.78")
@@ -60,10 +61,10 @@ dependencies {
         api("org.codenarc:CodeNarc:2.0.0")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0")
+        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1")
         api("org.jsoup:jsoup:1.13.1")
-        api("org.junit.jupiter:junit-jupiter:5.7.1")
-        api("org.junit.vintage:junit-vintage-engine:5.7.1")
+        api("org.junit.jupiter:junit-jupiter:5.8.2")
+        api("org.junit.vintage:junit-vintage-engine:5.8.2")
         api("org.openmbee.junit:junit-xml-parser:1.0.0")
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")

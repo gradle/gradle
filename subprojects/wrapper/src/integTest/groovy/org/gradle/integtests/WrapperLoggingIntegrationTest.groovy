@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
@@ -126,5 +127,17 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         result.getOutputLineThatContains("10%").replaceAll("\\.+", "|") == '|10%|20%|30%|40%|50%|60%|70%|80%|90%|100%'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19585")
+    def "Can configure log level with command-line Gradle property on Turkish Locale"() {
+        setup:
+        prepareWrapper()
+
+        expect:
+        wrapperExecuter
+            .withCommandLineGradleOpts("-Dorg.gradle.logging.level=lifecycle", "-Duser.country=TR", "-Duser.language=tr")
+            .withTasks("help")
+            .run()
     }
 }

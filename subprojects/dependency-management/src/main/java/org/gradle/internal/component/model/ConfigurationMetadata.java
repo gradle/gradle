@@ -18,8 +18,8 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
@@ -95,12 +95,6 @@ public interface ConfigurationMetadata extends HasAttributes {
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
     CapabilitiesMetadata getCapabilities();
-
-    /**
-     * Was this variant derived from pom metadata and requires the maven mechanism of discovering artifacts
-     * that may not be directly defined in the metadata (e.g. the default 'jar' artifact).
-     */
-    boolean requiresMavenArtifactDiscovery();
 
     boolean isExternalVariant();
 }

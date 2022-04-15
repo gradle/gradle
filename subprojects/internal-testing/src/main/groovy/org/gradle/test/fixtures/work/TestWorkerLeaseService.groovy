@@ -19,7 +19,6 @@ package org.gradle.test.fixtures.work
 import org.gradle.internal.Factory
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.work.Synchronizer
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 
@@ -40,7 +39,12 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    ResourceLock getAllProjectsLock() {
+    WorkerLeaseCompletion maybeStartWorker() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    ResourceLock getAllProjectsLock(Path buildIdentityPath) {
         throw new UnsupportedOperationException()
     }
 
@@ -64,12 +68,12 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    WorkerLeaseRegistry.WorkerLease getCurrentWorkerLease() {
+    WorkerLease getCurrentWorkerLease() {
         return workerLease()
     }
 
     @Override
-    def <T> T runAsWorkerThread(Factory<T> action) {
+    <T> T runAsWorkerThread(Factory<T> action) {
         return action.create()
     }
 
@@ -87,7 +91,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
             }
 
             @Override
-            def <T> T withLock(Factory<T> action) {
+            <T> T withLock(Factory<T> action) {
                 return action.create()
             }
         }
@@ -104,39 +108,43 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void withoutProjectLock(Runnable action) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    def <T> T runAsIsolatedTask(Factory<T> action) {
+    <T> T runAsIsolatedTask(Factory<T> action) {
         return action.create()
     }
 
     @Override
-    WorkerLeaseRegistry.WorkerLease getWorkerLease() {
+    WorkerLease getWorkerLease() {
         return workerLease()
     }
 
     @Override
-    def <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+    <T> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
         return factory.create()
     }
 
     @Override
-    void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+    void withLocks(Collection<? extends ResourceLock> locks, Runnable action) {
         action.run()
     }
 
-
     @Override
-    def <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+    <T> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
         return factory.create()
     }
 
     @Override
-    void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+    void withoutLocks(Collection<? extends ResourceLock> locks, Runnable action) {
         action.run()
+    }
+
+    @Override
+    void withoutLock(ResourceLock lock, Runnable action) {
+        action.run()
+    }
+
+    @Override
+    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+        return factory.create()
     }
 
     @Override
@@ -159,8 +167,8 @@ class TestWorkerLeaseService implements WorkerLeaseService {
         return false
     }
 
-    private WorkerLeaseRegistry.WorkerLease workerLease() {
-        return new WorkerLeaseRegistry.WorkerLease() {
+    private WorkerLease workerLease() {
+        return new WorkerLease() {
             @Override
             boolean isLocked() {
                 return false

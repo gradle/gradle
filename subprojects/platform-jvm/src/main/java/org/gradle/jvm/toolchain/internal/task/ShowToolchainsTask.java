@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
@@ -50,7 +51,7 @@ public class ShowToolchainsTask extends DefaultTask {
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
     public ShowToolchainsTask() {
-        getOutputs().upToDateWhen(element -> false);
+        getOutputs().upToDateWhen(spec(element -> false));
     }
 
     @TaskAction

@@ -105,7 +105,7 @@ class AndroidGradlePluginVersions {
 
     private List<String> getVersionList(String name) {
         def versionList = loadedProperties().getProperty(name)
-        return versionList.empty ? [] : versionList.split(",")
+        return (versionList == null || versionList.empty) ? [] : versionList.split(",")
     }
 
     private Properties loadedProperties() {

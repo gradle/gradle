@@ -30,7 +30,6 @@ import java.util.List;
  *
  * @since 7.0
  */
-@Incubating
 @HasInternalProtocol
 public interface VersionCatalogBuilder extends Named {
 
@@ -76,7 +75,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Entry point for registering an alias for a library.
      *
-     * @param alias the alias identifer
+     * @param alias the alias identifier
      * @return a builder for this alias
      * @deprecated Use {@link #library(String, String, String)}, {@link #library(String, String)}
      * and {@link #plugin(String, String)} instead. Will be removed in Gradle 8.
@@ -174,7 +173,6 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @since 7.0
      */
-    @Incubating
     interface LibraryAliasBuilder {
         /**
          * Configures the version for this alias
@@ -207,7 +205,6 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @since 7.2
      */
-    @Incubating
     interface PluginAliasBuilder {
         /**
          * Configures the version for this alias

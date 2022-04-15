@@ -7,6 +7,20 @@ description = "A set of generic services and utilities."
 
 gradlebuildJava.usedInWorkers()
 
+/**
+ * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
+ */
+tasks.named<JavaCompile>("compileTestJava") {
+    options.release.set(8)
+}
+
+/**
+ * Use Java 8 compatibility for JMH benchmarks
+ */
+tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
+    options.release.set(8)
+}
+
 moduleIdentity.createBuildReceipt()
 
 dependencies {
@@ -26,6 +40,7 @@ dependencies {
 
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.xerces)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 

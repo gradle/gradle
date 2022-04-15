@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
@@ -53,12 +52,10 @@ import static java.lang.String.format;
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;
-    private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
     private Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
         this.walker = new CachingDirectedGraphWalker<>(new TaskGraphImpl(workResolvers));
-        this.workResolvers = workResolvers;
     }
 
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
@@ -91,14 +88,6 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         queue.add(dependency);
     }
 
-    private void attachFinalizerTo(T value, Action<? super Task> action) {
-        for (WorkDependencyResolver<T> resolver : workResolvers) {
-            if (resolver.attachActionTo(value, action)) {
-                break;
-            }
-        }
-    }
-
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
         private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
 
@@ -118,16 +107,6 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             if (node instanceof Buildable) {
                 Buildable buildable = (Buildable) node;
                 connectedNodes.add(buildable.getBuildDependencies());
-                return;
-            }
-            if (node instanceof FinalizeAction) {
-                FinalizeAction finalizeAction = (FinalizeAction) node;
-                TaskDependencyContainer dependencies = finalizeAction.getDependencies();
-                Set<T> deps = new CachingTaskDependencyResolveContext<T>(workResolvers).getDependencies(task, dependencies);
-                for (T dep : deps) {
-                    attachFinalizerTo(dep, finalizeAction);
-                    values.add(dep);
-                }
                 return;
             }
             for (WorkDependencyResolver<T> workResolver : workResolvers) {
