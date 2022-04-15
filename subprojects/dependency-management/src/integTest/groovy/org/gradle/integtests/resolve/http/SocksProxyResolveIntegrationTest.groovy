@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.http
 
 import org.bbottema.javasocksproxyserver.TestRecordingSocksServer
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.SocksProxyServer
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
@@ -41,6 +42,7 @@ task listJars {
 """
     }
 
+    @ToBeFixedForConfigurationCache
     def "uses configured SOCKS proxy to access remote repository"() {
         proxyServer.configureProxy(executer)
         when:
