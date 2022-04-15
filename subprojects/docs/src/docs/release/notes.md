@@ -12,7 +12,6 @@ We would like to thank the following community members for their contributions t
 [George Thomas](https://github.com/smoothreggae),
 [Anja Papatola](https://github.com/apalopta),
 [Björn Kautler](https://github.com/Vampire),
-[David Burström](https://github.com/davidburstrom),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder),
 [Konstantin Gribov](https://github.com/grossws),

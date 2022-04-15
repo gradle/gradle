@@ -17,7 +17,6 @@
 package gradlebuild.buildutils.tasks
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -30,19 +29,14 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+data class GitHubPullRequestSearchResult(val items: List<GitHubPullRequest>)
 data class GitHubUser(val login: String, val name: String?)
 data class GitHubPullRequestMilestone(val title: String)
 data class GitHubPullRequest(
     val number: Int,
     val user: GitHubUser,
-    val head: GitHubPullRequestBranch,
-    val author_association: String,
     val milestone: GitHubPullRequestMilestone?,
-    val merged_at: String?
 )
-
-data class GitHubPullRequestRepository(val fork: Boolean)
-data class GitHubPullRequestBranch(val repo: GitHubPullRequestRepository?) // head repo may be deleted
 
 @DisableCachingByDefault(because = "Depends on GitHub API")
 abstract class AbstractCheckOrUpdateContributorsInReleaseNote : DefaultTask() {
@@ -85,21 +79,21 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNote : DefaultTask() {
         val prs: MutableList<GitHubPullRequest> = mutableListOf()
         var page = 0
         while (++page <= 10) { // at most 1000 PRs
-            val prPage = getClosedPullRequests(page)
+            val prPage = getMergedContributorPullRequests(page)
             prs.addAll(prPage)
             if (prPage.size < pageSize) {
                 break
             }
         }
         return prs
-            .filter { it.merged_at != null && it.milestone?.title?.startsWith(milestone.get()) == true && it.head.repo?.fork != false && it.author_association == "CONTRIBUTOR" }
+            .filter { it.milestone?.title?.startsWith(milestone.get()) == true }
             .map { it.user.login }
             .toSet()
             .map { getUserInfo(it) }
             .toSet()
     }
 
-    private fun <T> invokeGitHubApi(uri: String, typeToken: TypeToken<T>): T {
+    private fun <T> invokeGitHubApi(uri: String, klass: Class<T>): T {
         val request = HttpRequest.newBuilder()
             .uri(URI(uri))
             .apply {
@@ -112,17 +106,17 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNote : DefaultTask() {
         if (response.statusCode() > 399) {
             throw RuntimeException("Failed to get pull requests: $uri ${response.statusCode()} ${response.body()}")
         }
-        return Gson().fromJson(response.body(), typeToken.type)
+        return Gson().fromJson(response.body(), klass)
     }
 
     private fun getUserInfo(login: String): GitHubUser {
         val uri = "https://api.github.com/users/$login"
-        return invokeGitHubApi(uri, object : TypeToken<GitHubUser>() {})
+        return invokeGitHubApi(uri, GitHubUser::class.java)
     }
 
-    private fun getClosedPullRequests(pageNumber: Int): List<GitHubPullRequest> {
-        val uri = "https://api.github.com/repos/gradle/gradle/pulls?state=closed&sort=updated&direction=desc&per_page=$pageSize&page=$pageNumber"
-        return invokeGitHubApi(uri, object : TypeToken<List<GitHubPullRequest>>() {})
+    private fun getMergedContributorPullRequests(pageNumber: Int): List<GitHubPullRequest> {
+        val uri = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:gradle/gradle+label:%22from:contributor%22&sort=updated&order=desc&per_page=$pageSize&page=$pageNumber"
+        return invokeGitHubApi(uri, GitHubPullRequestSearchResult::class.java).items
     }
 }
 
