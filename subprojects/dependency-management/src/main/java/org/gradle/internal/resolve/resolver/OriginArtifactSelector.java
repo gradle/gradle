@@ -45,7 +45,7 @@ public interface OriginArtifactSelector {
 
         ModuleSources getSources();
 
-        Set<? extends VariantResolveMetadata> getVariantsForArtifactSelection();
+        Set<? extends VariantResolveMetadata> getVariants();
 
         AttributesSchemaInternal getAttributesSchema();
     }
@@ -79,7 +79,7 @@ public interface OriginArtifactSelector {
         }
 
         @Override
-        public Set<? extends VariantResolveMetadata> getVariantsForArtifactSelection() {
+        public Set<? extends VariantResolveMetadata> getVariants() {
             return variants;
         }
     }

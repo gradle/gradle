@@ -129,7 +129,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadataForArtifactSelection component, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
             // TODO: Artifact cache should be pulled up
-            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, component.getVariantsForArtifactSelection(), component.getAttributesSchema(), artifactResolver, new HashMap<>(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, component.getVariants(), component.getAttributesSchema(), artifactResolver, new HashMap<>(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
         } else {
             return null;
         }
