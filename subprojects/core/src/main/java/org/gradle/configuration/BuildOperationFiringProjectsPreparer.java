@@ -56,17 +56,30 @@ public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
         @Override
         public BuildOperationDescriptor.Builder description() {
             BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Configure build"));
+            ConfigureBuildBuildOperationType.ConfigureCategory category;
             if (gradle.isRootBuild()) {
+                category = ConfigureBuildBuildOperationType.ConfigureCategory.CONFIGURE_ROOT_BUILD;
                 builder.metadata(BuildOperationCategory.CONFIGURE_ROOT_BUILD);
             } else {
+                category = ConfigureBuildBuildOperationType.ConfigureCategory.CONFIGURE_BUILD;
                 builder.metadata(BuildOperationCategory.CONFIGURE_BUILD);
             }
+            int projectsToConfigureCount = gradle.getRootProject().getAllprojects().size();
             builder.totalProgress(gradle.getSettings().getProjectRegistry().size());
-            //noinspection Convert2Lambda
             return builder.details(new ConfigureBuildBuildOperationType.Details() {
                 @Override
                 public String getBuildPath() {
                     return gradle.getIdentityPath().toString();
+                }
+
+                @Override
+                public int getProjectsToConfigureCount() {
+                    return projectsToConfigureCount;
+                }
+
+                @Override
+                public ConfigureBuildBuildOperationType.ConfigureCategory getConfigureCategory() {
+                    return category;
                 }
             });
         }
