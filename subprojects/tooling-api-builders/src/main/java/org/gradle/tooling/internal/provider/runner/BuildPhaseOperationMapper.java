@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.execution.RunBuildWorkBuildOperationType;
+import org.gradle.execution.BuildPhaseBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
-import org.gradle.internal.build.event.types.DefaultRunBuildWorkDescriptor;
+import org.gradle.internal.build.event.types.DefaultBuildPhaseDescriptor;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -31,19 +31,19 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 
 import javax.annotation.Nullable;
 
-public class RunBuildWorkOperationMapper implements BuildOperationMapper<RunBuildWorkBuildOperationType.Details, DefaultRunBuildWorkDescriptor> {
+public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhaseBuildOperationType.Details, DefaultBuildPhaseDescriptor> {
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.BUILD_PHASE);
     }
 
     @Override
-    public Class<RunBuildWorkBuildOperationType.Details> getDetailsType() {
-        return RunBuildWorkBuildOperationType.Details.class;
+    public Class<BuildPhaseBuildOperationType.Details> getDetailsType() {
+        return BuildPhaseBuildOperationType.Details.class;
     }
 
     @Override
-    public DefaultRunBuildWorkDescriptor createDescriptor(RunBuildWorkBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public DefaultBuildPhaseDescriptor createDescriptor(BuildPhaseBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
         if (!(buildOperation.getMetadata() instanceof BuildOperationCategory)) {
             return null;
         }
@@ -59,16 +59,16 @@ public class RunBuildWorkOperationMapper implements BuildOperationMapper<RunBuil
             default:
                 throw new IllegalStateException("Build operation category: " + buildOperation.getMetadata() + " is not supported by " + this.getClass().getName() + ".");
         }
-        return new DefaultRunBuildWorkDescriptor(buildOperation, parent, buildPhase, buildOperation.getTotalProgress());
+        return new DefaultBuildPhaseDescriptor(buildOperation, parent, buildPhase, buildOperation.getTotalProgress());
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultRunBuildWorkDescriptor descriptor, RunBuildWorkBuildOperationType.Details details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(DefaultBuildPhaseDescriptor descriptor, BuildPhaseBuildOperationType.Details details, OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultRunBuildWorkDescriptor descriptor, RunBuildWorkBuildOperationType.Details details, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultBuildPhaseDescriptor descriptor, BuildPhaseBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         return null;
     }
 }

@@ -14,27 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.execution;
+
+import org.gradle.internal.operations.BuildOperationType;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * Returns build phase details.
- *
- * @since 7.6
+ * A marker interface the identifies a build operation type that is used to represent a build phase.
  */
-public interface InternalRunBuildWorkDescriptor extends InternalOperationDescriptor {
-
-
-    /**
-     * Returns the build phase name.
-     *
-     * Can be one of: CONFIGURE_ROOT_BUILD, CONFIGURE_BUILD, CONFIGURE_PROJECT, RUN_MAIN_TASKS, RUN_WORK, UNCATEGORIZED.
-     */
-    String getBuildPhase();
+public interface BuildPhaseBuildOperationType extends BuildOperationType<BuildPhaseBuildOperationType.Details, Void> {
 
     /**
-     * Returns number of build items this phase will execute.
+     * Used just as a marker interface since there is no need to add any additional details since they are part of BuildOperationDescriptor.
      */
-    int getBuildItemsCount();
+    interface Details {
+    }
 }
