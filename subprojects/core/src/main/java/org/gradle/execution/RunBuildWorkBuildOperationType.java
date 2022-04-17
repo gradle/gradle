@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,16 @@ package org.gradle.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
 
-// Used by gradle-profiler
-public interface RunRootBuildWorkBuildOperationType extends BuildOperationType<RunRootBuildWorkBuildOperationType.Details, Void> {
-    class Details extends RunBuildWorkBuildOperationType.Details {
-        private final long buildStartTime;
+public interface RunBuildWorkBuildOperationType extends BuildOperationType<RunBuildWorkBuildOperationType.Details, Void> {
+    class Details {
+        private final int workItemsCount;
 
-        public Details(long buildStartTime, int workItemsCount) {
-            super(workItemsCount);
-            this.buildStartTime = buildStartTime;
+        public Details(int workItemsCount) {
+            this.workItemsCount = workItemsCount;
         }
 
-        public long getBuildStartTime() {
-            return buildStartTime;
+        public int getWorkItemsCount() {
+            return workItemsCount;
         }
     }
 }
