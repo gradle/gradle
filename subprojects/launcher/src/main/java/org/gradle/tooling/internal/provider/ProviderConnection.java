@@ -366,6 +366,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
+            .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;
