@@ -26,6 +26,24 @@ public class ConfigureBuildBuildOperationType implements BuildOperationType<Conf
          * @since 4.6
          */
         String getBuildPath();
+
+        /**
+         * @since 7.6
+         */
+        int getProjectsToConfigureCount();
+
+        /**
+         * @since 7.6
+         */
+        ConfigureCategory getConfigureCategory();
+    }
+
+    /**
+     * @since 7.6
+     */
+    public enum ConfigureCategory {
+        CONFIGURE_ROOT_BUILD,
+        CONFIGURE_BUILD
     }
 
     public interface Result {

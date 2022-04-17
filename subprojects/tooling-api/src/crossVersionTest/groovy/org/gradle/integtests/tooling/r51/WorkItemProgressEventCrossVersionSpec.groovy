@@ -24,6 +24,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreRest
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
@@ -39,6 +40,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
+    @IgnoreRest
     def "reports typed work item progress events as descendants of tasks"() {
         when:
         def events = runBuild("runInWorker", EnumSet.allOf(OperationType))
