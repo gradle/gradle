@@ -86,6 +86,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         operationDependenciesResolver.addLookup(taskOperationMapper);
 
         ImmutableList<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
+            new BuildPhaseOperationMapper(),
             new FileDownloadOperationMapper(),
             new TestOperationMapper(testTaskTracker),
             new ProjectConfigurationOperationMapper(projectConfigurationTracker),

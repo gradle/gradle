@@ -16,34 +16,17 @@
 
 package org.gradle.initialization;
 
+import org.gradle.execution.BuildPhaseBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 public class ConfigureBuildBuildOperationType implements BuildOperationType<ConfigureBuildBuildOperationType.Details, ConfigureBuildBuildOperationType.Result> {
     @UsedByScanPlugin
-    public interface Details {
+    public interface Details extends BuildPhaseBuildOperationType.Details {
         /**
          * @since 4.6
          */
         String getBuildPath();
-
-        /**
-         * @since 7.6
-         */
-        int getProjectsToConfigureCount();
-
-        /**
-         * @since 7.6
-         */
-        ConfigureCategory getConfigureCategory();
-    }
-
-    /**
-     * @since 7.6
-     */
-    public enum ConfigureCategory {
-        CONFIGURE_ROOT_BUILD,
-        CONFIGURE_BUILD
     }
 
     public interface Result {

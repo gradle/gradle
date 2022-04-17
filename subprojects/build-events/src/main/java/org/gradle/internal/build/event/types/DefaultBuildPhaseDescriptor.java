@@ -18,13 +18,13 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.tooling.internal.protocol.events.InternalRunBuildWorkDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 
-public class DefaultRunBuildWorkDescriptor extends DefaultOperationDescriptor implements InternalRunBuildWorkDescriptor {
+public class DefaultBuildPhaseDescriptor extends DefaultOperationDescriptor implements InternalBuildPhaseDescriptor {
     private final String buildPhase;
     private final int workItemCount;
 
-    public DefaultRunBuildWorkDescriptor(BuildOperationDescriptor buildOperation, OperationIdentifier parentId, String buildPhase, int workItemCount) {
+    public DefaultBuildPhaseDescriptor(BuildOperationDescriptor buildOperation, OperationIdentifier parentId, String buildPhase, int workItemCount) {
         super(
             buildOperation.getId(),
             buildOperation.getName(),

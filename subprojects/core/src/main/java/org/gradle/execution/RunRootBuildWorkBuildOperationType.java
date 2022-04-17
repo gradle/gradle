@@ -20,11 +20,10 @@ import org.gradle.internal.operations.BuildOperationType;
 
 // Used by gradle-profiler
 public interface RunRootBuildWorkBuildOperationType extends BuildOperationType<RunRootBuildWorkBuildOperationType.Details, Void> {
-    class Details extends RunBuildWorkBuildOperationType.Details {
+    class Details implements BuildPhaseBuildOperationType.Details {
         private final long buildStartTime;
 
-        public Details(long buildStartTime, int workItemsCount) {
-            super(workItemsCount);
+        public Details(long buildStartTime) {
             this.buildStartTime = buildStartTime;
         }
 
