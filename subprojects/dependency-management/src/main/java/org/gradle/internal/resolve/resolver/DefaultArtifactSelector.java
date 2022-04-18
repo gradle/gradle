@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.ResolvedVariantCache;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -46,11 +47,13 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ResolvedVariantCache variantCache;
 
-    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache variantCache, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.selectors = selectors;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
+        this.variantCache = variantCache;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
@@ -109,7 +112,13 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         public Set<ResolvedVariant> getResolvedVariants() {
             ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
             for (VariantResolveMetadata variant : variants) {
-                result.add(ArtifactSetFactory.toResolvedVariant(variant, delegate.getModuleVersionId(), getSources(), exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory));
+                assert variant.getIdentifier()!=null;
+                if (exclusions.mayExcludeArtifacts()) {
+                    // TODO: We should be caching these too or filtering the artifacts from the cached one.
+                    result.add(ArtifactSetFactory.toResolvedVariant(variant, delegate.getModuleVersionId(), getSources(), exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory));
+                } else {
+                    result.add(variantCache.getOrCompute(variant, delegate.getModuleVersionId(), getSources(), EXCLUDE_NONE, artifactResolver));
+                }
             }
             return result.build();
         }

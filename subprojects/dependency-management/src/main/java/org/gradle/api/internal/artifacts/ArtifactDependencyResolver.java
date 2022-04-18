@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ResolvedVariantCache;
 
 import java.util.List;
 
@@ -33,6 +34,7 @@ public interface ArtifactDependencyResolver {
                  DependencyGraphVisitor graphVisitor,
                  DependencyArtifactsVisitor artifactsVisitor,
                  AttributesSchemaInternal consumerSchema,
+                 ResolvedVariantCache variantCache,
                  ArtifactTypeRegistry artifactTypeRegistry,
                  boolean includeSyntheticDependencies);
 }

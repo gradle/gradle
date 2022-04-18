@@ -115,6 +115,7 @@ import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescrip
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.component.model.ResolvedVariantCache;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -495,6 +496,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildState currentBuild,
                                                        TransformedVariantFactory transformedVariantFactory,
                                                        DependencyVerificationOverride dependencyVerificationOverride,
+                                                       CalculatedValueContainerFactory calculatedValueContainerFactory,
                                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
             return new ErrorHandlingConfigurationResolver(
                 new ShortCircuitEmptyConfigurationResolver(
@@ -516,6 +518,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         ),
                         moduleIdentifierFactory,
                         buildOperationExecutor,
+                        new ResolvedVariantCache(artifactTypeRegistry, calculatedValueContainerFactory),
                         artifactTypeRegistry,
                         componentSelectorConverter,
                         attributeContainerSerializer,
