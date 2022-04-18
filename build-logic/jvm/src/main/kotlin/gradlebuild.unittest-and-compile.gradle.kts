@@ -309,7 +309,7 @@ fun configureTests() {
                     preferredMaxDuration.set(Duration.ofSeconds(this))
                 }
                 // No limit; use all available executors
-                distribution.maxRemoteExecutors.set(null)
+                distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
                 // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
                 server.set(uri("https://ge-td-dogfooding.grdev.net"))
 
@@ -336,7 +336,9 @@ fun removeTeamcityTempProperty() {
     }
 }
 
-fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
+fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
+
+fun Project.enableExperimentalTestFiltering() = !setOf("configuration-cache", "kotlin-dsl", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
