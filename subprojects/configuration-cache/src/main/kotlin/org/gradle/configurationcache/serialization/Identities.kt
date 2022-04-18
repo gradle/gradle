@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization
 
-import it.unimi.dsi.fastutil.ints.IntArrayList
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import java.util.IdentityHashMap
 
 
@@ -25,21 +25,7 @@ class WriteIdentities {
     private
     val instanceIds = IdentityHashMap<Any, Int>()
 
-    private
-    val path = IntArrayList()
-
-    fun enter(id: Int) {
-        path.add(id)
-    }
-
-    fun isCircular(id: Int) =
-        path.contains(id)
-
-    fun leave(id: Int) {
-        require(path.removeLast() == id)
-    }
-
-    fun getId(instance: Any) = instanceIds[instance]
+   fun getId(instance: Any) = instanceIds[instance]
 
     fun putInstance(instance: Any): Int {
         val id = instanceIds.size
@@ -58,5 +44,23 @@ class ReadIdentities {
 
     fun putInstance(id: Int, instance: Any) {
         instanceIds[id] = instance
+    }
+}
+
+
+class Nursery {
+
+    private
+    val newBorn = ReferenceArrayList<Any>()
+
+    fun enter(instance: Any) {
+        newBorn.add(instance)
+    }
+
+    fun isCircular(instance: Any) =
+        newBorn.contains(instance)
+
+    fun leave(instance: Any) {
+        require(newBorn.removeLast() === instance)
     }
 }

@@ -82,6 +82,8 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     suspend fun read(): Any?
 
     fun readClass(): Class<*>
+
+    fun onDeserialization(action: () -> Unit)
 }
 
 
@@ -97,6 +99,8 @@ interface IsolateContext {
     val trace: PropertyTrace
 
     fun onProblem(problem: PropertyProblem)
+
+    val nursery: Nursery
 }
 
 
@@ -234,20 +238,15 @@ internal
 inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
-        if (identities.isCircular(id)) {
-            logPropertyProblem("serialize") {
-                text("Circular references can lead to undefined behavior upon deserialization.")
-            }
-        }
         writeSmallInt(id)
     } else {
         val newId = identities.putInstance(reference)
         writeSmallInt(newId)
-        identities.enter(newId)
+        nursery.enter(reference)
         try {
             encode(reference)
         } finally {
-            identities.leave(newId)
+            nursery.leave(reference)
         }
     }
 }
@@ -273,9 +272,11 @@ inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, 
     val previousValue = identities.getInstance(id)
     return when {
         previousValue != null -> previousValue.uncheckedCast()
-        else -> decode(id).also {
-            require(identities.getInstance(id) === it) {
-                "`decode(id)` should register the decoded instance"
+        else -> {
+            decode(id).also {
+                require(identities.getInstance(id) === it) {
+                    "`decode(id)` should register the decoded instance"
+                }
             }
         }
     }

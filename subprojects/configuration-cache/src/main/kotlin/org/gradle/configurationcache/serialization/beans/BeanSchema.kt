@@ -57,6 +57,7 @@ fun relevantFieldsOf(beanType: Class<*>) =
     relevantTypeHierarchyOf(beanType)
         .flatMap(Class<*>::relevantFields)
         .onEach(Field::makeAccessible)
+        .sortedBy { (it.type.isPrimitive || it.type == String::class.java).not() }
         .map { RelevantField(it, unsupportedFieldTypeFor(it)) }
         .toList()
 

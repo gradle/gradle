@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization
 
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.LogLevel
@@ -220,6 +221,21 @@ class DefaultReadContext(
 
     override lateinit var classLoader: ClassLoader
 
+    override fun onDeserialization(action: () -> Unit) {
+        pendingOperations.add(action)
+    }
+
+    internal
+    fun triggerPendingOperations() {
+        for (op in pendingOperations) {
+            op()
+        }
+        pendingOperations.clear()
+    }
+
+    private
+    var pendingOperations = ReferenceArrayList<() -> Unit>()
+
     internal
     fun initClassLoader(classLoader: ClassLoader) {
         this.classLoader = classLoader
@@ -326,6 +342,7 @@ abstract class AbstractIsolateContext<T>(
     codec: Codec<Any?>,
     problemsListener: ProblemsListener
 ) : MutableIsolateContext {
+
     private
     var currentProblemsListener: ProblemsListener = problemsListener
 
@@ -335,8 +352,9 @@ abstract class AbstractIsolateContext<T>(
     private
     var currentCodec = codec
 
-    override
-    var trace: PropertyTrace = PropertyTrace.Gradle
+    override var trace: PropertyTrace = PropertyTrace.Gradle
+
+    override val nursery = Nursery()
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T
