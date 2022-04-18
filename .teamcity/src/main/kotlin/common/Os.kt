@@ -96,7 +96,7 @@ enum class Os(
                 else -> JvmVendor.oracle
             }
             javaHome(DefaultJvm(version, vendor), this)
-        }
+        } + ",${javaHome(DefaultJvm(JvmVersion.java8, JvmVendor.openjdk), this)}"
         return """"-Porg.gradle.java.installations.paths=$paths""""
     }
 }
