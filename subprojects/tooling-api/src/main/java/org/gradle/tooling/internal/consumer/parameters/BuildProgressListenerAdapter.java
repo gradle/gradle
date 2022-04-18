@@ -28,12 +28,10 @@ import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.StartEvent;
 import org.gradle.tooling.events.build.BuildPhaseFinishEvent;
 import org.gradle.tooling.events.build.BuildPhaseOperationDescriptor;
-import org.gradle.tooling.events.build.BuildPhaseOperationResult;
 import org.gradle.tooling.events.build.BuildPhaseProgressEvent;
 import org.gradle.tooling.events.build.BuildPhaseStartEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildPhaseFinishEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildPhaseOperationDescriptor;
-import org.gradle.tooling.events.build.internal.DefaultBuildPhaseOperationResult;
 import org.gradle.tooling.events.build.internal.DefaultBuildPhaseStartEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor;
@@ -362,7 +360,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (event instanceof InternalOperationStartedProgressEvent) {
             return buildPhaseStartEvent((InternalOperationStartedProgressEvent) event, descriptor);
         } else if (event instanceof InternalOperationFinishedProgressEvent) {
-            // No finish events
             return buildPhaseFinishEvent((InternalOperationFinishedProgressEvent) event);
         } else {
             return null;
@@ -380,7 +377,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private BuildPhaseFinishEvent buildPhaseFinishEvent(InternalOperationFinishedProgressEvent event) {
         BuildPhaseOperationDescriptor descriptor = removeDescriptor(BuildPhaseOperationDescriptor.class, event.getDescriptor());
-        BuildPhaseOperationResult result = new DefaultBuildPhaseOperationResult(event.getResult().getStartTime(), event.getResult().getEndTime());
+        OperationResult result;
+        if (event.getResult() instanceof InternalFailureResult) {
+            InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()));
+        } else {
+            result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
+        }
         return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
     }
 

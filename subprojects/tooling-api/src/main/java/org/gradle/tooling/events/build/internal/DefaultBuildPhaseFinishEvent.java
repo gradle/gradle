@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.events.build.internal;
 
+import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.build.BuildPhaseFinishEvent;
 import org.gradle.tooling.events.build.BuildPhaseOperationDescriptor;
-import org.gradle.tooling.events.build.BuildPhaseOperationResult;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 
-public class DefaultBuildPhaseFinishEvent extends DefaultFinishEvent<BuildPhaseOperationDescriptor, BuildPhaseOperationResult> implements BuildPhaseFinishEvent {
-    public DefaultBuildPhaseFinishEvent(long eventTime, String displayName, BuildPhaseOperationDescriptor descriptor, BuildPhaseOperationResult result) {
+public class DefaultBuildPhaseFinishEvent extends DefaultFinishEvent<BuildPhaseOperationDescriptor, OperationResult> implements BuildPhaseFinishEvent {
+    public DefaultBuildPhaseFinishEvent(long eventTime, String displayName, BuildPhaseOperationDescriptor descriptor, OperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 }

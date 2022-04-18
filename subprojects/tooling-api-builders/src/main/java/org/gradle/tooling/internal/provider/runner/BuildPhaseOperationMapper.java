@@ -18,8 +18,12 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.execution.BuildPhaseBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultBuildPhaseDescriptor;
+import org.gradle.internal.build.event.types.DefaultFailureResult;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultSuccessResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -30,6 +34,7 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 
 public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhaseBuildOperationType.Details, DefaultBuildPhaseDescriptor> {
     @Override
@@ -69,6 +74,15 @@ public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhas
 
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultBuildPhaseDescriptor descriptor, BuildPhaseBuildOperationType.Details details, OperationFinishEvent finishEvent) {
-        return null;
+        long startTime = finishEvent.getStartTime();
+        long endTime = finishEvent.getEndTime();
+        AbstractOperationResult result;
+        if (finishEvent.getFailure() != null) {
+            // Don't report failure, since we anyway report failure in other events
+            result = new DefaultFailureResult(startTime, endTime, Collections.emptyList());
+        } else {
+            result = new DefaultSuccessResult(startTime, endTime);
+        }
+        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, result);
     }
 }
