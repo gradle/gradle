@@ -1,7 +1,6 @@
 package common
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import net.bytebuddy.build.ToStringPlugin.Enhance.Prefix
 
 data class VersionedSettingsBranch(val branchName: String, val enableTriggers: Boolean) {
 
