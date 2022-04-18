@@ -17,7 +17,10 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codec
+import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readMapInto
 import org.gradle.configurationcache.serialization.writeCollection
@@ -29,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 internal
-val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList<Any?>(it) }
+val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList(it) }
 
 
 internal
@@ -40,7 +43,47 @@ val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList<Any?
  * Decodes HashSet instances as LinkedHashSet to preserve original iteration order.
  */
 internal
-val hashSetCodec: Codec<HashSet<Any?>> = collectionCodec { LinkedHashSet<Any?>(it) }
+object HashSetCodec : Codec<HashSet<Any?>> {
+
+    override suspend fun WriteContext.encode(value: HashSet<Any?>) {
+        writeCollection(value) { element ->
+            if (element != null && nursery.isCircular(element)) {
+                logPropertyProblem("serialize") {
+                    text("Circular references can lead to undefined behavior upon deserialization.")
+                }
+                writeBoolean(true)
+            } else {
+                writeBoolean(false)
+            }
+            write(element)
+        }
+    }
+
+    override suspend fun ReadContext.decode(): HashSet<Any?> {
+        val size = readSmallInt()
+        val container = LinkedHashSet<Any?>(size)
+        for (i in 0 until size) {
+            // upon reading a circular reference, wait until all objects have been initialized
+            // before inserting the elements in the resulting set.
+            val isCircular = readBoolean()
+            val element = read()
+            if (isCircular) {
+                val remaining = mutableListOf(element)
+                for (j in i + 1 until size) {
+                    readBoolean()
+                    remaining.add(read())
+                }
+                onDeserialization {
+                    container.addAll(remaining)
+                }
+                return container
+            }
+
+            container.add(element)
+        }
+        return container
+    }
+}
 
 
 internal
@@ -68,11 +111,11 @@ fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
  * Decodes HashMap instances as LinkedHashMap to preserve original iteration order.
  */
 internal
-val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
 
 
 internal
-val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
 
 
 internal
