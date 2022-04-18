@@ -37,7 +37,7 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        events.operations.size() == 8
+        events.events.size() == 6
     }
 
     def setupProject() {
