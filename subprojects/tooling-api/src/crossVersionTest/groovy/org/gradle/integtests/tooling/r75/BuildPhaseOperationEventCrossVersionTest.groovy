@@ -25,15 +25,15 @@ import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.SuccessResult
-import org.gradle.tooling.events.build.BuildPhaseFinishEvent
-import org.gradle.tooling.events.build.BuildPhaseOperationDescriptor
-import org.gradle.tooling.events.build.BuildPhaseStartEvent
+import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent
+import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor
+import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
 @ToolingApiVersion(">=7.5")
 @TargetGradleVersion(">=7.5")
 class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
 
-    def "generates build phase events for task #taskName and expects #expectedRunAndReportedTasks run tasks"() {
+    def "generates build phase events for task #taskName and expects #expectedReportedTasksCount run tasks"() {
         setupProject()
 
         when:
@@ -55,11 +55,11 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         assertStartEventHas(progressEvents[2], "RUN_MAIN_TASKS", 0)
         assertSuccessfulFinishEventHas(progressEvents[5], "RUN_MAIN_TASKS")
 
-        assertStartEventHas(progressEvents[3], "RUN_WORK", expectedRunAndReportedTasks)
+        assertStartEventHas(progressEvents[3], "RUN_WORK", expectedReportedTasksCount)
         assertSuccessfulFinishEventHas(progressEvents[4], "RUN_WORK")
 
         where:
-        taskName   | expectedRunAndReportedTasks
+        taskName   | expectedReportedTasksCount
         ":a:taskA" | 1
         ":a:taskB" | 2
         ":a:taskC" | 3

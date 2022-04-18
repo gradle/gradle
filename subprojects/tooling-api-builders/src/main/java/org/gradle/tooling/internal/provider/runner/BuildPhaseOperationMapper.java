@@ -50,21 +50,18 @@ public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhas
     @Override
     public DefaultBuildPhaseDescriptor createDescriptor(BuildPhaseBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
         if (!(buildOperation.getMetadata() instanceof BuildOperationCategory)) {
-            return null;
+            throw new IllegalStateException("Build operation category: " + buildOperation.getMetadata() + " is not supported by " + this.getClass().getName() + ".");
         }
-        String buildPhase;
         switch ((BuildOperationCategory) buildOperation.getMetadata()) {
             case CONFIGURE_ROOT_BUILD:
             case CONFIGURE_BUILD:
-            case CONFIGURE_PROJECT:
             case RUN_MAIN_TASKS:
             case RUN_WORK:
-                buildPhase = buildOperation.getMetadata().toString();
-                break;
+                String buildPhase = buildOperation.getMetadata().toString();
+                return new DefaultBuildPhaseDescriptor(buildOperation, parent, buildPhase, buildOperation.getTotalProgress());
             default:
                 throw new IllegalStateException("Build operation category: " + buildOperation.getMetadata() + " is not supported by " + this.getClass().getName() + ".");
         }
-        return new DefaultBuildPhaseDescriptor(buildOperation, parent, buildPhase, buildOperation.getTotalProgress());
     }
 
     @Override
@@ -78,7 +75,7 @@ public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhas
         long endTime = finishEvent.getEndTime();
         AbstractOperationResult result;
         if (finishEvent.getFailure() != null) {
-            // Don't report failure, since we anyway report failure in other events
+            // Don't report failure exception, since we anyway report failure in other events
             result = new DefaultFailureResult(startTime, endTime, Collections.emptyList());
         } else {
             result = new DefaultSuccessResult(startTime, endTime);

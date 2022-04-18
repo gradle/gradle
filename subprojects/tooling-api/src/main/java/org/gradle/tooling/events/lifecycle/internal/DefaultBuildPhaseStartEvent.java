@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build.internal;
+package org.gradle.tooling.events.lifecycle.internal;
 
-import org.gradle.tooling.events.build.BuildPhaseOperationDescriptor;
-import org.gradle.tooling.events.build.BuildPhaseStartEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 
 public class DefaultBuildPhaseStartEvent extends DefaultStartEvent implements BuildPhaseStartEvent {
