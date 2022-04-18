@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
@@ -52,7 +51,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DependencyVerifyingModuleComponentRepository implements ModuleComponentRepository {
@@ -86,11 +84,6 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
-    }
-
-    @Override
-    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
-        return delegate.getArtifactCache();
     }
 
     @Override

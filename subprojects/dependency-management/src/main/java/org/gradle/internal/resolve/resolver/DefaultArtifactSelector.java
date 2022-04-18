@@ -17,13 +17,10 @@
 package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -40,13 +37,11 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private static final ExcludeSpec EXCLUDE_NONE = new DefaultExcludeFactory().nothing();
 
-    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final List<OriginArtifactSelector> selectors;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
@@ -81,7 +76,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return ArtifactSetFactory.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getAttributes(), overriddenAttributes, calculatedValueContainerFactory);
+        return ArtifactSetFactory.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, artifactTypeRegistry, component.getAttributes(), overriddenAttributes, calculatedValueContainerFactory);
     }
 
     class DefaultComponentResolveMetadataForArtifactSelection implements OriginArtifactSelector.ComponentResolveMetadataForArtifactSelection {
@@ -114,8 +109,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         public Set<ResolvedVariant> getResolvedVariants() {
             ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
             for (VariantResolveMetadata variant : variants) {
-                ResolvedVariant resolvedVariant = ArtifactSetFactory.toResolvedVariant(variant, delegate.getModuleVersionId(), getSources(), exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
-                result.add(resolvedVariant);
+                result.add(ArtifactSetFactory.toResolvedVariant(variant, delegate.getModuleVersionId(), getSources(), exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory));
             }
             return result.build();
         }

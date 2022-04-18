@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Cached
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
@@ -59,7 +58,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -130,11 +128,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return resolveAndCacheRepositoryAccess;
-    }
-
-    @Override
-    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

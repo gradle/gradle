@@ -18,10 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -42,7 +40,6 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.Map;
 
 public class FilteredModuleComponentRepository implements ModuleComponentRepository {
     private final ModuleComponentRepository delegate;
@@ -90,11 +87,6 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return new FilteringAccess(delegate.getRemoteAccess());
-    }
-
-    @Override
-    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
-        return delegate.getArtifactCache();
     }
 
     @Nullable

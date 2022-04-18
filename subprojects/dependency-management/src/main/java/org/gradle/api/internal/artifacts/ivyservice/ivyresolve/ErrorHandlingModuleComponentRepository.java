@@ -18,10 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
 import org.gradle.api.internal.component.ArtifactType;
@@ -44,7 +42,6 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ErroringResolveResult;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -89,11 +86,6 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remote;
-    }
-
-    @Override
-    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
-        return delegate.getArtifactCache();
     }
 
     @Override

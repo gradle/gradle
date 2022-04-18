@@ -17,19 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.action.InstantiatingAction;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * A repository of module components.
  */
 public interface ModuleComponentRepository {
     /**
-     * A unique identifier for this repository, based on it's type and attributes.
+     * A unique identifier for this repository, based on its type and attributes.
      * Two repositories with the same configuration in different projects will share the same id.
      */
     String getId();
@@ -49,9 +46,6 @@ public interface ModuleComponentRepository {
      * This access will be disabled when Gradle is executed with `--offline`.
      */
     ModuleComponentRepositoryAccess getRemoteAccess();
-
-    // TODO - put this somewhere else
-    Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache();
 
     @Nullable
     InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();
