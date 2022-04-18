@@ -16,16 +16,14 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -41,46 +39,10 @@ public interface OriginArtifactSelector {
 
         ComponentIdentifier getId();
 
-        ModuleVersionIdentifier getModuleVersionId();
-
         ModuleSources getSources();
 
-        Set<? extends VariantResolveMetadata> getVariants();
+        Set<ResolvedVariant> getResolvedVariants();
 
         AttributesSchemaInternal getAttributesSchema();
-    }
-    class DefaultComponentResolveMetadataForArtifactSelection implements OriginArtifactSelector.ComponentResolveMetadataForArtifactSelection {
-        private final ComponentResolveMetadata delegate;
-        private final Set<? extends VariantResolveMetadata> variants;
-
-        public DefaultComponentResolveMetadataForArtifactSelection(ComponentResolveMetadata delegate, Set<? extends VariantResolveMetadata> variants) {
-            this.delegate = delegate;
-            this.variants = variants;
-        }
-
-        @Override
-        public ComponentIdentifier getId() {
-            return delegate.getId();
-        }
-
-        @Override
-        public ModuleVersionIdentifier getModuleVersionId() {
-            return delegate.getModuleVersionId();
-        }
-
-        @Override
-        public ModuleSources getSources() {
-            return delegate.getSources();
-        }
-
-        @Override
-        public AttributesSchemaInternal getAttributesSchema() {
-            return delegate.getAttributesSchema();
-        }
-
-        @Override
-        public Set<? extends VariantResolveMetadata> getVariants() {
-            return variants;
-        }
     }
 }

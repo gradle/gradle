@@ -46,7 +46,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
@@ -128,8 +127,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadataForArtifactSelection component, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            // TODO: Artifact cache should be pulled up
-            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, component.getVariants(), component.getAttributesSchema(), artifactResolver, new HashMap<>(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getResolvedVariants(), component.getAttributesSchema(), overriddenAttributes);
         } else {
             return null;
         }
