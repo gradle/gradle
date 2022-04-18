@@ -98,11 +98,22 @@ When executing the Gradle Wrapper from subprojects, one must reference `gradlew`
 ====
 
 === Executing multiple tasks
-You can also specify multiple tasks. The ordering of task execution is influenced by the order that they are listed on the command-line. Precise order of execution is determined by the tasks' dependencies, and a task having no dependencies may execute earlier than it is listed on the command-line. For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
+You can also specify multiple tasks. The tasks will be executed as quickly as possible while still honoring task dependencies. Precise order of execution is determined by the tasks' dependencies, and a task having no dependencies may execute earlier than it is listed on the command-line. For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
 
 ----
 $ gradle test deploy
 ----
+
+=== Command line order safety
+Although Gradle will always attempt to execute the build as quickly as possible, command line ordering safety will also be honored.  For example, the following will execute `clean` and `build` along with their dependencies.
+
+----
+$ gradle clean build
+----
+
+However, the intention implied in the command line order is that `clean` should run first, and then `build`.  It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster, since `clean` would remove what `build` created.  Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.  Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
+
+Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> for further information.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks from execution
