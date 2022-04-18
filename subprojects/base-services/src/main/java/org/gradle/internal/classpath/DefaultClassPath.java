@@ -18,7 +18,6 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -33,9 +32,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 /**
  * An immutable classpath.
@@ -186,18 +186,18 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     private static ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {
-        Set<File> result = new LinkedHashSet<File>();
-        result.addAll(files1);
-        result.addAll(files2);
-        return new ImmutableUniqueList<File>(result);
+        ImmutableUniqueList.Builder<File> builder = ImmutableUniqueList.builderWithExpectedSize(files1.size() + files2.size());
+        builder.addAll(files1);
+        builder.addAll(files2);
+        return builder.build();
     }
 
     public static class Builder {
 
-        private final ImmutableUniqueList.Builder<File> uniqueListBuilder;
+        private final ImmutableUniqueList.BoundedBuilder<File> uniqueListBuilder;
 
         public Builder(int exactSize) {
-            uniqueListBuilder = ImmutableUniqueList.builderWithExactSize(exactSize);
+            uniqueListBuilder = ImmutableUniqueList.builderWithExpectedSize(exactSize);
         }
 
         public void add(File file) {
@@ -212,44 +212,94 @@ public class DefaultClassPath implements ClassPath, Serializable {
     protected static final class ImmutableUniqueList<T> extends AbstractList<T> implements Serializable {
         private static final ImmutableUniqueList<Object> EMPTY = new ImmutableUniqueList<Object>(Collections.emptySet());
 
+        public static <T> ImmutableUniqueList<T> takeOwnership(HashSet<T> set) {
+            return set.isEmpty()
+                ? ImmutableUniqueList.<T>empty()
+                : new ImmutableUniqueList<T>(set);
+        }
+
         public static <T> ImmutableUniqueList<T> of(Collection<T> collection) {
             if (collection.isEmpty()) {
                 return empty();
             }
-            Builder<T> builder = new Builder<T>(collection.size());
-            for (T element : collection) {
-                builder.add(element);
-            }
+            Builder<T> builder = builderWithExpectedSize(collection.size());
+            builder.addAll(collection);
             return builder.build();
         }
 
-        public static <T> Builder<T> builderWithExactSize(int exactSize) {
-            return new Builder<T>(exactSize);
+        public static <T> BoundedBuilder<T> builderWithExpectedSize(int size) {
+            return new BoundedBuilder<T>(size);
         }
 
-        public static class Builder<T> {
+        public static <T> Builder<T> builder() {
+            return new UnboundedBuilder<T>();
+        }
+
+        public static abstract class Builder<T> {
+
+            public void addAll(Collection<T> coll) {
+                for (T e : coll) {
+                    add(e);
+                }
+            }
+
+            public abstract boolean add(T element);
+
+            public abstract ImmutableUniqueList<T> build();
+        }
+
+        private static class UnboundedBuilder<T> extends Builder<T> {
+
+            private boolean built = false;
+            private final HashSet<T> set = new HashSet<T>();
+            private final ArrayList<T> list = new ArrayList<T>();
+
+            @Override
+            public boolean add(T element) {
+                if (built) {
+                    throw new IllegalStateException("Cannot add more elements after the list has been built.");
+                }
+                if (set.add(element)) {
+                    list.add(element);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public ImmutableUniqueList<T> build() {
+                built = true;
+                return new ImmutableUniqueList<T>(set, list.toArray());
+            }
+        }
+
+        public static class BoundedBuilder<T> extends Builder<T> {
 
             private final HashSet<T> set;
             private final Object[] array;
             private int inserted;
 
-            public Builder(int size) {
+            public BoundedBuilder(int size) {
                 set = new HashSet<T>(size);
                 array = new Object[size];
                 inserted = 0;
             }
 
-            public void add(T element) {
+            @Override
+            public boolean add(T element) {
                 if (set.add(element)) {
                     if (inserted < array.length) {
                         array[inserted] = element;
                         inserted += 1;
+                        return true;
                     } else {
                         throw new IllegalStateException("Trying to insert more elements than size given!");
                     }
                 }
+                return false;
             }
 
+            @Override
             public ImmutableUniqueList<T> build() {
                 return new ImmutableUniqueList<T>(set, shrinkArray());
             }
@@ -296,10 +346,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
         @Override
         public T get(int index) {
-            if (index >= size) {
-                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-            }
-            return Cast.uncheckedNonnullCast(asArray[index]);
+            return uncheckedNonnullCast(asArray[index]);
         }
 
         @Override

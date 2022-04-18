@@ -67,10 +67,13 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
     private DefaultModuleRegistry(ClassLoader classLoader, ClassPath additionalModuleClassPath, @Nullable GradleInstallation gradleInstallation) {
         this.gradleInstallation = gradleInstallation;
 
-        for (File classpathFile : new EffectiveClassPath(classLoader).plus(additionalModuleClassPath).getAsFiles()) {
+        for (File classpathFile : new EffectiveClassPath(classLoader, additionalModuleClassPath).getAsFiles()) {
             classpath.add(classpathFile);
-            if (classpathFile.isFile() && !classpathJars.containsKey(classpathFile.getName())) {
-                classpathJars.put(classpathFile.getName(), classpathFile);
+            if (classpathFile.isFile()) {
+                String fileName = classpathFile.getName();
+                if (!classpathJars.containsKey(fileName)) {
+                    classpathJars.put(fileName, classpathFile);
+                }
             }
         }
     }

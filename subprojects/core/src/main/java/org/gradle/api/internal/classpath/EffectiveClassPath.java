@@ -18,23 +18,29 @@ package org.gradle.api.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 public class EffectiveClassPath extends DefaultClassPath {
+
     public EffectiveClassPath(ClassLoader classLoader) {
-        super(ImmutableUniqueList.of(findAvailableClasspathFiles(classLoader)));
+        this(classLoader, ClassPath.EMPTY);
     }
 
-    private static List<File> findAvailableClasspathFiles(ClassLoader classLoader) {
+    public EffectiveClassPath(ClassLoader classLoader, ClassPath additionalModules) {
+        super(findAvailableClasspathFiles(classLoader, additionalModules));
+    }
+
+    private static ImmutableUniqueList<File> findAvailableClasspathFiles(ClassLoader classLoader, ClassPath additionalModules) {
+        ImmutableUniqueList.Builder<File> classpathFiles = ImmutableUniqueList.builder();
+
         List<URL> rawClasspath = ClasspathUtil.getClasspath(classLoader).getAsURLs();
-        List<File> classpathFiles = new ArrayList<File>();
         for (URL url : rawClasspath) {
             if (url.getProtocol().equals("file")) {
                 try {
@@ -55,17 +61,21 @@ public class EffectiveClassPath extends DefaultClassPath {
             }
         }
 
-        return classpathFiles;
+        classpathFiles.addAll(additionalModules.getAsFiles());
+
+        return classpathFiles.build();
     }
 
-    private static void addClasspathFile(File classpathFile, List<File> classpathFiles) {
-        if (classpathFile.exists() && !classpathFiles.contains(classpathFile)) {
-            classpathFiles.add(classpathFile.getAbsoluteFile());
-            addManifestClasspathFiles(classpathFile, classpathFiles);
+    private static void addClasspathFile(File classpathFile, ImmutableUniqueList.Builder<File> classpathFiles) {
+        if (classpathFile.exists()) {
+            File absoluteFile = classpathFile.getAbsoluteFile();
+            if (classpathFiles.add(absoluteFile)) {
+                addManifestClasspathFiles(absoluteFile, classpathFiles);
+            }
         }
     }
 
-    private static void addManifestClasspathFiles(File classpathFile, List<File> classpathFiles) {
+    private static void addManifestClasspathFiles(File classpathFile, ImmutableUniqueList.Builder<File> classpathFiles) {
         List<URI> classpathUris = ManifestUtil.parseManifestClasspath(classpathFile);
         for (URI classpathUri : classpathUris) {
             addClasspathFile(new File(classpathUri), classpathFiles);
