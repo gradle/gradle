@@ -16,7 +16,6 @@
 
 package promotion
 
-import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
