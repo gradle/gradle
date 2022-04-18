@@ -113,12 +113,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
             ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
             for (VariantResolveMetadata variant : variants) {
                 assert variant.getIdentifier()!=null;
-                if (exclusions.mayExcludeArtifacts()) {
-                    // TODO: We should be caching these too or filtering the artifacts from the cached one.
-                    result.add(ArtifactSetFactory.toResolvedVariant(variant, delegate.getModuleVersionId(), getSources(), exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory));
-                } else {
-                    result.add(variantCache.getOrCompute(variant, delegate.getModuleVersionId(), getSources(), EXCLUDE_NONE, artifactResolver));
-                }
+                result.add(variantCache.getOrCompute(variant, delegate.getModuleVersionId(), getSources(), EXCLUDE_NONE, artifactResolver));
             }
             return result.build();
         }

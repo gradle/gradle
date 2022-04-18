@@ -39,6 +39,10 @@ public class ResolvedVariantCache {
     }
 
     public ResolvedVariant getOrCompute(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver) {
+        if (exclusions.mayExcludeArtifacts()) {
+            // TODO: We should be caching these too or filtering the artifacts from the cached one.
+            return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory);
+        }
         return variantCache.computeIfAbsent(variant.getIdentifier(), identifier -> ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory));
     }
 }
