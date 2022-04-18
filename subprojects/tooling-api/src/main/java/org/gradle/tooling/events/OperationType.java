@@ -140,18 +140,16 @@ public enum OperationType {
 
 
     /**
-     * TODO Doc
-     * Flag for build phase events. For example
+     * Flag for build phase events.
      *
      * <p>
      * The following events are currently issued for this operation type.
      * <ul>
-     *     <li>{@link org.gradle.tooling.events.download.FileDownloadStartEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.StatusEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.download.FileDownloadFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent}</li>
      * </ul>
      *
-     * @since 7.6
+     * @since 7.5
      */
     @Incubating
     BUILD_PHASE

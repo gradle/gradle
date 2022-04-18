@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build.internal;
+package org.gradle.tooling.events.lifecycle.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.build.BuildPhaseOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 

@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
-
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.FinishEvent;
-
 /**
- * @since 7.6
+ * Build lifecycle interfaces and classes related to event notifications.
  */
-@Incubating
-public interface BuildPhaseFinishEvent extends BuildPhaseProgressEvent, FinishEvent {
-}
+package org.gradle.tooling.events.lifecycle;

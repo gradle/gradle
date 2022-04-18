@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.lifecycle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.FinishEvent;
 
 /**
- * @since 7.6
+ * An event that marks the finish of a build phase.
+ *
+ * @since 7.5
  */
 @Incubating
-public interface BuildPhaseOperationDescriptor extends OperationDescriptor {
-    /**
-     * Returns the build phase name.
-     *
-     * Can be one of: CONFIGURE_ROOT_BUILD, CONFIGURE_BUILD, CONFIGURE_PROJECT, RUN_MAIN_TASKS, RUN_WORK, UNCATEGORIZED.
-     */
-    String getBuildPhase();
-
-    /**
-     * Returns number of build items this phase will execute.
-     */
-    int getBuildItemsCount();
+public interface BuildPhaseFinishEvent extends BuildPhaseProgressEvent, FinishEvent {
 }

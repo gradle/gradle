@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.lifecycle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.StartEvent;
 
 /**
- * Event describing the build phase.
+ * An event that marks the start of a build phase.
  *
- * @since 7.6
+ * @since 7.5
  */
 @Incubating
-public interface BuildPhaseProgressEvent extends ProgressEvent {
-
-    @Override
-    BuildPhaseOperationDescriptor getDescriptor();
+public interface BuildPhaseStartEvent extends BuildPhaseProgressEvent, StartEvent {
 }

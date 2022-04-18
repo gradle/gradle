@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.lifecycle;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationDescriptor;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * A descriptor of a build phase operation.
  *
- * Returns build phase details.
- *
- * @since 7.6
+ * @since 7.5
  */
-public interface InternalBuildPhaseDescriptor extends InternalOperationDescriptor {
+@Incubating
+public interface BuildPhaseOperationDescriptor extends OperationDescriptor {
 
     /**
      * Returns the build phase name.
@@ -34,6 +36,8 @@ public interface InternalBuildPhaseDescriptor extends InternalOperationDescripto
 
     /**
      * Returns number of build items this phase will execute.
+     *
+     * For configuration phase this is a number of projects to configure, for build phase this is a number of tasks to run.
      */
     int getBuildItemsCount();
 }
