@@ -51,6 +51,9 @@ trait WithAndroidDeprecations {
         def method = agpVersionNumber < VersionNumber.parse("4.2")
             ? 'taskAction$gradle'
             : 'taskAction$gradle_core'
-        runner.expectDeprecationWarning(getIncrementalTaskInputsDeprecationWarning("IncrementalTask.${method}"), "https://issuetracker.google.com/218478028")
+        // https://issuetracker.google.com/218478028
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersionNumber < VersionNumber.parse("7.3.0-alpha08"),
+            getIncrementalTaskInputsDeprecationWarning("IncrementalTask.${method}"))
     }
 }
