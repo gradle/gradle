@@ -12,6 +12,7 @@ We would like to thank the following community members for their contributions t
 [George Thomas](https://github.com/smoothreggae),
 [Anja Papatola](https://github.com/apalopta),
 [Björn Kautler](https://github.com/Vampire),
+[David Burström](https://github.com/davidburstrom),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder),
 [Konstantin Gribov](https://github.com/grossws),
@@ -27,10 +28,11 @@ We would like to thank the following community members for their contributions t
 [Peter Gafert](https://github.com/codecholeric),
 [Alex Landau](https://github.com/AlexLandau),
 [Jerry Wiltse](https://github.com/solvingj),
-[Matthew Haughton](https://github.com/3flex),
-[Filip Daca](https://github.com/filip-daca)
-[Edgars Jasmans](https://github.com/yasmans)
 [Tyler Burke](https://github.com/T-A-B),
+[Matthew Haughton](https://github.com/3flex),
+[Filip Daca](https://github.com/filip-daca),
+[Edgars Jasmans](https://github.com/yasmans),
+[Simão Gomes Viana](https://github.com/xdevs23),
 [Lajos Veres](https://github.com/vlajos)
 
 <!--

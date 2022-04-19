@@ -5,7 +5,6 @@ plugins {
     id("gradlebuild.generate-subprojects-info")  // CI: Generate subprojects information for the CI testing pipeline fan out
     id("gradlebuild.cleanup")                    // CI: Advanced cleanup after the build (like stopping daemons started by tests)
 
-    id("gradlebuild.check-update-release-note")  // CI and Local development: Convenience tasks to check or update contributors in release note
     id("gradlebuild.update-versions")            // Local development: Convenience tasks to update versions in this build: 'released-versions.json', 'agp-versions.properties', ...
     id("gradlebuild.wrapper")                    // Local development: Convenience tasks to update the wrapper (like 'nightlyWrapper')
     id("gradlebuild.quick-check")                // Local development: Convenience task `quickCheck` for running checkstyle/codenarc only on changed files before commit
