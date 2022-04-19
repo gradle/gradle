@@ -1,6 +1,6 @@
 package projects
 
-import common.failedTestArtifactDestination
+import common.hiddenArtifactDestination
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
@@ -67,7 +67,7 @@ class CheckProject(
                 days = 14,
                 artifactPatterns = """
                 +:**/*
-                +:$failedTestArtifactDestination/**/*"
+                +:$hiddenArtifactDestination/**/*"
                 """.trimIndent()
             )
         }
