@@ -64,7 +64,7 @@ class FixedValueReplacingProviderCodec(
     val providerWithChangingValueCodec = Bindings.of {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(BuildServiceProviderCodec(buildStateRegistry))
-        bind(BeanCodec())
+        bind(BeanCodec)
     }.build()
 
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {

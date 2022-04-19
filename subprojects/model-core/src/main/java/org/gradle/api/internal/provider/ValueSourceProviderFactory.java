@@ -43,9 +43,13 @@ public interface ValueSourceProviderFactory {
         Action<? super ValueSourceSpec<P>> configureAction
     );
 
-    void addListener(Listener listener);
+    void addValueListener(ValueListener listener);
 
-    void removeListener(Listener listener);
+    void removeValueListener(ValueListener listener);
+
+    void addComputationListener(ComputationListener listener);
+
+    void removeComputationListener(ComputationListener listener);
 
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
@@ -53,9 +57,19 @@ public interface ValueSourceProviderFactory {
         @Nullable P parameters
     );
 
+    /**
+     * The listener that is notified when the value of the {@code ValueSource} is computed. There is no ordering guarantees with the
+     * {@link ValueListener#valueObtained(ValueListener.ObtainedValue, ValueSource)}.
+     */
     @EventScope(Scopes.Build.class)
-    interface Listener {
+    interface ComputationListener {
+        void beforeValueObtained();
 
+        void afterValueObtained();
+    }
+
+    @EventScope(Scopes.Build.class)
+    interface ValueListener {
         <T, P extends ValueSourceParameters> void valueObtained(
             ObtainedValue<T, P> obtainedValue,
             ValueSource<T, P> source

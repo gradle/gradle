@@ -26,6 +26,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     applyDefaultSettings(os = os, timeout = timeout)
     artifactRules = """
         build/report-*-performance-tests.zip => .
+        build/report-*-performance.zip => $hiddenArtifactDestination
+        build/report-*PerformanceTest.zip => $hiddenArtifactDestination
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
@@ -37,11 +39,18 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
+fun performanceTestCommandLine(
+    task: String,
+    baselines: String,
+    extraParameters: String = "",
+    os: Os = Os.LINUX,
+    testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
+    testJavaVendor: String = os.perfTestJavaVendor,
+) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
-    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
-    "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-PtestJavaVersion=$testJavaVersion",
+    "-PtestJavaVendor=$testJavaVendor",
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",

@@ -17,17 +17,13 @@
 package org.gradle.internal.work
 
 import org.gradle.internal.Factory
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLockCoordinationService
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 
-class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
-    ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
+class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServiceTest {
 
-    def "worker start run immediately when there are sufficient leases available"() {
+    def "worker start runs immediately when there are sufficient leases available"() {
         def registry = workerLeaseService(2)
 
         expect:
@@ -185,7 +181,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "cannot get current operation when current thread has no operation"() {
+    def "cannot get current lease when current thread has no operation"() {
         def registry = workerLeaseService(1)
 
         when:
@@ -294,7 +290,159 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    WorkerLeaseService workerLeaseService(int maxWorkers) {
-        return new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, maxWorkers))
+    def "does not release worker lease when locks can be acquired without blocking"() {
+        def registry = workerLeaseService(1)
+        def resource = resourceLock("one")
+
+        when:
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    instant.worker1Started
+                    registry.withLocks([resource]) {
+                        thread.block()
+                    }
+                    instant.worker1Finished
+                }
+            }
+            start {
+                thread.blockUntil.worker1Started
+                registry.runAsWorkerThread {
+                    instant.worker2Started
+                }
+            }
+        }
+
+        then:
+        instant.worker2Started > instant.worker1Finished
+    }
+
+    def "releases worker lease when need to block to acquire a lock"() {
+        def registry = workerLeaseService(1)
+        def resource = resourceLock("one")
+
+        when:
+        async {
+            start {
+                thread.blockUntil.locked
+                registry.runAsWorkerThread {
+                    instant.worker1Started
+                    registry.withLocks([resource]) {
+                        instant.worker1Finished
+                    }
+                }
+            }
+            start {
+                coordinationService.withStateLock(lock(resource))
+                instant.locked
+                thread.blockUntil.worker1Started
+                registry.runAsWorkerThread {
+                    thread.block()
+                    instant.unlocked
+                    coordinationService.withStateLock(unlock(resource))
+                }
+            }
+        }
+
+        then:
+        instant.worker1Finished > instant.unlocked
+    }
+
+    def "does not release worker lease when replacing locks and locks can be acquired without blocking"() {
+        def registry = workerLeaseService(1)
+        def resource1 = resourceLock("one")
+        def resource2 = resourceLock("two")
+
+        when:
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    instant.worker1Started
+                    registry.withLocks([resource1]) {
+                        registry.withReplacedLocks([resource1], resource2) {
+                            thread.block()
+                        }
+                    }
+                    instant.worker1Finished
+                }
+            }
+            start {
+                thread.blockUntil.worker1Started
+                registry.runAsWorkerThread {
+                    instant.worker2Started
+                }
+            }
+        }
+
+        then:
+        instant.worker2Started > instant.worker1Finished
+    }
+
+    def "releases worker lease when replacing locks and need to block to acquire a new lock"() {
+        def registry = workerLeaseService(1)
+        def resource1 = resourceLock("one")
+        def resource2 = resourceLock("two")
+
+        when:
+        async {
+            start {
+                thread.blockUntil.locked
+                registry.runAsWorkerThread {
+                    instant.worker1Started
+                    registry.withLocks([resource1]) {
+                        registry.withReplacedLocks([resource1], resource2) {
+                            instant.worker1Finished
+                        }
+                    }
+                }
+            }
+            start {
+                coordinationService.withStateLock(lock(resource2))
+                instant.locked
+                thread.blockUntil.worker1Started
+                registry.runAsWorkerThread {
+                    thread.block()
+                    instant.unlocked
+                    coordinationService.withStateLock(unlock(resource2))
+                }
+            }
+        }
+
+        then:
+        instant.worker1Finished > instant.unlocked
+    }
+
+    def "releases worker lease when replacing locks and need to block to reacquire an old lock"() {
+        def registry = workerLeaseService(1)
+        def resource1 = resourceLock("one")
+        def resource2 = resourceLock("two")
+
+        when:
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    registry.withLocks([resource1]) {
+                        registry.withReplacedLocks([resource1], resource2) {
+                            instant.unlocked1
+                            thread.blockUntil.locked1
+                        }
+                        instant.worker1Finished
+                    }
+                }
+            }
+            start {
+                thread.blockUntil.unlocked1
+                coordinationService.withStateLock(lock(resource1))
+                instant.locked1
+                registry.runAsWorkerThread {
+                    thread.block()
+                    instant.unlocked
+                    coordinationService.withStateLock(unlock(resource1))
+                }
+            }
+        }
+
+        then:
+        instant.worker1Finished > instant.unlocked
     }
 }

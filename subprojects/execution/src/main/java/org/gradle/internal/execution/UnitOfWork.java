@@ -177,15 +177,6 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Tell consumers about inputs to watch during the next build.
-     *
-     * @param hasEmptySources {@code true} if the work has source properties and those properties are empty fingerprints.
-     *
-     * @see org.gradle.internal.execution.steps.SkipEmptyWorkStep
-     */
-    default void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {}
-
-    /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
      */
     // TODO Make this part of CachingState instead

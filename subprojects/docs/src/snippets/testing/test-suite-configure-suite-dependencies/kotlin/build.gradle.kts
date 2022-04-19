@@ -30,14 +30,11 @@ testing {
     suites {
         val test by getting(JvmTestSuite::class) { // <1>
             dependencies {
+                // Note that this is equivalent to adding dependencies to testImplementation in the top-level dependencies block
                 implementation("org.assertj:assertj-core:3.21.0") // <2>
+                annotationProcessor("com.google.auto.value:auto-value:1.9") // <3>
             }
         }
     }
-}
-
-// Note that this is equivalent to:
-dependencies {
-    testImplementation("org.assertj:assertj-core:3.21.0")
 }
 // tag::configure-suite-dependencies[]

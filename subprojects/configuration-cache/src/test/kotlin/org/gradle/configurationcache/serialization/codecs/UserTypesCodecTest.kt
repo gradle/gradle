@@ -75,6 +75,19 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
         abstract fun displayName(): String
     }
 
+    @Test
+    fun `preserves identity of java util logging Level`() {
+        configurationCacheRoundtripOf(java.util.logging.Level.INFO to java.util.logging.Level.WARNING).run {
+            assertThat(
+                first,
+                sameInstance(java.util.logging.Level.INFO)
+            )
+            assertThat(
+                second,
+                sameInstance(java.util.logging.Level.WARNING)
+            )
+        }
+    }
 
     @Test
     fun `Peano sanity check`() {

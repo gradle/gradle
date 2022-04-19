@@ -7,6 +7,7 @@ description = "Implementation for launching, controlling and communicating with 
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
@@ -17,6 +18,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))
     implementation(project(":core"))

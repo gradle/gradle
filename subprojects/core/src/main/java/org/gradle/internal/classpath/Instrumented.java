@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
@@ -42,6 +43,18 @@ public class Instrumented {
         }
 
         @Override
+        public void systemPropertyChanged(Object key, @Nullable Object value, String consumer) {
+        }
+
+        @Override
+        public void systemPropertyRemoved(Object key, String consumer) {
+        }
+
+        @Override
+        public void systemPropertiesCleared(String consumer) {
+        }
+
+        @Override
         public void envVariableQueried(String key, @Nullable String value, String consumer) {
         }
 
@@ -51,6 +64,10 @@ public class Instrumented {
 
         @Override
         public void fileOpened(File file, String consumer) {
+        }
+
+        @Override
+        public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
         }
     };
 
@@ -72,7 +89,17 @@ public class Instrumented {
                 case "getProperty":
                     array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
                     break;
+                case "setProperty":
+                    array.array[callSite.getIndex()] = new SetSystemPropertyCallSite(callSite);
+                    break;
+                case "setProperties":
+                    array.array[callSite.getIndex()] = new SetSystemPropertiesCallSite(callSite);
+                    break;
+                case "clearProperty":
+                    array.array[callSite.getIndex()] = new ClearSystemPropertyCallSite(callSite);
+                    break;
                 case "properties":
+                case "getProperties":
                     array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
                     break;
                 case "getInteger":
@@ -120,9 +147,52 @@ public class Instrumented {
 
     // Called by generated code.
     public static Properties systemProperties(String consumer) {
-        return new AccessTrackingProperties(System.getProperties(), (k, v) -> {
-            systemPropertyQueried(convertToString(k), convertToString(v), consumer);
+        return new AccessTrackingProperties(System.getProperties(), new AccessTrackingProperties.Listener() {
+            // Do not track accesses to non-String properties. Only String properties can be set externally, so they cannot affect the cached configuration.
+            @Override
+            public void onAccess(Object key, @Nullable Object value) {
+                if (key instanceof String && (value == null || value instanceof String)) {
+                    systemPropertyQueried(convertToString(key), convertToString(value), consumer);
+                }
+            }
+
+            @Override
+            public void onChange(Object key, Object newValue) {
+                listener().systemPropertyChanged(key, newValue, consumer);
+            }
+
+            @Override
+            public void onRemove(Object key) {
+                listener().systemPropertyRemoved(key, consumer);
+            }
+
+            @Override
+            public void onClear() {
+                listener().systemPropertiesCleared(consumer);
+            }
         });
+    }
+
+    // Called by generated code.
+    public static String setSystemProperty(String key, String value, String consumer) {
+        String oldValue = System.setProperty(key, value);
+        systemPropertyQueried(key, oldValue, consumer);
+        listener().systemPropertyChanged(key, value, consumer);
+        return oldValue;
+    }
+
+    // Called by generated code.
+    public static String clearSystemProperty(String key, String consumer) {
+        String oldValue = System.clearProperty(key);
+        systemPropertyQueried(key, oldValue, consumer);
+        listener().systemPropertyRemoved(key, consumer);
+        return oldValue;
+    }
+
+    public static void setSystemProperties(Properties properties, String consumer) {
+        listener().systemPropertiesCleared(consumer);
+        properties.forEach((k, v) -> listener().systemPropertyChanged(k, v, consumer));
+        System.setProperties(properties);
     }
 
     // Called by generated code.
@@ -283,6 +353,10 @@ public class Instrumented {
         }
     }
 
+    public static void fileCollectionObserved(FileCollection fileCollection, String consumer) {
+        listener().fileCollectionObserved(fileCollection, consumer);
+    }
+
     public static void fileOpened(File file, String consumer) {
         listener().fileOpened(absoluteFileOf(file), consumer);
     }
@@ -351,9 +425,37 @@ public class Instrumented {
 
     public interface Listener {
         /**
-         * @param consumer The name of the class that is reading the property value
+         * Invoked when the code reads the system property with the String key.
+         *
+         * @param key the name of the property
+         * @param value the value of the property at the time of reading or {@code null} if the property is not present
+         * @param consumer the name of the class that is reading the property value
          */
         void systemPropertyQueried(String key, @Nullable Object value, String consumer);
+
+        /**
+         * Invoked when the code updates or adds the system property.
+         *
+         * @param key the name of the property, can be non-string
+         * @param value the new value of the property, can be {@code null} or non-string
+         * @param consumer the name of the class that is updating the property value
+         */
+        void systemPropertyChanged(Object key, @Nullable Object value, String consumer);
+
+        /**
+         * Invoked when the code removes the system property. The property may not be present.
+         *
+         * @param key the name of the property, can be non-string
+         * @param consumer the name of the class that is removing the property value
+         */
+        void systemPropertyRemoved(Object key, String consumer);
+
+        /**
+         * Invoked when all system properties are removed.
+         *
+         * @param consumer the name of the class that is removing the system properties
+         */
+        void systemPropertiesCleared(String consumer);
 
         /**
          * Invoked when the code reads the environment variable.
@@ -380,6 +482,11 @@ public class Instrumented {
          * @param consumer the name of the class that is opening the file
          */
         void fileOpened(File file, String consumer);
+
+        /**
+         * Invoked when configuration logic observes the given file collection.
+         */
+        void fileCollectionObserved(FileCollection inputs, String consumer);
     }
 
     private static class IntegerSystemPropertyCallSite extends AbstractCallSite {
@@ -460,11 +567,103 @@ public class Instrumented {
         }
 
         @Override
+        public Object callStatic(Class receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperty(arg1.toString(), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1);
+            }
+        }
+
+        @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(System.class)) {
                 return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1, arg2);
+            }
+        }
+    }
+
+    private static class SetSystemPropertyCallSite extends AbstractCallSite {
+        public SetSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1, arg2);
+            }
+        }
+    }
+
+    private static class SetSystemPropertiesCallSite extends AbstractCallSite {
+        public SetSystemPropertiesCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class) && arg1 instanceof Properties) {
+                setSystemProperties((Properties) arg1, array.owner.getName());
+                return null;
+            } else {
+                return super.call(receiver, arg1);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class) && arg1 instanceof Properties) {
+                setSystemProperties((Properties) arg1, array.owner.getName());
+                return null;
+            } else {
+                return super.callStatic(receiver, arg1);
+            }
+        }
+    }
+
+    private static class ClearSystemPropertyCallSite extends AbstractCallSite {
+        public ClearSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return clearSystemProperty(convertToString(arg1), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return clearSystemProperty(convertToString(arg1), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1);
             }
         }
     }
@@ -480,6 +679,24 @@ public class Instrumented {
                 return systemProperties(array.owner.getName());
             } else {
                 return super.callGetProperty(receiver);
+            }
+        }
+
+        @Override
+        public Object call(Object receiver) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperties(array.owner.getName());
+            } else {
+                return super.call(receiver);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperties(array.owner.getName());
+            } else {
+                return super.callStatic(receiver);
             }
         }
     }

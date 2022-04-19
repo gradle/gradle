@@ -34,7 +34,7 @@ class ActionNodeCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): ActionNode? {
+    override suspend fun ReadContext.decode(): ActionNode {
         val action = withCodec(userTypesCodec) { readNonNull<WorkNodeAction>() }
         return ActionNode(action)
     }

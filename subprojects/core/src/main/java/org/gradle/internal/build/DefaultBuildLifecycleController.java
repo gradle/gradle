@@ -23,6 +23,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
@@ -32,6 +33,7 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -149,6 +151,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public void finalizeWorkGraph(BuildWorkPlan plan) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
         state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
+            for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
+                workPlan.plan.onComplete(handler);
+            }
             workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
@@ -211,10 +216,21 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private static class DefaultBuildWorkPlan implements BuildWorkPlan {
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
+        private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
             this.owner = owner;
             this.plan = plan;
+        }
+
+        @Override
+        public void stop() {
+            plan.close();
+        }
+
+        @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            handlers.add(handler);
         }
     }
 

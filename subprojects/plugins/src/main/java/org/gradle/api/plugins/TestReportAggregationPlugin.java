@@ -73,7 +73,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         });
 
         // iterate and configure each user-specified report, creating a <reportName>Results configuration for each
-        reporting.getReports().withType(AggregateTestReport.class).configureEach(report -> {
+        reporting.getReports().withType(AggregateTestReport.class).all(report -> {
             // A resolvable configuration to collect test results; typically named "testResults"
             Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
             testResultsConf.extendsFrom(testAggregation);
@@ -107,7 +107,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
-            testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
+            testSuites.withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
                     report.getTestType().convention(testSuite.getTestType());
                 });

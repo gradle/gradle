@@ -313,7 +313,7 @@ class DefaultConfigurationCache internal constructor(
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
 
-        buildOperationExecutor.withStoreOperation {
+        buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {
                     action(layout.fileFor(stateType))
@@ -374,9 +374,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        projectStateRegistry.withMutableStateOfAllProjects(
-            Factory { cacheIO.writeRootBuildStateTo(stateFile) }
-        )
+        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+            cacheIO.writeRootBuildStateTo(stateFile)
+        }
 
     private
     fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {

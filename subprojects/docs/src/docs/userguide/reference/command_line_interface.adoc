@@ -160,7 +160,21 @@ $ gradle  mAL:cT
 include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
 ----
 
-You can also use these abbreviations with the -x command-line option.
+You can also use these abbreviations with the `-x` command-line option.
+
+=== Tracing name expansion
+
+For complex projects, it might not be obvious if the intended tasks were executed. When using abbreviated names, a single typo can lead to the execution of unexpected tasks.
+
+When INFO, or <<logging.adoc#logLevels, more verbose logging is enabled>>, the output will contain extra information about the project and task name expansion. For example, when executing the `mAL:cT` command on the previous example, the following log messages will be visible:
+
+
+----
+No exact project with name ‘:mAL’ has been found. Checking for abbreviated names.
+Found exactly one project that matches the abbreviated name ‘:mAL’: ':my-awesome-library'.
+No exact task with name ‘:cT’ has been found. Checking for abbreviated names.
+Found exactly one task name, that matches the abbreviated name ‘:cT’: ':compileTest'.
+----
 
 == Common tasks
 
@@ -298,6 +312,14 @@ $ gradle -q api:properties
 include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
 ----
 
+You can also query a single property with the optional `--property` argument.
+
+.Information about a single property
+----
+$ gradle -q api:properties --property allprojects
+include::{snippetsPath}/tutorial/projectReports/tests/propertyReport.out[]
+----
+
 [[sec:command_line_completion]]
 == Command-line completion
 
@@ -313,7 +335,10 @@ image::gradle-completion-4.0.gif[]
 Shows a help message with all available CLI options.
 
 `-v`, `--version`::
-Prints Gradle, Groovy, Ant, JVM, and operating system version information.
+Prints Gradle, Groovy, Ant, JVM, and operating system version information and exit without executing any tasks.
+
+`-V`, `--show-version`::
+Prints Gradle, Groovy, Ant, JVM, and operating system version information and continue execution of specified tasks.
 
 `-S`, `--full-stacktrace`::
 Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec:command_line_logging, logging options>>.
@@ -606,6 +631,10 @@ Continuous build uses file system watching to detect changes to the inputs.
 If file system watching does not work on your system, then continuous build won't work either.
 In particular, continuous build does not work when using `--no-daemon`.
 See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
+
+When Gradle detects a change to the inputs, it will not trigger the build immediately.
+Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
+You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
 
 === Terminating Continuous Build
 

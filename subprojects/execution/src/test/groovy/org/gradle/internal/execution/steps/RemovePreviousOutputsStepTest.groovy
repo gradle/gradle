@@ -28,7 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnapshotterFixture {
+class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> implements SnapshotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def previousExecutionState = Mock(PreviousExecutionState)
@@ -40,8 +40,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
     def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
 
     @Override
-    protected InputChangesContext createContext() {
-        Stub(InputChangesContext)
+    protected ChangingOutputsContext createContext() {
+        Stub(ChangingOutputsContext)
     }
 
     def "deletes only the previous outputs"() {
@@ -188,8 +188,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         }
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
-        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] })
-        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] })
+        1 * outputChangeListener.invalidateCachesFor({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] })
+        1 * outputChangeListener.invalidateCachesFor({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] })
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {

@@ -65,7 +65,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -125,8 +124,7 @@ public class ProjectBuilderImpl {
         // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease));
+        WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = workerLeaseService.maybeStartWorker();
 
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
@@ -153,7 +151,7 @@ public class ProjectBuilderImpl {
             "ProjectBuilder.stoppable",
             stoppable(
                 (Stoppable) workerLeaseService::runAsIsolatedTask,
-                (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
+                (Stoppable) workerLease::leaseFinish,
                 buildServices,
                 buildTreeState,
                 buildSessionState,

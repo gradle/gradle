@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
@@ -38,6 +37,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -70,6 +70,7 @@ import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -158,7 +159,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             ListenerManager listenerManager,
             BuildOperationListenerManager buildOperationListenerManager,
             BuildOperationExecutor buildOperationExecutor,
-            TaskInputsListeners inputsListeners,
+            WorkInputListeners workListeners,
             FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildRequestMetaData requestMetaData,
@@ -181,7 +182,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 buildOperationListenerManager,
                 listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecutor(
-                    inputsListeners,
+                    workListeners,
                     fileChangeListeners,
                     styledTextOutputFactory,
                     executorFactory,

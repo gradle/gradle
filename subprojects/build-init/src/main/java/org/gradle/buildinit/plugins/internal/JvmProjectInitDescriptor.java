@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
+
 public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     protected final Description description;
@@ -195,7 +198,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
         if (getLanguage() == Language.GROOVY) {
             String groovyVersion = libraryVersionProvider.getVersion("groovy");
-            String groovyAllCoordinates = constraintsDefined ? "org.codehaus.groovy:groovy-all" : "org.codehaus.groovy:groovy-all:" + groovyVersion;
+            String groovyAllCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? "groovy-all" : "groovy-all:" + groovyVersion);
             buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
         }
         if (getLanguage() == Language.KOTLIN) {
@@ -215,7 +218,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-text:" + commonsTextVersion);
 
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependencyConstraint(null, "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
+            buildScriptBuilder.implementationDependencyConstraint(null, groovyModuleDependency("groovy-all", libraryVersionProvider.getVersion("groovy")));
         }
         if (getLanguage() == Language.KOTLIN) {
             buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
@@ -234,7 +237,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                     buildScriptBuilder
                         .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
                         .testImplementationDependency("Use the latest Groovy version for Spock testing",
-                            "org.codehaus.groovy:groovy:" + libraryVersionProvider.getVersion("groovy"));
+                            groovyModuleDependency("groovy", libraryVersionProvider.getVersion("groovy")));
                 }
                 buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),

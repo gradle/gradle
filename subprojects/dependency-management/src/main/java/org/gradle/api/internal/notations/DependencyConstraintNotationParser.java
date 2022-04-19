@@ -98,12 +98,12 @@ public class DependencyConstraintNotationParser {
 
         @Override
         public void requireCapability(Object capabilityNotation) {
-            throw new InvalidUserDataException("Capabilies are not supported by dependency constraints");
+            throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
         }
 
         @Override
         public void requireCapabilities(Object... capabilityNotations) {
-            throw new InvalidUserDataException("Capabilies are not supported by dependency constraints");
+            throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
         }
     }
 }

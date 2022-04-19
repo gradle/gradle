@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -133,7 +132,6 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
         '''
     }
 
-    @ToBeFixedForConfigurationCache(because = 'invokes outgoingVariants task')
     def 'producer has expected outgoingVariants'() {
         when:
         succeeds(':producer:outgoingVariants')

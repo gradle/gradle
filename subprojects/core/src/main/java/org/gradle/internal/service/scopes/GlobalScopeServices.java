@@ -17,8 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.execution.internal.DefaultTaskInputsListeners;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -79,8 +77,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
@@ -137,10 +133,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         }
         registration.add(BuildLayoutFactory.class);
         registration.add(DefaultScriptFileResolver.class);
-    }
-
-    ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
-        return new DefaultResourceLockCoordinationService();
     }
 
     CurrentBuildOperationRef createCurrentBuildOperationRef() {
@@ -260,10 +252,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
-    }
-
-    TaskInputsListeners createTaskInputsListener(ListenerManager listenerManager) {
-        return new DefaultTaskInputsListeners(listenerManager);
     }
 
     @Override

@@ -16,18 +16,22 @@
 
 package org.gradle.testing.testng
 
+
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
 import static org.gradle.testing.fixture.TestNGCoverage.STANDARD_COVERAGE
 import static org.hamcrest.CoreMatchers.is
 
 @TargetCoverage({STANDARD_COVERAGE})
+@Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
 class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {

@@ -35,6 +35,8 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
     @Rule
@@ -46,19 +48,22 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         version.split(":", 2)[0]
     }
 
-    def getGroovyJarVariants() {
-        ["groovy-all", "groovy"]
-    }
-
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        groovyDependency = "org.codehaus.groovy:groovy:$version"
+        groovyDependency = groovyModuleDependency("groovy", versionNumber)
     }
 
     def "compileGoodCode"() {
-        groovyDependency = "org.codehaus.groovy:$module:$version"
+        if (module == "groovy-all") {
+            // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
+            // See https://issues.apache.org/jira/browse/GROOVY-10543
+            Assume.assumeTrue(versionNumber.major < 4)
+            // No groovy-all for indy variant
+            Assume.assumeTrue(versionClassifier != "indy")
+        }
+        groovyDependency = groovyModuleDependency(module, versionNumber)
 
         expect:
         succeeds("compileGroovy")
@@ -66,7 +71,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile("Address.class").exists()
 
         where:
-        module << groovyJarVariants
+        module << ["groovy", "groovy-all"]
     }
 
     def "compileWithAnnotationProcessor"() {
@@ -364,7 +369,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasErrorOutput('unable to resolve class groovy.ant.AntBuilder')
 
         when:
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-ant:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-ant", versionNumber)}' }"
 
         then:
         succeeds("compileGroovy")
@@ -389,7 +394,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         Assume.assumeFalse(versionLowerThan("3.0"))
 
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-test", versionNumber)}' }"
         expect:
         succeeds("test")
     }

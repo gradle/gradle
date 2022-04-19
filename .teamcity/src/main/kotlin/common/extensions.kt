@@ -70,13 +70,17 @@ fun Requirements.requiresNoEc2Agent() {
     doesNotContain("teamcity.agent.name", "EC2")
 }
 
-const val failedTestArtifactDestination = ".teamcity/gradle-logs"
+/**
+ * This is an undocumented location that forbids anonymous access.
+ * We put artifacts here to avoid accidentally exposing sensitive information publicly.
+ */
+const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
-        build/report-* => $failedTestArtifactDestination
-        build/tmp/test files/** => $failedTestArtifactDestination/test-files
-        build/errorLogs/** => $failedTestArtifactDestination/errorLogs
+        build/report-* => $hiddenArtifactDestination
+        build/tmp/test files/** => $hiddenArtifactDestination/test-files
+        build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
@@ -212,7 +216,7 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "killExistingProcessesStartedByGradle"
             gradleParams =
-                buildToolGradleParameters(daemon).joinToString(separator = " ")
+                (buildToolGradleParameters(daemon) + buildScanTag("CleanUpBuild")).joinToString(separator = " ")
         }
     }
 }

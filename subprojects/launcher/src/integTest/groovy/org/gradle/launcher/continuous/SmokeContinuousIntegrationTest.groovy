@@ -646,7 +646,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     private void exitContinuousBuildSinceNoDeclaredInputs() {
         assert !gradle.running
-        assert output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        assert output.contains("Exiting continuous build as Gradle did not detect any file system inputs.")
     }
 
     private void exitsContinuousBuildSinceNotWatchingAnyLocationsExceptForConfigCache() {

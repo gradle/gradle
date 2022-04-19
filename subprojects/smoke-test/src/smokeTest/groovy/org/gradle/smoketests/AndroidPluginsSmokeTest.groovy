@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
+
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
  *

@@ -26,7 +26,6 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
@@ -62,8 +61,8 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
+
     @Test
-    @ToBeFixedForConfigurationCache
     fun `cannot use type-safe accessors for extensions contributed in afterEvaluate`() {
         withFolders {
             "producer/src/main/kotlin" {
@@ -192,7 +191,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `can use type-safe accessors for applied plugins with CRLF line separators`() {
 
@@ -216,7 +214,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version`() {
 
         withDefaultSettings().appendText(
@@ -248,7 +245,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
     @Test
-    @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version in settings plugin`() {
 
         withDefaultSettings().appendText(
@@ -282,7 +278,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
 
         val externalPlugins = withExternalPlugins()
@@ -355,7 +350,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     """
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
 
         assumeNonEmbeddedGradleExecuter() // Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode
@@ -387,7 +381,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for plugins applied by sibling plugin`() {
 
         withKotlinDslPlugin()
@@ -414,7 +407,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors from scripts with same name but different ids`() {
 
         val externalPlugins = withExternalPlugins()
@@ -483,7 +475,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply sibling plugin whether it has a plugins block or not`() {
 
         withKotlinDslPlugin()
@@ -514,7 +505,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply sibling plugin from another package`() {
 
         withKotlinDslPlugin()
@@ -542,7 +532,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript(
@@ -602,7 +591,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use core plugin spec builders`() {
 
         givenPrecompiledKotlinScript(
@@ -630,7 +618,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
         // given:
@@ -663,7 +650,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
         withKotlinDslPlugin().appendText(
@@ -690,7 +676,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `plugin application errors are reported but don't cause the build to fail`() {
 
         // given:
@@ -706,7 +691,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `plugin application errors can be made to fail the build via system property`() {
 
         // given:
@@ -746,14 +730,12 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders in multi-project builds with local and external plugins`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(null)
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders in multi-project builds with local and external plugins sharing package name`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage("p")

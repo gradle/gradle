@@ -90,8 +90,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         then:
         output.count("ON CI") == 1
-        // TODO(mlopatkin) maybe revisit this decision if we decide that ValueSources are free to read whatever files they want
-        configurationCache.assertStateStored()
+        configurationCache.assertStateLoaded()
 
         when: "running after changing the property value"
         file("local.properties").text = "ci=false"
@@ -160,5 +159,96 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         output.count("ON CI") == 1
         output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
         configurationCache.assertStateStored()
+    }
+
+    def "ValueSource can use #accessor without making it an input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class IsInputSet implements ValueSource<Boolean, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getPropertyName()
+                }
+                @Override Boolean obtain() {
+                    return ${accessor}(parameters.propertyName.get()) != null
+                }
+            }
+
+            def isCi = providers.of(IsInputSet) {
+                parameters {
+                    propertyName = "ci"
+                }
+            }
+            if (isCi.get()) {
+                tasks.register("build") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("build") {
+                    doLast { println("NOT CI") }
+                }
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(ci: "1")
+        configurationCacheRun("-Dci=1", "build")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("ON CI")
+
+        when: "changing the value of the input doesn't invalidate cache"
+        executer.withEnvironmentVars(ci: "2")
+        configurationCacheRun("-Dci=2", "build")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("ON CI")
+
+        when: "removing the input invalidates cache"
+        configurationCacheRun("build")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("NOT CI")
+
+        where:
+        accessor             | _
+        "System.getProperty" | _
+        "System.getenv"      | _
+    }
+
+    def "other build inputs are still tracked after computing ValueSource"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class ConstantSource implements ValueSource<Integer, ValueSourceParameters.None> {
+                @Override Integer obtain() {
+                    return 42
+                }
+            }
+
+            def vsResult = providers.of(ConstantSource) {}
+            println("ValueSource result = \${vsResult.get()}")
+            println("some.property = \${System.getProperty("some.property")}")
+        """
+
+        when:
+        configurationCacheRun("-Dsome.property=1")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("some.property = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'some.property'")
+            ignoringUnexpectedInputs()
+        }
     }
 }

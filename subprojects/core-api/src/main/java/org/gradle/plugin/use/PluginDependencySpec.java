@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -65,7 +64,6 @@ public interface PluginDependencySpec {
      *
      * @since 7.2
      */
-    @Incubating
     default PluginDependencySpec version(Provider<String> version) {
         // providers used in plugins block are necessarily at configuration time
         return this.version(version.get());

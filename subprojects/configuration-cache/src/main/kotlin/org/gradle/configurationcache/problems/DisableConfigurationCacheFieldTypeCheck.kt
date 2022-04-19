@@ -20,7 +20,7 @@ package org.gradle.configurationcache.problems
 /**
  * Disable configuration cache field type check for the annotated field.
  *
- * This is a temporary measure, internal, in order to not loose too much coverage.
+ * This is a temporary measure, internal, in order to avoid losing too much coverage.
  *
  * TODO:configuration-cache This annotation should be removed.
  */

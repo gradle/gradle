@@ -49,8 +49,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
         JUNIT4("junit:junit", "4.13"),
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
-        SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
-        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.6.10"),
+        SPOCK("org.spockframework:spock-core", "2.1-groovy-3.0"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.6.20"),
         TESTNG("org.testng:testng", "7.4.0"),
         NONE(null, null);
 
@@ -114,6 +114,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
+        Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
         this.attachedDependencies = false;
         // This complexity is to keep the built-in test suite from automatically adding dependencies
@@ -134,7 +135,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
 
         addDefaultTestTarget();
 

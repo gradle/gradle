@@ -220,7 +220,6 @@ task someTask
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "trying to use an old version of Zinc switches to Gradle-supported version"() {
         settingsFile << """
             rootProject.name = "scala"

@@ -112,7 +112,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
      * <p>
-     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.0-groovy-3.0}
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.1-groovy-3.0}
      * </p>
      */
     void useSpock();
@@ -127,7 +127,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
      * <p>
-     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.10}
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.20}
      * </p>
      */
     void useKotlinTest();

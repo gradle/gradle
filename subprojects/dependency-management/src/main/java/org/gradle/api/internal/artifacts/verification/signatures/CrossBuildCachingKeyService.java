@@ -115,7 +115,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             // if a key was found in the cache, it's permanent
             return false;
         }
-        long elapsed = key.timestamp - timeProvider.getCurrentTime();
+        long elapsed = timeProvider.getCurrentTime() - key.timestamp;
         return refreshKeys || elapsed > MISSING_KEY_TIMEOUT;
     }
 
@@ -253,34 +253,6 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
                 encoder.writeBoolean(false);
             }
         }
-    }
-
-    private static class PublicKeyEntrySerializer extends AbstractSerializer<CacheEntry<PGPPublicKey>> {
-        private final PublicKeySerializer keySerializer = new PublicKeySerializer();
-
-        @Override
-        public CacheEntry<PGPPublicKey> read(Decoder decoder) throws Exception {
-            long timestamp = decoder.readLong();
-            boolean present = decoder.readBoolean();
-            if (present) {
-                return new CacheEntry<>(timestamp, keySerializer.read(decoder));
-            } else {
-                return new CacheEntry<>(timestamp, null);
-            }
-        }
-
-        @Override
-        public void write(Encoder encoder, CacheEntry<PGPPublicKey> value) throws Exception {
-            encoder.writeLong(value.timestamp);
-            PGPPublicKey key = value.value;
-            if (key != null) {
-                encoder.writeBoolean(true);
-                keySerializer.write(encoder, key);
-            } else {
-                encoder.writeBoolean(false);
-            }
-        }
-
     }
 
     private static class CacheEntry<T> {

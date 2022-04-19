@@ -21,19 +21,27 @@ import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObserve
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.execution.plan.Node
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.Build::class)
-class RelevantProjectsRegistry : ProjectDependencyObservedListener {
+class RelevantProjectsRegistry(
+    private val build: BuildState
+) : ProjectDependencyObservedListener {
     private
     val targetProjects = mutableSetOf<ProjectState>()
 
     fun relevantProjects(nodes: List<Node>): Set<ProjectState> =
         targetProjects +
             nodes.mapNotNullTo(mutableListOf()) { node ->
-                node.owningProject?.owner
+                val project = node.owningProject
+                if (project != null && project.owner.owner != build) {
+                    null
+                } else {
+                    node.owningProject?.owner
+                }
             }
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {

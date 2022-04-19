@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
-import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -42,6 +41,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
@@ -54,7 +54,6 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -76,6 +75,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.operations.BuildOperationContext
@@ -104,10 +104,10 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskOutputs = Mock(TaskOutputsInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", HashCode.fromInt(1234))
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
     }
     def action2 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", HashCode.fromInt(1234))
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", TestHashCodes.hashCodeFrom(1234))
     }
     def state = new TaskStateInternal()
     def taskProperties = Stub(TaskProperties) {
@@ -141,6 +141,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
+    def inputListeners = Stub(WorkInputListeners)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
@@ -149,7 +150,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
-            return HashCode.fromInt(1234)
+            return TestHashCodes.hashCodeFrom(1234)
         }
     }
     def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher)
@@ -161,7 +162,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
-    def taskInputsListeners = Stub(TaskInputsListeners)
     def outputsCleanerFactory = { new OutputsCleaner(deleter, buildOutputCleanupRegistry.&isOutputOwnedByBuild, buildOutputCleanupRegistry.&isOutputOwnedByBuild) } as Supplier<OutputsCleaner>
 
     // @formatter:off
@@ -170,19 +170,18 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
-        new SkipEmptyWorkStep(outputChangeListener, outputsCleanerFactory,
+        new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
-        new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
-        new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, outputChangeListener,
+        new CancelExecutionStep<>(cancellationToken,
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
-    )))))))))))))))))
+    ))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
@@ -199,8 +198,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         listenerManager,
         reservedFileSystemLocationRegistry,
         fileCollectionFactory,
-        fileOperations,
-        taskInputsListeners
+        fileOperations
     )
 
     def setup() {

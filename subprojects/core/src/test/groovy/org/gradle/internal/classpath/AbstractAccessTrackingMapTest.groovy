@@ -24,7 +24,7 @@ import java.util.function.Consumer
 
 abstract class AbstractAccessTrackingMapTest extends Specification {
     protected final Map<String, String> innerMap = ['existing': 'existingValue', 'other': 'otherValue']
-    protected final BiConsumer<Object, Object> consumer = Mock()
+    protected final BiConsumer<Object, Object> onAccess = Mock()
 
     protected abstract Map<? super String, ? super String> getMapUnderTestToRead()
 
@@ -34,8 +34,8 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult  | reportedValue
@@ -49,8 +49,8 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult  | reportedValue
@@ -65,8 +65,8 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult | reportedValue
@@ -80,8 +80,8 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept('missing', null)
-        0 * consumer._
+        1 * onAccess.accept('missing', null)
+        0 * onAccess._
     }
 
     def "aggregating method #methodName reports all map contents as inputs"() {
@@ -89,9 +89,9 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         operation.accept(getMapUnderTestToRead())
 
         then:
-        (1.._) * consumer.accept('existing', 'existingValue')
-        (1.._) * consumer.accept('other', 'otherValue')
-        0 * consumer._
+        (1.._) * onAccess.accept('existing', 'existingValue')
+        (1.._) * onAccess.accept('other', 'otherValue')
+        0 * onAccess._
 
         where:
         methodName              | operation
@@ -111,7 +111,7 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         getMapUnderTestToRead().toString()
 
         then:
-        0 * consumer._
+        0 * onAccess._
     }
 
     def "entrySet() contains(entry(#key, #requestedValue)) and containsAll(entry(#key, #requestedValue)) are tracked"() {
@@ -120,16 +120,16 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         containsResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         when:
         def containsAllResult = getMapUnderTestToRead().entrySet().containsAll(Collections.singleton(entry(key, requestedValue)))
 
         then:
         containsAllResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | requestedValue  | reportedValue   | expectedResult
@@ -145,9 +145,9 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key1, reportedValue1)
-        1 * consumer.accept(key2, reportedValue2)
-        0 * consumer._
+        1 * onAccess.accept(key1, reportedValue1)
+        1 * onAccess.accept(key2, reportedValue2)
+        0 * onAccess._
 
         where:
         key1       | requestedValue1    | reportedValue1  | key2          | requestedValue2    | reportedValue2 | expectedResult
@@ -163,16 +163,16 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         containsResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         when:
         def containsAllResult = getMapUnderTestToRead().keySet().containsAll(Collections.singleton(key))
 
         then:
         containsAllResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult | reportedValue
@@ -186,9 +186,9 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key1, reportedValue1)
-        1 * consumer.accept(key2, reportedValue2)
-        0 * consumer._
+        1 * onAccess.accept(key1, reportedValue1)
+        1 * onAccess.accept(key2, reportedValue2)
+        0 * onAccess._
 
         where:
         key1       | reportedValue1  | key2           | reportedValue2 | expectedResult

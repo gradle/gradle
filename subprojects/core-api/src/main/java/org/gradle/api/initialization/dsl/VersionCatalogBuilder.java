@@ -75,7 +75,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Entry point for registering an alias for a library.
      *
-     * @param alias the alias identifer
+     * @param alias the alias identifier
      * @return a builder for this alias
      * @deprecated Use {@link #library(String, String, String)}, {@link #library(String, String)}
      * and {@link #plugin(String, String)} instead. Will be removed in Gradle 8.

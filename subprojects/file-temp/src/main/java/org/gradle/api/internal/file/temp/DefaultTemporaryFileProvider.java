@@ -18,16 +18,14 @@ package org.gradle.api.internal.file.temp;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.FileUtils;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 
-public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Serializable {
+public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     private final Factory<File> baseDirFactory;
 
     public DefaultTemporaryFileProvider(final Factory<File> fileFactory) {
@@ -36,7 +34,25 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
 
     @Override
     public File newTemporaryFile(String... path) {
-        return FileUtils.canonicalize(new File(baseDirFactory.create(), CollectionUtils.join("/", path)));
+        return new File(baseDirFactory.create(), CollectionUtils.join("/", path)).toPath().normalize().toFile();
+    }
+
+    @Override
+    public File newTemporaryDirectory(String... path) {
+        File dir = newTemporaryFile(path);
+        GFileUtils.mkdirs(dir);
+        return dir;
+    }
+
+    @Override
+    public Factory<File> temporaryDirectoryFactory(final String... path) {
+        return new Factory<File>() {
+            @Nullable
+            @Override
+            public File create() {
+                return newTemporaryDirectory(path);
+            }
+        };
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.fingerprint
 
-import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -34,10 +33,12 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.TaskExecutionTracker
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
@@ -64,7 +65,7 @@ internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val modelParameters: BuildModelParameters,
-    private val taskInputsListeners: TaskInputsListeners,
+    private val workInputListeners: WorkInputListeners,
     private val fileSystemAccess: FileSystemAccess,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
@@ -74,6 +75,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val report: ConfigurationCacheReport,
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val taskExecutionTracker: TaskExecutionTracker,
+    private val environmentChangeTracker: EnvironmentChangeTracker,
 ) : Stoppable {
 
     interface Host {
@@ -121,7 +123,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 writeContextForOutputStream(projectScopedOutputStream),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
-                taskExecutionTracker
+                taskExecutionTracker,
+                environmentChangeTracker
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
@@ -255,12 +258,12 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     fun addListener(listener: ConfigurationCacheFingerprintWriter) {
         listenerManager.addListener(listener)
-        taskInputsListeners.addListener(listener)
+        workInputListeners.addListener(listener)
     }
 
     private
     fun removeListener(listener: ConfigurationCacheFingerprintWriter) {
-        taskInputsListeners.removeListener(listener)
+        workInputListeners.removeListener(listener)
         listenerManager.removeListener(listener)
     }
 

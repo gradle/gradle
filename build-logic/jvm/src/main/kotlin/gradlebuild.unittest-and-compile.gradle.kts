@@ -105,6 +105,7 @@ fun configureCompileTask(options: CompileOptions) {
     options.release.set(8)
     options.encoding = "utf-8"
     options.isIncremental = true
+    options.isFork = true
     options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
     options.forkOptions.memoryMaximumSize = "1g"
     options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
@@ -214,7 +215,7 @@ fun Test.configureJvmForTest() {
         project.testJavaVendor.map {
             when (it.toLowerCase()) {
                 "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
-                "openjdk" -> vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+                "openjdk" -> vendor.set(JvmVendorSpec.ADOPTIUM)
             }
         }.getOrNull()
     }
@@ -308,7 +309,7 @@ fun configureTests() {
                     preferredMaxDuration.set(Duration.ofSeconds(this))
                 }
                 // No limit; use all available executors
-                distribution.maxRemoteExecutors.set(null)
+                distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
                 // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
                 server.set(uri("https://ge-td-dogfooding.grdev.net"))
 
@@ -335,8 +336,9 @@ fun removeTeamcityTempProperty() {
     }
 }
 
-fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
+fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
+fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
  */

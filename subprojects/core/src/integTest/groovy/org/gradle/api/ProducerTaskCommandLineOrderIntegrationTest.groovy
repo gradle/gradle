@@ -19,6 +19,7 @@ package org.gradle.api
 import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
     def "producer task with a dependency in another project will run before destroyer tasks when ordered first (type: #type)"() {
@@ -284,6 +285,92 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
 
         and:
         outputContains("Executing unzip transform...")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20195")
+    def "producer task that finalizes a destroyer task will run after the destroyer even when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type)
+        def generateBar = bar.task('generateBar').produces('build/bar', type)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+        cleanBar.finalizedBy(generateBar)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20195")
+    def "producer task that finalizes a destroyer task and is also a dependency will run after the destroyer even when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateBar = bar.task('generateBar').produces('build/bar', type)
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type).dependsOn(generateBar)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+        cleanBar.finalizedBy(generateBar)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateBar.fullPath, generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20272")
+    def "producer task that mustRunAfter a task that does not get executed will run before destroyer tasks when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateSpecialBar = bar.task('generateSpecialBar')
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type)
+        def generateBar = bar.task('generateBar').produces('build/bar', type).dependsOn(generateFoo).mustRunAfter(generateSpecialBar)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateFoo.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
+
+        where:
+        type << ProductionType.values()
     }
 
     static String getArtifactTransformConfiguration() {
