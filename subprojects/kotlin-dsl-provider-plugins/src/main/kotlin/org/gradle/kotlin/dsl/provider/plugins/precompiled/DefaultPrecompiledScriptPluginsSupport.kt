@@ -23,6 +23,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
@@ -55,6 +56,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+import org.gradle.util.GradleVersion
 import java.io.File
 import java.util.function.Consumer
 import javax.inject.Inject
@@ -230,7 +232,7 @@ fun Project.enableScriptCompilationOf(
 
         val (generatePrecompiledScriptPluginAccessors, _) =
             codeGenerationTask<GeneratePrecompiledScriptPluginAccessors>(
-                "accessors",
+                "accessors${GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().baseVersion.version)}",
                 "generatePrecompiledScriptPluginAccessors",
                 kotlinSourceDirectorySet
             ) {
