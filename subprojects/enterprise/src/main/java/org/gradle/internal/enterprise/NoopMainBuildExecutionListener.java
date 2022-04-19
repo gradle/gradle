@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.core;
+package org.gradle.internal.enterprise;
 
-import javax.annotation.Nullable;
+/**
+ * Stub implementation of the {@link GradleEnterprisePluginExecutionPhaseListener} to ensure compatibility with older version of the plugin.
+ */
+class NoopMainBuildExecutionListener implements GradleEnterprisePluginExecutionPhaseListener {
+    public static final NoopMainBuildExecutionListener INSTANCE = new NoopMainBuildExecutionListener();
 
-public interface GradleEnterprisePluginAdapter {
+    private NoopMainBuildExecutionListener() {
+    }
 
-    boolean shouldSaveToConfigurationCache();
-
-    void onLoadFromConfigurationCache();
-
-    void executionPhaseStarted();
-
-    void buildFinished(@Nullable Throwable buildFailure);
-
+    @Override
+    public void executionPhaseStarted() {
+    }
 }

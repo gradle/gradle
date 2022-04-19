@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.core;
+package org.gradle.internal.enterprise;
 
-import javax.annotation.Nullable;
-
-public interface GradleEnterprisePluginAdapter {
-
-    boolean shouldSaveToConfigurationCache();
-
-    void onLoadFromConfigurationCache();
-
+/**
+ * Used to signal a start of the execution phase to the plugin.
+ *
+ * Expected to be invoked at most once for a build tree, isn't invoked if the configuration phase fails.
+ * The configuration cache doesn't affect this callback, it is invoked regardless of the cache entry being reused.
+ *
+ * Implemented by the Enterprise plugin.
+ *
+ * @see org.gradle.internal.operations.BuildOperationCategory#RUN_MAIN_TASKS
+ */
+public interface GradleEnterprisePluginExecutionPhaseListener {
     void executionPhaseStarted();
-
-    void buildFinished(@Nullable Throwable buildFailure);
-
 }

@@ -138,6 +138,14 @@ class GradleEnterprisePluginCheckInFixture {
                                 }
                             }
 
+                            $GradleEnterprisePluginExecutionPhaseListener.name getExecutionPhaseListener() {
+                                new $GradleEnterprisePluginExecutionPhaseListener.name() {
+                                    void executionPhaseStarted() {
+                                        println "gradleEnterprisePlugin.executionPhaseStarted"
+                                    }
+                                }
+                            }
+
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
@@ -174,6 +182,14 @@ class GradleEnterprisePluginCheckInFixture {
 
     void assertUnsupportedMessage(String output, String unsupported) {
         assert output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $unsupported")
+    }
+
+    void invokedExecutionPhaseStartedCallbackOnce(String output) {
+        assert output.count("gradleEnterprisePlugin.executionPhaseStarted") == 1
+    }
+
+    void didNotInvokeExecutionPhaseStartedCallback(String output) {
+        assert !output.contains("gradleEnterprisePlugin.executionPhaseStarted")
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {

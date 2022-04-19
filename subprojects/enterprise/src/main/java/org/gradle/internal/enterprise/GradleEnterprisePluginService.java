@@ -33,6 +33,13 @@ public interface GradleEnterprisePluginService {
     BuildOperationNotificationListener getBuildOperationNotificationListener();
 
     /**
+     * Notified when the execution phase starts.
+     */
+    default GradleEnterprisePluginExecutionPhaseListener getExecutionPhaseListener() {
+        return NoopMainBuildExecutionListener.INSTANCE;
+    }
+
+    /**
      * Notified when the build invocation has finished by Gradle.
      */
     GradleEnterprisePluginEndOfBuildListener getEndOfBuildListener();
