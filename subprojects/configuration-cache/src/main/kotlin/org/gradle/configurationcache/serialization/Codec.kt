@@ -43,6 +43,8 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
     val sharedIdentities: WriteIdentities
 
+    val circularReferences: CircularReferences
+
     override val isolate: WriteIsolate
 
     fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter
@@ -82,6 +84,11 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     suspend fun read(): Any?
 
     fun readClass(): Class<*>
+
+    /**
+     * Defers the given [action] until all objects have been read.
+     */
+    fun onFinish(action: () -> Unit)
 }
 
 
@@ -236,8 +243,14 @@ inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, 
     if (id != null) {
         writeSmallInt(id)
     } else {
-        writeSmallInt(identities.putInstance(reference))
-        encode(reference)
+        val newId = identities.putInstance(reference)
+        writeSmallInt(newId)
+        circularReferences.enter(reference)
+        try {
+            encode(reference)
+        } finally {
+            circularReferences.leave(reference)
+        }
     }
 }
 
@@ -262,9 +275,11 @@ inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, 
     val previousValue = identities.getInstance(id)
     return when {
         previousValue != null -> previousValue.uncheckedCast()
-        else -> decode(id).also {
-            require(identities.getInstance(id) === it) {
-                "`decode(id)` should register the decoded instance"
+        else -> {
+            decode(id).also {
+                require(identities.getInstance(id) === it) {
+                    "`decode(id)` should register the decoded instance"
+                }
             }
         }
     }
