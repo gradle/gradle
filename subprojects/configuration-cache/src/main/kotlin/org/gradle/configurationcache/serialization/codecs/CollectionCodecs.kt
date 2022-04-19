@@ -56,14 +56,16 @@ object HashSetCodec : Codec<HashSet<Any?>> {
 
 private
 suspend fun WriteContext.writeCollectionCheckingForCircularElements(collection: Collection<Any?>) {
+    var writeCircularMarker = true
     writeCollection(collection) { element ->
         if (element != null && element in circularReferences && element.javaClass.overridesHashCode()) {
             logPropertyProblem("serialize") {
                 text("Circular references can lead to undefined behavior upon deserialization.")
             }
-            writeBoolean(true)
-        } else {
-            writeBoolean(false)
+            if (writeCircularMarker) {
+                write(CircularReferenceMarker.INSTANCE)
+                writeCircularMarker = false
+            }
         }
         write(element)
     }
@@ -77,16 +79,13 @@ suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionCheckingForC
     val size = readSmallInt()
     val container = factory(size)
     for (i in 0 until size) {
-        // upon reading a circular reference, wait until all objects have been initialized
-        // before inserting the elements in the resulting set.
-        val isCircular = readBoolean()
         val element = read()
-        if (isCircular) {
+        if (element === CircularReferenceMarker.INSTANCE) {
+            // upon reading a circular reference, wait until all objects have been initialized
+            // before inserting the elements in the resulting set.
             val remainingSize = size - i
             val remaining = ArrayList<Any?>(remainingSize).apply {
-                add(element)
-                for (j in 1 until remainingSize) {
-                    readBoolean()
+                for (j in 0 until remainingSize) {
                     add(read())
                 }
             }
@@ -98,6 +97,18 @@ suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionCheckingForC
         container.add(element)
     }
     return container
+}
+
+
+private
+object CircularReferenceMarker {
+
+    val INSTANCE: Any = Marker.INSTANCE
+
+    private
+    enum class Marker {
+        INSTANCE
+    }
 }
 
 
