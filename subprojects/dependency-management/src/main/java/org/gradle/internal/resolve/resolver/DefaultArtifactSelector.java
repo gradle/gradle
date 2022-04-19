@@ -79,7 +79,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return ArtifactSetFactory.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, artifactTypeRegistry, component.getAttributes(), overriddenAttributes, calculatedValueContainerFactory);
+        return ArtifactSetFactory.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, artifactTypeRegistry, component.getAttributes(), overriddenAttributes);
     }
 
     class DefaultComponentResolveMetadataForArtifactSelection implements OriginArtifactSelector.ComponentResolveMetadataForArtifactSelection {
@@ -112,8 +112,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         public Set<ResolvedVariant> getResolvedVariants() {
             ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
             for (VariantResolveMetadata variant : variants) {
-                assert variant.getIdentifier()!=null;
-                result.add(variantCache.getOrCompute(variant, delegate.getModuleVersionId(), getSources(), EXCLUDE_NONE, artifactResolver));
+                result.add(variantCache.getOrCompute(variant, delegate.getModuleVersionId(), getSources(), exclusions, artifactResolver));
             }
             return result.build();
         }

@@ -43,7 +43,7 @@ class DefaultArtifactSetTest extends Specification {
         given:
         def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
         def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         ownerId.group >> "group"
         ownerId.name >> "name"
@@ -65,7 +65,7 @@ class DefaultArtifactSetTest extends Specification {
         given:
         def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
         def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         selector.select(_, _) >> resolvedVariant1
         ownerId.group >> "group"

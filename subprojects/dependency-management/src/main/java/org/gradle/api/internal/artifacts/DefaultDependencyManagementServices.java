@@ -479,25 +479,26 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,
-                                                       RepositoriesSupplier repositoriesSupplier,
-                                                       GlobalDependencyResolutionRules metadataHandler,
-                                                       ComponentIdentifierFactory componentIdentifierFactory,
-                                                       ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-                                                       StartParameter startParameter,
-                                                       AttributesSchemaInternal attributesSchema,
-                                                       VariantTransformRegistry variantTransforms,
-                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                       ImmutableAttributesFactory attributesFactory,
-                                                       BuildOperationExecutor buildOperationExecutor,
-                                                       ArtifactTypeRegistry artifactTypeRegistry,
-                                                       ComponentSelectorConverter componentSelectorConverter,
-                                                       AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildState currentBuild,
-                                                       TransformedVariantFactory transformedVariantFactory,
-                                                       DependencyVerificationOverride dependencyVerificationOverride,
-                                                       CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+        ConfigurationResolver createDependencyResolver(
+                ArtifactDependencyResolver artifactDependencyResolver,
+                RepositoriesSupplier repositoriesSupplier,
+                GlobalDependencyResolutionRules metadataHandler,
+                ComponentIdentifierFactory componentIdentifierFactory,
+                ResolutionResultsStoreFactory resolutionResultsStoreFactory,
+                StartParameter startParameter,
+                AttributesSchemaInternal attributesSchema,
+                VariantTransformRegistry variantTransforms,
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                ImmutableAttributesFactory attributesFactory,
+                BuildOperationExecutor buildOperationExecutor,
+                ArtifactTypeRegistry artifactTypeRegistry,
+                ComponentSelectorConverter componentSelectorConverter,
+                AttributeContainerSerializer attributeContainerSerializer,
+                BuildState currentBuild,
+                TransformedVariantFactory transformedVariantFactory,
+                DependencyVerificationOverride dependencyVerificationOverride,
+                ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
+        ) {
             return new ErrorHandlingConfigurationResolver(
                 new ShortCircuitEmptyConfigurationResolver(
                     new DefaultConfigurationResolver(
@@ -518,7 +519,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         ),
                         moduleIdentifierFactory,
                         buildOperationExecutor,
-                        new ResolvedVariantCache(artifactTypeRegistry, calculatedValueContainerFactory),
+                        new ResolvedVariantCache(artifactTypeRegistry),
                         artifactTypeRegistry,
                         componentSelectorConverter,
                         attributeContainerSerializer,

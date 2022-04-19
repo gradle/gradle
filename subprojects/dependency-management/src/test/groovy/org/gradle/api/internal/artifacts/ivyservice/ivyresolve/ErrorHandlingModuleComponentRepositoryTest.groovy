@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
@@ -46,6 +47,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
     private static final String REPOSITORY_ID = 'abc'
     def delegate = Mock(ModuleComponentRepositoryAccess)
+    def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
     def repositoryBlacklister = Mock(RepositoryDisabler)
 
     @Shared

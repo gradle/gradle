@@ -97,12 +97,14 @@ public class StartParameterResolutionOverride {
         return original;
     }
 
-    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor,
-                                                                         ChecksumService checksumService,
-                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                                         DocumentationRegistry documentationRegistry,
-                                                                         BuildCommencedTimeProvider timeProvider,
-                                                                         Factory<GradleProperties> gradlePropertiesFactory) {
+    public DependencyVerificationOverride dependencyVerificationOverride(
+            BuildOperationExecutor buildOperationExecutor,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            DocumentationRegistry documentationRegistry,
+            BuildCommencedTimeProvider timeProvider,
+            Factory<GradleProperties> gradlePropertiesFactory
+    ) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);

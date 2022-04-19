@@ -56,8 +56,8 @@ import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -77,12 +77,14 @@ class ResolveIvyFactoryTest extends Specification {
     VersionParser versionParser
     BuildOperationExecutor buildOperationExecutor
     ChangingValueDependencyResolutionListener listener
+    CalculatedValueContainerFactory calculatedValueContainerFactory
 
     def setup() {
         moduleVersionsCache = Mock(AbstractModuleVersionsCache)
         moduleMetaDataCache = Mock(AbstractModuleMetadataCache)
         moduleArtifactsCache = Mock(AbstractArtifactsCache)
         cachedArtifactIndex = Mock(ModuleArtifactCache)
+        calculatedValueContainerFactory = Stub(CalculatedValueContainerFactory)
         def caches = new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex)
         cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
@@ -97,7 +99,7 @@ class ResolveIvyFactoryTest extends Specification {
         buildOperationExecutor = Mock()
         listener = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, listener, Stub(CalculatedValueContainerFactory))
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, listener, calculatedValueContainerFactory)
     }
 
     def "returns an empty resolver when no repositories are configured"() {

@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
@@ -54,6 +55,7 @@ class ExternalResourceResolverTest extends Specification {
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
     FileStore<ModuleComponentArtifactIdentifier> fileStore = Stub()
+    CalculatedValueContainerFactory calculatedValueContainerFactory = Stub()
     ExternalResourceArtifactResolver artifactResolver = Mock()
     ImmutableMetadataSources metadataSources = Mock()
     ExternalResourceResolver resolver

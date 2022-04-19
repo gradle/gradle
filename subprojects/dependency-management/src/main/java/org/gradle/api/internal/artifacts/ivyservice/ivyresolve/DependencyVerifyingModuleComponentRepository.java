@@ -148,6 +148,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             }
         }
 
+        @Nullable
         private File maybeFetchComponentMetadataSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact) {
             ModuleComponentArtifactIdentifier signatureArtifactId;
             if (artifact instanceof DefaultModuleComponentArtifactIdentifier) {

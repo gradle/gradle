@@ -116,14 +116,14 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private boolean hasFailedVerification = false;
 
     public WriteDependencyVerificationFile(
-        File verificationFile,
-        BuildTreeDefinedKeys keyrings,
-        BuildOperationExecutor buildOperationExecutor,
-        List<String> checksums,
-        ChecksumService checksumService,
-        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-        boolean isDryRun,
-        boolean exportKeyRing
+            File verificationFile,
+            BuildTreeDefinedKeys keyrings,
+            BuildOperationExecutor buildOperationExecutor,
+            List<String> checksums,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            boolean isDryRun,
+            boolean exportKeyRing
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = checksums;

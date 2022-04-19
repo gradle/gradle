@@ -38,6 +38,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
@@ -59,6 +60,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def moduleDescriptorCache = Mock(AbstractModuleMetadataCache)
     def moduleArtifactsCache = Mock(AbstractArtifactsCache)
     def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
+    def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def listener = Stub(ChangingValueDependencyResolutionListener)

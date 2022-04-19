@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -51,10 +52,10 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.internal.resolve.result.BuildableResolvableArtifactResult;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
@@ -211,8 +212,8 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
-            delegate.getArtifactResolver().resolveArtifact(artifact, moduleSources, result);
+        public void resolveArtifact(ModuleVersionIdentifier ownerId, final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableResolvableArtifactResult result) {
+            delegate.getArtifactResolver().resolveArtifact(ownerId, artifact, moduleSources, result);
         }
     }
 

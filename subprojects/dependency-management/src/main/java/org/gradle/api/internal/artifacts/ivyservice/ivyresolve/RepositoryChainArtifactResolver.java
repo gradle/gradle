@@ -15,24 +15,32 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableResolvableArtifactResult;
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet.NO_ARTIFACTS;
 
@@ -69,14 +77,38 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources sources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources sources, BuildableResolvableArtifactResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(sources);
-
-        // First try to resolve the artifacts locally before going remote
-        sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, result);
-        if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, result);
+        if (artifact.isOptionalArtifact()) {
+            BuildableArtifactResolveResult probe = new DefaultBuildableArtifactResolveResult();
+            // First try to resolve the artifacts locally before going remote
+            sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, probe);
+            if (!probe.hasResult()) {
+                sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, probe);
+            }
+            if (!probe.isSuccessful()) {
+                result.doesNotExist();
+                return;
+            }
         }
+        CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), new Supplier<File>() {
+            @Override
+            public File get() {
+                BuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
+                // First try to resolve the artifacts locally before going remote
+                sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, result);
+                if (!result.hasResult()) {
+                    sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, result);
+                }
+                if (result.hasResult()) {
+                    return result.getResult();
+                }
+                // TODO: Should this be returning null or throwing an exception?
+                // It seems like this returned null in the old implementation
+                return null;
+            }
+        });
+        result.resolved(new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory));
     }
 
     private ModuleComponentRepository findSourceRepository(ModuleSources sources) {

@@ -535,14 +535,16 @@ class DependencyManagementBuildScopeServices {
         return new ConnectionFailureRepositoryDisabler();
     }
 
-    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride,
-                                                                        BuildOperationExecutor buildOperationExecutor,
-                                                                        ChecksumService checksumService,
-                                                                        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                                        DocumentationRegistry documentationRegistry,
-                                                                        ListenerManager listenerManager,
-                                                                        BuildCommencedTimeProvider timeProvider,
-                                                                        ServiceRegistry serviceRegistry) {
+    DependencyVerificationOverride createDependencyVerificationOverride(
+            StartParameterResolutionOverride startParameterResolutionOverride,
+            BuildOperationExecutor buildOperationExecutor,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            DocumentationRegistry documentationRegistry,
+            ListenerManager listenerManager,
+            BuildCommencedTimeProvider timeProvider,
+            ServiceRegistry serviceRegistry
+    ) {
         DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;

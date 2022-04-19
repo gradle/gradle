@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
 import java.util.HashMap;
@@ -30,19 +29,18 @@ import java.util.Map;
 public class ResolvedVariantCache {
     private final Map<VariantResolveMetadata.Identifier, ResolvedVariant> variantCache;
     private final ArtifactTypeRegistry artifactTypeRegistry;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public ResolvedVariantCache(ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public ResolvedVariantCache(ArtifactTypeRegistry artifactTypeRegistry) {
         this.artifactTypeRegistry = artifactTypeRegistry;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        variantCache = new HashMap<>();
+        this.variantCache = new HashMap<>();
     }
 
     public ResolvedVariant getOrCompute(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver) {
         if (exclusions.mayExcludeArtifacts()) {
             // TODO: We should be caching these too or filtering the artifacts from the cached one.
-            return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory);
+            return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry);
         }
-        return variantCache.computeIfAbsent(variant.getIdentifier(), identifier -> ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry, calculatedValueContainerFactory));
+        // return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry);
+        return variantCache.computeIfAbsent(variant.getIdentifier(), identifier -> ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry));
     }
 }

@@ -75,16 +75,18 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
     private final DependencyVerificationReportWriter reportWriter;
 
-    public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
-                                                    File gradleUserHome,
-                                                    File verificationsFile,
-                                                    BuildTreeDefinedKeys keyrings,
-                                                    ChecksumService checksumService,
-                                                    SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                    DependencyVerificationMode verificationMode,
-                                                    DocumentationRegistry documentationRegistry,
-                                                    File reportsDirectory,
-                                                    Factory<GradleProperties> gradlePropertiesFactory) {
+    public ChecksumAndSignatureVerificationOverride(
+            BuildOperationExecutor buildOperationExecutor,
+            File gradleUserHome,
+            File verificationsFile,
+            BuildTreeDefinedKeys keyrings,
+            ChecksumService checksumService,
+            SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+            DependencyVerificationMode verificationMode,
+            DocumentationRegistry documentationRegistry,
+            File reportsDirectory,
+            Factory<GradleProperties> gradlePropertiesFactory
+    ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;

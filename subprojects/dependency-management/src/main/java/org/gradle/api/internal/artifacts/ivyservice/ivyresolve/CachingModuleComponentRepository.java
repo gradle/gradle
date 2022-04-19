@@ -447,10 +447,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private ModuleDescriptorHashModuleSource findCachingModuleSource(ComponentResolveMetadata component) {
-        return findCachingModuleSource(component.getSources());
-    }
-
     private String cacheKey(ArtifactType artifactType) {
         return "artifacts:" + artifactType.name();
     }
