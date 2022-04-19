@@ -182,10 +182,14 @@ class DefaultLocalComponentMetadataTest extends Specification {
         given:
         addConfiguration("conf")
 
-        expect:
+        when:
         def resolveArtifact = metadata.getConfiguration("conf").artifact(artifact)
+        then:
         resolveArtifact != null
-        resolveArtifact.file == null
+        when:
+        resolveArtifact.file
+        then:
+        thrown(IllegalStateException)
     }
 
     def "treats as distinct two artifacts with duplicate attributes and different files"() {

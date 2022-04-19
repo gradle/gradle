@@ -49,7 +49,7 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
 
     @Override
     public File getFile() {
-        return null;
+        throw new IllegalStateException("Could not find " + getDisplayName() + ".");
     }
 
     @Override
