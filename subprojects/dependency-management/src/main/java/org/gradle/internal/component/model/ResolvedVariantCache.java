@@ -21,18 +21,19 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ResolvedVariantCache {
+public class ResolvedVariantCache implements Stoppable {
     private final Map<VariantResolveMetadata.Identifier, ResolvedVariant> variantCache;
     private final ArtifactTypeRegistry artifactTypeRegistry;
 
     public ResolvedVariantCache(ArtifactTypeRegistry artifactTypeRegistry) {
         this.artifactTypeRegistry = artifactTypeRegistry;
-        this.variantCache = new HashMap<>();
+        this.variantCache = new ConcurrentHashMap<>();
     }
 
     public ResolvedVariant getOrCompute(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver) {
@@ -40,7 +41,11 @@ public class ResolvedVariantCache {
             // TODO: We should be caching these too or filtering the artifacts from the cached one.
             return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry);
         }
-        // return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry);
         return variantCache.computeIfAbsent(variant.getIdentifier(), identifier -> ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, artifactTypeRegistry));
+    }
+
+    @Override
+    public void stop() {
+        variantCache.clear();
     }
 }

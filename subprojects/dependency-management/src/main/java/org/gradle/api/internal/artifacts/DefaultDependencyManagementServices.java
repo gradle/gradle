@@ -479,6 +479,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
+        ResolvedVariantCache createResolvedVariantCache(ArtifactTypeRegistry artifactTypeRegistry) {
+            return new ResolvedVariantCache(artifactTypeRegistry);
+        }
+
         ConfigurationResolver createDependencyResolver(
                 ArtifactDependencyResolver artifactDependencyResolver,
                 RepositoriesSupplier repositoriesSupplier,
@@ -491,6 +495,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                 ImmutableAttributesFactory attributesFactory,
                 BuildOperationExecutor buildOperationExecutor,
+                ResolvedVariantCache variantCache,
                 ArtifactTypeRegistry artifactTypeRegistry,
                 ComponentSelectorConverter componentSelectorConverter,
                 AttributeContainerSerializer attributeContainerSerializer,
@@ -519,7 +524,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         ),
                         moduleIdentifierFactory,
                         buildOperationExecutor,
-                        new ResolvedVariantCache(artifactTypeRegistry),
+                        variantCache,
                         artifactTypeRegistry,
                         componentSelectorConverter,
                         attributeContainerSerializer,
