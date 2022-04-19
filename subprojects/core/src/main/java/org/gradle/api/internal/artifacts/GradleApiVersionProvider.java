@@ -28,8 +28,11 @@ import java.util.Optional;
 import java.util.Set;
 
 public class GradleApiVersionProvider {
+
+    public static final String GRADLE_API_SOURCE_VERSION_PROPERTY = "org.gradle.api.source-version";
+
     public static Optional<String> getGradleApiSourceVersion() {
-        return Optional.ofNullable(System.getProperty("org.gradle.api.source-version"));
+        return Optional.ofNullable(System.getProperty(GRADLE_API_SOURCE_VERSION_PROPERTY));
     }
 
     public static void addGradleSourceApiRepository(RepositoryHandler repositoryHandler) {

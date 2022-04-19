@@ -246,6 +246,9 @@ fun Project.enableScriptCompilationOf(
                         .map(java.lang.Boolean::parseBoolean)
                         .orElse(false)
                 )
+                gradleApiVersion.set(providers
+                    .systemProperty(GradleApiVersionProvider.GRADLE_API_SOURCE_VERSION_PROPERTY)
+                    .orElse(GradleVersion.current().version))
                 plugins = scriptPlugins
             }
 
