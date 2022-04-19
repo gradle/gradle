@@ -338,8 +338,7 @@ fun removeTeamcityTempProperty() {
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
-fun Project.enableExperimentalTestFiltering() = !setOf("configuration-cache", "kotlin-dsl", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
-
+fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
  */
