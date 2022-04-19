@@ -122,6 +122,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     @get:Input
     abstract val strict: Property<Boolean>
 
+    @get:Input
+    abstract val gradleApiVersion: Property<String>
+
     init {
         outputs.doNotCacheIf(
             "Generated accessors can only be cached in strict mode."
