@@ -606,10 +606,12 @@ fun IO.writeAccessorsTo(
     }
 }
 
-val sourceGradleApiVersion = GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version).apply {
-    println("Gradle API version: $this")
-}
-val supportsProviderConvertible = GradleVersion.version(sourceGradleApiVersion).baseVersion >= GradleVersion.version("7.4")
+val sourceGradleApiVersion
+    get() = GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version).apply {
+        println("Gradle API version: $this")
+    }
+val supportsProviderConvertible
+    get() = GradleVersion.version(sourceGradleApiVersion).baseVersion >= GradleVersion.version("7.4")
 
 internal
 fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
