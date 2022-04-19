@@ -599,9 +599,7 @@ fun IO.writeAccessorsTo(
 }
 
 val sourceGradleApiVersion
-    get() = GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version).apply {
-        println("Gradle API version: $this")
-    }
+    get() = GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version)
 val supportsProviderConvertible
     get() = GradleVersion.version(sourceGradleApiVersion).baseVersion >= GradleVersion.version("7.4")
 
