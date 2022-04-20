@@ -409,11 +409,30 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
         outputs.recompiledClasses('A', 'B')
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/20478")
-    def "can detect deletion of class used as type parameter"() {
+    def "can detect deletion of class used as class type parameter"() {
+        //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
+
         source "interface Super <T> { T getResult(); }"
         source "interface Sub extends Super<Deleted> { }"
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('symbol: class Deleted', 'Sub')
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/20478")
+    def "can detect deletion of class used as static method type parameter"() {
+        //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
+
+        source """
+            class A {
+                public static <Deleted> void doSomething(Deleted d) {
+                }
+            }"""
         def deleted = source "interface Deleted { }"
         outputs.snapshot { run language.compileTaskName }
 

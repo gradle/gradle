@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -73,6 +75,16 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        if (signature != null) {
+            SignatureReader signatureReader = new SignatureReader(signature);
+            signatureReader.accept(new SignatureVisitor(API) {
+                @Override
+                public void visitClassType(String className) {
+                    Type type = Type.getObjectType(className);
+                    maybeAddDependentType(types, type);
+                }
+            });
+        }
         if (superName != null) {
             // superName can be null if what we are analyzing is `java.lang.Object`
             // which can happen when a custom Java SDK is on classpath (typically, android.jar)
