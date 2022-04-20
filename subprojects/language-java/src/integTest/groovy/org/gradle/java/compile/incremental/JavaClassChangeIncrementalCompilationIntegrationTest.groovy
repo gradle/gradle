@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -411,33 +411,90 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
 
     @Issue("https://github.com/gradle/gradle/issues/20478")
     def "can detect deletion of class used as class type parameter"() {
-        //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
+        executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache //todo: comment out
 
-        source "interface Super <T> { T getResult(); }"
-        source "interface Sub extends Super<Deleted> { }"
+        source "interface Super <T, R> { T getResult(R r); }"
+        source "interface Sub extends Super<" + t + ", " + r + "> { }"
         def deleted = source "interface Deleted { }"
         outputs.snapshot { run language.compileTaskName }
 
         expect:
         deleted.delete()
         recompiledWithFailure('symbol: class Deleted', 'Sub')
+
+        where:
+        t         | r
+        "Deleted" | "String"
+        "String"  | "Deleted"
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/20478")
-    def "can detect deletion of class used as static method type parameter"() {
-        //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
+    def "can detect deletion of class used as method parameter type"() {
+        executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache //todo: comment out
 
-        source """
-            class A {
-                public static <Deleted> void doSomething(Deleted d) {
-                }
-            }"""
+        source "interface A { void doSomething(Deleted d); }"
         def deleted = source "interface Deleted { }"
         outputs.snapshot { run language.compileTaskName }
 
         expect:
         deleted.delete()
-        recompiledWithFailure('symbol: class Deleted', 'Sub')
+        recompiledWithFailure('class Deleted', 'A')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20478")
+    def "can detect deletion of class used as method parameter type bound"() {
+        executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache //todo: comment out
+
+        source "interface A { <T extends Deleted> void doSomething(T t); }"
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('class Deleted', 'A')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20478")
+    def "can detect deletion of class used as method return type"() {
+        executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache //todo: comment out
+
+        source "interface A { Deleted doSomething(); }"
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('class Deleted', 'A')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20478")
+    def "can detect deletion of class used as method return type bound"() {
+        executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache //todo: comment out
+
+        source "interface A { <T extends Deleted> T doSomething(); }"
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('class Deleted', 'A')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20478")
+    def "can detect deletion of class used as field type parameter"() {
+        executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache //todo: comment out
+
+        source """
+            import java.util.List;
+            class A {
+                private List<Deleted> list; 
+            }
+            """
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('class Deleted', 'A')
     }
 }
