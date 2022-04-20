@@ -41,6 +41,7 @@ abstract class BasePublishGradleDistribution(
 
         dependencies {
             snapshot(RelativeId("Check_Stage_${this@BasePublishGradleDistribution.triggerName}_Trigger")) {
+                synchronizeRevisions = false
             }
         }
     }
