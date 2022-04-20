@@ -55,9 +55,9 @@ class AndroidGradlePluginVersions {
         }
     """
 
-    private static final VersionNumber AGP_7_0_VERSION_NUMBER = VersionNumber.parse('7.0.0')
-    private static final VersionNumber AGP_7_3_VERSION_NUMBER = VersionNumber.parse('7.3.0')
-    private static final VersionNumber KOTLIN_1_5_20_VERSION_NUMBER = VersionNumber.parse('1.5.20')
+    private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
+    private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
+    private static final VersionNumber KOTLIN_1_5_20 = VersionNumber.parse('1.5.20')
 
     static boolean isAgpNightly(String agpVersion) {
         return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
@@ -131,7 +131,7 @@ class AndroidGradlePluginVersions {
     }
 
     private static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
-        if (agpVersion.baseVersion < AGP_7_0_VERSION_NUMBER) {
+        if (agpVersion.baseVersion < AGP_7_0) {
             return JavaVersion.VERSION_1_8
         }
         return JavaVersion.VERSION_11
@@ -139,13 +139,18 @@ class AndroidGradlePluginVersions {
 
     private static JavaVersion getMaximumJavaVersionFor(VersionNumber agpVersion) {
         // This is mainly to prevent running all AGP tests on too many java versions and reduce CI time
-        if (agpVersion.baseVersion < AGP_7_0_VERSION_NUMBER) {
+        if (agpVersion.baseVersion < AGP_7_0) {
             return JavaVersion.VERSION_11
         }
         return null
     }
 
-    static void assumeAgpSupportsKotlinVersion(String agpVersion, String kotlinVersion) {
+    static void assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(String agpVersion, String kotlinVersion) {
+        assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        assumeAgpSupportsKotlinVersion(agpVersion, kotlinVersion)
+    }
+
+    private static void assumeAgpSupportsKotlinVersion(String agpVersion, String kotlinVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         def minimalSupportedKotlinVersion = getMinimumSupportedKotlinVersionFor(agpVersionNumber)
@@ -155,8 +160,8 @@ class AndroidGradlePluginVersions {
     }
 
     private static VersionNumber getMinimumSupportedKotlinVersionFor(VersionNumber agpVersion) {
-        return agpVersion.baseVersion < AGP_7_3_VERSION_NUMBER
+        return agpVersion.baseVersion < AGP_7_3
             ? null
-            : KOTLIN_1_5_20_VERSION_NUMBER
+            : KOTLIN_1_5_20
     }
 }
