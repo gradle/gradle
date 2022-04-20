@@ -29,6 +29,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidPluginVersion)
+        AGP_VERSIONS.assumeAgpSupportsKotlinVersion(androidPluginVersion, kotlinPluginVersion)
         useSample("android-kotlin-example")
 
         def buildFileName = "build.gradle"

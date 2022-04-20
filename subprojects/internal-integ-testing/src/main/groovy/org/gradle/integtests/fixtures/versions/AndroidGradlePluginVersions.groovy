@@ -55,6 +55,10 @@ class AndroidGradlePluginVersions {
         }
     """
 
+    private static final VersionNumber AGP_7_0_VERSION_NUMBER = VersionNumber.parse('7.0.0')
+    private static final VersionNumber AGP_7_3_VERSION_NUMBER = VersionNumber.parse('7.3.0')
+    private static final VersionNumber KOTLIN_1_5_20_VERSION_NUMBER = VersionNumber.parse('1.5.20')
+
     static boolean isAgpNightly(String agpVersion) {
         return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
     }
@@ -141,5 +145,18 @@ class AndroidGradlePluginVersions {
         return null
     }
 
-    private static final VersionNumber AGP_7_0_VERSION_NUMBER = VersionNumber.parse('7.0.0')
+    static void assumeAgpSupportsKotlinVersion(String agpVersion, String kotlinVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        def minimalSupportedKotlinVersion = getMinimumSupportedKotlinVersionFor(agpVersionNumber)
+        if (minimalSupportedKotlinVersion != null) {
+            assumeTrue("AGP $agpVersion minimal supported Kotlin version is $minimalSupportedKotlinVersion, current is $kotlinVersion", kotlinVersionNumber >= minimalSupportedKotlinVersion)
+        }
+    }
+
+    private static VersionNumber getMinimumSupportedKotlinVersionFor(VersionNumber agpVersion) {
+        return agpVersion.baseVersion < AGP_7_3_VERSION_NUMBER
+            ? null
+            : KOTLIN_1_5_20_VERSION_NUMBER
+    }
 }

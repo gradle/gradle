@@ -221,6 +221,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         }
         if (isAndroidKotlinPlugin(testedPluginId)) {
             AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidVersion)
+            AGP_VERSIONS.assumeAgpSupportsKotlinVersion(androidVersion, version)
             def extraPlugins = ['com.android.application': androidVersion]
             if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
                 extraPlugins.put('org.jetbrains.kotlin.android', version)
