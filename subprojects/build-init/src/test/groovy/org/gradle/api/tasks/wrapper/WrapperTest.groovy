@@ -63,7 +63,7 @@ class WrapperTest extends AbstractTaskTest {
         Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase()
         wrapper.getDistributionUrl() != null
         wrapper.getDistributionSha256Sum() == null
-        wrapper.getNetworkTimeout() == null
+        !wrapper.getNetworkTimeout().isPresent()
     }
 
     def "determines Windows script path from unix script path"() {
@@ -131,10 +131,10 @@ class WrapperTest extends AbstractTaskTest {
 
     def "uses defined network timeout"() {
         given:
-        wrapper.setNetworkTimeout('5000')
+        wrapper.setNetworkTimeout(5000)
 
         expect:
-        '5000' == wrapper.getNetworkTimeout()
+        5000 == wrapper.getNetworkTimeout().get()
     }
 
     def "execute with non extant wrapper jar parent directory"() {
@@ -156,14 +156,14 @@ class WrapperTest extends AbstractTaskTest {
 
     def "execute with networkTimeout set"() {
         given:
-        wrapper.setNetworkTimeout('6000')
+        wrapper.setNetworkTimeout(6000)
 
         when:
         execute(wrapper)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == '6000'
+        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == 6000
     }
 
     def "check inputs"() {

@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
@@ -101,7 +102,7 @@ public class Wrapper extends DefaultTask {
     private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
-    private Integer networkTimeout;
+    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
 
     public Wrapper() {
@@ -162,8 +163,8 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
-        if (networkTimeout != null) {
-            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, networkTimeout.toString());
+        if (networkTimeout.isPresent()) {
+            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, networkTimeout.get());
         }
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
@@ -437,25 +438,13 @@ public class Wrapper extends DefaultTask {
      * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
      * as downloading the wrapper jar.
      *
-     * @since 7.3
+     * @since 7.4
      */
-    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
-    @Incubating
-    public void setNetworkTimeout(@Nullable String networkTimeout) {
-        this.networkTimeout = networkTimeout == null ? null : Integer.parseInt(networkTimeout);
-    }
-
-    /**
-     * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
-     * as downloading the wrapper jar.
-     *
-     * @since 7.3
-     */
-    @Nullable
-    @Optional
     @Input
     @Incubating
-    public String getNetworkTimeout() {
-        return networkTimeout == null ? null : String.valueOf(networkTimeout);
+    @Optional
+    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
+    public Property<Integer> getNetworkTimeout() {
+        return networkTimeout;
     }
 }
