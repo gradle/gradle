@@ -94,6 +94,10 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
 
     protected String getHostTargetMachineDefinition() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
+        return buildNativeHostTargetDefinition(host);
+    }
+
+    static String buildNativeHostTargetDefinition(DefaultNativePlatform host) {
         String definition = "machines.";
 
         if (host.getOperatingSystem().isWindows()) {
@@ -103,7 +107,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         } else if (host.getOperatingSystem().isLinux()) {
             definition += "linux";
         } else {
-            definition += "os('" + host.getOperatingSystem().toFamilyName() + "')";
+            definition += "os(\"" + host.getOperatingSystem().toFamilyName() + "\")";
         }
 
         definition += ".";
@@ -113,7 +117,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         } else if (host.getArchitecture().isAmd64()) {
             definition += "x86_64";
         } else {
-            definition += "architecture('" + host.getArchitecture().getName() + "')";
+            definition += "architecture(\"" + host.getArchitecture().getName() + "\")";
         }
 
         return definition;
