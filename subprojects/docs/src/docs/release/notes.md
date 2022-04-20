@@ -34,6 +34,7 @@ We would like to thank the following community members for their contributions t
 [Edgars Jasmans](https://github.com/yasmans),
 [Simão Gomes Viana](https://github.com/xdevs23),
 [Lajos Veres](https://github.com/vlajos)
+[Jeff](https://github.com/mathjeff)
 
 <!--
 Include only their name, impactful features should be called out separately below.
