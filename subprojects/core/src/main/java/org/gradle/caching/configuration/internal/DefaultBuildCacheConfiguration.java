@@ -29,6 +29,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +42,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private DirectoryBuildCache local;
     private BuildCache remote;
 
-    private final Set<BuildCacheServiceRegistration> registrations;
+    private Set<BuildCacheServiceRegistration> registrations;
 
     public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
         this.instantiator = instantiator;
@@ -108,6 +109,17 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             throw new IllegalStateException("A type for the remote build cache must be configured first.");
         }
         configuration.execute(remote);
+    }
+
+    @Nonnull
+    @Override
+    public Set<BuildCacheServiceRegistration> getRegistrations() {
+        return registrations;
+    }
+
+    @Override
+    public void setRegistrations(Set<BuildCacheServiceRegistration> registrations) {
+        this.registrations = registrations;
     }
 
     private static DirectoryBuildCache createLocalCacheConfiguration(Instantiator instantiator, Set<BuildCacheServiceRegistration> registrations) {
