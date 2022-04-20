@@ -36,6 +36,16 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
+[[incremental_task_inputs_deprecation]]
+=== IncrementalTaskInputs type is deprecated
+
+The `IncrementalTaskInputs` type was used to implement _incremental tasks,_ that is to say tasks that can be optimized to run on a subset of changed inputs instead of the whole input.
+This type had a number of drawbacks.
+In particular using this type it was not possible to determine what input a change was associated with.
+
+You should now use the `InputChanges` type instead.
+Please refer to the <<custom_tasks.adoc#sec:implementing_an_incremental_task, userguide section about implementing incremental tasks for more details>>.
+
 === Potential breaking changes
 
 ==== Updates to default tool integration versions
