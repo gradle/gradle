@@ -63,7 +63,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
-        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        reader.accept(visitor, ClassReader.SKIP_FRAMES);
 
         // Remove the "API accessible" types from the "privately used types"
         visitor.privateTypes.removeAll(visitor.accessibleTypes);
@@ -235,6 +235,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+            maybeAddClassTypesFromSignature(signature, types);
             maybeAddDependentType(types, Type.getType(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
         }
