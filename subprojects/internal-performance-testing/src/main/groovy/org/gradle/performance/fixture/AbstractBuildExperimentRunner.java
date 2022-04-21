@@ -24,6 +24,7 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
+import org.gradle.performance.results.OutputDirSelectorUtil;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.InvocationSettings;
@@ -133,7 +134,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
             outputDir = new File(outputDirSelector.outputDirFor(testId), version);
         } else {
-            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelector.fileSafeNameFor(spec.getDisplayName()));
+            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
         }
         outputDir.mkdirs();
         return outputDir;

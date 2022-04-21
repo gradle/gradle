@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package org.gradle.performance.results;
 
-import java.io.File;
-
-public interface OutputDirSelector {
-
-    File outputDirFor(String testId);
+public class OutputDirSelectorUtil {
+    // Moved here from OutputDirSelectorUtil to work around https://issues.apache.org/jira/browse/GROOVY-10591
+    public static String fileSafeNameFor(String name) {
+        String fileSafeName = name.trim().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
+        return (fileSafeName.endsWith("-"))
+            ? fileSafeName.substring(0, fileSafeName.length() - 1)
+            : fileSafeName;
+    }
 }
