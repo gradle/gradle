@@ -235,27 +235,27 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-            maybeAddClassTypesFromSignature(signature, types);
-            maybeAddDependentType(types, Type.getType(desc));
+            maybeAddClassTypesFromSignature(signature, privateTypes);
+            maybeAddDependentType(privateTypes, Type.getType(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor));
-            return new AnnotationVisitor(types);
+            maybeAddDependentType(privateTypes, Type.getType(descriptor));
+            return new AnnotationVisitor(privateTypes);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor));
-            return new AnnotationVisitor(types);
+            maybeAddDependentType(privateTypes, Type.getType(descriptor));
+            return new AnnotationVisitor(privateTypes);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor));
-            return new AnnotationVisitor(types);
+            maybeAddDependentType(privateTypes, Type.getType(descriptor));
+            return new AnnotationVisitor(privateTypes);
         }
     }
 
