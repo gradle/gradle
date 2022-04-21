@@ -24,7 +24,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.util.internal.MavenUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
@@ -69,6 +71,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         if (toolchainFile.exists()) {
             try (FileInputStream toolchain = new FileInputStream(toolchainFile)) {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                documentBuilder.setErrorHandler(new LoggingErrorHandler());
                 XPath xpath = xPathFactory.newXPath();
                 XPathExpression expression = xpath.compile(PARSE_EXPRESSION);
 
@@ -84,10 +87,11 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                     .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
                     .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+                String toolchainValue = toolchainLocation.getOrElse("?");
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation), e);
+                    LOGGER.debug("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}", toolchainValue, e);
                 } else {
-                    LOGGER.info(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation));
+                    LOGGER.info("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. {}", toolchainValue, e.getMessage());
                 }
             }
         }
@@ -98,4 +102,36 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         return new File(MavenUtil.getUserMavenDir(), "toolchains.xml").getAbsolutePath();
     }
 
+    /**
+     * Basic error handler which logs via SLF4J used to override
+     * default behavior which logs directly to stderr.
+     */
+    private static class LoggingErrorHandler implements ErrorHandler {
+        @Override
+        public void warning(SAXParseException e) throws SAXException {
+            logException("Warning", e);
+        }
+
+        @Override
+        public void error(SAXParseException e) throws SAXException {
+            logException("Error", e);
+        }
+
+        @Override
+        public void fatalError(SAXParseException e) throws SAXException {
+            logException("Fatal error", e);
+
+            // Propagate error -- consistent with default behavior.
+            throw e;
+        }
+
+        private void logException(String type, SAXParseException e)
+        {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("{} while parsing XML at line {} and column {}.", type, e.getLineNumber(), e.getColumnNumber(), e);
+            } else {
+                LOGGER.info("{} while parsing XML at line {} and column {}. {}", type, e.getLineNumber(), e.getColumnNumber(), e.getMessage());
+            }
+        }
+    }
 }
