@@ -19,10 +19,12 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.util.function.Supplier
 
+@Ignore("Fix invokedynamic handling")
 class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
