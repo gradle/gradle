@@ -46,20 +46,20 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def uri = binary.toDownloadUri(spec)
 
         then:
-        uri.toString() == "https://api.adoptopenjdk.net/v3/binary/latest" + expectedPath
+        uri.toString() == expectedPath
 
         where:
         jdkVersion | operatingSystemName | architecture                    | expectedPath
-        11         | "Windows"           | SystemInfo.Architecture.amd64   | "/11/ga/windows/x64/jdk/hotspot/normal/adoptopenjdk"
-        12         | "Windows"           | SystemInfo.Architecture.i386    | "/12/ga/windows/x32/jdk/hotspot/normal/adoptopenjdk"
-        13         | "Windows"           | SystemInfo.Architecture.aarch64 | "/13/ga/windows/aarch64/jdk/hotspot/normal/adoptopenjdk"
-        11         | "Linux"             | SystemInfo.Architecture.amd64   | "/11/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
-        12         | "Linux"             | SystemInfo.Architecture.i386    | "/12/ga/linux/x32/jdk/hotspot/normal/adoptopenjdk"
-        13         | "Linux"             | SystemInfo.Architecture.aarch64 | "/13/ga/linux/aarch64/jdk/hotspot/normal/adoptopenjdk"
-        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | "/11/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"
-        12         | "Darwin"            | SystemInfo.Architecture.i386    | "/12/ga/mac/x32/jdk/hotspot/normal/adoptopenjdk"
-        13         | "OSX"               | SystemInfo.Architecture.aarch64 | "/13/ga/mac/aarch64/jdk/hotspot/normal/adoptopenjdk"
-        13         | "Solaris"           | SystemInfo.Architecture.i386    | "/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
+        11         | "Windows"           | SystemInfo.Architecture.amd64   | "https://api.adoptium.net/v3/binary/latest/11/ga/windows/x64/jdk/hotspot/normal/eclipse"
+        12         | "Windows"           | SystemInfo.Architecture.i386    | "https://api.adoptopenjdk.net/v3/binary/latest/12/ga/windows/x32/jdk/hotspot/normal/adoptopenjdk"
+        13         | "Windows"           | SystemInfo.Architecture.aarch64 | "https://api.adoptopenjdk.net/v3/binary/latest/13/ga/windows/aarch64/jdk/hotspot/normal/adoptopenjdk"
+        11         | "Linux"             | SystemInfo.Architecture.amd64   | "https://api.adoptium.net/v3/binary/latest/11/ga/linux/x64/jdk/hotspot/normal/eclipse"
+        12         | "Linux"             | SystemInfo.Architecture.i386    | "https://api.adoptopenjdk.net/v3/binary/latest/12/ga/linux/x32/jdk/hotspot/normal/adoptopenjdk"
+        13         | "Linux"             | SystemInfo.Architecture.aarch64 | "https://api.adoptopenjdk.net/v3/binary/latest/13/ga/linux/aarch64/jdk/hotspot/normal/adoptopenjdk"
+        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | "https://api.adoptium.net/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
+        12         | "Darwin"            | SystemInfo.Architecture.i386    | "https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x32/jdk/hotspot/normal/adoptopenjdk"
+        13         | "OSX"               | SystemInfo.Architecture.aarch64 | "https://api.adoptopenjdk.net/v3/binary/latest/13/ga/mac/aarch64/jdk/hotspot/normal/adoptopenjdk"
+        13         | "Solaris"           | SystemInfo.Architecture.i386    | "https://api.adoptopenjdk.net/v3/binary/latest/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
     }
 
     def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
@@ -103,7 +103,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def uri = binary.toDownloadUri(spec)
 
         then:
-        uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"
+        uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
 
         where:
         customBaseUrl << ["http://foobar", "http://foobar/"]
@@ -186,7 +186,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
     def "downloads j9 impl if requested"() {
         given:
-        def spec = newSpec(12)
+        def spec = newSpec()
         spec.implementation.set(JvmImplementation.J9)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
@@ -199,7 +199,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         binary.download(spec, targetFile)
 
         then:
-        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
+        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
     }
 
     def newSpec(int jdkVersion = 11, JvmImplementation implementation = null, JvmVendorSpec vendor = null) {
@@ -213,6 +213,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     ProviderFactory providerFactory(hostnameProvider = Providers.notDefined()) {
         Mock(ProviderFactory) {
             gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri") >> hostnameProvider
+            gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri") >> hostnameProvider
         }
     }
 }

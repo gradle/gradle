@@ -30,7 +30,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 class DefaultPlanExecutorTest extends Specification {
-    def executionPlan = Mock(ExecutionPlan)
+    def workSource = Mock(WorkSource)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
     def cancellationHandler = Mock(BuildCancellationToken)
@@ -50,28 +50,30 @@ class DefaultPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(executionPlan, [], worker)
+        def result = executor.process(workSource, worker)
 
         then:
+        result.failures.empty
+
         1 * workerLeaseService.currentWorkerLease >> workerLease
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.executionState() >> ExecutionPlan.State.MaybeNodesReadyToStart
-        1 * executionPlan.selectNext() >> ExecutionPlan.NodeSelection.of(node)
+        1 * workSource.executionState() >> WorkSource.State.MaybeWorkReadyToStart
+        1 * workSource.selectNext() >> WorkSource.Selection.of(node)
         1 * worker.execute(node)
-        1 * executionPlan.finishedExecuting(node)
+        1 * workSource.finishedExecuting(node, null)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.executionState() >> ExecutionPlan.State.NoMoreNodesToStart
+        1 * workSource.executionState() >> WorkSource.State.NoMoreWorkToStart
 
         then:
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.allExecutionComplete() >> true
-        1 * executionPlan.collectFailures([])
-        0 * executionPlan._
+        2 * workSource.allExecutionComplete() >> true
+        1 * workSource.collectFailures([])
+        0 * workSource._
     }
 
     def "execution is canceled when cancellation requested"() {
@@ -85,28 +87,29 @@ class DefaultPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(executionPlan, [], worker)
+        def result = executor.process(workSource, worker)
 
         then:
+        result.failures.empty
         1 * workerLeaseService.currentWorkerLease >> workerLease
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.executionState() >> ExecutionPlan.State.MaybeNodesReadyToStart
+        1 * workSource.executionState() >> WorkSource.State.MaybeWorkReadyToStart
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.selectNext() >> ExecutionPlan.NodeSelection.of(node)
+        1 * workSource.selectNext() >> WorkSource.Selection.of(node)
         1 * worker.execute(node)
-        1 * executionPlan.finishedExecuting(node)
+        1 * workSource.finishedExecuting(node, null)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true
-        1 * executionPlan.cancelExecution()
-        1 * executionPlan.executionState() >> ExecutionPlan.State.NoMoreNodesToStart
+        1 * workSource.cancelExecution()
+        1 * workSource.executionState() >> WorkSource.State.NoMoreWorkToStart
 
         then:
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.allExecutionComplete() >> true
-        1 * executionPlan.collectFailures([])
-        0 * executionPlan._
+        2 * workSource.allExecutionComplete() >> true
+        1 * workSource.collectFailures([])
+        0 * workSource._
     }
 }

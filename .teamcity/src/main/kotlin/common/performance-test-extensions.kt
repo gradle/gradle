@@ -26,6 +26,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     applyDefaultSettings(os = os, timeout = timeout)
     artifactRules = """
         build/report-*-performance-tests.zip => .
+        build/report-*-performance.zip => $hiddenArtifactDestination
+        build/report-*PerformanceTest.zip => $hiddenArtifactDestination
     """.trimIndent()
     detectHangingBuilds = false
     requirements {

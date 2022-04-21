@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,7 +24,6 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
-import org.gradle.internal.Actions;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 
@@ -126,41 +124,30 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
     }
 
     @Override
-    public void appendPostAction(Action<? super Task> action) {
-        // Ignore. Currently, the actions don't need to run, it's just better if they do
-        // By the time this node is notified that the task in the other build has completed, it's too late to run the action
-        // Instead, the action should be attached to the task in the other build rather than here
-    }
+    public DependenciesState doCheckDependenciesComplete() {
+        DependenciesState dependenciesState = super.doCheckDependenciesComplete();
+        if (dependenciesState != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+            return dependenciesState;
+        }
 
-    @Override
-    public Action<? super Task> getPostAction() {
-        return Actions.doNothing();
-    }
-
-    @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-    }
-
-    @Override
-    public boolean allDependenciesSuccessful() {
-        return state == IncludedBuildTaskResource.State.Success;
-    }
-
-    @Override
-    public boolean isReady() {
         // This node is ready to "execute" when the task in the other build has completed
-        if (!super.isReady()) {
-            return false;
+        if (!state.isComplete()) {
+            state = target.getTaskState();
         }
-        if (state.isComplete()) {
-            return true;
+        switch (state) {
+            case Waiting:
+                return DependenciesState.NOT_COMPLETE;
+            case Success:
+                return DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            case Failed:
+                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
+            default:
+                throw new IllegalArgumentException();
         }
-        state = target.getTaskState();
-        return state.isComplete();
     }
 
     @Override

@@ -31,12 +31,12 @@ public class OrdinalNodeAccess {
     TreeMap<Integer, OrdinalNode> destroyerLocationNodes = Maps.newTreeMap();
     TreeMap<Integer, OrdinalNode> producerLocationNodes = Maps.newTreeMap();
 
-    OrdinalNode getOrCreateDestroyableLocationNode(int ordinal) {
-        return destroyerLocationNodes.computeIfAbsent(ordinal, this::createDestroyerLocationNode);
+    OrdinalNode getOrCreateDestroyableLocationNode(OrdinalGroup ordinal) {
+        return destroyerLocationNodes.computeIfAbsent(ordinal.getOrdinal(), i -> createDestroyerLocationNode(ordinal));
     }
 
-    OrdinalNode getOrCreateOutputLocationNode(int ordinal) {
-        return producerLocationNodes.computeIfAbsent(ordinal, this::createProducerLocationNode);
+    OrdinalNode getOrCreateOutputLocationNode(OrdinalGroup ordinal) {
+        return producerLocationNodes.computeIfAbsent(ordinal.getOrdinal(), i -> createProducerLocationNode(ordinal));
     }
 
     Collection<OrdinalNode> getPrecedingDestroyerLocationNodes(int from) {
@@ -61,17 +61,21 @@ public class OrdinalNodeAccess {
         producerLocationNodes.forEach((ordinal, producer) -> getPrecedingDestroyerLocationNodes(ordinal).forEach(producer::addDependencySuccessor));
     }
 
-    private OrdinalNode createDestroyerLocationNode(int ordinal) {
+    private OrdinalNode createDestroyerLocationNode(OrdinalGroup ordinal) {
         return createOrdinalNode(OrdinalNode.Type.DESTROYER, ordinal);
     }
 
-    private OrdinalNode createProducerLocationNode(int ordinal) {
+    private OrdinalNode createProducerLocationNode(OrdinalGroup ordinal) {
         return createOrdinalNode(OrdinalNode.Type.PRODUCER, ordinal);
     }
 
-    private OrdinalNode createOrdinalNode(OrdinalNode.Type type, int ordinal) {
+    private OrdinalNode createOrdinalNode(OrdinalNode.Type type, OrdinalGroup ordinal) {
         OrdinalNode ordinalNode = new OrdinalNode(type, ordinal);
         ordinalNode.require();
         return ordinalNode;
+    }
+
+    public OrdinalGroup group(int ordinal) {
+        return new OrdinalGroup(ordinal);
     }
 }

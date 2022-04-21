@@ -22,6 +22,8 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
+import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -99,6 +101,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
     private boolean isRefreshKeys;
     private boolean isExportKeys;
+    private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
     /**
      * {@inheritDoc}
@@ -260,6 +263,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.verificationMode = verificationMode;
         p.isRefreshKeys = isRefreshKeys;
         p.isExportKeys = isExportKeys;
+        p.welcomeMessageConfiguration = welcomeMessageConfiguration;
         return p;
     }
 
@@ -936,5 +940,29 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setExportKeys(boolean exportKeys) {
         isExportKeys = exportKeys;
+    }
+
+    /**
+     * Returns when to display a welcome message on the command line.
+     *
+     * @return The welcome message configuration.
+     * @see WelcomeMessageDisplayMode
+     * @since 7.5
+     */
+    @Incubating
+    public WelcomeMessageConfiguration getWelcomeMessageConfiguration() {
+        return welcomeMessageConfiguration;
+    }
+
+    /**
+     * Updates when to display a welcome message on the command line.
+     *
+     * @param welcomeMessageConfiguration The welcome message configuration.
+     * @see WelcomeMessageDisplayMode
+     * @since 7.5
+     */
+    @Incubating
+    public void setWelcomeMessageConfiguration(WelcomeMessageConfiguration welcomeMessageConfiguration) {
+        this.welcomeMessageConfiguration = welcomeMessageConfiguration;
     }
 }

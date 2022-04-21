@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.api.internal.provider.sources;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
-public class FailureCollector {
-
-    private final List<Throwable> failures = new ArrayList<Throwable>();
-
-    public void addFailure(Throwable throwable) {
-        failures.add(throwable);
+public abstract class EnvironmentVariablesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<EnvironmentVariablesPrefixedByValueSource.Parameters> {
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
     }
 
-    public List<Throwable> getFailures() {
-        return failures;
-    }
-
-    public void clearFailures() {
-        failures.clear();
+    @Override
+    protected Stream<Map.Entry<String, String>> itemsToFilter() {
+        return System.getenv().entrySet().stream();
     }
 }

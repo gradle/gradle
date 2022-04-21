@@ -18,7 +18,6 @@ package org.gradle.integtests
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -305,7 +304,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/nonPreservedDir').isDirectory()
     }
 
-    @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
     def "sync action"() {
         given:
         defaultSourceFileTree()
@@ -315,11 +313,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         buildScript '''
             task syncIt() {
-                doLast {
-                    project.sync {
-                        from 'source'
-                        into 'dest'
-                    }
+                project.sync {
+                    from 'source'
+                    into 'dest'
                 }
             }
         '''.stripIndent()
@@ -337,6 +333,45 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         file('dest/emptyDir').exists()
         !file('dest/extra1.txt').exists()
         !file('dest/extraDir/extra2.txt').exists()
+    }
+
+    def "sync action works with preserve"() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
+            dir1 { file 'extra1.txt' }
+            extraDir {
+                file 'extra1.txt'
+                file 'extra2.txt'
+            }
+
+        }
+        buildScript '''
+            task syncIt() {
+                project.sync {
+                    from 'source'
+                    into 'dest'
+                    preserve {
+                         include 'dir1/extra1.txt'
+                         include 'extraDir/**'
+                         exclude 'extraDir/extra2.txt'
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt',
+            'emptyDir',
+            'dir1/extra1.txt',
+            'extraDir/extra1.txt'
+        )
     }
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")

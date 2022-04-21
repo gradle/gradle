@@ -42,6 +42,10 @@ import java.util.Set;
  */
 public class DefaultClassPath implements ClassPath, Serializable {
 
+    public static Builder builderWithExactSize(int size) {
+        return new Builder(size);
+    }
+
     public static ClassPath of(Iterable<File> files) {
         if (files == null) {
             return EMPTY;
@@ -71,7 +75,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         if (files == null || files.isEmpty()) {
             return EMPTY;
         } else {
-            return new DefaultClassPath(new ImmutableUniqueList<File>(files));
+            return new DefaultClassPath(ImmutableUniqueList.of(files));
         }
     }
 
@@ -97,7 +101,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     @Override
     public List<URI> getAsURIs() {
-        List<URI> urls = new ArrayList<URI>();
+        List<URI> urls = new ArrayList<URI>(files.size());
         for (File file : files) {
             urls.add(file.toURI());
         }
@@ -111,26 +115,34 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     @Override
     public URL[] getAsURLArray() {
-        Collection<URL> result = getAsURLs();
-        return result.toArray(new URL[0]);
-    }
-
-    @Override
-    public List<URL> getAsURLs() {
-        List<URL> urls = new ArrayList<URL>();
+        URL[] urls = new URL[files.size()];
+        int i = 0;
         for (File file : files) {
-            try {
-                urls.add(file.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            urls[i++] = toURL(file);
         }
         return urls;
     }
 
     @Override
+    public List<URL> getAsURLs() {
+        List<URL> urls = new ArrayList<URL>(files.size());
+        for (File file : files) {
+            urls.add(toURL(file));
+        }
+        return urls;
+    }
+
+    private static URL toURL(File file) {
+        try {
+            return file.toURI().toURL();
+        } catch (MalformedURLException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
     public ClassPath plus(ClassPath other) {
-        if (files.isEmpty()) {
+        if (isEmpty()) {
             return other;
         }
         if (other.isEmpty()) {
@@ -156,13 +168,6 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return DefaultClassPath.of(remainingFiles);
     }
 
-    private ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {
-        Set<File> result = new LinkedHashSet<File>();
-        result.addAll(files1);
-        result.addAll(files2);
-        return new ImmutableUniqueList<File>(result);
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -180,8 +185,89 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return files.hashCode();
     }
 
+    private static ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {
+        Set<File> result = new LinkedHashSet<File>();
+        result.addAll(files1);
+        result.addAll(files2);
+        return new ImmutableUniqueList<File>(result);
+    }
+
+    public static class Builder {
+
+        private final ImmutableUniqueList.Builder<File> uniqueListBuilder;
+
+        public Builder(int exactSize) {
+            uniqueListBuilder = ImmutableUniqueList.builderWithExactSize(exactSize);
+        }
+
+        public void add(File file) {
+            uniqueListBuilder.add(file);
+        }
+
+        public ClassPath build() {
+            return new DefaultClassPath(uniqueListBuilder.buildWithExactSize());
+        }
+    }
+
     protected static final class ImmutableUniqueList<T> extends AbstractList<T> implements Serializable {
         private static final ImmutableUniqueList<Object> EMPTY = new ImmutableUniqueList<Object>(Collections.emptySet());
+
+        public static <T> ImmutableUniqueList<T> of(Collection<T> collection) {
+            if (collection.isEmpty()) {
+                return empty();
+            }
+            Builder<T> builder = new Builder<T>(collection.size());
+            for (T element : collection) {
+                builder.add(element);
+            }
+            return builder.build();
+        }
+
+        public static <T> Builder<T> builderWithExactSize(int exactSize) {
+            return new Builder<T>(exactSize);
+        }
+
+        public static class Builder<T> {
+
+            private final HashSet<T> set;
+            private final Object[] array;
+            private int inserted;
+
+            public Builder(int size) {
+                set = new HashSet<T>(size);
+                array = new Object[size];
+                inserted = 0;
+            }
+
+            public void add(T element) {
+                if (set.add(element)) {
+                    if (inserted < array.length) {
+                        array[inserted] = element;
+                        inserted += 1;
+                    } else {
+                        throw new IllegalStateException("Trying to insert more elements than size given!");
+                    }
+                }
+            }
+
+            public ImmutableUniqueList<T> build() {
+                return new ImmutableUniqueList<T>(set, shrinkArray());
+            }
+
+            public ImmutableUniqueList<T> buildWithExactSize() {
+                assert array.length == inserted;
+                return new ImmutableUniqueList<T>(set, array);
+            }
+
+            private Object[] shrinkArray() {
+                if (array.length == inserted) {
+                    return array;
+                }
+                Object[] newArray = new Object[inserted];
+                System.arraycopy(array, 0, newArray, 0, inserted);
+                return newArray;
+            }
+        }
 
         @SuppressWarnings("unchecked")
         public static <T> ImmutableUniqueList<T> empty() {
@@ -193,35 +279,19 @@ public class DefaultClassPath implements ClassPath, Serializable {
         private final int size;
 
         /**
-         * Public constructor that should be used for all collections coming from outside this class.
-         */
-        public ImmutableUniqueList(Collection<T> from) {
-            asSet = new HashSet<T>(from.size());
-            Object[] elements = new Object[from.size()];
-            int i = 0;
-            for (T t : from) {
-                if (asSet.add(t)) {
-                    elements[i] = t;
-                    i++;
-                }
-            }
-            asArray = new Object[i];
-            System.arraycopy(elements, 0, asArray, 0, i);
-            size = i;
-        }
-
-        /**
          * Unsafe constructor for internally created Sets that we know won't be mutated.
          */
         ImmutableUniqueList(Set<T> from) {
-            asSet = from;
-            size = from.size();
-            asArray = new Object[size];
-            int i = 0;
-            for (T t : from) {
-                asArray[i] = t;
-                i++;
-            }
+            this(from, from.toArray(new Object[0]));
+        }
+
+        /**
+         * Unsafe constructor for {@link Builder}.
+         */
+        ImmutableUniqueList(Set<T> set, Object[] array) {
+            size = array.length;
+            asArray = array;
+            asSet = set;
         }
 
         @Override

@@ -211,6 +211,11 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         public TransformationStep getTransformationStep() {
             return transformationStep;
         }
+
+        @Override
+        public String toString() {
+            return transformationStep + " transform from " + from + " to " + to;
+        }
     }
 
     private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {

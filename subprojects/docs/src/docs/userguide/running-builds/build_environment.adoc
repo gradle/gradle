@@ -134,6 +134,12 @@ When set to `all` or `full`, a stacktrace is present in the output for all excep
 Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
 _Default is `internal`._
 
+`org.gradle.welcome=(never,once)::
+Controls whether Gradle should print a welcome message.
+If set to _never_ then the welcome message will be suppressed.
+If set to _once_ then the message is printed once for each new version of Gradle.
+_Default is `once`._
+
 The following example demonstrates usage of various properties.
 
 .Setting properties with a gradle.properties file
@@ -284,9 +290,9 @@ include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configu
 ----
 
 [[sec:accessing_the_web_via_a_proxy]]
-== Accessing the web through a HTTP proxy
+== Accessing the web through a proxy
 
-Configuring an HTTP or HTTPS proxy (for downloading dependencies, for example) is done via standard JVM system properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`. Alternatively, the properties can be <<#sec:gradle_configuration_properties,specified in gradle.properties>>.
+Configuring a proxy (for downloading dependencies, for example) is done via standard JVM system properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`. Alternatively, the properties can be <<#sec:gradle_configuration_properties,specified in gradle.properties>>.
 
 .Configuring an HTTP proxy using `gradle.properties`
 ----
@@ -309,10 +315,20 @@ systemProp.https.proxyPassword=password
 systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 ----
 
+There are separate settings for SOCKS.
+
+.Configuring a SOCKS proxy using `gradle.properties`
+----
+systemProp.socksProxyHost=www.somehost.org
+systemProp.socksProxyPort=1080
+systemProp.java.net.socks.username=userid
+systemProp.java.net.socks.password=password
+----
+
 You may need to set other properties to access other networks. Here are 2 references that may be helpful:
 
-* link:https://git-wip-us.apache.org/repos/asf?p=ant.git;a=blob;f=src/main/org/apache/tools/ant/util/ProxySetup.java;hb=HEAD[ProxySetup.java in the Ant codebase]
-* link:http://download.oracle.com/javase/7/docs/technotes/guides/net/properties.html[JDK 7 Networking Properties]
+* link:https://github.com/apache/ant/blob/master/src/main/org/apache/tools/ant/util/ProxySetup.java[ProxySetup.java in the Ant codebase]
+* link:https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html[JDK 8 Proxies]
 
 === NTLM Authentication
 

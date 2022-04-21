@@ -585,7 +585,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains "Malformed archive 'foo.jar'"
+        outputContains "Could not analyze foo.class for incremental compilation"
+        outputContains "Unsupported class file major version"
     }
 
     @Issue("gradle/gradle#1358")

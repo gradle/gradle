@@ -80,7 +80,7 @@ class PerformanceTest(
                                 "%performance.baselines%",
                                 extraParameters,
                                 os
-                            ) +
+                            ) + "-DenableTestDistribution=%enableTestDistribution%" +
                                 buildToolGradleParameters() +
                                 buildScanTag("PerformanceTest")
                             ).joinToString(separator = " ")

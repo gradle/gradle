@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * When executed non-incrementally remove previous outputs owned by the work unit.
  */
-public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
+public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
@@ -97,7 +97,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
             for (FileSystemSnapshot snapshot : previousOutputs.getOutputFilesProducedByWork().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(snapshot).keySet());
+                    outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(snapshot).keySet());
                     cleaner.cleanupOutputs(snapshot);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);

@@ -21,8 +21,8 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension {
 
     val groovyVersion = "4.0.2-SNAPSHOT"
-    val kotlinVersion = "1.6.10"
-    val configurationCacheReportVersion = "1.0.1"
+    val configurationCacheReportVersion = "1.1"
+    val kotlinVersion = "1.6.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -164,6 +164,7 @@ abstract class ExternalModulesExtension {
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
+    val socksProxy = "com.github.bbottema:java-socks-proxy-server"
     val spock = "org.spockframework:spock-core"
     val spockJUnit4 = "org.spockframework:spock-junit4"
     val sshdCore = "org.apache.sshd:sshd-core"

@@ -47,7 +47,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
     private final ExecOperations execOperations;
-    private final AnonymousListenerBroadcast<Listener> broadcaster;
+    private final AnonymousListenerBroadcast<ValueListener> valueBroadcaster;
+    private final AnonymousListenerBroadcast<ComputationListener> computationBroadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
@@ -60,7 +61,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ExecOperations execOperations,
         ServiceLookup services
     ) {
-        this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
+        this.valueBroadcaster = listenerManager.createAnonymousBroadcaster(ValueListener.class);
+        this.computationBroadcaster = listenerManager.createAnonymousBroadcaster(ComputationListener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.gradleProperties = gradleProperties;
@@ -90,13 +92,23 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Override
-    public void addListener(Listener listener) {
-        broadcaster.add(listener);
+    public void addValueListener(ValueListener listener) {
+        valueBroadcaster.add(listener);
     }
 
     @Override
-    public void removeListener(Listener listener) {
-        broadcaster.remove(listener);
+    public void removeValueListener(ValueListener listener) {
+        valueBroadcaster.remove(listener);
+    }
+
+    @Override
+    public void addComputationListener(ComputationListener listener) {
+        computationBroadcaster.add(listener);
+    }
+
+    @Override
+    public void removeComputationListener(ComputationListener listener) {
+        computationBroadcaster.remove(listener);
     }
 
     @Override
@@ -281,13 +293,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 if (cached != null) {
                     return cached;
                 }
-                // TODO - add more information to exceptions
-                // Fail fast when source can't be instantiated.
-                source = source();
-                value = obtained = Try.ofFailable(source::obtain);
+                computationBroadcaster.getSource().beforeValueObtained();
+                try {
+                    // TODO - add more information to exceptions
+                    // Fail fast when source can't be instantiated.
+                    source = source();
+                    value = obtained = Try.ofFailable(source::obtain);
+                } finally {
+                    computationBroadcaster.getSource().afterValueObtained();
+                }
             }
             // Value obtained for the 1st time, notify listeners.
-            broadcaster.getSource().valueObtained(obtainedValue(obtained), source);
+            valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), source);
             return obtained;
         }
 
@@ -311,7 +328,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements Listener.ObtainedValue<T, P> {
+    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements ValueListener.ObtainedValue<T, P> {
 
         private final Try<T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;

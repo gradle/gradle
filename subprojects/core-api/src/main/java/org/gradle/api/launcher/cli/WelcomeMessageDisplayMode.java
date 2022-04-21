@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.launcher.cli;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.Incubating;
 
 /**
- * An action to run as soon as the given task completes, to perform some work before the outputs of the task are consumed by other tasks.
+ * The possible strategies for displaying a welcome message on the command line.
  *
- * <p>This should evolve into some real node to the graph with similar behaviour, but as a first step this is simply bolted on.
+ * @since 7.5
  */
-public interface FinalizeAction extends Action<Task> {
-    TaskDependencyContainer getDependencies();
+@Incubating
+public enum WelcomeMessageDisplayMode {
+    ONCE, // the default, show the welcome message once per Gradle version
+    NEVER // suppress the welcome message
 }

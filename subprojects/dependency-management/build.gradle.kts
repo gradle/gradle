@@ -66,6 +66,9 @@ dependencies {
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
+    integTestImplementation(libs.socksProxy) {
+        because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
+    }
     integTestImplementation(testFixtures(project(":security")))
     integTestImplementation(testFixtures(project(":model-core")))
 

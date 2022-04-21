@@ -21,10 +21,9 @@ import spock.lang.Specification
 import java.util.function.Consumer
 
 class AccessTrackingSetTest extends Specification {
-    private final Consumer<Object> consumer = Mock()
-    private final Runnable aggregatingAccess = Mock()
+    private final AccessTrackingSet.Listener listener = Mock()
     private final Set<String> inner = new HashSet<>(Arrays.asList('existing', 'other'))
-    private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, consumer, aggregatingAccess)
+    private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, listener)
 
     def "contains of existing element is tracked"() {
         when:
@@ -32,9 +31,8 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         result
-        1 * consumer.accept('existing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('existing')
+        0 * listener._
     }
 
     def "contains of null is tracked"() {
@@ -43,9 +41,8 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept(null)
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess(null)
+        0 * listener._
     }
 
     def "contains of missing element is tracked"() {
@@ -54,9 +51,8 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept('missing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('missing')
+        0 * listener._
     }
 
     def "contains of inconvertible element is tracked"() {
@@ -65,9 +61,8 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept(123)
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess(123)
+        0 * listener._
     }
 
     def "containsAll of existing elements is tracked"() {
@@ -76,10 +71,9 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         result
-        1 * consumer.accept('existing')
-        1 * consumer.accept('other')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('existing')
+        1 * listener.onAccess('other')
+        0 * listener._
     }
 
     def "containsAll of missing elements is tracked"() {
@@ -88,10 +82,9 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept('missing')
-        1 * consumer.accept('alsoMissing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('missing')
+        1 * listener.onAccess('alsoMissing')
+        0 * listener._
     }
 
     def "containsAll of missing and existing elements is tracked"() {
@@ -100,10 +93,9 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept('missing')
-        1 * consumer.accept('existing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('missing')
+        1 * listener.onAccess('existing')
+        0 * listener._
     }
 
     def "remove of existing element is tracked"() {
@@ -112,9 +104,9 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         result
-        1 * consumer.accept('existing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('existing')
+        1 * listener.onRemove('existing')
+        0 * listener._
     }
 
     def "remove of missing element is tracked"() {
@@ -123,45 +115,62 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         !result
-        1 * consumer.accept('missing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('missing')
+        then:
+        1 * listener.onRemove('missing')
+        then:
+        0 * listener._
     }
 
     def "removeAll of existing elements is tracked"() {
         when:
-        def result = set.removeAll('existing', 'other')
+        def result = set.removeAll(['existing', 'other'])
 
         then:
         result
-        1 * consumer.accept('existing')
-        1 * consumer.accept('other')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('existing')
+        then:
+        1 * listener.onRemove('existing')
+        then:
+        1 * listener.onAccess('other')
+        then:
+        1 * listener.onRemove('other')
+        then:
+        0 * listener._
     }
 
     def "removeAll of missing elements is tracked"() {
         when:
-        def result = set.removeAll('missing', 'alsoMissing')
+        def result = set.removeAll(['missing', 'alsoMissing'])
 
         then:
         !result
-        1 * consumer.accept('missing')
-        1 * consumer.accept('alsoMissing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('missing')
+        then:
+        1 * listener.onRemove('missing')
+        then:
+        1 * listener.onAccess('alsoMissing')
+        then:
+        1 * listener.onRemove('alsoMissing')
+        then:
+        0 * listener._
     }
 
     def "removeAll of existing and missing elements is tracked"() {
         when:
-        def result = set.removeAll('existing', 'missing')
+        def result = set.removeAll(['existing', 'missing'])
 
         then:
         result
-        1 * consumer.accept('existing')
-        1 * consumer.accept('missing')
-        0 * consumer._
-        0 * aggregatingAccess._
+        1 * listener.onAccess('existing')
+        then:
+        1 * listener.onRemove('existing')
+        then:
+        1 * listener.onAccess('missing')
+        then:
+        1 * listener.onRemove('missing')
+        then:
+        0 * listener._
     }
 
     def "method #methodName is reported as aggregating"() {
@@ -169,8 +178,8 @@ class AccessTrackingSetTest extends Specification {
         operation.accept(set)
 
         then:
-        0 * consumer._
-        (1.._) * aggregatingAccess.run()
+        (1.._) * listener.onAggregatingAccess()
+        0 * listener._
 
         where:
         methodName            | operation
@@ -186,18 +195,26 @@ class AccessTrackingSetTest extends Specification {
         "removeIf(Predicate)" | call(s -> s.removeIf(e -> false))
     }
 
+    def "method clear is reported"() {
+        when:
+        set.clear()
+
+        then:
+        inner.isEmpty()
+        1 * listener.onClear()
+        0 * listener._
+    }
+
     def "method #methodName is not reported as aggregating"() {
         when:
         operation.accept(set)
 
         then:
-        0 * consumer._
-        0 * aggregatingAccess.run()
+        0 * listener._
 
         where:
         methodName    | operation
         "retainAll()" | call(s -> s.retainAll(Collections.emptySet()))
-        "clear()"     | call(s -> s.clear())
         "toString()"  | call(s -> s.toString())
     }
 
