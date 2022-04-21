@@ -887,8 +887,26 @@ include::sample[dir="snippets/valueProviders/envVarsSysPropsDo/kotlin",files="bu
 ====
 
 The fixed code above, however, is not exactly equivalent to the original as only an explicit list of variables is supported.
-Prefix-based filtering is a common scenario, so the support for that <<config_cache:not_yet_implemented:reading_subset_of_system_properties_and_environment_variables, is being added in the future
-versions of Gradle>>.
+Prefix-based filtering is a common scenario, so there are provider-based APIs to access
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemPropertiesPrefixedBy-java.lang.String-[system properties] and
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariablesPrefixedBy-java.lang.String-[environment variables]:
+
+====
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/kotlin",files="build.gradle.kts[]"]
+====
+Note that the configuration cache would be invalidated not only when the value of the variable changes or the variable is removed but also
+when another variable with the matching prefix is added to the environment.
+
+For more complex use cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation can be used.
+System properties and environment variables referenced in the code of the `ValueSource` do not become build configuration inputs, so any processing can be applied.
+Instead, the value of the `ValueSource` is recomputed each time the build runs and only if the value changes the configuration cache is invalidated.
+For example, a `ValueSource` can be used to get all environment variables with names containing the substring `JDK`:
+
+====
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDoValueSource/groovy",files="build.gradle[tags=value-source,create-provider]"]
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDoValueSource/kotlin",files="build.gradle.kts[tags=value-source,create-provider]"]
+====
 
 [[config_cache:requirements:undeclared_file_read]]
 === Undeclared reading of files
@@ -948,13 +966,6 @@ See link:{gradle-issues}13506[gradle/gradle#13506].
 === Using a Java agent with builds run using TestKit
 
 When running builds using <<test_kit#test_kit, TestKit>>, the configuration cache can interfere with Java agents, such as the Jacoco agent, that are applied to these builds.
-
-[[config_cache:not_yet_implemented:reading_subset_of_system_properties_and_environment_variables]]
-=== Reading a subset of system properties or environment variables at configuration time
-
-Currently, it isn't possible to read a subset of system properties or environment variables at configuration time in a way that doesn't make all properties or variables build configuration inputs.
-
-See link:{gradle-issues}13819[gradle/gradle#13819].
 
 [[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
 === Fine-grained tracking of Gradle properties as build configuration inputs

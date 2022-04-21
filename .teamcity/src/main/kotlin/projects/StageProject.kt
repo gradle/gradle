@@ -1,7 +1,7 @@
 package projects
 
 import common.VersionedSettingsBranch
-import common.failedTestArtifactDestination
+import common.hiddenArtifactDestination
 import common.toCapitalized
 import configurations.BaseGradleBuildType
 import configurations.FunctionalTest
@@ -49,7 +49,7 @@ class StageProject(
     init {
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
-                buildReportTab("API Compatibility Report", "$failedTestArtifactDestination/report-architecture-test-binary-compatibility-report.html")
+                buildReportTab("API Compatibility Report", "$hiddenArtifactDestination/report-architecture-test-binary-compatibility-report.html")
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {

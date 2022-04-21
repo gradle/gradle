@@ -161,6 +161,7 @@ class Codecs(
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
         bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
+        bind(ResolveArtifactNodeCodec)
         bind(WorkNodeActionCodec)
         bind(CapabilitySerializer())
 
@@ -168,6 +169,8 @@ class Codecs(
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
+
+        bind(CachedEnvironmentStateCodec)
 
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
@@ -286,7 +289,7 @@ class Codecs(
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(hashSetCodec)
+        bind(HashSetCodec)
         bind(treeSetCodec)
         bind(ImmutableSetCodec)
 

@@ -37,7 +37,7 @@ class KotlinCompileClasspathFingerprinter(
     stringInterner: StringInterner
 ) : AbstractFileCollectionFingerprinter(
     ClasspathFingerprintingStrategy.compileClasspath(
-        CachingResourceHasher(AbiExtractingClasspathResourceHasher(KotlinApiClassExtractor()), cacheService),
+        CachingResourceHasher(AbiExtractingClasspathResourceHasher.withoutFallback(KotlinApiClassExtractor()), cacheService),
         cacheService,
         stringInterner,
         CompileAvoidanceExceptionReporter()

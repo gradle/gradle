@@ -602,7 +602,6 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
-
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that use JaCoCo under JDK 18 until JaCoCo 0.8.8 is released.
             excludeTestsMatching "org.gradle.docs.samples.SamplesTest.structuring-software-projects_*_aggregate-reports.sample"
@@ -613,6 +612,10 @@ tasks.named("docsTest") { task ->
             // Disable tests that suffer from charset issues under JDK 18 for now
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
+        }
+        // Android requires Java 11+
+        if (!javaVersion.java11Compatible) {
+            excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
         }
     }
 }

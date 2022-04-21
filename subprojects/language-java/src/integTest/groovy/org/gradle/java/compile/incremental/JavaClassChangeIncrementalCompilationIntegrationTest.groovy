@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -406,5 +407,18 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
 
         then:
         outputs.recompiledClasses('A', 'B')
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/20478")
+    def "can detect deletion of class used as type parameter"() {
+        source "interface Super <T> { T getResult(); }"
+        source "interface Sub extends Super<Deleted> { }"
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('symbol: class Deleted', 'Sub')
     }
 }

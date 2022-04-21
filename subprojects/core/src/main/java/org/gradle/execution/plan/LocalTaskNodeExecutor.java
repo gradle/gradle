@@ -67,7 +67,6 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
-            localTaskNode.getPostAction().execute(task);
             return true;
         } else {
             return false;

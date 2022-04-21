@@ -29,7 +29,7 @@ import org.gradle.process.ExecResult
 
 import javax.inject.Inject
 
-import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
+import static org.gradle.api.internal.provider.ValueSourceProviderFactory.ValueListener.ObtainedValue
 
 class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
@@ -68,7 +68,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
             it.parameters.value.set('42')
         }
         def obtainedValueCount = 0
-        valueSourceProviderFactory.addListener { value, source ->
+        valueSourceProviderFactory.addValueListener { value, source ->
             assert source instanceof EchoValueSource
             obtainedValueCount += 1
         }
@@ -91,8 +91,10 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set("42")
         }
+        ValueSourceProviderFactory.ComputationListener computationListener = Mock()
+        valueSourceProviderFactory.addComputationListener(computationListener)
         List<ObtainedValue<?, ValueSourceParameters>> obtainedValues = []
-        valueSourceProviderFactory.addListener { value, source ->
+        valueSourceProviderFactory.addValueListener { value, source ->
             assert source instanceof EchoValueSource
             obtainedValues.add(value)
         }
@@ -100,7 +102,13 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         when: "value is obtained for the 1st time"
         provider.get()
 
-        then: "listener is notified"
+        then: "beforeValueObtained callback is notified"
+        1 * computationListener.beforeValueObtained()
+
+        then: "afterValueObtained callback is notified"
+        1 * computationListener.afterValueObtained()
+
+        then: "valueObtained is notified"
         obtainedValues.size() == 1
         obtainedValues[0].valueSourceType == EchoValueSource
         obtainedValues[0].valueSourceParametersType == EchoValueSource.Parameters
@@ -111,6 +119,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         provider.get()
 
         then: "no notification is sent"
+        0 * computationListener._
         obtainedValues.size() == 1
     }
 
@@ -170,6 +179,47 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         1 * execOperations.exec(_) >> _
     }
 
+    def "listener calls wrap obtain invocation"() {
+        when:
+        valueSourceProviderFactory.addComputationListener(new ValueSourceProviderFactory.ComputationListener() {
+            @Override
+            void beforeValueObtained() {
+                StatusTrackingValueSource.INSIDE_COMPUTATION.set(true)
+            }
+
+            @Override
+            void afterValueObtained() {
+                StatusTrackingValueSource.INSIDE_COMPUTATION.set(false)
+            }
+        })
+        def provider = createProviderOf(StatusTrackingValueSource) {}
+
+        def result = provider.get()
+
+        then:
+        result
+        !StatusTrackingValueSource.INSIDE_COMPUTATION.get()
+    }
+
+    def "failed value source restores state"() {
+        given:
+        ValueSourceProviderFactory.ComputationListener listener = Mock()
+        valueSourceProviderFactory.addComputationListener(listener)
+
+        when:
+        def provider = createProviderOf(ThrowingValueSource) {}
+        try {
+            provider.get()
+        } catch (UnsupportedOperationException ignored) {
+            // expected
+        }
+
+        then:
+        1 * listener.beforeValueObtained()
+        then:
+        1 * listener.afterValueObtained()
+    }
+
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
 
         interface Parameters extends ValueSourceParameters {
@@ -215,6 +265,27 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
             return execOperations.exec {
                 commandLine(getParameters().command.get())
             }
+        }
+    }
+
+    static abstract class StatusTrackingValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
+        static final ThreadLocal<Boolean> INSIDE_COMPUTATION = ThreadLocal.withInitial(() -> false)
+
+        private boolean isInsideComputationInConstructor
+        StatusTrackingValueSource() {
+            isInsideComputationInConstructor = INSIDE_COMPUTATION.get()
+        }
+
+        @Override
+        Boolean obtain() {
+            return isInsideComputationInConstructor && INSIDE_COMPUTATION.get()
+        }
+    }
+
+    static abstract class ThrowingValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
+        @Override
+        Boolean obtain() {
+            throw new UnsupportedOperationException("Cannot compute value")
         }
     }
 }

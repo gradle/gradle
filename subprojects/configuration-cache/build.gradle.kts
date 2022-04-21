@@ -81,6 +81,7 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.capsule)
+    implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
@@ -103,6 +104,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
+    integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
 
     integTestImplementation(testFixtures(project(":tooling-api")))
     integTestImplementation(testFixtures(project(":dependency-management")))

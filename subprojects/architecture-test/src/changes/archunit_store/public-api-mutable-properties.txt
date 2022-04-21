@@ -117,6 +117,7 @@ Method <org.gradle.api.file.SourceDirectorySet.getName()> does not have raw retu
 Method <org.gradle.api.file.SourceDirectorySet.getOutputDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (SourceDirectorySet.java:0)
 Method <org.gradle.api.file.SourceDirectorySet.getSrcDirTrees()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SourceDirectorySet.java:0)
 Method <org.gradle.api.file.SourceDirectorySet.getSrcDirs()> does not have raw return type assignable to org.gradle.api.provider.Property in (SourceDirectorySet.java:0)
+Method <org.gradle.api.file.SyncSpec.getPreserve()> does not have raw return type assignable to org.gradle.api.provider.Provider in (SyncSpec.java:0)
 Method <org.gradle.api.initialization.ProjectDescriptor.getBuildFile()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ProjectDescriptor.java:0)
 Method <org.gradle.api.initialization.ProjectDescriptor.getBuildFileName()> does not have raw return type assignable to org.gradle.api.provider.Property in (ProjectDescriptor.java:0)
 Method <org.gradle.api.initialization.ProjectDescriptor.getChildren()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ProjectDescriptor.java:0)

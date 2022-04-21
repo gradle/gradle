@@ -50,7 +50,6 @@ import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetada
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.WrappedComponentResolveMetadata;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -59,7 +58,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.BuildableTypedResolveResult;
@@ -405,21 +403,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
         }
 
-        @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            T moduleMetaData = getSupportedMetadataType().cast(unwrap(component));
-            resolveModuleArtifacts(moduleMetaData, result);
-        }
-
-        private ComponentResolveMetadata unwrap(ComponentResolveMetadata original) {
-            if (original instanceof WrappedComponentResolveMetadata) {
-                return ((WrappedComponentResolveMetadata) original).unwrap();
-            }
-            return original;
-        }
-
-        protected abstract void resolveModuleArtifacts(T module, BuildableComponentArtifactsResolveResult result);
-
         protected abstract void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result);
 
         protected abstract void resolveJavadocArtifacts(T module, BuildableArtifactSetResolveResult result);
@@ -480,12 +463,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             checkArtifactsResolved(component, artifactType, result);
         }
 
-        @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            super.resolveArtifacts(component, result);
-            checkArtifactsResolved(component, "artifacts", result);
-        }
-
         private void checkArtifactsResolved(ComponentResolveMetadata component, Object context, BuildableTypedResolveResult<?, ? super ArtifactResolveException> result) {
             if (!result.hasResult()) {
                 result.failed(new ArtifactResolveException(component.getId(),
@@ -496,11 +473,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         @Override
         protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
             // Meta data artifacts are determined locally
-        }
-
-        @Override
-        protected void resolveModuleArtifacts(T module, BuildableComponentArtifactsResolveResult result) {
-            // Configuration artifacts are determined locally
         }
 
         @Override

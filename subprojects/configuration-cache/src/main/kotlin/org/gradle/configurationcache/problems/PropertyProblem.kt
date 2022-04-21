@@ -132,6 +132,14 @@ sealed class PropertyTrace {
             get() = trace.containingUserCode
     }
 
+    class SystemProperty(
+        val name: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        override val containingUserCode: String
+            get() = trace.containingUserCode
+    }
+
     override fun toString(): String =
         StringBuilder().apply {
             sequence.forEach {
@@ -158,6 +166,11 @@ sealed class PropertyTrace {
                 append(" ")
                 quoted(trace.name)
                 append(" of ")
+            }
+            is SystemProperty -> {
+                append("system property ")
+                quoted(trace.name)
+                append(" set at ")
             }
             is Bean -> {
                 quoted(trace.type.name)
@@ -203,6 +216,7 @@ sealed class PropertyTrace {
         get() = when (this) {
             is Bean -> trace
             is Property -> trace
+            is SystemProperty -> trace
             else -> null
         }
 }

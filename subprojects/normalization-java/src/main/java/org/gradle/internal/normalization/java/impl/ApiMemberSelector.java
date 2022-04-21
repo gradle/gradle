@@ -55,7 +55,7 @@ public class ApiMemberSelector extends ClassVisitor {
     private boolean thisClassIsPrivateInnerClass;
 
     public ApiMemberSelector(String className, ApiMemberWriter apiMemberWriter, boolean apiIncludesPackagePrivateMembers) {
-        super(Opcodes.ASM7);
+        super(Opcodes.ASM9);
         this.className = className;
         this.apiMemberWriter = apiMemberWriter;
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
@@ -100,7 +100,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers) || ("<init>".equals(name) && isInnerClass)) {
             final MethodMember methodMember = new MethodMember(access, name, desc, signature, exceptions);
             methods.add(methodMember);
-            return new MethodVisitor(Opcodes.ASM7) {
+            return new MethodVisitor(Opcodes.ASM9) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -125,7 +125,7 @@ public class ApiMemberSelector extends ClassVisitor {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
-            return new FieldVisitor(Opcodes.ASM7) {
+            return new FieldVisitor(Opcodes.ASM9) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -154,6 +154,12 @@ public class ApiMemberSelector extends ClassVisitor {
 
         innerClasses.add(new InnerClassMember(access, name, outerName, innerName));
         super.visitInnerClass(name, outerName, innerName, access);
+    }
+
+    @Override
+    public void visitPermittedSubclass(String permittedSubclass) {
+        classMember.getPermittedSubclasses().add(permittedSubclass);
+        super.visitPermittedSubclass(permittedSubclass);
     }
 
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {

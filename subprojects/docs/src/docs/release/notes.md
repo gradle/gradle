@@ -16,6 +16,7 @@ We would like to thank the following community members for their contributions t
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder),
 [Konstantin Gribov](https://github.com/grossws),
+[David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [aSemy](https://github.com/aSemy),
 [Rene Groeschke](https://github.com/breskeby),
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
@@ -25,9 +26,17 @@ We would like to thank the following community members for their contributions t
 [Taeik Lim](https://github.com/acktsap),
 [David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [Peter Gafert](https://github.com/codecholeric),
-[Alex Landau](https://github.com/AlexLandau)
+[Alex Landau](https://github.com/AlexLandau),
+[Jerry Wiltse](https://github.com/solvingj),
+[Tyler Burke](https://github.com/T-A-B),
+[Matthew Haughton](https://github.com/3flex),
+[Filip Daca](https://github.com/filip-daca),
+[Edgars Jasmans](https://github.com/yasmans),
+[Simão Gomes Viana](https://github.com/xdevs23),
+[Lajos Veres](https://github.com/vlajos)
+[Jeff](https://github.com/mathjeff)
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
@@ -44,32 +53,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
-
-<!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### JVM toolchains improvements
 
@@ -115,7 +98,7 @@ The `outgoingVariants` report has been improved to present information more clea
 - Capabilities, Attributes, Artifacts lists all fully sorted
 - Rich Console output coloring improved to highlight important information
 
-See the [OutgoingVariantsReport](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
+See the [OutgoingVariantsReport](dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
 
 #### Resolvable Configurations
 
@@ -127,7 +110,7 @@ There is a new `resolvableConfigurations` report available which will display in
 - A `--configuration` option can limit this report to a single configuration
 - A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable, these will be hidden by default
 -
-See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
+See the [ResolvableConfigurations](dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
 
 #### Dependency Insights
 
@@ -135,7 +118,7 @@ See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradl
 
 ### Description Available on Secondary Variants
 
-When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
+When defining secondary variants, there is a new [ConfigurationVariant](javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
 These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
 ### Continuous build is responsive on Windows and macOS
 
@@ -165,14 +148,41 @@ Root project 'example-project'
 buildFile: /path/to/project/build.gradle
 
 BUILD SUCCESSFUL in 550ms
-1 actionable task: 1 executed 
+1 actionable task: 1 executed
 ```
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
+### Support for Java 18
 
--->
+Gradle now supports running on and building with [Java 18](https://openjdk.java.net/projects/jdk/18/).
+
+### Support for Groovy 4
+
+Gradle now supports building software using Groovy 4.0.
+
+### Groovydoc exposes more options
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
+
+- `access`: for controlling the access levels included in the documentation, defaults to `PROTECTED`
+- `includeAuthor`: for controlling whether the author is displayed in the documentation, defaults to `false`
+- `processScripts`: for controlling whether scripts are included in the documentation, defaults to `true`
+- `includeMainForScripts`: for controlling whether a script's `main` method is included in the documentation, defaults to `true`
+
+These defaults are the same as what was previously used, so there should be no changes to the default behavior.
+
+### --show-version (-V) flag
+
+The `-V` flag (long form `--show-version`) instructs Gradle to first print version information and then continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
+
+This flag may be useful in CI enviroments to record Gradle version information in the log as part of a single Gradle execution.
+
+### Run a single PMD task on multiple threads
+
+[PMD](https://pmd.github.io/) is a quality analysis tool that runs on the Java source files of your project.
+
+With this version of Gradle, the [`thread` parameter](https://pmd.github.io/latest/pmd_userdocs_tools_ant.html#parameters) it offers is now exposed through the PMD extension and tasks.
+This allows configuration of PMD to run its analysis on more than one thread.
+
+See the [documentation](userguide/pmd_plugin.html#sec:pmd_conf_threads) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -180,15 +190,7 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-- The [TargetJvmEnvironmant](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmEnvironmant.html) interface is now stable.
-
-<!--
-### Example promoted
--->
-
-### Support for Groovy 4
-
-Gradle now supports building software using Groovy 4.0.
+- The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
 
 ## Fixed issues
 

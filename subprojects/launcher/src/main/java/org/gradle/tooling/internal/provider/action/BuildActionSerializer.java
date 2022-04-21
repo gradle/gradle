@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider.action;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -151,6 +153,7 @@ public class BuildActionSerializer {
             encoder.writeString(startParameter.getDependencyVerificationMode().name());
             encoder.writeBoolean(startParameter.isRefreshKeys());
             encoder.writeBoolean(startParameter.isExportKeys());
+            encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -235,6 +238,7 @@ public class BuildActionSerializer {
             startParameter.setDependencyVerificationMode(DependencyVerificationMode.valueOf(decoder.readString()));
             startParameter.setRefreshKeys(decoder.readBoolean());
             startParameter.setExportKeys(decoder.readBoolean());
+            startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
 
             return startParameter;
         }
