@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
+import spock.lang.Ignore
+
+@Ignore("Fix invokedynamic handling")
 class UndeclaredBuildInputsDynamicGroovySettingsScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {
