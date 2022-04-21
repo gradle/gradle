@@ -136,7 +136,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
     def "task action defined in Kotlin 1.6 can be tracked when using language version 1.4"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version("1.6.20")
+                kotlin("jvm") version("1.6.21")
                 `java-gradle-plugin`
             }
 
