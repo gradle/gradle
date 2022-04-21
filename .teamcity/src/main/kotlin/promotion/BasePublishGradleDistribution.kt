@@ -37,6 +37,7 @@ abstract class BasePublishGradleDistribution(
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests
         **/smoke-tests/build/reports/tests/** => post-smoke-tests
+        **/build/version-info.properties => version-info.properties
         """.trimIndent()
 
         dependencies {
