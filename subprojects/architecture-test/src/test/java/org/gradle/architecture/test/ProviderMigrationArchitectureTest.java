@@ -28,13 +28,17 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
+import groovy.lang.Closure;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
@@ -42,11 +46,17 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 
 import javax.inject.Inject;
 
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
@@ -58,6 +68,32 @@ public class ProviderMigrationArchitectureTest {
         public boolean apply(JavaMethod input) {
             PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
             return accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER;
+        }
+    };
+
+    private static final DescribedPredicate<JavaMethod> setters_without_getters = new DescribedPredicate<JavaMethod>("setters without getters") {
+        @Override
+        public boolean apply(JavaMethod input) {
+            PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(input.getName());
+            if (propertyAccessorType != PropertyAccessorType.SETTER) {
+                return false;
+            }
+            String propertyName = propertyAccessorType.propertyNameFor(input.getName());
+            return input.getOwner().getAllMethods().stream()
+                .noneMatch(it -> getters.apply(it) && PropertyAccessorType.fromName(it.getName()).propertyNameFor(it.getName()).equals(propertyName));
+        }
+    };
+
+    private static final DescribedPredicate<JavaMethod> bean_property_methods = new DescribedPredicate<JavaMethod>("bean property method") {
+        @Override
+        public boolean apply(JavaMethod input) {
+            String methodName = input.getName();
+            PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(methodName);
+            if (propertyAccessorType != null) {
+                return true;
+            }
+            return input.getOwner().getAllMethods().stream()
+                .anyMatch(it -> getters.apply(it) && PropertyAccessorType.fromName(it.getName()).propertyNameFor(it.getName()).equals(methodName));
         }
     };
 
@@ -81,6 +117,29 @@ public class ProviderMigrationArchitectureTest {
         .and(are(getters))
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
+
+    @SuppressWarnings("deprecation")
+    private static final DescribedPredicate<JavaMethod> public_api_mutation_methods = ArchPredicates.<JavaMethod>are(public_api_methods)
+        .and(not(declaredIn(assignableTo(Task.class))))
+        .and(not(declaredIn(StartParameter.class)))
+        .and(not(declaredIn(WelcomeMessageConfiguration.class))) // used in StartParameter
+        .and(not(declaredIn(Configuration.class)))
+        .and(not(declaredIn(FileCollection.class)))
+        .and(not(declaredIn(ConfigurableFileCollection.class)))
+        .and(are(setters_without_getters).or(not(bean_property_methods)))
+        .and(doNot(have(rawParameterTypes(Closure.class))))
+        .and(doNot(have(rawParameterTypes(Action.class))))
+        .and(doNot(have(name("execute"))))
+        .and(doNot(have(name("apply"))))
+        .and(doNot(have(name("configure"))))
+        .and(doNot(have(nameMatching("(projects|settings)(Evaluated|Loaded)"))))
+        .and(not(declaredIn(assignableTo(DomainObjectCollection.class))))
+        .and(not(declaredIn(HasMultipleValues.class)))
+        .and(not(declaredIn(assignableTo(Provider.class))))
+        .and(not(declaredIn(nameEndingWith("Utils"))))
+        .and(not(declaredIn(org.gradle.util.GUtil.class)))
+        .and(not(annotatedWith(Inject.class)))
+        .as("public API mutation methods");
 
     @SuppressWarnings("deprecation")
     private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
@@ -127,6 +186,11 @@ public class ProviderMigrationArchitectureTest {
     public static final ArchRule public_api_task_properties_should_not_use_text_resources = freeze(methods()
         .that(are(task_properties))
         .should().notHaveRawReturnType(TextResource.class));
+
+    @ArchTest
+    public static final ArchRule there_should_not_be_public_api_mutation_methods = freeze(methods()
+        .that(are(public_api_mutation_methods))
+        .should().notHaveRawReturnType(void.class));
 
     private static HaveLazyReturnType haveProviderReturnType() {
         return new HaveLazyReturnType(Property.class, Provider.class);
