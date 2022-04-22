@@ -71,7 +71,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         if (toolchainFile.exists()) {
             try (FileInputStream toolchain = new FileInputStream(toolchainFile)) {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                documentBuilder.setErrorHandler(new LoggingErrorHandler());
+                documentBuilder.setErrorHandler(new PropagatingErrorHandler());
                 XPath xpath = xPathFactory.newXPath();
                 XPathExpression expression = xpath.compile(PARSE_EXPRESSION);
 
@@ -87,11 +87,10 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                     .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
                     .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
-                String toolchainValue = toolchainLocation.getOrElse("?");
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}", toolchainValue, e);
+                    LOGGER.debug("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}", toolchainFile, e);
                 } else {
-                    LOGGER.info("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. {}", toolchainValue, e.getMessage());
+                    LOGGER.info("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. {}", toolchainFile, e.getMessage());
                 }
             }
         }
@@ -102,36 +101,21 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         return new File(MavenUtil.getUserMavenDir(), "toolchains.xml").getAbsolutePath();
     }
 
-    /**
-     * Basic error handler which logs via SLF4J used to override
-     * default behavior which logs directly to stderr.
-     */
-    private static class LoggingErrorHandler implements ErrorHandler {
+    private static class PropagatingErrorHandler implements ErrorHandler {
         @Override
         public void warning(SAXParseException e) throws SAXException {
-            logException("Warning", e);
+            // Non-fatal error. No need to log.
         }
 
         @Override
         public void error(SAXParseException e) throws SAXException {
-            logException("Error", e);
+            // Non-fatal error. No need to log.
         }
 
         @Override
         public void fatalError(SAXParseException e) throws SAXException {
-            logException("Fatal error", e);
-
             // Propagate error -- consistent with default behavior.
             throw e;
-        }
-
-        private void logException(String type, SAXParseException e)
-        {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("{} while parsing XML at line {} and column {}.", type, e.getLineNumber(), e.getColumnNumber(), e);
-            } else {
-                LOGGER.info("{} while parsing XML at line {} and column {}. {}", type, e.getLineNumber(), e.getColumnNumber(), e.getMessage());
-            }
         }
     }
 }
