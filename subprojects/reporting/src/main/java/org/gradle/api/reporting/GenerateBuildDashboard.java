@@ -126,6 +126,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      *
      * @param reportings an array of {@link Reporting} instances that are to be aggregated
      */
+    @SuppressWarnings("unchecked")
     public void aggregate(Reporting<? extends ReportContainer<?>>... reportings) {
         aggregated.addAll(Arrays.asList(reportings));
     }
