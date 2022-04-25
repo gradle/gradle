@@ -55,10 +55,12 @@ import gradlebuild.basics.BuildParams.TEST_JAVA_VERSION
 import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_INCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_ONLY_TEST_GRADLE_VERSION
+import gradlebuild.basics.BuildParams.VENDOR_MAPPING
 import gradlebuild.basics.BuildParams.YARNPKG_MIRROR_URL
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 
@@ -84,6 +86,7 @@ object BuildParams {
     const val BUILD_VERSION_QUALIFIER = "versionQualifier"
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val GRADLE_INSTALL_PATH = "gradle_installPath"
+
 
     /**
      * Specify the flaky test quarantine strategy:
@@ -117,6 +120,8 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+    internal
+    val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
     const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
 }
 
@@ -279,8 +284,8 @@ val Project.rerunAllTests: Provider<String>
     get() = gradleProperty(RERUN_ALL_TESTS)
 
 
-val Project.testJavaVendor: Provider<String>
-    get() = propertyFromAnySource(TEST_JAVA_VENDOR)
+val Project.testJavaVendor: Provider<JvmVendorSpec>
+    get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { VENDOR_MAPPING.getValue(it) }
 
 
 val Project.testJavaVersion: String

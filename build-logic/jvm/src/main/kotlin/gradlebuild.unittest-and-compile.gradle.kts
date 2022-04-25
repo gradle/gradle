@@ -212,12 +212,7 @@ fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion.set(jvmVersionForTest())
-        project.testJavaVendor.map {
-            when (it.toLowerCase()) {
-                "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
-                "openjdk" -> vendor.set(JvmVendorSpec.ADOPTIUM)
-            }
-        }.getOrNull()
+        vendor.set(project.testJavaVendor.orNull)
     }
     javaLauncher.set(launcher)
     if (jvmVersionForTest().canCompileOrRun(9)) {
@@ -339,6 +334,7 @@ fun removeTeamcityTempProperty() {
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
 fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
+
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
  */
