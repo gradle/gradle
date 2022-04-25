@@ -106,8 +106,6 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
                 }
             """
 
-            file("parents/build.gradle") << ""
-
             file("parent/subTransitiveTest/build.gradle") << """
                 plugins {
                     id 'java-library'
