@@ -16,6 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -36,6 +37,10 @@ import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -47,7 +52,7 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
-
+    private static final Set<Integer> ZIP_SIGNATURES = ImmutableSet.of(0x504B0304, 0x504B0506, 0x504B0708);
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
     @Override
@@ -114,7 +119,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                     executionDataConf.getIncoming().artifactView(view -> {
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
                         view.lenient(true);
-                    }).getFiles();
+                    }).getFiles().filter(f -> !isArchive(f)); // Filter out archive files, to work around #20532
 
                 configureReportTaskInputs(task, classDirectories, sourceDirectories, executionData);
             });
@@ -139,5 +144,24 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         task.getExecutionData().from(executionData);
         task.getClassDirectories().from(classDirectories.getFiles());
         task.getSourceDirectories().from(sourceDirectories.getFiles());
+    }
+
+    /**
+     * Read the first few magic bytes of the file and compare them to known zip signatures to determine if it is an archive.
+     *
+     * @see <a href="https://en.wikipedia.org/wiki/List_of_file_signatures">List of file signatures</a>
+     * @param f the file to check
+     * @return {@code true} if the file is an archive, {@code false} otherwise
+     */
+    private static boolean isArchive(File f) {
+        if (f.exists()) {
+            try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
+                return ZIP_SIGNATURES.contains(raf.readInt());
+            } catch (IOException e) {
+                throw new RuntimeException("Error checking file signature", e);
+            }
+        } else {
+            return false;
+        }
     }
 }

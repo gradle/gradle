@@ -20,13 +20,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import spock.lang.Issue
 
-class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
+/**
+ * This test class exists to verify a specific issue - if a project uses the `kotlin-jvm` plugin
+ * and has no actual tests but is still included on the jacoco aggregation classpath transitively,
+ * it will cause the report aggregation to fail.
+ *
+ * This is due that that plugin adding attributes to the legacy `default` variant which cause it to match
+ * the variant selection performed by the plugin when looking for aggregation data.  Without the fix for this issue (check file signature of
+ * all files to be added to the jacoco report to ensure none are zip), this test will fail.
+ */
+@Issue("https://github.com/gradle/gradle/issues/20532")
+class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
     def setup() {
-        multiProjectBuild("root", ["direct"]) {
-            settingsFile << """
-                include(":parent:subTransitiveTest")
-            """
-
+        multiProjectBuild("root", ["direct", "transitive"]) {
             buildFile.text = """
                 apply plugin: 'jacoco-report-aggregation'
 
@@ -70,7 +76,7 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    testImplementation project(":parent:subTransitiveTest")
+                    testImplementation project(":transitive")
                 }
             """
             file("direct/src/main/java/direct/Multiplier.java").java """
@@ -87,7 +93,7 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
 
                 import org.junit.Assert;
                 import org.junit.Test;
-                import subTransitiveTest.Powerize;
+                import transitive.Powerize;
 
                 public class MultiplierTest {
                     @Test
@@ -106,14 +112,14 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
                 }
             """
 
-            file("parent/subTransitiveTest/build.gradle") << """
+            file("transitive/build.gradle") << """
                 plugins {
                     id 'java-library'
-                    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+                    id 'org.jetbrains.kotlin.jvm' version '1.5.30'
                 }
             """
-            file("parent/subTransitiveTest/src/main/java/subTransitiveTest/Powerize.java").java """
-                package subTransitiveTest;
+            file("transitive/src/main/java/transitive/Powerize.java").java """
+                package transitive;
 
                 public class Powerize {
                     public int pow(int x, int y) {
@@ -124,18 +130,24 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Issue("20532")
-    def "can aggregate jacoco execution data from subprojects"() {
+    def "can aggregate jacoco execution data from a subproject with kotlin-dsl and no tests"() {
         when:
+        expectIncrementalTaskInputsDeprecationWarning('AbstractKotlinCompile', 'execute')
         succeeds(":testCodeCoverageReport")
 
         then:
-        file("parent/subTransitiveTest/build/jacoco/test.exec").assertDoesNotExist()
+        file("transitive/build/jacoco/test.exec").assertDoesNotExist()
+        file("transitive/build/libs/transitive-1.0.jar").assertExists()
         file("direct/build/jacoco/test.exec").assertExists()
 
         file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
 
         def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
         report.assertHasClassCoverage("direct.Multiplier")
+    }
+
+    void expectIncrementalTaskInputsDeprecationWarning(String className = 'BaseIncrementalTask', String methodName = 'execute') {
+        String source = "${className}.${methodName}"
+        executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method '$source' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
     }
 }
