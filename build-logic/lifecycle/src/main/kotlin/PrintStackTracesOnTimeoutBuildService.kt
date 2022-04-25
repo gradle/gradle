@@ -24,35 +24,26 @@ import javax.inject.Inject
 import kotlin.concurrent.timerTask
 
 
-abstract class PrintStackTracesOnTimeoutBuildService : BuildService<PrintStackTracesOnTimeoutBuildService.Params>, AutoCloseable {
-    @get:Inject
-    abstract val execOperations: ExecOperations
-
+abstract class PrintStackTracesOnTimeoutBuildService @Inject constructor(private val execOperations: ExecOperations) : BuildService<PrintStackTracesOnTimeoutBuildService.Params>, AutoCloseable {
     interface Params : BuildServiceParameters {
         val timeoutMillis: Property<Long>
         val projectDirectory: DirectoryProperty
     }
 
     private
-    lateinit var timer: Timer
-
-    fun startTimer() {
-        if (!this::timer.isInitialized) {
-            timer = Timer(true).apply {
-                schedule(
-                    timerTask {
-                        execOperations.exec {
-                            commandLine(
-                                "${System.getProperty("java.home")}/bin/java",
-                                parameters.projectDirectory.file("subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").get().asFile.absolutePath,
-                                parameters.projectDirectory.asFile.get().absolutePath
-                            )
-                        }
-                    },
-                    parameters.timeoutMillis.get()
-                )
-            }
-        }
+    val timer: Timer = Timer(true).apply {
+        schedule(
+            timerTask {
+                execOperations.exec {
+                    commandLine(
+                        "${System.getProperty("java.home")}/bin/java",
+                        parameters.projectDirectory.file("subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").get().asFile.absolutePath,
+                        parameters.projectDirectory.asFile.get().absolutePath
+                    )
+                }
+            },
+            parameters.timeoutMillis.get()
+        )
     }
 
     override fun close() {
