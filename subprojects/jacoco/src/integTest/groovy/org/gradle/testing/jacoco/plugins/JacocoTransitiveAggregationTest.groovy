@@ -111,6 +111,7 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
             file("parent/subTransitiveTest/build.gradle") << """
                 plugins {
                     id 'java-library'
+                    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
                 }
             """
             file("parent/subTransitiveTest/src/main/java/subTransitiveTest/Powerize.java").java """
@@ -125,7 +126,7 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Issue("20532") // Not sure why this reproducer doesn't fail like the provided example.  Maybe Kotlin DSL vs. Groovy?
+    @Issue("20532")
     def "can aggregate jacoco execution data from subprojects"() {
         when:
         succeeds(":testCodeCoverageReport")
