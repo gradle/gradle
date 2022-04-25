@@ -22,7 +22,11 @@ import spock.lang.Issue
 
 class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
     def setup() {
-        multiProjectBuild("root", ["direct", "transitiveTest"]) {
+        multiProjectBuild("root", ["direct"]) {
+            settingsFile << """
+                include(":parent:subTransitiveTest")
+            """
+
             buildFile.text = """
                 apply plugin: 'jacoco-report-aggregation'
 
@@ -66,7 +70,7 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    testImplementation project(":transitiveTest")
+                    testImplementation project(":parent:subTransitiveTest")
                 }
             """
             file("direct/src/main/java/direct/Multiplier.java").java """
@@ -83,7 +87,7 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
 
                 import org.junit.Assert;
                 import org.junit.Test;
-                import transitiveTest.Powerize;
+                import subTransitiveTest.Powerize;
 
                 public class MultiplierTest {
                     @Test
@@ -102,13 +106,15 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
                 }
             """
 
-            file("transitiveTest/build.gradle") << """
+            file("parents/build.gradle") << ""
+
+            file("parent/subTransitiveTest/build.gradle") << """
                 plugins {
                     id 'java-library'
                 }
             """
-            file("transitiveTest/src/main/java/transitiveTest/Powerize.java").java """
-                package transitiveTest;
+            file("parent/subTransitiveTest/src/main/java/subTransitiveTest/Powerize.java").java """
+                package subTransitiveTest;
 
                 public class Powerize {
                     public int pow(int x, int y) {
@@ -121,13 +127,11 @@ class JacocoTransitiveAggregationTest extends AbstractIntegrationSpec {
 
     @Issue("20532") // Not sure why this reproducer doesn't fail like the provided example.  Maybe Kotlin DSL vs. Groovy?
     def "can aggregate jacoco execution data from subprojects"() {
-        given:
-
         when:
         succeeds(":testCodeCoverageReport")
 
         then:
-        file("transitiveTest/build/jacoco/test.exec").assertDoesNotExist()
+        file("parent/subTransitiveTest/build/jacoco/test.exec").assertDoesNotExist()
         file("direct/build/jacoco/test.exec").assertExists()
 
         file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
