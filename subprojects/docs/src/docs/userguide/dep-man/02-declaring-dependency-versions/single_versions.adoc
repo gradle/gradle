@@ -19,6 +19,7 @@ For example versions like `2.0-dev1` or `2.0-SNAPSHOT` are no longer included in
 ** Will match the highest versioned module with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
 * A Maven `SNAPSHOT` version identifier: e.g. `1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
 
+[[version_ordering]]
 == Version ordering
 
 Versions have an implicit ordering. Version ordering is used to:
@@ -32,7 +33,7 @@ Versions are ordered based on the following rules:
 * Each version is split into it's constituent "parts":
 ** The characters `[. - _ +]` are used to separate the different "parts" of a version.
 ** Any part that contains both digits and letters is split into separate parts for each: `1a1 == 1.a.1`
-** Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1`
+** Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1` (watch out though, in the context of conflict resolution there are <<dependency_resolution#sec:base-version-comparison,exceptions to this rule>>).
 * The equivalent parts of 2 versions are compared using the following rules:
 ** If both parts are numeric, the highest numeric value is **higher**: `1.1` < `1.2`
 ** If one part is numeric, it is considered **higher** than the non-numeric part: `1.a` < `1.1`
