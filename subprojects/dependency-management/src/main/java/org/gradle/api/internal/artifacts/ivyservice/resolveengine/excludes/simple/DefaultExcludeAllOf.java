@@ -44,12 +44,22 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
 
     @Override
     public boolean excludes(ModuleIdentifier module) {
-        return components().allMatch(e -> e.excludes(module));
+        for (ExcludeSpec e : getComponents()) {
+            if (!e.excludes(module)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public boolean excludesArtifact(ModuleIdentifier module, IvyArtifactName artifactName) {
-        return components().allMatch(e -> e.excludesArtifact(module, artifactName));
+        for (ExcludeSpec e : getComponents()) {
+            if (!e.excludesArtifact(module, artifactName)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -57,8 +67,14 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
         if (mayExcludeArtifacts != null) {
             return mayExcludeArtifacts;
         }
-        mayExcludeArtifacts = components().allMatch(ExcludeSpec::mayExcludeArtifacts);
-        return mayExcludeArtifacts;
+        for (ExcludeSpec e : getComponents()) {
+            if (!e.mayExcludeArtifacts()) {
+                mayExcludeArtifacts = Boolean.FALSE;
+                return false;
+            }
+        }
+        mayExcludeArtifacts = Boolean.TRUE;
+        return true;
     }
 
 }
