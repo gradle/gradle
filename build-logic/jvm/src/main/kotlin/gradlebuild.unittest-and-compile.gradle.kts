@@ -21,6 +21,7 @@ import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.isExperimentalTestFilteringEnabled
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
@@ -318,6 +319,10 @@ fun configureTests() {
                     requirements.set(listOf("gbt-dogfooding"))
                 }
             }
+        }
+
+        predictiveSelection {
+            enabled.set(project.predictiveTestSelectionEnabled)
         }
     }
 }
