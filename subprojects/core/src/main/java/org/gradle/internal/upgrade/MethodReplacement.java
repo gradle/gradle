@@ -38,7 +38,6 @@ class MethodReplacement<T> implements Replacement {
     }
 
     private final Type type;
-    private final Type returnType;
     private final String methodName;
     private final Type[] argumentTypes;
     private final String methodDescriptor;
@@ -46,10 +45,9 @@ class MethodReplacement<T> implements Replacement {
 
     public MethodReplacement(Type type, Type returnType, String methodName, Type[] argumentTypes, ReplacementLogic<T> replacement) {
         this.type = type;
-        this.returnType = returnType;
         this.methodName = methodName;
         this.argumentTypes = argumentTypes;
-        this.methodDescriptor = Type.getMethodDescriptor(returnType, argumentTypes).toString();
+        this.methodDescriptor = Type.getMethodDescriptor(returnType, argumentTypes);
         this.replacement = replacement;
     }
 
@@ -121,7 +119,7 @@ class MethodReplacement<T> implements Replacement {
         if (callSite.getName().equals(methodName)) {
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
-                public Object call(Object receiver, Object[] args) throws Throwable {
+                public Object call(Object receiver, Object[] args) {
                     return replacement.execute(receiver, args);
                 }
             });

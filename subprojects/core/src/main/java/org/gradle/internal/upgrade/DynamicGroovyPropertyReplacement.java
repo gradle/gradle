@@ -18,14 +18,12 @@ import java.util.function.Function;
 class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicGroovyPropertyReplacement.class);
     private final Class<T> type;
-    private final Class<V> propertyType;
     private final String propertyName;
     private final Function<? super T, ? extends V> getterReplacement;
     private final BiConsumer<? super T, ? super V> setterReplacement;
 
-    public DynamicGroovyPropertyReplacement(Class<T> type, Class<V> propertyType, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
+    public DynamicGroovyPropertyReplacement(Class<T> type, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
         this.type = type;
-        this.propertyType = propertyType;
         this.propertyName = propertyName;
         this.getterReplacement = getterReplacement;
         this.setterReplacement = setterReplacement;
@@ -62,19 +60,17 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
     @Override
     public void initializeReplacement() {
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass<T, V>(type, propertyType, propertyName, setterReplacement, metaClass));
+        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass<>(type, propertyName, setterReplacement, metaClass));
     }
 
     private static class PropertySetterMetaClass<T, V> extends DelegatingMetaClass {
         private final Class<T> type;
-        private final Class<V> propertyType;
         private final String propertyName;
         private final BiConsumer<? super T, ? super V> setterReplacement;
 
-        public PropertySetterMetaClass(Class<T> type, Class<V> propertyType, String propertyName, BiConsumer<? super T, ? super V> setterReplacement, MetaClass delegate) {
+        public PropertySetterMetaClass(Class<T> type, String propertyName, BiConsumer<? super T, ? super V> setterReplacement, MetaClass delegate) {
             super(delegate);
             this.type = type;
-            this.propertyType = propertyType;
             this.propertyName = propertyName;
             this.setterReplacement = setterReplacement;
         }

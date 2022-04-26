@@ -20,14 +20,14 @@ public class ApiUpgradeHandler {
     @SuppressWarnings("unchecked")
     public static <T> T invokeReplacement(Object receiver, Object[] args, int methodReplacementIndex) {
         MethodReplacement<T> methodReplacement = (MethodReplacement<T>) INSTANCE.replacements.get(methodReplacementIndex);
-        return (T) methodReplacement.invokeReplacement(receiver, args);
+        return methodReplacement.invokeReplacement(receiver, args);
     }
 
     public static void decorateCallSiteArray(CallSiteArray callSites) {
         for (CallSite callSite : callSites.array) {
             for (Replacement replacement : INSTANCE.replacements) {
-                replacement.decorateCallSite(callSite).ifPresent(decoreated ->
-                    callSites.array[callSite.getIndex()] = decoreated
+                replacement.decorateCallSite(callSite).ifPresent(decorated ->
+                    callSites.array[callSite.getIndex()] = decorated
                 );
             }
         }

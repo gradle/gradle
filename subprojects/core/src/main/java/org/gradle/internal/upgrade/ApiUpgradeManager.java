@@ -31,12 +31,12 @@ public class ApiUpgradeManager {
         new ApiUpgradeHandler(ImmutableList.copyOf(replacements)).useInstance();
     }
 
-    public interface MethodReplacer<T> {
+    public interface MethodReplacer {
         <T> void replaceWith(ReplacementLogic<T> method);
     }
 
-    public <T> MethodReplacer<T> matchMethod(Type type, Type returnType, String methodName, Type... argumentTypes) {
-        return new MethodReplacer<T>() {
+    public MethodReplacer matchMethod(Type type, Type returnType, String methodName, Type... argumentTypes) {
+        return new MethodReplacer() {
             @Override
             public <T> void replaceWith(ReplacementLogic<T> replacement) {
                 replacements.add(new MethodReplacement<>(type, returnType, methodName, argumentTypes, replacement));
@@ -61,7 +61,7 @@ public class ApiUpgradeManager {
                     : "get";
                 addGetterReplacement(type, propertyType, getterPrefix + capitalizedPropertyName, getterReplacement);
                 addSetterReplacement(type, propertyType, "set" + capitalizedPropertyName, setterReplacement);
-                addGroovyPropertyReplacement(type, propertyType, propertyName, getterReplacement, setterReplacement);
+                addGroovyPropertyReplacement(type, propertyName, getterReplacement, setterReplacement);
             }
         };
     }
@@ -89,8 +89,8 @@ public class ApiUpgradeManager {
             }));
     }
 
-    private <T, V> void addGroovyPropertyReplacement(Class<T> type, Class<V> propertyType, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
-        replacements.add(new DynamicGroovyPropertyReplacement<>(type, propertyType, propertyName, getterReplacement, setterReplacement));
+    private <T, V> void addGroovyPropertyReplacement(Class<T> type, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
+        replacements.add(new DynamicGroovyPropertyReplacement<>(type, propertyName, getterReplacement, setterReplacement));
     }
 
     public void implementReplacements(String className) throws IOException, ReflectiveOperationException {
