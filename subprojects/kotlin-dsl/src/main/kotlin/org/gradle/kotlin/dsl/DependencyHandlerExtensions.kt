@@ -65,6 +65,22 @@ fun DependencyHandler.create(
 
 
 /**
+ * Creates a dependency without adding it to a configuration.
+ *
+ * @param dependencyNotation The dependency donation.
+ * @param dependencyConfiguration The expression to use to configure the dependency.
+ *
+ * @return The dependency.
+ */
+inline fun DependencyHandler.create(
+    dependencyNotation: String,
+    dependencyConfiguration: ExternalModuleDependency.() -> Unit
+): ExternalModuleDependency =
+
+    (create(dependencyNotation) as ExternalModuleDependency).apply(dependencyConfiguration)
+
+
+/**
  * Creates a dependency on a client module without adding it to a configuration.
  *
  * @param group the group of the module to be added as a dependency.
