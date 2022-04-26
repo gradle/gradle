@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
@@ -40,6 +41,8 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+import javax.annotation.Nullable
+
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
@@ -52,6 +55,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), coordinator)
+    }
+
+    Node priorityNode(Map<String, ?> options = [:]) {
+        return new TestPriorityNode(options.failure)
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {
@@ -1287,7 +1294,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     def "an invalid task is not started when another task is running"() {
         given:
-        def first = task("fist", type: Async)
+        def first = task("first", type: Async)
         def second = task("second", type: Async)
 
         when:
@@ -1311,6 +1318,102 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def invalidTask = selectNextTask()
         then:
         invalidTask == second
+    }
+
+    def "runs priority node before other nodes even when scheduled later"() {
+        def node = priorityNode()
+        def task = task("task")
+
+        when:
+        addToGraph(task)
+        addToGraph(node) // must be scheduled after the task
+        populateGraph()
+
+        def first = selectNextNode()
+        def second = selectNextTaskNode()
+
+        then:
+        first == node
+        second.task == task
+        assertNoMoreWorkToStartButNotAllComplete()
+
+        when:
+        finishedExecuting(second)
+        finishedExecuting(first)
+
+        then:
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20508")
+    def "stops executing nodes after failure when priority node has already executed"() {
+        def node = priorityNode()
+        def broken = task("broken", failure: new RuntimeException())
+        def task = task("task")
+
+        when:
+        addToGraph(broken, task)
+        addToGraph(node) // must be scheduled after the broken task
+        populateGraph()
+
+        def first = selectNextNode()
+
+        then:
+        first == node
+
+        when:
+        finishedExecuting(first)
+
+        then:
+        assertNextTaskReady(broken)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20508")
+    def "stops executing nodes after failure while priority node is executing"() {
+        def node = priorityNode()
+        def broken = task("broken", failure: new RuntimeException())
+        def task = task("task")
+
+        when:
+        addToGraph(broken, task)
+        addToGraph(node) // must be scheduled after the broken task
+        populateGraph()
+
+        def first = selectNextNode()
+        def second = selectNextTaskNode()
+
+        then:
+        first == node
+        second.task == broken
+
+        when:
+        finishedExecuting(second)
+        finishedExecuting(first)
+
+        then:
+        assertAllWorkComplete()
+    }
+
+    def "stops executing nodes after priority node fails"() {
+        def node = priorityNode(failure: new RuntimeException())
+        def task = task("task")
+
+        when:
+        addToGraph(task)
+        addToGraph(node) // must be scheduled after tasks
+        populateGraph()
+
+        def first = selectNextNode()
+
+        then:
+        first == node
+
+        when:
+        finishedExecuting(first)
+
+        then:
+        assertAllWorkComplete()
     }
 
     private void tasksAreNotExecutedInParallel(Task first, Task second) {
@@ -1339,6 +1442,14 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         for (final def task in tasks) {
             executionPlan.addEntryTasks([task])
         }
+    }
+
+    private void addToGraph(Node... nodes) {
+        nodes.each {
+            it.require()
+            it.dependenciesProcessed()
+        }
+        executionPlan.addNodes(nodes as List)
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
@@ -1594,6 +1705,42 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     void assertWorkReadyToStart() {
         coordinator.withStateLock {
             assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+        }
+    }
+
+    private static class TestPriorityNode extends Node implements SelfExecutingNode {
+        final Throwable failure
+
+        TestPriorityNode(@Nullable Throwable failure) {
+            this.failure = failure
+        }
+
+        @Override
+        Throwable getNodeFailure() {
+            return failure
+        }
+
+        @Override
+        boolean isPriority() {
+            return true
+        }
+
+        @Override
+        void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        }
+
+        @Override
+        String toString() {
+            return "test node"
+        }
+
+        @Override
+        int compareTo(Node o) {
+            return -1
+        }
+
+        @Override
+        void execute(NodeExecutionContext context) {
         }
     }
 }
