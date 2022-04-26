@@ -27,6 +27,7 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.CircularReferences
@@ -306,6 +307,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()
 
+        override fun onError(error: Exception, message: StructuredMessageBuilder) =
+            undefined()
+
         override fun push(codec: Codec<Any?>): Unit =
             undefined()
 
@@ -407,6 +411,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             set(_) {}
 
         override fun onProblem(problem: PropertyProblem): Unit =
+            undefined()
+
+        override fun onError(error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =
