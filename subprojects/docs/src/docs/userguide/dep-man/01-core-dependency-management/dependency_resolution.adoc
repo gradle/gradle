@@ -69,7 +69,8 @@ This flexibility comes with the price of making it hard to reason about.
 ====
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
-Out of these versions, it will select the _highest_ one.
+Out of these versions, it will select the _highest_ one. More information on version ordering
+<<single_versions#version_ordering,here>>.
 
 As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
 
@@ -84,6 +85,55 @@ As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version
 
 Note that in the case where ranges come into play, Gradle requires metadata to determine which versions do exist for the considered range.
 This causes an intermediate lookup for metadata, as described in <<#sec:how-gradle-downloads-deps>>.
+
+[[sec:base-version-comparison]]
+=== Qualifiers
+There is a caveat to comparing versions when it comes to selecting the _highest_ one.
+All the rules of <<single_versions#version_ordering,version ordering>> still apply, but the conflict resolver
+has a bias towards versions without qualifiers.
+
+The "qualifier" of a version, if it exists, is the tail end of the version string, starting at the first non-dot separator
+found in it. The other (first) part of the version string is called the "base form" of the version. Here are some examples
+to illustrate:
+
+[cols="1,1,1"]
+|===
+|Original version | Base version | Qualifier
+
+|1.2.3
+|1.2.3
+|<none>
+
+|1.2-3
+|1.2
+|3
+
+|1_alpha
+|1
+|alpha
+
+|abc
+|abc
+|<none>
+
+|1.2b3
+|1.2
+|b3
+
+|abc.1+3
+|abc.1
+|3
+
+|b1-2-3.3
+|b
+|2-3.3
+|===
+
+As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
+
+When resolving the conflict between competing versions, the following logic applies:
+* first the versions with the highest base version are selected, the rest are discarded
+* if there are still multiple competing versions left, then one is picked with a preference for not having a qualifier or having release status.
 
 [[sec:implementation-conflict]]
 == Implementation conflict resolution
