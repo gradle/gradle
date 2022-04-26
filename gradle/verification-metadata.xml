@@ -76,7 +76,7 @@
          <trusted-key id="21f0942275ea159a501d375328852008a47bb995" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="2bcbdd0f23ea1cafcc11d4860374cf2e8dd1bdfd" group="org.sonatype.plexus"/>
          <trusted-key id="2be67ac00d699e04e840b7fe29967e804d85663f">
-            <trusting group="com.eed3si9n" name="shaded-scalajson_2.12"/>
+            <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
             <trusting group="org.scala-sbt"/>
          </trusted-key>
          <trusted-key id="2db4f1ef0fa761ecc4ea935c86fdc7e2a11262cb">
@@ -238,6 +238,7 @@
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
          <trusted-key id="d9aa7402ba75f78720d975211d185615d0a84648" group="net.sf.saxon" name="Saxon-HE"/>
+         <trusted-key id="dc98224c6421a7a5bb87f346ed2378cd09a08cde" group="org.jline"/>
          <trusted-key id="dddee87612e9fb95f5c8d91e411063a3a0ffd119">
             <trusting group="commons-beanutils"/>
             <trusting group="org.apache-extras.beanshell"/>
@@ -254,6 +255,7 @@
          <trusted-key id="ea313384ca0eba950ea017e937890e298d9a2bfa">
             <trusting group="com.eed3si9n"/>
             <trusting group="org.scala-sbt"/>
+            <trusting group="org.scala-sbt.jline"/>
          </trusted-key>
          <trusted-key id="ec9430d24e1fc30468c773fdca1952b1e682d8a6" group="org.jodd"/>
          <trusted-key id="f254b35617dc255d9344bcfa873a8e86b4372146">
@@ -657,8 +659,8 @@
             <pgp value="6dd3b8c64ef75253beb2c53ad908a43fb7ec07ac"/>
          </artifact>
       </component>
-      <component group="com.swoval" name="file-tree-views" version="2.1.3">
-         <artifact name="file-tree-views-2.1.3.jar">
+      <component group="com.swoval" name="file-tree-views" version="2.1.7">
+         <artifact name="file-tree-views-2.1.7.jar">
             <pgp value="ee2cfeb6a2aecf44c781c5c3dcd5181297a43d24"/>
          </artifact>
       </component>
@@ -912,6 +914,11 @@
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
+         <artifact name="zero-allocation-hashing-0.10.1.jar">
+            <pgp value="cb3808e03cd602a6dc5b882552931f4b72b4f54c"/>
          </artifact>
       </component>
       <component group="net.rubygrapefruit" name="ansi-control-sequence-util" version="0.3">
@@ -1394,14 +1401,19 @@
             <pgp value="91268e187cdc92936df90106ac01d965c791b637"/>
          </artifact>
       </component>
-      <component group="org.scala-lang.modules" name="scala-parser-combinators_2.12" version="1.1.2">
-         <artifact name="scala-parser-combinators_2.12-1.1.2.jar">
+      <component group="org.scala-lang.modules" name="scala-parallel-collections_2.13" version="0.2.0">
+         <artifact name="scala-parallel-collections_2.13-0.2.0.jar">
+            <pgp value="c44a68fd10ff456c91e2757d18088d07854014b3"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang.modules" name="scala-parser-combinators_2.13" version="1.1.2">
+         <artifact name="scala-parser-combinators_2.13-1.1.2.jar">
             <pgp value="dbe61b6ba51dfcaeded256477090af43a5e10d0b"/>
          </artifact>
       </component>
-      <component group="org.scala-lang.modules" name="scala-xml_2.12" version="1.0.6">
-         <artifact name="scala-xml_2.12-1.0.6.jar">
-            <pgp value="2046d870d66f35eed74a3073a3264aa953a97466"/>
+      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="1.2.0">
+         <artifact name="scala-xml_2.13-1.2.0.jar">
+            <pgp value="8d0c8fa7175f26274a6a9f87efec7ea866cc43ae"/>
          </artifact>
       </component>
       <component group="org.scijava" name="native-lib-loader" version="2.0.2">
