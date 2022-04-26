@@ -603,7 +603,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         2.times {
             succeeds ':build'
-            result.assertTasksExecutedInOrder(':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build')
+            result.assertTasksExecutedInOrder ':b:jar', ':a:compileJava', any(':a:compileFinalizer', ':a:jar'), ':build'
         }
     }
 
