@@ -20,6 +20,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -38,19 +39,24 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.ModelMap;
 
 import javax.inject.Inject;
 
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANNOTATIONS;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
@@ -126,12 +132,21 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(Configuration.class)))
         .and(not(declaredIn(FileCollection.class)))
         .and(not(declaredIn(ConfigurableFileCollection.class)))
+        .and(not(declaredIn(ObjectFactory.class)))
+        .and(not(declaredIn(ModelMap.class)))
+        .and(not(declaredIn(ANNOTATIONS)))
         .and(are(setters_without_getters).or(not(bean_property_methods)))
         .and(doNot(have(rawParameterTypes(Closure.class))))
         .and(doNot(have(rawParameterTypes(Action.class))))
-        .and(doNot(have(name("execute"))))
-        .and(doNot(have(name("apply"))))
-        .and(doNot(have(name("configure"))))
+        .and(doNot(have(modifier(JavaModifier.STATIC))))
+        .and(doNot(have(rawParameterTypes(describe("more than 1", it -> it.size() > 1)))))
+        .and(doNot(have(name("execute")
+            .or(name("configure"))
+            .or(name("apply"))
+            .or(name("equals"))
+            .or(name("hashCode"))
+            .or(name("toString"))
+        )))
         .and(doNot(have(nameMatching("(projects|settings)(Evaluated|Loaded)"))))
         .and(not(declaredIn(assignableTo(DomainObjectCollection.class))))
         .and(not(declaredIn(HasMultipleValues.class)))
@@ -191,6 +206,11 @@ public class ProviderMigrationArchitectureTest {
     public static final ArchRule there_should_not_be_public_api_mutation_methods = freeze(methods()
         .that(are(public_api_mutation_methods))
         .should().notHaveRawReturnType(void.class));
+
+    @ArchTest
+    public static final ArchRule there_should_not_be_public_api_non_void_mutation_methods = freeze(methods()
+        .that(are(public_api_mutation_methods))
+        .should().haveRawReturnType(void.class));
 
     private static HaveLazyReturnType haveProviderReturnType() {
         return new HaveLazyReturnType(Property.class, Provider.class);
