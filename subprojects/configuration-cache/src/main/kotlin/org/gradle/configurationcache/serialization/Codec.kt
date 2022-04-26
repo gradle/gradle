@@ -25,6 +25,7 @@ import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
@@ -104,6 +105,8 @@ interface IsolateContext {
     val trace: PropertyTrace
 
     fun onProblem(problem: PropertyProblem)
+
+    fun onError(error: Exception, message: StructuredMessageBuilder)
 }
 
 
