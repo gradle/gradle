@@ -1,6 +1,7 @@
 package org.gradle.internal.upgrade;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Optional;
@@ -26,4 +27,6 @@ public interface Replacement {
     default Optional<CallSite> decorateCallSite(CallSite callSite) {
         return Optional.empty();
     }
+
+    void applyConfigurationTo(Hasher hasher);
 }

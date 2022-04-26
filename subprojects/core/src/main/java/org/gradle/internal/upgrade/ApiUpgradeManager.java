@@ -1,17 +1,10 @@
 package org.gradle.internal.upgrade;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -29,6 +22,10 @@ public class ApiUpgradeManager {
             replacement.initializeReplacement();
         }
         new ApiUpgradeHandler(ImmutableList.copyOf(replacements)).useInstance();
+    }
+
+    public ApiUpgrader createApiUpgrader() {
+        return new ApiUpgrader(replacements);
     }
 
     public interface MethodReplacer {
@@ -91,36 +88,5 @@ public class ApiUpgradeManager {
 
     private <T, V> void addGroovyPropertyReplacement(Class<T> type, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
         replacements.add(new DynamicGroovyPropertyReplacement<>(type, propertyName, getterReplacement, setterReplacement));
-    }
-
-    public void implementReplacements(String className) throws IOException, ReflectiveOperationException {
-        String type = className.replace('.', '/');
-        LOGGER.info("Transforming " + type);
-        byte[] classBytes = Resources.toByteArray(Resources.getResource(type + ".class"));
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        implementReplacements(classLoader, classBytes);
-    }
-
-    public void implementReplacements(ClassLoader classLoader, byte[] classBytes) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        // creates the ASM ClassReader which will read the class file
-        ClassReader classReader = new ClassReader(classBytes);
-        // creates the ASM ClassWriter which will create the transformed class
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-        // creates the ClassVisitor to do the byte code transformations
-        ClassVisitor classVisitor = new ApiUpgraderClassVisitor(replacements, classWriter);
-        // reads the class file and apply the transformations which will be written into the ClassWriter
-        classReader.accept(classVisitor, 0);
-
-        // gets the bytes from the transformed class
-        byte[] bytes = classWriter.toByteArray();
-        // writes the transformed class to the file system - to analyse it (e.g. javap -verbose)
-//        File out = new File("build/" + type.getClassName() + "\\$Transformed.class");
-//        new FileOutputStream(out).write(bytes);
-//        ASMifier.main(new String[]{out.getAbsolutePath()});
-
-        // inject the transformed class into the current class loader
-        Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-        defineClass.setAccessible(true);
-        defineClass.invoke(classLoader, null, bytes, 0, bytes.length);
     }
 }

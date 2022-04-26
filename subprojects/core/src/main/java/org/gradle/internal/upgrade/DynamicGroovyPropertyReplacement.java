@@ -5,6 +5,7 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.gradle.internal.hash.Hasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,14 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
             });
         }
         return Optional.empty();
+    }
+
+    @Override
+    public void applyConfigurationTo(Hasher hasher) {
+        hasher.putString(DynamicGroovyPropertyReplacement.class.getName());
+        hasher.putString(type.getName());
+        hasher.putString(propertyName);
+        // TODO: Can we capture the replacements as well?
     }
 
     @Override

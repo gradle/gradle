@@ -2,6 +2,7 @@ package org.gradle.internal.upgrade;
 
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
@@ -54,6 +55,15 @@ class MethodReplacement<T> implements Replacement {
     public T invokeReplacement(Object receiver, Object[] arguments) {
         LOGGER.info("Calling replacement for {}.{}({})", type, methodName, methodDescriptor);
         return replacement.execute(receiver, arguments);
+    }
+
+    @Override
+    public void applyConfigurationTo(Hasher hasher) {
+        hasher.putString(MethodReplacement.class.getName());
+        hasher.putString(type.getDescriptor());
+        hasher.putString(methodName);
+        hasher.putString(methodDescriptor);
+        // TODO: Can we capture the replacements as well?
     }
 
     @Override

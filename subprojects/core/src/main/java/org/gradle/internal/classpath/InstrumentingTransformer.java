@@ -23,6 +23,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.upgrade.ApiUpgrader;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -179,26 +180,36 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String[] NO_EXCEPTIONS = new String[0];
 
+    private final ApiUpgrader apiUpgrader;
+
+    InstrumentingTransformer(ApiUpgrader apiUpgrader) {
+        this.apiUpgrader = apiUpgrader;
+    }
+
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
         hasher.putInt(DECORATION_FORMAT);
+        apiUpgrader.applyConfigurationTo(hasher);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor)));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgrader));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
+        private final ApiUpgrader apiUpgrader;
+
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
 
-        public InstrumentingVisitor(ClassVisitor visitor) {
+        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgrader apiUpgrader) {
             super(ASM_LEVEL, visitor);
+            this.apiUpgrader = apiUpgrader;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -221,7 +232,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor);
+            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgrader);
         }
 
         @Override
@@ -294,11 +305,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
+        private final ApiUpgrader apiUpgrader;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgrader apiUpgrader) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.apiUpgrader = apiUpgrader;
         }
 
         @Override
@@ -306,7 +319,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
                 return;
             }
-            if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor)) {
+            if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor, isInterface)) {
                 return;
             }
             if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
@@ -414,7 +427,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             return false;
         }
 
-        private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor) {
+        private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor, boolean isInterface) {
             // Runtime.exec(...)
             if (owner.equals(RUNTIME_TYPE.getInternalName()) && name.equals("exec")) {
                 Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForRuntimeExecDescriptor(descriptor);
@@ -431,6 +444,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
                     return true;
                 }
+            }
+            if (apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, className, name, descriptor, isInterface)) {
+                return true;
             }
             return false;
         }
