@@ -16,18 +16,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
 public interface CompositeExclude extends ExcludeSpec {
     @Override
     boolean equals(Object o);
 
-    Stream<ExcludeSpec> components();
-
     Set<ExcludeSpec> getComponents();
 
     default boolean contains(ExcludeSpec spec) {
-        return components().anyMatch(spec::equals);
+        return getComponents().contains(spec);
     }
 
     int size();
