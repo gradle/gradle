@@ -26,6 +26,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import spock.lang.Issue
 
 
 class DependencyHandlerExtensionsTest {
@@ -94,6 +95,37 @@ class DependencyHandlerExtensionsTest {
         assertThat(
             events,
             equalTo(listOf("created", "configured", "added"))
+        )
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/16865")
+    fun `given string notation, 'create' extension will create and configure dependency`() {
+
+        val dependencyHandlerMock = newDependencyHandlerMock()
+        val dependencies = DependencyHandlerScope.of(dependencyHandlerMock)
+        val dependency: ExternalModuleDependency = mock()
+        val configureAction: ExternalModuleDependency.() -> Unit = mock()
+        val events = mutableListOf<String>()
+        whenever(dependencyHandlerMock.create("notation")).then {
+            events.add("created")
+            dependency
+        }
+        whenever(configureAction.invoke(dependency)).then {
+            events.add("configured")
+        }
+
+        dependencies {
+            val createdDependency = create("notation", configureAction)
+            assertThat(
+                createdDependency,
+                sameInstance(dependency)
+            )
+        }
+
+        assertThat(
+            events,
+            equalTo(listOf("created", "configured"))
         )
     }
 
