@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependenciesMetadataAdapter;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.reflect.Instantiator;
@@ -72,14 +73,14 @@ public class DependencyMetadataRules {
         dependencyConstraintActions.add(action);
     }
 
-    public <T extends ModuleDependencyMetadata> List<T> execute(VariantResolveMetadata variant, List<T> dependencies) {
-        ImmutableList.Builder<T> calculatedDependencies = new ImmutableList.Builder<>();
+    public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> execute(VariantResolveMetadata variant, List<T> dependencies) {
+        ImmutableList.Builder<ModuleDependencyMetadata> calculatedDependencies = new ImmutableList.Builder<>();
         calculatedDependencies.addAll(executeDependencyRules(variant, dependencies));
         calculatedDependencies.addAll(executeDependencyConstraintRules(variant, dependencies));
         return calculatedDependencies.build();
     }
 
-    private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(VariantResolveMetadata variant, List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> executeDependencyRules(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<>(CollectionUtils.filter(dependencies, DEPENDENCY_FILTER));
         for (VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
             dependenciesMetadataAction.maybeExecute(variant, instantiator.newInstance(
@@ -88,7 +89,7 @@ public class DependencyMetadataRules {
         return calculatedDependencies;
     }
 
-    private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(VariantResolveMetadata variant, List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> executeDependencyConstraintRules(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<>(CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER));
         for (VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
             dependencyConstraintsMetadataAction.maybeExecute(variant, instantiator.newInstance(
