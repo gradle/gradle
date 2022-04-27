@@ -318,9 +318,11 @@ fun configureTests() {
             val supportedTask = taskIdentity.taskType == Test::class.java
 
             predictiveSelection {
-                enabled.convention(project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
-                    enabled && !rerunAllTests && supportedTask
-                })
+                enabled.convention(
+                    project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
+                        enabled && !rerunAllTests && supportedTask
+                    }
+                )
             }
         }
     }
