@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -30,6 +32,7 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -40,15 +43,19 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scopes.Build.class)
-public class ProjectArtifactResolver implements ArtifactResolver {
+public class ProjectArtifactResolver implements ArtifactResolver, Stoppable {
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactCache;
 
     public ProjectArtifactResolver(ProjectStateRegistry projectStateRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.resolvedArtifactCache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -58,12 +65,18 @@ public class ProjectArtifactResolver implements ArtifactResolver {
 
     @Override
     public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableResolvableArtifactResult result) {
-        LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
-        ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
-        ProjectState projectState = projectStateRegistry.stateFor(projectId);
-        CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), new ResolvingCalculator(projectState, projectArtifact));
-        DefaultResolvableArtifact resolvedArtifact = new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
-        result.resolved(resolvedArtifact);
+        result.resolved(resolvedArtifactCache.computeIfAbsent(artifact.getId(), artifactId -> {
+            LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
+            ProjectState projectState = projectStateRegistry.stateFor(projectId);
+            CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), new ResolvingCalculator(projectState, projectArtifact));
+            return new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+        }));
+    }
+
+    @Override
+    public void stop() {
+        resolvedArtifactCache.clear();
     }
 
     private static class ResolvingCalculator implements ValueCalculator<File> {
