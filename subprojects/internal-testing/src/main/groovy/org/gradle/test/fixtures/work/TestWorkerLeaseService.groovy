@@ -83,6 +83,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    void runAsUnmanagedWorkerThread(Runnable action) {
+        action.run()
+    }
+
+    @Override
     Synchronizer newResource() {
         return new Synchronizer() {
             @Override
@@ -113,7 +118,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    WorkerLease getWorkerLease() {
+    WorkerLease newWorkerLease() {
         return workerLease()
     }
 
