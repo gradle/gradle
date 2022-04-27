@@ -7,6 +7,7 @@ We would like to thank the following community members for their contributions t
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[altrisi](https://github.com/altrisi)
 
 ## Upgrade instructions
 
