@@ -50,7 +50,6 @@ import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
-import gradlebuild.basics.BuildParams.TEST_FILTERING_ENABLED
 import gradlebuild.basics.BuildParams.TEST_JAVA_VENDOR
 import gradlebuild.basics.BuildParams.TEST_JAVA_VERSION
 import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
@@ -113,7 +112,6 @@ object BuildParams {
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
-    const val TEST_FILTERING_ENABLED = "gradle.internal.testselection.enabled"
     const val TEST_SPLIT_INCLUDE_TEST_CLASSES = "includeTestClasses"
     const val TEST_SPLIT_EXCLUDE_TEST_CLASSES = "excludeTestClasses"
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
@@ -282,8 +280,8 @@ val Project.gradleInstallPath: Provider<String>
     )
 
 
-val Project.rerunAllTests: Provider<String>
-    get() = gradleProperty(RERUN_ALL_TESTS)
+val Project.rerunAllTests: Provider<Boolean>
+    get() = gradleProperty(RERUN_ALL_TESTS).map { true }.orElse(false)
 
 
 val Project.testJavaVendor: Provider<JvmVendorSpec>
@@ -306,19 +304,15 @@ val Project.testSplitOnlyTestGradleVersion: String
     get() = project.stringPropertyOrEmpty(TEST_SPLIT_ONLY_TEST_GRADLE_VERSION)
 
 
-val Project.isExperimentalTestFilteringEnabled: Boolean
-    get() = systemProperty(TEST_FILTERING_ENABLED).getOrElse("false").toBoolean()
-
-
-val Project.predictiveTestSelectionEnabled: Boolean
+val Project.predictiveTestSelectionEnabled: Provider<Boolean>
     get() = systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED)
         .map { it.toBoolean() }
-        .orElse(provider {
-            val protectedBranches = listOf("master", "release")
-            val branch: String? = environmentVariable("BUILD_BRANCH").orNull
-            (branch == null || !protectedBranches.contains(branch) && !branch.startsWith("pre-test/"))
-        })
-        .get()
+        .orElse(
+            buildBranch.zip(buildRunningOnCi) { branch, ci ->
+                val protectedBranches = listOf("master", "release")
+                ci && !protectedBranches.contains(branch) && !branch.startsWith("pre-test/")
+            }
+        )
 
 
 val Project.testDistributionEnabled: Boolean

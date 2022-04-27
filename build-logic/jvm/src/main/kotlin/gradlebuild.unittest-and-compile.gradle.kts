@@ -18,7 +18,6 @@ import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistribu
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.flakyTestStrategy
-import gradlebuild.basics.isExperimentalTestFilteringEnabled
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.predictiveTestSelectionEnabled
@@ -35,6 +34,7 @@ import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
 import java.time.Duration
 import java.util.jar.Attributes
+import kotlin.reflect.full.superclasses
 
 plugins {
     groovy
@@ -237,7 +237,7 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
 fun Test.configureRerun() {
-    if (project.rerunAllTests.isPresent) {
+    if (project.rerunAllTests.get()) {
         doNotTrackState("All tests should re-run")
     }
 }
@@ -261,6 +261,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
+
         configureAndroidUserHome()
         filterEnvironmentVariables()
 
@@ -285,15 +286,6 @@ fun configureTests() {
         useJUnitPlatform()
         configureSpock()
         configureFlakyTest()
-
-        if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
-            distribution {
-                enabled.set(true)
-                maxRemoteExecutors.set(0)
-                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-td-dogfooding.grdev.net"))
-            }
-        }
 
         if (project.testDistributionEnabled && !isUnitTest()) {
             println("Remote test distribution has been enabled for $testName")
@@ -321,8 +313,17 @@ fun configureTests() {
             }
         }
 
-        predictiveSelection {
-            enabled.set(project.predictiveTestSelectionEnabled)
+        if (project.supportsPredictiveTestSelection()) {
+            // Temporary workaround for Gradle Enterprise issue which in 2022.2 and 2022.2.1
+            // only supports tasks of the exact type `org.gradle.api.tasks.testing.Test`.
+            // We have to look for the first super class since Gradle passes a decorator.
+            val supportedTask = this::class.superclasses.first() == Test::class
+
+            predictiveSelection {
+                enabled.convention(project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
+                    enabled && !rerunAllTests && supportedTask
+                })
+            }
         }
     }
 }
@@ -338,7 +339,7 @@ fun removeTeamcityTempProperty() {
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
-fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
+fun Project.supportsPredictiveTestSelection() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
