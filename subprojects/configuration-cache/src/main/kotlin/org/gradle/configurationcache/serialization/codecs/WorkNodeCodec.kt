@@ -147,7 +147,7 @@ class WorkNodeCodec(
                 }
                 2 -> {
                     val ordinalGroup = readNodeGroup(nodesById)
-                    val groups = readCollectionInto({ c -> HashSet() }) { readNodeGroup(nodesById) as FinalizerGroup }
+                    val groups = readCollectionInto(::HashSet) { readNodeGroup(nodesById) as FinalizerGroup }
                     CompositeNodeGroup(ordinalGroup, groups)
                 }
                 3 -> NodeGroup.DEFAULT_GROUP
