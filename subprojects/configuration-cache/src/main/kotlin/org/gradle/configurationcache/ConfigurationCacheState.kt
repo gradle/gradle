@@ -500,7 +500,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
-            buildCache.setRegistrations(read() as MutableSet<BuildCacheServiceRegistration>)
+            buildCache.setRegistrations(readNonNull<MutableSet<BuildCacheServiceRegistration>>())
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
     }
