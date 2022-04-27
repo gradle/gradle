@@ -25,6 +25,7 @@ import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
@@ -392,6 +393,10 @@ abstract class AbstractIsolateContext<T>(
 
     override fun onProblem(problem: PropertyProblem) {
         currentProblemsListener.onProblem(problem)
+    }
+
+    override fun onError(error: Exception, message: StructuredMessageBuilder) {
+        currentProblemsListener.onError(trace, error, message)
     }
 
     override suspend fun forIncompatibleType(action: suspend () -> Unit) {

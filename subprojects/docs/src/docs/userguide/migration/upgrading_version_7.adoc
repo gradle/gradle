@@ -85,6 +85,13 @@ signing.gnupg.executable=gpg2
 
 - Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.10].
 
+==== Scala Zinc version updated to 1.6.1
+
+Zinc is the Scala incremental compiler that allows Gradle to always compile the minimal set of files needed by the current file changes.
+It takes into account which methods are being used and which have changed, which means it's much more granular than just interfile dependencies.
+
+Zinc version has been updated to the newest available one in order to benefit from all the recent bugfixes.
+Due to that, if you use `zincVersion` setting it's advised to remove it and only use the default version, because Gradle will only be able to compile Scala code with Zinc versions set to 1.6.x or higher.
 
 === Deprecations
 
