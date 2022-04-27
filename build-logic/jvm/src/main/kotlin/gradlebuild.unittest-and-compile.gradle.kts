@@ -34,7 +34,6 @@ import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
 import java.time.Duration
 import java.util.jar.Attributes
-import kotlin.reflect.full.superclasses
 
 plugins {
     groovy
@@ -316,8 +315,7 @@ fun configureTests() {
         if (project.supportsPredictiveTestSelection()) {
             // Temporary workaround for Gradle Enterprise issue which in 2022.2 and 2022.2.1
             // only supports tasks of the exact type `org.gradle.api.tasks.testing.Test`.
-            // We have to look for the first super class since Gradle passes a decorator.
-            val supportedTask = this::class.superclasses.first() == Test::class
+            val supportedTask = taskIdentity.taskType == Test::class.java
 
             predictiveSelection {
                 enabled.convention(project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
