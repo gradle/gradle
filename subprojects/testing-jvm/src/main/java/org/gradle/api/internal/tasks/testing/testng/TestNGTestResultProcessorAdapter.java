@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -262,9 +263,19 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             resultProcessor.started(new DefaultTestMethodDescriptor(testId, iTestResult.getTestClass().getName(), iTestResult.getName()), startEvent);
         }
         if (resultType == TestResult.ResultType.FAILURE) {
-            resultProcessor.failure(testId, iTestResult.getThrowable());
+            Throwable rawFailure = iTestResult.getThrowable();
+            reportTestFailure(testId, rawFailure);
         }
         resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType));
+    }
+
+    private void reportTestFailure(Object testId, Throwable rawFailure) {
+        // TestNG only uses java.lang.AssertionError to represent assertion failures
+        if (rawFailure instanceof AssertionError) {
+            resultProcessor.failure(testId, TestFailure.fromTestAssertionFailure(rawFailure, null, null));
+        } else {
+            resultProcessor.failure(testId, TestFailure.fromTestFrameworkFailure(rawFailure));
+        }
     }
 
     @Override
@@ -291,7 +302,8 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(), testClass.getName(), testMethod.getMethodName());
         Object parentId = classInfo == null ? null : classInfo.id;
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis(), parentId));
-        resultProcessor.failure(test.getId(), testResult.getThrowable());
+        TestFailure testFailure = TestFailure.fromTestFrameworkFailure(testResult.getThrowable());
+        resultProcessor.failure(test.getId(), testFailure);
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
     }
 

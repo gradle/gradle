@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.internal.protocol;
 
-package org.gradle.api.internal.tasks.testing.junit;
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * Describes an unexpected test failure, i.e. when the execution fails but not with an assertion failure.
+ *
+ * @since 7.6
+ */
+public interface InternalTestFrameworkFailure extends InternalTestFailure {
 
-import org.gradle.api.tasks.testing.TestFailure;
-
-public interface TestClassExecutionListener {
-    void testClassStarted(String testClassName);
-
-    void testClassFinished(TestFailure failure);
 }

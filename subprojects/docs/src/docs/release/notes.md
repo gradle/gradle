@@ -47,7 +47,13 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Improvements for IDE integrators
 
+#### Tooling API progress events expose difference between test assertion failures and test framework failures
+
+Gradle 7.6 introduces new failure types for the `Failure` interface returned by [FailureResult.getFailures()](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure. 
+IDEs can now easily distinguish between different failures using standard progress event listeners. 
+Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
