@@ -24,11 +24,15 @@ public class ApiUpgradeHandler {
     }
 
     public static void decorateCallSiteArray(CallSiteArray callSites) {
-        for (CallSite callSite : callSites.array) {
-            for (Replacement replacement : INSTANCE.replacements) {
-                replacement.decorateCallSite(callSite).ifPresent(decorated ->
-                    callSites.array[callSite.getIndex()] = decorated
-                );
+        // TODO: It seems like for worker actions the instance may be null (different classloader)
+        //       Though we should detect the situation and not silently ignore it.
+        if (INSTANCE != null) {
+            for (CallSite callSite : callSites.array) {
+                for (Replacement replacement : INSTANCE.replacements) {
+                    replacement.decorateCallSite(callSite).ifPresent(decorated ->
+                        callSites.array[callSite.getIndex()] = decorated
+                    );
+                }
             }
         }
     }
