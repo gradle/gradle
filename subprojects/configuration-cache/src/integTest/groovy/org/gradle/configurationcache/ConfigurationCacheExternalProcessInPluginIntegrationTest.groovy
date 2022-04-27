@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.process.ExecOperations
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 import javax.inject.Inject
 
@@ -38,9 +39,7 @@ class ConfigurationCacheExternalProcessInPluginIntegrationTest extends AbstractC
                 `$plugin`
             }
 
-            repositories {
-               mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
         def conventionPluginFile = testDirectory.file(file)
         conventionPluginFile << """
