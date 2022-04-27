@@ -41,7 +41,7 @@ public class ApiUpgradeManager {
         };
     }
 
-    interface PropertyReplacer<T, P> {
+    public interface PropertyReplacer<T, P> {
         void replaceWith(Function<? super T, ? extends P> getter, BiConsumer<? super T, ? super P> setter);
     }
 

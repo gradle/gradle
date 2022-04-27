@@ -22,11 +22,14 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.upgrade.ApiUpgradeManager;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -65,11 +68,34 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
         });
     }
 
+    @Override
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {
+        registration.addProvider(new ProviderApiMigrationAction());
+    }
+
     private static class JavaGlobalScopeServices {
         OperationResultPostProcessorFactory createJavaSubscribableBuildActionRunnerRegistration() {
             return (clientSubscriptions, consumer) -> clientSubscriptions.isRequested(OperationType.TASK)
                 ? Collections.singletonList(new JavaCompileTaskSuccessResultPostProcessor())
                 : emptyList();
+        }
+    }
+
+    private static class ProviderApiMigrationAction {
+        public void configure(ApiUpgradeManager upgradeManager) {
+            upgradeManager
+                .matchProperty(AbstractCompile.class, String.class, "targetCompatibility")
+                .replaceWith(
+                    abstractCompile -> abstractCompile.getTargetCompatibility().get(),
+                    (abstractCompile, value) -> abstractCompile.getTargetCompatibility().set(value)
+                );
+            // It seems like the bytecode references the subclass as an owner
+            upgradeManager
+                .matchProperty(JavaCompile.class, String.class, "targetCompatibility")
+                .replaceWith(
+                    abstractCompile -> abstractCompile.getTargetCompatibility().get(),
+                    (abstractCompile, value) -> abstractCompile.getTargetCompatibility().set(value)
+                );
         }
     }
 

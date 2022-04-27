@@ -71,7 +71,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,
-        FileLockManager fileLockManager
+        FileLockManager fileLockManager,
+        ApiUpgradeManager apiUpgradeManager
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
@@ -81,8 +82,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.cache = classpathTransformerCacheFactory.createCache(globalScopedCache, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
-        // FIXME: This should be a service
-        this.apiUpgradeManager = new ApiUpgradeManager();
+        this.apiUpgradeManager = apiUpgradeManager;
         apiUpgradeManager.init();
     }
 

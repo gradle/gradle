@@ -445,7 +445,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     return true;
                 }
             }
-            if (apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, className, name, descriptor, isInterface)) {
+            if (apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, owner, name, descriptor, isInterface)) {
                 return true;
             }
             return false;
