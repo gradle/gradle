@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.StackTraceSanitizingOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
 import org.gradle.exemplar.test.normalizer.FileSeparatorOutputNormalizer;
 import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
@@ -41,7 +42,8 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
     ConfigurationCacheOutputNormalizer.class,
-    EmbeddedKotlinOutputNormalizer.class
+    EmbeddedKotlinOutputNormalizer.class,
+    StackTraceSanitizingOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
