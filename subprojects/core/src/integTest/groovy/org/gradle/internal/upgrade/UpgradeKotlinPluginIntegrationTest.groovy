@@ -17,7 +17,9 @@
 package org.gradle.internal.upgrade
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class UpgradeKotlinPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "can upgradle Kotlin 1.6.21"() {
