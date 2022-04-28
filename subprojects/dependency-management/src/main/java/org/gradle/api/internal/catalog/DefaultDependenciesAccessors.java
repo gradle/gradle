@@ -88,7 +88,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependenciesAccessors.class);
-    private static final FeaturePreviews.Feature FEATURE = FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS;
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
@@ -137,9 +136,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     }
                 }
             }
-            if (featurePreviews.isFeatureEnabled(FEATURE)) {
+            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
-                writeProjectAccessors((SettingsInternal) settings);
+                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -150,22 +149,20 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         executeWork(new DependencyAccessorUnitOfWork(model));
     }
 
-    private void writeProjectAccessors(SettingsInternal settings) {
-        ProjectRegistry<? extends ProjectDescriptor> projectRegistry = settings.getProjectRegistry();
+    private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
-        warnIfRootProjectNameNotSetExplicitly(settings);
+        warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
         executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
     }
 
-    private static void warnIfRootProjectNameNotSetExplicitly(SettingsInternal settings) {
-        if (!settings.isFeaturePreviewEnabled(FEATURE)) { //included build root, without type-safe project accessors enabled locally
+    private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptor project) {
+        if (!(project instanceof DefaultProjectDescriptor)) {
             return;
         }
-
-        DefaultProjectDescriptor project = settings.getProjectRegistry().getRootProject();
-        if (project != null && !project.isExplicitName()) {
+        DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
+        if (!descriptor.isExplicitName()) {
             LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
                     "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
         }
@@ -249,7 +246,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
             }
         } finally {
-            if (featurePreviews.isFeatureEnabled(FEATURE)) {
+            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 ServiceRegistry services = project.getServices();
                 DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
                 ProjectFinder projectFinder = services.get(ProjectFinder.class);
