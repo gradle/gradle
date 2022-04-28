@@ -137,6 +137,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .reportAs(WARNING)
                     .forProperty(metadata.propertyName)
                     .withDescription("is broken")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
@@ -151,7 +152,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
-        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblemWithLink(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom annotation that is not relevant can have validation problems"() {
@@ -164,6 +165,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .reportAs(WARNING)
                     .forProperty(metadata.propertyName)
                     .withDescription("is broken")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
@@ -176,7 +178,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
         then:
         propertiesMetadata.empty
-        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblemWithLink(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom type annotation handler can inspect for static type problems"() {
@@ -187,6 +189,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                 .withId(ValidationProblemId.TEST_PROBLEM)
                 .forType(type)
                 .withDescription("type is broken")
+                .documentedAt("id", "section")
                 .happensBecause("Test")
             }
         }
@@ -203,7 +206,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == [dummyValidationProblem(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblemWithLink(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
     }
 
     def "can override @#parentAnnotation.simpleName property type with @#childAnnotation.simpleName"() {
