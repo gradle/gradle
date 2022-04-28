@@ -1,0 +1,31 @@
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to create a plugin with tasks that have dependency resolution results as inputs.
+The plugin is packaged via an included build.
+
+====
+include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
+====
+
+To execute the sample task:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew projectInfo --format json
+{
+    "projectName": "task-with-arguments"
+    "version": "1.0.2"
+}
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/more_about_tasks.html[Authoring Tasks reference chapter].
+More specifically, see the link:{userManualPath}/more_about_tasks.html#sec:up_to_date_checks[Incremental Build] section and its link:{userManualPath}/more_about_tasks.html#sec:task_input_using_classpath_annotations[Using dependency resolution results] subsection.
