@@ -14,17 +14,38 @@
  * limitations under the License.
  */
 
+@file:Suppress("UNCHECKED_CAST")
+
 import com.gradle.scan.plugin.BuildScanExtension
-import java.util.concurrent.atomic.AtomicBoolean
+import org.gradle.kotlin.dsl.support.serviceOf
 
-val cacheMissTagged = AtomicBoolean(false)
-plugins.withId("com.gradle.build-scan") {
-    val buildScan = extensions.findByType<BuildScanExtension>()
+val gradleRootProject = when {
+    project.name == "gradle" -> project.rootProject
+    project.rootProject.name == "build-logic" -> rootProject.gradle.parent!!.rootProject
+    else -> project.gradle.parent!!.rootProject
+}
 
-    if (System.getenv("TEAMCITY_VERSION") != null) {
-        gradle.taskGraph.afterTask {
-            if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
-                buildScan?.tag("CACHE_MISS")
+val rootProjectName = rootProject.name
+val isInBuildLogic = rootProjectName == "build-logic"
+
+if (buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
+    gradle.taskGraph.whenReady {
+        val cacheMissMonitorBuildService: Provider<CacheMissMonitorBuildService> = gradle.sharedServices.registerIfAbsent("cacheMissMonitorBuildService-$rootProjectName", CacheMissMonitorBuildService::class) {
+            parameters.buildCacheEnabled.set(buildCacheEnabled())
+            parameters.monitoredTaskPaths.set(allTasks.filter { it.isCacheMissMonitoredTask() }.map { if (isInBuildLogic) ":build-logic${it.path}" else it.path }.toSet())
+        }
+        gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(cacheMissMonitorBuildService)
+
+        gradleRootProject.extensions.extraProperties.set("cacheMiss-${rootProjectName}", cacheMissMonitorBuildService.get().cacheMiss)
+
+        if (!isInBuildLogic) { // BuildScanExtension is only available in the gradle project
+            val buildScan = gradleRootProject.extensions.findByType<BuildScanExtension>()
+            val cacheMissInBuildLogic = gradleRootProject.extensions.extraProperties.get("cacheMiss-build-logic") as Property<Boolean>
+            val cacheMissInGradle = gradleRootProject.extensions.extraProperties.get("cacheMiss-gradle") as Property<Boolean>
+            buildScan?.buildFinished {
+                if (cacheMissInGradle.get() || cacheMissInBuildLogic.get()) {
+                    buildScan.tag("CACHE_MISS")
+                }
             }
         }
     }
@@ -32,13 +53,14 @@ plugins.withId("com.gradle.build-scan") {
 
 fun buildCacheEnabled() = gradle.startParameter.isBuildCacheEnabled
 
-fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
+/**
+ *  We monitor some tasks in non-seed builds. If a task executed in a non-seed build, we think it as "CACHE_MISS".
+ */
+fun Task.isCacheMissMonitoredTask() = isCompileCacheMissMonitoredTask() || isAsciidoctorCacheMissTask()
 
-fun Task.isCacheMiss() = !state.skipped && state.failure == null && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
+fun Task.isCompileCacheMissMonitoredTask() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
 
-fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
-
-fun isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
+fun isAsciidoctorCacheMissTask() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
 fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !this.isKotlinJsIrLink()
 
