@@ -52,9 +52,10 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
                 public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
-                    if (type.isInstance(receiver)) {
+                    Object typeToCheck = Replacement.inferReceiverFromCallSiteReceiver(receiver);
+                    if (type.isInstance(typeToCheck)) {
                         LOGGER.info("Calling getter replacement for Groovy property {}.{}", type.getName(), propertyName);
-                        return getterReplacement.apply(type.cast(receiver));
+                        return getterReplacement.apply(type.cast(typeToCheck));
                     } else {
                         return super.callGroovyObjectGetProperty(receiver);
                     }

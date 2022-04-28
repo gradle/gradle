@@ -16,6 +16,7 @@
 
 package org.gradle.internal.upgrade;
 
+import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.MethodVisitor;
@@ -45,4 +46,10 @@ public interface Replacement {
     }
 
     void applyConfigurationTo(Hasher hasher);
+
+    static Object inferReceiverFromCallSiteReceiver(Object callSiteReceiver) {
+        return callSiteReceiver instanceof Closure
+            ? ((Closure<?>) callSiteReceiver).getDelegate()
+            : callSiteReceiver;
+    }
 }
