@@ -61,6 +61,7 @@ class ValidationProblemPropertyAnnotationHandler implements PropertyAnnotationHa
                 .withId(ValidationProblemId.TEST_PROBLEM)
                 .reportAs(annotationValue(propertyMetadata))
                 .withDescription("test problem")
+                .documentedAt("id", "section")
                 .happensBecause("this is a test")
         );
     }

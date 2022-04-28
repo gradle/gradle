@@ -20,10 +20,17 @@ import groovy.transform.SelfType
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 @SelfType(AbstractIntegrationSpec)
-trait MissingTaskDependenciesFixture extends ValidationMessageChecker {
+trait ExecutionOptimizationDeprecationFixture extends ValidationMessageChecker {
     void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
-            implicitDependency({ at(producedConsumedLocation).consumer(consumer).producer(producer).includeLink() }, false)
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(
+            executer,
+            implicitDependency({ at(producedConsumedLocation).consumer(consumer).producer(producer) }, false),
+            'validation_problems',
+            'implicit_dependency'
         )
+    }
+
+    void expectImplementationUnknownDeprecation(@DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown(spec), 'validation_problems', 'implementation_unknown')
     }
 }
