@@ -72,4 +72,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     void preventFromFurtherMutation();
 
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
+
+    boolean isFeaturePreviewEnabled(FeaturePreviews.Feature feature);
 }

@@ -53,6 +53,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
@@ -72,6 +73,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final ClassLoaderScope baseClassLoaderScope;
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
+    private final EnumSet<Feature> enabledFeatures = EnumSet.noneOf(Feature.class);
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
@@ -357,6 +359,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void enableFeaturePreview(String name) {
         Feature feature = Feature.withName(name);
         if (feature.isActive()) {
+            enabledFeatures.add(feature);
             services.get(FeaturePreviews.class).enableFeature(feature);
         } else {
             DeprecationLogger
@@ -366,6 +369,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
                 .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
         }
+    }
+
+    @Override
+    public boolean isFeaturePreviewEnabled(Feature feature) {
+        return enabledFeatures.contains(feature);
     }
 
     @Override
