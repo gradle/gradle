@@ -31,6 +31,8 @@ public interface WorkerThreadRegistry {
      * the lease prior to doing any meaningful work.
      *
      * This method is reentrant so that a thread can call this method from the given action.
+     *
+     * This method blocks until a worker lease is available.
      */
     <T> T runAsWorkerThread(Factory<T> action);
 
@@ -40,8 +42,18 @@ public interface WorkerThreadRegistry {
      * the lease prior to doing any meaningful work.
      *
      * This method is reentrant so that a thread can call this method from the given action.
+     *
+     * This method blocks until a worker lease is available.
      */
     void runAsWorkerThread(Runnable action);
+
+    /**
+     * Runs the given action as an unmanaged worker, if not already a worker. This is basically the same as {@link #runAsWorkerThread(Runnable)} but does not block waiting for a lease.
+     * Instead, a temporary lease is granted to the current thread.
+     *
+     * You should avoid using this method and prefer {@link #runAsWorkerThread(Runnable)} instead. This method is here to allow some backwards compatibility constraints to be honored.
+     */
+    void runAsUnmanagedWorkerThread(Runnable action);
 
     /**
      * Starts a new lease for the current thread. Marks the reservation of a lease. Blocks until a lease is available.
