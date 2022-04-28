@@ -471,7 +471,7 @@ If you’re implementing a custom task as a class, then it takes just two steps 
 Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter, are ignored.
 ====
 
-Gradle supports three main categories of inputs and outputs:
+Gradle supports four main categories of inputs and outputs:
 
 * Simple values
 +
@@ -479,7 +479,12 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+These consist of `RegularFile`, `Directory` and the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+
+* Dependency resolution results
++
+This includes the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult] type for artifact metadata and the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] type for dependency graphs.
+Note that they are only supported wrapped in a `Provider`.
 
 * Nested values
 +
@@ -556,8 +561,8 @@ Now that you have seen some of the input and output annotations in practice, let
 | Description
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Input.html[Input]`
-| Any `Serializable` type
-| A simple input value
+| Any `Serializable` type or dependency resolution result types
+| A simple input value or dependency resolution results
 
 | `@link:{javadocPath}/org/gradle/api/tasks/InputFile.html[InputFile]`
 | `File`*
@@ -668,11 +673,11 @@ Implies `<<#incremental,@Incremental>>`.
 [NOTE]
 ====
 [horizontal]
-+++*+++::
+*::
 In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
-+++**+++::
+**::
 Similar to the above, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 ====
 
@@ -681,6 +686,43 @@ Annotations are inherited from all parent types including implemented interfaces
 Annotations on a property declared in a type override similar annotations declared by the superclass and in any implemented interfaces. Superclass annotations take precedence over annotations declared in implemented interfaces.
 
 The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
+
+[[sec:task_input_using_dependency_resolution_results]]
+===== Using dependency resolution results
+
+
+This includes the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult] type for artifact metadata and the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] type for dependency graphs.
+Note that they are only supported wrapped in a `Provider`.
+
+.Multi-project Java application with dependencies
+====
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/groovy",files="settings.gradle[tag=includes];build.gradle[];utilities/build.gradle[];list/build.gradle[]"]
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="settings.gradle.kts[tag=includes];build.gradle.kts[];utilities/build.gradle.kts[];list/build.gradle.kts[]"]
+====
+
+.Resolved artifacts metadata
+====
+.Task input declaration in `ListResolvedArtifactIdentifiers.java`
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/ListResolvedArtifactIdentifiers.java[tag=inputs]
+----
+
+.Task registration and configuration in `DependencyReportsPlugin.java`
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=listResolvedArtifactIdentifiers]
+----
+
+.Output of **`gradle listResolvedArtifactIdentifiers`**
+----
+> gradle listResolvedArtifactIdentifiers
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactIdentifiers.out[]
+----
+====
+
+
+The above use cases consuming dependency resolution results are demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
 
 [[sec:task_input_using_classpath_annotations]]
 ===== Using the classpath annotations
@@ -708,7 +750,7 @@ When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a 
 When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to an iterable, each element is treated as a separate nested input.
 Each nested input in the iterable is assigned a name, which by default is the dollar sign followed by the index in the iterable, e.g. `$2`.
 If an element of the iterable implements `link:{javadocPath}/org/gradle/api/Named.html[Named]`, then the name is used as property name.
-The ordering of the elements in the iterable is crucial for for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
+The ordering of the elements in the iterable is crucial for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
 Multiple elements which have the same name are not allowed.
 
 When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a map, then for each value a nested input is added, using the key as name.
