@@ -286,6 +286,12 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
+        distribution {
+            this as TestDistributionExtensionInternal
+            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
+            server.set(uri("https://ge-td-dogfooding.grdev.net"))
+        }
+
         if (project.testDistributionEnabled && !isUnitTest()) {
             println("Remote test distribution has been enabled for $testName")
 
@@ -297,8 +303,6 @@ fun configureTests() {
                 }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
-                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-                server.set(uri("https://ge-td-dogfooding.grdev.net"))
 
                 if (BuildEnvironment.isCiServer) {
                     when {
