@@ -18,11 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -99,32 +96,6 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
             ImmutableAttributes result = original;
             result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(componentType, objectInstantiator));
-            return result;
-        });
-    }
-
-    @Override
-    public ImmutableAttributes sourcesVariant(ImmutableAttributes original) {
-        List<Object> key = ImmutableList.of(original, Category.DOCUMENTATION, Usage.JAVA_RUNTIME, DocsType.SOURCES);
-        return concatCache.computeIfAbsent(key, k -> {
-            ImmutableAttributes result = original;
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
-            result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
-            result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.SOURCES));
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
-            return result;
-        });
-    }
-
-    @Override
-    public ImmutableAttributes javadocVariant(ImmutableAttributes original) {
-        List<Object> key = ImmutableList.of(original, Category.DOCUMENTATION, Usage.JAVA_RUNTIME, DocsType.JAVADOC);
-        return concatCache.computeIfAbsent(key, k -> {
-            ImmutableAttributes result = original;
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
-            result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
-            result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.JAVADOC));
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
             return result;
         });
     }

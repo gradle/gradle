@@ -47,7 +47,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -1832,13 +1831,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             ImmutableAttributes viewAttributes = config.lockViewAttributes();
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
-            ArtifactView view;
-            if (config.reselectVariant) {
-                view = new ReselectingArtifactView(viewAttributes, config.lockComponentFilter(), this);
-            } else {
-                view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
-            }
-            return view;
+            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
@@ -1880,62 +1873,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public FileCollection getFiles() {
-                // TODO maybe make detached configuration is flag is true
                 return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost());
-            }
-        }
-
-        private class ReselectingArtifactView implements ArtifactView {
-            private final ImmutableAttributes viewAttributes;
-            private final Spec<? super ComponentIdentifier> componentFilter;
-            private final ArtifactView delegatingArtifactView;
-
-            ReselectingArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, ConfigurationResolvableDependencies underlyingConfiguration) {
-                this.viewAttributes = viewAttributes;
-                this.componentFilter = componentFilter;
-                this.delegatingArtifactView = createDelegate(underlyingConfiguration);
-            }
-
-            @Override
-            public AttributeContainer getAttributes() {
-                return viewAttributes;
-            }
-
-            @Override
-            public ArtifactCollection getArtifacts() {
-                return delegatingArtifactView.getArtifacts();
-            }
-
-            @Override
-            public FileCollection getFiles() {
-                return delegatingArtifactView.getFiles();
-            }
-
-            private ArtifactView createDelegate(ConfigurationResolvableDependencies underlyingConfiguration) {
-                ProjectInternal project = domainObjectContext.getProject();
-                Configuration detached = project.getConfigurations().detachedConfiguration();
-                detached.withDependencies(dependencies -> {
-                    for (ResolvedComponentResult component :  underlyingConfiguration.getResolutionResult().getAllComponents()) {
-                        ComponentIdentifier componentIdentifier = component.getId();
-                        // TODO are the two implementations (ProjectComponentIdentifier, ModuleComponentIdentifier) sufficient?
-                        if (componentIdentifier instanceof ProjectComponentIdentifier) {
-                            dependencies.add(project.getDependencies().project(Collections.singletonMap("path", ((ProjectComponentIdentifier) componentIdentifier).getProjectPath())));
-                        } else if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                            dependencies.add(project.getDependencies().create(componentIdentifier.toString()));
-                        }
-                    }
-                });
-                detached.setTransitive(false);
-                detached.setVisible(false);
-                for (Attribute attribute : getAttributes().keySet()) {
-                    @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
-                    Object value = getAttributes().getAttribute(key);
-                    detached.getAttributes().attribute(key, value);
-                }
-                return detached.getIncoming().artifactView(view -> {
-                    view.lenient(true);
-                    view.componentFilter(componentFilter);
-                });
             }
         }
 
@@ -2042,7 +1980,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter;
         private boolean lenient;
-        private boolean reselectVariant;
         private boolean attributesUsed;
 
         public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
@@ -2053,11 +1990,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
-                if (reselectVariant) {
-                    viewAttributes = attributesFactory.mutable();
-                } else {
-                    viewAttributes = attributesFactory.mutable(configurationAttributes);
-                }
+                viewAttributes = attributesFactory.mutable(configurationAttributes);
                 attributesUsed = true;
             }
             return viewAttributes;
@@ -2089,12 +2022,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public ArtifactViewConfiguration lenient(boolean lenient) {
             this.lenient = lenient;
-            return this;
-        }
-
-        @Override
-        public ArtifactViewConfiguration withVariantReselection() {
-            this.reselectVariant = true;
             return this;
         }
 
