@@ -1,0 +1,8 @@
+ROOT: project :app
+	(project :app) => (org.apache.commons:commons-text:1.9) => commons-text-1.9.jar
+	(project :app) => (project :utilities) => utilities.jar
+	(project :app) => (org.apache.commons:commons-text:1.9) => commons-text-1.9.jar
+	(org.apache.commons:commons-text:1.9) => (org.apache.commons:commons-lang3:3.11) => commons-lang3-3.11.jar
+	(project :utilities) => (project :list) => list.jar
+	(project :utilities) => (org.apache.commons:commons-text:1.9) => commons-text-1.9.jar
+	(project :list) => (org.apache.commons:commons-text:1.9) => commons-text-1.9.jar
