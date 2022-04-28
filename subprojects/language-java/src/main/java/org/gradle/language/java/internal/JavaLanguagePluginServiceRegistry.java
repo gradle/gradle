@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
@@ -83,19 +84,21 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
 
     private static class ProviderApiMigrationAction {
         public void configure(ApiUpgradeManager upgradeManager) {
-            upgradeManager
-                .matchProperty(AbstractCompile.class, String.class, "targetCompatibility")
-                .replaceWith(
-                    abstractCompile -> abstractCompile.getTargetCompatibility().get(),
-                    (abstractCompile, value) -> abstractCompile.getTargetCompatibility().set(value)
-                );
             // It seems like the bytecode references the subclass as an owner
-            upgradeManager
-                .matchProperty(JavaCompile.class, String.class, "targetCompatibility")
-                .replaceWith(
-                    abstractCompile -> abstractCompile.getTargetCompatibility().get(),
-                    (abstractCompile, value) -> abstractCompile.getTargetCompatibility().set(value)
-                );
+            for (Class<? extends AbstractCompile> compileClass : ImmutableList.of(AbstractCompile.class, JavaCompile.class)) {
+                upgradeManager
+                    .matchProperty(compileClass, String.class, "targetCompatibility")
+                    .replaceWith(
+                        abstractCompile -> abstractCompile.getTargetCompatibility().get(),
+                        (abstractCompile, value) -> abstractCompile.getTargetCompatibility().set(value)
+                    );
+                upgradeManager
+                    .matchProperty(compileClass, String.class, "sourceCompatibility")
+                    .replaceWith(
+                        abstractCompile -> abstractCompile.getSourceCompatibility().get(),
+                        (abstractCompile, value) -> abstractCompile.getSourceCompatibility().set(value)
+                    );
+            }
         }
     }
 

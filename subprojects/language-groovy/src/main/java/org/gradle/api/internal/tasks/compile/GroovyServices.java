@@ -18,10 +18,12 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
+import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.upgrade.ApiUpgradeManager;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
@@ -32,6 +34,11 @@ public class GroovyServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectServices());
+    }
+
+    @Override
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {
+        registration.addProvider(new ProviderApiMigrationAction());
     }
 
     private static class ProjectServices {
@@ -57,6 +64,23 @@ public class GroovyServices extends AbstractPluginServiceRegistry {
                 classLoaderRegistry,
                 actionExecutionSpecFactory
             );
+        }
+    }
+
+    private static class ProviderApiMigrationAction {
+        public void configure(ApiUpgradeManager upgradeManager) {
+            upgradeManager
+                .matchProperty(GroovyCompile.class, String.class, "targetCompatibility")
+                .replaceWith(
+                    abstractCompile -> abstractCompile.getTargetCompatibility().get(),
+                    (abstractCompile, value) -> abstractCompile.getTargetCompatibility().set(value)
+                );
+            upgradeManager
+                .matchProperty(GroovyCompile.class, String.class, "sourceCompatibility")
+                .replaceWith(
+                    abstractCompile -> abstractCompile.getSourceCompatibility().get(),
+                    (abstractCompile, value) -> abstractCompile.getSourceCompatibility().set(value)
+                );
         }
     }
 }
