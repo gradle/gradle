@@ -320,7 +320,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
             boolean releaseLeaseOnCompletion;
             if (workerLease == null) {
-                workerLease = workerLeaseService.getWorkerLease();
+                workerLease = workerLeaseService.newWorkerLease();
                 releaseLeaseOnCompletion = true;
             } else {
                 releaseLeaseOnCompletion = false;
