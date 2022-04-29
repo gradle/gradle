@@ -378,7 +378,6 @@ org.eclipse.jgit:org.eclipse.jgit
 ------------------------------------------------------------------------------
 BSD-style
 
-com.jcraft:jsch // TODO remove jsch here?
 com.jcraft:jzlib
 com.github.mwiede:jsch
 
