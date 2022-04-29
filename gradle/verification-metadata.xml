@@ -579,6 +579,11 @@
             <pgp value="4922c79af3339c8941c3e7af80662f8192d749a0"/>
          </artifact>
       </component>
+      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.13">
+         <artifact name="JavaEWAH-1.1.13.jar">
+            <pgp value="015479e1055341431b4545ab72475fd306b9cab7"/>
+         </artifact>
+      </component>
       <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.6">
          <artifact name="JavaEWAH-1.1.6.jar">
             <pgp value="015479e1055341431b4545ab72475fd306b9cab7"/>
