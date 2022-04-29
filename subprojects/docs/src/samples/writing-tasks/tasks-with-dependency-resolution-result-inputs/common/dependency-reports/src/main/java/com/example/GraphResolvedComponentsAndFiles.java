@@ -18,12 +18,11 @@ import org.gradle.api.tasks.TaskAction;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.stream.Stream;
 
-public abstract class GraphResolvedArtifactFiles extends DefaultTask {
+public abstract class GraphResolvedComponentsAndFiles extends DefaultTask {
 
     @Input
     public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIdentifiers();
@@ -41,13 +40,44 @@ public abstract class GraphResolvedArtifactFiles extends DefaultTask {
     public void action() throws IOException {
         Map<ComponentIdentifier, File> filesByIdentifiers = filesByIdentifiers();
         File outputFile = getOutputFile().get().getAsFile();
-        outputFile.getParentFile().mkdirs();
         try (PrintWriter writer = new PrintWriter(outputFile)) {
-            ResolvedComponentResult root = getRootComponent().get();
-            writer.println("ROOT: " + root);
-            List<ResolvedComponentResult> seen = new ArrayList<>();
-            seen.add(root);
-            printDependencies(writer, root, seen, filesByIdentifiers);
+            Set<ResolvedComponentResult> seen = new HashSet<>();
+            reportComponent(getRootComponent().get(), writer, seen, filesByIdentifiers, "");
+        }
+        try (Stream<String> stream = Files.lines(outputFile.toPath())) {
+            stream.forEach(System.out::println);
+        }
+    }
+
+    private void reportComponent(
+            ResolvedComponentResult component,
+            PrintWriter writer,
+            Set<ResolvedComponentResult> seen,
+            Map<ComponentIdentifier, File> filesByIdentifiers,
+            String indent
+    ) {
+        writer.print(component.getId().getDisplayName());
+        File file = filesByIdentifiers.get(component.getId());
+        if (file != null) {
+            writer.print(" => ");
+            writer.print(file.getName());
+        }
+        if (seen.add(component)) {
+            writer.println();
+            String newIndent = indent + "  ";
+            for (DependencyResult dependency : component.getDependencies()) {
+                writer.print(newIndent);
+                writer.print(dependency.getRequested().getDisplayName());
+                writer.print(" -> ");
+                if (dependency instanceof ResolvedDependencyResult) {
+                    ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
+                    reportComponent(resolvedDependency.getSelected(), writer, seen, filesByIdentifiers, newIndent);
+                } else {
+                    writer.println(" -> not found");
+                }
+            }
+        } else {
+            writer.println(" (already seen)");
         }
     }
 
@@ -59,26 +89,5 @@ public abstract class GraphResolvedArtifactFiles extends DefaultTask {
             map.put(identifiers.get(index).getComponentIdentifier(), files.get(index));
         }
         return map;
-    }
-
-    private void printDependencies(PrintWriter writer, ResolvedComponentResult component, List<ResolvedComponentResult> seen, Map<ComponentIdentifier, File> filesByIdentifiers) {
-        List<ResolvedDependencyResult> resolvedDependencies = new ArrayList<>();
-        for (DependencyResult dep : component.getDependencies()) {
-            if (dep instanceof ResolvedDependencyResult) {
-                resolvedDependencies.add((ResolvedDependencyResult) dep);
-            }
-        }
-        for (ResolvedDependencyResult dep : resolvedDependencies) {
-            ComponentIdentifier from = component.getId();
-            ComponentIdentifier to = dep.getSelected().getId();
-            String filename = filesByIdentifiers.get(to).getName();
-            writer.println("\t(" + from + ") => (" + to + ") => " + filename);
-        }
-        seen.add(component);
-        for (ResolvedDependencyResult dep : resolvedDependencies) {
-            if (!seen.contains(dep.getSelected())) {
-                printDependencies(writer, dep.getSelected(), seen, filesByIdentifiers);
-            }
-        }
     }
 }

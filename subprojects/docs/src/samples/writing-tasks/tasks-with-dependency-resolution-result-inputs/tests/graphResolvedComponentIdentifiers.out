@@ -1,8 +1,0 @@
-ROOT: project :app
-	project :app => org.apache.commons:commons-text:1.9
-	project :app => project :utilities
-	project :app => org.apache.commons:commons-text:1.9
-	org.apache.commons:commons-text:1.9 => org.apache.commons:commons-lang3:3.11
-	project :utilities => project :list
-	project :utilities => org.apache.commons:commons-text:1.9
-	project :list => org.apache.commons:commons-text:1.9
