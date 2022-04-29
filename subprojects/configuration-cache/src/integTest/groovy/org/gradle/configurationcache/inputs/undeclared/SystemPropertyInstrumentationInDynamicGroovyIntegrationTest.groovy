@@ -19,9 +19,7 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
-import spock.lang.Ignore
 
-@Ignore("Fix invokedynamic handling")
 class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "#method is instrumented in dynamic Groovy"() {
         def configurationCache = newConfigurationCacheFixture()
