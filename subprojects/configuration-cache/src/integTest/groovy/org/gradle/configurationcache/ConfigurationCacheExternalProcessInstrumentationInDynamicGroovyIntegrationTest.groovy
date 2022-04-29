@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Ignore
-
-@Ignore("Fix invokedynamic handling")
 class ConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
     def "#title is intercepted in groovy build script"(VarInitializer varInitializer) {
         given:

@@ -20,13 +20,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.function.Supplier
 
-@Ignore("Fix invokedynamic handling")
 class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
