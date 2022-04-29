@@ -98,6 +98,7 @@ dependencies {
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("20.1.0") }}
         api(libs.jgit)                  { version { strictly("6.1.0.202203080745-r") }}
+        api(libs.jgitSshApache)         { version { strictly("6.1.0.202203080745-r") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.1") }; because("`com.jcraft:jsch` is outdated - `com.github.mwiede:jsch` is a drop-in replacement")}

@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.jgit)
     implementation(libs.jsch)
+    implementation(libs.jgitSshApache)
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))

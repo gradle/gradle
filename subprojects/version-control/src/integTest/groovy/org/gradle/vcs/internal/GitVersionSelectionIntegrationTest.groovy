@@ -70,7 +70,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    def "selects and builds from master for latest.integration selector"() {
+    def "selects and builds from main for latest.integration selector"() {
         given:
         buildFile << """
             dependencies { compile 'test:test:latest.integration' }
@@ -114,7 +114,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.checkout("ignore")
         repoSettingsFile.replace("version = '3.0'", "version = 'ignore'")
         repo.commit("v4")
-        repo.checkout("master")
+        repo.checkout("main")
         repo.expectListVersions()
         run('checkDeps')
 
@@ -359,7 +359,7 @@ Required by:
 
         where:
         selector  | _
-        "master"  | _
+        "main"    | _
         "release" | _
         "HEAD"    | _
     }

@@ -92,6 +92,7 @@ abstract class ExternalModulesExtension {
     val jcommander = "com.beust:jcommander"
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
+    val jgitSshApache = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
@@ -230,6 +231,7 @@ abstract class ExternalModulesExtension {
         jcommander to License.Apache2,
         jetbrainsAnnotations to License.Apache2,
         jgit to License.EDL,
+        jgitSshApache to License.EDL,
         joda to License.Apache2,
         jsch to License.BSDStyle,
         jsr305 to License.BSD3,
