@@ -1,4 +1,0 @@
-project :utilities => utilities.jar
-project :list => list.jar
-org.apache.commons:commons-text:1.9 => commons-text-1.9.jar
-org.apache.commons:commons-lang3:3.11 => commons-lang3-3.11.jar

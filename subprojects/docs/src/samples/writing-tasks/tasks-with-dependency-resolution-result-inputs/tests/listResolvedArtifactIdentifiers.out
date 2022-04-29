@@ -1,4 +1,0 @@
-project :utilities
-project :list
-org.apache.commons:commons-text:1.9
-org.apache.commons:commons-lang3:3.11

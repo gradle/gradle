@@ -15,8 +15,8 @@ To execute the sample tasks:
 =====
 [.sample-command]
 ----
-> ./gradlew -q listResolvedArtifactIdentifiers
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactIdentifiers.out[]
+> ./gradlew -q listResolvedArtifacts
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifacts.out[]
 
 BUILD SUCCESSFUL in 1s
 1 actionable task: 1 executed
@@ -25,8 +25,8 @@ BUILD SUCCESSFUL in 1s
 =====
 [.sample-command]
 ----
-> ./gradlew -q listResolvedArtifactFiles
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactFiles.out[]
+> ./gradlew -q graphResolvedComponents
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedComponents.out[]
 
 BUILD SUCCESSFUL in 1s
 1 actionable task: 1 executed
@@ -35,28 +35,8 @@ BUILD SUCCESSFUL in 1s
 =====
 [.sample-command]
 ----
-> ./gradlew -q listResolvedArtifactFilesByIdentifiers
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactFilesByIdentifiers.out[]
-
-BUILD SUCCESSFUL in 1s
-1 actionable task: 1 executed
-----
-=====
-=====
-[.sample-command]
-----
-> ./gradlew -q graphResolvedComponentIdentifiers
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedComponentIdentifiers.out[]
-
-BUILD SUCCESSFUL in 1s
-1 actionable task: 1 executed
-----
-=====
-=====
-[.sample-command]
-----
-> ./gradlew -q graphResolvedArtifactFiles
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedArtifactFiles.out[]
+> ./gradlew -q graphResolvedComponentsAndFiles
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedComponentsAndFiles.out[]
 
 BUILD SUCCESSFUL in 1s
 1 actionable task: 1 executed

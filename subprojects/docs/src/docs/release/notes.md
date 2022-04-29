@@ -120,6 +120,11 @@ See the [ResolvableConfigurations](dsl/org.gradle.api.tasks.diagnostics.Resolvab
 
 When defining secondary variants, there is a new [ConfigurationVariant](javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
 These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
+
+### Dependency resolution results can be used as task inputs
+
+
+
 ### Continuous build is responsive on Windows and macOS
 
 Continuous Build allows you to automatically re-execute the build with the same requested tasks when inputs change.
