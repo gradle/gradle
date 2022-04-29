@@ -12,11 +12,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-// tag::inputs[]
 public abstract class ListResolvedArtifactIdentifiers extends DefaultTask {
 
-    @Input
-    public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIdentifiers();
+// tag::inputs[]
+@Input
+public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIdentifiers();
 // end::inputs[]
 
     @OutputFile
@@ -32,6 +32,4 @@ public abstract class ListResolvedArtifactIdentifiers extends DefaultTask {
             }
         }
     }
-// tag::inputs[]
 }
-// end::inputs[]

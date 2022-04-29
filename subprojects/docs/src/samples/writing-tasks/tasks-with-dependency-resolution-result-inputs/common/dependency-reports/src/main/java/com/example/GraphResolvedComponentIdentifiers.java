@@ -19,8 +19,10 @@ import java.util.List;
 
 public abstract class GraphResolvedComponentIdentifiers extends DefaultTask {
 
-    @Input
-    public abstract Property<ResolvedComponentResult> getRootComponent();
+// tag::inputs[]
+@Input
+public abstract Property<ResolvedComponentResult> getRootComponent();
+// end::inputs[]
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
