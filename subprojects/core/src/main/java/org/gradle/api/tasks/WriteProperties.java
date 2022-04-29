@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
@@ -28,7 +28,6 @@ import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -59,7 +58,7 @@ public class WriteProperties extends DefaultTask {
     private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
     private final Map<String, String> properties = Maps.newHashMap();
     private String lineSeparator = "\n";
-    private Object outputFile;
+    private final RegularFileProperty outputFile = getProject().getObjects().fileProperty();
     private String comment;
     private String encoding = "ISO_8859_1";
 
@@ -191,30 +190,14 @@ public class WriteProperties extends DefaultTask {
      * Returns the output file to write the properties to.
      */
     @OutputFile
-    public File getOutputFile() {
-        return getServices().get(FileOperations.class).file(outputFile);
-    }
-
-    /**
-     * Sets the output file to write the properties to.
-     *
-     * @since 4.0
-     */
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
-    }
-
-    /**
-     * Sets the output file to write the properties to.
-     */
-    public void setOutputFile(Object outputFile) {
-        this.outputFile = outputFile;
+    public RegularFileProperty getOutputFile() {
+        return outputFile;
     }
 
     @TaskAction
     public void writeProperties() throws IOException {
         Charset charset = Charset.forName(getEncoding());
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile()));
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile().get().getAsFile()));
         try {
             Properties propertiesToWrite = new Properties();
             propertiesToWrite.putAll(getProperties());
