@@ -73,8 +73,5 @@ dependencies {
         }
         api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }
         api("org.objenesis:objenesis") { version { strictly("3.1") } }
-        api("com.github.mwiede:jsch:0.2.1") {
-            because("`com.jcraft:jsch` is outdated - `com.github.mwiede:jsch` is a drop-in replacement")
-        }
     }
 }
