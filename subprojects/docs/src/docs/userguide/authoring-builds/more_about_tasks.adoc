@@ -690,39 +690,45 @@ The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{java
 [[sec:task_input_using_dependency_resolution_results]]
 ===== Using dependency resolution results
 
-TODO INTRO
+Dependency resolution results can be consumed as task inputs in two ways.
+First by consuming the graph of the resolved metadata using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult].
+Second by consuming the flat set of the resolved artifacts using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult].
 
-TODO SAMPLE PROJECT
+A resolved graph can be obtained lazily from the incoming resolution result of a `Configuration` and is wired to an `@Input` property:
 
-.Multi-project Java application with dependencies
+.Resolved graph as task input
 ====
-include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/groovy",files="settings.gradle[tag=includes];list/build.gradle[];utilities/build.gradle[];build.gradle[]"]
-include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="settings.gradle.kts[tag=includes];list/build.gradle.kts[];utilities/build.gradle.kts[];build.gradle.kts[]"]
+.Task declaration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/GraphResolvedComponentIdentifiers.java[tag=inputs]
+----
+.Task configuration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=graphResolvedComponentIdentifiers]
+----
 ====
 
-.Resolved artifacts metadata
+The resolved set of artifacts can be obtained lazily from the incoming artifacts of a `Configuration`.
+Given the `ResolvedArtifactResult` type contains both metadata and file information, instances need to be transformed to metadata only before being wired to an `@Input` property:
+
+.Resolved artifacts as task input
 ====
-.Task input declaration in `ListResolvedArtifactIdentifiers.java`
+.Task declaration
 [source,java]
 ----
 include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/ListResolvedArtifactIdentifiers.java[tag=inputs]
 ----
-
-.Task registration and configuration in `DependencyReportsPlugin.java`
+.Task configuration
 [source,java]
 ----
 include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=listResolvedArtifactIdentifiers]
 ----
-
-.Output of **`gradle listResolvedArtifactIdentifiers`**
-----
-> gradle listResolvedArtifactIdentifiers
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactIdentifiers.out[]
-----
 ====
 
-
-The above use cases consuming dependency resolution results are demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
+Both graph and flat results can be combined and augmented with resolved file information.
+This is all demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
 
 [[sec:task_input_using_classpath_annotations]]
 ===== Using the classpath annotations

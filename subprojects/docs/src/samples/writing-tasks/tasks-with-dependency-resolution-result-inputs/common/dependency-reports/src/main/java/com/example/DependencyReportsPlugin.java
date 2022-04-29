@@ -2,6 +2,8 @@ package com.example;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.provider.Provider;
@@ -19,21 +21,24 @@ public abstract class DependencyReportsPlugin implements Plugin<Project> {
         project.getPluginManager().apply("java-library");
 
         TaskContainer tasks = project.getTasks();
-        // tag::listResolvedArtifactIdentifiers[]
-        ResolvableDependencies resolvableDependencies = project.getConfigurations().getByName("runtimeClasspath").getIncoming();
-        Provider<Set<ResolvedArtifactResult>> resolvedArtifacts = resolvableDependencies.getArtifacts().getResolvedArtifacts();
+        ConfigurationContainer configurations = project.getConfigurations();
+        ResolvableDependencies resolvableDependencies = configurations.getByName("runtimeClasspath").getIncoming();
 
         tasks.register("listResolvedArtifactIdentifiers", ListResolvedArtifactIdentifiers.class, task -> {
 
-            task.getArtifactIdentifiers().set(resolvedArtifacts.map(result ->
-                result.stream().map(ResolvedArtifactResult::getId).collect(toList())
-            ));
-        // end::listResolvedArtifactIdentifiers[]
+// tag::listResolvedArtifactIdentifiers[]
+Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
+Provider<Set<ResolvedArtifactResult>> resolvedArtifacts = runtimeClasspath.getIncoming().getArtifacts().getResolvedArtifacts();
+
+task.getArtifactIdentifiers().set(
+    resolvedArtifacts.map(result ->
+        result.stream().map(ResolvedArtifactResult::getId).collect(toList())
+    )
+);
+// end::listResolvedArtifactIdentifiers[]
 
             task.getOutputFile().set(project.getLayout().getBuildDirectory().file(task.getName() + "/report.txt"));
-        // tag::listResolvedArtifactIdentifiers[]
         });
-        // end::listResolvedArtifactIdentifiers[]
 
         tasks.register("listResolvedArtifactFiles", ListResolvedArtifactFiles.class, task -> {
 
@@ -43,6 +48,8 @@ public abstract class DependencyReportsPlugin implements Plugin<Project> {
         });
 
         tasks.register("listResolvedArtifactFilesByIdentifiers", ListResolvedArtifactFilesByIdentifiers.class, task -> {
+
+            Provider<Set<ResolvedArtifactResult>> resolvedArtifacts = resolvableDependencies.getArtifacts().getResolvedArtifacts();
 
             task.getArtifactFiles().from(resolvableDependencies.getArtifacts().getArtifactFiles());
             task.getArtifactIdentifiers().set(resolvedArtifacts.map(result ->
@@ -54,7 +61,13 @@ public abstract class DependencyReportsPlugin implements Plugin<Project> {
 
         tasks.register("graphResolvedComponentIdentifiers", GraphResolvedComponentIdentifiers.class, task -> {
 
-            task.getRootComponent().set(resolvableDependencies.getResolutionResult().getRootComponent());
+// tag::graphResolvedComponentIdentifiers[]
+Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
+
+task.getRootComponent().set(
+    runtimeClasspath.getIncoming().getResolutionResult().getRootComponent()
+);
+// end::graphResolvedComponentIdentifiers[]
 
             task.getOutputFile().set(project.getLayout().getBuildDirectory().file(task.getName() + "/report.txt"));
         });
