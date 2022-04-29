@@ -123,7 +123,11 @@ These descriptions will be printed by the `outgoingVariants` report and defaults
 
 ### Dependency resolution results can be used as task inputs
 
+Starting with Gradle 7.5 it is now possible to declare dependency resolution results as task inputs.
 
+You can learn more in the [Authoring Tasks](userguide/more_about_tasks.html#sec:task_input_using_dependency_resolution_results) user manual chapter and with the dedicated [sample](samples/sample_tasks_with_dependency_resolution_result_inputs.html).
+
+These new types of task inputs also comes with support for the [configuration cache](userguide/configuration_cache.html). 
 
 ### Continuous build is responsive on Windows and macOS
 
