@@ -61,6 +61,10 @@ testing {
     }
 }
 
+tasks.codeQuality.configure {
+    dependsOn(testing.suites.named("archTest"))
+}
+
 fun notForAccessorGeneration(runnable: Runnable) {
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test") {
         runnable.run()
