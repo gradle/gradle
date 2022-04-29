@@ -401,14 +401,14 @@ public class Instrumented {
         return LISTENER.get();
     }
 
-    private static Object unwrap(Object obj) {
+    static Object unwrap(Object obj) {
         if (obj instanceof Wrapper) {
             return ((Wrapper) obj).unwrap();
         }
         return obj;
     }
 
-    private static String convertToString(Object arg) {
+    static String convertToString(Object arg) {
         if (arg instanceof CharSequence) {
             return ((CharSequence) arg).toString();
         }
