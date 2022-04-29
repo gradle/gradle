@@ -37,7 +37,7 @@ public class DefaultTestResultTest extends Specification {
         result.getStartTime() == 100L
         result.getEndTime() == 200L
         result.resultType == ResultType.SKIPPED
-        result.exceptions.is(state.failures)
+        result.exceptions == state.failures.collect { it.rawFailure }
         result.testCount == state.testCount
         result.successfulTestCount == state.successfulCount
         result.failedTestCount == state.failedCount

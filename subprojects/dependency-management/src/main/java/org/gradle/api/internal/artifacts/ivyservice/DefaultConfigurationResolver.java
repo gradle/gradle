@@ -70,6 +70,7 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collections;
 import java.util.List;
@@ -93,6 +94,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final AttributeDesugaring attributeDesugaring;
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
+    private final WorkerLeaseService workerLeaseService;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver,
                                         RepositoriesSupplier repositoriesSupplier,
@@ -108,7 +110,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                                         AttributeContainerSerializer attributeContainerSerializer,
                                         BuildIdentifier currentBuild, AttributeDesugaring attributeDesugaring,
                                         DependencyVerificationOverride dependencyVerificationOverride,
-                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                        WorkerLeaseService workerLeaseService) {
         this.resolver = resolver;
         this.repositoriesSupplier = repositoriesSupplier;
         this.metadataHandler = metadataHandler;
@@ -125,6 +128,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.attributeDesugaring = attributeDesugaring;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -217,7 +221,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, dependencyVerificationOverride);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
         results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
     }
 

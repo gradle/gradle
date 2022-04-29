@@ -78,7 +78,7 @@ class InstrumentedInputAccessListener(
     val externalProcessListener = configurationCacheProblemsListener
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
-        if (allowedProperties.contains(key) || environmentChangeTracker.isSystemPropertyMutated(key) || Workarounds.canReadSystemProperty(consumer)) {
+        if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }
         undeclaredInputBroadcast.systemPropertyRead(key, value, consumer)

@@ -39,6 +39,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -81,6 +82,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
+    private PatternFilterable preserve = new PatternSet();
 
     @Inject
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
@@ -488,6 +490,17 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action) {
         copyActions.add(action);
+    }
+
+    @Override
+    public PatternFilterable getPreserve() {
+        return preserve;
+    }
+
+    @Override
+    public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
+        action.execute(this.preserve);
+        return this;
     }
 
     @Override

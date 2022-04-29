@@ -8,6 +8,7 @@ description = "Provides a plugin to generate Gradle's DSL reference, User Manual
 dependencies {
     implementation(project(":basics"))
     implementation(project(":module-identity"))
+    implementation(project(":build-update-utils"))
 
     implementation("com.github.javaparser:javaparser-core")
     implementation("com.google.guava:guava")

@@ -92,7 +92,7 @@ class RerunFlakyTest(os: Os) : BuildType({
         )
         select(
             testJvmVendorParameter,
-            JvmVendor.adoptiumopenjdk.name,
+            JvmVendor.openjdk.name,
             display = ParameterDisplay.PROMPT,
             description = "Java vendor to run the test with",
             options = JvmVendor.values().map { it.displayName to it.name }

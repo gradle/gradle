@@ -152,6 +152,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
             if (agpVersion.startsWith("7.")) {
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
             }
+            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
         }
     }
 }

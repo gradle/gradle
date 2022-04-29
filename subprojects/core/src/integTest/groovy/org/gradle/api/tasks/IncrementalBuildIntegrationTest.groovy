@@ -1397,6 +1397,9 @@ task b(dependsOn: a)
         args('-PinputDirs=inputDir1,inputDir2')
 
         then:
+        executer.beforeExecute {
+            expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'MyTask.processFiles' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
+        }
         succeeds('myTask')
 
         when:
@@ -1447,7 +1450,7 @@ task b(dependsOn: a)
 
         then:
         failureDescriptionContains(
-            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input')}
+            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input') }
         )
     }
 

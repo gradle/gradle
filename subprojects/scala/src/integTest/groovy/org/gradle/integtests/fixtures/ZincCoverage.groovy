@@ -20,5 +20,5 @@ import static org.gradle.api.plugins.scala.ScalaBasePlugin.DEFAULT_ZINC_VERSION
 
 
 class ZincCoverage {
-    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.2.0", "1.2.3", "1.2.5"]
+    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.6.0"]
 }

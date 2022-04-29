@@ -71,7 +71,7 @@ inline fun <reified T : Any> unsupported(
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
     noinline unsupportedMessage: StructuredMessageBuilder
 ): Codec<T> = codec(
-    encode = { _ ->
+    encode = {
         logUnsupported("serialize", documentationSection, unsupportedMessage)
     },
     decode = {
@@ -222,7 +222,7 @@ suspend fun ReadContext.readList(): List<Any?> =
 
 internal
 inline fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
-    readCollectionInto({ size -> ArrayList<T>(size) }) {
+    readCollectionInto({ size -> ArrayList(size) }) {
         readElement()
     }
 
@@ -283,12 +283,14 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 
 
 internal
-fun Decoder.readClassPath(): ClassPath =
-    DefaultClassPath.of(
-        readCollectionInto({ size -> LinkedHashSet<File>(size) }) {
-            readFile()
-        }
-    )
+fun Decoder.readClassPath(): ClassPath {
+    val size = readSmallInt()
+    val builder = DefaultClassPath.builderWithExactSize(size)
+    for (i in 0 until size) {
+        builder.add(readFile())
+    }
+    return builder.build()
+}
 
 
 internal
@@ -408,7 +410,7 @@ fun Decoder.readDouble(): Double =
 
 
 inline
-fun <reified T : Any> ReadContext.readClassOf() =
+fun <reified T : Any> ReadContext.readClassOf(): Class<out T> =
     readClass().asSubclass(T::class.java)
 
 

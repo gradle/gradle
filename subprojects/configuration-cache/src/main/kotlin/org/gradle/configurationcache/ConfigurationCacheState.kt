@@ -26,6 +26,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
+import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
@@ -490,6 +491,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
             write(buildCache.remote)
+            write(buildCache.registrations)
         }
     }
 
@@ -498,6 +500,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
+            buildCache.setRegistrations(readNonNull<MutableSet<BuildCacheServiceRegistration>>())
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.model;
 
-public interface WrappedComponentResolveMetadata extends ComponentResolveMetadata {
-    // TODO: Remove when we get rid of client module resolve metadata
-    ComponentResolveMetadata unwrap();
+package org.gradle.api.internal.provider.sources;
+
+import java.util.Map;
+import java.util.stream.Stream;
+
+public abstract class EnvironmentVariablesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<EnvironmentVariablesPrefixedByValueSource.Parameters> {
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
+    }
+
+    @Override
+    protected Stream<Map.Entry<String, String>> itemsToFilter() {
+        return System.getenv().entrySet().stream();
+    }
 }

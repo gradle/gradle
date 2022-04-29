@@ -305,7 +305,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             .flatMap(e -> {
                 if (flattenType.isInstance(e)) {
                     CompositeExclude compositeExclude = (CompositeExclude) e;
-                    return compositeExclude.components();
+                    return compositeExclude.getComponents().stream();
                 }
                 return Stream.of(e);
             })

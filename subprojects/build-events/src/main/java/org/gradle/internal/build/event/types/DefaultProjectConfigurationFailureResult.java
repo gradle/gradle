@@ -16,21 +16,22 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 
 import java.util.List;
 
 public class DefaultProjectConfigurationFailureResult extends AbstractProjectConfigurationResult implements InternalFailureResult {
 
-    private final List<DefaultFailure> failures;
+    private final List<InternalFailure> failures;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<DefaultFailure> failures, List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
+    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
         super(startTime, endTime, "failed", pluginApplicationResults);
         this.failures = failures;
     }
 
     @Override
-    public List<DefaultFailure> getFailures() {
+    public List<InternalFailure> getFailures() {
         return failures;
     }
 
