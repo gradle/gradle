@@ -926,6 +926,11 @@
             <pgp value="f42b96b8648b5c4a1c43a62fbb2914c1fa0811c3"/>
          </artifact>
       </component>
+      <component group="net.i2p.crypto" name="eddsa" version="0.3.0">
+         <artifact name="eddsa-0.3.0.jar">
+            <pgp value="43c79b4bbd131821e17d2ca77b2f0491728b8e02"/>
+         </artifact>
+      </component>
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Artifact is not signed"/>
@@ -1054,6 +1059,11 @@
       <component group="org.apache.mina" name="mina-core" version="2.0.17">
          <artifact name="mina-core-2.0.17.jar">
             <pgp value="4d2db2916149baa9d0c92f3731474e5e7c6b7034"/>
+         </artifact>
+      </component>
+      <component group="org.apache.sshd" name="sshd-osgi" version="2.8.0">
+         <artifact name="sshd-osgi-2.8.0.jar">
+            <pgp value="dc98224c6421a7a5bb87f346ed2378cd09a08cde"/>
          </artifact>
       </component>
       <component group="org.apache.velocity" name="velocity" version="1.7">
@@ -1194,6 +1204,11 @@
       </component>
       <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.8.0.202006091008-r">
          <artifact name="org.eclipse.jgit-5.8.0.202006091008-r.jar">
+            <pgp value="7c669810892cbd3148fa92995b05ccde140c2876"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jgit" name="org.eclipse.jgit.ssh.apache" version="6.1.0.202203080745-r">
+         <artifact name="org.eclipse.jgit.ssh.apache-6.1.0.202203080745-r.jar">
             <pgp value="7c669810892cbd3148fa92995b05ccde140c2876"/>
          </artifact>
       </component>
