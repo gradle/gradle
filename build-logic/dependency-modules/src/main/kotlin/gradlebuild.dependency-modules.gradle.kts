@@ -70,8 +70,6 @@ dependencies {
             "org.gradle.profiler:gradle-profiler",
             setOf("gradle-tooling-api")
         )
-
-        all<JschReplacementVersionRule>()
     }
 }
 
