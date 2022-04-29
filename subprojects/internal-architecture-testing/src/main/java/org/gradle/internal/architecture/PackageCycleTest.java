@@ -16,7 +16,6 @@
 
 package org.gradle.internal.architecture;
 
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -26,6 +25,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.SliceAssignment;
 import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition;
+import com.tngtech.archunit.thirdparty.com.google.common.collect.ImmutableSet;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -36,24 +36,16 @@ import java.util.stream.Collectors;
     importOptions = ImportOption.DoNotIncludeJars.class
 )
 public class PackageCycleTest {
+    private static final PackageMatchers IGNORED_PACKAGES_FOR_CYCLES = PackageMatchers.of(ignoredPackagesForCycles());
+    private static final ImmutableSet<String> IGNORED_CLASSES_FOR_CYCLES = ImmutableSet.copyOf(ignoredClassesForCycles());
 
-    private static final DescribedPredicate<JavaClass> in_ignored_packages = new DescribedPredicate<JavaClass>("in ignored packages") {
-        private final PackageMatchers excludedPackages = PackageMatchers.of(ignoredPackagesForCycles());
+    private static boolean isInIgnoredPackage(JavaClass javaClass) {
+        return IGNORED_PACKAGES_FOR_CYCLES.apply(javaClass.getPackageName());
+    }
 
-        @Override
-        public boolean apply(JavaClass javaClass) {
-            return excludedPackages.apply(javaClass.getPackageName());
-        }
-    };
-
-    private static final DescribedPredicate<JavaClass> ignored_class = new DescribedPredicate<JavaClass>("ignored class") {
-        private final Set<String> ignoredClassPrefixes = ignoredClassesForCycles();
-
-        @Override
-        public boolean apply(JavaClass javaClass) {
-            return javaClass.isAnnotation() || ignoredClassPrefixes.stream().anyMatch(prefix -> javaClass.getFullName().startsWith(prefix));
-        }
-    };
+    private static boolean isIgnoredClass(JavaClass javaClass) {
+        return javaClass.isAnnotation() || IGNORED_CLASSES_FOR_CYCLES.stream().anyMatch(prefix -> javaClass.getFullName().startsWith(prefix));
+    }
 
     private static Set<String> ignoredPackagesForCycles() {
         String patterns = System.getProperty("package.cycle.exclude.patterns");
@@ -80,7 +72,7 @@ public class PackageCycleTest {
             .collect(Collectors.toSet());
     }
 
-    private static final SliceAssignment packagesWithoutIgnored = new SliceAssignment() {
+    private static final SliceAssignment GRADLE_SLICE_ASSIGNMENT = new SliceAssignment() {
         @Override
         public String getDescription() {
             return "slices matching 'org.gradle.(**)";
@@ -88,7 +80,7 @@ public class PackageCycleTest {
 
         @Override
         public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
-            if (in_ignored_packages.apply(javaClass) || ignored_class.apply(javaClass)) {
+            if (isInIgnoredPackage(javaClass) || isIgnoredClass(javaClass)) {
                 return SliceIdentifier.ignore();
             }
             return SliceIdentifier.of(javaClass.getPackageName());
@@ -97,7 +89,7 @@ public class PackageCycleTest {
 
     @ArchTest
     public static final ArchRule there_are_no_package_cycles =
-        SlicesRuleDefinition.slices().assignedFrom(packagesWithoutIgnored)
+        SlicesRuleDefinition.slices().assignedFrom(GRADLE_SLICE_ASSIGNMENT)
             .should()
             .beFreeOfCycles();
 }
