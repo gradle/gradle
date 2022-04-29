@@ -18,6 +18,23 @@ plugins {
     `java-library`
     `jvm-test-suite`
     id("gradlebuild.dependency-modules")
+    id("gradlebuild.code-quality")
+}
+
+val sharedArchTestClasses by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
+    }
+}
+notForAccessorGeneration {
+    dependencies {
+        sharedArchTestClasses(project(":internal-architecture-testing"))
+    }
 }
 
 testing {
@@ -26,27 +43,26 @@ testing {
             useJUnitJupiter()
             dependencies {
                 implementation(project)
-                if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test") {
+                notForAccessorGeneration {
                     implementation(project.dependencies.platform(project(":distributions-dependencies")))
                     implementation(project(":internal-architecture-testing"))
                 }
             }
             targets {
                 all {
-                    val archTestClasses = configurations["archTestCompileClasspath"].incoming.artifactView {
-                        withVariantReselection()
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
-                            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-                        }
-                    }
                     testTask.configure {
-                        testClassesDirs += archTestClasses.files.filter { it.isDirectory }
+                        testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
+                        classpath += sourceSets.main.get().output.classesDirs
+                        systemProperty("package.cycle.exclude.patterns", classycle.excludePatterns.get().joinToString(","))
                     }
                 }
             }
         }
+    }
+}
+
+fun notForAccessorGeneration(runnable: Runnable) {
+    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test") {
+        runnable.run()
     }
 }
