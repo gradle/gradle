@@ -690,14 +690,14 @@ The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{java
 [[sec:task_input_using_dependency_resolution_results]]
 ===== Using dependency resolution results
 
+TODO INTRO
 
-This includes the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult] type for artifact metadata and the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] type for dependency graphs.
-Note that they are only supported wrapped in a `Provider`.
+TODO SAMPLE PROJECT
 
 .Multi-project Java application with dependencies
 ====
-include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/groovy",files="settings.gradle[tag=includes];build.gradle[];utilities/build.gradle[];list/build.gradle[]"]
-include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="settings.gradle.kts[tag=includes];build.gradle.kts[];utilities/build.gradle.kts[];list/build.gradle.kts[]"]
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/groovy",files="settings.gradle[tag=includes];list/build.gradle[];utilities/build.gradle[];build.gradle[]"]
+include::sample[dir="samples/writing-tasks/tasks-with-dependency-resolution-result-inputs/kotlin",files="settings.gradle.kts[tag=includes];list/build.gradle.kts[];utilities/build.gradle.kts[];build.gradle.kts[]"]
 ====
 
 .Resolved artifacts metadata
