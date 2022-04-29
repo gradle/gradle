@@ -151,8 +151,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         """
         expect:
         2.times {
-            blockingServer.expect(":aPing")
-            blockingServer.expect(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -331,8 +330,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -350,8 +348,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":a:aPing")
-            blockingServer.expectConcurrent(":b:bPing")
+            blockingServer.expectConcurrent(1, ":a:aPing", ":b:bPing")
             run ":a:aPing", ":b:bPing"
         }
     }

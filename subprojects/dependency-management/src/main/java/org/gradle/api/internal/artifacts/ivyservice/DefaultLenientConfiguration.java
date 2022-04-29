@@ -60,6 +60,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -85,12 +86,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final AttributeContainerInternal implicitAttributes;
     private final BuildOperationExecutor buildOperationExecutor;
     private final DependencyVerificationOverride dependencyVerificationOverride;
+    private final WorkerLeaseService workerLeaseService;
 
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
     private DependencyVerificationException dependencyVerificationException;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService) {
         this.configuration = configuration;
         this.implicitAttributes = configuration.getAttributes().asImmutable();
         this.unresolvedDependencies = unresolvedDependencies;
@@ -100,6 +102,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.artifactTransforms = artifactTransforms;
         this.buildOperationExecutor = buildOperationExecutor;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
+        this.workerLeaseService = workerLeaseService;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
@@ -141,7 +144,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                         return;
                     }
                 }
-                DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, DefaultLenientConfiguration.this.fileDependencyResults, visitor);
+                // This may be called from an unmanaged thread, so temporarily enlist the current thread as a worker if it is not already so that it can visit the results
+                // It would be better to instead to memoize the results on the first visit so that this is not required
+                workerLeaseService.runAsUnmanagedWorkerThread(() -> visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor));
             }
         };
     }
