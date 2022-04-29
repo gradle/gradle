@@ -1,25 +1,62 @@
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how to create a plugin with tasks that have dependency resolution results as inputs.
-The plugin is packaged via an included build.
+The plugin is packaged via an included build and is demonstrated on a multi-project build for a Java application.
 
 ====
-include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[tag=includes];list/build.gradle[];utilities/build.gradle[];build.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[tag=includes];list/build.gradle.kts[];utilities/build.gradle.kts[];build.gradle.kts[]"]
 ====
 
-To execute the sample task:
+To execute the sample tasks:
 
 ====
 [.testable-sample,dir="groovy"]
 =====
 [.sample-command]
 ----
-$ ./gradlew projectInfo --format json
-{
-    "projectName": "task-with-arguments"
-    "version": "1.0.2"
-}
+> ./gradlew -q listResolvedArtifactIdentifiers
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactIdentifiers.out[]
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+=====
+=====
+[.sample-command]
+----
+> ./gradlew -q listResolvedArtifactFiles
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactFiles.out[]
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+=====
+=====
+[.sample-command]
+----
+> ./gradlew -q listResolvedArtifactFilesByIdentifiers
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/listResolvedArtifactFilesByIdentifiers.out[]
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+=====
+=====
+[.sample-command]
+----
+> ./gradlew -q graphResolvedComponentIdentifiers
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedComponentIdentifiers.out[]
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+=====
+=====
+[.sample-command]
+----
+> ./gradlew -q graphResolvedArtifactFiles
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/tests/graphResolvedArtifactFiles.out[]
 
 BUILD SUCCESSFUL in 1s
 1 actionable task: 1 executed
