@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
@@ -32,6 +32,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -46,12 +47,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
@@ -79,13 +80,13 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        Map<Severity, List<String>> problems = validationContext.getProblems()
+        Map<Severity, List<TypeValidationProblem>> problems = validationContext.getProblems()
             .stream()
             .collect(
                 groupingBy(BaseProblem::getSeverity,
-                mapping(ValidateStep::renderedMessage, toList())));
-        ImmutableCollection<String> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableCollection<String> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
+                mapping(Function.identity(), toList())));
+        ImmutableCollection<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableCollection<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -93,8 +94,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
         if (!errors.isEmpty()) {
             int maxErrCount = Integer.getInteger(MAX_NB_OF_ERRORS, 5);
-            ImmutableSortedSet<String> uniqueSortedErrors = ImmutableSortedSet.copyOf(errors);
-            throw WorkValidationException.forProblems(uniqueSortedErrors)
+            ImmutableSet<String> uniqueErrors = errors.stream().map(ValidateStep::renderedErrorMessage).collect(ImmutableSet.toImmutableSet());
+            throw WorkValidationException.forProblems(uniqueErrors)
                 .limitTo(maxErrCount)
                 .withSummary(helper ->
                     String.format("%s found with the configuration of %s (%s).",
@@ -226,10 +227,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .documentedAt("validation_problems", "implementation_unknown");
     }
 
-    private static String renderedMessage(org.gradle.internal.reflect.validation.TypeValidationProblem p) {
-        if (p.getSeverity().isWarning()) {
-            return convertToSingleLine(renderMinimalInformationAbout(p, true, false));
-        }
+    private static String renderedErrorMessage(TypeValidationProblem p) {
         return renderMinimalInformationAbout(p);
     }
 
@@ -244,6 +242,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<String> warnings);
+        void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings);
     }
 }
