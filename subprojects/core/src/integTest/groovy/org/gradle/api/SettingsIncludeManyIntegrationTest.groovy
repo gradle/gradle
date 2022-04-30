@@ -40,7 +40,8 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        failureHasCause("bootstrap method initialization exception")
+        // In Java 8 "call site" is used, in Java 11 "bootstrap method"
+        failureHasCause(~/(call site|bootstrap method) initialization exception/)
 
         where:
         includeFunction << ["include", "includeFlat"]
@@ -58,7 +59,8 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        failureHasCause("java.lang.IllegalArgumentException: bad parameter count 302")
+        // Java 8 does not print the exception name
+        failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
 
         where:
         includeFunction << ["include", "includeFlat"]
