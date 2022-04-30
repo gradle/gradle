@@ -26,6 +26,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 
 @Ignore("Fix invokedynamic handling")
 class ConfigurationCacheExternalProcessInInitScriptIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
+    @Ignore("init scripts are evaluated too early for feature flag to take effect")
     def "using #snippetsFactory.summary in initialization script #file is a problem"() {
         given:
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)

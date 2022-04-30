@@ -829,7 +829,7 @@ If necessary, only configuration-cache-compatible APIs should be used instead of
 `Project.exec`, `Project.javaexec`, and their likes in settings and init scripts.
 For simpler cases, when grabbing the output of the process is enough,
 link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec-org.gradle.api.Action-[providers.exec()] and
-link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec-org.gradle.api.Action-[providers.javaExec()] can be used:
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec-org.gradle.api.Action-[providers.javaexec()] can be used:
 
 ====
 include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]

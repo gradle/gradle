@@ -35,23 +35,23 @@ import java.util.stream.Collectors;
 
 public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataAdapter<DirectDependencyMetadata> implements DirectDependencyMetadata {
 
-    public DirectDependencyMetadataAdapter(ImmutableAttributesFactory attributesFactory, List<ModuleDependencyMetadata> container, int originalIndex) {
-        super(attributesFactory, container, originalIndex);
+    public DirectDependencyMetadataAdapter(ImmutableAttributesFactory attributesFactory, ModuleDependencyMetadata metadata) {
+        super(attributesFactory, metadata);
     }
 
     @Override
     public void endorseStrictVersions() {
-        updateMetadata(getOriginalMetadata().withEndorseStrictVersions(true));
+        updateMetadata(getMetadata().withEndorseStrictVersions(true));
     }
 
     @Override
     public void doNotEndorseStrictVersions() {
-        updateMetadata(getOriginalMetadata().withEndorseStrictVersions(false));
+        updateMetadata(getMetadata().withEndorseStrictVersions(false));
     }
 
     @Override
     public boolean isEndorsingStrictVersions() {
-        return getOriginalMetadata().isEndorsingStrictVersions();
+        return getMetadata().isEndorsingStrictVersions();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
     }
 
     private List<IvyArtifactName> getIvyArtifacts() {
-        ModuleDependencyMetadata originalMetadata = getOriginalMetadata();
+        ModuleDependencyMetadata originalMetadata = getMetadata();
         if (originalMetadata instanceof ConfigurationBoundExternalDependencyMetadata) {
             ConfigurationBoundExternalDependencyMetadata externalMetadata = (ConfigurationBoundExternalDependencyMetadata) originalMetadata;
             ExternalDependencyDescriptor descriptor = externalMetadata.getDependencyDescriptor();
