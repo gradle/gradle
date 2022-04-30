@@ -57,9 +57,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     def "compileGoodCode"() {
         if (module == "groovy-all") {
-            // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
-            // See https://issues.apache.org/jira/browse/GROOVY-10543
-            Assume.assumeTrue(versionNumber.major < 4)
             // No groovy-all for indy variant
             Assume.assumeTrue(versionClassifier != "indy")
         }
