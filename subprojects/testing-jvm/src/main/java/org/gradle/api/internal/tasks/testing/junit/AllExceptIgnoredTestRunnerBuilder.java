@@ -29,7 +29,7 @@ import java.lang.reflect.Constructor;
 public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBuilder {
 
     public AllExceptIgnoredTestRunnerBuilder() {
-        super(true);
+        super();
     }
 
     @Override

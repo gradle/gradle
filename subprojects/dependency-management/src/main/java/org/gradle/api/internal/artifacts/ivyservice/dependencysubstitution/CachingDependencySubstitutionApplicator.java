@@ -39,11 +39,6 @@ public class CachingDependencySubstitutionApplicator implements DependencySubsti
     @Override
     public SubstitutionResult apply(DependencyMetadata dependency) {
         ComponentSelector selector = dependency.getSelector();
-        SubstitutionResult application = cache.get(selector);
-        if (application == null) {
-            application = delegate.apply(dependency);
-            cache.put(selector, application);
-        }
-        return application;
+        return cache.computeIfAbsent(selector, s -> delegate.apply(dependency));
     }
 }

@@ -42,6 +42,7 @@ import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioP
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -177,7 +178,7 @@ public class VisualStudioPlugin extends IdePlugin {
     }
 
     private void configureCleanTask() {
-        final TaskProvider<Delete> cleanTask = (TaskProvider<Delete>) getCleanTask();
+        final TaskProvider<Delete> cleanTask = Cast.uncheckedCast(getCleanTask());
 
         cleanTask.configure(it -> {
             it.delete(project.getTasks().withType(GenerateSolutionFileTask.class));

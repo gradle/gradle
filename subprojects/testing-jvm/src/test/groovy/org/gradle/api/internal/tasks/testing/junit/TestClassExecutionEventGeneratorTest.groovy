@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit
 
+
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
 import spock.lang.Specification
@@ -58,7 +60,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
     }
 
     def "synthesises a broken test when test class fails and no tests have been started"() {
-        def failure = new RuntimeException()
+        def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
 
         given:
         idGenerator.generateId() >>> [1, 2]
@@ -78,7 +80,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
     }
 
     def "fires event on test class failure when some tests have been started"() {
-        def failure = new RuntimeException()
+        def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
         TestDescriptorInternal test1 = Mock()
         TestDescriptorInternal test2 = Mock()
 
@@ -105,7 +107,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
     }
 
     def "synthesises a broken test when test class fails and some tests have been completed"() {
-        def failure = new RuntimeException()
+        def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
         TestDescriptorInternal test = Mock()
 
         given:

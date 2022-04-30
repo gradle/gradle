@@ -20,7 +20,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -81,7 +80,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
-    private final List<Node> executionQueue = new LinkedList<>();
+    private final ExecutionQueue executionQueue = new ExecutionQueue();
     private final List<Throwable> failures = new ArrayList<>();
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
@@ -97,7 +96,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private boolean continueOnFailure;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
-    private final List<Node> priorityNodes = new LinkedList<>();
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
@@ -322,9 +320,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
         ordinalNodeAccess.createInterNodeRelationships();
         nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
-        executionQueue.clear();
         dependencyResolver.clear();
-        executionQueue.addAll(nodeMapping);
+        executionQueue.setNodes(nodeMapping);
 
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
     }
@@ -368,12 +365,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     @Override
     public WorkSource<Node> finalizePlan() {
-        for (Node node : executionQueue) {
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
             node.updateAllDependenciesComplete();
+            maybeNodeReady(node);
         }
-
-        maybeNodesSelectable = true;
-        maybeNodesReady = true;
 
         // For now
         return this;
@@ -589,7 +586,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         boolean cannotMakeProgress = state == State.NoWorkReadyToStart && runningNodes.isEmpty();
         if (cannotMakeProgress) {
             List<String> nodes = new ArrayList<>(executionQueue.size());
-            for (Node node : executionQueue) {
+            executionQueue.restart();
+            while (executionQueue.hasNext()) {
+                Node node = executionQueue.next();
                 if (!node.allDependenciesComplete()) {
                     nodes.add(node + " (dependencies not complete)");
                 } else {
@@ -613,11 +612,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
 
         List<ResourceLock> resources = new ArrayList<>();
-        Iterator<Node> iterator = Iterators.concat(priorityNodes.iterator(), executionQueue.iterator());
         boolean foundReadyNode = false;
-        boolean skippedNode = false;
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
             if (node.allDependenciesComplete()) {
                 if (!node.allDependenciesSuccessful()) {
                     // Cannot execute this node due to failed dependencies - skip it
@@ -626,8 +624,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     } else {
                         node.markFailedDueToDependencies(this::recordNodeCompleted);
                     }
-                    iterator.remove();
-                    skippedNode = true;
+                    executionQueue.remove();
+                    // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
+                    executionQueue.restart();
                     continue;
                 }
 
@@ -653,14 +652,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 }
 
                 if (attemptToStart(node, resources)) {
-                    iterator.remove();
+                    executionQueue.remove();
                     return Selection.of(node);
                 }
-            } else if (node.isComplete()) {
-                // node is complete
-                // - it is a priority node that has already executed
-                // - it is a finalizer for nodes that are all complete but did not execute
-                iterator.remove();
             }
             // Else, node is not yet complete
             // - its dependencies are not yet complete
@@ -673,15 +667,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         maybeNodesSelectable = false;
         if (executionQueue.isEmpty()) {
             return Selection.noMoreWorkToStart();
-        } else if (skippedNode) {
-            // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
-            maybeNodesSelectable = true;
-            return selectNext();
         } else {
-            // Some tasks are yet to start
+            // Some nodes are yet to start
             // - they are ready to execute but cannot acquire the resources they need to start
             // - they are waiting for their dependencies to complete
             // - they are waiting for some external event
+            // - they are a finalizer for nodes that are not yet complete
             return Selection.noWorkReadyToStart();
         }
     }
@@ -934,7 +925,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             maybeNodesReady = true;
             maybeNodesSelectable = true;
             if (node.isPriority()) {
-                priorityNodes.add(node);
+                executionQueue.priorityNode(node);
             }
         }
     }
@@ -1007,15 +998,14 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private boolean abortExecution(boolean abortAll) {
         boolean aborted = false;
-        Iterator<Node> iterator = executionQueue.iterator();
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
-
-            // Allow currently executing and enforced tasks to complete, but skip everything else.
-            // If abortAll is set, also stop everything.
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
             if (abortAll || node.isCanCancel()) {
+                // Allow currently executing and enforced tasks to complete, but skip everything else.
+                // If abortAll is set, also stop everything.
                 node.cancelExecution(this::recordNodeCompleted);
-                iterator.remove();
+                executionQueue.remove();
                 aborted = true;
             }
         }
@@ -1162,6 +1152,55 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
         public boolean isDestroyer() {
             return isDestroyer;
+        }
+    }
+
+    private static class ExecutionQueue {
+        private final List<Node> nodes = new ArrayList<>();
+        private int pos = 0;
+
+        public void setNodes(Collection<Node> nodes) {
+            this.nodes.clear();
+            this.nodes.addAll(nodes);
+            pos = 0;
+        }
+
+        public void clear() {
+            nodes.clear();
+        }
+
+        public boolean isEmpty() {
+            return nodes.isEmpty();
+        }
+
+        public int size() {
+            return nodes.size();
+        }
+
+        public void restart() {
+            pos = 0;
+        }
+
+        public boolean hasNext() {
+            return pos < nodes.size();
+        }
+
+        public Node next() {
+            return nodes.get(pos++);
+        }
+
+        public void remove() {
+            pos--;
+            nodes.remove(pos);
+        }
+
+        public void priorityNode(Node node) {
+            int previousPos = nodes.indexOf(node);
+            nodes.remove(previousPos);
+            nodes.add(0, node);
+            if (previousPos >= pos) {
+                pos++;
+            }
         }
     }
 }

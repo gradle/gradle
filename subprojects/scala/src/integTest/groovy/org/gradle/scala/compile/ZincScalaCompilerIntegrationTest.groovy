@@ -77,6 +77,8 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         def person = scalaClassFile("Person.class")
         def house = scalaClassFile("House.class")
         def other = scalaClassFile("Other.class")
+        // We need an additional file since if >50% of files is changed everything gets recompiled
+        def other2 = scalaClassFile("Other2.class")
         run("compileScala")
 
         when:
@@ -88,7 +90,9 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         then:
         classHash(person) != old(classHash(person))
         classHash(house) != old(classHash(house))
+        classHash(other) == old(classHash(other))
         other.lastModified() == old(other.lastModified())
+        other2.lastModified() == old(other2.lastModified())
     }
 
     def compilesJavaCodeIncrementally() {
