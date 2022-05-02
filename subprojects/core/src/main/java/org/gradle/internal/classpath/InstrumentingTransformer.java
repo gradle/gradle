@@ -23,6 +23,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.upgrade.ApiUpgradeHandler;
 import org.gradle.internal.upgrade.ApiUpgrader;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -69,6 +70,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type STRING_TYPE = getType(String.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
+    private static final Type API_UPGRADE_HANDLER_TYPE = getType(ApiUpgradeHandler.class);
     private static final Type OBJECT_TYPE = getType(Object.class);
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
     private static final Type LONG_TYPE = getType(Long.class);
@@ -195,7 +197,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgrader));
+        // Only upgrade classes in JARs
+        boolean upgradeApi = entry instanceof ClasspathWalker.ZipClasspathEntry;
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), upgradeApi ? apiUpgrader : ApiUpgrader.NO_UPGRADES));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
@@ -291,6 +295,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
                 _DUP();
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                if (apiUpgrader.shouldDecorateCallsiteArray()) {
+                    _DUP();
+                    _INVOKESTATIC(API_UPGRADE_HANDLER_TYPE, "decorateCallSiteArray", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                }
                 _ARETURN();
                 visitMaxs(2, 0);
                 visitEnd();

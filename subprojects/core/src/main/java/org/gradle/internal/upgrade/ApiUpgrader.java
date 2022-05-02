@@ -19,9 +19,12 @@ package org.gradle.internal.upgrade;
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ApiUpgrader {
+    public static final ApiUpgrader NO_UPGRADES = new ApiUpgrader(Collections.emptyList());
+
     private final List<Replacement> replacements;
 
     public ApiUpgrader(List<Replacement> replacements) {
@@ -36,6 +39,10 @@ public class ApiUpgrader {
             }
         }
         return false;
+    }
+
+    public boolean shouldDecorateCallsiteArray() {
+        return !replacements.isEmpty();
     }
 
     public void applyConfigurationTo(Hasher hasher) {

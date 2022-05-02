@@ -23,7 +23,6 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.upgrade.ApiUpgradeHandler;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -132,7 +131,6 @@ public class Instrumented {
                     break;
             }
         }
-        ApiUpgradeHandler.decorateCallSiteArray(array);
     }
 
     // Called by generated code.
