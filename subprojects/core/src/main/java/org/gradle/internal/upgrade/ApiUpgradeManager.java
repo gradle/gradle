@@ -48,10 +48,10 @@ public class ApiUpgradeManager {
         <T> void replaceWith(ReplacementLogic<T> method);
     }
 
-    public MethodReplacer matchMethod(Type type, Type returnType, String methodName, Type... argumentTypes) {
+    public <T> MethodReplacer matchMethod(Class<T> type, Type returnType, String methodName, Type... argumentTypes) {
         return new MethodReplacer() {
             @Override
-            public <T> void replaceWith(ReplacementLogic<T> replacement) {
+            public <R> void replaceWith(ReplacementLogic<R> replacement) {
                 replacements.add(new MethodReplacement<>(type, returnType, methodName, argumentTypes, replacement));
             }
         };
@@ -82,7 +82,7 @@ public class ApiUpgradeManager {
     @SuppressWarnings("unchecked")
     private <T, P> void addGetterReplacement(Class<T> type, Class<P> propertyType, String getterName, Function<? super T, ? extends P> getterReplacement) {
         replacements.add(new MethodReplacement<P>(
-            Type.getType(type),
+            type,
             Type.getType(propertyType),
             getterName,
             new Type[]{},
@@ -92,7 +92,7 @@ public class ApiUpgradeManager {
     @SuppressWarnings("unchecked")
     private <T, P> void addSetterReplacement(Class<T> type, Class<P> propertyType, String setterName, BiConsumer<? super T, ? super P> setterReplacement) {
         replacements.add(new MethodReplacement<Void>(
-            Type.getType(type),
+            type,
             Type.VOID_TYPE,
             setterName,
             new Type[]{Type.getType(propertyType)},

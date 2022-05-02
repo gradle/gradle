@@ -16,6 +16,7 @@
 
 package org.gradle.internal.upgrade;
 
+import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.gradle.internal.hash.Hasher;
@@ -54,14 +55,16 @@ class MethodReplacement<T> implements Replacement {
         }
     }
 
+    private final Class<?> classType;
     private final Type type;
     private final String methodName;
     private final Type[] argumentTypes;
     private final String methodDescriptor;
     private final ReplacementLogic<T> replacement;
 
-    public MethodReplacement(Type type, Type returnType, String methodName, Type[] argumentTypes, ReplacementLogic<T> replacement) {
-        this.type = type;
+    public MethodReplacement(Class<?> type, Type returnType, String methodName, Type[] argumentTypes, ReplacementLogic<T> replacement) {
+        this.classType = type;
+        this.type = Type.getType(type);
         this.methodName = methodName;
         this.argumentTypes = argumentTypes;
         this.methodDescriptor = Type.getMethodDescriptor(returnType, argumentTypes);
@@ -145,8 +148,21 @@ class MethodReplacement<T> implements Replacement {
         if (callSite.getName().equals(methodName)) {
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
-                public Object call(Object receiver, Object[] args) {
-                    return replacement.execute(receiver, args);
+                public Object call(Object receiver, Object[] args) throws Throwable {
+                    if (classType.isInstance(receiver)) {
+                        return replacement.execute(receiver, args);
+                    } else {
+                        return super.call(receiver, args);
+                    }
+                }
+                @Override
+                public Object callCurrent(GroovyObject receiver, Object[] args) throws Throwable {
+                    Object typeToCheck = Replacement.inferReceiverFromCallSiteReceiver(receiver);
+                    if (classType.isInstance(typeToCheck)) {
+                        return replacement.execute(typeToCheck, args);
+                    } else {
+                        return super.callCurrent(receiver, args);
+                    }
                 }
             });
         } else {
