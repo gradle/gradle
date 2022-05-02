@@ -32,6 +32,7 @@ We would like to thank the following community members for their contributions t
 [Matthew Haughton](https://github.com/3flex),
 [Filip Daca](https://github.com/filip-daca),
 [Simão Gomes Viana](https://github.com/xdevs23),
+[Vaidotas Valuckas](https://github.com/rieske),
 [Edgars Jasmans](https://github.com/yasmans)
 
 ## Upgrade instructions
@@ -173,7 +174,7 @@ eclipse {
 }
 ```
 
-Note, that these changes improve the [Buildship](https://eclipse.org/buildship) plugin's project synchronization as well.
+Note, that these changes affect the [Buildship](https://eclipse.org/buildship) plugin's project synchronization as well.
 
 See [the documentation](userguide/eclipse_plugin.html#sec:test-sources) for more details.
 
