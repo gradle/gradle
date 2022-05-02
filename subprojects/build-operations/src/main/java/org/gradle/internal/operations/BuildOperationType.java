@@ -55,7 +55,7 @@ package org.gradle.internal.operations;
  *
  * The lifecycle of details and result objects are effectively undetermined.
  * The build scan plugin will retain the objects for a short time after the operation has
- * completed, in order to “process” them on a separate thread.
+ * completed, in order to "process" them on a separate thread.
  * It can be assumed that this processing happens relatively quickly,
  * after which the objects are no longer retained.
  *
