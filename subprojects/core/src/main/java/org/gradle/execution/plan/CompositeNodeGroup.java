@@ -39,6 +39,11 @@ public class CompositeNodeGroup extends HasFinalizers {
         return ordinalGroup.asOrdinal();
     }
 
+    @Override
+    public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+        return new CompositeNodeGroup(newOrdinal, finalizerGroups);
+    }
+
     public NodeGroup getOrdinalGroup() {
         return ordinalGroup;
     }

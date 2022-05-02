@@ -19,9 +19,14 @@ package org.gradle.execution.plan;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Represents some source of work items of type {@link T}. Implementations must be thread safe.
+ */
+@ThreadSafe
 public interface WorkSource<T> {
     enum State {
         /**
