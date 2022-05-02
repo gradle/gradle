@@ -56,13 +56,18 @@ public class ProjectArtifactSetResolver {
     /**
      * Creates an {@link ArtifactSet} that represents the available artifacts for the given set of project variants.
      */
-    public ArtifactSet resolveArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, Set<? extends VariantResolveMetadata> fallbackVariants, AttributesSchemaInternal schema, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes) {
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builderWithExpectedSize(variants.size());
         for (VariantResolveMetadata variant : variants) {
             ResolvedVariant resolvedVariant = mapVariant(ownerId, moduleSources, exclusions, artifactTypeRegistry, variant);
             result.add(resolvedVariant);
         }
-        return DefaultArtifactSet.createFromVariants(componentIdentifier, result.build(), schema, selectionAttributes);
+        ImmutableSet.Builder<ResolvedVariant> fallbackResult = ImmutableSet.builder();
+        for (VariantResolveMetadata variant : fallbackVariants) {
+            ResolvedVariant resolvedFallbackVariant = mapVariant(ownerId, moduleSources, exclusions, artifactTypeRegistry, variant);
+            fallbackResult.add(resolvedFallbackVariant);
+        }
+        return DefaultArtifactSet.createFromVariants(componentIdentifier, result.build(), fallbackResult.build(), schema, selectionAttributes);
     }
 
     private ResolvedVariant mapVariant(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactTypeRegistry artifactTypeRegistry, VariantResolveMetadata variant) {
