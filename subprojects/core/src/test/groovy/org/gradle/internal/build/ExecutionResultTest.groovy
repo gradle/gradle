@@ -129,6 +129,7 @@ class ExecutionResultTest extends Specification {
         def otherSuccessful = ExecutionResult.succeeded()
         def failed = ExecutionResult.failed(failure1)
         def otherFailed = ExecutionResult.failed(failure2)
+        def allFailed = ExecutionResult.maybeFailed([failure1, failure2])
 
         expect:
         def result = successful.withFailures(otherSuccessful)
@@ -146,6 +147,10 @@ class ExecutionResultTest extends Specification {
         def result4 = failed.withFailures(otherSuccessful)
         result4.failures == [failure1]
         result4.failure == failure1
+
+        def result5 = failed.withFailures(allFailed)
+        result5.failures == [failure1, failure2]
+        result5.failure instanceof MultipleBuildFailures
     }
 
 }

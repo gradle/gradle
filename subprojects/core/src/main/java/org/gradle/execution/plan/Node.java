@@ -78,7 +78,11 @@ public abstract class Node implements Comparable<Node> {
     }
 
     String healthDiagnostics() {
-        return this + " (state=" + state + ", " + dependenciesState + ", group=" + group + ", dependencies=" + dependencySuccessors + ")";
+        if (isComplete()) {
+            return this + " (state=" + state + ")";
+        } else {
+            return this + " (state=" + state + ", dependencies=" + dependenciesState + ", group=" + group + ", successors=" + getAllSuccessors() + ")";
+        }
     }
 
     public NodeGroup getGroup() {

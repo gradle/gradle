@@ -102,7 +102,6 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
-            buildScopeServices,
             buildToolingModelControllerFactory,
             stateTransitionControllerFactory
         );
