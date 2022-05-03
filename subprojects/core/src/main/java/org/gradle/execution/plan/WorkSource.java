@@ -17,10 +17,12 @@
 package org.gradle.execution.plan;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -95,12 +97,20 @@ public interface WorkSource<T> {
      * Some basic diagnostic information about the state of the work.
      */
     class Diagnostics {
+        private final String displayName;
         private final boolean canMakeProgress;
         private final List<String> queuedItems;
+        private final List<String> otherItems;
 
-        public Diagnostics(boolean canMakeProgress, List<String> queuedItems) {
+        public Diagnostics(String displayName, boolean canMakeProgress, List<String> queuedItems, List<String> otherItems) {
+            this.displayName = displayName;
             this.canMakeProgress = canMakeProgress;
             this.queuedItems = queuedItems;
+            this.otherItems = otherItems;
+        }
+
+        public Diagnostics(String displayName) {
+            this(displayName, true, Collections.emptyList(), Collections.emptyList());
         }
 
         /**
@@ -111,11 +121,23 @@ public interface WorkSource<T> {
             return canMakeProgress;
         }
 
-        /**
-         * A description of each queued item. Is empty when {@link #canMakeProgress()} returns true (as this information is not required in that case).
-         */
-        public List<String> getQueuedItems() {
-            return queuedItems;
+        public void describeTo(TreeFormatter formatter) {
+            if (!queuedItems.isEmpty()) {
+                formatter.node("Queued nodes for " + displayName);
+                formatter.startChildren();
+                for (String item : queuedItems) {
+                    formatter.node(item);
+                }
+                formatter.endChildren();
+            }
+            if (!otherItems.isEmpty()) {
+                formatter.node("Non-queued nodes for " + displayName);
+                formatter.startChildren();
+                for (String item : otherItems) {
+                    formatter.node(item);
+                }
+                formatter.endChildren();
+            }
         }
     }
 

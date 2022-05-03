@@ -26,7 +26,6 @@ import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -45,7 +44,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def buildModelController = Mock(BuildModelController)
     def exceptionAnalyser = Mock(ExceptionAnalyser)
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
-    def buildServices = Mock(BuildScopeServices.class)
     def executionPlan = Mock(ExecutionPlan)
     def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -65,7 +63,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     DefaultBuildLifecycleController controller() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildFinishedListener, workPreparer, workExecutor, buildServices, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
+            buildFinishedListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
