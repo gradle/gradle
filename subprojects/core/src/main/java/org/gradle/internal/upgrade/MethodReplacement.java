@@ -25,7 +25,11 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
@@ -56,15 +60,17 @@ class MethodReplacement<T> implements Replacement {
     }
 
     private final Class<?> classType;
-    private final Type type;
+    private final Set<String> types;
     private final String methodName;
     private final Type[] argumentTypes;
     private final String methodDescriptor;
     private final ReplacementLogic<T> replacement;
 
-    public MethodReplacement(Class<?> type, Type returnType, String methodName, Type[] argumentTypes, ReplacementLogic<T> replacement) {
+    public MethodReplacement(Class<?> type, Collection<String> knownSubtypes, Type returnType, String methodName, Type[] argumentTypes, ReplacementLogic<T> replacement) {
         this.classType = type;
-        this.type = Type.getType(type);
+        this.types = Stream.concat(Stream.of(type.getName()), knownSubtypes.stream())
+            .map(className -> className.replace('.', '/'))
+            .collect(Collectors.toSet());
         this.methodName = methodName;
         this.argumentTypes = argumentTypes;
         this.methodDescriptor = Type.getMethodDescriptor(returnType, argumentTypes);
@@ -72,14 +78,16 @@ class MethodReplacement<T> implements Replacement {
     }
 
     public T invokeReplacement(Object receiver, Object[] arguments) {
-        LOGGER.info("Calling replacement for {}.{}({})", type, methodName, methodDescriptor);
+        LOGGER.info("Calling replacement for {}.{}({})", types, methodName, methodDescriptor);
         return replacement.execute(receiver, arguments);
     }
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(MethodReplacement.class.getName());
-        hasher.putString(type.getDescriptor());
+        for (String type : types) {
+            hasher.putString(type);
+        }
         hasher.putString(methodName);
         hasher.putString(methodDescriptor);
         // TODO: Can we capture the replacements as well?
@@ -88,7 +96,7 @@ class MethodReplacement<T> implements Replacement {
     @Override
     public boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv) {
         if (opcode == INVOKEVIRTUAL
-            && owner.equals(type.getInternalName())
+            && types.contains(owner)
             && name.equals(methodName)
             && desc.equals(methodDescriptor)) {
 
