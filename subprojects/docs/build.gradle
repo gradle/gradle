@@ -486,6 +486,13 @@ samples {
             category = "Writing Custom Tasks"
         }
 
+        tasksWithDependencyResolutionResultInputs {
+            sampleDirectory = samplesRoot.dir("writing-tasks/tasks-with-dependency-resolution-result-inputs")
+            displayName = "Implementing tasks with dependency resolution result inputs"
+            description = "Consume dependency resolution result inputs in tasks."
+            category = "Writing Custom Tasks"
+        }
+
         publishingCredentials {
             sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
             description = "Publish to a password protected repository"
