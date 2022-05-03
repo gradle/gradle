@@ -46,17 +46,19 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final AttributeContainerInternal attributes;
     private final CapabilitiesMetadata capabilities;
     private final Lazy<ResolvedArtifactSet> artifacts;
+    private final boolean legacyConfiguration;
 
-    private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<ResolvedArtifactSet> artifacts) {
+    private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<ResolvedArtifactSet> artifacts, boolean legacyConfiguration) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.attributes = attributes;
         this.capabilities = capabilities;
         this.artifacts = Lazy.locking().of(artifacts);
+        this.legacyConfiguration = legacyConfiguration;
     }
 
-    public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifacts) {
-        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, supplyResolvedArtifactSet(identifier, displayName, attributes, capabilities, artifacts));
+    public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifacts, boolean legacyConfiguration) {
+        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, supplyResolvedArtifactSet(identifier, displayName, attributes, capabilities, artifacts), legacyConfiguration);
     }
 
     private static Supplier<ResolvedArtifactSet> supplyResolvedArtifactSet(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifactsSupplier) {
@@ -105,6 +107,11 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     @Override
     public CapabilitiesMetadata getCapabilities() {
         return capabilities;
+    }
+
+    @Override
+    public boolean isLegacyResolvableConfiguration() {
+        return legacyConfiguration;
     }
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
