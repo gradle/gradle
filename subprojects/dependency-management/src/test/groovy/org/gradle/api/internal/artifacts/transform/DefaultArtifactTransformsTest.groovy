@@ -57,6 +57,7 @@ class DefaultArtifactTransformsTest extends Specification {
         given:
         set.schema >> producerSchema
         set.variants >> variants
+        set.variantsForGraph >> variants
         variant1.attributes >> typeAttributes("classes")
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("jar")
@@ -79,6 +80,7 @@ class DefaultArtifactTransformsTest extends Specification {
         set.asDescribable() >> Describables.of('<component>')
         set.schema >> producerSchema
         set.variants >> variants
+        set.variantsForGraph >> variants
         variant1.asDescribable() >> Describables.of('<variant1>')
         variant1.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
@@ -118,6 +120,7 @@ class DefaultArtifactTransformsTest extends Specification {
         given:
         set.schema >> producerSchema
         set.variants >> variants
+        set.variantsForGraph >> variants
         set.asDescribable() >> Describables.of('<component>')
         variant1.attributes >> typeAttributes("jar")
         variant1.asDescribable() >> Describables.of('<variant1>')
@@ -161,6 +164,7 @@ Found the following transforms:
         given:
         set.schema >> producerSchema
         set.variants >> variants
+        set.variantsForGraph >> variants
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
@@ -183,6 +187,7 @@ Found the following transforms:
         given:
         set.schema >> producerSchema
         set.variants >> variants
+        set.variantsForGraph >> variants
         set.asDescribable() >> Describables.of('<component>')
         variant1.attributes >> typeAttributes("jar")
         variant1.asDescribable() >> Describables.of('<variant1>')
