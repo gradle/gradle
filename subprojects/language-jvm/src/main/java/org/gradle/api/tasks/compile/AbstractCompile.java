@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -37,10 +39,9 @@ import java.util.concurrent.Callable;
  * The base class for all JVM-based language compilation tasks.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractCompile extends SourceTask {
+public abstract class AbstractCompile extends SourceTask implements BridgeAbstractCompile {
     private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
-    private String targetCompatibility;
+    private final ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -50,10 +51,12 @@ public abstract class AbstractCompile extends SourceTask {
     /**
      * Returns the classpath to use to compile the source files.
      *
+     * @since 7.5
      * @return The classpath.
      */
+    @Incubating
     @Classpath
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         return classpath;
     }
 
@@ -63,7 +66,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @param configuration The classpath. Must not be null, but may be empty.
      */
     public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
+        this.classpath.setFrom(configuration);
     }
 
     /**

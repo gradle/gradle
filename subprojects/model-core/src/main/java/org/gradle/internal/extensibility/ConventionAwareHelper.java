@@ -92,7 +92,18 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public MappedProperty map(String propertyName, final Callable<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
             @Override
+            @SuppressWarnings({"unchecked", "rawtypes"})
             public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
+//                This causes stack overflow since we call get multiple times
+//                Object object = uncheckedCall(value);
+//                if (object instanceof Configuration) {
+//                    PropertyAccessor property = JavaPropertyReflectionUtil.readableProperty(_source.getClass(), propertyName);
+//                    if (ConfigurableFileCollection.class.isAssignableFrom(property.getType())) {
+//                        ConfigurableFileCollection configurableFileCollection = (ConfigurableFileCollection) property.getValue(_source);
+//                        configurableFileCollection.setFrom(object);
+//                        return object;
+//                    }
+//                }
                 return uncheckedCall(value);
             }
         });

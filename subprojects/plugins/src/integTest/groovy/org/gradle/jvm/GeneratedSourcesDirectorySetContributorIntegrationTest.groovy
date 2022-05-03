@@ -62,7 +62,8 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
                 compiledWithJava {
                     sourceCompatibility = '8'
                     targetCompatibility = '8'
-                    classpath = files()
+                    // TODO fix
+                    // classpath = files()
                 }
             }
         """

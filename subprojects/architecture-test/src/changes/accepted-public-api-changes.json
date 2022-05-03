@@ -100,6 +100,13 @@
             "changes": [
                 "Method has been removed"
             ]
+        }, {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Class org.gradle.api.tasks.compile.AbstractCompile",
+            "acceptation": "Needed to bridge old methods",
+            "changes": [
+                "org.gradle.api.tasks.compile.BridgeAbstractCompile"
+            ]
         }
     ]
 }

@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -172,8 +173,8 @@ public class JavaBasePlugin implements Plugin<Project> {
         return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, compileTask -> {
             compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
             compileTask.setSource(sourceDirectorySet);
-            ConventionMapping conventionMapping = compileTask.getConventionMapping();
-            conventionMapping.map("classpath", sourceSet::getCompileClasspath);
+            // Callable can be removed once we migrate sourceSet.getCompileClasspath() to ConfigurableFileCollection
+            compileTask.getClasspath().setFrom((Callable<FileCollection>) sourceSet::getCompileClasspath);
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
             String generatedHeadersDir = "generated/sources/headers/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
