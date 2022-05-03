@@ -27,13 +27,13 @@ public abstract class DependencyReportsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
 
-        project.getPluginManager().apply("java-library");
+        project.getPluginManager().withPlugin("java-library", plugin -> {
 
-        ProjectLayout layout = project.getLayout();
-        ConfigurationContainer configurations = project.getConfigurations();
-        TaskContainer tasks = project.getTasks();
+            ProjectLayout layout = project.getLayout();
+            ConfigurationContainer configurations = project.getConfigurations();
+            TaskContainer tasks = project.getTasks();
 
-        tasks.register("listResolvedArtifacts", ListResolvedArtifacts.class, task -> {
+            tasks.register("listResolvedArtifacts", ListResolvedArtifacts.class, task -> {
 
 // tag::listResolvedArtifacts[]
 Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
@@ -43,13 +43,13 @@ task.getArtifactIds().set(artifacts.map(new IdExtractor()));
 
 // end::listResolvedArtifacts[]
 
-            task.getArtifactVariants().set(artifacts.map(new VariantExtractor()));
-            task.getArtifactFiles().set(artifacts.map(new FileExtractor(layout)));
+                task.getArtifactVariants().set(artifacts.map(new VariantExtractor()));
+                task.getArtifactFiles().set(artifacts.map(new FileExtractor(layout)));
 
-            task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
-        });
+                task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
+            });
 
-        tasks.register("graphResolvedComponents", GraphResolvedComponents.class, task -> {
+            tasks.register("graphResolvedComponents", GraphResolvedComponents.class, task -> {
 
 // tag::graphResolvedComponents[]
 Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
@@ -59,19 +59,20 @@ task.getRootComponent().set(
 );
 // end::graphResolvedComponents[]
 
-            task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
-        });
+                task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
+            });
 
-        tasks.register("graphResolvedComponentsAndFiles", GraphResolvedComponentsAndFiles.class, task -> {
+            tasks.register("graphResolvedComponentsAndFiles", GraphResolvedComponentsAndFiles.class, task -> {
 
-            ResolvableDependencies resolvableDependencies = configurations.getByName("runtimeClasspath").getIncoming();
-            Provider<Set<ResolvedArtifactResult>> resolvedArtifacts = resolvableDependencies.getArtifacts().getResolvedArtifacts();
+                ResolvableDependencies resolvableDependencies = configurations.getByName("runtimeClasspath").getIncoming();
+                Provider<Set<ResolvedArtifactResult>> resolvedArtifacts = resolvableDependencies.getArtifacts().getResolvedArtifacts();
 
-            task.getArtifactFiles().from(resolvableDependencies.getArtifacts().getArtifactFiles());
-            task.getArtifactIdentifiers().set(resolvedArtifacts.map(result -> result.stream().map(ResolvedArtifactResult::getId).collect(toList())));
-            task.getRootComponent().set(resolvableDependencies.getResolutionResult().getRootComponent());
+                task.getArtifactFiles().from(resolvableDependencies.getArtifacts().getArtifactFiles());
+                task.getArtifactIdentifiers().set(resolvedArtifacts.map(result -> result.stream().map(ResolvedArtifactResult::getId).collect(toList())));
+                task.getRootComponent().set(resolvableDependencies.getResolutionResult().getRootComponent());
 
-            task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
+                task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
+            });
         });
     }
 

@@ -41,10 +41,10 @@ public abstract Property<ResolvedComponentResult> getRootComponent();
     }
 
     private void reportComponent(
-            ResolvedComponentResult component,
-            PrintWriter writer,
-            Set<ResolvedComponentResult> seen,
-            String indent
+        ResolvedComponentResult component,
+        PrintWriter writer,
+        Set<ResolvedComponentResult> seen,
+        String indent
     ) {
         writer.print(component.getId().getDisplayName());
         if (seen.add(component)) {
