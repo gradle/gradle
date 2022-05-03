@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -27,6 +26,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFileProperty;
@@ -60,6 +60,7 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -105,19 +106,21 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
-    private final List<Import> imports = Lists.newArrayList();
+    private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
     private final Property<String> description;
 
     private String currentContext;
 
     @Inject
-    public DefaultVersionCatalogBuilder(String name,
-                                        Interner<String> strings,
-                                        Interner<ImmutableVersionConstraint> versionConstraintInterner,
-                                        ObjectFactory objects,
-                                        ProviderFactory providers,
-                                        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier) {
+    public DefaultVersionCatalogBuilder(
+        String name,
+        Interner<String> strings,
+        Interner<ImmutableVersionConstraint> versionConstraintInterner,
+        ObjectFactory objects,
+        ProviderFactory providers,
+        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier
+    ) {
         this.name = name;
         this.strings = strings;
         this.versionConstraintInterner = versionConstraintInterner;
@@ -191,31 +194,50 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private void maybeImportCatalogs() {
-        if (imports.isEmpty()) {
+        if (importedCatalog == null) {
             return;
         }
         DependencyResolutionServices drs = dependencyResolutionServicesSupplier.get();
-        for (int i = 0, importsSize = imports.size(); i < importsSize; i++) {
-            Import importConfiguration = imports.get(i);
-            Configuration cnf = createResolvableConfiguration(drs, i);
-            addImportsToResolvableConfiguration(drs, cnf, importConfiguration);
-            cnf.getIncoming().getArtifacts().getArtifacts().forEach(ar -> {
-                File file = ar.getFile();
-                withContext("catalog " + ar.getVariant().getOwner(), () -> importCatalogFromFile(file));
-            });
+        Configuration cnf = createResolvableConfiguration(drs);
+        addImportsToResolvableConfiguration(drs, cnf, importedCatalog);
+
+        Set<ResolvedArtifactResult> artifacts = cnf.getIncoming().getArtifacts().getArtifacts();
+        if (artifacts.size() > 1) {
+            throwVersionCatalogProblem(VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec ->
+                spec.withShortDescription("Importing multiple files are not supported")
+                    .happensBecause("The import consists of multiple files")
+                    .addSolution("Only import a single file")
+                    .documented()
+            );
+        }
+
+        // We need to fall back to if-else with the Optional, as the Problems API cannot return an instance of an exception, only throw
+        Optional<ResolvedArtifactResult> maybeResolvedArtifactResult = artifacts.stream().findFirst();
+        if (maybeResolvedArtifactResult.isPresent()) {
+            ResolvedArtifactResult resolvedArtifactResult = maybeResolvedArtifactResult.get();
+            File file = resolvedArtifactResult.getFile();
+            withContext("catalog " + resolvedArtifactResult.getVariant().getOwner(), () -> importCatalogFromFile(file));
+        } else {
+            throwVersionCatalogProblem(VersionCatalogProblemId.NO_IMPORT_FILES, spec ->
+                spec.withShortDescription("No files are resolved to be imported")
+                    .happensBecause("The imported dependency doesn't resolve into any file")
+                    .addSolution("Check if the import statement, it should be resolvable into a file")
+                    .documented()
+            );
         }
     }
 
     private void addImportsToResolvableConfiguration(DependencyResolutionServices drs, Configuration cnf, Import imported) {
-        for (int i = 0, importsSize = imports.size(); i < importsSize; i++) {
-            Object notation = imported.notation;
-            Dependency dependency = drs.getDependencyHandler().create(notation);
-            cnf.getDependencies().add(dependency);
-        }
+        Object notation = imported.notation;
+        Dependency dependency = drs.getDependencyHandler().create(notation);
+        cnf.getDependencies().add(dependency);
     }
 
-    private Configuration createResolvableConfiguration(DependencyResolutionServices drs, int i) {
-        Configuration cnf = drs.getConfigurationContainer().create("incomingCatalogFor" + StringUtils.capitalize(name) + i);
+    private Configuration createResolvableConfiguration(DependencyResolutionServices drs) {
+        // The zero at the end of the configuration comes from the previous implementation;
+        // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
+        // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
+        Configuration cnf = drs.getConfigurationContainer().create("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
@@ -228,17 +250,17 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     @Override
     public void from(Object dependencyNotation) {
-        if (!imports.isEmpty()) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.MULTIPLE_IMPORTS, spec ->
-                spec.withShortDescription("You can only import a single external catalog in a given catalog definition")
-                    .happensBecause("Multiple catalog imports are not yet supported")
-                    .addSolution("Create a separate catalog for each import you want to use")
-                    .documentedAt("platforms", "sec:sharing-catalogs")
+        if (importedCatalog == null) {
+            importedCatalog = new Import(dependencyNotation);
+        } else {
+            throwVersionCatalogProblem(VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec ->
+                spec.withShortDescription("You can only call the 'from' method a single time")
+                    .happensBecause("The method was called more than once")
+                    .addSolution("Remove further usages of the method call")
+                    .documented()
             );
         }
-        imports.add(new Import(dependencyNotation));
     }
-
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
@@ -501,7 +523,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             if (RESERVED_ALIAS_NAMES.contains(normalizedAlias)) {
                 throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
                     spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                        .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
+                        .happensBecause(() -> "Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors")
                         .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
                         .documented()
                 );
@@ -621,7 +643,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
     }
 
-   private void createPluginAliasWithVersionRef(String alias, String id, String versionRef) {
+    private void createPluginAliasWithVersionRef(String alias, String id, String versionRef) {
         Supplier<PluginModel> previous = plugins.put(intern(normalize(alias)), new VersionReferencingPluginModel(id, normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
