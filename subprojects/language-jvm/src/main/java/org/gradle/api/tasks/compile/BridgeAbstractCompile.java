@@ -22,7 +22,7 @@ import org.gradle.api.file.FileCollection;
 /**
  * Bridges old and new AbstractCompile implementations.
  *
- * @since 7.5
+ * @since 7.6
  */
 @Incubating
 public interface BridgeAbstractCompile {

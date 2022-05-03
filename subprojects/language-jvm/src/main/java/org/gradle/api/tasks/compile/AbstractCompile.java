@@ -51,7 +51,7 @@ public abstract class AbstractCompile extends SourceTask implements BridgeAbstra
     /**
      * Returns the classpath to use to compile the source files.
      *
-     * @since 7.5
+     * @since 7.6
      * @return The classpath.
      */
     @Incubating
