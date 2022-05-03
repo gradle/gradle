@@ -75,7 +75,8 @@ enum class Os(
         androidHome = """C:\Program Files\android\sdk""",
         jprofilerHome = """C:\Program Files\jprofiler\jprofiler11.1.4""",
         killAllGradleProcesses = killAllGradleProcessesWindows,
-        perfTestWorkingDir = "P:/"
+        perfTestWorkingDir = "P:/",
+        perfTestJavaVendor = "openjdk"
     ),
     MACOS(
         "Mac",
