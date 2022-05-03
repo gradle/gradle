@@ -57,8 +57,8 @@ class DefaultArtifactSetTest extends Specification {
         def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1, variant2] as Set, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1] as Set, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
         def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
 
         ownerId.group >> "group"
@@ -83,7 +83,7 @@ class DefaultArtifactSetTest extends Specification {
         def exclusions = new DefaultExcludeFactory().nothing()
 
         when:
-        def artifactSet = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, moduleSources, exclusions, [variant1, variant2] as Set, schema, artifactResolver, new HashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifactSet = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, moduleSources, exclusions, [variant1, variant2] as Set, [variant1, variant2] as Set, schema, artifactResolver, new HashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
         artifactSet.select({ true }, new VariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
@@ -123,8 +123,8 @@ class DefaultArtifactSetTest extends Specification {
         def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1, variant2] as Set, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1] as Set, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
         def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
 
         selector.select(_, _) >> resolvedVariant1
