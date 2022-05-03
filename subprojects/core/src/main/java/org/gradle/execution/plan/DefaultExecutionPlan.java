@@ -313,17 +313,33 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 for (Node dependency : node.getDependencySuccessors()) {
                     dependency.getMutationInfo().consumingNodes.add(node);
                 }
-
-                // Add any ordinal relationships for this node
-                createOrdinalRelationships(node);
             }
         }
+
+        for (Node node : nodeMapping) {
+            node.maybeUpdateOrdinalGroup();
+            createOrdinalRelationships(node);
+        }
+
         ordinalNodeAccess.createInterNodeRelationships();
         nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
         dependencyResolver.clear();
         executionQueue.setNodes(nodeMapping);
+    }
+
+    @Override
+    public WorkSource<Node> finalizePlan() {
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
+            node.updateAllDependenciesComplete();
+            maybeNodeReady(node);
+        }
 
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+
+        // For now
+        return this;
     }
 
     private void addFinalizerToQueue(LinkedList<NodeInVisitingSegment> nodeQueue, int visitingSegmentCounter, Node finalizer) {
@@ -361,19 +377,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         filteredNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
-    }
-
-    @Override
-    public WorkSource<Node> finalizePlan() {
-        executionQueue.restart();
-        while (executionQueue.hasNext()) {
-            Node node = executionQueue.next();
-            node.updateAllDependenciesComplete();
-            maybeNodeReady(node);
-        }
-
-        // For now
-        return this;
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
@@ -589,11 +592,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             executionQueue.restart();
             while (executionQueue.hasNext()) {
                 Node node = executionQueue.next();
-                if (!node.allDependenciesComplete()) {
-                    nodes.add(node + " (dependencies not complete)");
-                } else {
-                    nodes.add(node.toString());
+                if (node.getPrepareNode() != null) {
+                    nodes.add(node.getPrepareNode().healthDiagnostics());
                 }
+                nodes.add(node.healthDiagnostics());
             }
             return new Diagnostics(false, nodes);
         } else {
@@ -621,8 +623,14 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     // Cannot execute this node due to failed dependencies - skip it
                     if (node.shouldCancelExecutionDueToDependencies()) {
                         node.cancelExecution(this::recordNodeCompleted);
+                        if (node.getPrepareNode() != null && node.getPrepareNode().isRequired()) {
+                            node.getPrepareNode().cancelExecution(this::recordNodeCompleted);
+                        }
                     } else {
                         node.markFailedDueToDependencies(this::recordNodeCompleted);
+                        if (node.getPrepareNode() != null && node.getPrepareNode().isRequired()) {
+                            node.getPrepareNode().markFailedDueToDependencies(this::recordNodeCompleted);
+                        }
                     }
                     executionQueue.remove();
                     // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
