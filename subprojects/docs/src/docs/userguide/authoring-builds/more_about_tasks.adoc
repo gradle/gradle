@@ -694,7 +694,7 @@ Dependency resolution results can be consumed as task inputs in two ways.
 First by consuming the graph of the resolved metadata using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult].
 Second by consuming the flat set of the resolved artifacts using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult].
 
-A resolved graph can be obtained lazily from the incoming resolution result of a `Configuration` and is wired to an `@Input` property:
+A resolved graph can be obtained lazily from the incoming resolution result of a `Configuration` and wired to an `@Input` property:
 
 .Resolved graph as task input
 ====
