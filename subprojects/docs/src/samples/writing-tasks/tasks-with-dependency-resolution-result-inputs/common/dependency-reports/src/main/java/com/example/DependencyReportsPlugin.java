@@ -27,7 +27,7 @@ public abstract class DependencyReportsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
 
-        project.getPluginManager().withPlugin("java-library", plugin -> {
+        project.getPluginManager().withPlugin("java-base", plugin -> {
 
             ProjectLayout layout = project.getLayout();
             ConfigurationContainer configurations = project.getConfigurations();
