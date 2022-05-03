@@ -17,12 +17,15 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.regression.corefeature.AbstractIncrementalExecutionPerformanceTest
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
@@ -47,7 +50,21 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
         runner.args.add("-DkotlinVersion=${KOTLIN_TARGET_VERSION}")
         runner.minimumBaseVersion = "6.5"
+        useJava11()
         applyEnterprisePlugin()
+    }
+
+    private void useJava11() {
+        def buildJavaHome = AvailableJavaHomes.getJdk11().javaHome
+        runner.addBuildMutator { invocation ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario(ScenarioContext context) {
+                    def gradleProps = new File(invocation.projectDir, "gradle.properties")
+                    gradleProps << "\norg.gradle.java.home=${buildJavaHome}\n"
+                }
+            }
+        }
     }
 
     def "abi change#configurationCaching"() {

@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
@@ -31,7 +31,6 @@ import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
-import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD_2
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
@@ -62,9 +61,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         applyEnterprisePlugin()
 
         and:
-        if (androidTestProject == LARGE_ANDROID_BUILD_2) {
-            configureForLargeAndroidBuild2()
-        }
+        useJava11()
 
         when:
         def result = runner.run()
@@ -113,8 +110,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
     }
 
-    private void configureForLargeAndroidBuild2() {
-        def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.first().javaHome
+    private void useJava11() {
+        def buildJavaHome = AvailableJavaHomes.getJdk11().javaHome
         runner.addBuildMutator { invocation ->
             new BuildMutator() {
                 @Override
