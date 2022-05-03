@@ -50,11 +50,11 @@ public abstract class GraphResolvedComponentsAndFiles extends DefaultTask {
     }
 
     private void reportComponent(
-            ResolvedComponentResult component,
-            PrintWriter writer,
-            Set<ResolvedComponentResult> seen,
-            Map<ComponentIdentifier, File> filesByIdentifiers,
-            String indent
+        ResolvedComponentResult component,
+        PrintWriter writer,
+        Set<ResolvedComponentResult> seen,
+        Map<ComponentIdentifier, File> filesByIdentifiers,
+        String indent
     ) {
         writer.print(component.getId().getDisplayName());
         File file = filesByIdentifiers.get(component.getId());
