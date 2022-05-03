@@ -19,7 +19,7 @@ package org.gradle.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreRest
+
 
 class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements VersionCatalogSupport {
     def setup() {
@@ -117,7 +117,6 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
         outputContains 'Resolved: lib-1.1.jar, lib-json-1.1.jar'
     }
 
-    @IgnoreRest
     // This documents the existing behavior but it may change in the future
     def "can use dependency locking to resolve platform in settings"() {
         def platformProject = preparePlatformProject '''
