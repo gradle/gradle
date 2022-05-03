@@ -151,6 +151,14 @@ Gradle now checks the Adoptium API first when downloading JDKs, rather than only
 
 There is a new Gradle property `org.gradle.jvm.toolchain.install.adoptium.baseUri` to control the Adoptium base URI. This is in addition to the`org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri` property, which is still used if a JDK is not found in the Adoptium API.
 
+### Dependency resolution results can be used as task inputs
+
+Starting with Gradle 7.5 it is now possible to declare dependency resolution results as task inputs.
+
+You can learn more in the [Authoring Tasks](userguide/more_about_tasks.html#sec:task_input_using_dependency_resolution_results) user manual chapter and with the dedicated [sample](samples/sample_tasks_with_dependency_resolution_result_inputs.html).
+
+These new types of task inputs also comes with support for the [configuration cache](userguide/configuration_cache.html).
+
 ### Description available on secondary variants
 
 When defining [secondary variants](userguide/publishing_customization.html#sec:publishing-custom-components), which are variants available only to other local Gradle projects, there is a new [ConfigurationVariant](javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
