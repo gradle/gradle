@@ -28,7 +28,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
@@ -731,7 +730,6 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
         executer.withArgument("--configuration-cache")
     }
 
-    @IgnoreRest
     @Issue("https://github.com/gradle/gradle/issues/20383")
     def "should throw an error if 'from' is called with file collection containing more than one file"() {
         file('gradle/a.versions.toml') << """
@@ -768,7 +766,6 @@ dependencyResolutionManagement {
         })
     }
 
-    @IgnoreRest
     @Issue("https://github.com/gradle/gradle/issues/20383")
     def "should throw an error if 'from' is called with an empty file collection"() {
         settingsFile << """
@@ -790,7 +787,6 @@ dependencyResolutionManagement {
         })
     }
 
-    @IgnoreRest
     @Issue("https://github.com/gradle/gradle/issues/20383")
     def "should throw an error if 'from' is called multiple times"() {
         file('gradle/a.versions.toml') << """
