@@ -18,6 +18,7 @@
 
 import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.kotlin.dsl.support.serviceOf
+import java.util.concurrent.atomic.AtomicBoolean
 
 val gradleRootProject = when {
     project.name == "gradle" -> project.rootProject
@@ -31,7 +32,6 @@ val isInBuildLogic = rootProjectName == "build-logic"
 if (buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
     gradle.taskGraph.whenReady {
         val cacheMissMonitorBuildService: Provider<CacheMissMonitorBuildService> = gradle.sharedServices.registerIfAbsent("cacheMissMonitorBuildService-$rootProjectName", CacheMissMonitorBuildService::class) {
-            parameters.buildCacheEnabled.set(buildCacheEnabled())
             parameters.monitoredTaskPaths.set(allTasks.filter { it.isCacheMissMonitoredTask() }.map { if (isInBuildLogic) ":build-logic${it.path}" else it.path }.toSet())
         }
         gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(cacheMissMonitorBuildService)
@@ -40,8 +40,8 @@ if (buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
 
         if (!isInBuildLogic) { // BuildScanExtension is only available in the gradle project
             val buildScan = gradleRootProject.extensions.findByType<BuildScanExtension>()
-            val cacheMissInBuildLogic = gradleRootProject.extensions.extraProperties.get("cacheMiss-build-logic") as Property<Boolean>
-            val cacheMissInGradle = gradleRootProject.extensions.extraProperties.get("cacheMiss-gradle") as Property<Boolean>
+            val cacheMissInBuildLogic = gradleRootProject.extensions.extraProperties.get("cacheMiss-build-logic") as AtomicBoolean
+            val cacheMissInGradle = gradleRootProject.extensions.extraProperties.get("cacheMiss-gradle") as AtomicBoolean
             buildScan?.buildFinished {
                 if (cacheMissInGradle.get() || cacheMissInBuildLogic.get()) {
                     buildScan.tag("CACHE_MISS")

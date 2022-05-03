@@ -15,7 +15,6 @@
  */
 
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -23,14 +22,13 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 abstract class CacheMissMonitorBuildService @Inject constructor(objects: ObjectFactory) : BuildService<CacheMissMonitorBuildService.Params>, OperationCompletionListener {
-    val cacheMiss: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
-    private val isKillLeakingJavaProcessesStep = objects.property(Boolean::class.java).convention(false)
+    val cacheMiss: AtomicBoolean = AtomicBoolean(false)
 
     interface Params : BuildServiceParameters {
-        val buildCacheEnabled: Property<Boolean>
         val monitoredTaskPaths: SetProperty<String>
     }
 
@@ -40,11 +38,7 @@ abstract class CacheMissMonitorBuildService @Inject constructor(objects: ObjectF
         }
 
         val taskPath = event.descriptor.taskPath
-        if (taskPath.contains("killExistingProcessesStartedByGradle")) {
-            isKillLeakingJavaProcessesStep.set(true)
-            cacheMiss.set(false)
-        }
-        if (isKillLeakingJavaProcessesStep.get() || !parameters.monitoredTaskPaths.get().contains(taskPath)) {
+        if (!parameters.monitoredTaskPaths.get().contains(taskPath)) {
             return
         }
         val taskResult = event.result
