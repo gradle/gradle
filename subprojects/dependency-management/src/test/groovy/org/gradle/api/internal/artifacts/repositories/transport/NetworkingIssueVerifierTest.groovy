@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.transport
 
+import org.apache.http.ConnectionClosedException
 import org.apache.http.NoHttpResponseException
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -37,6 +38,7 @@ class NetworkingIssueVerifierTest extends Specification {
         "SocketException"                                           | new SocketException()
         "SocketTimeoutException"                                    | new SocketTimeoutException()
         "NoHttpResponseException"                                   | new NoHttpResponseException("something went wrong")
+        "ConnectionClosedException"                                 | new ConnectionClosedException("something went wrong")
         "HttpHostConnectException"                                  | new HttpHostConnectException(new IOException("something went wrong"), null, null)
         "DefaultMultiCauseException"                                | new DefaultMultiCauseException("something went wrong", new SocketTimeoutException())
         "HttpErrorStatusCodeException with server error"            | new HttpErrorStatusCodeException("something", "something", 503, "something")
