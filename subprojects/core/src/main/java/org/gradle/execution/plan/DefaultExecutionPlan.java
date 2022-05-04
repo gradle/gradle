@@ -313,17 +313,33 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 for (Node dependency : node.getDependencySuccessors()) {
                     dependency.getMutationInfo().consumingNodes.add(node);
                 }
-
-                // Add any ordinal relationships for this node
-                createOrdinalRelationships(node);
             }
         }
+
+        for (Node node : nodeMapping) {
+            node.maybeUpdateOrdinalGroup();
+            createOrdinalRelationships(node);
+        }
+
         ordinalNodeAccess.createInterNodeRelationships();
         nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
         dependencyResolver.clear();
         executionQueue.setNodes(nodeMapping);
+    }
+
+    @Override
+    public WorkSource<Node> finalizePlan() {
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
+            node.updateAllDependenciesComplete();
+            maybeNodeReady(node);
+        }
 
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+
+        // For now
+        return this;
     }
 
     private void addFinalizerToQueue(LinkedList<NodeInVisitingSegment> nodeQueue, int visitingSegmentCounter, Node finalizer) {
@@ -361,19 +377,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         filteredNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
-    }
-
-    @Override
-    public WorkSource<Node> finalizePlan() {
-        executionQueue.restart();
-        while (executionQueue.hasNext()) {
-            Node node = executionQueue.next();
-            node.updateAllDependenciesComplete();
-            maybeNodeReady(node);
-        }
-
-        // For now
-        return this;
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
@@ -585,19 +588,31 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         // If no nodes are ready and nothing is running, then cannot make progress
         boolean cannotMakeProgress = state == State.NoWorkReadyToStart && runningNodes.isEmpty();
         if (cannotMakeProgress) {
-            List<String> nodes = new ArrayList<>(executionQueue.size());
+            List<String> queuedNodes = new ArrayList<>(executionQueue.size());
+            List<String> otherNodes = new ArrayList<>();
+            List<Node> queue = new ArrayList<>();
+            Set<Node> reported = new HashSet<>();
             executionQueue.restart();
             while (executionQueue.hasNext()) {
                 Node node = executionQueue.next();
-                if (!node.allDependenciesComplete()) {
-                    nodes.add(node + " (dependencies not complete)");
-                } else {
-                    nodes.add(node.toString());
+                queuedNodes.add(node.healthDiagnostics());
+                reported.add(node);
+                for (Node successor : node.getAllSuccessors()) {
+                    queue.add(successor);
                 }
             }
-            return new Diagnostics(false, nodes);
+            while (!queue.isEmpty()) {
+                Node node = queue.remove(0);
+                if (reported.add(node)) {
+                    otherNodes.add(node.healthDiagnostics());
+                    for (Node successor : node.getAllSuccessors()) {
+                        queue.add(successor);
+                    }
+                }
+            }
+            return new Diagnostics(displayName, false, queuedNodes, otherNodes);
         } else {
-            return new Diagnostics(true, Collections.emptyList());
+            return new Diagnostics(displayName);
         }
     }
 
@@ -621,8 +636,14 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     // Cannot execute this node due to failed dependencies - skip it
                     if (node.shouldCancelExecutionDueToDependencies()) {
                         node.cancelExecution(this::recordNodeCompleted);
+                        if (node.getPrepareNode() != null && node.getPrepareNode().isRequired()) {
+                            node.getPrepareNode().cancelExecution(this::recordNodeCompleted);
+                        }
                     } else {
                         node.markFailedDueToDependencies(this::recordNodeCompleted);
+                        if (node.getPrepareNode() != null && node.getPrepareNode().isRequired()) {
+                            node.getPrepareNode().markFailedDueToDependencies(this::recordNodeCompleted);
+                        }
                     }
                     executionQueue.remove();
                     // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again

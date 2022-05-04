@@ -77,14 +77,24 @@ public abstract class Node implements Comparable<Node> {
         return state;
     }
 
+    String healthDiagnostics() {
+        if (isComplete()) {
+            return this + " (state=" + state + ")";
+        } else {
+            return this + " (state=" + state + ", dependencies=" + dependenciesState + ", group=" + group + ", successors=" + getAllSuccessors() + ")";
+        }
+    }
+
     public NodeGroup getGroup() {
         return group;
     }
 
     public void setGroup(NodeGroup group) {
-        this.group.removeMember(this);
-        this.group = group;
-        this.group.addMember(this);
+        if (this.group != group) {
+            this.group.removeMember(this);
+            this.group = group;
+            this.group.addMember(this);
+        }
     }
 
     @Nullable
@@ -150,6 +160,20 @@ public abstract class Node implements Comparable<Node> {
         builder.addAll(currentFinalizers.getFinalizerGroups());
         builder.addAll(finalizers.getFinalizerGroups());
         return new CompositeNodeGroup(currentFinalizers.getOrdinalGroup(), builder.build());
+    }
+
+    public void maybeUpdateOrdinalGroup() {
+        OrdinalGroup ordinal = getGroup().asOrdinal();
+        OrdinalGroup newOrdinal = ordinal;
+        for (Node successor : getAllSuccessors()) {
+            OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
+            if (successorOrdinal != null && (ordinal == null || successorOrdinal.getOrdinal() > ordinal.getOrdinal())) {
+                newOrdinal = successorOrdinal;
+            }
+        }
+        if (newOrdinal != ordinal) {
+            setGroup(getGroup().withOrdinalGroup(newOrdinal));
+        }
     }
 
     @Nullable
@@ -263,7 +287,9 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void cancelExecution(Consumer<Node> completionAction) {
-        assert !isCannotRunInAnyPlan();
+        if (isCannotRunInAnyPlan()) {
+            throw new IllegalStateException("Cannot cancel node " + this);
+        }
         state = ExecutionState.NOT_SCHEDULED;
         completionAction.accept(this);
     }

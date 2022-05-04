@@ -169,9 +169,6 @@ public abstract class TaskNode extends Node {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
             FinalizerGroup finalizerGroup = new FinalizerGroup(this, getGroup());
             setGroup(finalizerGroup);
-            for (Node node : getFinalizingSuccessors()) {
-                finalizerGroup.maybeInheritFrom(node.getGroup());
-            }
         }
     }
 }
