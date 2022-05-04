@@ -38,7 +38,7 @@ import java.util.jar.JarFile
 class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "test captures script reference")
     fun `Kotlin chooses withType extension specialized to container type`() {
 
         withBuildScript(

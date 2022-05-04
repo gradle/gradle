@@ -270,7 +270,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     fun `can use Closure only APIs`() {
 
         withBuildScript(
