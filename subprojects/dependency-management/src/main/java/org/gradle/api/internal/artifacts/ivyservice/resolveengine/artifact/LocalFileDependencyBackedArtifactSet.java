@@ -256,11 +256,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         public CapabilitiesMetadata getCapabilities() {
             return ImmutableCapabilities.EMPTY;
         }
-
-        @Override
-        public boolean isLegacyResolvableConfiguration() {
-            return false;
-        }
     }
 
     /**
