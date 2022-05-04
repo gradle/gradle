@@ -32,11 +32,24 @@ public class ExhaustiveLinesSearcher {
     private boolean showLessLikelyMatches = false;
     private boolean useUnifiedDiff = false;
 
+    /**
+     * Instructs empty lines to be considered matches when exhaustively building the list of potential matches.
+     * <p>
+     * Enabling this option could really explode the number of potential matches for common output cases
+     * where blank lines exist in both the expected and actual lines.
+     *
+     * @return {@code this)
+     */
     public ExhaustiveLinesSearcher matchesBlankLines() {
         matchBlankLines = true;
         return this;
     }
 
+    /**
+     * Show potential matches which don't match as many expected lines as the best match.
+     *
+     * @return {@code this)
+     */
     public ExhaustiveLinesSearcher showLessLikelyMatches() {
         showLessLikelyMatches = true;
         return this;
