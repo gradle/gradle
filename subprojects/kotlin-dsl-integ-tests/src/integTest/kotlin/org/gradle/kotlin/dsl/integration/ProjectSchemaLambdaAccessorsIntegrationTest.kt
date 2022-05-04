@@ -292,7 +292,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
 
         // TODO:kotlin-dsl Remove once above issue is fixed
-        val exception = Assert.assertThrows(ComparisonFailure::class.java) {
+        val exception = Assert.assertThrows(AssertionError::class.java) {
             build("help").apply {
                 assertOutputContains("lambdaExtension: java.util.function.Function<java.lang.String, java.lang.String>")
                 assertOutputContains("SOME")
