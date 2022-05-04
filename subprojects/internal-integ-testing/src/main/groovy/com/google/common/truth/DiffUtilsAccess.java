@@ -19,15 +19,13 @@ package com.google.common.truth;
 import java.util.List;
 
 /**
- * This exists to allow us to use the {@code DiffUtils} class by calling package-level methods;
- * it must be located in the {code com.google.common.truth} package to be functional.
+ * This static util class exists to allow us to use default access level methods on Google Truth's {@code DiffUtils} class;
+ * it must be located in the {@code com.google.common.truth} package to be functional.
  */
 public final class DiffUtilsAccess {
-    public static DiffUtils getDiffUtils() {
-        return new DiffUtils();
-    }
+    private DiffUtilsAccess() { /* not instantiable */ }
 
     public static List<String> generateUnifiedDiff(List<String> original, List<String> revised, int contextSize) {
-        return getDiffUtils().generateUnifiedDiff(original, revised, contextSize);
+        return DiffUtils.generateUnifiedDiff(original, revised, contextSize);
     }
 }
