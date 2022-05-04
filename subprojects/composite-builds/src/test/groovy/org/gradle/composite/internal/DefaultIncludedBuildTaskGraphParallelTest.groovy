@@ -16,9 +16,12 @@
 
 package org.gradle.composite.internal
 
+
 import org.gradle.api.Action
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.NodeExecutionContext
@@ -26,6 +29,7 @@ import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
+import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeValidator
 import org.gradle.execution.plan.PlanExecutor
@@ -34,6 +38,8 @@ import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.DefaultBuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
@@ -47,15 +53,22 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.jetbrains.annotations.NotNull
+import org.jetbrains.annotations.Nullable
+import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Timeout
 
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
+import java.util.function.Function
 
 @Timeout(60)
 class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTaskGraphTest {
+    @Rule
+    RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
+
     // Use a reasonable number of workers to catch issues with contention
     @Shared
     def manyWorkers = 10
@@ -73,7 +86,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled work"() {
         def services = new Services(workers)
-        def build = build(DefaultBuildIdentifier.ROOT, buildWorkGraphController(services))
+        def build = services.build(DefaultBuildIdentifier.ROOT)
 
         when:
         def result = scheduleAndRun(services) { builder ->
@@ -94,7 +107,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "fails when no further nodes can be selected"() {
         def services = new Services(manyWorkers)
-        def build = build(DefaultBuildIdentifier.ROOT, buildWorkGraphController(services))
+        def build = services.build(DefaultBuildIdentifier.ROOT)
 
         when:
         def result = scheduleAndRun(services) { builder ->
@@ -110,6 +123,42 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         result.failures.size() == 1
         result.failures.first() instanceof IllegalStateException
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
+
+        stdout.stdOut.contains("Unable to make progress running work. The following items are queued for execution but none of them can be started:")
+        stdout.stdOut.contains("- test node (state=SHOULD_RUN")
+    }
+
+    def "fails when no further nodes can be selected across multiple builds"() {
+        def services = new Services(manyWorkers)
+        def childBuild = services.build(new DefaultBuildIdentifier("child"))
+        def build = services.build(DefaultBuildIdentifier.ROOT)
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            builder.withWorkGraph(build) { graphBuilder ->
+                def node = new DependenciesStuckNode("main build node")
+                node.require()
+                node.dependenciesProcessed()
+                graphBuilder.addNodes([node])
+            }
+            builder.withWorkGraph(childBuild) { graphBuilder ->
+                def node = new DependenciesStuckNode("child build node")
+                node.require()
+                node.dependenciesProcessed()
+                graphBuilder.addNodes([node])
+            }
+        }
+
+        then:
+        result.failures.size() == 1
+        result.failures.first() instanceof IllegalStateException
+        result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
+
+        stdout.stdOut.contains("Unable to make progress running work. The following items are queued for execution but none of them can be started:")
+        stdout.stdOut.contains("- Queued nodes for build ':':")
+        stdout.stdOut.contains("- main build node (state=SHOULD_RUN")
+        stdout.stdOut.contains("- Queued nodes for build 'child':")
+        stdout.stdOut.contains("- child build node (state=SHOULD_RUN")
     }
 
     ExecutionResult<Void> scheduleAndRun(Services services, Action<BuildTreeWorkGraph.Builder> action) {
@@ -127,31 +176,108 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         return result
     }
 
-    BuildWorkGraphController buildWorkGraphController(Services services) {
-        def controller = Mock(BuildLifecycleController)
+    private BuildWorkGraphController buildWorkGraphController(String displayName, Services services) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
         def nodeFactory = new TaskNodeFactory(Stub(GradleInternal), Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator))
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
-        def plan = new DefaultExecutionPlan("work", nodeFactory, Stub(TaskDependencyResolver), hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.coordinationService)
-
-        _ * controller.newWorkGraph() >> Stub(BuildWorkPlan) {
+        def plan = new DefaultExecutionPlan(displayName, nodeFactory, Stub(TaskDependencyResolver), hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.coordinationService)
+        def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }
-        _ * controller.populateWorkGraph(_, _) >> { BuildWorkPlan p, Consumer action ->
-            action.accept(builder)
-        }
+
+        def controller = new TestBuildLifecycleController(plan, workPlan, builder, services)
+
         _ * builder.addNodes(_) >> { args ->
             plan.addNodes(args[0])
-        }
-        _ * controller.executeTasks(_) >> {
-            plan.determineExecutionPlan()
-            return services.planExecutor.process(plan.finalizePlan()) { node -> }
         }
 
         return new DefaultBuildWorkGraphController(
             nodeFactory,
             controller
         )
+    }
+
+    private class TestBuildLifecycleController implements BuildLifecycleController {
+        final ExecutionPlan plan
+        final BuildWorkPlan workPlan
+        final WorkGraphBuilder builder
+        final Services services
+
+        TestBuildLifecycleController(ExecutionPlan plan, BuildWorkPlan workPlan, WorkGraphBuilder builder, Services services) {
+            this.workPlan = workPlan
+            this.plan = plan
+            this.builder = builder
+            this.services = services
+        }
+
+        @Override
+        BuildWorkPlan newWorkGraph() {
+            return workPlan
+        }
+
+        @Override
+        void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
+            action.accept(builder)
+        }
+
+        @Override
+        ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
+            plan.determineExecutionPlan()
+            return services.planExecutor.process(plan.finalizePlan()) { node -> }
+        }
+
+        @Override
+        GradleInternal getGradle() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void loadSettings() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        <T> T withSettings(Function<? super SettingsInternal, T> action) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void configureProjects() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        GradleInternal getConfiguredBuild() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void prepareToScheduleTasks() {
+        }
+
+        @Override
+        void finalizeWorkGraph(BuildWorkPlan plan) {
+        }
+
+        @Override
+        <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void addListener(Object listener) {
+            throw new UnsupportedOperationException()
+        }
     }
 
     private class Services {
@@ -177,12 +303,22 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             )
         }
 
+        BuildState build(BuildIdentifier identifier) {
+            return build(identifier, buildWorkGraphController(identifier.toString(), this))
+        }
+
         void stop() {
             CompositeStoppable.stoppable(buildTaskGraph, planExecutor, workerLeaseService, coordinationService, execFactory).stop()
         }
     }
 
     private static class TestNode extends Node implements SelfExecutingNode {
+        private final String displayName
+
+        TestNode(String displayName = "test node") {
+            this.displayName = displayName
+        }
+
         @Override
         Throwable getNodeFailure() {
             return null
@@ -194,7 +330,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         String toString() {
-            return "test node"
+            return displayName
         }
 
         @Override
@@ -208,6 +344,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     private static class DependenciesStuckNode extends TestNode {
+        DependenciesStuckNode(String displayName = "test node") {
+            super(displayName)
+        }
+
         @Override
         protected DependenciesState doCheckDependenciesComplete() {
             return DependenciesState.NOT_COMPLETE
