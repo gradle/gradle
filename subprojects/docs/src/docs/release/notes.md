@@ -164,9 +164,14 @@ The `dependencyInsight`, `outgoingVariants` and `resolvableConfigurations` tasks
 
 #### New `STABLE_CONFIGURATION_CACHE` feature flag
 
-Working towards the stabilization of configuration caching we implement some strictness behind the `STABLE_CONFIGURATION_CACHE` feature flag when it is too disruptive for early adopters.
+Configuration caching introduces a number of requirements regarding the build logic.
+Many problems are already reported in the [HTML report](userguide/configuration_cache.html#config_cache:troubleshooting).
+At the moment, adjusting the build logic to be fully compatible with configuration cache can be a significant effort for complex builds.
 
-It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features enabled by default.
+This release introduces the `STABLE_CONFIGURATION_CACHE` flag allowing gradual rollout of the most potentially disruptive requirements.
+This flag currently enables validations like detecting undeclared shared build service usage and external processes used at configuration time.
+
+It is recommended to enable this flag as soon as possible in order to be ready for when the flag is removed and make the linked features enabled by default.
 
 Learn more about what this feature flag enables in the [user manual](userguide/configuration_cache.html#config_cache:stable).
 
