@@ -1,1 +1,1 @@
-enableFeature "STABLE_CONFIGURATION_CACHE"
+enableFeaturePreview "STABLE_CONFIGURATION_CACHE"
