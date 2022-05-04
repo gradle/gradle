@@ -107,6 +107,13 @@
             "changes": [
                 "org.gradle.api.tasks.compile.BridgeAbstractCompile"
             ]
+        }, {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
