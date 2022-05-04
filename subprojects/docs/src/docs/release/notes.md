@@ -162,6 +162,19 @@ The [`kotlin-dsl`](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) plugin is no
 
 The `dependencyInsight`, `outgoingVariants` and `resolvableConfigurations` tasks are now compatible with the configuration cache.
 
+#### New `STABLE_CONFIGURATION_CACHE` feature flag
+
+Configuration caching introduces a number of requirements regarding the build logic.
+Many problems are already reported in the [HTML report](userguide/configuration_cache.html#config_cache:troubleshooting).
+At the moment, adjusting the build logic to be fully compatible with configuration cache can be a significant effort for complex builds.
+
+This release introduces the `STABLE_CONFIGURATION_CACHE` flag allowing gradual rollout of the most potentially disruptive requirements.
+This flag currently enables validations like detecting undeclared shared build service usage and external processes used at configuration time.
+
+It is recommended to enable this flag as soon as possible in order to be ready for when the flag is removed and make the linked features enabled by default.
+
+Learn more about what this feature flag enables in the [user manual](userguide/configuration_cache.html#config_cache:stable).
+
 ### JVM toolchains improvements
 
 [Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
