@@ -1,7 +1,5 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 

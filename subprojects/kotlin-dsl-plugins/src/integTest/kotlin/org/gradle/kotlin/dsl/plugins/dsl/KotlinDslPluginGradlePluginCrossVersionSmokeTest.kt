@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
