@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":build-events"))
     implementation(project(":build-option"))
 
+    implementation(libs.googleTruth)
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
     implementation(libs.groovyDatetime)

@@ -25,7 +25,6 @@ import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
-import org.junit.ComparisonFailure;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -391,7 +390,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        throw new ComparisonFailure(unexpectedOutputMessage(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual)), expected, actual);
+        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
     }
 
     protected void failureOnUnexpectedOutput(String message) {

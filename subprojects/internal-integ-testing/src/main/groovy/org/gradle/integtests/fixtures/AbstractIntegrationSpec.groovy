@@ -634,4 +634,18 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         this.ignoreCleanupAssertions = false
         recreateExecuter()
     }
+
+//    void noPowerAssert(Runnable runnable) {
+//        this.<Closure<Void>>noPowerAssert(new Closure<Void>(this) {
+//            @Override
+//            Void call() {
+//                runnable.run();
+//                return null;
+//            }
+//        });
+//    }
+
+    void noPowerAssert(Closure<Void> cls) {
+        cls.call();
+    }
 }
