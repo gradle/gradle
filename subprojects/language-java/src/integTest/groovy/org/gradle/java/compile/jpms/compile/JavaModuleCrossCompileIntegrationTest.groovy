@@ -34,7 +34,7 @@ class JavaModuleCrossCompileIntegrationTest extends AbstractJavaModuleIntegratio
                 compiledWithJava {
                     sourceCompatibility = '9'
                     targetCompatibility = '9'
-                    classpath = main.compileClasspath
+                    classpath.setFrom(main.compileClasspath)
                 }
             }
         """

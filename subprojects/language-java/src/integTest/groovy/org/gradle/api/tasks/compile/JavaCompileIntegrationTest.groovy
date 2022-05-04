@@ -137,7 +137,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 targetCompatibility = JavaVersion.current()
                 destinationDirectory = file("build/classes")
                 source "src/main/java"
-                classpath = files('${dependencies.join("', '")}')
+                classpath.setFrom(files('${dependencies.join("', '")}'))
             }
         """
     }
@@ -1108,7 +1108,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 destinationDirectory.set(new File(buildDir, "classes/java-custom-path/main"))
                 source = files("src/main/java-custom-path").asFileTree
                 options.sourcepath = files("src/main/java") + files("src/main/java-custom-path")
-                classpath = files()
+                classpath.setFrom(files())
             }
         """
         file("src/main/java/com/example/SourcePathTest.java") << """

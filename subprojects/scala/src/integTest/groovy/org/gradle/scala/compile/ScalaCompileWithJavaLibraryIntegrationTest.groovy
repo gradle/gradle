@@ -48,7 +48,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
             }
             $setup
             tasks.named('compileScala') {
-                classpath = sourceSets.main.compileClasspath
+                classpath.setFrom(sourceSets.main.compileClasspath)
             }
             repositories {
                 mavenCentral()
@@ -66,8 +66,8 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
 
         where:
         configurationStyle | setup
-        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.scala.classesDirectory) }"
-        'eager'            | "compileJava { classpath += files(sourceSets.main.scala.classesDirectory) }"
+        'lazy'             | "tasks.named('compileJava') { classpath.from(files(sourceSets.main.scala.classesDirectory)) }"
+        'eager'            | "compileJava { classpath.from(files(sourceSets.main.scala.classesDirectory)) }"
     }
 
     def "scala and java source directory compilation order can be reversed for a custom source set"() {
@@ -83,10 +83,10 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
             }
 
             tasks.named('compileMySourcesJava') {
-                classpath += files(sourceSets.mySources.scala.classesDirectory)
+                classpath.from files(sourceSets.mySources.scala.classesDirectory)
             }
             tasks.named('compileMySourcesScala') {
-                classpath = sourceSets.mySources.compileClasspath
+                classpath.setFrom(sourceSets.mySources.compileClasspath)
             }
             repositories {
                 mavenCentral()

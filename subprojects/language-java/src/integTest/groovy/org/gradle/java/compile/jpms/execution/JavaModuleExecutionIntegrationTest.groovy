@@ -92,13 +92,13 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             }
             // compile Groovy first
             compileGroovy {
-                classpath = sourceSets.main.compileClasspath
+                classpath.setFrom(sourceSets.main.compileClasspath)
             }
             // We need to patch the previously compiled classes (by the Groovy compile) into the module
             def patchArgs = ['--patch-module', "consumer=\${compileGroovy.destinationDirectory.getAsFile().get().path}"]
             compileJava {
                 options.compilerArgs = patchArgs
-                classpath += files(sourceSets.main.groovy.classesDirectory)
+                classpath.from(files(sourceSets.main.groovy.classesDirectory))
             }
         """
         publishJavaModule('moda')
@@ -123,7 +123,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                classpath = files(jar) + configurations.runtimeClasspath
+                classpath.setFrom(files(jar) + configurations.runtimeClasspath)
                 mainModule.set('consumer')
             }
             tasks.compileJava.configure {
@@ -146,7 +146,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                classpath = files(jar) + configurations.runtimeClasspath
+                classpath.setFrom(files(jar) + configurations.runtimeClasspath)
                 mainModule.set('consumer')
                 mainClass.set('consumer.MainModule')
             }
@@ -175,7 +175,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 def execOperations = project.objects.newInstance(Services).exec
                 doLast {
                     execOperations.javaexec { action ->
-                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.classpath.setFrom(files(jar) + configurations.runtimeClasspath)
                         action.mainModule.set('consumer')
                     }
                 }
@@ -208,7 +208,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 def execOperations = project.objects.newInstance(Services).exec
                 doLast {
                     execOperations.javaexec { action ->
-                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.classpath.setFrom(files(jar) + configurations.runtimeClasspath)
                         action.mainModule.set('consumer')
                         action.mainClass.set('consumer.MainModule')
                     }

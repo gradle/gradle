@@ -25,7 +25,8 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 
 class ScalaPluginTest extends AbstractProjectBuilderSpec {
@@ -87,7 +88,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.tasks['compileScala']
-        task.setClasspath(project.sourceSets.main.compileClasspath)
+        task.getClasspath().setFrom(project.sourceSets.main.compileClasspath)
 
         SourceSet mainSourceSet = project.sourceSets.main
         task  instanceof ScalaCompile
@@ -96,7 +97,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         task not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         def testTask = project.tasks['compileTestScala']
-        testTask.setClasspath(project.sourceSets.test.compileClasspath)
+        testTask.getClasspath().setFrom(project.sourceSets.test.compileClasspath)
 
         def testSourceSet = project.sourceSets.test
         testTask  instanceof ScalaCompile
