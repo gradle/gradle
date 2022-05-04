@@ -120,6 +120,6 @@ public class GroupedTaskFixture {
     }
 
     private List<String> toLines(String string) {
-        return Arrays.asList(string.split(System.getProperty("line.separator")));
+        return Arrays.asList(string.split("\\R"));
     }
 }
