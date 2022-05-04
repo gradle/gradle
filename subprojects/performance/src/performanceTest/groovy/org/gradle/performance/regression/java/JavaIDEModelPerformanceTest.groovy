@@ -22,7 +22,6 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
@@ -31,7 +30,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"])
 )
-@Ignore("SLG-temporarily ignore to build a new nightly")
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {

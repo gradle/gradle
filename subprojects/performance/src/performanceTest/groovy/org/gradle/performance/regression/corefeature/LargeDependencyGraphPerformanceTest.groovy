@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -28,7 +27,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["excludeRuleMergingBuild"])
 )
-@Ignore("SLG-temporarily ignore to build a new nightly")
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     public static final String MIN_MEMORY = "-Xms800m"

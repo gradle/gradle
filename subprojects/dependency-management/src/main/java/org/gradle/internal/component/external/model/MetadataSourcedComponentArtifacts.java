@@ -26,12 +26,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,21 +39,11 @@ import java.util.Set;
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
     public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        Set<VariantResolveMetadata> variants = getVariantResolveMetadata(component, configuration);
-        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, configuration.getVariants(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+        Set<? extends VariantResolveMetadata> variants = getVariantResolveMetadata(component, configuration);
+        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 
-    public static Set<VariantResolveMetadata> getVariantResolveMetadata(ComponentResolveMetadata component, ConfigurationMetadata configuration) {
-        Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
-        if (configuration instanceof SelectedByVariantMatchingConfigurationMetadata && component.getVariantsForGraphTraversal().isPresent()) {
-            for (ConfigurationMetadata configurationMetadata : component.getVariantsForGraphTraversal().get()) {
-                if (configurationMetadata.getCapabilities().equals(configuration.getCapabilities())) {
-                    variants.addAll(configurationMetadata.getVariants());
-                }
-            }
-        } else {
-            variants.addAll(configuration.getVariants());
-        }
-        return variants;
+    public static Set<? extends VariantResolveMetadata> getVariantResolveMetadata(ComponentResolveMetadata component, ConfigurationMetadata configuration) {
+        return configuration.getVariants();
     }
 }
