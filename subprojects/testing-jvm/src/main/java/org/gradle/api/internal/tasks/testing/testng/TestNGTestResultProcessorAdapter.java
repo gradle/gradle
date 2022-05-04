@@ -27,6 +27,9 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.gradle.testing.base.spi.AssertionDetailsProvider;
+import org.gradle.testing.base.spi.AssertionFailureDetails;
+import org.gradle.testing.base.spi.internal.AssertionDetailsManager;
 import org.testng.IMethodInstance;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
@@ -54,11 +57,28 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
     private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
+    private final AssertionDetailsManager assertionDetailsManager;
 
     public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, Clock clock) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
         this.clock = clock;
+        this.assertionDetailsManager = new AssertionDetailsManager(createExtractor(), TestNGTestResultProcessorAdapter.class.getClassLoader());
+    }
+
+    private static AssertionDetailsProvider createExtractor() {
+        return new AssertionDetailsProvider() {
+            @Override
+            public boolean isAssertionType(String className) {
+                return AssertionError.class.getName().equals(className);
+            }
+
+            @Override
+            public AssertionFailureDetails extractAssertionDetails(Throwable failure) {
+                // TestNG only uses java.lang.AssertionError to represent assertion failures
+                return (failure instanceof AssertionError) ? new AssertionFailureDetails(null, null) : null;
+            }
+        };
     }
 
     @Override
@@ -270,11 +290,16 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     }
 
     private void reportTestFailure(Object testId, Throwable rawFailure) {
-        // TestNG only uses java.lang.AssertionError to represent assertion failures
-        if (rawFailure instanceof AssertionError) {
-            resultProcessor.failure(testId, TestFailure.fromTestAssertionFailure(rawFailure, null, null));
+        TestFailure testFailure = createFailure(rawFailure);
+        resultProcessor.failure(testId, testFailure);
+    }
+
+    private TestFailure createFailure(Throwable failure) {
+        AssertionFailureDetails details = assertionDetailsManager.extractDetails(failure);
+        if (details != null) {
+            return TestFailure.fromTestAssertionFailure(failure, details.getExpected(), details.getActual());
         } else {
-            resultProcessor.failure(testId, TestFailure.fromTestFrameworkFailure(rawFailure));
+            return TestFailure.fromTestFrameworkFailure(failure);
         }
     }
 

@@ -29,6 +29,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFailureResult
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOperationResult
+import spock.lang.IgnoreRest
 
 @ToolingApiVersion(">=7.6")
 @TargetGradleVersion(">=7.6")
@@ -430,6 +431,91 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         frameworkFailures[1].stacktrace == frameworkFailures[1].description
     }
 
+    @IgnoreRest
+    def "Can contribute custom test assertion provider"() {
+        setup:
+        settingsFile << 'include "custom-provider"'
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+                testImplementation project(':custom-provider')
+            }
+
+            //test.debug = true // TODO delete
+        """
+        file('custom-provider/build.gradle') << '''
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation gradleApi()
+            }
+        '''
+        file('custom-provider/src/main/resources/META-INF/services/org.gradle.testing.base.spi.AssertionDetailsProvider') << 'CustomProvider'
+        file('custom-provider/src/main/java/CustomProvider.java') << '''
+            import org.gradle.testing.base.spi.*;
+
+            public class CustomProvider implements AssertionDetailsProvider {
+                @Override
+                public boolean isAssertionType(String className) {
+                    return "CustomAssertionFailure".equals(className);
+                }
+
+                @Override
+                public AssertionFailureDetails extractAssertionDetails(Throwable failure) {
+                    return new AssertionFailureDetails(null, null);
+                }
+            }
+        '''
+        file('custom-provider/src/main/java/CustomAssertionFailure.java') << '''
+            class CustomAssertionFailure extends Exception {
+            }
+        '''
+
+
+        file('src/test/java/FailingTest.java') << '''
+            import org.junit.ComparisonFailure;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class FailingTest {
+
+                @Test
+                public void faiWithCustomAssertionFailure() throws CustomAssertionFailure {
+                    throw new CustomAssertionFailure();
+                }
+            }
+        '''
+
+        when:
+        runTestTaskWithFailureCollection()
+
+        then:
+        thrown(BuildException)
+        List<TestAssertionFailure> assertionFailures = failures.findAll { it instanceof TestAssertionFailure }
+        List<TestFrameworkFailure> frameworkFailures = failures.findAll { it instanceof TestFrameworkFailure }
+
+        assertionFailures.size() == 1
+        frameworkFailures.size() == 0
+        failures.size() == assertionFailures.size() + frameworkFailures.size()
+
+        assertionFailures[0].message == null
+        assertionFailures[0].description.length() > 100
+        assertionFailures[0].description.contains('java.lang.AssertionError')
+        assertionFailures[0].causes.empty
+        assertionFailures[0].className == 'java.lang.AssertionError'
+        assertionFailures[0].stacktrace == assertionFailures[0].description
+        assertionFailures[0].expected == null
+        assertionFailures[0].actual == null
+    }
+
     List<Failure> getFailures() {
         progressEventCollector.failures
     }
@@ -438,7 +524,9 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newBuild()
                 .addProgressListener(progressEventCollector)
+                .setJavaHome(new File('C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.292.10-hotspot'))
                 .forTasks('test')
+                .addArguments('--info').setStandardOutput(System.out).setStandardError(System.err) // TODO delete
                 .run()
         }
     }

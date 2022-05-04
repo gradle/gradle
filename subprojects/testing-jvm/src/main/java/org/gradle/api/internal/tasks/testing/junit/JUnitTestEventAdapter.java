@@ -25,6 +25,9 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.gradle.testing.base.spi.AssertionDetailsProvider;
+import org.gradle.testing.base.spi.AssertionFailureDetails;
+import org.gradle.testing.base.spi.internal.AssertionDetailsManager;
 import org.junit.ComparisonFailure;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -46,11 +49,53 @@ public class JUnitTestEventAdapter extends RunListener {
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
     private final Set<Description> assumptionFailed = new HashSet<Description>();
+    private final AssertionDetailsManager assertionDetailsManager;
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
+        this.assertionDetailsManager = new AssertionDetailsManager(createExtractor(), JUnitTestEventAdapter.class.getClassLoader());
+    }
+
+    private static AssertionDetailsProvider createExtractor() {
+        return new AssertionDetailsProvider() {
+
+            @Override
+            public boolean isAssertionType(String className) {
+                return ComparisonFailure.class.getName().equals(className) || junit.framework.ComparisonFailure.class.getName().equals(className) ||  AssertionError.class.getName().equals(className);
+            }
+
+            @Override
+            public AssertionFailureDetails extractAssertionDetails(Throwable failure) {
+                // According to https://junit.org/junit4/javadoc/latest/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
+                // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
+                // - org.junit.ComparisonFailure: when assertEquals (and similar assertion) fails; test code can throw it directly
+                // - junit.framework.ComparisonFailure: for older JUnit tests using JUnit 3.x fixtures
+                // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
+                if (failure instanceof ComparisonFailure) {
+                    ComparisonFailure comparisonFailure = (ComparisonFailure) failure;
+                    return new AssertionFailureDetails(comparisonFailure.getExpected(), comparisonFailure.getActual());
+                } else if (failure instanceof junit.framework.ComparisonFailure) {
+                    junit.framework.ComparisonFailure comparisonFailure = (junit.framework.ComparisonFailure) failure;
+                    return new AssertionFailureDetails(getValueOfStringField("fExpected", comparisonFailure), getValueOfStringField("fActual", comparisonFailure));
+                } else if (failure instanceof AssertionError) {
+                    return new AssertionFailureDetails(null, null);
+                } else {
+                    return null;
+                }
+            }
+
+            private String getValueOfStringField(String name, junit.framework.ComparisonFailure comparisonFailure) {
+                try {
+                    Field f = comparisonFailure.getClass().getDeclaredField(name);
+                    f.setAccessible(true);
+                    return (String) f.get(comparisonFailure);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        };
     }
 
     @Override
@@ -86,31 +131,16 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void reportFailure(Object descriptorId, Throwable failure) {
-        // According to https://junit.org/junit4/javadoc/latest/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
-        // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
-        // - org.junit.ComparisonFailure: when assertEquals (and similar assertion) fails; test code can throw it directly
-        // - junit.framework.ComparisonFailure: for older JUnit tests using JUnit 3.x fixtures
-        // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
-        if (failure instanceof ComparisonFailure) {
-            ComparisonFailure comparisonFailure = (ComparisonFailure) failure;
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, comparisonFailure.getExpected(), comparisonFailure.getActual()));
-        } else if (failure instanceof junit.framework.ComparisonFailure) {
-            junit.framework.ComparisonFailure comparisonFailure = (junit.framework.ComparisonFailure) failure;
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, getValueOfStringField("fExpected", comparisonFailure), getValueOfStringField("fActual", comparisonFailure)));
-        } else if (failure instanceof AssertionError) {
-            resultProcessor.failure(descriptorId, TestFailure.fromTestAssertionFailure(failure, null, null));
-        } else {
-            resultProcessor.failure(descriptorId, TestFailure.fromTestFrameworkFailure(failure));
-        }
+        TestFailure testFailure = createFailure(failure);
+        resultProcessor.failure(descriptorId, testFailure);
     }
 
-    private String getValueOfStringField(String name, junit.framework.ComparisonFailure comparisonFailure) {
-        try {
-            Field f = comparisonFailure.getClass().getDeclaredField(name);
-            f.setAccessible(true);
-            return (String) f.get(comparisonFailure);
-        } catch (Exception e) {
-            return null;
+    private TestFailure createFailure(Throwable failure) {
+        AssertionFailureDetails details = assertionDetailsManager.extractDetails(failure);
+        if (details != null) {
+            return TestFailure.fromTestAssertionFailure(failure, details.getExpected(), details.getActual());
+        } else {
+            return TestFailure.fromTestFrameworkFailure(failure);
         }
     }
 

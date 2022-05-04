@@ -27,9 +27,13 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.Pair;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.gradle.testing.base.spi.AssertionDetailsProvider;
+import org.gradle.testing.base.spi.AssertionFailureDetails;
+import org.gradle.testing.base.spi.internal.AssertionDetailsManager;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -57,12 +61,34 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
+    private final AssertionDetailsManager assertionDetailsManager;
     private TestPlan currentTestPlan;
 
     public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
+        this.assertionDetailsManager = new AssertionDetailsManager(createExtractor(), JUnitPlatformTestExecutionListener.class.getClassLoader());
+    }
+
+    private static AssertionDetailsProvider createExtractor() {
+        return new AssertionDetailsProvider() {
+            @Override
+            public boolean isAssertionType(String className) {
+                return AssertionError.class.getName().equals(className);
+            }
+
+            @Override
+            public AssertionFailureDetails extractAssertionDetails(Throwable failure) {
+                // According to https://ota4j-team.github.io/opentest4j/docs/current/api/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
+                // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
+                // - org.opentest4j.AssertionFailedError: when an assertEquals fails
+                // - org.opentest4j.MultipleFailuresError: when multiple assertion fails at the same time
+                // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
+                // Also, openTest4j classes are not on the worker compile classpath, so we need to resort to using reflection.
+                return (failure instanceof AssertionError) ? new AssertionFailureDetails(reflectivelyReadExpected(failure), reflectivelyReadActual(failure)) : null;
+            }
+        };
     }
 
     @Override
@@ -124,19 +150,13 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         resultProcessor.failure(getId(testIdentifier), testFailure);
     }
 
-    private static TestFailure createFailure(Throwable failure) {
-        // According to https://ota4j-team.github.io/opentest4j/docs/current/api/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
-        // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
-        // - org.opentest4j.AssertionFailedError: when an assertEquals fails
-        // - org.opentest4j.MultipleFailuresError: when multiple assertion fails at the same time
-        // All assertion errors are subclasses of the AssertionError class. If the received failure is not an instance of AssertionError then it is categorized as a framework failure.
-        // Also, openTest4j classes are not on the worker compile classpath so we need to resort to using reflection.
-        if (failure instanceof AssertionError) {
-            List<Throwable> causes = getFailureListFromMultipleFailuresError(failure);
-            List<TestFailure> causeFailures = causes == null ? Collections.emptyList() : causes.stream().map(f -> createFailure(f)).collect(Collectors.toList());
-            String expected = reflectivelyReadExpected(failure);
-            String actual = reflectivelyReadActual(failure);
-            return TestFailure.fromTestAssertionFailure(failure, expected, actual, causeFailures);
+    private TestFailure createFailure(Throwable failure) {
+        List<Throwable> causes = getFailureListFromMultipleFailuresError(failure);
+        List<TestFailure> causeFailures = causes == null ? Collections.emptyList() : causes.stream().map(f -> createFailure(f)).collect(Collectors.toList());
+
+        AssertionFailureDetails details = assertionDetailsManager.extractDetails(failure);
+        if (details != null) {
+            return TestFailure.fromTestAssertionFailure(failure, details.getExpected(), details.getActual(), causeFailures);
         } else {
             return TestFailure.fromTestFrameworkFailure(failure);
         }
