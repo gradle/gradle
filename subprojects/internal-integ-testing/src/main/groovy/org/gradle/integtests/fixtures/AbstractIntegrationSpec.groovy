@@ -635,16 +635,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
-//    void noPowerAssert(Runnable runnable) {
-//        this.<Closure<Void>>noPowerAssert(new Closure<Void>(this) {
-//            @Override
-//            Void call() {
-//                runnable.run();
-//                return null;
-//            }
-//        });
-//    }
-
+    /**
+     * This method exists as a workaround to avoid Spock printing power assertions when a comparison fails.
+     * <p>
+     * Any <strong>methods</strong> called in this block which do <strong>not</strong> make use of the {@code assert} statement
+     * will not cause a power assertion to be thrown upon failure.
+     * @see <a href="https://gist.github.com/tresat/716208856bbe01ed827c2aec5a847266">some examples</a>
+     *
+     * @param cls the code to be exercised containing methods which throw exceptions upon failure
+     */
     void noPowerAssert(Closure<Void> cls) {
         cls.call();
     }
