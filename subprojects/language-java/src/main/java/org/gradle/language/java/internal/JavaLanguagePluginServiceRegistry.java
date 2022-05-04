@@ -99,7 +99,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
                     (abstractCompile, value) -> abstractCompile.getSourceCompatibility().set(value)
                 );
             upgradeManager
-                .matchProperty(AbstractCompile.class, FileCollection.class, "classpath", ImmutableList.of(JavaCompile.class.getName(), "org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile"))
+                .matchProperty(AbstractCompile.class, FileCollection.class, "classpath", ImmutableList.of(JavaCompile.class.getName(), "org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"))
                 .replaceWith(
                     AbstractCompile::getClasspath,
                     (abstractCompile, value) -> abstractCompile.getClasspath().setFrom(value)
