@@ -97,7 +97,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def task = project.tasks['compileGroovy']
-        task.classpath = project.sourceSets.main.compileClasspath
+        task.classpath.setFrom(project.sourceSets.main.compileClasspath)
 
         then:
         task instanceof GroovyCompile
@@ -106,7 +106,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         task = project.tasks['compileTestGroovy']
-        task.classpath = project.sourceSets.test.compileClasspath
+        task.classpath.setFrom(project.sourceSets.test.compileClasspath)
 
         then:
         task instanceof GroovyCompile

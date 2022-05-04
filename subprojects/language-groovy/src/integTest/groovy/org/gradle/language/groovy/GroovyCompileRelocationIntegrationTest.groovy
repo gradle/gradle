@@ -52,7 +52,7 @@ class GroovyCompileRelocationIntegrationTest extends ForkCapableRelocationIntegr
                 targetCompatibility = JavaVersion.current()
                 destinationDirectory = file("build/classes")
                 source "src/main/groovy"
-                classpath = files()
+                classpath.from(files())
                 groovyClasspath = files('libs')
             }
         """

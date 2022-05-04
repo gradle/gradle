@@ -64,7 +64,7 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
             }
             $setup
             tasks.named('compileGroovy') {
-                classpath = sourceSets.main.compileClasspath
+                classpath.setFrom(sourceSets.main.compileClasspath)
             }
             dependencies {
                 implementation localGroovy()
@@ -79,8 +79,8 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
 
         where:
         configurationStyle | setup
-        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.groovy.classesDirectory) }"
-        'eager'            | "compileJava { classpath += files(sourceSets.main.groovy.classesDirectory) }"
+        'lazy'             | "tasks.named('compileJava') { classpath.from(files(sourceSets.main.groovy.classesDirectory)) }"
+        'eager'            | "compileJava { classpath.from(files(sourceSets.main.groovy.classesDirectory)) }"
     }
 
     def "groovy and java source directory compilation order can be reversed for a custom source set"() {
@@ -96,10 +96,10 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
             }
 
             tasks.named('compileMySourcesJava') {
-                classpath += files(sourceSets.mySources.groovy.classesDirectory)
+                classpath.from(files(sourceSets.mySources.groovy.classesDirectory))
             }
             tasks.named('compileMySourcesGroovy') {
-                classpath = sourceSets.mySources.compileClasspath
+                classpath.setFrom(sourceSets.mySources.compileClasspath)
             }
             dependencies {
                 mySourcesImplementation localGroovy()
@@ -125,7 +125,7 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
 
             task compile(type: GroovyCompile) {
                 source ${sourceFiles.collect { "'src/main/groovy/$it'" }.join(", ")}
-                classpath = configurations.compile
+                classpath.setFrom(configurations.compile)
                 groovyClasspath = configurations.compile
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()

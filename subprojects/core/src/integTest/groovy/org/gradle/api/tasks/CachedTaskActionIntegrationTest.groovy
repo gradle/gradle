@@ -104,7 +104,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 source "src/main/java"
-                classpath = files()
+                classpath.setFrom(files())
             }
         """
 
