@@ -92,7 +92,7 @@ public final class LineSearchFailures {
      */
     public static final class PotentialMatchesExistComparisonFailure extends AbstractLineListComparisonFailure {
         @VisibleForTesting
-        /* package */ static final String HEADER = "Lines not found.  Similar sections:\n\n";
+        /* package */ static final String HEADER = "Lines not found.  Similar sections:";
         private static final int DEFAULT_LEADING_CONTEXT_LINES = 3;
         private static final int DEFAULT_TRAILING_CONTEXT_LINES = 3;
         private final Collection<PotentialMatch> potentialMatches;
@@ -115,9 +115,9 @@ public final class LineSearchFailures {
         @Override
         public String getMessage() {
             if (useUnifiedDiff) {
-                return HEADER + DiffUtilsAccess.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines).stream().collect(Collectors.joining("\n"));
+                return HEADER + "\n\n" + DiffUtilsAccess.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines).stream().collect(Collectors.joining("\n"));
             } else {
-                return HEADER + potentialMatches.stream().map(pm -> pm.buildContext(maxLeadingContextLines)).collect(Collectors.joining("\n"));
+                return HEADER + "\n\n" + potentialMatches.stream().map(pm -> pm.buildContext(maxLeadingContextLines)).collect(Collectors.joining("\n"));
             }
         }
 
