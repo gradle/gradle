@@ -75,6 +75,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         dm.getDefaultLibrariesExtensionName().finalizeValue();
         String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
         File dependenciesFile = new File(settings.getSettingsDir(), "gradle/libs.versions.toml");
+        // TODO:configuration-cache causes test failures (see "configuration cache for help on empty project")
         if (dependenciesFile.exists()) {
             dm.versionCatalogs(catalogs -> {
                 VersionCatalogBuilder builder = catalogs.findByName(defaultLibrary);
