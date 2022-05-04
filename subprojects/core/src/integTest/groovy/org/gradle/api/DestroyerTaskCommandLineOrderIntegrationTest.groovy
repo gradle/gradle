@@ -360,9 +360,13 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         then:
         result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+
+        // cleanFoo must run after generateFoo, as cleanFoo finalizes generateFoo
+        // cleanFoo must run after generate, as cleanFoo destroys an output produced by generateFoo and consumed by generate
+        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath, cleanFoo.fullPath, clean.fullPath)
+
+        // cleanBar depends on cleanFoo, but cleanFoo must run after generate (per above)
+        result.assertTaskOrder(generateBar.fullPath, generate.fullPath, cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
 
         where:
         type << ProductionType.values()
