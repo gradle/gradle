@@ -196,10 +196,6 @@ class RecordingVariantSet(
         return ImmutableCapabilities.EMPTY
     }
 
-    override fun isLegacyResolvableConfiguration(): Boolean {
-        return false
-    }
-
     override fun visitDependencies(context: TaskDependencyResolveContext) {
         throw UnsupportedOperationException("Should not be called")
     }

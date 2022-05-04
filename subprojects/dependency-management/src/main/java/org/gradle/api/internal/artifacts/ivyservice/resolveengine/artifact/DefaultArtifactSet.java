@@ -41,7 +41,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ModuleSources;
@@ -130,12 +129,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             identifier = null;
         }
 
-        boolean isLegacyConfiguration = false;
-        if (variant instanceof LocalConfigurationMetadata) {
-            isLegacyConfiguration = ((LocalConfigurationMetadata) variant).isCanBeResolved();
-        }
-
-        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifactsToResolve, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory), isLegacyConfiguration);
+        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifactsToResolve, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory));
     }
 
     private static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
