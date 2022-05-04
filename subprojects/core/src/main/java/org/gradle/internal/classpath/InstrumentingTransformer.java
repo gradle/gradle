@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
@@ -534,7 +535,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private boolean isGradleLambdaDescriptor(String descriptor) {
             return descriptor.endsWith(ACTION_LAMBDA_SUFFIX)
-                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX);
+                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX)
+                || descriptor.endsWith(TRANSFORMER_LAMBDA_SUFFIX);
         }
 
         private String binaryClassNameOf(String className) {
@@ -543,6 +545,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();
         private static final String SPEC_LAMBDA_SUFFIX = ")" + getType(Spec.class).getDescriptor();
+        private static final String TRANSFORMER_LAMBDA_SUFFIX = ")" + getType(Transformer.class).getDescriptor();
     }
 
     private static class LambdaFactoryDetails {
