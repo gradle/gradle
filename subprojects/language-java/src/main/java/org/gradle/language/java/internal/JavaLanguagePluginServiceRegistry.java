@@ -17,7 +17,6 @@
 package org.gradle.language.java.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
@@ -98,12 +97,6 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
                     .replaceWith(
                         abstractCompile -> abstractCompile.getSourceCompatibility().get(),
                         (abstractCompile, value) -> abstractCompile.getSourceCompatibility().set(value)
-                    );
-                upgradeManager
-                    .matchProperty(compileClass, FileCollection.class, "classpath", Collections.singletonList("org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile"))
-                    .replaceWith(
-                        AbstractCompile::getClasspath,
-                        (abstractCompile, value) -> abstractCompile.getClasspath().setFrom(value)
                     );
             }
         }
