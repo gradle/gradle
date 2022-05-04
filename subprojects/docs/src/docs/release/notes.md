@@ -112,6 +112,17 @@ The report now uses a table to display variants, which makes it easier to tell w
 5. Attributes only requested by the configuration only contain text in the "Requested" column
 6. The table is sorted first by groups (3), (4), and (5); then alphabetically inside each group.
 
+<a name="dependency-resolution-results-task-inputs"></a>
+### Dependency resolution results can be used as task inputs
+
+Starting with Gradle 7.5 it is now possible to declare dependency resolution results as task inputs.
+
+This allows writing tasks which consume dependency resolution results.
+Declaring such inputs instead of doing undeclared dependency resolution in task actions allows Gradle to optimise for build incrementality and create opportunities for more features.
+In particular, these new types of task inputs are fully supported by the [configuration cache](userguide/configuration_cache.html).
+
+You can learn more in the [Authoring Tasks](userguide/more_about_tasks.html#sec:task_input_using_dependency_resolution_results) user manual chapter and with the dedicated [sample](samples/sample_tasks_with_dependency_resolution_result_inputs.html).
+
 <a name="configuration-cache-improvements"></a>
 ### Configuration cache improvements
 
@@ -139,6 +150,12 @@ Since the automatic build configuration inputs detection was introduced in Gradl
 
 Two new options are now available to mitigate that. For simpler use cases, there are the Provider-based APIs to access [system properties](javadoc/org/gradle/api/provider/ProviderFactory.html#systemPropertiesPrefixedBy-java.lang.String-) or [environment variables](javadoc//org/gradle/api/provider/ProviderFactory.html#environmentVariablesPrefixedBy-java.lang.String-) with names starting with some prefix. Advanced processing, like filtering names with regular expression, can be done inside a custom [`ValueSource`](javadoc/org/gradle/api/provider/ValueSource.html) implementation. Reading a file, an environment variable, or a system property no longer adds a build configuration input inside the implementation of the `ValueSource`. The value of the `ValueSource` is recomputed each time the build runs, and the configuration cache entry is only invalidated if the value changes.
 
+#### New compatible plugins and tasks
+
+The [`kotlin-dsl`](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) plugin is now compatible with the configuration cache.
+
+The `dependencyInsight`, `outgoingVariants` and `resolvableConfigurations` tasks are now compatible with the configuration cache.
+
 ### JVM toolchains improvements
 
 [Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
@@ -150,14 +167,6 @@ By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:au
 Gradle now checks the Adoptium API first when downloading JDKs, rather than only using the legacy AdoptOpenJDK API. This allows downloading the new JDK 18 releases, which are not available via AdoptOpenJDK, while still maintaining the ability to download versions that are no longer supported by Adoptium, such as JDK 9-10 and 12-16.
 
 There is a new Gradle property `org.gradle.jvm.toolchain.install.adoptium.baseUri` to control the Adoptium base URI. This is in addition to the`org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri` property, which is still used if a JDK is not found in the Adoptium API.
-
-### Dependency resolution results can be used as task inputs
-
-Starting with Gradle 7.5 it is now possible to declare dependency resolution results as task inputs.
-
-You can learn more in the [Authoring Tasks](userguide/more_about_tasks.html#sec:task_input_using_dependency_resolution_results) user manual chapter and with the dedicated [sample](samples/sample_tasks_with_dependency_resolution_result_inputs.html).
-
-These new types of task inputs also comes with support for the [configuration cache](userguide/configuration_cache.html).
 
 ### Description available on secondary variants
 
