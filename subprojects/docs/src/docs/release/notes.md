@@ -115,11 +115,17 @@ The report now uses a table to display variants, which makes it easier to tell w
 <a name="dependency-resolution-results-task-inputs"></a>
 ### Dependency resolution results can be used as task inputs
 
+Tasks may need to access dependency resolution results.
+For example, built-in tasks like `dependencies` and `dependencyInsight` do so in order to provide reporting about resolved artifacts and dependency graphs.
+Other tasks may produce file outputs based on dependency resolution results.
+Previously, it was only possible by performing dependency resolution in a task action.
+However, this resulted in suboptimal performance.
+
 Starting with Gradle 7.5 it is now possible to declare dependency resolution results as task inputs.
 
 This allows writing tasks which consume dependency resolution results.
-Declaring such inputs instead of doing undeclared dependency resolution in task actions allows Gradle to optimise for build incrementality and create opportunities for more features.
-In particular, these new types of task inputs are fully supported by the [configuration cache](userguide/configuration_cache.html).
+Declaring such inputs instead of doing undeclared dependency resolution in task actions allows Gradle to optimise for build incrementality.
+Additionally, these new types of task inputs are fully supported by the [configuration cache](userguide/configuration_cache.html).
 
 You can learn more in the [Authoring Tasks](userguide/more_about_tasks.html#sec:task_input_using_dependency_resolution_results) user manual chapter and with the dedicated [sample](samples/sample_tasks_with_dependency_resolution_result_inputs.html).
 
