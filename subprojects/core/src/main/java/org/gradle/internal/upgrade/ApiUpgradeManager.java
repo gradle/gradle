@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -52,7 +54,7 @@ public class ApiUpgradeManager {
         return new MethodReplacer() {
             @Override
             public <R> void replaceWith(ReplacementLogic<R> replacement) {
-                replacements.add(new MethodReplacement<>(type, returnType, methodName, argumentTypes, replacement));
+                replacements.add(new MethodReplacement<>(type, Collections.emptyList(), returnType, methodName, argumentTypes, replacement));
             }
         };
     }
@@ -62,6 +64,9 @@ public class ApiUpgradeManager {
     }
 
     public <T, P> PropertyReplacer<T, P> matchProperty(Class<T> type, Class<P> propertyType, String propertyName) {
+        return matchProperty(type, propertyType, propertyName, Collections.emptyList());
+    }
+    public <T, P> PropertyReplacer<T, P> matchProperty(Class<T> type, Class<P> propertyType, String propertyName, Collection<String> additionalTypes) {
         return new PropertyReplacer<T, P>() {
             @Override
             public void replaceWith(
@@ -72,17 +77,18 @@ public class ApiUpgradeManager {
                 String getterPrefix = propertyType.equals(boolean.class)
                     ? "is"
                     : "get";
-                addGetterReplacement(type, propertyType, getterPrefix + capitalizedPropertyName, getterReplacement);
-                addSetterReplacement(type, propertyType, "set" + capitalizedPropertyName, setterReplacement);
+                addGetterReplacement(type, additionalTypes, propertyType, getterPrefix + capitalizedPropertyName, getterReplacement);
+                addSetterReplacement(type, additionalTypes, propertyType, "set" + capitalizedPropertyName, setterReplacement);
                 addGroovyPropertyReplacement(type, propertyName, getterReplacement, setterReplacement);
             }
         };
     }
 
     @SuppressWarnings("unchecked")
-    private <T, P> void addGetterReplacement(Class<T> type, Class<P> propertyType, String getterName, Function<? super T, ? extends P> getterReplacement) {
+    private <T, P> void addGetterReplacement(Class<T> type, Collection<String> additionalTypes, Class<P> propertyType, String getterName, Function<? super T, ? extends P> getterReplacement) {
         replacements.add(new MethodReplacement<P>(
             type,
+            additionalTypes,
             Type.getType(propertyType),
             getterName,
             new Type[]{},
@@ -90,9 +96,10 @@ public class ApiUpgradeManager {
     }
 
     @SuppressWarnings("unchecked")
-    private <T, P> void addSetterReplacement(Class<T> type, Class<P> propertyType, String setterName, BiConsumer<? super T, ? super P> setterReplacement) {
+    private <T, P> void addSetterReplacement(Class<T> type, Collection<String> additionalTypes, Class<P> propertyType, String setterName, BiConsumer<? super T, ? super P> setterReplacement) {
         replacements.add(new MethodReplacement<Void>(
             type,
+            additionalTypes,
             Type.VOID_TYPE,
             setterName,
             new Type[]{Type.getType(propertyType)},
