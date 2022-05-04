@@ -588,18 +588,31 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         // If no nodes are ready and nothing is running, then cannot make progress
         boolean cannotMakeProgress = state == State.NoWorkReadyToStart && runningNodes.isEmpty();
         if (cannotMakeProgress) {
-            List<String> nodes = new ArrayList<>(executionQueue.size());
+            List<String> queuedNodes = new ArrayList<>(executionQueue.size());
+            List<String> otherNodes = new ArrayList<>();
+            List<Node> queue = new ArrayList<>();
+            Set<Node> reported = new HashSet<>();
             executionQueue.restart();
             while (executionQueue.hasNext()) {
                 Node node = executionQueue.next();
-                if (node.getPrepareNode() != null) {
-                    nodes.add(node.getPrepareNode().healthDiagnostics());
+                queuedNodes.add(node.healthDiagnostics());
+                reported.add(node);
+                for (Node successor : node.getAllSuccessors()) {
+                    queue.add(successor);
                 }
-                nodes.add(node.healthDiagnostics());
             }
-            return new Diagnostics(false, nodes);
+            while (!queue.isEmpty()) {
+                Node node = queue.remove(0);
+                if (reported.add(node)) {
+                    otherNodes.add(node.healthDiagnostics());
+                    for (Node successor : node.getAllSuccessors()) {
+                        queue.add(successor);
+                    }
+                }
+            }
+            return new Diagnostics(displayName, false, queuedNodes, otherNodes);
         } else {
-            return new Diagnostics(true, Collections.emptyList());
+            return new Diagnostics(displayName);
         }
     }
 

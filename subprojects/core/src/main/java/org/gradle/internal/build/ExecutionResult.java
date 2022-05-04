@@ -22,7 +22,9 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class ExecutionResult<T> {
     private static final Success<Void> SUCCESS = new Success<Void>() {
@@ -175,10 +177,10 @@ public abstract class ExecutionResult<T> {
             if (otherResult.getFailures().isEmpty()) {
                 return this;
             }
-            ImmutableList.Builder<Throwable> builder = ImmutableList.builder();
-            builder.addAll(failures);
-            builder.addAll(otherResult.getFailures());
-            return new Failure<>(builder.build());
+            Set<Throwable> mergedFailures = new LinkedHashSet<>();
+            mergedFailures.addAll(failures);
+            mergedFailures.addAll(otherResult.getFailures());
+            return new Failure<>(ImmutableList.copyOf(mergedFailures));
         }
 
         @Override
