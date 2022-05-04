@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.logging
 
 import org.gradle.integtests.fixtures.executer.LogContent
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.PotentialMatchesExistComparisonFailure
 import spock.lang.Specification
 
 class GroupedOutputFixtureTest extends Specification {
@@ -406,5 +407,31 @@ Hello, World!
 
         then:
         noExceptionThrown()
+    }
+
+    def "test assertOutputContainsLines"() {
+        given:
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContainsLines(Arrays.asList("eggs", "bacon"))
+
+        then:
+        PotentialMatchesExistComparisonFailure e = thrown(PotentialMatchesExistComparisonFailure)
+        e.getNumPotentialMatches() == 2
     }
 }
