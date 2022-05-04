@@ -1068,11 +1068,10 @@ Artifacts
         run ':outgoingVariants', '--variant', 'runtimeElements'
 
         then:
-        result.groupedOutput.task(":outgoingVariants").assertOutputContainsLines("""--------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Elements of runtime for main.
-This line should NOT be here!
 
 Capabilities
     - org.test:extra:1.0
