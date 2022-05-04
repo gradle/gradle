@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -53,7 +52,6 @@ import org.gradle.internal.management.VersionCatalogBuilderInternal;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -261,7 +259,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             );
         }
     }
-
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
@@ -279,9 +276,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                     .documented()
             );
         }
-        Instrumented.fileObserved(modelFile, getClass().getName());
+        //
+        Instrumented.fileOpened(modelFile, DefaultVersionCatalogBuilder.class.getName());
         try {
-            TomlCatalogFileParser.parse(new ByteArrayInputStream(Files.toByteArray(modelFile)), this);
+            TomlCatalogFileParser.parse(modelFile.toPath(), this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
