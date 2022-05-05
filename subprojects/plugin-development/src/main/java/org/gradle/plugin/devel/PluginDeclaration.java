@@ -31,7 +31,8 @@ import java.util.Collections;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-public class PluginDeclaration implements Named, Serializable {
+public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
+
     private final String name;
     private String id;
     private String implementationClass;
@@ -72,7 +73,6 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
-    @Nullable
     public String getDisplayName() {
         return displayName;
     }
@@ -97,7 +97,6 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
-    @Nullable
     public String getDescription() {
         return description;
     }

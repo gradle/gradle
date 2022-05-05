@@ -61,10 +61,13 @@ import java.util.Set;
  */
 public class GradlePluginDevelopmentExtension {
 
-    private SourceSet pluginSourceSet;
     private final SourceSetContainer testSourceSets;
-    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
+    private SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
+
+    private String website;
+    private String vcsUrl;
+    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
         this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
@@ -130,6 +133,38 @@ public class GradlePluginDevelopmentExtension {
      */
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
+    }
+
+    /**
+     * Returns the URL for the plugin's website.
+     *
+     * @return the plugin's website
+     */
+    public String getWebsite() {
+        return website;
+    }
+
+    /**
+     * Sets the URL for the plugin's website.
+     */
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    /**
+     * Returns the URL for the plugin's VCS repository.
+     *
+     * @return the plugin's VCS repository
+     */
+    public String getVcsUrl() {
+        return vcsUrl;
+    }
+
+    /**
+     * Sets the URL for the plugin's VCS repository.
+     */
+    public void setVcsUrl(String vcsUrl) {
+        this.vcsUrl = vcsUrl;
     }
 
     /**
