@@ -136,6 +136,23 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.hs")
     }
 
+    def "select any implementation, with no preference" () {
+        given:
+        def registry = createInstallationRegistry(["8.0.2.j9", "8.0.1.hs"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        filter.implementation.set(JvmImplementation.ANY)
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.2.j9")
+    }
+
     def "ignores invalid toolchains when finding a matching one"() {
         given:
         def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "8.0.broken"])

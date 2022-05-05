@@ -25,6 +25,14 @@ package org.gradle.jvm.toolchain;
 public final class JvmImplementation {
 
     /**
+     * Any virtual machine implementation.
+     *
+     * Matches any implementation from any vendor.
+     * Does not prefer a "vendor-specific" implementation over known implementations.
+     */
+    public static final JvmImplementation ANY = new JvmImplementation("any");
+
+    /**
      * Vendor-specific virtual machine implementation.
      *
      * Acts as a placeholder and matches any implementation from any vendor.

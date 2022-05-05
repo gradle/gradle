@@ -41,8 +41,10 @@ public class ToolchainMatcher implements Predicate<JavaToolchain> {
 
     private Predicate<? super JavaToolchain> implementationPredicate() {
         return toolchain -> {
+            final JvmImplementation requested = filter.getImplementation().get();
+            if (requested == JvmImplementation.ANY) return true;
             final boolean isJ9Vm = toolchain.getMetadata().hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
-            final boolean j9Requested = filter.getImplementation().get() == JvmImplementation.J9;
+            final boolean j9Requested = requested == JvmImplementation.J9;
             return j9Requested == isJ9Vm;
         };
     }
