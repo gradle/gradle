@@ -21,7 +21,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
     def setup() {
         buildFile << """
         tasks.withType(JavaCompile) {
-            options.compilerArgs << '-Xlint:all' << '-Werror'
+            options.compilerArgs.addAll('-Xlint:all', '-Werror')
         }
 """
     }
