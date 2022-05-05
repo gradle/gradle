@@ -53,7 +53,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def variantSet = Mock(ResolvedVariantSet) {
         asDescribable() >> Describables.of("mock producer")
         getVariants() >> [variant]
-        getVariantsForGraph() >> [variant]
     }
     def factory = Mock(VariantSelector.Factory)
 
@@ -124,7 +123,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant]
-            getVariantsForGraph() >> [variant, otherVariant]
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
@@ -159,7 +157,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant]
-            getVariantsForGraph() >> [variant, otherVariant]
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
@@ -193,7 +190,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant]
-            getVariantsForGraph() >> [variant, otherVariant]
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
@@ -231,7 +227,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant, yetAnotherVariant]
-            getVariantsForGraph() >> [variant, otherVariant, yetAnotherVariant]
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
@@ -274,7 +269,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant, yetAnotherVariant]
-            getVariantsForGraph() >> [variant, otherVariant, yetAnotherVariant]
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
@@ -316,7 +310,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant, yetAnotherVariant]
-            getVariantsForGraph() >> [variant, otherVariant, yetAnotherVariant]
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)

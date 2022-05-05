@@ -17,11 +17,10 @@
 package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.IgnoreIf
+import spock.lang.Ignore
 
-@IgnoreIf({ GradleContextualExecuter.configCache }) // ResolvedArtifactResult as task input
+@Ignore("The functionality for these tests were removed from release")
 class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpModule direct
     MavenHttpModule transitive

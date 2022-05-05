@@ -30,7 +30,7 @@ import org.junit.Test
 class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     fun `declare dependency constraints`() {
 
         withFile("repo/in-block/accessor-1.0.jar")
