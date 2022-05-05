@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r76
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
@@ -188,6 +189,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             ${mavenCentralRepository()}
 
             dependencies {
+                testImplementation 'junit:junit:4.13.2'
                 testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
                 testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
             }
@@ -264,7 +266,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         frameworkFailures[0].stacktrace == frameworkFailures[0].description
     }
 
-    def "Emits test failure events for Junit 5 tests with MultipleFailuresError"() {
+    def "Emits single failure with multiple causes for multiple failures error"() {
         setup:
         buildFile << """
             plugins {
@@ -276,6 +278,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
                 testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+                testImplementation 'org.assertj:assertj-core:3.22.0'
             }
 
             test {
@@ -299,6 +302,39 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             }
         '''
 
+        file('src/test/java/org/gradle/AssertjMultipleFailureException.java') << '''
+            package org.gradle;
+
+            import org.assertj.core.error.MultipleAssertionsError;
+            import org.junit.jupiter.api.Test;
+
+            import java.util.ArrayList;
+            import java.util.List;
+
+            import static org.assertj.core.api.Assertions.assertThat;
+            import static org.junit.jupiter.api.Assertions.assertAll;
+            import static org.junit.jupiter.api.Assertions.assertEquals;
+
+            public class AssertjMultipleFailureException {
+
+                    @Test
+                    void assertJ() {
+                        List<AssertionError> errors = new ArrayList<>();
+                        try {
+                            assertThat("actual1").describedAs("message1").isEqualTo("expected1");
+                        } catch (AssertionError e) {
+                            errors.add(e);
+                        }
+                        try {
+                            assertThat(23).describedAs("message2").isEqualTo(42);
+                        } catch (AssertionError e) {
+                            errors.add(e);
+                        }
+                        throw new MultipleAssertionsError(errors);
+                    }
+            }
+        '''
+
         when:
         runTestTaskWithFailureCollection()
 
@@ -307,37 +343,70 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         List<TestAssertionFailure> assertionFailures = failures.findAll { it instanceof TestAssertionFailure }
         List<TestFrameworkFailure> frameworkFailures = failures.findAll { it instanceof TestFrameworkFailure }
 
-        assertionFailures.size() == 1
+        assertionFailures.size() == 2
         frameworkFailures.size() == 0
         failures.size() == assertionFailures.size() + frameworkFailures.size()
 
+        // org.assertj.core.error.MultipleAssertionsError
+        assertionFailures[0].message.contains("The following 2 assertions failed:")
         assertionFailures[0].description.length() > 100
-        assertionFailures[0].description.contains('Multiple Failures')
+        assertionFailures[0].description.contains('org.assertj.core.error.MultipleAssertionsError')
+        assertionFailures[0].description.contains('The following 2 assertions failed:')
         assertionFailures[0].causes.size() == 2
-        assertionFailures[0].className == 'org.opentest4j.MultipleFailuresError'
+        assertionFailures[0].className == 'org.assertj.core.error.MultipleAssertionsError'
+        assertionFailures[0].stacktrace == assertionFailures[0].description
         assertionFailures[0].stacktrace == assertionFailures[0].description
         assertionFailures[0].expected == null
         assertionFailures[0].actual == null
 
         assertionFailures[0].causes[0] instanceof TestAssertionFailure
-        assertionFailures[0].causes[0].message == "expected: <myExpected> but was: <myActual>"
+        TextUtil.normaliseLineSeparators(assertionFailures[0].causes[0].message) == '[message1] \nexpected: "expected1"\n but was: "actual1"'
         assertionFailures[0].causes[0].description.length() > 100
         assertionFailures[0].causes[0].description.contains('org.opentest4j.AssertionFailedError')
         assertionFailures[0].causes[0].causes.empty
         assertionFailures[0].causes[0].className == 'org.opentest4j.AssertionFailedError'
         assertionFailures[0].causes[0].stacktrace == assertionFailures[0].causes[0].description
-        assertionFailures[0].causes[0].expected == 'myExpected'
-        assertionFailures[0].causes[0].actual == 'myActual'
+        assertionFailures[0].causes[0].expected == '"expected1"'
+        assertionFailures[0].causes[0].actual == '"actual1"'
 
         assertionFailures[0].causes[1] instanceof TestAssertionFailure
-        assertionFailures[0].causes[1].message == "expected: <myOtherExpected> but was: <myOtherActual>"
+        TextUtil.normaliseLineSeparators(assertionFailures[0].causes[1].message) == '[message2] \nexpected: 42\n but was: 23'
         assertionFailures[0].causes[1].description.length() > 100
         assertionFailures[0].causes[1].description.contains('org.opentest4j.AssertionFailedError')
         assertionFailures[0].causes[1].causes.empty
         assertionFailures[0].causes[1].className == 'org.opentest4j.AssertionFailedError'
         assertionFailures[0].causes[1].stacktrace == assertionFailures[0].causes[1].description
-        assertionFailures[0].causes[1].expected == 'myOtherExpected'
-        assertionFailures[0].causes[1].actual == 'myOtherActual'
+        assertionFailures[0].causes[1].expected == '42'
+        assertionFailures[0].causes[1].actual == '23'
+
+        and: // org.opentest4j.MultipleFailuresError
+        assertionFailures[1].description.length() > 100
+        assertionFailures[1].description.contains('Multiple Failures')
+        assertionFailures[1].causes.size() == 2
+        assertionFailures[1].className == 'org.opentest4j.MultipleFailuresError'
+        assertionFailures[1].stacktrace == assertionFailures[1].description
+        assertionFailures[1].expected == null
+        assertionFailures[1].actual == null
+
+        assertionFailures[1].causes[0] instanceof TestAssertionFailure
+        assertionFailures[1].causes[0].message == "expected: <myExpected> but was: <myActual>"
+        assertionFailures[1].causes[0].description.length() > 100
+        assertionFailures[1].causes[0].description.contains('org.opentest4j.AssertionFailedError')
+        assertionFailures[1].causes[0].causes.empty
+        assertionFailures[1].causes[0].className == 'org.opentest4j.AssertionFailedError'
+        assertionFailures[1].causes[0].stacktrace == assertionFailures[1].causes[0].description
+        assertionFailures[1].causes[0].expected == 'myExpected'
+        assertionFailures[1].causes[0].actual == 'myActual'
+
+        assertionFailures[1].causes[1] instanceof TestAssertionFailure
+        assertionFailures[1].causes[1].message == "expected: <myOtherExpected> but was: <myOtherActual>"
+        assertionFailures[1].causes[1].description.length() > 100
+        assertionFailures[1].causes[1].description.contains('org.opentest4j.AssertionFailedError')
+        assertionFailures[1].causes[1].causes.empty
+        assertionFailures[1].causes[1].className == 'org.opentest4j.AssertionFailedError'
+        assertionFailures[1].causes[1].stacktrace == assertionFailures[1].causes[1].description
+        assertionFailures[1].causes[1].expected == 'myOtherExpected'
+        assertionFailures[1].causes[1].actual == 'myOtherActual'
     }
 
     def "Emits test failure events for TestNG tests"() {
