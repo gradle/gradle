@@ -19,12 +19,17 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,7 +38,8 @@ import java.util.TreeMap;
  * from the command-line.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PropertyReportTask extends ProjectBasedReportTask {
+public class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
+
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
     private final Property<String> property = getProject().getObjects().property(String.class);
 
@@ -50,6 +56,7 @@ public class PropertyReportTask extends ProjectBasedReportTask {
         return property;
     }
 
+    @Internal
     @Override
     public ReportRenderer getRenderer() {
         return renderer;
@@ -60,23 +67,81 @@ public class PropertyReportTask extends ProjectBasedReportTask {
     }
 
     @Override
-    public void generate(Project project) {
-        Map<String, Object> entries = new TreeMap<>(project.getProperties());
+    protected PropertyReportModel calculateReportModelFor(Project project) {
+        return computePropertyReportModel(project);
+    }
+
+    private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
+        PropertyReportModel model = new PropertyReportModel();
+        Map<String, ?> projectProperties = project.getProperties();
         if (property.isPresent()) {
-            String propertyValue = property.get();
-            if (propertyValue.equals("properties")) {
-                renderer.addProperty(propertyValue, "{...}");
+            String propertyName = property.get();
+            if ("properties".equals(propertyName)) {
+                model.putProperty(propertyName, "{...}");
             } else {
-                renderer.addProperty(propertyValue, entries.get(propertyValue));
+                model.putProperty(propertyName, projectProperties.get(propertyName));
             }
         } else {
-            for (Map.Entry<String, ?> entry : entries.entrySet()) {
-                if (entry.getKey().equals("properties")) {
-                    renderer.addProperty(entry.getKey(), "{...}");
+            for (Map.Entry<String, ?> entry : projectProperties.entrySet()) {
+                if ("properties".equals(entry.getKey())) {
+                    model.putProperty(entry.getKey(), "{...}");
                 } else {
-                    renderer.addProperty(entry.getKey(), entry.getValue());
+                    model.putProperty(entry.getKey(), entry.getValue());
                 }
             }
+        }
+        return model;
+    }
+
+    @Override
+    protected void generateReportFor(ProjectDetails project, PropertyReportModel model) {
+        for (PropertyWarning warning : model.warnings) {
+            getLogger().warn(
+                "Rendering of the property '{}' with value type '{}' failed with exception",
+                warning.name, warning.valueClass, warning.exception
+            );
+        }
+        for (Map.Entry<String, String> entry : model.properties.entrySet()) {
+            renderer.addProperty(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Model for the report.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public static final class PropertyReportModel {
+
+        private PropertyReportModel() {
+        }
+
+        private final Map<String, String> properties = new TreeMap<>();
+        private final List<PropertyWarning> warnings = new ArrayList<>();
+
+        private void putProperty(String name, @Nullable Object value) {
+            String strValue;
+            try {
+                strValue = String.valueOf(value);
+            } catch (Exception e) {
+                String valueClass = value != null ? String.valueOf(value.getClass()) : "null";
+                warnings.add(new PropertyWarning(name, valueClass, e));
+                strValue = valueClass + " [Rendering failed]";
+            }
+            properties.put(name, strValue);
+        }
+    }
+
+    private static class PropertyWarning {
+        private final String name;
+        private final String valueClass;
+        private final Exception exception;
+
+        private PropertyWarning(String name, String valueClass, Exception exception) {
+            this.name = name;
+            this.valueClass = valueClass;
+            this.exception = exception;
         }
     }
 }
