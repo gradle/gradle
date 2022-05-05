@@ -16,15 +16,19 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.util.internal.GUtil;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+    private final static Set<BuildInitTestFramework> FRAMEWORKS_USING_JUNIT_PLATFORM = EnumSet.of(BuildInitTestFramework.SPOCK, BuildInitTestFramework.JUNIT_JUPITER, BuildInitTestFramework.KOTLINTEST);
     private final DocumentationRegistry documentationRegistry;
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
@@ -76,12 +80,12 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
             BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
                 b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
                 b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
-                if (getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
+                if (!Sets.intersection(FRAMEWORKS_USING_JUNIT_PLATFORM, getTestFrameworks()).isEmpty()) {
                     b.methodInvocation(null, "useJUnitPlatform");
                 }
             });
             buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
-            if (getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
+            if (!Sets.intersection(FRAMEWORKS_USING_JUNIT_PLATFORM, getTestFrameworks()).isEmpty()) {
                 buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
             }
         }
