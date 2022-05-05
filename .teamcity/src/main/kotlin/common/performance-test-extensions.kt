@@ -44,6 +44,7 @@ fun performanceTestCommandLine(
     baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
     testJavaVendor: String = os.perfTestJavaVendor,
 ) = listOf(
