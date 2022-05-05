@@ -91,7 +91,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * a native executable that can retrieve the session id of a process so that we can verify that the session id
      * of the daemon is different than the session id of the client.
      */
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.NOT_MAC_OS_X_M1])
     @ToBeFixedForConfigurationCache(because = "fixture uses the software model")
     def "session id of daemon is different from daemon client"() {
         given:
