@@ -393,14 +393,14 @@ task thing {
 
         task wrongRuntimeKeyType {
             doLast {
-                verify.prop = [123: 'value']
+                verify.prop = [(java.time.LocalDate.now()): 'value']
                 verify.prop.get()
             }
         }
 
         task wrongRuntimeValueType {
             doLast {
-                verify.prop = ['key': 123]
+                verify.prop = ['key': java.time.LocalDate.now()]
                 verify.prop.get()
             }
         }
@@ -452,13 +452,13 @@ task thing {
         fails('wrongRuntimeKeyType')
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType'.")
-        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Integer.')
+        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.time.LocalDate.')
 
         when:
         fails('wrongRuntimeValueType')
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType'.")
-        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Integer.')
+        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.time.LocalDate.')
 
         when:
         fails('wrongPropertyTypeDsl')

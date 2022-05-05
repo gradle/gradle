@@ -390,13 +390,13 @@ extensions.create('custom', SomeExtension)
 
 task wrongValueTypeDsl {
     doLast {
-        custom.prop = 123
+        custom.prop = java.time.LocalDate.now()
     }
 }
 
 task wrongValueTypeApi {
     doLast {
-        custom.prop.set(123)
+        custom.prop.set(java.time.LocalDate.now())
     }
 }
 
@@ -414,14 +414,14 @@ task wrongPropertyTypeApi {
 
 task wrongRuntimeType {
     doLast {
-        custom.prop = providers.provider { 123 }
+        custom.prop = providers.provider { java.time.LocalDate.now() }
         custom.prop.get()
     }
 }
 
 task wrongConventionValueType {
     doLast {
-        custom.prop.convention(123)
+        custom.prop.convention(java.time.LocalDate.now())
     }
 }
 
@@ -433,7 +433,7 @@ task wrongConventionPropertyType {
 
 task wrongConventionRuntimeValueType {
     doLast {
-        custom.prop.convention(providers.provider { 123 })
+        custom.prop.convention(providers.provider { java.time.LocalDate.now() })
         custom.prop.get()
     }
 }
@@ -444,14 +444,14 @@ task wrongConventionRuntimeValueType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.time.LocalDate.")
 
         when:
         fails("wrongValueTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.time.LocalDate.")
 
         when:
         fails("wrongPropertyTypeDsl")
@@ -472,14 +472,14 @@ task wrongConventionRuntimeValueType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
-        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.time.LocalDate.")
 
         when:
         fails("wrongConventionValueType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongConventionValueType'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.time.LocalDate.")
 
         when:
         fails("wrongConventionPropertyType")
@@ -493,7 +493,7 @@ task wrongConventionRuntimeValueType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongConventionRuntimeValueType'.")
-        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.time.LocalDate.")
     }
 
     def "fails when specialized factory method is not used"() {
