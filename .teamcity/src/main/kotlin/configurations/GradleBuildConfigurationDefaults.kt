@@ -71,7 +71,7 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
 
 fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
-        vcsRootExtId = "GradleBuildTooBranches"
+        vcsRootExtId = "GradleMaster"
         provider = github {
             authType = token {
                 token = "%github.bot-teamcity.token%"
@@ -84,7 +84,7 @@ fun BuildFeatures.enablePullRequestFeature() {
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "GradleBuildTooBranches"
+        vcsRootExtId = "GradleMaster"
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
