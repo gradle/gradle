@@ -256,8 +256,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
         'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.Frameworks.SPOCK.getDefaultVersion()}.jar"
         'useSpock("2.1-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.1-groovy-3.0.jar" // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
-        'useKotlinTest()'            | JUnitTestFramework         | "kotlin-test-junit5-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
-        'useKotlinTest("1.5.30")'    | JUnitTestFramework         | "kotlin-test-junit5-1.5.30.jar"
+        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
         'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.Frameworks.TESTNG.getDefaultVersion()}.jar"
         'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
     }
