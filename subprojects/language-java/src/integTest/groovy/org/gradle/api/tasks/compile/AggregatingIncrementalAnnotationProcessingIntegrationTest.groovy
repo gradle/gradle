@@ -193,7 +193,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
             buildFile << """
                 tasks.withType(JavaCompile).configureEach {
-                    classpath += files("\${buildDir}/classes/java/main")
+                    classpath.from(files("\${buildDir}/classes/java/main"))
                 }
             """
         }
