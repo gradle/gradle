@@ -1,5 +1,6 @@
 package util
 
+import common.Arch
 import common.JvmVendor
 import common.Os
 import common.applyPerformanceTestSettings
@@ -86,6 +87,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     "%baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
                     os,
+                    Arch.AMD64,
                     "%testJavaVersion%",
                     "%testJavaVendor%",
                 ) + buildToolGradleParameters(isContinue = false)
