@@ -157,7 +157,7 @@ class ExhaustiveLinesSearcherTest extends Specification {
 
     def "if requested, matching blank lines should cause a potential match: #expectedLines vs #actualLines"() {
         when:
-        comparer.matchesBlankLines()
+        comparer.matchBlankLines()
         comparer.assertLinesContainedIn(expectedLines, actualLines)
 
         then:

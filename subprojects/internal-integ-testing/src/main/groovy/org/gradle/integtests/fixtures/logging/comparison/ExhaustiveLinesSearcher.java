@@ -40,7 +40,7 @@ public class ExhaustiveLinesSearcher {
      *
      * @return {@code this)
      */
-    public ExhaustiveLinesSearcher matchesBlankLines() {
+    public ExhaustiveLinesSearcher matchBlankLines() {
         matchBlankLines = true;
         return this;
     }
