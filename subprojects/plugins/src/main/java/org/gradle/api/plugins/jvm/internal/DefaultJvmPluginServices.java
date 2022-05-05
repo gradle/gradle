@@ -222,7 +222,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                     if (compileTask.getOptions().getRelease().isPresent()) {
                         majorVersion = Math.max(majorVersion, compileTask.getOptions().getRelease().get());
                     } else {
-                        int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs());
+                        int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs().get());
                         if (releaseFlag != 0) {
                             majorVersion = Math.max(majorVersion, releaseFlag);
                         } else {

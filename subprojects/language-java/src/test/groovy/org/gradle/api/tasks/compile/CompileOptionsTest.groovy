@@ -43,7 +43,7 @@ class CompileOptionsTest extends Specification {
         !compileOptions.verbose
         !compileOptions.fork
 
-        compileOptions.compilerArgs.empty
+        compileOptions.compilerArgs.get().empty
         compileOptions.encoding == null
         compileOptions.bootstrapClasspath == null
         compileOptions.extensionDirs == null
@@ -94,7 +94,7 @@ class CompileOptionsTest extends Specification {
 
     def "converts GStrings to Strings when getting all compiler arguments"() {
         given:
-        compileOptions.compilerArgs << "Foo${23}"
+        compileOptions.compilerArgs.add("Foo${23}")
 
         expect:
         compileOptions.allCompilerArgs.contains('Foo23')

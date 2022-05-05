@@ -258,7 +258,6 @@ Method <org.gradle.api.tasks.compile.BaseForkOptions.getMemoryInitialSize()> doe
 Method <org.gradle.api.tasks.compile.BaseForkOptions.getMemoryMaximumSize()> does not have raw return type assignable to org.gradle.api.provider.Property in (BaseForkOptions.java:64)
 Method <org.gradle.api.tasks.compile.CompileOptions.getAllCompilerArgs()> does not have raw return type assignable to org.gradle.api.provider.Provider in (CompileOptions.java:326)
 Method <org.gradle.api.tasks.compile.CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:505)
-Method <org.gradle.api.tasks.compile.CompileOptions.getCompilerArgs()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:316)
 Method <org.gradle.api.tasks.compile.CompileOptions.getCompilerArgumentProviders()> does not have raw return type assignable to org.gradle.api.provider.Provider in (CompileOptions.java:341)
 Method <org.gradle.api.tasks.compile.CompileOptions.getDebugOptions()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:221)
 Method <org.gradle.api.tasks.compile.CompileOptions.getEncoding()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:188)
