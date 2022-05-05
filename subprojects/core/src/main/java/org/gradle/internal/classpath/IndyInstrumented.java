@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -35,22 +36,23 @@ import java.util.Properties;
 
 public class IndyInstrumented {
 
-    private static final Map<String, MethodInterceptor> INTERCEPTORS = new HashMap<>();
+    private static final Map<String, CallInterceptor> METHOD_INTERCEPTORS = new HashMap<>();
+    private static final CallInterceptor CONSTRUCTOR_INTERCEPTOR = new ConstructorInterceptor();
 
     static {
-        INTERCEPTORS.put("getProperty", new SystemGetPropertyInterceptor());
-        INTERCEPTORS.put("setProperty", new SystemSetPropertyInterceptor());
-        INTERCEPTORS.put("setProperties", new SystemSetPropertiesInterceptor());
-        INTERCEPTORS.put("clearProperty", new SystemClearPropertyInterceptor());
-        INTERCEPTORS.put("getProperties", new SystemGetPropertiesInterceptor());
-        INTERCEPTORS.put("getInteger", new IntegerGetIntegerInterceptor());
-        INTERCEPTORS.put("getLong", new LongGetLongInterceptor());
-        INTERCEPTORS.put("getBoolean", new BooleanGetBooleanInterceptor());
-        INTERCEPTORS.put("getenv", new SystemGetenvInterceptor());
-        INTERCEPTORS.put("exec", new RuntimeExecInterceptor());
-        INTERCEPTORS.put("execute", new ProcessGroovyMethodsExecuteInterceptor());
-        INTERCEPTORS.put("start", new ProcessBuilderStartInterceptor());
-        INTERCEPTORS.put("startPipeline", new ProcessBuilderStartPipelineInterceptor());
+        METHOD_INTERCEPTORS.put("getProperty", new SystemGetPropertyInterceptor());
+        METHOD_INTERCEPTORS.put("setProperty", new SystemSetPropertyInterceptor());
+        METHOD_INTERCEPTORS.put("setProperties", new SystemSetPropertiesInterceptor());
+        METHOD_INTERCEPTORS.put("clearProperty", new SystemClearPropertyInterceptor());
+        METHOD_INTERCEPTORS.put("getProperties", new SystemGetPropertiesInterceptor());
+        METHOD_INTERCEPTORS.put("getInteger", new IntegerGetIntegerInterceptor());
+        METHOD_INTERCEPTORS.put("getLong", new LongGetLongInterceptor());
+        METHOD_INTERCEPTORS.put("getBoolean", new BooleanGetBooleanInterceptor());
+        METHOD_INTERCEPTORS.put("getenv", new SystemGetenvInterceptor());
+        METHOD_INTERCEPTORS.put("exec", new RuntimeExecInterceptor());
+        METHOD_INTERCEPTORS.put("execute", new ProcessGroovyMethodsExecuteInterceptor());
+        METHOD_INTERCEPTORS.put("start", new ProcessBuilderStartInterceptor());
+        METHOD_INTERCEPTORS.put("startPipeline", new ProcessBuilderStartPipelineInterceptor());
     }
 
     /**
@@ -68,16 +70,25 @@ public class IndyInstrumented {
      */
     public static CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
         CacheableCallSite cs = toGroovyCacheableCallSite(IndyInterface.bootstrap(caller, callType, type, name, flags));
-        if (callType.equals("invoke")) {
-            MethodInterceptor interceptor = INTERCEPTORS.get(name);
-            if (interceptor != null) {
-                MethodHandle defaultTarget = interceptor.decorate(cs.getDefaultTarget(), caller, flags);
-                cs.setTarget(defaultTarget);
-                cs.setDefaultTarget(defaultTarget);
-                cs.setFallbackTarget(interceptor.decorate(cs.getFallbackTarget(), caller, flags));
-            }
+        switch (callType) {
+            case "invoke":
+                maybeApplyInterceptor(cs, caller, flags, METHOD_INTERCEPTORS.get(name));
+                break;
+            case "init":
+                maybeApplyInterceptor(cs, caller, flags, CONSTRUCTOR_INTERCEPTOR);
+                break;
         }
         return cs;
+    }
+
+    private static void maybeApplyInterceptor(CacheableCallSite cs, MethodHandles.Lookup caller, int flags, @Nullable CallInterceptor interceptor) {
+        if (interceptor == null) {
+            return;
+        }
+        MethodHandle defaultTarget = interceptor.decorate(cs.getDefaultTarget(), caller, flags);
+        cs.setTarget(defaultTarget);
+        cs.setDefaultTarget(defaultTarget);
+        cs.setFallbackTarget(interceptor.decorate(cs.getFallbackTarget(), caller, flags));
     }
 
     private static CacheableCallSite toGroovyCacheableCallSite(CallSite cs) {
@@ -128,14 +139,14 @@ public class IndyInstrumented {
     }
 
 
-    private static abstract class MethodInterceptor {
+    private static abstract class CallInterceptor {
         private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
         private static final MethodHandle INTERCEPTOR;
 
         static {
             try {
-                INTERCEPTOR = LOOKUP.findVirtual(MethodInterceptor.class, "intercept", MethodType.methodType(Object.class, MethodHandle.class, int.class, String.class, Object[].class));
+                INTERCEPTOR = LOOKUP.findVirtual(CallInterceptor.class, "intercept", MethodType.methodType(Object.class, MethodHandle.class, int.class, String.class, Object[].class));
             } catch (NoSuchMethodException | IllegalAccessException e) {
                 throw new GradleException("Failed to set up an interceptor method", e);
             }
@@ -156,7 +167,7 @@ public class IndyInstrumented {
     }
 
 
-    private static class SystemGetPropertyInterceptor extends MethodInterceptor {
+    private static class SystemGetPropertyInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!System.class.equals(call.getReceiver())) {
@@ -173,7 +184,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class SystemSetPropertyInterceptor extends MethodInterceptor {
+    private static class SystemSetPropertyInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!System.class.equals(call.getReceiver())) {
@@ -187,7 +198,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class SystemSetPropertiesInterceptor extends MethodInterceptor {
+    private static class SystemSetPropertiesInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!System.class.equals(call.getReceiver())) {
@@ -202,7 +213,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class SystemClearPropertyInterceptor extends MethodInterceptor {
+    private static class SystemClearPropertyInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!System.class.equals(call.getReceiver())) {
@@ -216,7 +227,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class SystemGetPropertiesInterceptor extends MethodInterceptor {
+    private static class SystemGetPropertiesInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!System.class.equals(call.getReceiver())) {
@@ -230,7 +241,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class IntegerGetIntegerInterceptor extends MethodInterceptor {
+    private static class IntegerGetIntegerInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!Integer.class.equals(call.getReceiver())) {
@@ -247,7 +258,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class LongGetLongInterceptor extends MethodInterceptor {
+    private static class LongGetLongInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!Long.class.equals(call.getReceiver())) {
@@ -264,7 +275,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class BooleanGetBooleanInterceptor extends MethodInterceptor {
+    private static class BooleanGetBooleanInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!Boolean.class.equals(call.getReceiver())) {
@@ -278,7 +289,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class SystemGetenvInterceptor extends MethodInterceptor {
+    private static class SystemGetenvInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!System.class.equals(call.getReceiver())) {
@@ -295,7 +306,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class RuntimeExecInterceptor extends MethodInterceptor {
+    private static class RuntimeExecInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!(call.getReceiver() instanceof Runtime)) {
@@ -339,7 +350,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class ProcessGroovyMethodsExecuteInterceptor extends MethodInterceptor {
+    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             Object receiver = call.getReceiver();
@@ -393,7 +404,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class ProcessBuilderStartInterceptor extends MethodInterceptor {
+    private static class ProcessBuilderStartInterceptor extends CallInterceptor {
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
             if (!(call.getReceiver() instanceof ProcessBuilder)) {
@@ -407,7 +418,7 @@ public class IndyInstrumented {
         }
     }
 
-    private static class ProcessBuilderStartPipelineInterceptor extends MethodInterceptor {
+    private static class ProcessBuilderStartPipelineInterceptor extends CallInterceptor {
         @SuppressWarnings("unchecked")
         @Override
         public Object doIntercept(String consumer, Call call) throws Throwable {
@@ -417,6 +428,26 @@ public class IndyInstrumented {
             Object[] args = call.getArguments();
             if (args.length == 1) {
                 return Instrumented.startPipeline((List<ProcessBuilder>) args[0], consumer);
+            }
+            return call.callOriginal();
+        }
+    }
+
+    private static class ConstructorInterceptor extends CallInterceptor {
+        @Override
+        public Object doIntercept(String consumer, Call call) throws Throwable {
+            if (!call.getReceiver().equals(FileInputStream.class)) {
+                return call.callOriginal();
+            }
+            Object arg = call.getArguments()[0];
+            if (arg instanceof CharSequence) {
+                String path = Instrumented.convertToString(arg);
+                Instrumented.fileOpened(path, consumer);
+                return new FileInputStream(path);
+            } else if (arg instanceof File) {
+                File file = (File) arg;
+                Instrumented.fileOpened(file, consumer);
+                return new FileInputStream(file);
             }
             return call.callOriginal();
         }
