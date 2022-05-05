@@ -37,6 +37,7 @@ import java.util.Properties;
 public class IndyInstrumented {
 
     private static final Map<String, CallInterceptor> METHOD_INTERCEPTORS = new HashMap<>();
+    private static final Map<String, CallInterceptor> PROPERTY_INTERCEPTORS = new HashMap<>();
     private static final CallInterceptor CONSTRUCTOR_INTERCEPTOR = new ConstructorInterceptor();
 
     static {
@@ -44,7 +45,11 @@ public class IndyInstrumented {
         METHOD_INTERCEPTORS.put("setProperty", new SystemSetPropertyInterceptor());
         METHOD_INTERCEPTORS.put("setProperties", new SystemSetPropertiesInterceptor());
         METHOD_INTERCEPTORS.put("clearProperty", new SystemClearPropertyInterceptor());
-        METHOD_INTERCEPTORS.put("getProperties", new SystemGetPropertiesInterceptor());
+
+        CallInterceptor getPropertiesInterceptor = new SystemGetPropertiesInterceptor();
+        METHOD_INTERCEPTORS.put("getProperties", getPropertiesInterceptor);
+        PROPERTY_INTERCEPTORS.put("properties", getPropertiesInterceptor);
+
         METHOD_INTERCEPTORS.put("getInteger", new IntegerGetIntegerInterceptor());
         METHOD_INTERCEPTORS.put("getLong", new LongGetLongInterceptor());
         METHOD_INTERCEPTORS.put("getBoolean", new BooleanGetBooleanInterceptor());
@@ -73,6 +78,9 @@ public class IndyInstrumented {
         switch (callType) {
             case "invoke":
                 maybeApplyInterceptor(cs, caller, flags, METHOD_INTERCEPTORS.get(name));
+                break;
+            case "getProperty":
+                maybeApplyInterceptor(cs, caller, flags, PROPERTY_INTERCEPTORS.get(name));
                 break;
             case "init":
                 maybeApplyInterceptor(cs, caller, flags, CONSTRUCTOR_INTERCEPTOR);
