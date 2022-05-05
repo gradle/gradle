@@ -811,7 +811,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
         when: "publish keys"
@@ -830,7 +830,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
         when: "24 hours passed"
@@ -1344,7 +1344,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
         where:
