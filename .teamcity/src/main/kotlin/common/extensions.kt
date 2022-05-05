@@ -92,7 +92,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     }
 
     vcs {
-        root(AbsoluteId("GradleBuildTooBranches"))
+        root(AbsoluteId("GradleMaster"))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
     }
