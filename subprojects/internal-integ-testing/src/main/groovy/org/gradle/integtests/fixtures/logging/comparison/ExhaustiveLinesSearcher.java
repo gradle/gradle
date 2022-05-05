@@ -91,7 +91,7 @@ public class ExhaustiveLinesSearcher {
             LineSearchFailures.differentSizes(expectedLines, actualLines);
         }
 
-        if (!findFirstCompleteMatch(expectedLines, actualLines).orElse(-1).equals(0)) {
+        if (findFirstCompleteMatch(expectedLines, actualLines).orElse(-1) != 0) {
             exhaustiveSearch(expectedLines, actualLines);
         }
     }
