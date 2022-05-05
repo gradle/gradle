@@ -22,14 +22,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 val gradleRootProject = when {
     project.name == "gradle" -> project.rootProject
-    project.rootProject.name == "build-logic" -> rootProject.gradle.parent!!.rootProject
-    else -> project.gradle.parent!!.rootProject
+    project.rootProject.name == "build-logic" -> rootProject.gradle.parent?.rootProject
+    else -> project.gradle.parent?.rootProject
 }
 
-val rootProjectName = rootProject.name
-val isInBuildLogic = rootProjectName == "build-logic"
-
-if (buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
+if (gradleRootProject != null && buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
+    val rootProjectName = rootProject.name
+    val isInBuildLogic = rootProjectName == "build-logic"
     gradle.taskGraph.whenReady {
         val cacheMissMonitorBuildService: Provider<CacheMissMonitorBuildService> = gradle.sharedServices.registerIfAbsent("cacheMissMonitorBuildService-$rootProjectName", CacheMissMonitorBuildService::class) {
             parameters.monitoredTaskPaths.set(allTasks.filter { it.isCacheMissMonitoredTask() }.map { if (isInBuildLogic) ":build-logic${it.path}" else it.path }.toSet())
