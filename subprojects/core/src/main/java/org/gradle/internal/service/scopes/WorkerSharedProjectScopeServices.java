@@ -94,8 +94,7 @@ public class WorkerSharedProjectScopeServices {
             Deleter deleter,
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
-            FilePropertyFactory filePropertyFactory,
-            FileFactory fileFactory
+            FilePropertyFactory filePropertyFactory
     ) {
         return new DefaultFileOperations(
             fileResolver,
@@ -112,8 +111,7 @@ public class WorkerSharedProjectScopeServices {
             deleter,
             documentationRegistry,
             providers,
-            filePropertyFactory,
-            fileFactory
+            filePropertyFactory
         );
     }
 

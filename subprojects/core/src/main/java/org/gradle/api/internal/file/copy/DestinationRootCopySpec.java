@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.internal.file.PathToFileResolver;
@@ -32,13 +31,10 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     private final DirectoryProperty destinationDir;
 
-    private final FileFactory fileFactory;
-
     @Inject
-    public DestinationRootCopySpec(PathToFileResolver fileResolver, CopySpecInternal delegate, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
+    public DestinationRootCopySpec(PathToFileResolver fileResolver, CopySpecInternal delegate, FilePropertyFactory filePropertyFactory) {
         this.fileResolver = fileResolver;
         this.delegate = delegate;
-        this.fileFactory = fileFactory;
         this.destinationDir = filePropertyFactory.newDirectoryProperty();
     }
 
@@ -49,7 +45,7 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     @Override
     public CopySpec into(Object destinationDir) {
-        this.destinationDir.set(new DefaultProvider<>(() -> fileFactory.dir(fileResolver.resolve(destinationDir))));
+        this.destinationDir.fileProvider(new DefaultProvider<>(() -> fileResolver.resolve(destinationDir)));
         return this;
     }
 

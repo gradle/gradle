@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.CopySpecInternal
@@ -30,8 +29,7 @@ import java.io.File
 internal
 class DestinationRootCopySpecCodec(
     private val fileResolver: FileResolver,
-    private val filePropertyFactory: FilePropertyFactory,
-    private val fileFactory: FileFactory
+    private val filePropertyFactory: FilePropertyFactory
 ) : Codec<DestinationRootCopySpec> {
 
     override suspend fun WriteContext.encode(value: DestinationRootCopySpec) {
@@ -42,7 +40,7 @@ class DestinationRootCopySpecCodec(
     override suspend fun ReadContext.decode(): DestinationRootCopySpec {
         val destDir = read() as? File
         val delegate = read() as CopySpecInternal
-        val spec = DestinationRootCopySpec(fileResolver, delegate, filePropertyFactory, fileFactory)
+        val spec = DestinationRootCopySpec(fileResolver, delegate, filePropertyFactory)
         destDir?.let(spec::into)
         return spec
     }

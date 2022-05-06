@@ -173,8 +173,7 @@ public class TestFiles {
             deleter(),
             documentationRegistry(),
             providerFactory(),
-            filePropertyFactory(),
-            fileFactory()
+            filePropertyFactory()
         );
     }
 
