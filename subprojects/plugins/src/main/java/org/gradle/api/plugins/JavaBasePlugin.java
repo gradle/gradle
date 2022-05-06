@@ -25,11 +25,11 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
@@ -186,7 +186,9 @@ public class JavaBasePlugin implements Plugin<Project> {
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
         target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, resourcesTask -> {
             resourcesTask.setDescription("Processes " + resourceSet + ".");
-            new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", (Callable<File>) () -> sourceSet.getOutput().getResourcesDir());
+            Provider<File> provider = target.provider(() -> sourceSet.getOutput().getResourcesDir());
+            Provider<Directory> directoryProperty = target.getLayout().dir(provider);
+            resourcesTask.getRootSpec().getDestinationDir().convention(directoryProperty);
             resourcesTask.from(resourceSet);
         });
     }
