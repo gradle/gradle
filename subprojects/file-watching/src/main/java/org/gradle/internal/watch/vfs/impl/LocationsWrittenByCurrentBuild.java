@@ -17,13 +17,21 @@
 package org.gradle.internal.watch.vfs.impl;
 
 import org.gradle.internal.file.FileHierarchySet;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteListener {
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
+    private final AtomicReference<VersionHierarchy> versionHierarchy;
+    private final AtomicLong currentVersion = new AtomicLong(0);
     private volatile boolean buildRunning;
+
+    public LocationsWrittenByCurrentBuild(CaseSensitivity caseSensitivity) {
+        this.versionHierarchy = new AtomicReference<>(VersionHierarchy.empty(currentVersion.incrementAndGet(), caseSensitivity));
+    }
 
     @Override
     public void locationsWritten(Iterable<String> locations) {
@@ -35,11 +43,24 @@ public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteLis
                 }
                 return newValue;
             });
+            versionHierarchy.updateAndGet(currentValue -> {
+                VersionHierarchy newValue = currentValue;
+                long newVersion = currentVersion.incrementAndGet();
+                for (String location : locations) {
+                    newValue = newValue.increaseVersion(location, newVersion);
+                }
+                return newValue;
+            });
         }
     }
 
     public boolean wasLocationWritten(String location) {
         return producedByCurrentBuild.get().contains(location);
+    }
+
+    @Override
+    public long getVersionFor(String location) {
+        return versionHierarchy.get().getVersionFor(location);
     }
 
     public void buildStarted() {
