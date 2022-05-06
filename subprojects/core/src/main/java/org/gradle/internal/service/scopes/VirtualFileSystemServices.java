@@ -184,8 +184,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileHasher;
         }
 
-        LocationsWrittenByCurrentBuild createLocationsUpdatedByCurrentBuild(FileSystem fileSystem, ListenerManager listenerManager) {
-            LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild = new LocationsWrittenByCurrentBuild(determineCaseSensitivity(fileSystem));
+        LocationsWrittenByCurrentBuild createLocationsUpdatedByCurrentBuild(ListenerManager listenerManager) {
+            LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild = new LocationsWrittenByCurrentBuild();
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
                 public void afterStart() {
@@ -214,7 +214,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             GlobalCacheLocations globalCacheLocations,
             WatchableFileSystemDetector watchableFileSystemDetector
         ) {
-            CaseSensitivity caseSensitivity = determineCaseSensitivity(fileSystem);
+            CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -335,10 +335,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultFileChangeListeners(listenerManager);
         }
 
-    }
-
-    private static CaseSensitivity determineCaseSensitivity(FileSystem fileSystem) {
-        return fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
     }
 
     @VisibleForTesting

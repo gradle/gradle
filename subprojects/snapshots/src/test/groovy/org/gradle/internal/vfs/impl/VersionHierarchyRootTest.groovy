@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.vfs.impl
+package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.snapshot.CaseSensitivity
 import spock.lang.Specification
 
-class LocationsWrittenByCurrentBuildTest extends Specification {
-    def locationsWrittenByCurrentBuild = new LocationsWrittenByCurrentBuild(CaseSensitivity.CASE_SENSITIVE)
-
-    def setup() {
-        locationsWrittenByCurrentBuild.buildStarted()
-    }
+class VersionHierarchyRootTest extends Specification {
+    long currentVersion
+    def versionHierarchyRoot = VersionHierarchyRoot.empty(currentVersion, CaseSensitivity.CASE_SENSITIVE)
 
     def "#description change implies #result"() {
-        locationsWrittenByCurrentBuild.locationsWritten(['/my/path', '/my/sibling', '/my/path/some/child'])
+        updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
 
-        def versionBefore = locationsWrittenByCurrentBuild.getVersionFor("/my/path")
+        def versionBefore = versionHierarchyRoot.getVersionFor("/my/path")
         when:
-        locationsWrittenByCurrentBuild.locationsWritten([locationWritten])
+        updateVersions(locationWritten)
         then:
         if (increasesVersion) {
-            assert locationsWrittenByCurrentBuild.getVersionFor('/my/path') > versionBefore
+            assert versionHierarchyRoot.getVersionFor('/my/path') > versionBefore
         } else {
-            assert locationsWrittenByCurrentBuild.getVersionFor('/my/path') == versionBefore
+            assert versionHierarchyRoot.getVersionFor('/my/path') == versionBefore
         }
 
         where:
@@ -52,15 +49,24 @@ class LocationsWrittenByCurrentBuildTest extends Specification {
 
     def "can query and update the root '#root'"() {
         def locations = ['/my/path', '/my/sibling', '/my/path/some/child']
-        locationsWrittenByCurrentBuild.locationsWritten(['/my/path', '/my/sibling', '/my/path/some/child'])
+        updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
-        def versionsBefore = (locations + ['/', '']).collect { locationsWrittenByCurrentBuild.getVersionFor(it) }
+        def versionsBefore = (locations + ['/', '']).collect { versionHierarchyRoot.getVersionFor(it) }
         when:
-        locationsWrittenByCurrentBuild.locationsWritten(['/'])
+        updateVersions(root)
         then:
-        (locations + ['/', '']).collect { locationsWrittenByCurrentBuild.getVersionFor(it) } == versionsBefore.collect { it + 1 }
+        (locations + ['/', '']).collect { versionHierarchyRoot.getVersionFor(it) } == versionsBefore.collect { it + 1 }
 
         where:
         root << ['', '/']
+    }
+
+    private void updateVersions(String... locations) {
+        VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot
+        currentVersion++
+        for (location in locations) {
+            newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location, currentVersion)
+        }
+        versionHierarchyRoot = newVersionHierarchyRoot
     }
 }
