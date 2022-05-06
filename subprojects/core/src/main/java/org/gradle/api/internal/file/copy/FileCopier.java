@@ -17,11 +17,10 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -45,6 +44,8 @@ public class FileCopier {
     private final FileSystem fileSystem;
     private final Instantiator instantiator;
     private final DocumentationRegistry documentationRegistry;
+    private final FilePropertyFactory filePropertyFactory;
+    private final FileFactory fileFactory;
 
     public FileCopier(
         Deleter deleter,
@@ -55,7 +56,9 @@ public class FileCopier {
         ObjectFactory objectFactory,
         FileSystem fileSystem,
         Instantiator instantiator,
-        DocumentationRegistry documentationRegistry
+        DocumentationRegistry documentationRegistry,
+        FilePropertyFactory filePropertyFactory,
+        FileFactory fileFactory
     ) {
         this.deleter = deleter;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -66,22 +69,13 @@ public class FileCopier {
         this.fileSystem = fileSystem;
         this.instantiator = instantiator;
         this.documentationRegistry = documentationRegistry;
+        this.filePropertyFactory = filePropertyFactory;
+        this.fileFactory = fileFactory;
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super SyncSpec> action) {
         DefaultCopySpec copySpec = new DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory);
-        FilePropertyFactory filePropertyFactory = new FilePropertyFactory() {
-            @Override
-            public DirectoryProperty newDirectoryProperty() {
-                return objectFactory.directoryProperty();
-            }
-
-            @Override
-            public RegularFileProperty newFileProperty() {
-                return objectFactory.fileProperty();
-            }
-        };
-        DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec, filePropertyFactory);
+        DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec, filePropertyFactory, fileFactory);
         SyncSpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);
         return destinationRootCopySpec;

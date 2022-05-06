@@ -172,7 +172,10 @@ public class TestFiles {
             getPatternSetFactory(),
             deleter(),
             documentationRegistry(),
-            providerFactory());
+            providerFactory(),
+            filePropertyFactory(),
+            fileFactory()
+        );
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {
