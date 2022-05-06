@@ -67,6 +67,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         // Only update VFS if no changes happened in between
         if (versionBefore == versionAfter) {
             rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+        } else {
+            LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
         }
     }
 
