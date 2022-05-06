@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -160,7 +161,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public Rule addRule(String description, Closure ruleAction) {
+    public Rule addRule(String description, @DelegatesTo(String.class) Closure ruleAction) {
         return delegate.addRule(description, ruleAction);
     }
 

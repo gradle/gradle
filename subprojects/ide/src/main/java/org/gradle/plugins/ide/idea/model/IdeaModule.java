@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
@@ -575,7 +576,7 @@ public class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}.
      */
-    public void iml(Closure closure) {
+    public void iml(@DelegatesTo(IdeaModuleIml.class) Closure closure) {
         configure(closure, getIml());
     }
 

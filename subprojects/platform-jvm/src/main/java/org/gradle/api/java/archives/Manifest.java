@@ -16,6 +16,7 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -101,7 +102,7 @@ public interface Manifest {
      *
      * @return this
      */
-    Manifest from(Object mergePath, Closure<?> closure);
+    Manifest from(Object mergePath, @DelegatesTo(ManifestMergeSpec.class) Closure<?> closure);
 
     /**
      * Specifies other manifests to be merged into this manifest. A merge path is interpreted as described in
