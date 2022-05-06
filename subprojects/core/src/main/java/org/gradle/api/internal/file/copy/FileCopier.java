@@ -17,9 +17,12 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -67,7 +70,18 @@ public class FileCopier {
 
     private DestinationRootCopySpec createCopySpec(Action<? super SyncSpec> action) {
         DefaultCopySpec copySpec = new DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory);
-        DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
+        FilePropertyFactory filePropertyFactory = new FilePropertyFactory() {
+            @Override
+            public DirectoryProperty newDirectoryProperty() {
+                return objectFactory.directoryProperty();
+            }
+
+            @Override
+            public RegularFileProperty newFileProperty() {
+                return objectFactory.fileProperty();
+            }
+        };
+        DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec, filePropertyFactory);
         SyncSpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);
         return destinationRootCopySpec;
