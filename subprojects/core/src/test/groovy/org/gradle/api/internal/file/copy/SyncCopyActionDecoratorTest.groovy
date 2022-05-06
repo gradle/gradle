@@ -26,15 +26,17 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
 
     def setup() {
         copier = new FileCopier(
-                TestFiles.deleter(),
-                TestFiles.directoryFileTreeFactory(),
-                TestFiles.fileCollectionFactory(testDirectory),
-                TestFiles.resolver(testDirectory),
-                TestFiles.patternSetFactory,
-                TestUtil.objectFactory(),
-                TestFiles.fileSystem(),
-                TestUtil.instantiatorFactory().decorateLenient(),
-                TestFiles.documentationRegistry()
+            TestFiles.deleter(),
+            TestFiles.directoryFileTreeFactory(),
+            TestFiles.fileCollectionFactory(testDirectory),
+            TestFiles.resolver(testDirectory),
+            TestFiles.patternSetFactory,
+            TestUtil.objectFactory(),
+            TestFiles.fileSystem(),
+            TestUtil.instantiatorFactory().decorateLenient(),
+            TestFiles.documentationRegistry(),
+            TestFiles.filePropertyFactory(),
+            TestFiles.fileFactory()
         )
     }
 
