@@ -14,40 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.vfs.impl;
+package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ChildMap;
 import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
+import javax.annotation.CheckReturnValue;
+
 public class VersionHierarchy {
     private final long version;
-    private final CaseSensitivity caseSensitivity;
     private final ChildMap<VersionHierarchy> children;
 
-    public static VersionHierarchy empty(long rootVersion, CaseSensitivity caseSensitivity) {
-        return new VersionHierarchy(EmptyChildMap.getInstance(), rootVersion, caseSensitivity);
+    public static VersionHierarchy empty(long rootVersion) {
+        return new VersionHierarchy(EmptyChildMap.getInstance(), rootVersion);
     }
 
-    public VersionHierarchy(ChildMap<VersionHierarchy> children, long version, CaseSensitivity caseSensitivity) {
+    public VersionHierarchy(ChildMap<VersionHierarchy> children, long version) {
         this.children = children;
         this.version = version;
-        this.caseSensitivity = caseSensitivity;
     }
 
-    public long getVersionFor(String location) {
-        VfsRelativePath relativePath = VfsRelativePath.of(location);
-        return relativePath.isEmpty()
-            ? getVersion()
-            : getVersionFor(relativePath);
-    }
-
-    public long getVersionFor(VfsRelativePath relativePath) {
+   public long getVersionFor(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return children.withNode(relativePath, caseSensitivity, new ChildMap.NodeHandler<VersionHierarchy, Long>() {
             @Override
             public Long handleAsDescendantOfChild(VfsRelativePath pathInChild, VersionHierarchy child) {
-                return child.getVersionFor(pathInChild);
+                return child.getVersionFor(pathInChild, caseSensitivity);
             }
 
             @Override
@@ -67,18 +60,12 @@ public class VersionHierarchy {
         });
     }
 
-    public VersionHierarchy increaseVersion(String path, long newVersion) {
-        VfsRelativePath relativePath = VfsRelativePath.of(path);
-        return relativePath.isEmpty()
-            ? empty(newVersion, caseSensitivity)
-            : increaseVersion(relativePath, newVersion);
-    }
-
-    public VersionHierarchy increaseVersion(VfsRelativePath relativePath, long newVersion) {
+    @CheckReturnValue
+    public VersionHierarchy increaseVersion(VfsRelativePath relativePath, long newVersion, CaseSensitivity caseSensitivity) {
         ChildMap<VersionHierarchy> newChildren = children.store(relativePath, caseSensitivity, new ChildMap.StoreHandler<VersionHierarchy>() {
             @Override
             public VersionHierarchy handleAsDescendantOfChild(VfsRelativePath pathInChild, VersionHierarchy child) {
-                return child.increaseVersion(pathInChild, newVersion);
+                return child.increaseVersion(pathInChild, newVersion, caseSensitivity);
             }
 
             @Override
@@ -93,7 +80,7 @@ public class VersionHierarchy {
 
             @Override
             public VersionHierarchy createChild() {
-                return new VersionHierarchy(EmptyChildMap.getInstance(), newVersion, caseSensitivity);
+                return new VersionHierarchy(EmptyChildMap.getInstance(), newVersion);
             }
 
             @Override
@@ -101,7 +88,7 @@ public class VersionHierarchy {
                 return createChild();
             }
         });
-        return new VersionHierarchy(newChildren, newVersion, caseSensitivity);
+        return new VersionHierarchy(newChildren, newVersion);
     }
 
     public long getVersion() {

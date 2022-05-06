@@ -20,6 +20,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public interface VirtualFileSystem {
 
@@ -36,7 +38,13 @@ public interface VirtualFileSystem {
     /**
      * Adds the information of the snapshot at the absolute path to the VFS.
      */
-    void store(String absolutePath, FileSystemLocationSnapshot snapshot);
+    FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier);
+
+    FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction);
+
+    interface StoringAction {
+        FileSystemLocationSnapshot snapshot(Consumer<FileSystemLocationSnapshot> snapshot);
+    }
 
     /**
      * Removes any information at the absolute paths from the VFS.

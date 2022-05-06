@@ -24,14 +24,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
     protected final VfsRootReference rootReference;
+    private volatile VersionHierarchyRoot versionHierarchyRoot;
+    private long currentVersion;
 
     protected AbstractVirtualFileSystem(VfsRootReference rootReference) {
         this.rootReference = rootReference;
+        this.versionHierarchyRoot = VersionHierarchyRoot.empty(currentVersion, rootReference.getRoot().getCaseSensitivity());
     }
 
     @Override
@@ -45,8 +49,25 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void store(String absolutePath, FileSystemLocationSnapshot snapshot) {
-        rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+    public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
+        long versionBefore = versionHierarchyRoot.getVersionFor(absolutePath);
+        FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
+        updateCheckingVersion(absolutePath, versionBefore, snapshot);
+        return snapshot;
+    }
+
+    @Override
+    public FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction) {
+        long versionBefore = versionHierarchyRoot.getVersionFor(baseLocation);
+        return storingAction.snapshot(snapshot -> updateCheckingVersion(snapshot.getAbsolutePath(), versionBefore, snapshot));
+    }
+
+    private void updateCheckingVersion(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
+        long versionAfter = versionHierarchyRoot.getVersionFor(absolutePath);
+        // Only update VFS if no changes happened in between
+        if (versionBefore == versionAfter) {
+            rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+        }
     }
 
     @Override
@@ -54,10 +75,14 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         LOGGER.debug("Invalidating VFS paths: {}", locations);
         rootReference.update(root -> {
             SnapshotHierarchy result = root;
+            VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
+            long nextVersion = ++currentVersion;
             for (String location : locations) {
                 SnapshotHierarchy currentRoot = result;
                 result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
+                newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location, nextVersion);
             }
+            versionHierarchyRoot = newVersionHierarchyRoot;
             return result;
         });
     }
@@ -65,11 +90,15 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
-        rootReference.update(root -> updateNotifyingListeners(diffListener -> {
-            root.rootSnapshots()
-                .forEach(diffListener::nodeRemoved);
-            return root.empty();
-        }));
+        rootReference.update(root -> {
+            currentVersion = 0;
+            versionHierarchyRoot = VersionHierarchyRoot.empty(currentVersion, root.getCaseSensitivity());
+            return updateNotifyingListeners(diffListener -> {
+                root.rootSnapshots()
+                    .forEach(diffListener::nodeRemoved);
+                return root.empty();
+            });
+        });
     }
 
     /**
