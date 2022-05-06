@@ -64,5 +64,7 @@ public interface FileSystemAccess {
 
     interface WriteListener {
         void locationsWritten(Iterable<String> locations);
+
+        long getVersionFor(String location);
     }
 }

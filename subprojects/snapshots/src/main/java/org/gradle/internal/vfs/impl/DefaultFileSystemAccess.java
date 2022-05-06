@@ -157,13 +157,20 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 return missingFileSnapshot;
             case Directory:
                 AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
+                long versionBefore = writeListener.getVersionFor(location);
                 FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(
                     location,
                     filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
                     hasBeenFiltered,
-                    snapshot -> virtualFileSystem.store(snapshot.getAbsolutePath(), snapshot));
+                    snapshot -> {
+                        if (versionBefore == writeListener.getVersionFor(location)) {
+                            virtualFileSystem.store(snapshot.getAbsolutePath(), snapshot);
+                        }
+                    });
                 if (!hasBeenFiltered.get()) {
-                    virtualFileSystem.store(directorySnapshot.getAbsolutePath(), directorySnapshot);
+                    if (versionBefore == writeListener.getVersionFor(location)) {
+                        virtualFileSystem.store(directorySnapshot.getAbsolutePath(), directorySnapshot);
+                    }
                 }
                 return directorySnapshot;
             default:

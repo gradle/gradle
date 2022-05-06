@@ -215,7 +215,15 @@ public class TestFiles {
             new StringInterner(),
             fileSystem(),
             virtualFileSystem,
-            locations -> {
+            new FileSystemAccess.WriteListener() {
+                @Override
+                public void locationsWritten(Iterable<String> locations) {
+                }
+
+                @Override
+                public long getVersionFor(String location) {
+                    return 0;
+                }
             },
             new DirectorySnapshotterStatistics.Collector()
         );
