@@ -404,22 +404,20 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
                 ordinalNode.addDependenciesFrom(taskNode);
 
-                if (taskNode.getOrdinal().getOrdinal() > 0) {
-                    // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
-                    // ordinal)
-                    ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal().getOrdinal())
-                        .forEach(taskNode::addDependencySuccessor);
+                Node precedingProducersNode = ordinalNodeAccess.getPrecedingProducerLocationNode(taskNode.getOrdinal());
+                if (precedingProducersNode != null) {
+                    // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
+                    taskNode.addDependencySuccessor(precedingProducersNode);
                 }
             } else if (taskClassifier.isProducer()) {
                 // Create (or get) a producer ordinal node that depends on the dependencies of this task node
                 OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
                 ordinalNode.addDependenciesFrom(taskNode);
 
-                if (taskNode.getOrdinal().getOrdinal() > 0) {
-                    // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
-                    // ordinal)
-                    ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal().getOrdinal())
-                        .forEach(taskNode::addDependencySuccessor);
+                Node precedingDestroyersNode = ordinalNodeAccess.getPrecedingDestroyerLocationNode(taskNode.getOrdinal());
+                if (precedingDestroyersNode != null) {
+                    // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
+                    taskNode.addDependencySuccessor(precedingDestroyersNode);
                 }
             }
         }
@@ -597,7 +595,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 Node node = executionQueue.next();
                 queuedNodes.add(node.healthDiagnostics());
                 reported.add(node);
-                for (Node successor : node.getAllSuccessors()) {
+                for (Node successor : node.getHardSuccessors()) {
                     queue.add(successor);
                 }
             }
@@ -605,7 +603,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 Node node = queue.remove(0);
                 if (reported.add(node)) {
                     otherNodes.add(node.healthDiagnostics());
-                    for (Node successor : node.getAllSuccessors()) {
+                    for (Node successor : node.getHardSuccessors()) {
                         queue.add(successor);
                     }
                 }
