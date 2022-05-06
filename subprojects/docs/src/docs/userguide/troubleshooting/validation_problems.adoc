@@ -282,23 +282,12 @@ The symptoms are similar to <<implicit_dependency>> except that in this case the
 
 Please refer to the <<implicit_dependency>> section for possible solutions.
 If the file isn't produced by another task, you may want to make sure that it exists before the task is called.
-If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can configure the input as `@Optional` and make it return null when the file is absent:
+If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use an `@Optional` input to allow Gradle to capture the input's state:
 
-```
-public abstract class SomeTask extends DefaultTask {
-    @InputFile
-    @Optional
-    public abstract RegularFileProperty getSomeOptionalFile();
-
-    @TaskAction
-    public void run() {
-        RegularFile optionalFile = getSomeOptionalFile().getOrNull();
-        if (optionalFile != null) {
-           ...
-        }
-    }
-}
-```
+====
+include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
+include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/kotlin",files="build.gradle.kts[tags=task]"]
+====
 
 [[unexpected_input_file_type]]
 == Unexpected input file or directory
