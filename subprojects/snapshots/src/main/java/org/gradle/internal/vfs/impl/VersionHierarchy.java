@@ -31,7 +31,7 @@ public class VersionHierarchy {
         return new VersionHierarchy(EmptyChildMap.getInstance(), rootVersion);
     }
 
-    public VersionHierarchy(ChildMap<VersionHierarchy> children, long version) {
+    private VersionHierarchy(ChildMap<VersionHierarchy> children, long version) {
         this.children = children;
         this.version = version;
     }
@@ -80,7 +80,7 @@ public class VersionHierarchy {
 
             @Override
             public VersionHierarchy createChild() {
-                return new VersionHierarchy(EmptyChildMap.getInstance(), newVersion);
+                return VersionHierarchy.empty(newVersion);
             }
 
             @Override
