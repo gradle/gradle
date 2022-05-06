@@ -349,7 +349,7 @@ public class EclipseProject {
      *
      * For example see docs for {@link EclipseProject}
      */
-    public void file(Closure closure) {
+    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, file);
     }
 

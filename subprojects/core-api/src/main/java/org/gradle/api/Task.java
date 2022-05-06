@@ -17,6 +17,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -394,7 +395,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(Closure action);
+    Task doFirst(@DelegatesTo(Task.class) Closure action);
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -433,7 +434,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(Closure action);
+    Task doLast(@DelegatesTo(Task.class) Closure action);
 
     /**
      * <p>Returns if this task is enabled or not.</p>

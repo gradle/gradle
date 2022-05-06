@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -963,7 +964,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The test framework options.
      */
-    public TestFrameworkOptions options(Closure testFrameworkConfigure) {
+    public TestFrameworkOptions options(@DelegatesTo(TestFrameworkOptions.class) Closure testFrameworkConfigure) {
         return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
     }
 
@@ -1022,7 +1023,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param testFrameworkConfigure A closure used to configure JUnit4 options.
      */
-    public void useJUnit(@Nullable Closure testFrameworkConfigure) {
+    public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
         useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
@@ -1086,7 +1087,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param testFrameworkConfigure A closure used to configure TestNG options.
      */
-    public void useTestNG(Closure testFrameworkConfigure) {
+    public void useTestNG(@DelegatesTo(TestNGOptions.class) Closure testFrameworkConfigure) {
         useTestNG(configureUsing(testFrameworkConfigure));
     }
 

@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -418,7 +419,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure configure closure
      */
-    public void testLogging(Closure closure) {
+    public void testLogging(@DelegatesTo(TestLoggingContainer.class) Closure closure) {
         ConfigureUtil.configure(closure, testLogging);
     }
 
