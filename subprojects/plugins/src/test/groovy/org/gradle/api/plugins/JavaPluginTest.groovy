@@ -277,7 +277,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Copy
         task dependsOn()
         task.source.files == project.sourceSets.main.resources.files
-        task.destinationDir == project.sourceSets.main.output.resourcesDir
+        task.destinationDir.asFile.get() == project.sourceSets.main.output.resourcesDir
 
         when:
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
@@ -307,7 +307,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Copy
         task dependsOn()
         task.source.files == project.sourceSets.test.resources.files
-        task.destinationDir == project.sourceSets.test.output.resourcesDir
+        task.destinationDir.asFile.get() == project.sourceSets.test.output.resourcesDir
 
         when:
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]

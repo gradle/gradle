@@ -137,7 +137,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         processResources.description == "Processes custom resources."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
-        processResources.destinationDir == new File(project.buildDir, 'resources/custom')
+        processResources.destinationDir.asFile.get() == new File(project.buildDir, 'resources/custom')
         def resources = processResources.source
         resources.files == project.sourceSets.custom.resources.files
 
@@ -286,7 +286,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def processResources = project.tasks['processCustomResources']
-        processResources.destinationDir == resourcesDir
+        processResources.destinationDir.asFile.get() == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.destinationDir == classesDir
