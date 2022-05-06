@@ -27,9 +27,7 @@ class Spock2IntegrationSpec extends AbstractIntegrationSpec {
                 id("groovy")
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation("org.spockframework:spock-core:$SPOCK_VERSION")
             }
