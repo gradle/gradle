@@ -45,6 +45,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Function
 import java.util.function.Predicate
+import java.util.function.Supplier
 import java.util.stream.Stream
 
 @CleanupTestDirectory
@@ -449,7 +450,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void addSnapshot(FileSystemLocationSnapshot snapshot) {
-        virtualFileSystem.store(snapshot.absolutePath, snapshot)
+        virtualFileSystem.store(snapshot.absolutePath, { snapshot } as Supplier<FileSystemLocationSnapshot>)
     }
 
     void invalidate(String absolutePath) {
