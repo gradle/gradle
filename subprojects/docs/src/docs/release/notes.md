@@ -55,6 +55,10 @@ Gradle 7.6 introduces new failure types for the `Failure` interface returned by 
 IDEs can now easily distinguish between different failures using standard progress event listeners. 
 Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
 
+### Improved Maven Conversion
+
+The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
