@@ -33,7 +33,7 @@ class DestinationRootCopySpecCodec(
 ) : Codec<DestinationRootCopySpec> {
 
     override suspend fun WriteContext.encode(value: DestinationRootCopySpec) {
-        write(value.destinationDir.asFile.get())
+        write(value.destinationDir.asFile.orNull)
         write(value.delegate)
     }
 
