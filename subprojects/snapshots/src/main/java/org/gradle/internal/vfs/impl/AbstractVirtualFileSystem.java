@@ -31,11 +31,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     protected final VfsRootReference rootReference;
     private volatile VersionHierarchyRoot versionHierarchyRoot;
-    private long currentVersion;
 
     protected AbstractVirtualFileSystem(VfsRootReference rootReference) {
         this.rootReference = rootReference;
-        this.versionHierarchyRoot = VersionHierarchyRoot.empty(currentVersion, rootReference.getRoot().getCaseSensitivity());
+        this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, rootReference.getRoot().getCaseSensitivity());
     }
 
     @Override
@@ -78,11 +77,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         rootReference.update(root -> {
             SnapshotHierarchy result = root;
             VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
-            long nextVersion = ++currentVersion;
             for (String location : locations) {
                 SnapshotHierarchy currentRoot = result;
                 result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
-                newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location, nextVersion);
+                newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location);
             }
             versionHierarchyRoot = newVersionHierarchyRoot;
             return result;
@@ -93,8 +91,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
         rootReference.update(root -> {
-            currentVersion = 0;
-            versionHierarchyRoot = VersionHierarchyRoot.empty(currentVersion, root.getCaseSensitivity());
+            versionHierarchyRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
             return updateNotifyingListeners(diffListener -> {
                 root.rootSnapshots()
                     .forEach(diffListener::nodeRemoved);
