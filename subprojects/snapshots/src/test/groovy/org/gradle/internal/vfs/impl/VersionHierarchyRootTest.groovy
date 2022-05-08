@@ -20,8 +20,7 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import spock.lang.Specification
 
 class VersionHierarchyRootTest extends Specification {
-    long currentVersion
-    def versionHierarchyRoot = VersionHierarchyRoot.empty(currentVersion, CaseSensitivity.CASE_SENSITIVE)
+    def versionHierarchyRoot = VersionHierarchyRoot.empty(0, CaseSensitivity.CASE_SENSITIVE)
 
     def "#description change implies #result"() {
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
@@ -63,9 +62,8 @@ class VersionHierarchyRootTest extends Specification {
 
     private void updateVersions(String... locations) {
         VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot
-        currentVersion++
         for (location in locations) {
-            newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location, currentVersion)
+            newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location)
         }
         versionHierarchyRoot = newVersionHierarchyRoot
     }
