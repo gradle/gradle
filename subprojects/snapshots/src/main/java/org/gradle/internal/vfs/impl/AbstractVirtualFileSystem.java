@@ -51,17 +51,17 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
         long versionBefore = versionHierarchyRoot.getVersionFor(absolutePath);
         FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
-        updateCheckingVersion(absolutePath, versionBefore, snapshot);
+        storeIfUnchanged(absolutePath, versionBefore, snapshot);
         return snapshot;
     }
 
     @Override
     public FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction) {
         long versionBefore = versionHierarchyRoot.getVersionFor(baseLocation);
-        return storingAction.snapshot(snapshot -> updateCheckingVersion(snapshot.getAbsolutePath(), versionBefore, snapshot));
+        return storingAction.snapshot(snapshot -> storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot));
     }
 
-    private void updateCheckingVersion(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
+    private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
         long versionAfter = versionHierarchyRoot.getVersionFor(absolutePath);
         // Only update VFS if no changes happened in between
         // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
