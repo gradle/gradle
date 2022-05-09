@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -152,18 +151,13 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
             case Missing:
                 return virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
             case Directory:
-                return virtualFileSystem.store(location, vfsStorer -> {
-                    AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-                    FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(
+                return virtualFileSystem.store(
+                    location,
+                    vfsStorer -> directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
-                        hasBeenFiltered,
-                        vfsStorer);
-                    if (!hasBeenFiltered.get()) {
-                        vfsStorer.accept(directorySnapshot);
-                    }
-                    return directorySnapshot;
-                });
+                        vfsStorer)
+                );
             default:
                 throw new UnsupportedOperationException();
         }

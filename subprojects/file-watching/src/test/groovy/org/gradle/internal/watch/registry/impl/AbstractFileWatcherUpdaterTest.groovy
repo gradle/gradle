@@ -42,7 +42,6 @@ import spock.lang.Specification
 
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Function
 import java.util.function.Predicate
 import java.util.function.Supplier
@@ -446,7 +445,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     DirectorySnapshot snapshotDirectory(File directory) {
-        directorySnapshotter.snapshot(directory.absolutePath, null, new AtomicBoolean(false)) {} as DirectorySnapshot
+        directorySnapshotter.snapshot(directory.absolutePath, null) {} as DirectorySnapshot
     }
 
     void addSnapshot(FileSystemLocationSnapshot snapshot) {
