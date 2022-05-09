@@ -64,7 +64,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private void updateCheckingVersion(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
         long versionAfter = versionHierarchyRoot.getVersionFor(absolutePath);
         // Only update VFS if no changes happened in between
-        if (versionBefore == versionAfter) {
+        // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
+        if (versionBefore >= versionAfter) {
             rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
         } else {
             LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
