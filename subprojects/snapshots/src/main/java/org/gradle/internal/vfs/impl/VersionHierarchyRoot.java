@@ -42,20 +42,12 @@ public class VersionHierarchyRoot {
     }
 
     @CheckReturnValue
-    public VersionHierarchyRoot increaseVersion(String path) {
+    public VersionHierarchyRoot touch(String path) {
         long newVersion = rootNode.getVersion() + 1;
         VfsRelativePath relativePath = VfsRelativePath.of(path);
         VersionHierarchy newRootNode = relativePath.isEmpty()
             ? VersionHierarchy.empty(newVersion)
             : rootNode.increaseVersion(relativePath, newVersion, caseSensitivity);
         return new VersionHierarchyRoot(newRootNode, caseSensitivity);
-    }
-
-    public VersionHierarchyRoot increaseVersionInRoot() {
-        long newVersion = rootNode.getVersion() + 1;
-        return new VersionHierarchyRoot(
-            VersionHierarchy.empty(newVersion),
-            caseSensitivity
-        );
     }
 }

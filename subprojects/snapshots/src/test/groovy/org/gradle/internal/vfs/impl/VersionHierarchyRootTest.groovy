@@ -80,7 +80,7 @@ class VersionHierarchyRootTest extends Specification {
     private void updateVersions(String... locations) {
         VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot
         for (location in locations) {
-            newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location)
+            newVersionHierarchyRoot = newVersionHierarchyRoot.touch(location)
         }
         versionHierarchyRoot = newVersionHierarchyRoot
     }

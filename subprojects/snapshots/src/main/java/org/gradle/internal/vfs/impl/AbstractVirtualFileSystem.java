@@ -19,10 +19,12 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRelativePath;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -81,7 +83,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
             for (String location : locations) {
                 SnapshotHierarchy currentRoot = result;
                 result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
-                newVersionHierarchyRoot = newVersionHierarchyRoot.increaseVersion(location);
+                newVersionHierarchyRoot = newVersionHierarchyRoot.touch(location);
             }
             versionHierarchyRoot = newVersionHierarchyRoot;
             return result;
@@ -91,14 +93,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
-        rootReference.updateUnderLock(root -> {
-            versionHierarchyRoot = versionHierarchyRoot.increaseVersionInRoot();
-            return updateNotifyingListeners(diffListener -> {
-                root.rootSnapshots()
-                    .forEach(diffListener::nodeRemoved);
-                return root.empty();
-            });
-        });
+        invalidate(Collections.singletonList(VfsRelativePath.ROOT));
     }
 
     /**
