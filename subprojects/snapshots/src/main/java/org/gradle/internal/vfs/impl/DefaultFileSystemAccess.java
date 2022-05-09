@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
@@ -98,7 +97,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 if (fileMetadata.getType() == FileType.Missing) {
-                    storeMetadataForMissingFile(location, fileMetadata.getAccessType());
+                    virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 }
                 if (fileMetadata.getType() != FileType.RegularFile) {
                     return Optional.empty();
@@ -112,10 +111,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 return Optional.of(hash);
             })
             .map(visitor);
-    }
-
-    private void storeMetadataForMissingFile(String location, AccessType accessType) {
-        virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, accessType));
     }
 
     @Override
