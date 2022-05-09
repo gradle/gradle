@@ -463,7 +463,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            compileJava.options.compilerArgs += [ "-Werror", "-Amessage=fromOptions" ]
+            compileJava.options.compilerArgs.addAll("-Werror", "-Amessage=fromOptions")
         """
         java "@Helper class A {}"
 

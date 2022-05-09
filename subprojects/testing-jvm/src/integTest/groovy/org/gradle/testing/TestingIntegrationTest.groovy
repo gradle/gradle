@@ -26,7 +26,9 @@ import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
 
 /**
@@ -325,7 +327,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
             tasks.withType(JavaCompile) {
                 options.with {
-                    compilerArgs << '-parameters'
+                    compilerArgs.add('-parameters')
                 }
             }
         """

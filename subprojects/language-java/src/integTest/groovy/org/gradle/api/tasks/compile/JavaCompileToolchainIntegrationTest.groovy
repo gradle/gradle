@@ -400,7 +400,7 @@ public class Foo {
                 }
             }
             tasks.withType(JavaCompile).configureEach {
-                options.compilerArgs << "-Xlint:deprecation"
+                options.compilerArgs.add("-Xlint:deprecation")
             }
         """
 
@@ -420,7 +420,7 @@ public class Foo {
             }
         """
 
-        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage");
+        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:
         runWithToolchainConfigured(jdk)

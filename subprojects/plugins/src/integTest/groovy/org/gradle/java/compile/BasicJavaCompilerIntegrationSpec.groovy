@@ -304,7 +304,7 @@ compileJava {
     def "compile with target compatibility"() {
         given:
         goodCode()
-        buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
+        buildFile.text = buildFile.text.replace(", '-Werror')", ')') // warning: [options] bootstrap class path not set in conjunction with -source 8
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_9 // ignored
 compileJava.targetCompatibility = '1.8'
@@ -327,7 +327,7 @@ compileJava {
     def "compile with target compatibility set in plugin extension"() {
         given:
         goodCode()
-        buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
+        buildFile.text = buildFile.text.replace(", '-Werror')", ')') // warning: [options] bootstrap class path not set in conjunction with -source 8
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_8
 java.sourceCompatibility = JavaVersion.VERSION_1_8
