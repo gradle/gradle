@@ -56,7 +56,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
         when:
-        rootReference.update { root -> nonEmptySnapshotHierarchy }
+        rootReference.updateUnderLock { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.DISABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         0 * _
@@ -64,7 +64,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
-        rootReference.update { root -> nonEmptySnapshotHierarchy }
+        rootReference.updateUnderLock { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.DISABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         0 * _
@@ -89,7 +89,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        rootReference.update { root -> nonEmptySnapshotHierarchy }
+        rootReference.updateUnderLock { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.DISABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         1 * watcherRegistry.close()
@@ -115,7 +115,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        rootReference.update { root -> nonEmptySnapshotHierarchy }
+        rootReference.updateUnderLock { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         1 * watcherRegistry.updateVfsOnBuildStarted(_ as SnapshotHierarchy, WatchMode.ENABLED, []) >> { SnapshotHierarchy root, watchMode, unsupportedFileSystems -> root }

@@ -36,6 +36,8 @@ public class VfsRelativePath {
     private final String absolutePath;
     private final int offset;
 
+    public static final String ROOT = "";
+
     /**
      * The relative path from the root of the file system for the given absolute path.
      *

@@ -104,7 +104,6 @@ public class DirectorySnapshotter {
      * @param absolutePath The absolute path of the directory to snapshot.
      * @param predicate A predicate that determines which files to include in the snapshot.
      *                  {@code null} means to include everything.
-     * @param hasBeenFiltered Whether the returned snapshot is a filtered snapshot of the directory.
      * @param unfilteredSnapshotConsumer If the returned snapshot is filtered by the predicate, i.e. it doesn't have all the contents of the directory,
      *                                   then this consumer will receive all the unfiltered snapshots within the snapshot directory.
      *                                   For example, if an element of a directory is filtered out, the consumer will receive all the non-filtered out
@@ -112,12 +111,17 @@ public class DirectorySnapshotter {
      *
      * @return The (possible filtered) snapshot of the directory.
      */
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         try {
+            AtomicBoolean hasBeenFiltered = new AtomicBoolean();
             Path rootPath = Paths.get(absolutePath);
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING, unfilteredSnapshotConsumer);
             Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
-            return visitor.getResult();
+            FileSystemLocationSnapshot result = visitor.getResult();
+            if (!hasBeenFiltered.get()) {
+                unfilteredSnapshotConsumer.accept(result);
+            }
+            return result;
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", absolutePath), e);
         }
