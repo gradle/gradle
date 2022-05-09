@@ -26,17 +26,17 @@ class VersionHierarchyRootTest extends Specification {
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
 
-        def versionBefore = versionHierarchyRoot.getVersionFor("/my/path")
-        def versionAtRootBefore = versionHierarchyRoot.getVersionFor('')
+        def versionBefore = versionHierarchyRoot.getVersion("/my/path")
+        def versionAtRootBefore = versionHierarchyRoot.getVersion('')
         when:
         updateVersions(locationWritten)
         then:
         if (increasesVersion) {
-            assert versionHierarchyRoot.getVersionFor('/my/path') > versionBefore
-            assert versionHierarchyRoot.getVersionFor('/my/path') > versionAtRootBefore
+            assert versionHierarchyRoot.getVersion('/my/path') > versionBefore
+            assert versionHierarchyRoot.getVersion('/my/path') > versionAtRootBefore
         } else {
-            assert versionHierarchyRoot.getVersionFor('/my/path') == versionBefore
-            assert versionHierarchyRoot.getVersionFor('/my/path') <= versionAtRootBefore
+            assert versionHierarchyRoot.getVersion('/my/path') == versionBefore
+            assert versionHierarchyRoot.getVersion('/my/path') <= versionAtRootBefore
         }
 
         where:
@@ -52,11 +52,11 @@ class VersionHierarchyRootTest extends Specification {
     def "does not update siblings"() {
         updateVersions('/my', '/my/some/location')
 
-        def versionBefore = versionHierarchyRoot.getVersionFor('/my/some/location')
+        def versionBefore = versionHierarchyRoot.getVersion('/my/some/location')
         when:
         updateVersions('/my/some/sibling')
         then:
-        versionHierarchyRoot.getVersionFor('/my/some/location') == versionBefore
+        versionHierarchyRoot.getVersion('/my/some/location') == versionBefore
     }
 
     def "can query and update the root '#root'"() {
@@ -64,14 +64,14 @@ class VersionHierarchyRootTest extends Specification {
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
         when:
-        def rootVersionBefore = versionHierarchyRoot.getVersionFor('')
+        def rootVersionBefore = versionHierarchyRoot.getVersion('')
         then:
-        versionHierarchyRoot.getVersionFor('/') == rootVersionBefore
+        versionHierarchyRoot.getVersion('/') == rootVersionBefore
 
         when:
         updateVersions(root)
         then:
-        (locations + ['/', '']).collect { versionHierarchyRoot.getVersionFor(it) }.every { it == rootVersionBefore + 1 }
+        (locations + ['/', '']).collect { versionHierarchyRoot.getVersion(it) }.every { it == rootVersionBefore + 1 }
 
         where:
         root << ['', '/']

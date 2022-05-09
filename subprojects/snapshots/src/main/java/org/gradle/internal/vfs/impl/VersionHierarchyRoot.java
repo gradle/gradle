@@ -34,11 +34,11 @@ public class VersionHierarchyRoot {
         this.rootNode = rootNode;
     }
 
-    public long getVersionFor(String location) {
+    public long getVersion(String location) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         return relativePath.isEmpty()
             ? rootNode.getVersion()
-            : rootNode.getVersionFor(relativePath, caseSensitivity);
+            : rootNode.getVersion(relativePath, caseSensitivity);
     }
 
     @CheckReturnValue
@@ -47,7 +47,7 @@ public class VersionHierarchyRoot {
         VfsRelativePath relativePath = VfsRelativePath.of(path);
         VersionHierarchy newRootNode = relativePath.isEmpty()
             ? VersionHierarchy.empty(newVersion)
-            : rootNode.increaseVersion(relativePath, newVersion, caseSensitivity);
+            : rootNode.updateVersion(relativePath, newVersion, caseSensitivity);
         return new VersionHierarchyRoot(newRootNode, caseSensitivity);
     }
 }
