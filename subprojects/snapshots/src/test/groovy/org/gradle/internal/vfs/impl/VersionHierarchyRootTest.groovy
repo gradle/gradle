@@ -27,13 +27,16 @@ class VersionHierarchyRootTest extends Specification {
 
 
         def versionBefore = versionHierarchyRoot.getVersionFor("/my/path")
+        def versionAtRootBefore = versionHierarchyRoot.getVersionFor('')
         when:
         updateVersions(locationWritten)
         then:
         if (increasesVersion) {
             assert versionHierarchyRoot.getVersionFor('/my/path') > versionBefore
+            assert versionHierarchyRoot.getVersionFor('/my/path') > versionAtRootBefore
         } else {
             assert versionHierarchyRoot.getVersionFor('/my/path') == versionBefore
+            assert versionHierarchyRoot.getVersionFor('/my/path') <= versionAtRootBefore
         }
 
         where:
