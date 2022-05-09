@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.logging.comparison;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.truth.DiffUtilsAccess;
 import org.spockframework.runtime.SpockException;
 
 import java.util.Collection;
@@ -115,7 +114,7 @@ public final class LineSearchFailures {
         @Override
         public String getMessage() {
             if (useUnifiedDiff) {
-                return HEADER + "\n\n" + DiffUtilsAccess.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines).stream().collect(Collectors.joining("\n"));
+                return HEADER + "\n\n" + DiffUtils.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines).stream().collect(Collectors.joining("\n"));
             } else {
                 return HEADER + "\n\n" + potentialMatches.stream().map(pm -> pm.buildContext(maxLeadingContextLines)).collect(Collectors.joining("\n"));
             }
