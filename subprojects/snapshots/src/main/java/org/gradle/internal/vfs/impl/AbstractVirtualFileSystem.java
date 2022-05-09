@@ -91,7 +91,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
         rootReference.update(root -> {
-            versionHierarchyRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
+            versionHierarchyRoot = versionHierarchyRoot.increaseVersionInRoot();
             return updateNotifyingListeners(diffListener -> {
                 root.rootSnapshots()
                     .forEach(diffListener::nodeRemoved);
