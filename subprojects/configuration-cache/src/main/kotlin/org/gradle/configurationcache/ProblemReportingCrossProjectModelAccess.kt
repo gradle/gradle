@@ -40,6 +40,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.SyncSpec
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
@@ -706,7 +707,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.copySpec()
         }
 
-        override fun sync(action: Action<in CopySpec>): WorkResult {
+        override fun sync(action: Action<in SyncSpec>): WorkResult {
             onAccess()
             return delegate.sync(action)
         }

@@ -20,11 +20,13 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
+import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
@@ -48,6 +50,7 @@ import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
@@ -165,12 +168,11 @@ class ConfigurationCacheState(
             writeBuildTreeState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
-        val storedBuilds = storedBuilds()
         writeBuildState(
             build,
             StoredBuildTreeState(
-                storedBuilds,
-                buildEventListeners
+                storedBuilds = storedBuilds(),
+                requiredBuildServicesPerBuild = buildEventListeners
                     .filterIsInstance<BuildServiceProvider<*, *>>()
                     .groupBy { it.buildIdentifier }
             )
@@ -300,6 +302,9 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
+            withDebugFrame({ "environment state" }) {
+                writeCachedEnvironmentState(gradle)
+            }
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
@@ -310,6 +315,7 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
+            readCachedEnvironmentState(gradle)
             readBuildCacheConfiguration(gradle)
             readGradleEnterprisePluginManager(gradle)
         }
@@ -485,6 +491,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
             write(buildCache.remote)
+            write(buildCache.registrations)
         }
     }
 
@@ -493,6 +500,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
+            buildCache.setRegistrations(readNonNull<MutableSet<BuildCacheServiceRegistration>>())
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
     }
@@ -551,6 +559,19 @@ class ConfigurationCacheState(
             val files = readNonNull<FileCollection>()
             buildOutputCleanupRegistry.registerOutputs(files)
         }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
+        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        write(environmentChangeTracker.getCachedState())
+    }
+
+    private
+    suspend fun DefaultReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
+        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        val storedState = read() as EnvironmentChangeTracker.CachedEnvironmentState
+        environmentChangeTracker.loadFrom(storedState)
     }
 
     private
@@ -623,7 +644,15 @@ class ConfigurationCacheState(
 
     private
     fun buildEventListenersOf(gradle: GradleInternal) =
-        gradle.serviceOf<BuildEventListenerRegistryInternal>().subscriptions
+        gradle.serviceOf<BuildEventListenerRegistryInternal>()
+            .subscriptions
+            .filter(::isRelevantBuildEventListener)
+
+    private
+    fun isRelevantBuildEventListener(provider: Provider<*>?) = when (provider) {
+        is BuildServiceProvider<*, *> -> provider.buildIdentifier.name != BUILD_SRC
+        else -> true
+    }
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =

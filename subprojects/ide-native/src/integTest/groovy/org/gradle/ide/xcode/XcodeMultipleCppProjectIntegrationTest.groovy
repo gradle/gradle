@@ -27,7 +27,7 @@ import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-@Requires(TestPrecondition.XCODE)
+@Requires([TestPrecondition.XCODE, TestPrecondition.NOT_MAC_OS_X_M1])
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         useXcodebuildTool()
@@ -96,7 +96,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'deck', 'card', 'shuffle'
             rootProject.name = "${rootProjectName}"
         """
@@ -174,7 +174,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'deck', 'card', 'shuffle'
             rootProject.name = "${rootProjectName}"
         """

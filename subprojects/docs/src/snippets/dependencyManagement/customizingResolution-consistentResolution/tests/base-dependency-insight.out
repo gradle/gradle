@@ -1,52 +1,49 @@
 
 > Task :dependencyInsight
 io.vertx:vertx-lang-groovy:3.9.4
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 io.vertx:vertx-lang-groovy:3.9.4
 \--- runtimeClasspath
 
 io.vertx:vertx-lang-groovy-gen:3.9.4
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 io.vertx:vertx-lang-groovy-gen:3.9.4
 \--- io.vertx:vertx-lang-groovy:3.9.4
      \--- runtimeClasspath
 
 org.codehaus.groovy:groovy:3.0.2
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
    Selection reasons:
-      - By conflict resolution : between versions 3.0.2 and 3.0.1
+      - By conflict resolution: between versions 3.0.2 and 3.0.1
 
 org.codehaus.groovy:groovy:3.0.2
 +--- io.vertx:vertx-lang-groovy:3.9.4
@@ -68,17 +65,16 @@ org.codehaus.groovy:groovy:3.0.1 -> 3.0.2
 \--- runtimeClasspath
 
 org.codehaus.groovy:groovy-console:3.0.2
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.codehaus.groovy:groovy-console:3.0.2
 \--- io.vertx:vertx-lang-groovy-gen:3.9.4
@@ -86,34 +82,32 @@ org.codehaus.groovy:groovy-console:3.0.2
           \--- runtimeClasspath
 
 org.codehaus.groovy:groovy-json:3.0.2
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.codehaus.groovy:groovy-json:3.0.2
 \--- io.vertx:vertx-lang-groovy:3.9.4
      \--- runtimeClasspath
 
 org.codehaus.groovy:groovy-swing:3.0.2
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.codehaus.groovy:groovy-swing:3.0.2
 \--- org.codehaus.groovy:groovy-console:3.0.2
@@ -122,17 +116,16 @@ org.codehaus.groovy:groovy-swing:3.0.2
                \--- runtimeClasspath
 
 org.codehaus.groovy:groovy-templates:3.0.2
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.codehaus.groovy:groovy-templates:3.0.2
 \--- org.codehaus.groovy:groovy-console:3.0.2
@@ -141,17 +134,16 @@ org.codehaus.groovy:groovy-templates:3.0.2
                \--- runtimeClasspath
 
 org.codehaus.groovy:groovy-xml:3.0.2
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.codehaus.groovy:groovy-xml:3.0.2
 \--- org.codehaus.groovy:groovy-templates:3.0.2

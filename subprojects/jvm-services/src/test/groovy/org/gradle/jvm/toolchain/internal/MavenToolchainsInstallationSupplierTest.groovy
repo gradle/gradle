@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.SystemProperties
@@ -181,8 +182,14 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
 
     InstallationSupplier createSupplier(String propertyValue, String userhome) {
         SystemProperties.instance.withSystemProperty("user.home", userhome) {
-            new MavenToolchainsInstallationSupplier(createProviderFactory(propertyValue))
+            new MavenToolchainsInstallationSupplier(createProviderFactory(propertyValue), createFileResolver())
         }
+    }
+
+    private FileResolver createFileResolver() {
+        def fileResolver = Mock(FileResolver)
+        fileResolver.resolve(_) >> {String path -> new File(path)}
+        fileResolver
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
@@ -202,6 +209,20 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
             </toolchain>
             </toolchains>''',
          '''<?xml version="1.0" encoding="UTF-8"?>
+            <toolchains>
+            <toolchain>
+            <type>jdk</type>
+            <configuration>
+            <jdkHome>/usr/lib/jvm/adoptopenjdk-16.jdk</jdkHome>
+            </configuration>
+            </toolchain>
+            </toolchains>''',
+         // Same as above, except we test with a slightly malformed but acceptable
+         // encoding of 'UTF8' instead of 'UTF-8'. Using the JVM-provided implementation
+         // of DocumentParser, 'UTF8' is valid, though using the xercesImpl implementation
+         // 'UTF8' is not acceptable. We check here that this remains valid so that if
+         // the xerces jar is ever reintroduced to the classpath, this test will fail.
+         '''<?xml version="1.0" encoding="UTF8"?>
             <toolchains>
             <toolchain>
             <type>jdk</type>

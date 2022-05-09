@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
@@ -93,7 +94,11 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             fileSystemAccess.read(
                 root.getAbsolutePath(),
                 new PatternSetSnapshottingFilter(patterns, stat),
-                roots::add
+                snapshot -> {
+                    if (snapshot.getType() != FileType.Missing) {
+                        roots.add(snapshot);
+                    }
+                }
             );
             if (fileTreeOnly == null) {
                 fileTreeOnly = true;

@@ -28,7 +28,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
     def "kotlin android on android-kotlin-example (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidPluginVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
         useSample("android-kotlin-example")
 
         def buildFileName = "build.gradle"
@@ -47,6 +47,8 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
                 expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
                 expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(androidPluginVersion, "sourceFiles", "sourceDirs")
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinPluginVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(androidPluginVersion)
             }.build()
 
         then:

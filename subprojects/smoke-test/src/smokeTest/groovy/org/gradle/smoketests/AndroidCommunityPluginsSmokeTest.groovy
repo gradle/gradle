@@ -32,9 +32,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
     private static final String CRASHLYTICS_PLUGIN_ID = 'com.google.firebase.crashlytics'
     private static final String FIREBASE_PERF_PLUGIN_ID = 'com.google.firebase.firebase-perf'
     private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
-    // bugsnag is not compatible with AGP 7.0
-    // https://github.com/bugsnag/bugsnag-android-gradle-plugin/issues/399
-//    private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
+    private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
@@ -42,7 +40,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.5'),
             (CRASHLYTICS_PLUGIN_ID): Versions.of('2.5.1'),
             (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.3.5'),
-//            (BUGSNAG_PLUGIN_ID): Versions.of('5.7.6'),
+            (BUGSNAG_PLUGIN_ID): Versions.of('7.2.0'),
             (FLADLE_PLUGIN_ID): Versions.of('0.14.1'),
             (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.3.0-agp4.2'),
             (SAFEARGS_PLUGIN_ID): Versions.of('2.3.5'),
@@ -105,6 +103,9 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                     }
                     if (pluginRequest.id.id == '${SENTRY_PLUGIN_ID}') {
                         useModule("io.sentry:sentry-android-gradle-plugin:\${pluginRequest.version}")
+                    }
+                    if (pluginRequest.id.id == '${BUGSNAG_PLUGIN_ID}') {
+                        useModule("com.bugsnag:bugsnag-android-gradle-plugin:\${pluginRequest.version}")
                     }
                 }
             }

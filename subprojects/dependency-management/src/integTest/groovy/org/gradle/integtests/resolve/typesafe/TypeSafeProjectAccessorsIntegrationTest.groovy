@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve.typesafe
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-@UnsupportedWithConfigurationCache(because = "tests make direct access to the projects extension")
 class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
     def setup() {
         settingsFile << """
@@ -27,7 +27,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "generates type-safe project accessors for multi-project build"() {
+        given:
         settingsFile << """
             include 'one'
             include 'one:other'
@@ -47,7 +49,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "fails if a project doesn't follow convention"() {
+        given:
         settingsFile << """
             include '1library'
         """
@@ -59,7 +63,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         failureDescriptionContains "Cannot generate project dependency accessors because project '1library' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\\-_])*"
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "fails if two subprojects have the same java name"() {
+        given:
         settingsFile << """
             include 'super-cool'
             include 'super--cool'
@@ -80,7 +86,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         failureDescriptionContains "Cannot generate project dependency accessors because subprojects [super-cool, super--cool] of project : map to the same method name getSuperCool()"
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can configure the project extension name"() {
+        given:
         settingsFile << """
             include 'one'
             include 'one:other'
@@ -104,7 +112,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can refer to the root project via its name"() {
+        given:
         buildFile << """
             assert project(":").is(projects.typesafeProjectAccessors.dependencyProject)
         """
@@ -116,7 +126,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "can use the #notation notation on type-safe accessor"() {
+        given:
         settingsFile << """
             include 'other'
         """
@@ -140,7 +152,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         notation << [ 'platform', 'testFixtures']
     }
 
+    @UnsupportedWithConfigurationCache(because = "test makes direct access to the projects extension")
     def "buildSrc project accessors are independent from the main build accessors"() {
+        given:
         file("buildSrc/build.gradle") << """
             assert project(":one").is(projects.one.dependencyProject)
             assert project(":two").is(projects.two.dependencyProject)
@@ -165,5 +179,60 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
 
         then:
         outputContains 'Type-safe project accessors is an incubating feature.'
+    }
+
+    def "warns if root project name not explicitly set"() {
+        //can't use the original test directory, because its name will be used as the project name and
+        //it doesn't follow the project naming convention; so will use an explicitly named sub-folder
+
+        given:
+        file("project/settings.gradle") << """
+            include 'one'
+        """
+        file("project/build.gradle") << """
+            assert project(":one").is(projects.one.dependencyProject)
+        """
+        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("project/settings.gradle"))
+
+        //run once
+        when:
+        inDirectory 'project'
+        run 'help'
+        then:
+        outputContains 'Project accessors enabled, but root project name not explicitly set for \'project\'.'
+
+        //run second time
+        when:
+        inDirectory 'project'
+        run 'help'
+        then:
+        if (GradleContextualExecuter.isConfigCache()) {
+            outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set for \'project\'.'
+        } else {
+            outputContains 'Project accessors enabled, but root project name not explicitly set for \'project\'.'
+        }
+    }
+
+    def "does not warn if root project name explicitly set"() {
+        given:
+        settingsFile << """
+            include 'one'
+        """
+
+        buildFile << """
+            assert project(":one").is(projects.one.dependencyProject)
+        """
+
+        //run once
+        when:
+        run 'help'
+        then:
+        outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set'
+
+        //run second time
+        when:
+        run 'help'
+        then:
+        outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set'
     }
 }

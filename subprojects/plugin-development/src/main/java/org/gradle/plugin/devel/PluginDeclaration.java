@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +31,6 @@ import java.util.Collections;
  * @since 2.14
  */
 public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
-
     private final String name;
     private String id;
     private String implementationClass;
@@ -144,18 +142,23 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof PluginDeclaration) {
             PluginDeclaration other = (PluginDeclaration) obj;
             return Objects.equal(name, other.name)
-                    && Objects.equal(id, other.id)
-                    && Objects.equal(implementationClass, other.implementationClass)
-                    && Objects.equal(tags, other.tags);
+                && Objects.equal(id, other.id)
+                && Objects.equal(implementationClass, other.implementationClass)
+                && Objects.equal(displayName, other.displayName)
+                && Objects.equal(description, other.description)
+                && Objects.equal(tags, other.tags);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, id, implementationClass, tags);
+        return Objects.hashCode(name, id, implementationClass, displayName, description, tags);
     }
 }

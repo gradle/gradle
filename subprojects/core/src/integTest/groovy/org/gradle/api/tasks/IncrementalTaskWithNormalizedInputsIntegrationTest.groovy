@@ -32,6 +32,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def modifiedInput = inputs[1]
 
         buildFile << incrementalTaskWithNameOnlyInputFiles(taskChangeType, inputs)
+        expectDeprecationWarningForIncrementalTaskInputs(taskChangeType)
         run INCREMENTAL_TASK_NAME, "--info"
 
         when:
@@ -60,7 +61,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def renamedInput = file("moved/${movableInput.name}")
 
         buildFile << incrementalTaskWithNameOnlyInputFiles(taskChangeType, inputs + renamedInput)
-
+        expectDeprecationWarningForIncrementalTaskInputs(taskChangeType)
         run INCREMENTAL_TASK_NAME, "--info"
 
         when:
@@ -83,6 +84,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
 
         buildFile << incrementalTaskWithNameOnlyInputFiles(taskChangeType, inputs)
+        expectDeprecationWarningForIncrementalTaskInputs(taskChangeType)
         run INCREMENTAL_TASK_NAME
 
         when:
@@ -96,6 +98,14 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
 
         where:
         taskChangeType << [IncrementalTaskInputs, InputChanges]
+    }
+
+    private void expectDeprecationWarningForIncrementalTaskInputs(Class<?> taskChangeType) {
+        if (taskChangeType == IncrementalTaskInputs) {
+            executer.beforeExecute {
+                expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalTask.action' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
+            }
+        }
     }
 
     private static Range<String> folderNames() { 'a'..'c' }

@@ -152,6 +152,7 @@ JVM auto-detection knows how to work with:
 * Operation-system specific locations: Linux, macOS, Windows
 * Package Managers: https://asdf-vm.com/#/[Asdf-vm], https://github.com/shyiko/jabba[Jabba], https://sdkman.io/[SDKMAN!]
 * https://maven.apache.org/guides/mini/guide-using-toolchains.html[Maven Toolchain] specifications
+* https://www.jetbrains.com/help/idea/sdk.html#jdk-from-ide[IntelliJ IDEA] installations
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
@@ -166,7 +167,7 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 [[sec:provisioning]]
 == Auto Provisioning
 
-If Gradle can't find a locally available toolchain which matches the requirements of the build, it will automatically try to download it from AdoptOpenJDK.
+If Gradle can't find a locally available toolchain which matches the requirements of the build, it will automatically try to download it from Adoptium or AdoptOpenJDK.
 By default, it will request a HotSpot JDK matching the current operating system and architecture.
 Provisioned JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
 
@@ -181,7 +182,7 @@ and can be used by any subsequent builds, just like any other JDK installed on t
 Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
 None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
 
-By default, the public https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK.
+By default, the public https://api.adoptium.net/[Adoptium] and https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK. Gradle will try Adoptium first, and if it fails to find a matching JDK, it will try AdoptOpenJDK.
 
 [WARNING]
 ====
@@ -195,6 +196,8 @@ For that you use the Gradle property as in the example below:
 ----
 org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://api.company.net/
 ----
+
+You can also override the Adoptium API host with `org.gradle.jvm.toolchain.install.adoptium.baseUri`.
 
 [WARNING]
 ====

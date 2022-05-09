@@ -83,6 +83,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    void runAsUnmanagedWorkerThread(Runnable action) {
+        action.run()
+    }
+
+    @Override
     Synchronizer newResource() {
         return new Synchronizer() {
             @Override
@@ -113,28 +118,38 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    WorkerLease getWorkerLease() {
+    WorkerLease newWorkerLease() {
         return workerLease()
     }
 
     @Override
-    <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+    <T> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
         return factory.create()
     }
 
     @Override
-    void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+    void withLocks(Collection<? extends ResourceLock> locks, Runnable action) {
         action.run()
     }
 
     @Override
-    <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+    <T> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
         return factory.create()
     }
 
     @Override
-    void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
+    void withoutLocks(Collection<? extends ResourceLock> locks, Runnable action) {
         action.run()
+    }
+
+    @Override
+    void withoutLock(ResourceLock lock, Runnable action) {
+        action.run()
+    }
+
+    @Override
+    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+        return factory.create()
     }
 
     @Override

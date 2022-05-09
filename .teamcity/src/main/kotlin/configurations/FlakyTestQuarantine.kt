@@ -20,7 +20,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
     name = "Flaky Test Quarantine - ${os.name.lowercase().toCapitalized()}"
     description = "Run all flaky tests skipped multiple times"
 
-    applyDefaultSettings(os, BuildToolBuildJvm, 180)
+    applyDefaultSettings(os = os, buildJvm = BuildToolBuildJvm, timeout = 180)
 
     val testsWithOs = model.stages.filter {
         it.stageName in listOf(

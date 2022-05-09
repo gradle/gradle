@@ -17,34 +17,50 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.collect.ForwardingSet;
+import com.google.common.collect.Iterators;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * The special-cased implementation of {@link Set} that tracks all accesses to its elements.
+ *
  * @param <E> the type of elements
  */
 class AccessTrackingSet<E> extends ForwardingSet<E> {
+    public interface Listener {
+        void onAccess(Object o);
+
+        void onAggregatingAccess();
+
+        void onRemove(Object object);
+
+        void onClear();
+    }
+
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
     private final Set<? extends E> delegate;
-    private final Consumer<Object> onAccess;
-    private final Runnable onAggregatingAccess;
+    private final Listener listener;
+    private final Function<E, E> factory;
 
-    public AccessTrackingSet(Set<? extends E> delegate, Consumer<Object> onAccess, Runnable onAggregatingAccess) {
+    public AccessTrackingSet(Set<? extends E> delegate, Listener listener) {
+        this(delegate, listener, Function.identity());
+    }
+
+    public AccessTrackingSet(Set<? extends E> delegate, Listener listener, Function<E, E> factory) {
         this.delegate = delegate;
-        this.onAccess = onAccess;
-        this.onAggregatingAccess = onAggregatingAccess;
+        this.listener = listener;
+        this.factory = factory;
     }
 
     @Override
     public boolean contains(@Nullable Object o) {
         boolean result = delegate.contains(o);
-        onAccess.accept(o);
+        listener.onAccess(o);
         return result;
     }
 
@@ -52,7 +68,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     public boolean containsAll(@Nonnull Collection<?> collection) {
         boolean result = delegate.containsAll(collection);
         for (Object o : collection) {
-            onAccess.accept(o);
+            listener.onAccess(o);
         }
         return result;
     }
@@ -60,7 +76,8 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     @Override
     public boolean remove(Object o) {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
-        onAccess.accept(o);
+        listener.onAccess(o);
+        listener.onRemove(o);
         return delegate.remove(o);
     }
 
@@ -68,15 +85,22 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     public boolean removeAll(Collection<?> collection) {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
         for (Object o : collection) {
-            onAccess.accept(o);
+            listener.onAccess(o);
+            listener.onRemove(o);
         }
         return delegate.removeAll(collection);
     }
 
     @Override
+    public void clear() {
+        delegate.clear();
+        listener.onClear();
+    }
+
+    @Override
     public Iterator<E> iterator() {
         reportAggregatingAccess();
-        return delegate().iterator();
+        return Iterators.transform(delegate().iterator(), factory::apply);
     }
 
     @Override
@@ -105,14 +129,25 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
 
     @Override
     public Object[] toArray() {
-        reportAggregatingAccess();
-        return delegate.toArray();
+        // this is basically a reimplementation of the standardToArray that doesn't call this.size()
+        // and avoids double-reporting of the aggregating access.
+        return toArray(new Object[0]);
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "SuspiciousToArrayCall"})
     public <T> T[] toArray(T[] array) {
         reportAggregatingAccess();
-        return delegate.toArray(array);
+        T[] result = delegate().toArray(array);
+        for (int i = 0; i < result.length; ++i) {
+            // The elements of result have to be of some subtype of E because of Set's invariant,
+            // so the inner cast is safe. The outer cast might be problematic if T is a some subtype
+            // of E and the factory function returns some other subtype. However, this is unlikely
+            // to happen in our use cases. Only System.getProperties().entrySet implementation uses
+            // this conversion.
+            result[i] = (T) factory.apply((E) result[i]);
+        }
+        return result;
     }
 
     @Override
@@ -123,6 +158,6 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     }
 
     private void reportAggregatingAccess() {
-        onAggregatingAccess.run();
+        listener.onAggregatingAccess();
     }
 }

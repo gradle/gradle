@@ -184,6 +184,26 @@ Root project 'webinar-parent'
         fails 'clean', 'build'
 
         then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    def "singleModule - with continue, when tests fail, jar should exist"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+
+        when:
+        fails 'clean', 'build', '--continue'
+
+        then:
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
@@ -237,6 +257,31 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         when:
         fails 'clean', 'build'
+
+        then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    def "singleModule with explicit project dir - with continue, when tests fail, jar should exist"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+        def workingDir = temporaryFolder.createDir("workingDir")
+
+        when:
+        executer.beforeExecute {
+            executer.inDirectory(workingDir).usingProjectDirectory(targetDir)
+        }
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        fails 'clean', 'build', '--continue'
+
+        then:
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()

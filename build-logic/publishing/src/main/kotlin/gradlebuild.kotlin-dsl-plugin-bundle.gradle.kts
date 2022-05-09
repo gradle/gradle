@@ -45,7 +45,7 @@ pluginBundle {
     vcsUrl = "https://github.com/gradle/kotlin-dsl"
 }
 
-publishing.publications.withType<MavenPublication>() {
+publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()

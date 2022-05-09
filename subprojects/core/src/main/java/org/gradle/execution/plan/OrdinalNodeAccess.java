@@ -28,26 +28,26 @@ import java.util.stream.Collectors;
  * A factory for creating and accessing ordinal nodes
  */
 public class OrdinalNodeAccess {
-    TreeMap<Integer, Node> destroyerLocationNodes = Maps.newTreeMap();
-    TreeMap<Integer, Node> producerLocationNodes = Maps.newTreeMap();
+    TreeMap<Integer, OrdinalNode> destroyerLocationNodes = Maps.newTreeMap();
+    TreeMap<Integer, OrdinalNode> producerLocationNodes = Maps.newTreeMap();
 
-    Node getOrCreateDestroyableLocationNode(int ordinal) {
-        return destroyerLocationNodes.computeIfAbsent(ordinal, this::createDestroyerLocationNode);
+    OrdinalNode getOrCreateDestroyableLocationNode(OrdinalGroup ordinal) {
+        return destroyerLocationNodes.computeIfAbsent(ordinal.getOrdinal(), i -> createDestroyerLocationNode(ordinal));
     }
 
-    Node getOrCreateOutputLocationNode(int ordinal) {
-        return producerLocationNodes.computeIfAbsent(ordinal, this::createProducerLocationNode);
+    OrdinalNode getOrCreateOutputLocationNode(OrdinalGroup ordinal) {
+        return producerLocationNodes.computeIfAbsent(ordinal.getOrdinal(), i -> createProducerLocationNode(ordinal));
     }
 
-    Collection<Node> getPrecedingDestroyerLocationNodes(int from) {
+    Collection<OrdinalNode> getPrecedingDestroyerLocationNodes(int from) {
         return destroyerLocationNodes.headMap(from).values();
     }
 
-    Collection<Node> getPrecedingProducerLocationNodes(int from) {
+    Collection<OrdinalNode> getPrecedingProducerLocationNodes(int from) {
         return producerLocationNodes.headMap(from).values();
     }
 
-    List<Node> getAllNodes() {
+    List<OrdinalNode> getAllNodes() {
         return Streams.concat(destroyerLocationNodes.values().stream(), producerLocationNodes.values().stream()).collect(Collectors.toList());
     }
 
@@ -61,17 +61,21 @@ public class OrdinalNodeAccess {
         producerLocationNodes.forEach((ordinal, producer) -> getPrecedingDestroyerLocationNodes(ordinal).forEach(producer::addDependencySuccessor));
     }
 
-    private Node createDestroyerLocationNode(int ordinal) {
+    private OrdinalNode createDestroyerLocationNode(OrdinalGroup ordinal) {
         return createOrdinalNode(OrdinalNode.Type.DESTROYER, ordinal);
     }
 
-    private Node createProducerLocationNode(int ordinal) {
+    private OrdinalNode createProducerLocationNode(OrdinalGroup ordinal) {
         return createOrdinalNode(OrdinalNode.Type.PRODUCER, ordinal);
     }
 
-    private Node createOrdinalNode(OrdinalNode.Type type, int ordinal) {
-        Node ordinalNode = new OrdinalNode(type, ordinal);
+    private OrdinalNode createOrdinalNode(OrdinalNode.Type type, OrdinalGroup ordinal) {
+        OrdinalNode ordinalNode = new OrdinalNode(type, ordinal);
         ordinalNode.require();
         return ordinalNode;
+    }
+
+    public OrdinalGroup group(int ordinal) {
+        return new OrdinalGroup(ordinal);
     }
 }

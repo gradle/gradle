@@ -30,6 +30,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -1635,7 +1636,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Synchronizes the contents of a destination directory with some source directories and files.
-     * The given action is used to configure a {@link CopySpec}, which is then used to synchronize the files.
+     * The given action is used to configure a {@link SyncSpec}, which is then used to synchronize the files.
      *
      * <p>
      * This method is like the {@link #copy(Action)} task, except the destination directory will only contain the files copied.
@@ -1663,11 +1664,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * }
      * </pre>
      *
-     * @param action Action to configure the CopySpec.
+     * @param action Action to configure the SyncSpec.
      * @since 4.0
      * @return {@link WorkResult} that can be used to check if the sync did any work.
      */
-    WorkResult sync(Action<? super CopySpec> action);
+    WorkResult sync(Action<? super SyncSpec> action);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this

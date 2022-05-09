@@ -26,7 +26,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
@@ -86,14 +85,6 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
 
         @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            delegate.getLocalAccess().resolveArtifacts(component, result);
-            if(!result.hasResult()) {
-                delegate.getRemoteAccess().resolveArtifacts(component, result);
-            }
-        }
-
-        @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
             if(!result.hasResult()) {
@@ -123,10 +114,6 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        }
-
-        @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
         }
 
         @Override

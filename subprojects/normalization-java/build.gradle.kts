@@ -19,4 +19,5 @@ dependencies {
 
     testImplementation(project(":base-services"))
     testImplementation(project(":internal-testing"))
+    testImplementation(testFixtures(project(":snapshots")))
 }

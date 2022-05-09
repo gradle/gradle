@@ -18,6 +18,7 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineParser;
@@ -25,6 +26,7 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -37,6 +39,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -54,7 +57,7 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
-class BuildActionsFactory implements CommandLineAction {
+class BuildActionsFactory implements CommandLineActionCreator {
     private final ParametersConverter parametersConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
@@ -78,31 +81,31 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     @Override
-    public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+    public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, null);
 
         parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
         if (parameters.getDaemonParameters().isStop()) {
-            return stopAllDaemons(parameters.getDaemonParameters());
+            return Actions.toAction(stopAllDaemons(parameters.getDaemonParameters()));
         }
         if (parameters.getDaemonParameters().isStatus()) {
-            return showDaemonStatus(parameters.getDaemonParameters());
+            return Actions.toAction(showDaemonStatus(parameters.getDaemonParameters()));
         }
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                 UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory);
-            return new ForegroundDaemonAction(loggingServices, conf);
+            return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
         if (parameters.getDaemonParameters().isEnabled()) {
-            return runBuildWithDaemon(parameters.getStartParameter(), parameters.getDaemonParameters());
+            return Actions.toAction(runBuildWithDaemon(parameters.getStartParameter(), parameters.getDaemonParameters()));
         }
         if (canUseCurrentProcess(parameters.getDaemonParameters())) {
-            return runBuildInProcess(parameters.getStartParameter(), parameters.getDaemonParameters());
+            return Actions.toAction(runBuildInProcess(parameters.getStartParameter(), parameters.getDaemonParameters()));
         }
 
-        return runBuildInSingleUseDaemon(parameters.getStartParameter(), parameters.getDaemonParameters());
+        return Actions.toAction(runBuildInSingleUseDaemon(parameters.getStartParameter(), parameters.getDaemonParameters()));
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {

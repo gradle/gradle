@@ -34,18 +34,6 @@ public class TaskNodeDependencyResolver implements DependencyResolver {
 
     @Override
     public boolean resolve(Task task, Object node, final Action<? super Node> resolveAction) {
-        TaskNode taskNode = taskNodeFactory.getNode(task);
-        int ordinal = taskNode != null ? taskNode.getOrdinal() : TaskNode.UNKNOWN_ORDINAL;
-        return TASK_AS_TASK.resolve(task, node, resolved -> resolveAction.execute(taskNodeFactory.getOrCreateNode(resolved, ordinal)));
-    }
-
-    @Override
-    public boolean attachActionTo(Node value, Action<? super Task> action) {
-        if (value instanceof TaskNode) {
-            TaskNode taskNode = (TaskNode) value;
-            taskNode.appendPostAction(action);
-            return true;
-        }
-        return false;
+        return TASK_AS_TASK.resolve(task, node, resolved -> resolveAction.execute(taskNodeFactory.getOrCreateNode(resolved)));
     }
 }

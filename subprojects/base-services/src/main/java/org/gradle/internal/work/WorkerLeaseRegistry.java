@@ -38,7 +38,7 @@ public interface WorkerLeaseRegistry {
      * {@link ResourceLock#tryLock()} is called from a {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}
      * transform.
      */
-    WorkerLease getWorkerLease();
+    WorkerLease newWorkerLease();
 
     interface WorkerLease extends ResourceLock {
     }

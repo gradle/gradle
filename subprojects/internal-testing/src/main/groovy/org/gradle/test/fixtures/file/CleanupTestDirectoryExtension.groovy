@@ -42,10 +42,10 @@ class CleanupTestDirectoryExtension implements IAnnotationDrivenExtension<Cleanu
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
+            TestDirectoryProvider provider = GroovyRuntimeUtil.getProperty(invocation.instance, fieldName) as TestDirectoryProvider
             def noCleanupOnErrorListener = new AbstractRunListener() {
                 @Override
                 void error(ErrorInfo error) {
-                    TestDirectoryProvider provider = GroovyRuntimeUtil.getProperty(invocation.instance, fieldName) as TestDirectoryProvider
                     provider.suppressCleanup()
                 }
             }

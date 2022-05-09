@@ -42,9 +42,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy3 class path uses 'groovy' jars from classpath if all required pieces are found"() {
-        def groovyVersion = "3.0.9"
-
+    def "inferred Groovy class path uses 'groovy' jars from classpath if all required pieces are found and match the runtime Groovy version #groovyVersion"() {
         when:
         def classpath = project.groovyRuntime.inferGroovyClasspath([
             project.file("other.jar"),
@@ -78,6 +76,9 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classpath.files.contains(project.file("groovy-nio-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-sql-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-test-${groovyVersion}.jar"))
+
+        where:
+        groovyVersion << ([GroovySystem.version, "3.0.10", "4.0.0"] as Set)
     }
 
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
@@ -94,19 +95,23 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             state == Configuration.State.UNRESOLVED
-            dependencies.size() == expectedJars.size()
-            expectedJars.each { expectedJar ->
-                assert dependencies.any { it.group == "org.codehaus.groovy" && it.name == expectedJar && it.version == groovyVersion } // not sure how to check classifier
+            dependencies.size() == expectedDependencies.size()
+            expectedDependencies.each { expectedJar ->
+                assert dependencies.any {
+                    it.group == expectedGroup && it.name == expectedJar && it.version == groovyVersion
+                } // not sure how to check classifier
             }
         }
 
         where:
-        groovyVersion | classifier | expectedJars
-        "2.1.2"       | ""         | ["groovy", "groovy-ant"]
-        "2.1.2"       | "-indy"    | ["groovy", "groovy-ant"]
-        "2.5.2"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
-        "2.5.2"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.8"       | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        groovyVersion        | classifier | expectedGroup         | expectedDependencies
+        "2.1.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.1.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.5.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "3.0.10"             | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.10"             | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "4.0.0"              | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

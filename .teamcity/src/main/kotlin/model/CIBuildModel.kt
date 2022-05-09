@@ -1,5 +1,9 @@
 package model
 
+import common.Arch
+import common.BuildToolBuildJvm
+import common.BuildToolBuildJvmM1
+import common.Jvm
 import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
@@ -58,7 +62,7 @@ data class CIBuildModel(
         Stage(
             StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
-                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION)
+                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS)
             ),
             functionalTestsDependOnSpecificBuilds = true,
             dependsOnSanityCheck = true
@@ -78,7 +82,7 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
-                TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
+                TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             )
         ),
@@ -90,7 +94,7 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, QUICK_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, QUICK_CROSS_VERSION_BUCKETS.size)
+                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, QUICK_CROSS_VERSION_BUCKETS.size)
             ),
             performanceTests = performanceRegressionTestCoverages
         ),
@@ -104,18 +108,19 @@ data class CIBuildModel(
                 SpecificBuild.FlakyTestQuarantineWindows
             ),
             functionalTests = listOf(
-                TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
-                TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION, 1),
-                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION, 1),
+                TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
+                TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_LTS_VERSION, 1),
+                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, 1),
                 TestCoverage(35, TestType.soak, Os.MACOS, JvmCategory.MIN_VERSION, 1),
                 TestCoverage(10, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
+                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
-                TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_VERSION),
+                TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
                 TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size)
+                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
+                TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = 20, arch = Arch.AARCH64, buildJvm = BuildToolBuildJvmM1)
             ),
             performanceTests = slowPerformanceTestCoverages,
             performanceTestPartialTriggers = listOf(PerformanceTestPartialTrigger("All Performance Tests", "AllPerformanceTests", performanceRegressionTestCoverages + slowPerformanceTestCoverages))
@@ -214,9 +219,10 @@ data class TestCoverage(
     val os: Os,
     val testJvmVersion: JvmVersion,
     val vendor: JvmVendor = JvmVendor.oracle,
-    val buildJvmVersion: JvmVersion = JvmVersion.java11,
+    val buildJvm: Jvm = BuildToolBuildJvm,
     val expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
-    val withoutDependencies: Boolean = false
+    val withoutDependencies: Boolean = false,
+    val arch: Arch = Arch.AMD64
 ) {
 
     constructor(
@@ -225,9 +231,10 @@ data class TestCoverage(
         os: Os,
         testJvm: JvmCategory,
         expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
-        buildJvmVersion: JvmVersion = JvmVersion.java11,
-        withoutDependencies: Boolean = false
-    ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies)
+        buildJvm: Jvm = BuildToolBuildJvm,
+        withoutDependencies: Boolean = false,
+        arch: Arch = Arch.AMD64,
+    ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvm, expectedBucketNumber, withoutDependencies, arch)
 
     fun asId(projectId: String): String {
         return "${projectId}_$testCoveragePrefix"
@@ -377,7 +384,7 @@ enum class SpecificBuild {
     },
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION)
         }
     },
     SantaTrackerSmokeTests {
@@ -392,7 +399,7 @@ enum class SpecificBuild {
     },
     GradleBuildSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME)
         }
     },
     ConfigCacheSmokeTestsMinJavaVersion {
@@ -402,7 +409,7 @@ enum class SpecificBuild {
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, "configCacheSmokeTest")
         }
     },
     FlakyTestQuarantineLinux {

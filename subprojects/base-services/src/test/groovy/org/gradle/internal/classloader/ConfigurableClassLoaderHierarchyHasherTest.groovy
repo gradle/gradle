@@ -18,6 +18,7 @@ package org.gradle.internal.classloader
 
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
 class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
@@ -38,7 +39,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
 
     def "hashes hashed classloader"() {
         def hashedLoader = new DelegatingLoader(runtimeLoader)
-        def hashedLoaderHash = HashCode.fromInt(123456)
+        def hashedLoaderHash = TestHashCodes.hashCodeFrom(123456)
 
         when:
         hasher.getClassLoaderHash(hashedLoader) == hashFor(hashedLoaderHash)

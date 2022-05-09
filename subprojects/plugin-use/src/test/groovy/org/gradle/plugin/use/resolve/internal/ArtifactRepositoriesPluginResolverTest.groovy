@@ -57,7 +57,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     }
     def result = Mock(PluginResolutionResult)
 
-    def resolver = new ArtifactRepositoriesPluginResolver(resolution, Stub(PluginRepositoriesProvider))
+    def resolver = new ArtifactRepositoriesPluginResolver(resolution)
 
     PluginRequestInternal request(String id, String version = null) {
         new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new TextResourceScriptSource(new StringTextResource("test", "test")))

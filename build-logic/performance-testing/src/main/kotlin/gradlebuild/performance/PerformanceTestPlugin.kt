@@ -188,6 +188,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             val moduleIdentity = project.the<ModuleIdentityExtension>()
             branchName.set(moduleIdentity.gradleBuildBranch)
             channel.convention(branchName.map { "commits-$it" })
+            channelPatterns.add(moduleIdentity.logicalBranch)
+            channelPatterns.add(moduleIdentity.logicalBranch.map { "commits-pre-test/$it/%" })
             commitId.set(moduleIdentity.gradleBuildCommitId)
             projectName.set(project.name)
         }
@@ -226,6 +228,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             outputs.cacheIf { false }
             outputs.file(outputJson)
+
+            predictiveSelection.enabled.set(false)
         }
 
     private

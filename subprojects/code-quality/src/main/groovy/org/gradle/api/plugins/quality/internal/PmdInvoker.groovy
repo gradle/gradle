@@ -48,6 +48,7 @@ abstract class PmdInvoker {
         def logger = pmdTask.logger
         def incrementalAnalysis = pmdTask.incrementalAnalysis.get()
         def incrementalCacheFile = pmdTask.incrementalCacheFile
+        def threads = pmdTask.threads.get()
 
         // PMD uses java.class.path to determine it's implementation classpath for incremental analysis
         // Since we run PMD inside the Gradle daemon, this pulls in all of Gradle's runtime.
@@ -56,16 +57,16 @@ abstract class PmdInvoker {
             SystemProperties.instance.withSystemProperty("java.class.path", pmdClasspath.files.join(File.pathSeparator), new Factory<Void>() {
                 @Override
                 Void create() {
-                    runPmd(antBuilder, pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger)
+                    runPmd(antBuilder, pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads)
                     return null
                 }
             })
         } else {
-            runPmd(antBuilder, pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger)
+            runPmd(antBuilder, pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads)
         }
     }
 
-    private static runPmd(IsolatedAntBuilder antBuilder, FileCollection pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger) {
+    private static runPmd(IsolatedAntBuilder antBuilder, FileCollection pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads) {
         antBuilder.withClasspath(pmdClasspath).execute { a ->
             VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader())
 
@@ -100,6 +101,7 @@ abstract class PmdInvoker {
                 if (incrementalAnalysis) {
                     assertUnsupportedIncrementalAnalysis(version)
                 }
+                antPmdArgs['threads'] = threads
             } else {
                 // 6.+
                 if (incrementalAnalysis) {
@@ -109,6 +111,7 @@ abstract class PmdInvoker {
                         antPmdArgs['noCache'] = true
                     }
                 }
+                antPmdArgs['threads'] = threads
             }
 
             if (maxFailures < 0) {

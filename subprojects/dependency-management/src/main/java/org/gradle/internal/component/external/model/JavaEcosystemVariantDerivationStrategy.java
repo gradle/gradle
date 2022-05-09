@@ -79,7 +79,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         return runtimeConfiguration.mutate()
             .withName("sources")
             .withAttributes(attributesFactory.sourcesVariant(originAttributes))
-            .withArtifacts(ImmutableList.of(metadata.artifact("source", "jar", "sources")))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("source", "jar", "sources")))
             .withoutConstraints()
             .build();
     }
@@ -93,7 +93,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         return runtimeConfiguration.mutate()
             .withName("javadoc")
             .withAttributes(attributesFactory.javadocVariant(originAttributes))
-            .withArtifacts(ImmutableList.of(metadata.artifact("javadoc", "jar", "javadoc")))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("javadoc", "jar", "javadoc")))
             .withoutConstraints()
             .build();
     }

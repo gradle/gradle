@@ -70,7 +70,7 @@ public class Jar extends Zip {
         return fileCollectionFactory().generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
-            action(file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath()))),
+            action(file -> outputChangeListener.invalidateCachesFor(ImmutableList.of(file.getAbsolutePath()))),
             action(outputStream -> manifest.get().writeTo(outputStream))
         );
     }

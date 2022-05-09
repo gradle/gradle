@@ -802,4 +802,124 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         then:
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/20398")
+    def "doesn't recompile when private element of implementation class changes and there are malformed classes on the classpath"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+
+            project(':a') {
+                compileJava {
+                    doLast {
+                        // Create a poison class file on the classpath
+                        destinationDirectory.file('Poison.class').get().asFile.text = "foo"
+                    }
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            public class ToolImpl {
+                private String thing() { return null; }
+                private ToolImpl t = this;
+            }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        executedAndNotSkipped ":b:${language.compileTaskName}"
+
+        when:
+        // change signatures
+        sourceFile.text = """
+            public class ToolImpl {
+                private Number thing() { return null; }
+                private Object t = this;
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        skipped ":b:${language.compileTaskName}"
+
+        when:
+        // add private elements
+        sourceFile.text = """
+            public class ToolImpl {
+                private Number thing() { return null; }
+                private Object t = this;
+                private static void someMethod() {}
+                private String s;
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        skipped ":b:${language.compileTaskName}"
+
+        when:
+        // remove private elements
+        sourceFile.text = """
+            public class ToolImpl {
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        skipped ":b:${language.compileTaskName}"
+
+        when:
+        // add public method, should change
+        sourceFile.text = """
+            public class ToolImpl {
+                public void execute() { String s = toString(); }
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
+
+        when:
+        // add public field, should change
+        sourceFile.text = """
+            public class ToolImpl {
+                public static ToolImpl instance;
+                public void execute() { String s = toString(); }
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
+
+        when:
+        // add public constructor, should change
+        sourceFile.text = """
+            public class ToolImpl {
+                public ToolImpl() {}
+                public ToolImpl(String s) {}
+                public static ToolImpl instance;
+                public void execute() { String s = toString(); }
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
+    }
 }
