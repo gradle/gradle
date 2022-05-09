@@ -49,15 +49,29 @@ class VersionHierarchyRootTest extends Specification {
         result = increasesVersion ? 'newer version' : 'same version'
     }
 
+    def "does not update siblings"() {
+        updateVersions('/my', '/my/some/location')
+
+        def versionBefore = versionHierarchyRoot.getVersionFor('/my/some/location')
+        when:
+        updateVersions('/my/some/sibling')
+        then:
+        versionHierarchyRoot.getVersionFor('/my/some/location') == versionBefore
+    }
+
     def "can query and update the root '#root'"() {
         def locations = ['/my/path', '/my/sibling', '/my/path/some/child']
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
-        def versionsBefore = (locations + ['/', '']).collect { versionHierarchyRoot.getVersionFor(it) }
+        when:
+        def rootVersionBefore = versionHierarchyRoot.getVersionFor('')
+        then:
+        versionHierarchyRoot.getVersionFor('/') == rootVersionBefore
+
         when:
         updateVersions(root)
         then:
-        (locations + ['/', '']).collect { versionHierarchyRoot.getVersionFor(it) } == versionsBefore.collect { it + 1 }
+        (locations + ['/', '']).collect { versionHierarchyRoot.getVersionFor(it) }.every { it == rootVersionBefore + 1 }
 
         where:
         root << ['', '/']

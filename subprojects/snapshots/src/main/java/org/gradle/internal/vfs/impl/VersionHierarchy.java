@@ -85,7 +85,7 @@ public class VersionHierarchy {
 
             @Override
             public VersionHierarchy createNodeFromChildren(ChildMap<VersionHierarchy> children) {
-                return createChild();
+                return new VersionHierarchy(children, newVersion);
             }
         });
         return new VersionHierarchy(newChildren, newVersion);
