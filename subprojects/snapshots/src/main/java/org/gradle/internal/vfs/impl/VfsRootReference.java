@@ -33,7 +33,7 @@ public class VfsRootReference {
         this.root = root;
     }
 
-    public void update(UnaryOperator<SnapshotHierarchy> updateFunction) {
+    public void updateUnderLock(UnaryOperator<SnapshotHierarchy> updateFunction) {
         updateLock.lock();
         try {
             SnapshotHierarchy currentRoot = root;

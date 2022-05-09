@@ -32,7 +32,7 @@ public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     public void setRoot(SnapshotHierarchy newRoot) {
-        rootReference.update(root -> newRoot);
+        rootReference.updateUnderLock(root -> newRoot);
     }
 
     public SnapshotHierarchy getRoot() {

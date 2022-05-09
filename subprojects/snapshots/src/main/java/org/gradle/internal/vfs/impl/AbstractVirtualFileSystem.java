@@ -66,7 +66,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         // Only update VFS if no changes happened in between
         // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
         if (versionBefore >= versionAfter) {
-            rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+            rootReference.updateUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
         } else {
             LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
         }
@@ -75,7 +75,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void invalidate(Iterable<String> locations) {
         LOGGER.debug("Invalidating VFS paths: {}", locations);
-        rootReference.update(root -> {
+        rootReference.updateUnderLock(root -> {
             SnapshotHierarchy result = root;
             VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
             for (String location : locations) {
@@ -91,7 +91,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
-        rootReference.update(root -> {
+        rootReference.updateUnderLock(root -> {
             versionHierarchyRoot = versionHierarchyRoot.increaseVersionInRoot();
             return updateNotifyingListeners(diffListener -> {
                 root.rootSnapshots()
