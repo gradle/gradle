@@ -29,13 +29,9 @@ abstract class PluginPublishExtension(
         gradlePlugin.plugins {
             register(name) {
                 id = pluginId
-                implementationClass = pluginClass
-            }
-        }
-        pluginBundle.plugins {
-            named(name).configure {
                 displayName = shortDescription
                 description = shortDescription
+                implementationClass = pluginClass
             }
         }
     }

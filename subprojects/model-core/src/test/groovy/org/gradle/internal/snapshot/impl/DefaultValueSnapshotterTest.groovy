@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.Named
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.Encoder
@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class DefaultValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_) >> HashCode.fromInt(123)
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
     def valueSnapshotSerializerRegistry = new TestValueSnapshotSerializerRegistry().tap {

@@ -19,7 +19,7 @@ package org.gradle.internal.classpath
 class AccessTrackingEnvMapTest extends AbstractAccessTrackingMapTest {
     @Override
     protected Map<String, String> getMapUnderTestToRead() {
-        return new AccessTrackingEnvMap(innerMap, consumer)
+        return new AccessTrackingEnvMap(innerMap, onAccess)
     }
 
     def "access to non-string element with containsKey throws"() {
@@ -28,6 +28,6 @@ class AccessTrackingEnvMapTest extends AbstractAccessTrackingMapTest {
 
         then:
         thrown(RuntimeException)
-        0 * consumer._
+        0 * onAccess._
     }
 }

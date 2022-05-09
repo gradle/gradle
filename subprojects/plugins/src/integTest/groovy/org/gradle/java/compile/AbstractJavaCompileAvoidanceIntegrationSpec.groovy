@@ -18,6 +18,9 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.language.fixtures.HelperProcessorFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     CompiledLanguage language = CompiledLanguage.JAVA
@@ -330,5 +333,138 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         succeeds ":b:${language.compileTaskName}"
         executedAndNotSkipped ":a:${language.compileTaskName}"
         skipped ":b:${language.compileTaskName}"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20394")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "doesn't recompile when record implementation changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        file("a/src/main/${language.name}/Foo.${language.name}") << 'record Foo(String property) {}'
+        file("b/src/main/${language.name}/Bar.${language.name}") << 'class Bar { public void useFoo(Foo foo) { } }'
+
+        when:
+        // Run with --debug to ensure that class snapshotting didn't fail.
+        succeeds ":b:${language.compileTaskName}", "--debug"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // Change internal implementation, but not API.
+        file("a/src/main/${language.name}/Foo.${language.name}").delete()
+        file("a/src/main/${language.name}/Foo.${language.name}") << '''
+record Foo(String property) {
+    public String property() {
+        return property + "!";
+    }
+}
+'''
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        skipped(":b:${language.compileTaskName}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20394")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "recompiles when record components change"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        file("a/src/main/${language.name}/Foo.${language.name}") << 'record Foo(String property) {}'
+        file("b/src/main/${language.name}/Bar.${language.name}") << 'class Bar { public void useFoo(Foo foo) { } }'
+
+        when:
+        // Run with --debug to ensure that class snapshotting didn't fail.
+        succeeds ":b:${language.compileTaskName}", "--debug"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // Add new property, breaks API.
+        file("a/src/main/${language.name}/Foo.${language.name}").delete()
+        file("a/src/main/${language.name}/Foo.${language.name}") << '''
+record Foo(String property, int newProperty) {
+    public String property() {
+        return property + "!";
+    }
+}
+'''
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20394")
+    @Requires(TestPrecondition.JDK17_OR_LATER)
+    def "recompiles when sealed modifier is changed"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        file("a/src/main/${language.name}/Foo.${language.name}") << '''
+sealed interface Foo {
+    non-sealed interface Sub extends Foo {}
+}
+'''
+        file("b/src/main/${language.name}/Bar.${language.name}") << 'class Bar implements Foo.Sub {}'
+
+        when:
+        // Run with --debug to ensure that class snapshotting didn't fail.
+        succeeds ":b:${language.compileTaskName}", "--debug"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // Remove sealed modifier, forces change to API.
+        file("a/src/main/${language.name}/Foo.${language.name}").delete()
+        file("a/src/main/${language.name}/Foo.${language.name}") << '''
+interface Foo {
+    interface Sub extends Foo {}
+}
+'''
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // Re-add sealed modifier, forces change to API.
+        file("a/src/main/${language.name}/Foo.${language.name}").delete()
+        file("a/src/main/${language.name}/Foo.${language.name}") << '''
+sealed interface Foo {
+    non-sealed interface Sub extends Foo {}
+}
+'''
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
     }
 }

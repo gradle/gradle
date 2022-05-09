@@ -25,6 +25,8 @@ import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -37,7 +39,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.codehaus.groovy:groovy:${version}"
+                implementation "${groovyModuleDependency("groovy", versionNumber)}"
             }
         """
     }

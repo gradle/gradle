@@ -17,9 +17,12 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
@@ -27,7 +30,10 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 @ValidationTestFor(
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
-class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
+class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ExecutionOptimizationDeprecationFixture {
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
@@ -435,6 +441,108 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":fooReport", ":barReport")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20391")
+    def "running tasks in parallel with exclusions does not cause incorrect builds"() {
+        // This test is inspired by our build setup where we found this problem:
+        // We zip the source distribution by using an archive task starting from the root project.
+        // This caused problems when building the JARs in parallel.
+        // We introduced a workaround for our build in https://github.com/gradle/gradle/pull/20366.
+
+        // Configuration caching resolves the inputs once more to store the result in the configuration cache.
+        int countResolvedBeforeTaskExecution = GradleContextualExecuter.configCache ? 2 : 1
+        server.start()
+        file("lib/src/MyClass.java").text = "public class MyClass {}"
+
+        settingsFile """
+            include "dist"
+            include "lib"
+        """
+
+        file("dist/build.gradle").text = """
+            abstract class ZipSrc extends DefaultTask {
+                @Internal
+                int countResolved
+
+                @Internal
+                abstract DirectoryProperty getSources()
+
+                @InputFiles
+                abstract ConfigurableFileCollection getSourceFiles()
+
+                @OutputFile
+                abstract RegularFileProperty getZipFile()
+
+                ZipSrc() {
+                    // We need a way to count access times, that is why I ended up with configuring it in the task so it has access to countResolved.
+                    // I didn't find a way to make the test configuration cache compatible without the extra sources property and doing this configuration in the task registration.
+                    sourceFiles.from(sources.map {
+                        if (countResolved == ${countResolvedBeforeTaskExecution}) {
+                            println "resolving input"
+                            ${server.callFromBuild("zipFileSnapshottingStarted")}
+                        }
+                        countResolved++
+                        it.asFileTree.matching {
+                            include "src/**"
+                            include "build.gradle"
+                        }
+                    })
+                }
+
+                @TaskAction
+                void zipSources() {
+                    ${server.callFromBuild("zipFileSnapshottingFinished")}
+                    zipFile.get().asFile.text = "output"
+                }
+            }
+
+            task srcZip(type: ZipSrc) {
+                sources = rootProject.file("lib")
+                zipFile = file("build/srcZip.zip")
+            }
+        """
+
+        file("lib/build.gradle").text = """
+
+            abstract class Compile extends DefaultTask {
+                @InputDirectory
+                abstract DirectoryProperty getSources()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void compile() {
+                    ${server.callFromBuild("compileAction1")}
+                    ${server.callFromBuild("compileAction2")}
+                    outputFile.get().asFile.text = "classes"
+                }
+            }
+
+            task compile(type: Compile) {
+                sources.fileValue(file("src"))
+                outputFile = file("classes.jar")
+            }
+        """
+
+        // This is to make sure that:
+        //   - The snapshotting of the zip task finishes after the outputs have been broadcast by the compile task
+        //   - The snapshotting of the zip task finishes before the snapshotting of the outputs of the compile task
+        server.expectConcurrent("zipFileSnapshottingStarted", "compileAction1")
+        server.expectConcurrent("zipFileSnapshottingFinished", "compileAction2")
+        when:
+        run "srcZip", "compile", "--parallel"
+        then:
+        executedAndNotSkipped(":dist:srcZip", ":lib:compile")
+        file("lib/classes.jar").text == "classes"
+        server.expect("compileAction1")
+        server.expect("compileAction2")
+        when:
+        assert file("lib/classes.jar").delete()
+        run ":lib:compile"
+        then:
+        executedAndNotSkipped(":lib:compile")
+    }
+
     @ValidationTestFor(
         ValidationProblemId.UNRESOLVABLE_INPUT
     )
@@ -463,11 +571,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         def expectedWarning = unresolvableInput({
             property('invalidInputFileCollection')
             conversionProblem(rootCause.stripIndent())
-            includeLink()
         }, false)
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, expectedWarning)
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, expectedWarning, 'validation_problems', 'unresolvable_input')
 
         run "broken"
 

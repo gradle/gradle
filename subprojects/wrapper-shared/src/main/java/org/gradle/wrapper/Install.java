@@ -104,6 +104,7 @@ public class Install {
                 if (installCheck.isVerified()) {
                     setExecutablePermissions(installCheck.gradleHome);
                     markerFile.createNewFile();
+                    localZipFile.delete();
                     return installCheck.gradleHome;
                 }
                 // Distribution couldn't be installed.

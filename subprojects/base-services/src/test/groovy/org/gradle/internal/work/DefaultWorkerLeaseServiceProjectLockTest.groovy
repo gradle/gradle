@@ -17,13 +17,9 @@
 package org.gradle.internal.work
 
 import org.gradle.api.Transformer
-import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.MutableBoolean
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -35,11 +31,10 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 import static org.gradle.util.Path.path
 
-class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
+class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServiceTest {
     @Rule
     SetSystemProperties properties = new SetSystemProperties()
-    def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallel())
+    def workerLeaseService = workerLeaseService()
 
     def "can lock and unlock a project"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
@@ -508,7 +503,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         when:
         async {
             start {
-                def workerLease = workerLeaseService.getWorkerLease()
+                def workerLease = workerLeaseService.newWorkerLease()
                 workerLeaseService.withLocks([projectLock, workerLease]) {
                     workerLeaseService.runAsIsolatedTask {
                         thread.blockUntil.projectLocked
@@ -520,7 +515,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
             workerLeaseService.withLocks([projectLock]) {
                 instant.projectLocked
                 start {
-                    def workerLease = workerLeaseService.getWorkerLease()
+                    def workerLease = workerLeaseService.newWorkerLease()
                     coordinationService.withStateLock(lock(workerLease))
                     try {
                         instant.worker2Executed
@@ -604,7 +599,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     def "releases worker lease but does not release project locks in blocking action when changes to locks are disallowed"() {
-        def lease = workerLeaseService.workerLease
+        def lease = workerLeaseService.newWorkerLease()
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
@@ -623,7 +618,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     def "releases and reacquires project locks in blocking action when changes to locks are allowed"() {
-        def lease = workerLeaseService.workerLease
+        def lease = workerLeaseService.newWorkerLease()
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
@@ -656,7 +651,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
 
     def "releases worker lease but does not release project locks in blocking action when thread has uncontrolled access to any project"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
-        def lease = workerLeaseService.workerLease
+        def lease = workerLeaseService.newWorkerLease()
 
         expect:
         workerLeaseService.withLocks([projectLock, lease]) {
@@ -700,7 +695,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     def "does not gather statistics when not acquiring project lock"() {
-        def workerLease = workerLeaseService.getWorkerLease()
+        def workerLease = workerLeaseService.newWorkerLease()
 
         when:
         System.setProperty(DefaultWorkerLeaseService.PROJECT_LOCK_STATS_PROPERTY, "")
@@ -736,17 +731,5 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
             }
         })
         return held.get()
-    }
-
-    ParallelismConfiguration parallel(boolean parallelEnabled) {
-        return new DefaultParallelismConfiguration(parallelEnabled, 1)
-    }
-
-    ParallelismConfiguration notParallel() {
-        return parallel(false)
-    }
-
-    ParallelismConfiguration parallel() {
-        return parallel(true)
     }
 }

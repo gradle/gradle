@@ -19,11 +19,14 @@ package promotion
 import common.VersionedSettingsBranch
 import configurations.branchFilter
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
+import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistribution(
+class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionBothSteps(
     promotedBranch = branch.branchName,
-    task = branch.promoteNightlyTaskName(),
-    triggerName = "ReadyforNightly"
+    prepTask = branch.prepNightlyTaskName(),
+    step2TargetTask = branch.promoteNightlyTaskName(),
+    triggerName = "ReadyforNightly",
+    vcsRootId = gradlePromotionBranches
 ) {
     init {
         id("Promotion_Nightly")

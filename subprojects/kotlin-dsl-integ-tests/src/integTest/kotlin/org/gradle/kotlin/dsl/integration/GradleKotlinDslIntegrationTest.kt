@@ -199,13 +199,12 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
         assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
-        val differentKotlinVersion = "1.4.20"
-        val expectedKotlinCompilerVersionString = "1.4.20"
+        val differentKotlinVersion = "1.6.0"
+        val expectedKotlinCompilerVersionString = "1.6.0"
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
@@ -228,12 +227,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 kotlinOptions.suppressWarnings = true
             }
 
-            task("print-kotlin-version") {
+            tasks.register("print-kotlin-version") {
+                val kotlinCompilerVersion = KotlinCompilerVersion.VERSION
+                val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
+                    it.name + "=" + it.kotlinOptions.suppressWarnings
+                }
                 doLast {
-                    val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
-                        it.name + "=" + it.kotlinOptions.suppressWarnings
-                    }
-                    println(KotlinCompilerVersion.VERSION + compileOptions)
+                    println(kotlinCompilerVersion + compileOptions)
                 }
             }
             """
@@ -246,7 +246,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply base plugin via plugins block`() {
 
         withBuildScript(
@@ -256,8 +255,9 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             task("plugins") {
+                val appliedPlugins = plugins.map { "*" + it::class.simpleName + "*" }
                 doLast {
-                    println(plugins.map { "*" + it::class.simpleName + "*" })
+                    println(appliedPlugins)
                 }
             }
             """
@@ -270,7 +270,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     fun `can use Closure only APIs`() {
 
         withBuildScript(

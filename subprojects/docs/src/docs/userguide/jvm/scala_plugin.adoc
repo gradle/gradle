@@ -161,7 +161,7 @@ Unless a task's `scalaClasspath` is configured explicitly, the Scala (base) plug
 
 The Scala plugin uses a configuration named `zinc` to resolve the https://github.com/sbt/zinc[Zinc compiler] and its dependencies.
 Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can change it.
-Gradle supports version 1.2.0 of Zinc and above.
+Gradle supports version 1.6.0 of Zinc and above.
 
 .Declaring a version of the Zinc compiler to use
 ====
@@ -171,7 +171,6 @@ include::sample[dir="snippets/scala/zincDependency/kotlin",files="build.gradle.k
 
 The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
 Gradle takes care of specifying a compatible version of `scala-library` for you.
-footnote:[Gradle does not support running the Zinc compiler v1.2.0 with Scala 2.11.]
 
 You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,dependencyInsight>> for the `zinc` configuration.
 
@@ -180,7 +179,8 @@ You can diagnose problems with the version of the Zinc compiler selected by runn
 |===
 | Gradle version    | Supported Zinc versions | Zinc coordinates | Required Scala version | Supported Scala compilation version
 
-| 6.0 and newer     | link:https://github.com/sbt/zinc[SBT Zinc]. Versions 1.2.0 and above. | `org.scala-sbt:zinc_2.12` | Scala `2.12.x` is required for _running_ Zinc. | Scala `2.10.x` through `2.13.x` can be compiled.
+| 7.5 and newer     | link:https://github.com/sbt/zinc[SBT Zinc]. Versions 1.6.0 and above. | `org.scala-sbt:zinc_2.13` | Scala `2.13.x` is required for _running_ Zinc. | Scala `2.10.x` through `3.x` can be compiled.
+| 6.0 to 7.5        | link:https://github.com/sbt/zinc[SBT Zinc]. Versions 1.2.0 and above. | `org.scala-sbt:zinc_2.12` | Scala `2.12.x` is required for _running_ Zinc. | Scala `2.10.x` through `2.13.x` can be compiled.
 | 1.x through 5.x   | link:https://github.com/typesafehub/zinc[**Deprecated** Typesafe Zinc compiler.] Versions 0.3.0 and above, except for 0.3.2 through 0.3.5.2. | `com.typesafe.zinc:zinc` | Scala `2.10.x` is required for _running_ Zinc. | Scala `2.9.x` through `2.12.x` can be compiled.
 
 |===

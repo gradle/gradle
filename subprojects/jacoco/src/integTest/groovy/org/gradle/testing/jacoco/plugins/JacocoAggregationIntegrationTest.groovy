@@ -16,6 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 

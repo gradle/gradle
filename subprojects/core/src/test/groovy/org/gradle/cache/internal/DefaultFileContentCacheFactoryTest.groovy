@@ -26,6 +26,7 @@ import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.vfs.FileSystemAccess
@@ -184,7 +185,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
+        listenerManager.getBroadcaster(OutputChangeListener).invalidateCachesFor([])
         result = cache.get(file)
 
         then:
@@ -213,7 +214,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
+        listenerManager.getBroadcaster(OutputChangeListener).invalidateCachesFor([])
         result = cache.get(file)
 
         then:
@@ -237,13 +238,13 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         and:
         interaction {
-            snapshotRegularFile(file, HashCode.fromInt(123))
+            snapshotRegularFile(file, TestHashCodes.hashCodeFrom(123))
         }
         1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
+        listenerManager.getBroadcaster(OutputChangeListener).invalidateCachesFor([])
         result = cache.get(file)
 
         then:
@@ -251,13 +252,13 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         and:
         interaction {
-            snapshotRegularFile(file, HashCode.fromInt(321))
+            snapshotRegularFile(file, TestHashCodes.hashCodeFrom(321))
         }
         1 * calculator.calculate(file, true) >> 10
         0 * _
     }
 
-    def snapshotRegularFile(File file, HashCode hashCode = HashCode.fromInt(123)) {
+    def snapshotRegularFile(File file, HashCode hashCode = TestHashCodes.hashCodeFrom(123)) {
         1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> { location, function ->
             return Optional.ofNullable(function.apply(hashCode))
         }

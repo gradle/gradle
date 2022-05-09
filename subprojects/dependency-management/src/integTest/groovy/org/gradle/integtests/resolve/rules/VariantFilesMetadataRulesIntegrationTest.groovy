@@ -697,7 +697,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    def "does maven artifact discovery when metadata does not include artifact"() {
+    def "probes for artifact when metadata does not include artifact"() {
         given:
         repository {
             'org.test:moduleA:1.0' {
@@ -718,6 +718,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
+                expectHeadArtifact(type: 'notJar')
                 expectGetArtifact(type: 'notJar')
             }
         }

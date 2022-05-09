@@ -68,6 +68,29 @@ public interface JavaPluginExtension {
 
     /**
      * Registers a feature.
+     * <p>
+     * The new feature will have a default capability corresponding to the
+     * "group", "name" + feature name and version of this project. For example,
+     * if the group of the component is "org", that the project name is "lib"
+     * the version is "1.0" and the feature name is "myFeature", then a
+     * capability named "org:lib-my-feature:1.0" is automatically added.
+     * <p>
+     * In order to consume this feature in another module add a dependency like
+     * the following:
+     *
+     * <pre>
+     *  dependencies {
+     *      implementation(project(":lib")) {
+     *          capabilities {
+     *              requireCapability("org:lib-my-feature:1.0")
+     *          }
+     *      }
+     *  }
+     * </pre>
+     *
+     * The {@link FeatureSpec#capability(String, String, String)} method can be
+     * used to refine the capabilities of this feature.
+     *
      * @param name the name of the feature
      * @param configureAction the configuration for the feature
      *

@@ -19,15 +19,13 @@ package org.gradle.jvm.toolchain.install.internal;
 import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +35,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JdkCacheDirectory {
 
@@ -59,31 +56,50 @@ public class JdkCacheDirectory {
     }
 
     public Set<File> listJavaHomes() {
-        final File[] files = jdkDirectory.listFiles();
-        if (files != null) {
-            return Arrays.stream(files).filter(isValidInstallation()).map(this::findJavaHome).collect(Collectors.toSet());
+        final File[] candidates = jdkDirectory.listFiles();
+        if (candidates != null) {
+            return Arrays.stream(candidates)
+                    .flatMap(this::markedLocations)
+                    .map(this::getJavaHome)
+                    .collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
 
-    private Predicate<File> isValidInstallation() {
-        return home -> home.isDirectory() && new File(home, MARKER_FILE).exists();
-    }
-
-    private File findJavaHome(File potentialHome) {
-        if (new File(potentialHome, MAC_OS_JAVA_HOME_FOLDER).exists()) {
-            return new File(potentialHome, MAC_OS_JAVA_HOME_FOLDER);
+    private Stream<File> markedLocations(File candidate) {
+        if (isMarkedLocation(candidate)) {
+            return Stream.of(candidate);
         }
 
-        File[] subfolders = potentialHome.listFiles(File::isDirectory);
-        if (subfolders != null) {
-            for (File subfolder : subfolders) {
-                if (new File(subfolder, MAC_OS_JAVA_HOME_FOLDER).exists()) {
-                    return new File(subfolder, MAC_OS_JAVA_HOME_FOLDER);
+        File[] subFolders = candidate.listFiles();
+        if (subFolders == null) {
+            return Stream.empty();
+        }
+
+        return Arrays.stream(subFolders).filter(this::isMarkedLocation);
+    }
+
+    private boolean isMarkedLocation(File candidate) {
+        return candidate.isDirectory() && new File(candidate, MARKER_FILE).exists();
+    }
+
+    private File getJavaHome(File markedLocation) {
+        if (OperatingSystem.current().isMacOsX()) {
+            if (new File(markedLocation, MAC_OS_JAVA_HOME_FOLDER).exists()) {
+                return new File(markedLocation, MAC_OS_JAVA_HOME_FOLDER);
+            }
+
+            File[] subfolders = markedLocation.listFiles(File::isDirectory);
+            if (subfolders != null) {
+                for(File subfolder : subfolders) {
+                    if (new File(subfolder, MAC_OS_JAVA_HOME_FOLDER).exists()) {
+                        return new File(subfolder, MAC_OS_JAVA_HOME_FOLDER);
+                    }
                 }
             }
         }
-        return potentialHome;
+
+        return markedLocation;
     }
 
     /**
@@ -91,52 +107,52 @@ public class JdkCacheDirectory {
      */
     public File provisionFromArchive(File jdkArchive) {
         final File destination = unpack(jdkArchive);
-        markAsReady(destination);
-        return findJavaHome(destination);
-    }
-
-    private void markAsReady(File destination) {
-        try {
-            new File(destination, MARKER_FILE).createNewFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Unable to create .ok file", e);
-        }
+        File markedLocation = markJavaHome(destination);
+        return getJavaHome(markedLocation);
     }
 
     private File unpack(File jdkArchive) {
         final FileTree fileTree = asFileTree(jdkArchive);
-        final String rootName = getRootDirectory(fileTree);
         String installRootName = getNameWithoutExtension(jdkArchive);
         final File installLocation = new File(jdkDirectory, installRootName);
         if (!installLocation.exists()) {
             operations.copy(spec -> {
                 spec.from(fileTree);
-                spec.into(jdkDirectory);
-                spec.exclude(FileTreeElement::isDirectory);
-                spec.eachFile(fileCopyDetails -> {
-                    String path = fileCopyDetails.getPath();
-                    if (path.startsWith(rootName)) { //root names can be weird, regexp based replacement won't work
-                        String newPath = installRootName + path.substring(rootName.length());
-                        fileCopyDetails.setPath(newPath);
-                    }
-                });
+                spec.into(installLocation);
             });
             LOGGER.info("Installed {} into {}", jdkArchive.getName(), installLocation);
         }
+
         return installLocation;
     }
 
-    //TODO: unit test top level directory name replacement (ie. don't forget to add integration test)
+    private File markJavaHome(File installLocation) {
+        File[] content = installLocation.listFiles();
+        if (content == null) {
+            //can't happen, the installation location is a directory, we have created it
+            throw new RuntimeException("Programming error");
+        }
 
-    private String getRootDirectory(FileTree fileTree) {
-        AtomicReference<String> rootDirName = new AtomicReference<>();
-        fileTree.visit(new EmptyFileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails details) {
-                rootDirName.compareAndSet(null, details.getName()); //querying only the name, instead of File objects will prevent these directories to be manifested on disk
+        //mark the first directory since there should be only one
+        for (File file : content) {
+            if (file.isDirectory()) {
+                markAsReady(file);
+                return file;
             }
-        });
-        return rootDirName.get();
+        }
+
+        //there were no sub-directories in the installation location
+        return markAsReady(installLocation);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private File markAsReady(File destination) {
+        try {
+            new File(destination, MARKER_FILE).createNewFile();
+            return destination;
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to create .ok file", e);
+        }
     }
 
     private FileTree asFileTree(File jdkArchive) {

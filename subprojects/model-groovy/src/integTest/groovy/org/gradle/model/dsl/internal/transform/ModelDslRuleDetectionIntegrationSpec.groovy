@@ -16,8 +16,11 @@
 
 package org.gradle.model.dsl.internal.transform
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -140,6 +143,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "only closure literals can be used as rules"() {
         when:
         buildScript """

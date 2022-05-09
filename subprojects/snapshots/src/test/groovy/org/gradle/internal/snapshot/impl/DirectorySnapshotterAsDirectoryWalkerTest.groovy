@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
+import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
+
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
     Consumer<FileSystemLocationSnapshot> completeSnapshotConsumer = Stub()
 
@@ -49,7 +51,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
                 def elementFromFileWalker = visitedWithJdk7Walker.find { it.file == element.file }
                 assert elementFromFileWalker != null
                 assert element.directory == elementFromFileWalker.directory
-                assert element.lastModified == elementFromFileWalker.lastModified
+                assert maybeRoundLastModified(element.lastModified) == maybeRoundLastModified(elementFromFileWalker.lastModified)
                 assert element.size == elementFromFileWalker.size
                 assert element.name == elementFromFileWalker.name
                 assert element.path == elementFromFileWalker.path

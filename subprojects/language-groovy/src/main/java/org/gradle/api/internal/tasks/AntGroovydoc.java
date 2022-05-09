@@ -29,12 +29,14 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.api.tasks.javadoc.GroovydocAccess;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,9 +58,10 @@ public final class AntGroovydoc {
 
     public void execute(
         final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp,
-        String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate,
+        String windowTitle, String docTitle, String header, String footer, String overview, GroovydocAccess access,
         final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath,
-        File tmpDir, FileSystemOperations fsOperations
+        File tmpDir, FileSystemOperations fsOperations,
+        boolean includeAuthor, boolean processScripts, boolean includeMainForScripts
     ) {
 
         fsOperations.delete(spec -> spec.delete(tmpDir));
@@ -79,7 +82,13 @@ public final class AntGroovydoc {
             args.put("noTimestamp", noTimestamp);
             args.put("noVersionStamp", noVersionStamp);
         }
-        args.put("private", includePrivate);
+        args.put(access.name().toLowerCase(Locale.ROOT), true);
+
+        args.put("author", includeAuthor);
+        if (isAtLeast(version, "1.7.3")) {
+            args.put("processScripts", processScripts);
+            args.put("includeMainForScripts", includeMainForScripts);
+        }
         putIfNotNull(args, "windowtitle", windowTitle);
         putIfNotNull(args, "doctitle", docTitle);
         putIfNotNull(args, "header", header);
@@ -145,10 +154,10 @@ public final class AntGroovydoc {
                     public Object doCall(Object ignore) {
                         for (Groovydoc.Link link : links) {
                             antBuilder.invokeMethod("link", new Object[]{
-                                    ImmutableMap.of(
-                                            "packages", Joiner.on(",").join(link.getPackages()),
-                                            "href", link.getUrl()
-                                    )
+                                ImmutableMap.of(
+                                    "packages", Joiner.on(",").join(link.getPackages()),
+                                    "href", link.getUrl()
+                                )
                             });
                         }
 

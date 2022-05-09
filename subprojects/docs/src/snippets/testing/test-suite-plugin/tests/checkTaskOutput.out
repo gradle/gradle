@@ -1,11 +1,11 @@
 > Task :compileJava
 > Task :processResources NO-SOURCE
 > Task :classes
+> Task :jar
 > Task :compileTestJava
 > Task :processTestResources NO-SOURCE
 > Task :testClasses
 > Task :test
-> Task :jar
 > Task :compileIntegrationTestJava
 > Task :processIntegrationTestResources NO-SOURCE
 > Task :integrationTestClasses

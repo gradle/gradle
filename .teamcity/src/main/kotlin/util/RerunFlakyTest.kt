@@ -44,7 +44,7 @@ class RerunFlakyTest(os: Os) : BuildType({
     val testNameParameterName = "testName"
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
-    applyDefaultSettings(os, BuildToolBuildJvm, 0)
+    applyDefaultSettings(os, buildJvm = BuildToolBuildJvm, timeout = 0)
     val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
@@ -92,7 +92,7 @@ class RerunFlakyTest(os: Os) : BuildType({
         )
         select(
             testJvmVendorParameter,
-            JvmVendor.adoptiumopenjdk.name,
+            JvmVendor.openjdk.name,
             display = ParameterDisplay.PROMPT,
             description = "Java vendor to run the test with",
             options = JvmVendor.values().map { it.displayName to it.name }

@@ -77,8 +77,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
@@ -135,10 +133,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         }
         registration.add(BuildLayoutFactory.class);
         registration.add(DefaultScriptFileResolver.class);
-    }
-
-    ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
-        return new DefaultResourceLockCoordinationService();
     }
 
     CurrentBuildOperationRef createCurrentBuildOperationRef() {

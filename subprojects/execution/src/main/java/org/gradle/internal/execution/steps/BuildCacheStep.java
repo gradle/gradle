@@ -122,8 +122,11 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             )
             .getOrMapFailure(loadFailure -> {
                 throw new RuntimeException(
-                    String.format("Failed to load cache entry for %s",
-                        work.getDisplayName()),
+                    String.format("Failed to load cache entry %s for %s: %s",
+                        cacheKey.getHashCode(),
+                        work.getDisplayName(),
+                        loadFailure.getMessage()
+                    ),
                     loadFailure
                 );
             });
@@ -134,7 +137,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             @Override
             public void visitLocalState(File localStateRoot) {
                 try {
-                    outputChangeListener.beforeOutputChange(ImmutableList.of(localStateRoot.getAbsolutePath()));
+                    outputChangeListener.invalidateCachesFor(ImmutableList.of(localStateRoot.getAbsolutePath()));
                     deleter.deleteRecursively(localStateRoot);
                 } catch (IOException ex) {
                     throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);
@@ -166,8 +169,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             }
         } catch (Exception e) {
             throw new RuntimeException(
-                String.format("Failed to store cache entry for %s",
-                    work.getDisplayName()),
+                String.format("Failed to store cache entry %s for %s: %s",
+                    cacheKey.getHashCode(),
+                    work.getDisplayName(),
+                    e.getMessage()),
                 e);
         }
     }

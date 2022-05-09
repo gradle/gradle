@@ -27,6 +27,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
@@ -52,6 +53,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(AutoInstalledInstallationSupplier.class);
         registration.add(CurrentInstallationSupplier.class);
         registration.add(EnvironmentVariableListInstallationSupplier.class);
+        registration.add(IntellijInstallationSupplier.class);
         registration.add(JabbaInstallationSupplier.class);
         registration.add(LinuxInstallationSupplier.class);
         registration.add(LocationListInstallationSupplier.class);

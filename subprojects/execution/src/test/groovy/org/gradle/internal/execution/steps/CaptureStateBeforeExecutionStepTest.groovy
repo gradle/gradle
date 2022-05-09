@@ -27,7 +27,7 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -40,7 +40,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
+    def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", TestHashCodes.hashCodeFrom(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
@@ -73,8 +73,8 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
     def "implementations are snapshotted"() {
         def additionalImplementations = [
-            ImplementationSnapshot.of("FirstAction", HashCode.fromInt(2345)),
-            ImplementationSnapshot.of("SecondAction", HashCode.fromInt(3456))
+            ImplementationSnapshot.of("FirstAction", TestHashCodes.hashCodeFrom(2345)),
+            ImplementationSnapshot.of("SecondAction", TestHashCodes.hashCodeFrom(3456))
         ]
 
         when:

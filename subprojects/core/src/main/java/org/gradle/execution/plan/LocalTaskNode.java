@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
@@ -44,17 +42,17 @@ import java.util.Set;
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
-    private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
+    private final ResolveMutationsNode resolveMutationsNode;
     private Set<Node> lifecycleSuccessors;
 
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, int ordinal) {
-        super(ordinal);
+    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext) {
         this.task = task;
         this.validationContext = workValidationContext;
+        resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator);
     }
 
     /**
@@ -100,17 +98,26 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public Action<? super Task> getPostAction() {
-        return postAction;
+    public boolean isPublicNode() {
+        return true;
+    }
+
+    @Override
+    public boolean isCanCancel() {
+        FinalizerGroup finalizerGroup = getFinalizerGroup();
+        if (finalizerGroup != null) {
+            for (Node node : finalizerGroup.getSuccessors()) {
+                // Cannot cancel this node if something it finalizes has started
+                if (node.isExecuting() || node.isExecuted()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public TaskProperties getTaskProperties() {
         return taskProperties;
-    }
-
-    @Override
-    public void appendPostAction(Action<? super Task> action) {
-        postAction = postAction.add(action);
     }
 
     @Override
@@ -119,20 +126,14 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
-        task.getState().rethrowFailure();
-    }
-
-    @Override
-    public void prepareForExecution() {
+    public void prepareForExecution(Action<Node> monitor) {
         ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
-            processHardSuccessor.execute(targetNode);
         }
 
         lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
@@ -142,7 +143,6 @@ public class LocalTaskNode extends TaskNode {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
             }
             addFinalizerNode((TaskNode) targetNode);
-            processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
             addMustSuccessor((TaskNode) targetNode);
@@ -152,16 +152,9 @@ public class LocalTaskNode extends TaskNode {
         }
     }
 
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
-    }
-
     private void addFinalizerNode(TaskNode finalizerNode) {
-        addFinalizer(finalizerNode);
-        if (!finalizerNode.isInKnownState()) {
-            finalizerNode.mustNotRun();
-        }
+        deprecateLifecycleHookReferencingNonLocalTask("finalizedBy", finalizerNode);
+        finalizerNode.addFinalizingSuccessor(this);
     }
 
     private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
@@ -182,8 +175,9 @@ public class LocalTaskNode extends TaskNode {
 
     @Override
     public int compareTo(Node other) {
-        if (getClass() != other.getClass()) {
-            return getClass().getName().compareTo(other.getClass().getName());
+        // Prefer to run tasks first
+        if (!(other instanceof LocalTaskNode)) {
+            return -1;
         }
         LocalTaskNode localTask = (LocalTaskNode) other;
         return task.compareTo(localTask.task);
@@ -219,6 +213,10 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public Node getPrepareNode() {
+        return resolveMutationsNode;
+    }
+
     public void resolveMutations() {
         final LocalTaskNode taskNode = this;
         final TaskInternal task = getTask();
@@ -239,8 +237,6 @@ public class LocalTaskNode extends TaskNode {
             throw new TaskExecutionException(task, e);
         }
 
-        mutations.resolved = true;
-
         if (!mutations.destroyablePaths.isEmpty()) {
             if (mutations.hasOutputs) {
                 throw new IllegalStateException("Task " + taskNode + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
@@ -252,6 +248,16 @@ public class LocalTaskNode extends TaskNode {
                 throw new IllegalStateException("Task " + taskNode + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
             }
         }
+    }
+
+    @Override
+    public Set<Node> getLifecycleSuccessors() {
+        return lifecycleSuccessors;
+    }
+
+    @Override
+    public void setLifecycleSuccessors(Set<Node> lifecycleSuccessors) {
+        this.lifecycleSuccessors = lifecycleSuccessors;
     }
 
     /**

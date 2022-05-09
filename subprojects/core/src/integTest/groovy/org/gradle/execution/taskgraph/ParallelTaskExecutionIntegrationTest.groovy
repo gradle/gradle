@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -153,8 +151,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         """
         expect:
         2.times {
-            blockingServer.expect(":aPing")
-            blockingServer.expect(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -333,8 +330,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -352,8 +348,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":a:aPing")
-            blockingServer.expectConcurrent(":b:bPing")
+            blockingServer.expectConcurrent(1, ":a:aPing", ":b:bPing")
             run ":a:aPing", ":b:bPing"
         }
     }
@@ -533,7 +528,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expect(":aInvalidPing")
             blockingServer.expectConcurrent(":bPing", ":cPing")
@@ -559,7 +554,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expectConcurrent(":aPing", ":bPing")
             blockingServer.expect(":cInvalidPing")
@@ -567,9 +562,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    // Stopping the hanging Gradle process fails on Windows
-    @org.gradle.util.Requires(TestPrecondition.LINUX)
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/17013")
+    @Issue("https://github.com/gradle/gradle/issues/17013")
     def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
         buildFile("""
             import org.gradle.util.internal.GFileUtils
@@ -616,19 +609,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             withArgument("--parallel")
         }
 
-        when:
-        def daemon = executer.withArgument("outputDeadlock").start()
-        if (!GradleContextualExecuter.configCache) {
-            Thread.sleep(10_000)
-        }
-        then:
-        if (GradleContextualExecuter.configCache) {
-            // There is no deadlock with configuration caching, since the resolution already happened.
-            daemon.waitForFinish()
-        } else {
-            // TODO: The build should finish normally
-            assert daemon.isRunning()
-        }
+        expect:
+        succeeds("outputDeadlock")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17905")

@@ -35,7 +35,7 @@ class GpgCmdFixture {
     }
 
     static GpgCmdAndVersion getAvailableGpg() {
-        return tryRun("gpg2") ?: tryRun("gpg")
+        return tryRun("gpg")
     }
 
     static GpgCmdAndVersion tryRun(String cmd) {

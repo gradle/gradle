@@ -81,7 +81,6 @@ class InstallTest extends Specification {
         homeDir == gradleHomeDir
         gradleHomeDir.assertIsDir()
         gradleHomeDir.file("bin/gradle").assertIsFile()
-        zipDestination.assertIsFile()
 
         and:
         1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }

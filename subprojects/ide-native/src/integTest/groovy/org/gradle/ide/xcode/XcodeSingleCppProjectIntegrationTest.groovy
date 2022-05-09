@@ -28,7 +28,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.NOT_MAC_OS_X_M1])
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application"() {

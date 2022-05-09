@@ -62,7 +62,11 @@ class ConfigurationCacheHost internal constructor(
     private
     class DefaultVintageGradleBuild(override val gradle: GradleInternal) : VintageGradleBuild {
         override val scheduledWork: List<Node>
-            get() = gradle.taskGraph.scheduledWorkPlusDependencies
+            get() {
+                lateinit var nodes: List<Node>
+                gradle.taskGraph.visitScheduledNodes { nodes = it }
+                return nodes
+            }
     }
 
     private

@@ -13,7 +13,6 @@ In this guide, we'll discuss how to configure link:https://jenkins.io/[Jenkins] 
 * A text editor
 * A command prompt
 * The Java Development Kit (JDK), version 1.7 or higher
-* A https://gradle.org/install[Gradle distribution], version {gradle-version} or better
 * A Jenkins installation (setup steps explained in this post)
 
 == Setup a typical project

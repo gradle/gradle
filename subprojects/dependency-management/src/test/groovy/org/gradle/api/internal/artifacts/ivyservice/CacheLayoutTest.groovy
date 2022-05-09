@@ -53,6 +53,7 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
+        def expectedVersion = 99
         cacheLayout.name == 'metadata'
         cacheLayout.key == "metadata-2.${expectedVersion}"
         cacheLayout.version == CacheVersion.parse("2.${expectedVersion}")
@@ -60,9 +61,6 @@ class CacheLayoutTest extends Specification {
         cacheLayout.getPath(new File('some/dir')) == new File("some/dir/metadata-2.${expectedVersion}")
         !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).present
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
-
-        where:
-        expectedVersion = 97
     }
 
     def "use transforms layout"() {

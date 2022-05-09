@@ -347,9 +347,48 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         conf << ['runtime', 'test']
     }
 
-    def "explicit configuration selection in ivy modules is supported=#supported if targeting a #target module"() {
+    def "explicit configuration selection in ivy modules is NOT supported if targeting a #target module"() {
         given:
-        String targetRepoName = supported? "$target-select" : target //use a different name if selection is supported to not follow the default expectations defined in leaksRuntime()
+        setupRepositories([target, 'ivy'])
+        repository('ivy') {
+            "org:ivy:1.0" {
+                withModule(IvyModule) {
+                    dependsOn([organisation: 'org', module: target, revision: '1.0', conf: 'runtime->compile'])
+                }
+            }
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                conf 'org:ivy:1.0'
+            }
+        """
+        expectChainInteractions([target, 'ivy'], ['ivy', target], 'runtime')
+
+        then:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:ivy:1.0") {
+                    module "org:ivy-api-dependency:1.0"
+                    module "org:ivy-runtime-dependency:1.0"
+                    module("org:$target:1.0") {
+                        module "org:$target-api-dependency:1.0"
+                        module "org:$target-runtime-dependency:1.0"
+                    }
+                }
+            }
+        }
+
+        where:
+        target << ['maven', 'maven-gradle', 'ivy-gradle']
+    }
+
+    def "explicit configuration selection in ivy modules is supported if targeting a ivy module"() {
+        given:
+        // use a different name if selection is supported to not follow the default expectations defined in leaksRuntime()
+        String targetRepoName = "ivy-select"
         setupRepositories([targetRepoName, 'ivy'])
         repository('ivy') {
             "org:ivy:1.0" {
@@ -365,7 +404,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                 conf 'org:ivy:1.0'
             }
         """
-        expectChainInteractions([targetRepoName, 'ivy'], ['ivy', targetRepoName], supported? 'api' : 'runtime')
+        expectChainInteractions([targetRepoName, 'ivy'], ['ivy', targetRepoName], 'api')
 
         then:
         succeeds 'checkDep'
@@ -376,19 +415,9 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                     module "org:ivy-runtime-dependency:1.0"
                     module("org:$targetRepoName:1.0") {
                         module "org:$targetRepoName-api-dependency:1.0"
-                        if (!supported) {
-                            module "org:$targetRepoName-runtime-dependency:1.0"
-                        }
                     }
                 }
             }
         }
-
-        where:
-        target         | supported
-        'maven'        | false
-        'ivy'          | true
-        'maven-gradle' | false
-        'ivy-gradle'   | false
     }
 }

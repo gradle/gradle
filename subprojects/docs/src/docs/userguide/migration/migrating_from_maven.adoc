@@ -486,8 +486,8 @@ Maven has a phase called `process-resources` that has the goal `resources:resour
 This gives the build author an opportunity to perform variable substitution on various files, such as web resources, packaged properties files, etc.
 
 The Java plugin for Gradle provides a `processResources` task to do the same thing.
-This is a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task that copies files from the configured resources directory -- `src/main/resources` by default -- to an output directory.
-And as with any `Copy` task, you can configure it to perform <<working_with_files#filtering_files,file filtering>>, <<working_with_files#sec:renaming_files,renaming>>, and <<working_with_files#sec:filtering_files,content filtering>>.
+This is a link:{groovyDslPath}/org.gradle.language.jvm.tasks.ProcessResources.html[ProcessResources] task that copies files from the configured resources directory -- `src/main/resources` by default -- to an output directory.
+And as with any `ProcessResources` or `Copy` task, you can configure it to perform <<working_with_files#filtering_files,file filtering>>, <<working_with_files#sec:renaming_files,renaming>>, and <<working_with_files#sec:filtering_files,content filtering>>.
 
 As an example, here's a configuration that treats the source files as https://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_simpletemplateengine[Groovy `SimpleTemplateEngine`] templates, providing `version` and `buildNumber` properties to those templates:
 

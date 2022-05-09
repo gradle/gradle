@@ -23,7 +23,7 @@ import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,8 +35,8 @@ class CachingFileHasherTest extends Specification {
     def cache = Mock(PersistentIndexedCache)
     def cacheAccess = Mock(CrossBuildFileHashCache)
     def timeStampInspector = Mock(FileTimeStampInspector)
-    def hash = HashCode.fromInt(0x0123)
-    def oldHash = HashCode.fromInt(0x0321)
+    def hash = TestHashCodes.hashCodeFrom(0x0123)
+    def oldHash = TestHashCodes.hashCodeFrom(0x0321)
     def file = tmpDir.createFile("testfile")
     def fileSystem = TestFiles.fileSystem()
     def statisticsCollector = Mock(FileHasherStatistics.Collector)

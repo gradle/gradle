@@ -19,5 +19,5 @@ package common
 enum class JvmVendor(val displayName: String) {
     oracle("Oracle"),
     openjdk("Openjdk"),
-    adoptiumopenjdk("Adoptium")
+    zulu("Zulu")
 }

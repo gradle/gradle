@@ -187,7 +187,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
             if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
-                originMetadata = readOriginAction.execute(new CloseShieldInputStream(tarInput));
+                originMetadata = readOriginAction.execute(CloseShieldInputStream.wrap(tarInput));
                 tarEntry = tarInput.getNextTarEntry();
             } else {
                 // handle tree

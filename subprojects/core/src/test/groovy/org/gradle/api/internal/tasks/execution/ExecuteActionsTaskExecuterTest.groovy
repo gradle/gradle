@@ -54,7 +54,6 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -76,6 +75,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.operations.BuildOperationContext
@@ -104,10 +104,10 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskOutputs = Mock(TaskOutputsInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", HashCode.fromInt(1234))
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
     }
     def action2 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", HashCode.fromInt(1234))
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", TestHashCodes.hashCodeFrom(1234))
     }
     def state = new TaskStateInternal()
     def taskProperties = Stub(TaskProperties) {
@@ -150,7 +150,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
-            return HashCode.fromInt(1234)
+            return TestHashCodes.hashCodeFrom(1234)
         }
     }
     def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher)
@@ -176,13 +176,12 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveCachingStateStep<>(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
-        new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
-        new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, outputChangeListener,
+        new CancelExecutionStep<>(cancellationToken,
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
-    )))))))))))))))))
+    ))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
