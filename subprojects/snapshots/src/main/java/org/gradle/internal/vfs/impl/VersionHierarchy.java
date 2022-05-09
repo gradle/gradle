@@ -36,11 +36,11 @@ public class VersionHierarchy {
         this.version = version;
     }
 
-   public long getVersionFor(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+   public long getVersion(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return children.withNode(relativePath, caseSensitivity, new ChildMap.NodeHandler<VersionHierarchy, Long>() {
             @Override
             public Long handleAsDescendantOfChild(VfsRelativePath pathInChild, VersionHierarchy child) {
-                return child.getVersionFor(pathInChild, caseSensitivity);
+                return child.getVersion(pathInChild, caseSensitivity);
             }
 
             @Override
@@ -61,11 +61,11 @@ public class VersionHierarchy {
     }
 
     @CheckReturnValue
-    public VersionHierarchy increaseVersion(VfsRelativePath relativePath, long newVersion, CaseSensitivity caseSensitivity) {
+    public VersionHierarchy updateVersion(VfsRelativePath relativePath, long newVersion, CaseSensitivity caseSensitivity) {
         ChildMap<VersionHierarchy> newChildren = children.store(relativePath, caseSensitivity, new ChildMap.StoreHandler<VersionHierarchy>() {
             @Override
             public VersionHierarchy handleAsDescendantOfChild(VfsRelativePath pathInChild, VersionHierarchy child) {
-                return child.increaseVersion(pathInChild, newVersion, caseSensitivity);
+                return child.updateVersion(pathInChild, newVersion, caseSensitivity);
             }
 
             @Override
