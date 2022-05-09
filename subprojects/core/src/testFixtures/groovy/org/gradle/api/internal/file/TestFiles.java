@@ -215,8 +215,7 @@ public class TestFiles {
             new StringInterner(),
             fileSystem(),
             virtualFileSystem,
-            locations -> {
-            },
+            locations -> {},
             new DirectorySnapshotterStatistics.Collector()
         );
     }

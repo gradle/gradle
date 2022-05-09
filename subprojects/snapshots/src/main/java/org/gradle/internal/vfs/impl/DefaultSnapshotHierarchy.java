@@ -122,6 +122,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             : rootNode.getNode(relativePath, caseSensitivity);
     }
 
+    @Override
+    public CaseSensitivity getCaseSensitivity() {
+        return caseSensitivity;
+    }
+
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
         CASE_SENSITIVE(CaseSensitivity.CASE_SENSITIVE),
         CASE_INSENSITIVE(CaseSensitivity.CASE_INSENSITIVE);
@@ -174,5 +179,9 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             return Stream.empty();
         }
 
+        @Override
+        public CaseSensitivity getCaseSensitivity() {
+            return caseSensitivity;
+        }
     }
 }
