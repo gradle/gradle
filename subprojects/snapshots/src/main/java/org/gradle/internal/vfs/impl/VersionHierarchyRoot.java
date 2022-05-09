@@ -42,7 +42,7 @@ public class VersionHierarchyRoot {
     }
 
     @CheckReturnValue
-    public VersionHierarchyRoot touch(String path) {
+    public VersionHierarchyRoot updateVersion(String path) {
         long newVersion = rootNode.getVersion() + 1;
         VfsRelativePath relativePath = VfsRelativePath.of(path);
         VersionHierarchy newRootNode = relativePath.isEmpty()

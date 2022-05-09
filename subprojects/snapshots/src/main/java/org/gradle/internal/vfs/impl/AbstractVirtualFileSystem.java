@@ -83,7 +83,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
             for (String location : locations) {
                 SnapshotHierarchy currentRoot = result;
                 result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
-                newVersionHierarchyRoot = newVersionHierarchyRoot.touch(location);
+                newVersionHierarchyRoot = newVersionHierarchyRoot.updateVersion(location);
             }
             versionHierarchyRoot = newVersionHierarchyRoot;
             return result;
