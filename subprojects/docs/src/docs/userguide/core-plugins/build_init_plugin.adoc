@@ -99,7 +99,7 @@ The conversion process has the following features:
 * Supports both single module and multimodule projects
 * Supports custom module names (that differ from directory names)
 * Generates general metadata - id, description and version
-* Applies <<publishing_maven.adoc#publishing_maven,Maven Publish>>, <<java_plugin.adoc#java_plugin,Java>> and <<war_plugin.adoc#war_plugin,War>> Plugins (as needed)
+* Applies <<publishing_maven.adoc#publishing_maven,Maven Publish>>, <<java_library_plugin.adoc#java_library_plugin,Java Library>> and <<war_plugin.adoc#war_plugin,War>> Plugins (as needed)
 * Supports packaging war projects as jars if needed
 * Generates dependencies (both external and inter-module)
 * Generates download repositories (inc. local Maven repository)
@@ -120,6 +120,21 @@ Available values are:
 * `allow` - Automatically sets the `allowInsecureProtocol` property to `true` for the Maven repository URL in the generated Gradle build script.
 * `warn` - Emits a warning about each insecure URL.  Generates commented-out lines to enable each repository, as per the `allow` option.  You will have to opt-in by editing the generated script and uncommenting each repository URL, or else the Gradle build will fail.
 * `upgrade` - Convert `http` URLs to `https` URLs automatically.
+
+[[sec:compile_dependencies]]
+==== Compile-time dependencies
+
+Maven automatically exposes dependencies using its implicit `compile` scope to the consumers of that project.
+This behavior is undesirable, and Gradle takes steps to help library authors reduce their API footprint using the `api` and `implementation` configurations of the `java-library` plugin.
+
+Nevertheless, many Maven projects rely on this _leaking_ behavior. As such, the `init` task will map `compile`-scoped dependencies to the `api` configuration in the generated Gradle build script. The dependencies of the resulting Gradle project will most closely match the exposed dependencies of the existing Maven project; however, post-conversion to Gradle we strongly encourage moving as many `api` dependencies to the `implementation` configuration as possible. This has several benefits:
+
+* Library maintainability - By exposing fewer transitive dependencies to consumers, library maintainers can add or remove dependencies without fear of causing compile-time breakages for consumers.
+* Consumers' dependency hygiene - Leveraging the `implementation` configuration in a library prevents its consumers from implicitly relying on the library's transitive dependencies at compile-time, which is considered a bad practice.
+* Increased compile avoidance - Reducing the number of transitive dependencies leaked from a project also reduces the likelihood that an ABI change will trigger recompilation of consumers. Gradle will also spend less time indexing the dependencies for its up-to-date checks.
+* Compilation speed increase - Reducing the number of transitive dependencies leaked from a project aids the compiler process of its consumers as there are fewer libraries to classload and fewer namespaces for Gradle's incremental compiler to track.
+
+See the <<java_library_plugin.adoc#sec:java_library_separation,API and implementation separation>> and <<java_plugin.adoc#sec:java_compile_avoidance,Compilation avoidance>> sections for more information.
 
 [[sec:java_application]]
 === `java-application` build type
