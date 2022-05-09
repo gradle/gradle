@@ -50,4 +50,12 @@ public class VersionHierarchyRoot {
             : rootNode.increaseVersion(relativePath, newVersion, caseSensitivity);
         return new VersionHierarchyRoot(newRootNode, caseSensitivity);
     }
+
+    public VersionHierarchyRoot increaseVersionInRoot() {
+        long newVersion = rootNode.getVersion() + 1;
+        return new VersionHierarchyRoot(
+            VersionHierarchy.empty(newVersion),
+            caseSensitivity
+        );
+    }
 }
