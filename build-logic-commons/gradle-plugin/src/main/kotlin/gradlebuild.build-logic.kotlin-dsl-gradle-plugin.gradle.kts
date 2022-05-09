@@ -22,10 +22,7 @@ plugins {
     id("gradlebuild.ci-reporting")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+java.configureJavaToolChain()
 
 dependencies {
     api(platform(project(":build-platform")))
