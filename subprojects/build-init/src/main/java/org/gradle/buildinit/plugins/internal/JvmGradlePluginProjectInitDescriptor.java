@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
@@ -80,14 +79,10 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
             BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
                 b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
                 b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
-                if (!Sets.intersection(FRAMEWORKS_USING_JUNIT_PLATFORM, getTestFrameworks()).isEmpty()) {
-                    b.methodInvocation(null, "useJUnitPlatform");
-                }
+                b.methodInvocation(null, "useJUnitPlatform");
             });
             buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
-            if (!Sets.intersection(FRAMEWORKS_USING_JUNIT_PLATFORM, getTestFrameworks()).isEmpty()) {
-                buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
-            }
+            buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
         }
         buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
     }
