@@ -66,27 +66,27 @@ NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
 <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> (generates plugin publication metadata).
 If using older versions of the Plugin Publish Plugin, these helper plugins need to be applied explicitly.
 
-
+[[sec:configuring-publish-plugin]]
 == Configure the {publishplugin}
 
-First specify information applicable to all the plugins published by your build (we call this your "plugin bundle"; it is also
-possible to set specific properties on a per-plugin basis, more on that later). This helps other people browsing the portal find
-more information about your plugin and learn how to contribute to its development.
+First specify information applicable to all the plugins published by your build. This helps other people browsing the portal find
+more information about your plugins and learn how to contribute to their development.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_bundle]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_bundle]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
 ====
-<1> Make sure your project has a `group` set which is used for the artifacts (jar and metadata) you publish for your bundle in the repository of the {portal}
-and which is descriptive of the plugin author or the organization the plugin belongs too.
-<2> Set the version for your next bundle publication. You need to increase the version, if you already published these plugins before.
-<3> Set the website for your plugin's project.
-<4> Provide the source repository URI so that others can find it if they want to contribute.
-<5> Set the human-readable description for all plugins in your bundle.
-<6> Set the tags to be used for all plugins in your bundle.
+<1> Make sure your project has a `group` set which is used for the artifacts (jar and metadata) you publish for your plugins
+in the repository of the {portal} and which is descriptive of the plugin author or the organization the plugins belong too.
+<2> Set the version of your project, which will also be used as the version of your plugins.
+<3> Use the `gradlePlugin` block provided by the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>
+to configure further options of your plugin publication.
+<4> Set the website for your plugin's project.
+<5> Provide the source repository URI so that others can find it, if they want to contribute.
+<6> Set specific properties for each of the plugins you want to publish; see next section.
 
-Now define specific details for each plugin in your bundle. The most important part is the `id` property, as that both uniquely
-identifies the plugin on the {portal} and prevents namespace clashes between different plugin authors.
+Next you need to define the specific plugins you intend to publish. Their most important property is their `id`, as that both uniquely
+identifies plugins on the {portal} and prevents namespace clashes between different plugin authors.
 
 NOTE: If you would like to associate your plugin with a particular organization, you also set the ID based on that organization’s domain using the
 reverse-domain pattern used for Java packages, for example `org.example.greeting`. If the plugin doesn't belong to any specific organization,
@@ -94,31 +94,27 @@ then the plugin ID should be associated with the author, for example by using th
 Remember that the plugin id and project group should match, i.e. have the same top level namespace.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=gradle-plugin]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=gradle-plugin]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
 ====
-<1> Each plugin in a bundle will have its own block inside `plugins`.
-<2> The name of a plugin block needs to be unique for each plugin in the bundle; this is a property used only locally by your build and will not be part of the publication.
-<3> Set the unique `id` of the plugin, as it will be identified in the publication.
-<4> Set the plugin name in human-readable form.
-<5> Set a description to be displayed on the portal. It provides useful information to people who might want to use your plugin.
-    Overrides the description provided at the plugin bundle level.
-<6> Specifies the categories your plugin covers. Makes the plugin more likely to be discovered by people needing its functionality.
-    Overrides any tags provided at the plugin bundle level.
+<1> Plugin specific configuration also goes into the `gradlePlugin` block.
+<2> This is where we previously added global properties.
+<3> Each plugin you publish will have its own block inside `plugins`.
+<4> The name of a plugin block needs to be unique for each plugin you are publishing; this is a property used only locally by your build and will not be part of the publication.
+<5> Set the unique `id` of the plugin, as it will be identified in the publication.
+<6> Set the plugin name in human-readable form.
+<7> Set a description to be displayed on the portal. It provides useful information to people who might want to use your plugin.
+<8> Specifies the categories your plugin covers. Makes the plugin more likely to be discovered by people needing its functionality.
 
-NOTE: The ability to specify custom tags per plugin was only added in Gradle 7.6. When using an older version of Gradle the same result
-can be achieved by using the `pluginTags` map in the `pluginBundle` block. Please refer to the {plugin-reference-documentation} for an example.
 
 As an example consider the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], which is already published to the {portal}.
 
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
-pluginBundle {
+gradlePlugin {
     website = 'https://github.com/ysb33r/gradleTest'
     vcsUrl = 'https://github.com/ysb33r/gradleTest.git'
-}
-gradlePlugin {
     plugins {
         gradletestPlugin {
             id = 'org.ysb33r.gradletest'
@@ -133,11 +129,9 @@ gradlePlugin {
 .build.gradle.kts
 [source.multi-language-sample,kotlin]
 ----
-pluginBundle {
+gradlePlugin {
     website = "https://github.com/ysb33r/gradleTest"
     vcsUrl = "https://github.com/ysb33r/gradleTest.git"
-}
-gradlePlugin {
     plugins {
         create("gradletestPlugin") {
             id = "org.ysb33r.gradletest"
