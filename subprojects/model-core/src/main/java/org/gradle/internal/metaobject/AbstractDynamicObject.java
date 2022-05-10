@@ -172,7 +172,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         final String message;
-        if (publicType != null && includeDisplayName) {
+        if (publicType != null && includeDisplayName) { // FIXME unexpected behavior when j.l.r.Proxy#isProxyType(publicType) == true
             message = String.format("Could not find method %s() for arguments %s on %s of type %s.", name, Arrays.toString(params), getDisplayName(), publicType.getName());
         } else if (publicType != null) {
             message = String.format("Could not find method %s() for arguments %s on object of type %s.", name, Arrays.toString(params), publicType.getName());

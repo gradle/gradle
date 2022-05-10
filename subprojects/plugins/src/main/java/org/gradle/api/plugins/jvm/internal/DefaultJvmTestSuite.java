@@ -32,8 +32,9 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.api.plugins.jvm.DelegatingDependencyHandler;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteDependencyHandler;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
@@ -42,6 +43,7 @@ import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,7 +102,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
-    private final JvmComponentDependencies dependencies;
+    private final JvmTestSuiteDependencyHandler dependencies;
     private boolean attachedDependencies;
     private final Action<Void> attachDependencyAction;
 
@@ -135,7 +137,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
+        this.dependencies = delegateTo(dependencies, this.sourceSet);
 
         addDefaultTestTarget();
 
@@ -269,12 +271,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public JvmComponentDependencies getDependencies() {
+    public JvmTestSuiteDependencyHandler getDependencies() {
         return dependencies;
     }
 
     @Override
-    public void dependencies(Action<? super JvmComponentDependencies> action) {
+    public void dependencies(Action<? super JvmTestSuiteDependencyHandler> action) {
         action.execute(dependencies);
     }
 
@@ -286,5 +288,10 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 getTargets().forEach(context::add);
             }
         };
+    }
+
+    private JvmTestSuiteDependencyHandler delegateTo(DependencyHandler wrapped, SourceSet sourceSet) {
+        Object proxy = Proxy.newProxyInstance(wrapped.getClass().getClassLoader(), new Class[] { JvmTestSuiteDependencyHandler.class }, new DelegatingDependencyHandler(wrapped, sourceSet));
+        return (JvmTestSuiteDependencyHandler) proxy; // "proxy instanceof JvmTestSuiteDependencyHandler | DependencyHandler | JvmComponentDependencies" all return true
     }
 }
