@@ -22,73 +22,39 @@ import spock.lang.Specification
 class VersionHierarchyRootTest extends Specification {
     def versionHierarchyRoot = VersionHierarchyRoot.empty(0, CaseSensitivity.CASE_SENSITIVE)
 
-    def "#description change implies #result"() {
-        updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
+    def "correct versions for: initial state: #initialState, invalidate location: #invalidateLocation"() {
+        updateVersions(*initialState)
 
-        def versionBefore = versionHierarchyRoot.getVersion("/my/path")
-        def versionAtRootBefore = versionHierarchyRoot.getVersion('')
-        when:
-        updateVersions(locationWritten)
-        then:
-        if (increasesVersion) {
-            assert versionHierarchyRoot.getVersion('/my/path') > versionBefore
-            assert versionHierarchyRoot.getVersion('/my/path') > versionAtRootBefore
-        } else {
-            assert versionHierarchyRoot.getVersion('/my/path') == versionBefore
-            assert versionHierarchyRoot.getVersion('/my/path') <= versionAtRootBefore
+        def changedLocationsWithAncestors = changedLocations.collectMany { locationWithAncestors(it) } as Set
+        def versionsBefore = (changedLocationsWithAncestors + unchangedLocations + invalidateLocation).<String, Long, String> collectEntries {
+            [(it): getVersion(it)]
         }
+        def versionAtRootBefore = getVersion("/")
+        when:
+        updateVersions(invalidateLocation)
+        then:
+        changedLocationsWithAncestors.forEach {
+            assert getVersion(it) > versionsBefore[it]
+            assert getVersion(it) > versionAtRootBefore
+        }
+        unchangedLocations.forEach {
+            assert getVersion(it) == versionsBefore[it]
+            assert getVersion(it) <= versionAtRootBefore
+        }
+        getVersion(invalidateLocation) > versionsBefore[invalidateLocation]
 
         where:
-        description     | locationWritten              | increasesVersion
-        'parent'        | '/my'                        | true
-        'child'         | '/my/path/some/child/inside' | true
-        'same location' | '/my/path'                   | true
-        'new sibling'   | '/my/new-sibling'            | false
-        'sibling'       | '/my/sibling'                | false
-        result = increasesVersion ? 'newer version' : 'same version'
-    }
-
-    def "does not update siblings"() {
-        updateVersions('/my/some/sibling')
-
-        def versionBefore = versionHierarchyRoot.getVersion('/my/some/location')
-        when:
-        updateVersions('/my/some/sibling')
-        then:
-        versionHierarchyRoot.getVersion('/my/some/location') == versionBefore
-    }
-
-    def "sibling is not updated when changing ancestor of child"() {
-        updateVersions('/my/some/child')
-
-        def siblingLocation = "/my/other/sibling"
-        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
-        when:
-        updateVersions('/my/some')
-        then:
-        versionHierarchyRoot.getVersion(siblingLocation) == siblingVersionBefore
-    }
-
-    def "sibling is not updated when changing child with common prefix"() {
-        updateVersions('/my/some/child1')
-
-        def siblingLocation = "/my/other/sibling"
-        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
-        when:
-        updateVersions('/my/some/child2')
-        then:
-        versionHierarchyRoot.getVersion(siblingLocation) == siblingVersionBefore
-    }
-
-    def "sibling is updated when changing ancestor of it"() {
-        updateVersions('/my/some/child')
-
-        def siblingLocation = "/my/some/sibling"
-        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
-        when:
-        updateVersions('/my/some')
-        then:
-        versionHierarchyRoot.getVersion(siblingLocation) > siblingVersionBefore
+        initialState                                           | invalidateLocation              | changedLocations                            | unchangedLocations
+        ['/my/some/child']                                     | '/my/some'                      | ['/my/some/child']                          | ['/my/other', '/my/other/child']
+        ['/my/some/child', '/my/other/child']                  | '/my/some'                      | ['/my/some/child']                          | ['/my/other', '/my/other/child']
+        ['/my/child1', '/my/child2', '/my/child1/other/child'] | '/my'                           | ['/my/child1/other/child', '/my/child2']    | ['/other']
+        ['/my/child1', '/my/child2', '/my/child1/other/child'] | '/my/child1/other/child/inside' | ['/my/child1/other/child/inside']           | ['/my/other', '/my/child2']
+        ['/my/child1', '/my/child2', '/my/child1/other/child'] | '/my/child1'                    | ['/my/child1/other/child']                  | ['/my/other', '/my/child2']
+        ['/my/child1', '/my/child2', '/my/child1/other/child'] | '/my/new'                       | ['/my/new/inside']                          | ['/my/child1', '/my/other', '/my/child2']
+        ['/my/child1', '/my/child2', '/my/child1/other/child'] | '/my/child2'                    | ['/my/child2/inside']                       | ['/my/child1', '/my/other', '/my/child1/other/child']
+        ['/my/some/child1']                                    | '/my/some/child2'               | ['/my/some/child2']                         | ['/my/some/child1', '/my/other']
+        ['/my/some/child1', '/my/other']                       | '/my/some/child2'               | ['/my/some/child2']                         | ['/my/some/child1', '/my/other']
+        ['/my/some/initialChild']                              | '/my/some'                      | ['/my/some/child', '/my/some/initialChild'] | ['/my/other']
     }
 
     def "can query and update the root '#root'"() {
@@ -96,17 +62,27 @@ class VersionHierarchyRootTest extends Specification {
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
         when:
-        def rootVersionBefore = versionHierarchyRoot.getVersion('')
+        def rootVersionBefore = getVersion('')
         then:
-        versionHierarchyRoot.getVersion('/') == rootVersionBefore
+        getVersion('/') == rootVersionBefore
 
         when:
         updateVersions(root)
         then:
-        (locations + ['/', '']).collect { versionHierarchyRoot.getVersion(it) }.every { it == rootVersionBefore + 1 }
+        (locations + ['/', '']).collect { getVersion(it) }.every { it == rootVersionBefore + 1 }
 
         where:
         root << ['', '/']
+    }
+
+    private long getVersion(String location) {
+        return versionHierarchyRoot.getVersion(location)
+    }
+
+    List<String> locationWithAncestors(String location) {
+        (location.split('/') as List)
+            .findAll {!it.empty }
+            .inits().collect { "/${it.join('/')}".toString() }
     }
 
     private void updateVersions(String... locations) {
