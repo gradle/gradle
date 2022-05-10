@@ -144,7 +144,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     public void addNodes(Collection<? extends Node> nodes) {
         Deque<Node> queue = new ArrayDeque<>(nodes.size());
         for (Node node : nodes) {
-            assert node.getDependenciesProcessed() || node instanceof TaskInAnotherBuild;
             assert node.isInKnownState();
             if (node.isRequired()) {
                 entryNodes.add(node);
@@ -328,7 +327,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
-    public WorkSource<Node> finalizePlan() {
+    public void finalizePlan() {
         executionQueue.restart();
         while (executionQueue.hasNext()) {
             Node node = executionQueue.next();
@@ -337,7 +336,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
 
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+    }
 
+    @Override
+    public WorkSource<Node> asWorkSource() {
         // For now
         return this;
     }
@@ -900,7 +902,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         updateAllDependenciesCompleteForPredecessors(node);
 
         if (node instanceof LocalTaskNode) {
-            completionHandler.accept((LocalTaskNode) node);
+            try {
+                completionHandler.accept((LocalTaskNode) node);
+            } catch (Throwable t) {
+                failures.add(t);
+            }
         }
     }
 
@@ -1005,8 +1011,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public void abortAllAndFail(Throwable t) {
         lockCoordinator.assertHasStateLock();
-        abortExecution(true);
         failures.add(t);
+        abortExecution(true);
     }
 
     @Override

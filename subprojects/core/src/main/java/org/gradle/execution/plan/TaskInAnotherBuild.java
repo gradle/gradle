@@ -54,7 +54,7 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
         return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
     }
 
-    protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.Waiting;
+    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Waiting;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
@@ -135,10 +135,10 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
         }
 
         // This node is ready to "execute" when the task in the other build has completed
-        if (!state.isComplete()) {
-            state = target.getTaskState();
+        if (!taskState.isComplete()) {
+            taskState = target.getTaskState();
         }
-        switch (state) {
+        switch (taskState) {
             case Waiting:
                 return DependenciesState.NOT_COMPLETE;
             case Success:
@@ -162,6 +162,11 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     @Override
     public String toString() {
         return taskIdentityPath.toString();
+    }
+
+    @Override
+    protected String nodeSpecificHealthDiagnostics() {
+        return "taskState=" + taskState + ", " + target.healthDiagnostics();
     }
 
     @Override
