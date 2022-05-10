@@ -70,7 +70,12 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public WorkSource<Node> finalizePlan() {
+        public void finalizePlan() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public WorkSource<Node> asWorkSource() {
             throw new IllegalStateException();
         }
 
@@ -131,9 +136,20 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
 
+    /**
+     * Calculates the execution plan for the current entry tasks. May be called multiple times.
+     */
     void determineExecutionPlan();
 
-    WorkSource<Node> finalizePlan();
+    /**
+     * Finalizes this plan once all nodes have been added. Must be called after {@link #determineExecutionPlan()}.
+     */
+    void finalizePlan();
+
+    /**
+     * Returns this plan as a {@link WorkSource} ready for execution. Must be called after {@link #finalizePlan()}.
+     */
+    WorkSource<Node> asWorkSource();
 
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.

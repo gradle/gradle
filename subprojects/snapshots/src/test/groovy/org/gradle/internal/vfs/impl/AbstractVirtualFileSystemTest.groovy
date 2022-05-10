@@ -35,12 +35,6 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         }
     }
 
-    def setup() {
-        ['/my', '/my/location/child', '/my/location/sibling', '/my/location/new/other'].each {
-            vfs.invalidate([it])
-        }
-    }
-
     def "does not store snapshot when invalidation happened in between"() {
         def location = '/my/location/new'
         when:

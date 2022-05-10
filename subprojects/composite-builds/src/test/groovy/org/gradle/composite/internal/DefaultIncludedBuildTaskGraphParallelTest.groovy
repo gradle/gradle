@@ -66,6 +66,9 @@ import java.util.function.Function
 
 @Timeout(60)
 class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTaskGraphTest {
+    static final int MONITOR_POLL_TIME = 100
+    static final int SLOW_NODE_EXECUTION_TIME = MONITOR_POLL_TIME * 4
+
     @Rule
     RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
 
@@ -92,9 +95,31 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build) { graphBuilder ->
                 def node = new TestNode()
-                node.require()
-                node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
+            }
+        }
+
+        then:
+        result.failures.empty
+
+        where:
+        workers << [1, manyWorkers]
+    }
+
+    def "runs scheduled work across multiple builds"() {
+        def services = new Services(workers)
+        def childBuild = services.build(new DefaultBuildIdentifier("child"))
+        def build = services.build(DefaultBuildIdentifier.ROOT)
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            def childNode = new TestNode("child build node")
+            builder.withWorkGraph(build) { graphBuilder ->
+                def node = new DelegateNode("main build node", [childNode])
+                graphBuilder.addNodes([node])
+            }
+            builder.withWorkGraph(childBuild) { graphBuilder ->
+                graphBuilder.addNodes([childNode])
             }
         }
 
@@ -113,8 +138,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build) { graphBuilder ->
                 def node = new DependenciesStuckNode()
-                node.require()
-                node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
             }
         }
@@ -137,14 +160,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build) { graphBuilder ->
                 def node = new DependenciesStuckNode("main build node")
-                node.require()
-                node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
             }
             builder.withWorkGraph(childBuild) { graphBuilder ->
                 def node = new DependenciesStuckNode("child build node")
-                node.require()
-                node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
             }
         }
@@ -221,9 +240,14 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
+        void finalizeWorkGraph(BuildWorkPlan workPlan) {
             plan.determineExecutionPlan()
-            return services.planExecutor.process(plan.finalizePlan()) { node -> }
+            plan.finalizePlan()
+        }
+
+        @Override
+        ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
+            return services.planExecutor.process(plan.asWorkSource()) { node -> }
         }
 
         @Override
@@ -261,10 +285,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        void finalizeWorkGraph(BuildWorkPlan plan) {
-        }
-
-        @Override
         <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
             throw new UnsupportedOperationException()
         }
@@ -298,7 +318,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                 buildStateRegistry,
                 workerLeaseService,
                 planExecutor,
-                100,
+                MONITOR_POLL_TIME,
                 TimeUnit.MILLISECONDS
             )
         }
@@ -314,9 +334,15 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private static class TestNode extends Node implements SelfExecutingNode {
         private final String displayName
+        private final List<Runnable> observers = []
 
         TestNode(String displayName = "test node") {
             this.displayName = displayName
+            require()
+        }
+
+        void addObserver(Runnable runnable) {
+            observers.add(runnable)
         }
 
         @Override
@@ -340,6 +366,15 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         void execute(NodeExecutionContext context) {
+            sleep(SLOW_NODE_EXECUTION_TIME)
+        }
+
+        @Override
+        void finishExecution(Consumer<Node> completionAction) {
+            super.finishExecution(completionAction)
+            for (final def action in observers) {
+                action.run()
+            }
         }
     }
 
@@ -351,6 +386,36 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         @Override
         protected DependenciesState doCheckDependenciesComplete() {
             return DependenciesState.NOT_COMPLETE
+        }
+    }
+
+    private static class DelegateNode extends TestNode {
+        private final List<TestNode> dependencies
+        private Action<Node> monitor
+
+        DelegateNode(String displayName, List<TestNode> dependencies) {
+            super(displayName)
+            this.dependencies = dependencies
+            for (TestNode dep in dependencies) {
+                dep.addObserver {
+                    monitor.execute(this)
+                }
+            }
+        }
+
+        @Override
+        void prepareForExecution(Action<Node> monitor) {
+            this.monitor = monitor
+        }
+
+        @Override
+        protected DependenciesState doCheckDependenciesComplete() {
+            for (TestNode dep in dependencies) {
+                if (!dep.isComplete()) {
+                    return DependenciesState.NOT_COMPLETE
+                }
+            }
+            return DependenciesState.COMPLETE_AND_SUCCESSFUL
         }
     }
 }
