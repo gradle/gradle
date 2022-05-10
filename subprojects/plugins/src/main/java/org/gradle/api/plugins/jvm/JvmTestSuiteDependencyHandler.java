@@ -16,11 +16,15 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 
 /**
  * Marker interface exposing typical `dependencies` block methods to test-suites, as well as convenience methods
  * like `implementation`, `compileOnly`, `runtimeOnly` and `annotationProcessor`
+ *
+ * @since 7.6
  */
+@Incubating
 public interface JvmTestSuiteDependencyHandler extends DependencyHandler, JvmComponentDependencies {
 }
