@@ -25,15 +25,17 @@ import javax.annotation.CheckReturnValue;
 
 public class VersionHierarchy {
     private final long version;
+    private final long unrelatedToAnyChildVersion;
     private final ChildMap<VersionHierarchy> children;
 
     public static VersionHierarchy empty(long rootVersion) {
-        return new VersionHierarchy(EmptyChildMap.getInstance(), rootVersion);
+        return new VersionHierarchy(EmptyChildMap.getInstance(), rootVersion, rootVersion);
     }
 
-    private VersionHierarchy(ChildMap<VersionHierarchy> children, long version) {
+    private VersionHierarchy(ChildMap<VersionHierarchy> children, long version, long unrelatedToAnyChildVersion) {
         this.children = children;
         this.version = version;
+        this.unrelatedToAnyChildVersion = unrelatedToAnyChildVersion;
     }
 
    public long getVersion(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
@@ -55,7 +57,7 @@ public class VersionHierarchy {
 
             @Override
             public Long handleUnrelatedToAnyChild() {
-                return getVersion();
+                return unrelatedToAnyChildVersion;
             }
         });
     }
@@ -85,10 +87,10 @@ public class VersionHierarchy {
 
             @Override
             public VersionHierarchy createNodeFromChildren(ChildMap<VersionHierarchy> children) {
-                return new VersionHierarchy(children, newVersion);
+                return new VersionHierarchy(children, newVersion, unrelatedToAnyChildVersion);
             }
         });
-        return new VersionHierarchy(newChildren, newVersion);
+        return new VersionHierarchy(newChildren, newVersion, unrelatedToAnyChildVersion);
     }
 
     public long getVersion() {
