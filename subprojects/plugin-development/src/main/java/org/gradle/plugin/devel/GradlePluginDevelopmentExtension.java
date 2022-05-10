@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -65,8 +66,8 @@ public class GradlePluginDevelopmentExtension {
     private SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
 
-    private String website;
-    private String vcsUrl;
+    private Property<String> website;
+    private Property<String> vcsUrl;
     private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
@@ -77,6 +78,8 @@ public class GradlePluginDevelopmentExtension {
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
+        this.website = project.getObjects().property(String.class);
+        this.vcsUrl = project.getObjects().property(String.class);
         testSourceSets(testSourceSets);
     }
 
@@ -136,35 +139,23 @@ public class GradlePluginDevelopmentExtension {
     }
 
     /**
-     * Returns the URL for the plugin's website.
+     * Returns the property holding the URL for the plugin's website.
      *
-     * @return the plugin's website
+     * @since 7.6
      */
-    public String getWebsite() {
+    @Incubating
+    public Property<String> getWebsite() {
         return website;
     }
 
     /**
-     * Sets the URL for the plugin's website.
-     */
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-
-    /**
-     * Returns the URL for the plugin's VCS repository.
+     * Returns the property holding the URL for the plugin's VCS repository.
      *
-     * @return the plugin's VCS repository
+     * @since 7.6
      */
-    public String getVcsUrl() {
+    @Incubating
+    public Property<String> getVcsUrl() {
         return vcsUrl;
-    }
-
-    /**
-     * Sets the URL for the plugin's VCS repository.
-     */
-    public void setVcsUrl(String vcsUrl) {
-        this.vcsUrl = vcsUrl;
     }
 
     /**
