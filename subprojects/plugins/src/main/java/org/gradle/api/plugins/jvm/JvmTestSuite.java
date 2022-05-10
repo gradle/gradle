@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;

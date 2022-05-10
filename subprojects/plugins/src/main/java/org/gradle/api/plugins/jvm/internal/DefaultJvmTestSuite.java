@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.DelegatingDependencyHandler;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteDependencyHandler;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
@@ -291,7 +290,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     private JvmTestSuiteDependencyHandler delegateTo(DependencyHandler wrapped, SourceSet sourceSet) {
-        Object proxy = Proxy.newProxyInstance(wrapped.getClass().getClassLoader(), new Class[] { JvmTestSuiteDependencyHandler.class }, new DelegatingDependencyHandler(wrapped, sourceSet));
+        Object proxy = Proxy.newProxyInstance(wrapped.getClass().getClassLoader(), new Class[] {JvmTestSuiteDependencyHandler.class}, new DelegatingDependencyHandler(wrapped, sourceSet));
         return (JvmTestSuiteDependencyHandler) proxy; // "proxy instanceof JvmTestSuiteDependencyHandler | DependencyHandler | JvmComponentDependencies" all return true
     }
 }

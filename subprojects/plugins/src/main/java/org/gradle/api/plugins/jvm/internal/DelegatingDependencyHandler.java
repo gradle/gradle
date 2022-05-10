@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.tasks.SourceSet;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+
 
 public class DelegatingDependencyHandler implements JvmComponentDependencies, InvocationHandler {
 
