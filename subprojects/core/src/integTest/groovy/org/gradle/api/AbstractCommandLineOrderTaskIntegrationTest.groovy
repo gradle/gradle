@@ -131,6 +131,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         final Set<TaskFixture> dependencies = []
         final Set<TaskFixture> finalizers = []
         final Set<TaskFixture> mustRunAfter = []
+        final Set<TaskFixture> shouldRunAfter = []
         final Set<String> destroys = []
         final Set<String> produces = []
         final Set<String> localState = []
@@ -144,6 +145,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
 
         TaskFixture dependsOn(TaskFixture dependency) {
             dependencies.add(dependency)
+            return this
+        }
+
+        TaskFixture shouldRunAfter(TaskFixture dependency) {
+            shouldRunAfter.add(dependency)
             return this
         }
 
@@ -206,6 +212,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
                     ${dependencies.collect {'dependsOn ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${finalizers.collect { 'finalizedBy ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${mustRunAfter.collect { 'mustRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}
+                    ${shouldRunAfter.collect { 'shouldRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${produces.collect { 'outputs.file file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${destroys.collect { 'destroyables.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${localState.collect { 'localState.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
