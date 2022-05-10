@@ -25,6 +25,7 @@ class VersionHierarchyRootTest extends Specification {
     def "#description change implies #result"() {
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
+
         def versionBefore = versionHierarchyRoot.getVersion("/my/path")
         def versionAtRootBefore = versionHierarchyRoot.getVersion('')
         when:
@@ -49,7 +50,7 @@ class VersionHierarchyRootTest extends Specification {
     }
 
     def "does not update siblings"() {
-        updateVersions('/my/some/sibling')
+        updateVersions('/my', '/my/some/location')
 
         def versionBefore = versionHierarchyRoot.getVersion('/my/some/location')
         when:
