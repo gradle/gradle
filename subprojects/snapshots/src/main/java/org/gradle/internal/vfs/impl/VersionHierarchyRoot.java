@@ -21,6 +21,11 @@ import org.gradle.internal.snapshot.VfsRelativePath;
 
 import javax.annotation.CheckReturnValue;
 
+/**
+ * Structure for tracking modifications in a hierarchy.
+ *
+ * Allows doing optimistic locking to check whether anything in a hierarchy changed.
+ */
 public class VersionHierarchyRoot {
     private final CaseSensitivity caseSensitivity;
     private final VersionHierarchy rootNode;
@@ -34,17 +39,26 @@ public class VersionHierarchyRoot {
         this.rootNode = rootNode;
     }
 
+    /**
+     * The version of the sub-hierarchy at the given location.
+     *
+     * The version increases if there is any updated version in a parent or descendant of the location.
+     * Version updates happen via {@link #updateVersion(String)}.
+     */
     public long getVersion(String location) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         return relativePath.isEmpty()
-            ? rootNode.getVersion()
+            ? rootNode.getMaxVersionInHierarchy()
             : rootNode.getVersion(relativePath, caseSensitivity);
     }
 
+    /**
+     * Creates a new hierarchy with an updated version at the location.
+     */
     @CheckReturnValue
-    public VersionHierarchyRoot updateVersion(String path) {
-        long newVersion = rootNode.getVersion() + 1;
-        VfsRelativePath relativePath = VfsRelativePath.of(path);
+    public VersionHierarchyRoot updateVersion(String location) {
+        long newVersion = rootNode.getMaxVersionInHierarchy() + 1;
+        VfsRelativePath relativePath = VfsRelativePath.of(location);
         VersionHierarchy newRootNode = relativePath.isEmpty()
             ? VersionHierarchy.empty(newVersion)
             : rootNode.updateVersion(relativePath, newVersion, caseSensitivity);

@@ -58,6 +58,39 @@ class VersionHierarchyRootTest extends Specification {
         versionHierarchyRoot.getVersion('/my/some/location') == versionBefore
     }
 
+    def "sibling is not updated when changing ancestor of child"() {
+        updateVersions('/my/some/child')
+
+        def siblingLocation = "/my/other/sibling"
+        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
+        when:
+        updateVersions('/my/some')
+        then:
+        versionHierarchyRoot.getVersion(siblingLocation) == siblingVersionBefore
+    }
+
+    def "sibling is not updated when changing child with common prefix"() {
+        updateVersions('/my/some/child1')
+
+        def siblingLocation = "/my/other/sibling"
+        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
+        when:
+        updateVersions('/my/some/child2')
+        then:
+        versionHierarchyRoot.getVersion(siblingLocation) == siblingVersionBefore
+    }
+
+    def "sibling is updated when changing ancestor of it"() {
+        updateVersions('/my/some/child')
+
+        def siblingLocation = "/my/some/sibling"
+        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
+        when:
+        updateVersions('/my/some')
+        then:
+        versionHierarchyRoot.getVersion(siblingLocation) > siblingVersionBefore
+    }
+
     def "can query and update the root '#root'"() {
         def locations = ['/my/path', '/my/sibling', '/my/path/some/child']
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
