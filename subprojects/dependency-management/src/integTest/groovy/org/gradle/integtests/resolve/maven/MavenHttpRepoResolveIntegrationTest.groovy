@@ -163,9 +163,9 @@ task listJars {
 """
 
         when:
-        projectA.pom.expectGet()
+        projectA.artifact.expectHead()
         projectA.artifact.expectGet()
-        projectB.pom.expectGet()
+        projectB.artifact(classifier: 'classy').expectHead()
         projectB.artifact(classifier: 'classy').expectGet()
 
         then:
@@ -184,10 +184,12 @@ task listJars {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
         projectA.dependsOn('group', 'projectC', '1.2')
+        projectA.withNoPom()
         projectA.publish()
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.2')
         projectB.artifact(classifier: 'classy')
         projectB.dependsOn('group', 'projectC', '1.2')
+        projectB.withNoPom()
         projectB.publish()
 
         and:
@@ -212,9 +214,9 @@ task listJars {
 """
 
         when:
-        projectA.pom.expectGet()
+        projectA.artifact.expectHead()
         projectA.artifact.expectGet()
-        projectB.pom.expectGet()
+        projectB.artifact(classifier: 'classy').expectHead()
         projectB.artifact(classifier: 'classy').expectGet()
 
         then:
@@ -404,6 +406,9 @@ task listJars {
 
     def "resolves artifact-only module via HTTP not modified"() {
         given:
+        def projectA = mavenHttpRepo.module('group', 'projectA', '1.0')
+        projectA.artifact(type: 'zip')
+        projectA.publish()
         buildFile << """
             repositories {
                 maven {
@@ -420,7 +425,8 @@ task listJars {
         """
 
         when:
-        server.expect('/repo/group/projectA/1.0/projectA-1.0.pom', false, ['GET'], new HttpServer.ActionSupport('Not Modified') {
+        projectA.artifact(type: 'zip').expectHead()
+        server.expect(projectA.artifact(type: 'zip').getPath(), false, ['GET'], new HttpServer.ActionSupport('Not Modified') {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(304, 'Not Modified')
             }

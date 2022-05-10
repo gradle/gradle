@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyArtifact;
 
+import javax.annotation.Nullable;
+
 public class DefaultDependencyArtifact implements DependencyArtifact {
     private String name;
     private String type;
@@ -25,10 +27,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
     private String classifier;
     private String url;
 
-    public DefaultDependencyArtifact() {
-    }
-
-    public DefaultDependencyArtifact(String name, String type, String extension, String classifier, String url) {
+    public DefaultDependencyArtifact(String name, String type, @Nullable String extension, @Nullable String classifier, @Nullable String url) {
         this.name = name;
         this.type = type;
         this.extension = extension;
@@ -63,23 +62,25 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         this.type = type;
     }
 
+    @Nullable
     @Override
     public String getExtension() {
         return extension;
     }
 
     @Override
-    public void setExtension(String extension) {
+    public void setExtension(@Nullable String extension) {
         this.extension = extension;
     }
 
+    @Nullable
     @Override
     public String getClassifier() {
         return classifier;
     }
 
     @Override
-    public void setClassifier(String classifier) {
+    public void setClassifier(@Nullable String classifier) {
         this.classifier = classifier;
     }
 

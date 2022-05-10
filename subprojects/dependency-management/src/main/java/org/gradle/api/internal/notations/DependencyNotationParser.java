@@ -84,9 +84,7 @@ public class DependencyNotationParser {
                 moduleDependency.capabilities(dependencyVariant::mutateCapabilities);
                 String classifier = dependencyVariant.getClassifier();
                 String artifactType = dependencyVariant.getArtifactType();
-                if (classifier != null || artifactType != null) {
-                    ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, artifactType, classifier);
-                }
+                ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, artifactType, classifier);
             }
             result.converted(moduleDependency);
         }
@@ -94,7 +92,5 @@ public class DependencyNotationParser {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
         }
-
-
     }
 }

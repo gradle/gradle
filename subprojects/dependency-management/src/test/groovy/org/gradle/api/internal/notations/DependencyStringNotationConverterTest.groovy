@@ -17,7 +17,6 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
@@ -28,7 +27,7 @@ import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
 class DependencyStringNotationConverterTest extends Specification {
-    def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
+    def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe())
 
     def "with artifact"() {
         when:
@@ -171,7 +170,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "can create client module"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe())
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10')
@@ -191,7 +190,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "client module ignores the artifact only notation"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe())
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10@jar')
@@ -212,7 +211,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "parses short hand-notation #notation for strict dependencies"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe())
 
         when:
         def d = parse(parser, "org.foo:bar:$notation")
@@ -233,7 +232,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "rejects short hand notation for strict if it starts with double-bang"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe())
 
         when:
         parse(parser, "org.foo:bar:!!1.0")
@@ -244,6 +243,6 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def parse(def parser, def value) {
-        return NotationParserBuilder.toType(Dependency).fromCharSequence(parser).toComposite().parseNotation(value)
+        return NotationParserBuilder.toType(ExternalModuleDependency).fromCharSequence(parser).toComposite().parseNotation(value)
     }
 }

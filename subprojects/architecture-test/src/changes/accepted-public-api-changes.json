@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.DependencyArtifact",
+            "member": "Method org.gradle.api.artifacts.DependencyArtifact.getClassifier()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.DependencyArtifact",
+            "member": "Method org.gradle.api.artifacts.DependencyArtifact.getExtension()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        }
+    ]
 }

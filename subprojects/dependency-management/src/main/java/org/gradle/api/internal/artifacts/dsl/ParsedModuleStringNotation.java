@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.IllegalDependencyNotation;
 
+import javax.annotation.Nullable;
+
 public class ParsedModuleStringNotation {
     private String group;
     private String name;
@@ -24,7 +26,7 @@ public class ParsedModuleStringNotation {
     private String classifier;
     private final String artifactType;
 
-    public ParsedModuleStringNotation(String moduleNotation, String artifactType) {
+    public ParsedModuleStringNotation(String moduleNotation, @Nullable String artifactType) {
         assignValuesFromModuleNotation(moduleNotation);
         this.artifactType = artifactType;
     }
@@ -80,6 +82,7 @@ public class ParsedModuleStringNotation {
         return classifier;
     }
 
+    @Nullable
     public String getArtifactType() {
         return artifactType;
     }

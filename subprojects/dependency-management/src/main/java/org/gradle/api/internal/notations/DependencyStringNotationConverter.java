@@ -17,6 +17,7 @@
 package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Interner;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -72,7 +73,7 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
         if (version.strictly != null) {
             Action<MutableVersionConstraint> versionAction = v -> {
                 v.strictly(version.strictly);
-                if (!version.prefer.isEmpty()) {
+                if (!StringUtils.isEmpty(version.prefer)) {
                     v.prefer(version.prefer);
                 }
             };

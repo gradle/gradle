@@ -293,6 +293,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     ImmutableMetadataSources createMetadataSources(MavenMetadataLoader mavenMetadataLoader) {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
+        sources.add(new DefaultArtifactMetadataSource(metadataFactory, false));
+
         // Don't list versions for gradleMetadata if maven-metadata.xml will be checked.
         boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
         MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource =
@@ -311,7 +313,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             }
         }
         if (metadataSources.artifact) {
-            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+            sources.add(new DefaultArtifactMetadataSource(metadataFactory, true));
         }
         return new DefaultImmutableMetadataSources(sources.build());
     }

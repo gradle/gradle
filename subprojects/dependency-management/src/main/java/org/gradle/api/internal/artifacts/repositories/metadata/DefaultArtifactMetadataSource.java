@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -45,13 +44,11 @@ import java.util.List;
 public class DefaultArtifactMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
-    private final String artifactType;
-    private final String artifactExtension;
+    private final boolean useJarDefault;
 
     @Inject
-    public DefaultArtifactMetadataSource(MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) {
-        this.artifactType = "jar";
-        this.artifactExtension = "jar";
+    public DefaultArtifactMetadataSource(MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory, boolean useJarDefault) {
+        this.useJarDefault = useJarDefault;
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
     }
 
@@ -74,21 +71,16 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
 
     @Nullable
     private MutableModuleComponentResolveMetadata createMetaDataFromDependencyArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        List<IvyArtifactName> artifactNames = getArtifactNames(moduleComponentIdentifier, overrideMetadata);
-        for (IvyArtifactName artifact : artifactNames) {
-            if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
-                return mutableModuleMetadataFactory.missing(moduleComponentIdentifier);
-            }
+        IvyArtifactName artifact = null;
+        if (overrideMetadata.getArtifact() != null) {
+            artifact = overrideMetadata.getArtifact();
+        } else if (useJarDefault) {
+            artifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "jar", "jar");
+        }
+        if (artifact != null && artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
+            return mutableModuleMetadataFactory.missing(moduleComponentIdentifier);
         }
         return null;
-    }
-
-    private List<IvyArtifactName> getArtifactNames(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
-        if (!overrideMetadata.getArtifacts().isEmpty()) {
-            return overrideMetadata.getArtifacts();
-        }
-        IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), artifactType, artifactExtension);
-        return ImmutableList.of(defaultArtifact);
     }
 
     @Override
