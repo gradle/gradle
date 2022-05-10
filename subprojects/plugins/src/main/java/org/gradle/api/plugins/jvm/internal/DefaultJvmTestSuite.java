@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.base.Preconditions;
+import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.MissingDependenciesMethodException;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
@@ -44,8 +46,11 @@ import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
@@ -305,7 +310,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void dependencies(Action<? super JvmComponentDependencies> action) {
-        action.execute(dependencies);
+        try {
+            action.execute(dependencies);
+        } catch (MissingMethodException e) {
+            throw contextualize(e);
+        }
     }
 
     @Override
@@ -316,5 +325,28 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 getTargets().forEach(context::add);
             }
         };
+    }
+
+    private RuntimeException contextualize(MissingMethodException e) {
+        boolean badArguments = Arrays.stream(this.getClass().getMethods()).anyMatch(m -> m.getName().equals(e.getMethod()));
+        if (badArguments) {
+            return e;
+        } else {
+            Optional<Method> correspondingMethod = findMethod(DependencyHandler.class, e.getMethod(), e.getArguments());
+            if (correspondingMethod.isPresent()) {
+                return new MissingDependenciesMethodException(e, JvmComponentDependencies.class, DependencyHandler.class);
+            } else {
+                return e;
+            }
+        }
+    }
+
+    private Optional<Method> findMethod(Class<?> clazz, String method, Object[] arguments) {
+        Class<?>[] argTypes = Arrays.stream(arguments).map(Object::getClass).toArray(Class<?>[]::new);
+        try {
+            return Optional.of(clazz.getMethod(method, argTypes));
+        } catch (NoSuchMethodException e) {
+            return Optional.empty();
+        }
     }
 }

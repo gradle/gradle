@@ -782,4 +782,57 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
+
+    // region: Dependencies block misuse
+    def "missing method in both test suites dependencies block and top-level dependencies block is well handled"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        dependencies {
+                            turtle(3)
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        fails("help")
+        failure.assertHasErrorOutput("Could not find method turtle() for arguments [3] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        !failure.getOutput().contains("This method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.");
+    }
+
+    def "missing method in test suites dependency block present in top-level dependencies block is well handled"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        dependencies {
+                            gradleTestKit()
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        fails("help")
+        failure.assertHasErrorOutput("Could not find method gradleTestKit() for arguments [] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        failure.assertHasErrorOutput("This method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.");
+        failure.assertHasErrorOutput("See https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html for an overview on the differences between these two blocks, or compare the following DSL references:");
+        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html");
+        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html");
+    }
+    // endregion Dependencies block misuse
 }
