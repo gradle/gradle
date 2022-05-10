@@ -81,7 +81,7 @@ public abstract class Node implements Comparable<Node> {
         if (isComplete()) {
             return this + " (state=" + state + ")";
         } else {
-            return this + " (state=" + state + ", dependencies=" + dependenciesState + ", group=" + group + ", successors=" + getAllSuccessors() + ")";
+            return this + " (state=" + state + ", dependencies=" + dependenciesState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
         }
     }
 
@@ -165,7 +165,7 @@ public abstract class Node implements Comparable<Node> {
     public void maybeUpdateOrdinalGroup() {
         OrdinalGroup ordinal = getGroup().asOrdinal();
         OrdinalGroup newOrdinal = ordinal;
-        for (Node successor : getAllSuccessors()) {
+        for (Node successor : getHardSuccessors()) {
             OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
             if (successorOrdinal != null && (ordinal == null || successorOrdinal.getOrdinal() > ordinal.getOrdinal())) {
                 newOrdinal = successorOrdinal;
