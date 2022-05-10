@@ -28,7 +28,6 @@ import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -37,7 +36,6 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
-@Ignore("SLG-temporarily ignore to build a new nightly")
 class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecutionPerformanceTest {
     JavaTestProject testProject
     boolean isGroovyProject

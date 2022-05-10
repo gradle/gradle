@@ -5,6 +5,7 @@ import org.gradle.docs.samples.internal.tasks.InstallSample
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id 'gradlebuild.internal.java'
@@ -584,15 +585,15 @@ tasks.named("docsTest") { task ->
         // workaround for https://github.com/gradle/dotcom/issues/5958
         failOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
-        if (!org.gradle.internal.os.OperatingSystem.current().linux) {
+        if (!OperatingSystem.current().linux) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-cpp-*.sample"
         }
         // Only execute Swift sample tests on OS X because it is the configured target
-        if (!org.gradle.internal.os.OperatingSystem.current().macOsX) {
+        if (!OperatingSystem.current().macOsX) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-swift-*.sample"
         }
         // We don't maintain Java 7 on Windows
-        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+        if (OperatingSystem.current().windows) {
             excludeTestsMatching "*java7CrossCompilation.sample"
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
@@ -627,6 +628,12 @@ tasks.named("docsTest") { task ->
         // Android requires Java 11+
         if (!javaVersion.java11Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
+        }
+
+        if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.building-swift*.sample"
         }
     }
 }

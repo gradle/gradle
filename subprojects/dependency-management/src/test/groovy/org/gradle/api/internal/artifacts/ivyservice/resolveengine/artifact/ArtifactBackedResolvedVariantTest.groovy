@@ -210,7 +210,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(List<ResolvableArtifact> artifacts) {
-        return ArtifactBackedResolvedVariant.create(id, variantDisplayName, variant, ImmutableCapabilities.EMPTY, { artifacts }, false)
+        return ArtifactBackedResolvedVariant.create(id, variantDisplayName, variant, ImmutableCapabilities.EMPTY, { artifacts })
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable {}

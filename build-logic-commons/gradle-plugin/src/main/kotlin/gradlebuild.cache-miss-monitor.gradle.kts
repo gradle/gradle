@@ -17,19 +17,19 @@
 @file:Suppress("UNCHECKED_CAST")
 
 import com.gradle.scan.plugin.BuildScanExtension
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.support.serviceOf
 import java.util.concurrent.atomic.AtomicBoolean
 
 val gradleRootProject = when {
     project.name == "gradle" -> project.rootProject
-    project.rootProject.name == "build-logic" -> rootProject.gradle.parent!!.rootProject
-    else -> project.gradle.parent!!.rootProject
+    project.rootProject.name == "build-logic" -> rootProject.gradle.parent?.rootProject
+    else -> project.gradle.parent?.rootProject
 }
 
-val rootProjectName = rootProject.name
-val isInBuildLogic = rootProjectName == "build-logic"
-
-if (buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
+if (gradleRootProject != null && buildCacheEnabled() && System.getenv("TEAMCITY_VERSION") != null) {
+    val rootProjectName = rootProject.name
+    val isInBuildLogic = rootProjectName == "build-logic"
     gradle.taskGraph.whenReady {
         val cacheMissMonitorBuildService: Provider<CacheMissMonitorBuildService> = gradle.sharedServices.registerIfAbsent("cacheMissMonitorBuildService-$rootProjectName", CacheMissMonitorBuildService::class) {
             parameters.monitoredTaskPaths.set(allTasks.filter { it.isCacheMissMonitoredTask() }.map { if (isInBuildLogic) ":build-logic${it.path}" else it.path }.toSet())
@@ -62,7 +62,10 @@ fun Task.isCompileCacheMissMonitoredTask() = isMonitoredCompileTask() && !isExpe
 
 fun isAsciidoctorCacheMissTask() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
-fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !this.isKotlinJsIrLink()
+fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() && !isOnM1Mac()
+
+// vendor is an input of GroovyCompile, so GroovyCompile on M1 mac is definitely a cache miss
+fun Task.isOnM1Mac() = OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64"
 
 fun Task.isClasspathManifest() = this.javaClass.simpleName.startsWith("ClasspathManifest")
 
