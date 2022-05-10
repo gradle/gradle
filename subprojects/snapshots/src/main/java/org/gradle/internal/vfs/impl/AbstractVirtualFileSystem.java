@@ -70,7 +70,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         if (versionBefore >= versionAfter) {
             rootReference.updateUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
         } else {
-            LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
+            throw new IllegalStateException("Changes to the virtual file system happened while snapshotting '" + absolutePath + "', not storing resulting snapshot");
         }
     }
 
