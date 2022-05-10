@@ -7,13 +7,10 @@ dependencies {
     sharedConfiguration(project(path = ":producer", configuration = "sharedConfiguration"))
 }
 
-val sharedFile: File = sharedConfiguration.singleFile
-
 tasks.register("showFile") {
-    inputs.file(sharedFile)
+    inputs.files(sharedConfiguration)
 
-    val sharedFileAbsolutePath = sharedFile.absolutePath
     doFirst {
-        logger.lifecycle(sharedFileAbsolutePath)
+        logger.lifecycle("File is at {}", sharedConfiguration.singleFile.absolutePath)
     }
 }
