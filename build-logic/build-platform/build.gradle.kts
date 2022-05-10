@@ -17,7 +17,7 @@ dependencies {
     constraints {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.10")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3") // Sync with `settings.gradle.kts`
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3.1") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.20.1")
         api("com.gradle.publish:plugin-publish-plugin:1.0.0-rc-1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
@@ -58,7 +58,7 @@ dependencies {
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
-        api("org.codenarc:CodeNarc:2.0.0")
+        api("org.codenarc:CodeNarc:3.0.1")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1")

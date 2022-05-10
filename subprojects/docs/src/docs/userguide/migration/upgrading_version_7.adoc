@@ -48,6 +48,11 @@ Please refer to the <<custom_tasks.adoc#sec:implementing_an_incremental_task, us
 
 === Potential breaking changes
 
+==== Version catalog only accepts a single TOML import file
+
+Only a single file will be accepted when using a `from` import method.
+This means that notations, which resolve to multiple files (e.g. the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] method, when more then one file is passed) will result in a build failure.
+
 ==== Updates to default tool integration versions
 
 - Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.45.1[Checkstyle 8.45.1].

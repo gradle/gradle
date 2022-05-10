@@ -48,6 +48,11 @@ public abstract class NodeGroup {
         }
 
         @Override
+        public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+            return newOrdinal;
+        }
+
+        @Override
         public boolean isReachableFromEntryPoint() {
             return false;
         }
@@ -83,4 +88,6 @@ public abstract class NodeGroup {
 
     public void removeMember(Node node) {
     }
+
+    public abstract NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal);
 }

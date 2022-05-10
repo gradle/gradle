@@ -60,7 +60,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     private final BuildCancellationToken cancellationToken;
     private final ResourceLockCoordinationService coordinationService;
     private final ManagedExecutor executor;
-    private final Queue queue;
+    private final MergedQueues queue;
     private final AtomicBoolean workersStarted = new AtomicBoolean();
 
     public DefaultPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
@@ -73,7 +73,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         this.executorCount = numberOfParallelExecutors;
         this.workerLeaseService = workerLeaseService;
-        this.queue = new Queue(coordinationService, false);
+        this.queue = new MergedQueues(coordinationService, false);
         this.executor = executorFactory.create("Execution worker");
     }
 
@@ -91,7 +91,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         // Run work from the plan from this thread as well, given that it will be blocked waiting for it to complete anyway
         WorkerLease currentWorkerLease = workerLeaseService.getCurrentWorkerLease();
-        Queue thisPlanOnly = new Queue(coordinationService, true);
+        MergedQueues thisPlanOnly = new MergedQueues(coordinationService, true);
         thisPlanOnly.add(planDetails);
         new ExecutorWorker(thisPlanOnly, currentWorkerLease, cancellationToken, coordinationService, workerLeaseService).run();
 
@@ -128,7 +128,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         });
     }
 
-    private void maybeStartWorkers(Queue queue, Executor executor) {
+    private void maybeStartWorkers(MergedQueues queue, Executor executor) {
         if (workersStarted.compareAndSet(false, true)) {
             LOGGER.debug("Using {} parallel executor threads", executorCount);
             for (int i = 1; i < executorCount; i++) {
@@ -159,13 +159,13 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         }
     }
 
-    private static class Queue implements Closeable {
+    private static class MergedQueues implements Closeable {
         private final ResourceLockCoordinationService coordinationService;
         private final boolean autoFinish;
         private boolean finished;
         private final LinkedList<PlanDetails> queues = new LinkedList<>();
 
-        public Queue(ResourceLockCoordinationService coordinationService, boolean autoFinish) {
+        public MergedQueues(ResourceLockCoordinationService coordinationService, boolean autoFinish) {
             this.coordinationService = coordinationService;
             this.autoFinish = autoFinish;
         }
@@ -276,9 +276,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             formatter.node("Unable to make progress running work. The following items are queued for execution but none of them can be started:");
             formatter.startChildren();
             for (WorkSource.Diagnostics diagnostics : allDiagnostics) {
-                for (String node : diagnostics.getQueuedItems()) {
-                    formatter.node(node);
-                }
+                diagnostics.describeTo(formatter);
             }
             formatter.endChildren();
             System.out.println(formatter);
@@ -292,14 +290,14 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class ExecutorWorker implements Runnable {
-        private final Queue queue;
+        private final MergedQueues queue;
         private WorkerLease workerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
         private final WorkerLeaseService workerLeaseService;
 
         private ExecutorWorker(
-            Queue queue,
+            MergedQueues queue,
             @Nullable WorkerLease workerLease,
             BuildCancellationToken cancellationToken,
             ResourceLockCoordinationService coordinationService,

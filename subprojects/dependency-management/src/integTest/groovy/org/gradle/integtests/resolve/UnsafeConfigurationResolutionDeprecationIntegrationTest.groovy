@@ -67,22 +67,19 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         settingsFile << """
             rootProject.name = "foo"
-            include(':bar')
         """
 
         buildFile << """
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-                configurations {
-                    bar
-                }
+            configurations {
+                bar
+            }
 
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
+            dependencies {
+                bar "test:test-jar:1.0"
             }
 
             task resolve {
@@ -90,7 +87,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                     def failure = null
                     def thread = new Thread({
                         try {
-                            file('bar') << project(':bar').configurations.bar.${expression}
+                            file('bar') << configurations.bar.${expression}
                         } catch(Throwable t) {
                             failure = t
                         }
@@ -107,7 +104,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
-            it.assertHasCause("The configuration :bar:bar was resolved from a thread not managed by Gradle.")
+            it.assertHasCause("The configuration :bar was resolved from a thread not managed by Gradle.")
         }
 
         where:
@@ -135,26 +132,23 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         settingsFile << """
             rootProject.name = "foo"
-            include(':bar')
         """
 
         buildFile << """
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-                configurations {
-                    bar
-                }
+            configurations {
+                bar
+            }
 
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
+            dependencies {
+                bar "test:test-jar:1.0"
             }
 
             task resolve {
-                def configuration = project(':bar').configurations.bar
+                def configuration = configurations.bar
                 inputs.files(configuration)
                 doFirst {
                     def failure = null
@@ -202,26 +196,23 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         settingsFile << """
             rootProject.name = "foo"
-            include(':bar')
         """
 
         buildFile << """
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-                configurations {
-                    bar
-                }
+            configurations {
+                bar
+            }
 
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
+            dependencies {
+                bar "test:test-jar:1.0"
             }
 
             task resolve {
-                def configuration = project(':bar').configurations.bar
+                def configuration = configurations.bar
                 doFirst {
                     configuration.files
                     def failure = null

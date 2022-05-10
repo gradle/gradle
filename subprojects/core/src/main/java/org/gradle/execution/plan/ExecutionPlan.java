@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,8 +29,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Represents a graph of dependent work items, returned in execution order.
+ * Represents a graph of dependent work items, returned in execution order. The methods of this interface are not thread safe.
  */
+@NotThreadSafe
 public interface ExecutionPlan extends Describable, Closeable {
 
     ExecutionPlan EMPTY = new ExecutionPlan() {
