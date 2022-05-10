@@ -17,7 +17,15 @@
 package org.gradle.api.plugins.jvm;
 
 import groovy.lang.MissingMethodException;
+import org.gradle.api.Incubating;
 
+/**
+ * Represents the case when a method called on {@link JvmComponentDependencies} is absent, but is present on the
+ * top-level {@link org.gradle.api.artifacts.dsl.DependencyHandler}.
+ *
+ * @since 7.6
+ */
+@Incubating
 public final class MissingDependenciesMethodException extends RuntimeException {
     private final Class<?> currentBlock;
     private final Class<?> intendedBlock;

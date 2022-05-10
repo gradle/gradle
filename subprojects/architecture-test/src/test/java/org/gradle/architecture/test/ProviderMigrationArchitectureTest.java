@@ -70,6 +70,13 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
+    private static final DescribedPredicate<JavaMethod> overrideableExceptionMethod = new DescribedPredicate<JavaMethod>("overridable exception method") {
+        @Override
+        public boolean apply(JavaMethod input) {
+            return input.getOwner().isAssignableTo(Exception.class) && input.isAnnotatedWith(Override.class);
+        }
+    };
+
     private static final DescribedPredicate<JavaMethod> mutable_public_API_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
         .and(not(declaredIn(assignableTo(Task.class))))
         .and(not(declaredIn(StartParameter.class)))
@@ -79,6 +86,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(ConfigurableFileCollection.class)))
         .and(are(declaredIn(class_with_any_mutable_property)))
         .and(are(getters))
+        .and(are(overrideableExceptionMethod))
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
 
