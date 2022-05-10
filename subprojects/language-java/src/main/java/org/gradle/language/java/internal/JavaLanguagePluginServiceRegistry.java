@@ -20,11 +20,13 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.provider.migration.ListPropertyWrapper;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -42,6 +44,7 @@ import org.gradle.tooling.events.OperationType;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 
@@ -84,6 +87,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class ProviderApiMigrationAction {
+        @SuppressWarnings("unchecked")
         public void configure(ApiUpgradeManager upgradeManager) {
             // It seems like the bytecode references the subclass as an owner
             upgradeManager
@@ -103,6 +107,12 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
                 .replaceWith(
                     AbstractCompile::getClasspath,
                     (abstractCompile, value) -> abstractCompile.getClasspath().setFrom(value)
+                );
+            upgradeManager
+                .matchProperty(CompileOptions.class, List.class, "compilerArgs")
+                .replaceWith(
+                    options -> new ListPropertyWrapper<>(options.getCompilerArgs()),
+                    (options, compilerArgs) -> options.getCompilerArgs().set(compilerArgs)
                 );
         }
     }
