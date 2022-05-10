@@ -39,7 +39,6 @@ import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.stream.Collectors
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
@@ -742,7 +741,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
-        directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false)) {}
+        directorySnapshotter.snapshot(dir.absolutePath, null) {}
     }
 
     private static FileSystemLocationSnapshot snapshotFile(File file) {

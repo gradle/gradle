@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
@@ -40,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -99,26 +97,20 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 if (fileMetadata.getType() == FileType.Missing) {
-                    storeMetadataForMissingFile(location, fileMetadata.getAccessType());
+                    virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 }
                 if (fileMetadata.getType() != FileType.RegularFile) {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
                     () -> virtualFileSystem.findSnapshot(location)
-                        .orElseGet(() -> {
+                        .orElseGet(() -> virtualFileSystem.store(location, () -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                            RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
-                            virtualFileSystem.store(snapshot.getAbsolutePath(), snapshot);
-                            return snapshot;
-                        }).getHash());
+                            return new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
+                        })).getHash());
                 return Optional.of(hash);
             })
             .map(visitor);
-    }
-
-    private void storeMetadataForMissingFile(String location, AccessType accessType) {
-        virtualFileSystem.store(location, new MissingFileSnapshot(location, accessType));
     }
 
     @Override
@@ -147,25 +139,20 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         FileMetadata fileMetadata = this.stat.stat(file);
         switch (fileMetadata.getType()) {
             case RegularFile:
-                HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
-                virtualFileSystem.store(regularFileSnapshot.getAbsolutePath(), regularFileSnapshot);
-                return regularFileSnapshot;
+                return virtualFileSystem.store(location, () -> {
+                    HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                    return new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
+                });
             case Missing:
-                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, fileMetadata.getAccessType());
-                virtualFileSystem.store(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot);
-                return missingFileSnapshot;
+                return virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
             case Directory:
-                AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-                FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(
+                return virtualFileSystem.store(
                     location,
-                    filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
-                    hasBeenFiltered,
-                    snapshot -> virtualFileSystem.store(snapshot.getAbsolutePath(), snapshot));
-                if (!hasBeenFiltered.get()) {
-                    virtualFileSystem.store(directorySnapshot.getAbsolutePath(), directorySnapshot);
-                }
-                return directorySnapshot;
+                    vfsStorer -> directorySnapshotter.snapshot(
+                        location,
+                        filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
+                        vfsStorer)
+                );
             default:
                 throw new UnsupportedOperationException();
         }
@@ -210,7 +197,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
 
     @Override
     public void record(FileSystemLocationSnapshot snapshot) {
-        virtualFileSystem.store(snapshot.getAbsolutePath(), snapshot);
+        virtualFileSystem.store(snapshot.getAbsolutePath(), () -> snapshot);
     }
 
     private static class StripedProducerGuard<T> {
