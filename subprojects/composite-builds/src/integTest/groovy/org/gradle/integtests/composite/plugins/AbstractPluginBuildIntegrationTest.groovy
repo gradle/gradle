@@ -175,7 +175,9 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
-        executer.inDirectory(file("plugin")).withTasks("publish").run()
+        executer.inDirectory(file("plugin")).withTasks("publish")
+                .expectDeprecationWarning("The GradlePluginDevelopmentExtension.isAutomatedPublishing method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
+                .run()
         file("plugin").forceDeleteDir()
         mavenRepo.module("com.example", "plugin", "1.0").assertPublished()
     }
