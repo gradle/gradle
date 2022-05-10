@@ -62,12 +62,14 @@ import java.util.Set;
  */
 public class GradlePluginDevelopmentExtension {
 
+    private final Property<String> website;
+
+    private final Property<String> vcsUrl;
+
     private final SourceSetContainer testSourceSets;
     private SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
 
-    private Property<String> website;
-    private Property<String> vcsUrl;
     private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
