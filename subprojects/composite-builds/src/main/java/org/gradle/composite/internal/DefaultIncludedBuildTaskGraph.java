@@ -47,6 +47,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         NotPrepared, Preparing, ReadyToRun, Running, Finished
     }
 
+    private static final int MONITORING_POLL_TIME = 30;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildStateRegistry buildRegistry;
     private final WorkerLeaseService workerLeaseService;
@@ -64,7 +65,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         WorkerLeaseService workerLeaseService,
         PlanExecutor planExecutor
     ) {
-        this(executorFactory, buildOperationExecutor, buildRegistry, workerLeaseService, planExecutor, 30, TimeUnit.SECONDS);
+        this(executorFactory, buildOperationExecutor, buildRegistry, workerLeaseService, planExecutor, MONITORING_POLL_TIME, TimeUnit.SECONDS);
     }
 
     @VisibleForTesting
@@ -250,6 +251,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public State getTaskState() {
             return taskNode.getTaskState();
+        }
+
+        @Override
+        public String healthDiagnostics() {
+            return taskNode.healthDiagnostics();
         }
     }
 }
