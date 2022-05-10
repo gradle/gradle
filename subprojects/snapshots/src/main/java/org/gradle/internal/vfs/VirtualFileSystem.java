@@ -20,6 +20,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public interface VirtualFileSystem {
 
@@ -34,9 +36,31 @@ public interface VirtualFileSystem {
     Optional<MetadataSnapshot> findMetadata(String absolutePath);
 
     /**
-     * Adds the information of the snapshot at the absolute path to the VFS.
+     * Snapshots and stores the result in the VFS.
+     *
+     * If the snapshotted location is invalidated while snapshotting,
+     * then the snapshot is not stored in the VFS to avoid inconsistent state.
      */
-    void store(String absolutePath, FileSystemLocationSnapshot snapshot);
+    FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier);
+
+
+    /**
+     * Snapshots via a {@link StoringAction} and stores the result in the VFS.
+     *
+     * If the snapshotted location is invalidated while snapshotting,
+     * then the snapshot is not stored in the VFS to avoid inconsistent state.
+     */
+    FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction);
+
+    /**
+     * Snapshotting action which produces possibly more than one snapshot.
+     *
+     * For example when snapshotting a filtered directory, the snapshots for complete subdirectories
+     * would be reported here when they are found.
+     */
+    interface StoringAction {
+        FileSystemLocationSnapshot snapshot(Consumer<FileSystemLocationSnapshot> snapshot);
+    }
 
     /**
      * Removes any information at the absolute paths from the VFS.

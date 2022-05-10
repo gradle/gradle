@@ -19,19 +19,24 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRelativePath;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
     protected final VfsRootReference rootReference;
+    private volatile VersionHierarchyRoot versionHierarchyRoot;
 
     protected AbstractVirtualFileSystem(VfsRootReference rootReference) {
         this.rootReference = rootReference;
+        this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, rootReference.getRoot().getCaseSensitivity());
     }
 
     @Override
@@ -45,19 +50,42 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void store(String absolutePath, FileSystemLocationSnapshot snapshot) {
-        rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+    public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
+        long versionBefore = versionHierarchyRoot.getVersion(absolutePath);
+        FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
+        storeIfUnchanged(absolutePath, versionBefore, snapshot);
+        return snapshot;
+    }
+
+    @Override
+    public FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction) {
+        long versionBefore = versionHierarchyRoot.getVersion(baseLocation);
+        return storingAction.snapshot(snapshot -> storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot));
+    }
+
+    private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
+        long versionAfter = versionHierarchyRoot.getVersion(absolutePath);
+        // Only update VFS if no changes happened in between
+        // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
+        if (versionBefore >= versionAfter) {
+            rootReference.updateUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+        } else {
+            LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
+        }
     }
 
     @Override
     public void invalidate(Iterable<String> locations) {
         LOGGER.debug("Invalidating VFS paths: {}", locations);
-        rootReference.update(root -> {
+        rootReference.updateUnderLock(root -> {
             SnapshotHierarchy result = root;
+            VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
             for (String location : locations) {
                 SnapshotHierarchy currentRoot = result;
                 result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
+                newVersionHierarchyRoot = newVersionHierarchyRoot.updateVersion(location);
             }
+            versionHierarchyRoot = newVersionHierarchyRoot;
             return result;
         });
     }
@@ -65,11 +93,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
-        rootReference.update(root -> updateNotifyingListeners(diffListener -> {
-            root.rootSnapshots()
-                .forEach(diffListener::nodeRemoved);
-            return root.empty();
-        }));
+        invalidate(Collections.singletonList(VfsRelativePath.ROOT));
     }
 
     /**

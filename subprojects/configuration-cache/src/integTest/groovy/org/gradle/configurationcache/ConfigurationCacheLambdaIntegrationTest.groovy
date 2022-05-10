@@ -121,4 +121,39 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         "int"     | "12"       | "12"
         "boolean" | "true"     | "true"
     }
+
+    def "restores task with Transformer implemented by Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        project.getTasks().register("ok", task -> {
+                            Transformer<String, String> tx = String::toUpperCase;
+                            task.doLast(t -> {
+                                System.out.println(tx.transform(task.getName()) + "!");
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("OK!")
+    }
 }
