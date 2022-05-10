@@ -81,8 +81,16 @@ public abstract class Node implements Comparable<Node> {
         if (isComplete()) {
             return this + " (state=" + state + ")";
         } else {
-            return this + " (state=" + state + ", dependencies=" + dependenciesState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
+            String specificState = nodeSpecificHealthDiagnostics();
+            if (!specificState.isEmpty()) {
+                specificState = ", " + specificState;
+            }
+            return this + " (state=" + state + ", dependencies=" + dependenciesState + specificState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
         }
+    }
+
+    protected String nodeSpecificHealthDiagnostics() {
+        return "";
     }
 
     public NodeGroup getGroup() {
