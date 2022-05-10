@@ -25,7 +25,6 @@ class VersionHierarchyRootTest extends Specification {
     def "#description change implies #result"() {
         updateVersions('/my/path', '/my/sibling', '/my/path/some/child')
 
-
         def versionBefore = versionHierarchyRoot.getVersion("/my/path")
         def versionAtRootBefore = versionHierarchyRoot.getVersion('')
         when:
@@ -50,13 +49,46 @@ class VersionHierarchyRootTest extends Specification {
     }
 
     def "does not update siblings"() {
-        updateVersions('/my', '/my/some/location')
+        updateVersions('/my/some/sibling')
 
         def versionBefore = versionHierarchyRoot.getVersion('/my/some/location')
         when:
         updateVersions('/my/some/sibling')
         then:
         versionHierarchyRoot.getVersion('/my/some/location') == versionBefore
+    }
+
+    def "sibling is not updated when changing ancestor of child"() {
+        updateVersions('/my/some/child')
+
+        def siblingLocation = "/my/other/sibling"
+        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
+        when:
+        updateVersions('/my/some')
+        then:
+        versionHierarchyRoot.getVersion(siblingLocation) == siblingVersionBefore
+    }
+
+    def "sibling is not updated when changing child with common prefix"() {
+        updateVersions('/my/some/child1')
+
+        def siblingLocation = "/my/other/sibling"
+        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
+        when:
+        updateVersions('/my/some/child2')
+        then:
+        versionHierarchyRoot.getVersion(siblingLocation) == siblingVersionBefore
+    }
+
+    def "sibling is updated when changing ancestor of it"() {
+        updateVersions('/my/some/child')
+
+        def siblingLocation = "/my/some/sibling"
+        def siblingVersionBefore = versionHierarchyRoot.getVersion(siblingLocation)
+        when:
+        updateVersions('/my/some')
+        then:
+        versionHierarchyRoot.getVersion(siblingLocation) > siblingVersionBefore
     }
 
     def "can query and update the root '#root'"() {
