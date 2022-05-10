@@ -604,4 +604,58 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         expect: "tests using a class from that platform will succeed"
         succeeds('test')
     }
+
+    def "Test suites support gradleTestKit"() {
+        given: "a test suite that uses test kit dependency"
+        settingsFile << """rootProject.name = 'Test'
+
+            include 'consumer'""".stripIndent()
+
+        file('consumer/build.gradle') << """plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation gradleTestKit()
+                            implementation 'org.apache.commons:commons-lang3:3.8.1'
+                        }
+                    }
+                }
+            }
+
+            tasks.named('test', Test) {
+                doFirst {
+                    logger.lifecycle 'Dumping test classpath {}', classpath.asPath
+                }
+            }
+            """.stripIndent()
+
+        file("consumer/src/test/java/SampleTest.java") << """
+            import org.apache.commons.lang3.StringUtils;
+            import org.gradle.testkit.runner.GradleRunner;
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertTrue;
+
+            public class SampleTest {
+                @Test
+                public void testCommons() {
+                    assertTrue(StringUtils.isAllLowerCase("abc"));
+                    GradleRunner runner;
+                }
+            }
+            """.stripIndent()
+
+        expect: "tests using classes from testkit will succeed"
+        succeeds('test')
+
+        and: "test-kit jar is in the test runtime classpath"
+        outputContains('gradle-test-kit-7.6.jar') // FIXME hack; this version will change
+    }
 }

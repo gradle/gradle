@@ -55,7 +55,7 @@ public class DelegatingDependencyHandler implements JvmComponentDependencies, In
     }
 
     private Method findMethod(Class<?> clazz, Method method) throws NoSuchMethodException {
-        return clazz.getDeclaredMethod(method.getName(), method.getParameterTypes());
+        return clazz.getMethod(method.getName(), method.getParameterTypes());
     }
 
     @Override
