@@ -53,6 +53,11 @@ wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
 wmic Path win32_process Where "name='java.exe'"
 """
 
+enum class Arch(val suffix: String, val nameOnLinuxWindows: String, val nameOnMac: String) {
+    AMD64("64bit", "amd64", "x86_64"),
+    AARCH64("aarch64", "aarch64", "aarch64")
+}
+
 enum class Os(
     val agentRequirement: String,
     val ignoredSubprojects: List<String> = emptyList(),

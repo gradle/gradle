@@ -59,7 +59,7 @@ fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
         // Do not force Adoptium vendor for M1 Macs
-        if (!OperatingSystem.current().toString().contains("aarch64")) {
+        if (System.getProperty("os.arch") != "aarch64") {
             vendor.set(JvmVendorSpec.ADOPTIUM)
         }
     }
