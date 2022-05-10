@@ -180,10 +180,6 @@ class RecordingVariantSet(
         return setOf(this)
     }
 
-    override fun getVariantsForGraph(): Set<ResolvedVariant> {
-        return setOf(this)
-    }
-
     override fun getOverriddenAttributes(): ImmutableAttributes {
         return ImmutableAttributes.EMPTY
     }
@@ -198,10 +194,6 @@ class RecordingVariantSet(
 
     override fun getCapabilities(): CapabilitiesMetadata {
         return ImmutableCapabilities.EMPTY
-    }
-
-    override fun isLegacyResolvableConfiguration(): Boolean {
-        return false
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {

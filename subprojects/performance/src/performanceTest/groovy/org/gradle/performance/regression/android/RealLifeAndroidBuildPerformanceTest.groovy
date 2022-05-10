@@ -27,7 +27,6 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -35,12 +34,11 @@ import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BU
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD_2
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@Ignore("SLG-temporarily ignore to build a new nightly")
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        runner.targetVersions = ["7.6-20220427182905+0000"]
+        runner.targetVersions = ["7.5-20220504230242+0000"]
         AndroidTestProject.useStableAgpVersion(runner)
         // AGP 4.1 requires 6.5+
         // forUseAtConfigurationTime API used in this scenario
