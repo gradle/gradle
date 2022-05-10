@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -76,7 +77,7 @@ public class CompileOptions extends AbstractOptions {
 
     private String extensionDirs;
 
-    private List<String> compilerArgs = Lists.newArrayList();
+    private final ListProperty<String> compilerArgs;
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
     private boolean incremental = true;
@@ -100,6 +101,7 @@ public class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
+        this.compilerArgs = objectFactory.listProperty(String.class);
     }
 
     /**
@@ -312,7 +314,7 @@ public class CompileOptions extends AbstractOptions {
      * are ignored.
      */
     @Input
-    public List<String> getCompilerArgs() {
+    public ListProperty<String> getCompilerArgs() {
         return compilerArgs;
     }
 
@@ -324,7 +326,7 @@ public class CompileOptions extends AbstractOptions {
     @Internal
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
+        builder.addAll(CollectionUtils.stringize(getCompilerArgs().get()));
         for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
             builder.addAll(compilerArgumentProvider.asArguments());
         }
@@ -339,14 +341,6 @@ public class CompileOptions extends AbstractOptions {
     @Nested
     public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
         return compilerArgumentProviders;
-    }
-
-    /**
-     * Sets any additional arguments to be passed to the compiler.
-     * Defaults to the empty list.
-     */
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
     }
 
     /**

@@ -198,7 +198,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.compilerArgs << '-proc:none'
+                options.compilerArgs.add('-proc:none')
             }
         """
 
@@ -315,7 +315,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.compilerArgs << '-proc:none'
+                options.compilerArgs.add('-proc:none')
             }
         """
 
