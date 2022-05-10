@@ -16,11 +16,13 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -38,6 +40,10 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.MethodAccess;
+import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -46,7 +52,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
-public class DefaultJvmComponentDependencies implements JvmComponentDependencies {
+public abstract class DefaultJvmComponentDependencies implements JvmComponentDependencies, MethodMixIn {
     private final Configuration implementation;
     private final Configuration compileOnly;
     private final Configuration runtimeOnly;
@@ -61,14 +67,13 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Inject
-    protected DependencyHandler getDependencyHandler() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DependencyHandler getDependencyHandler();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ConfigurationContainer getConfigurationContainer();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public void implementation(Object dependency) {
@@ -196,5 +201,47 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
             configuration.execute(created);
         }
         return created;
+    }
+
+    @Override
+    public MethodAccess getAdditionalMethods() {
+        ConfigurationContainer configurationContainer = getConfigurationContainer();
+        return new MethodAccess() {
+            @Override
+            public boolean hasMethod(String name, Object... arguments) {
+                return arguments.length != 0 && configurationContainer.findByName(name) != null;
+            }
+
+            @Override
+            public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+                if (arguments.length == 0) {
+                    return DynamicInvokeResult.notFound();
+                }
+                Configuration configuration = configurationContainer.findByName(name);
+                if (configuration == null) {
+                    return DynamicInvokeResult.notFound();
+                }
+
+                List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
+                if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
+                    // adding a dependency with a closure, like:
+                    // implementation("foo:bar:1.0") {
+                    //    transitive = false
+                    // }
+                    System.out.println("looks like you're trying to configure " + name + ", do <this> instead.");
+                    return DynamicInvokeResult.notFound();
+                } else if (normalizedArgs.size() == 1) {
+                    // adding a dependency, like:
+                    // implementation("foo:bar:1.0")
+                    System.out.println("looks like you're trying to configure " + name + ", do <this> instead.");
+                    return DynamicInvokeResult.notFound();
+                } else {
+                    // adding multiple dependencies, like:
+                    // implementation("foo:bar:1.0", "baz:bar:2.0", "foobar:foobar:3.0")
+                    System.out.println("looks like you're trying to configure " + name + ", do <this> instead.");
+                    return DynamicInvokeResult.notFound();
+                }
+            }
+        };
     }
 }
