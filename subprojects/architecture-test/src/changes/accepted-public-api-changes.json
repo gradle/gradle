@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getCompilerArgs()",
+            "acceptation": "Migrated to Property",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setCompilerArgs(java.util.List)",
+            "acceptation": "Migrated to Property",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
