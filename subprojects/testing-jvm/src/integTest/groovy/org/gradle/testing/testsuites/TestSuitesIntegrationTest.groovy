@@ -723,7 +723,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest(JvmTestSuite) {
                         dependencies {
-                            turtle(3)
+                            integTestImplementation("foo:bar:1.0")
                         }
                     }
                 }
