@@ -117,7 +117,7 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
      * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
      * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
      *
-     * @since 7.5
+     * @since 7.6
      */
     @Incubating
     public Collection<String> getTags() {
@@ -133,7 +133,7 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
      * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
      * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
      *
-     * @since 7.5
+     * @since 7.6
      */
     @Incubating
     public void setTags(Collection<String> tags) {
