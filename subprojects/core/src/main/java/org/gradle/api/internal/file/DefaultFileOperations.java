@@ -100,7 +100,8 @@ public class DefaultFileOperations implements FileOperations {
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
         DocumentationRegistry documentationRegistry,
-        ProviderFactory providers
+        ProviderFactory providers,
+        FilePropertyFactory filePropertyFactory
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
@@ -121,7 +122,8 @@ public class DefaultFileOperations implements FileOperations {
             objectFactory,
             fileSystem,
             instantiator,
-            documentationRegistry
+            documentationRegistry,
+            filePropertyFactory
         );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
@@ -312,6 +314,7 @@ public class DefaultFileOperations implements FileOperations {
         Deleter deleter = services.get(Deleter.class);
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
+        FilePropertyFactory filePropertyFactory = services.get(FilePropertyFactory.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
@@ -334,6 +337,8 @@ public class DefaultFileOperations implements FileOperations {
             patternSetFactory,
             deleter,
             documentationRegistry,
-            providers);
+            providers,
+            filePropertyFactory
+        );
     }
 }

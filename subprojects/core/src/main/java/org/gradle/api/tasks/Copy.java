@@ -17,13 +17,12 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.io.File;
 
 /**
  * Copies files into a destination directory. This task can also rename and filter files as it copies. The task
@@ -71,11 +70,11 @@ public class Copy extends AbstractCopyTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir == null) {
+        DirectoryProperty destinationDir = getDestinationDir();
+        if (!destinationDir.isPresent()) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new FileCopyAction(getFileLookup().getFileResolver(destinationDir));
+        return new FileCopyAction(getFileLookup().getFileResolver(destinationDir.getAsFile().get()));
     }
 
     @Override
@@ -94,16 +93,7 @@ public class Copy extends AbstractCopyTask {
      * @return The destination dir.
      */
     @OutputDirectory
-    public File getDestinationDir() {
+    public DirectoryProperty getDestinationDir() {
         return getRootSpec().getDestinationDir();
-    }
-
-    /**
-     * Sets the directory to copy files into. This is the same as calling {@link #into(Object)} on this task.
-     *
-     * @param destinationDir The destination directory. Must not be null.
-     */
-    public void setDestinationDir(File destinationDir) {
-        into(destinationDir);
     }
 }

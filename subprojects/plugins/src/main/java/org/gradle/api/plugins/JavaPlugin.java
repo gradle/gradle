@@ -406,7 +406,7 @@ public class JavaPlugin implements Plugin<Project> {
         resourcesVariant.artifact(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
-                return processResources.get().getDestinationDir();
+                return processResources.get().getDestinationDir().getAsFile().get();
             }
         });
     }
