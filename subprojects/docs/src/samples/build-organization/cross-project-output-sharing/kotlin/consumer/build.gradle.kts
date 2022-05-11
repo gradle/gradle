@@ -11,6 +11,6 @@ tasks.register("showFile") {
     val sharedFiles: FileCollection = sharedConfiguration
     inputs.files(sharedFiles)
     doFirst {
-        logger.lifecycle("File is at {}", sharedFiles.singleFile.absolutePath)
+        logger.lifecycle("Shared file contains the text: '{}'", sharedFiles.singleFile.readText())
     }
 }
