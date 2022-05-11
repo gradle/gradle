@@ -75,6 +75,10 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
         return taskPath;
     }
 
+    public Path getTaskIdentityPath() {
+        return taskIdentityPath;
+    }
+
     @Override
     public TaskInternal getTask() {
         return target.getTask();
@@ -148,15 +152,6 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
             default:
                 throw new IllegalArgumentException();
         }
-    }
-
-    @Override
-    public int compareTo(Node other) {
-        if (getClass() != other.getClass()) {
-            return getClass().getName().compareTo(other.getClass().getName());
-        }
-        TaskInAnotherBuild taskNode = (TaskInAnotherBuild) other;
-        return taskIdentityPath.compareTo(taskNode.taskIdentityPath);
     }
 
     @Override

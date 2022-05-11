@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -32,10 +31,12 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
-public abstract class Node implements Comparable<Node> {
+public abstract class Node {
     @VisibleForTesting
     enum ExecutionState {
         // Node is not scheduled to run in any plan
@@ -67,8 +68,8 @@ public abstract class Node implements Comparable<Node> {
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private boolean filtered;
-    private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
+    private final NavigableSet<Node> dependencySuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> dependencyPredecessors = newSortedNodeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
