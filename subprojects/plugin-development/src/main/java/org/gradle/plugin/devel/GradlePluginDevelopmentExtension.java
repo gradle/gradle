@@ -186,11 +186,6 @@ public class GradlePluginDevelopmentExtension {
      */
     @Deprecated
     public boolean isAutomatedPublishing() {
-        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "isAutomatedPublishing")
-                .withAdvice("Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
-                .willBeRemovedInGradle8()
-                .undocumented()
-                .nagUser();
         return automatedPublishing;
     }
 
