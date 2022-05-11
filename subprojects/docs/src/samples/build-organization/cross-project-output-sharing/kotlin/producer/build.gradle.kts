@@ -1,4 +1,4 @@
-val sharedFile: Provider<RegularFile> = project.layout.buildDirectory.dir("some-subdir").map { it.file("shared-file.txt") }
+val sharedFile = project.layout.buildDirectory.file("some-subdir/shared-file.txt")
 
 val makeFile = tasks.register("makeFile") {
     outputs.file(sharedFile)
