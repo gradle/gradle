@@ -9,7 +9,7 @@ val makeFile = tasks.register("makeFile") {
     }
 }
 
-val sharedConfiguration: Configuration by configurations.creating {
+val sharedConfiguration by configurations.creating {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
