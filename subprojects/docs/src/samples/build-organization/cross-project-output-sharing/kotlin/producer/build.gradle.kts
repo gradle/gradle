@@ -3,9 +3,8 @@ val sharedFile: Provider<RegularFile> = project.layout.buildDirectory.dir("some-
 val makeFile = tasks.register("makeFile") {
     outputs.file(sharedFile)
 
-    val fileToWrite = sharedFile.get().asFile
     doFirst {
-        fileToWrite.writeText("This file is shared across Gradle subprojects.")
+        sharedFile.get().asFile.writeText("This file is shared across Gradle subprojects.")
     }
 }
 
