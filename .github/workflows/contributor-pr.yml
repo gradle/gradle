@@ -40,7 +40,7 @@ jobs:
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
-                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us -DpredictiveSelection.server=https://ge.gradle.org')
             } else {
                 core.setOutput('sys-prop-args', '-DcacheNode=us')
             }
