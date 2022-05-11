@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
@@ -72,14 +71,13 @@ public class Sync extends AbstractCopyTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        DirectoryProperty destinationDir = getDestinationDir();
-        if (!destinationDir.isPresent()) {
+        if (!getRootSpec().getDestinationDir().isPresent()) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        File destinationDirFile = destinationDir.getAsFile().get();
+        File destinationDir = getDestinationDir();
         return new SyncCopyActionDecorator(
-            destinationDirFile,
-            new FileCopyAction(getFileLookup().getFileResolver(destinationDirFile)),
+            destinationDir,
+            new FileCopyAction(getFileLookup().getFileResolver(destinationDir)),
             preserveInDestination,
             getDeleter(),
             getDirectoryFileTreeFactory()
@@ -102,8 +100,17 @@ public class Sync extends AbstractCopyTask {
      * @return The destination dir.
      */
     @OutputDirectory
-    public DirectoryProperty getDestinationDir() {
-        return getRootSpec().getDestinationDir();
+    public File getDestinationDir() {
+        return getRootSpec().getDestinationDir().get().getAsFile();
+    }
+
+    /**
+     * Sets the directory to copy files into. This is the same as calling {@link #into(Object)} on this task.
+     *
+     * @param destinationDir The destination directory. Must not be null.
+     */
+    public void setDestinationDir(File destinationDir) {
+        into(destinationDir);
     }
 
     /**

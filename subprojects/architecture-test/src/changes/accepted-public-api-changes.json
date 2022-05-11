@@ -146,22 +146,6 @@
             "changes": [
                 "Method has been removed"
             ]
-        },
-        {
-            "type": "org.gradle.api.tasks.Sync",
-            "member": "Method org.gradle.api.tasks.Sync.getDestinationDir()",
-            "acceptation": "Moved to the Provider API",
-            "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.Sync",
-            "member": "Method org.gradle.api.tasks.Sync.setDestinationDir(java.io.File)",
-            "acceptation": "Moved to the Provider API",
-            "changes": [
-                "Method has been removed"
-            ]
         }
     ]
 }
