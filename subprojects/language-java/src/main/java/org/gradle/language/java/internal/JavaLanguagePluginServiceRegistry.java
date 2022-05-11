@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -39,10 +40,12 @@ import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.ToolchainToolFactory;
 import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.events.OperationType;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -113,6 +116,12 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
                 .replaceWith(
                     options -> new ListPropertyWrapper<>(options.getCompilerArgs()),
                     (options, compilerArgs) -> options.getCompilerArgs().set(compilerArgs)
+                );
+            upgradeManager
+                .matchProperty(Copy.class, File.class, "destinationDir", ImmutableList.of(ProcessResources.class.getName()))
+                .replaceWith(
+                    copy -> copy.getDestinationDir().get().getAsFile(),
+                    (copy, destinationDir) -> copy.getDestinationDir().set(destinationDir)
                 );
         }
     }
