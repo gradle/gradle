@@ -161,15 +161,10 @@ consumablePlatformVariant("runtimePlatform", listOf(coreRuntimeOnly, pluginsRunt
 val buildDists by tasks.registering
 
 configureDistribution("normalized", binDistributionSpec(), buildDists, true)
-val binDistributionTasks = configureDistribution("bin", binDistributionSpec(), buildDists)
+configureDistribution("bin", binDistributionSpec(), buildDists)
 configureDistribution("all", allDistributionSpec(), buildDists)
 configureDistribution("docs", docsDistributionSpec(), buildDists)
-configureDistribution("src", srcDistributionSpec(), buildDists).forEach {
-    // Workaround for the source distribution task reading/storing too much things in the VFS
-    // which may cause incorrect JAR tasks. The mustRunAfter adds it after all the JAR tasks, since
-    // the bin distribution depends on them.
-    it.configure { mustRunAfter(binDistributionTasks) }
-}
+configureDistribution("src", srcDistributionSpec(), buildDists)
 
 fun pluginsManifestTask(runtimeClasspath: Configuration, coreRuntimeClasspath: Configuration, api: GradleModuleApiAttribute) =
     tasks.registering(PluginsManifest::class) {
@@ -183,7 +178,7 @@ fun pluginsManifestTask(runtimeClasspath: Configuration, coreRuntimeClasspath: C
         manifestFile.set(generatedPropertiesFileFor("gradle${if (api == GradleModuleApiAttribute.API) "" else "-implementation"}-plugins"))
     }
 
-fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLifecycleTask: TaskProvider<Task>, normalized: Boolean = false): List<TaskProvider<*>> {
+fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLifecycleTask: TaskProvider<Task>, normalized: Boolean = false) {
     val disDir = if (normalized) "normalized-distributions" else "distributions"
     val zipRootFolder = if (normalized) {
         moduleIdentity.version.map { "gradle-${it.baseVersion.version}" }
@@ -218,7 +213,6 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), installation)
     // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distribution as test data
     consumableVariant("${name}DistributionZip", "gradle-$name-distribution-zip", Bundling.EMBEDDED, emptyList(), distributionZip)
-    return listOf(installation, distributionZip)
 }
 
 fun generatedBinFileFor(name: String) =
