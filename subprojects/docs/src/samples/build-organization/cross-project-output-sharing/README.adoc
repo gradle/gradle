@@ -6,7 +6,8 @@ This is one way you can share information across project boundaries. (Another wa
 ====
 This demonstrates the <<../userguide/cross_project_publications.adoc#simple-sharing-artifacts-between-projects, simple version>> of sharing information across project boundaries, by explicitly specifying which producer project's _consumable configuration_ to use for a locally available artifact.
 
-When the producer publishes an artifact to a repository, to retrieve that artifact you will need to use <<../userguide/cross_project_publications.adoc#variant-aware-sharing, the advanced version>> of variant aware dependency resolution.  This method will also work locally.
+When the producer publishes an artifact to a repository, to retrieve that artifact you will need to use <<../userguide/cross_project_publications.adoc#variant-aware-sharing, the advanced version>> of variant aware dependency resolution.
+This method will also work locally.
 ====
 
 == Example
@@ -38,11 +39,11 @@ See also:
 [WARNING]
 .Don't reference other project tasks directly
 ====
-A frequent anti-pattern to declare cross-project dependencies is below. This publication model is unsafe and can lead to non-reproducible
-and hard to parallelize builds. By declaring a dependency in this way, the task ordering between consumers and producers is not known to Gradle
-at the time when it is deciding the order of tasks for a given build. This means that potentially, consumers of  this file "someOtherJar" can
-execute before the producer task that creates the jar! This would lead to builds that are either totally broken, or worse, broken is a way
-that is subtle, flaky, and difficult to debug.
+A frequent anti-pattern to declare cross-project dependencies is below.
+This publication model is unsafe and can lead to non-reproducible and hard to parallelize builds.
+By declaring a dependency in this way, the task ordering between consumers and producers is not known to Gradle at the time when it is deciding the order of tasks for a given build.
+This means that potentially, consumers of the file "someOtherJar" can execute before the producer task that creates the jar!
+This would lead to builds that are either totally broken, or worse, broken is a way that is subtle, flaky, and difficult to debug.
 [source,groovy]
 dependencies {
   // This publication model can make your build flaky and broken!
