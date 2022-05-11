@@ -149,6 +149,10 @@ If you browse the associated page on the {portal} for the https://plugins.gradle
 .GradleTest plugin metadata on the {portal}
 image::plugin-portal-plugin-page.png[]
 
+=== Sources & Javadoc ===
+
+The Plugin Publish Plugin automatically generates and publishes the <<building_java_projects.adoc#sec:java_packaging,Javadoc and sources JARs>> for your plugin publication.
+
 === Sign artifacts ===
 
 Starting from version 1.0.0 of Plugin Publish Plugin, signing of published plugin artifacts has been made automatic. To enable it, all that's needed is to apply the <<signing_plugin.adoc,`signing`>> plugin in your build.
