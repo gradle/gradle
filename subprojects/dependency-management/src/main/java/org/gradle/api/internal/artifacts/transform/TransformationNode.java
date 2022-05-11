@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDependencyResolver;
@@ -42,12 +43,8 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformationNode extends Node implements SelfExecutingNode {
-    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
-
-    private final int order = ORDER_COUNTER.incrementAndGet();
+public abstract class TransformationNode extends CreationOrderedNode implements SelfExecutingNode {
     protected final TransformationStep transformationStep;
     protected final ResolvableArtifact artifact;
     protected final TransformUpstreamDependencies upstreamDependencies;
@@ -114,15 +111,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     @Override
     public Throwable getNodeFailure() {
         return null;
-    }
-
-    @Override
-    public int compareTo(Node other) {
-        if (getClass() != other.getClass()) {
-            return getClass().getName().compareTo(other.getClass().getName());
-        }
-        TransformationNode otherTransformation = (TransformationNode) other;
-        return order - otherTransformation.order;
     }
 
     @Override
@@ -205,11 +193,13 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         private final TransformationNode previousTransformationNode;
         private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result;
 
-        public ChainedTransformationNode(TransformationStep transformationStep,
-                                         TransformationNode previousTransformationNode,
-                                         TransformUpstreamDependencies upstreamDependencies,
-                                         BuildOperationExecutor buildOperationExecutor,
-                                         CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        public ChainedTransformationNode(
+            TransformationStep transformationStep,
+            TransformationNode previousTransformationNode,
+            TransformUpstreamDependencies upstreamDependencies,
+            BuildOperationExecutor buildOperationExecutor,
+            CalculatedValueContainerFactory calculatedValueContainerFactory
+        ) {
             super(transformationStep, previousTransformationNode.artifact, upstreamDependencies);
             this.previousTransformationNode = previousTransformationNode;
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
