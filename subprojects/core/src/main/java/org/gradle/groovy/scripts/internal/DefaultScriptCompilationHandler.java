@@ -32,6 +32,7 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
@@ -94,6 +95,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         configuration.setTargetDirectory(classesDir);
         try {
             compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
+            GradleApiVersionProvider.createGradleVersionMarker(classesDir);
         } catch (Exception e) {
             try {
                 deleter.deleteRecursively(classesDir);

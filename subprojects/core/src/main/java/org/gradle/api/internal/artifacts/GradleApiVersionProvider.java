@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
@@ -23,6 +24,9 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +34,7 @@ import java.util.Set;
 public class GradleApiVersionProvider {
 
     public static final String GRADLE_API_SOURCE_VERSION_PROPERTY = "org.gradle.api.source-version";
+    public static final String GRADLE_VERSION_MARKER = "META-INF/org.gradle/gradle-version.properties";
 
     public static Optional<String> getGradleApiSourceVersion() {
         return Optional.ofNullable(System.getProperty(GRADLE_API_SOURCE_VERSION_PROPERTY));
@@ -53,6 +58,18 @@ public class GradleApiVersionProvider {
         return getGradleApiSourceVersion()
             .map(version -> gradleApisFromRepository(dependencyResolutionServices, version))
             .orElseGet(() -> gradleApisFromCurrentGradle(dependencyResolutionServices.getDependencyHandler()));
+    }
+
+    public static void createGradleVersionMarker(File classesDirectory) {
+        if (!GradleApiVersionProvider.getGradleApiSourceVersion().isPresent()) {
+            Path versionMarker = classesDirectory.toPath().resolve(GradleApiVersionProvider.GRADLE_VERSION_MARKER);
+            try {
+                Files.createDirectories(versionMarker.getParent());
+                Files.createFile(versionMarker);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 
     private static Set<File> gradleApisFromCurrentGradle(DependencyHandler dependencyHandler) {

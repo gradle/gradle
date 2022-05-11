@@ -198,9 +198,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        // Only upgrade classes in JARs
-        boolean upgradeApi = entry instanceof ClasspathWalker.ZipClasspathEntry;
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), upgradeApi ? apiUpgrader : ApiUpgrader.NO_UPGRADES));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(
+            new InstrumentingBackwardsCompatibilityVisitor(visitor),
+            entry.isCurrentGradleApi() ? ApiUpgrader.NO_UPGRADES : apiUpgrader));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
