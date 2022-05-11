@@ -907,7 +907,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
-     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(Action)}
      * method to unzip a ZIP file.</p>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -932,7 +932,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>
      * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
      * <p>
-     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * You can combine this method with the {@link #copy(Action)}
      * method to untar a TAR file:
      *
      * <pre class='autoTested'>
