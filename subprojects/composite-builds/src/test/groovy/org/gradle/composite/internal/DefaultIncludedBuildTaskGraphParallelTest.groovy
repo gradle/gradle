@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal
 
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.DocumentationRegistry
@@ -54,7 +53,6 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.internal.RedirectStdOutAndErr
-import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
 import org.junit.Rule
 import spock.lang.Shared
@@ -357,11 +355,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         @Override
         String toString() {
             return displayName
-        }
-
-        @Override
-        int compareTo(@NotNull Node o) {
-            return -1
         }
 
         @Override

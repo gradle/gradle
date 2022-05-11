@@ -16,18 +16,24 @@
 
 package org.gradle.execution.plan;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.TreeSet;
 
-/**
- * Base class for nodes that are ordered based on their order of creation.
- */
-abstract public class CreationOrderedNode extends Node {
+public final class NodeSets {
 
-    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
+    public static NavigableSet<Node> newSortedNodeSet() {
+        return new TreeSet<>(NodeComparator.INSTANCE);
+    }
 
-    private final int order = ORDER_COUNTER.incrementAndGet();
+    public static List<Node> sortedListOf(Set<Node> nodes) {
+        List<Node> sorted = new ArrayList<>(nodes);
+        sorted.sort(NodeComparator.INSTANCE);
+        return sorted;
+    }
 
-    public final int getOrder() {
-        return order;
+    private NodeSets() {
     }
 }
