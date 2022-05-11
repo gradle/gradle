@@ -15,6 +15,7 @@
  */
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
+import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.flakyTestStrategy
@@ -59,7 +60,7 @@ fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
         // Do not force Adoptium vendor for M1 Macs
-        if (!OperatingSystem.current().toString().contains("aarch64")) {
+        if (System.getProperty("os.arch") != "aarch64") {
             vendor.set(JvmVendorSpec.ADOPTIUM)
         }
     }
@@ -322,6 +323,8 @@ fun configureTests() {
             val supportedTask = taskIdentity.taskType == Test::class.java
 
             predictiveSelection {
+                this as PredictiveTestSelectionExtensionInternal
+                server.set(uri("https://ge.gradle.org"))
                 enabled.convention(
                     project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
                         enabled && !rerunAllTests && supportedTask
