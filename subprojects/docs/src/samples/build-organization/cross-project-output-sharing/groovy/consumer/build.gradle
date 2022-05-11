@@ -10,9 +10,9 @@ dependencies {
 }
 
 tasks.register("showFile") {
-    def sharedConfiguration = configurations.getByName("sharedConfiguration")
-    it.inputs.files(sharedConfiguration)
-    it.doFirst {
-        logger.lifecycle("File is at {}", sharedConfiguration.singleFile.absolutePath)
+    FileCollection sharedFiles = configurations.getByName("sharedConfiguration")
+    inputs.files(sharedFiles)
+    doFirst {
+        logger.lifecycle("File is at {}", sharedFiles.singleFile.absolutePath)
     }
 }
