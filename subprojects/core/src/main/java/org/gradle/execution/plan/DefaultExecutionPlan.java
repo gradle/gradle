@@ -71,6 +71,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 import static java.lang.String.format;
+import static org.gradle.execution.plan.NodeSets.sortedListOf;
 
 /**
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
@@ -536,8 +537,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     private StringWriter renderOrderingCycle(Set<Node> nodes) {
-        List<Node> cycle = new ArrayList<>(nodes);
-        Collections.sort(cycle);
+        List<Node> cycle = sortedListOf(nodes);
 
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
             (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
