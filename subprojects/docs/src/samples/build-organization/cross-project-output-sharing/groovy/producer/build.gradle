@@ -1,8 +1,9 @@
-def outputFile = project.layout.buildDirectory.dir("some-subdir").map { it.file("shared-file.txt") }
-def makeFile = tasks.register("makeFile", DefaultTask) {
-    it.outputs.file(outputFile)
-    it.doFirst {
-        outputFile.get().asFile << "This file is shared across Gradle subprojects."
+def sharedFile = project.layout.buildDirectory.file("some-subdir/shared-file.txt")
+
+def makeFile = tasks.register("makeFile") {
+    outputs.file(sharedFile)
+    doFirst {
+        sharedFile.get().asFile << "This file is shared across Gradle subprojects."
     }
 }
 

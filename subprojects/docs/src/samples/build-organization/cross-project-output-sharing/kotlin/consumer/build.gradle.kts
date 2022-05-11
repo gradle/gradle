@@ -8,9 +8,9 @@ dependencies {
 }
 
 tasks.register("showFile") {
-    inputs.files(sharedConfiguration)
-
+    val sharedFiles: FileCollection = sharedConfiguration
+    inputs.files(sharedFiles)
     doFirst {
-        logger.lifecycle("File is at {}", sharedConfiguration.singleFile.absolutePath)
+        logger.lifecycle("File is at {}", sharedFiles.singleFile.absolutePath)
     }
 }
