@@ -16,12 +16,12 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
 
-abstract class AdHocPerformanceScenario(os: Os) : BuildType({
-    val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}"
-    name = "AdHoc Performance Scenario - ${os.asName()}"
+abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : BuildType({
+    val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}${arch.asName()}"
+    name = "AdHoc Performance Scenario - ${os.asName()} ${arch.asName()}"
     id(id)
 
-    applyPerformanceTestSettings(os = os, timeout = 420)
+    applyPerformanceTestSettings(os = os, arch = arch, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
 
     params {
@@ -112,3 +112,4 @@ fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
 object AdHocPerformanceScenarioLinux : AdHocPerformanceScenario(Os.LINUX)
 object AdHocPerformanceScenarioWindows : AdHocPerformanceScenario(Os.WINDOWS)
 object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS)
+object AdHocPerformanceScenarioMacM1 : AdHocPerformanceScenario(Os.MACOS, Arch.AARCH64)
