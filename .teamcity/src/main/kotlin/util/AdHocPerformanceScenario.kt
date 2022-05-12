@@ -111,5 +111,5 @@ fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
 
 object AdHocPerformanceScenarioLinux : AdHocPerformanceScenario(Os.LINUX)
 object AdHocPerformanceScenarioWindows : AdHocPerformanceScenario(Os.WINDOWS)
-object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS)
+object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS, Arch.AMD64)
 object AdHocPerformanceScenarioMacM1 : AdHocPerformanceScenario(Os.MACOS, Arch.AARCH64)
