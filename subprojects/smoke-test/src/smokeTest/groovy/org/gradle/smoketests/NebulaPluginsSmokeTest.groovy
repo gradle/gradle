@@ -209,7 +209,6 @@ testImplementation('junit:junit:4.7')""")
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @ToBeFixedForConfigurationCache
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """
