@@ -60,6 +60,16 @@ Moreover, `TestAssertionFailure` exposes the expected and actual values if the u
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
 
+<a name="configuration-cache-improvements"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
+
+#### New compatible tasks
+
+The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
