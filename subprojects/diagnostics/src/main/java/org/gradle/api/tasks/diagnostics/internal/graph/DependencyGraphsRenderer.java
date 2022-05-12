@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph;
 import com.google.common.collect.Sets;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult2;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -69,6 +70,9 @@ public class DependencyGraphsRenderer {
 
     private void renderRoot(final RenderableDependency root) {
         if (root instanceof UnresolvableConfigurationResult) {
+            legendRenderer.setHasUnresolvableConfigurations(true);
+        }
+        if (root instanceof UnresolvableConfigurationResult2) {
             legendRenderer.setHasUnresolvableConfigurations(true);
         }
         if (rootRenderer != NodeRenderer.NO_OP) {

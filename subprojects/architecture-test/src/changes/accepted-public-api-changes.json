@@ -15,6 +15,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make AbstractDependencyReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
