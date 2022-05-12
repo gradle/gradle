@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -29,25 +30,76 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UnresolvableConfigurationResult extends AbstractRenderableDependency {
-    private final Configuration configuration;
 
-    public UnresolvableConfigurationResult(Configuration configuration) {
-        this.configuration = configuration;
+    public static UnresolvableConfigurationResult of(Configuration configuration) {
+        return new UnresolvableConfigurationResult(
+            configuration.getClass().getName() + configuration.hashCode(),
+            configuration.getName(),
+            configuration.getDescription(),
+            unresolvableChildren(configuration)
+        );
+    }
+
+    private static Set<? extends RenderableDependency> unresolvableChildren(Configuration configuration) {
+        final DependencySet dependencies = configuration.getDependencies();
+        if (dependencies.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<UnresolvableRenderableDependency> children = Sets.newLinkedHashSet();
+        for (final Dependency dependency : dependencies) {
+            children.add(new UnresolvableRenderableDependency(
+                dependency.getClass().getName() + dependency.hashCode(),
+                (dependency instanceof ProjectDependency)
+                    ? projectDependencyLabel((ProjectDependency) dependency)
+                    : moduleDependencyLabel(dependency)
+            ));
+        }
+        return children;
+    }
+
+    private static String projectDependencyLabel(ProjectDependency dependency) {
+        return "project " + dependency.getName();
+    }
+
+    private static String moduleDependencyLabel(Dependency dependency) {
+        return Joiner.on(":").join(
+            Stream.of(dependency.getGroup(), dependency.getName(), dependency.getVersion())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+    }
+
+    private final Object id;
+    private final String name;
+    @Nullable
+    private final String description;
+    private final Set<? extends RenderableDependency> children;
+
+    private UnresolvableConfigurationResult(
+        Object id,
+        String name,
+        @Nullable String description,
+        Set<? extends RenderableDependency> children
+    ) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.children = children;
     }
 
     @Override
     public Object getId() {
-        return configuration;
+        return id;
     }
 
     @Override
     public String getName() {
-        return configuration.getAsPath();
+        return name;
     }
 
     @Override
     public String getDescription() {
-        return configuration.getDescription() + "(n)";
+        return description + "(n)";
     }
 
     @Override
@@ -57,31 +109,27 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
 
     @Override
     public Set<? extends RenderableDependency> getChildren() {
-        final DependencySet dependencies = configuration.getDependencies();
-        if (dependencies.isEmpty()) {
-            return Collections.emptySet();
-        }
-        Set<RenderableDependency> children = Sets.newLinkedHashSet();
-        for (final Dependency dependency : dependencies) {
-            children.add(new AbstractRenderableDependency() {
-                @Override
-                public Object getId() {
-                    return dependency;
-                }
-
-                @Override
-                public String getName() {
-                    String label;
-                    if (dependency instanceof ProjectDependency) {
-                        label = "project " + dependency.getName();
-                    } else {
-                        label = Joiner.on(":").join(Stream.of(dependency.getGroup(), dependency.getName(), dependency.getVersion()).filter(Objects::nonNull).collect(Collectors.toList()));
-                    }
-                    return label;
-                }
-
-            });
-        }
         return children;
+    }
+
+    private static final class UnresolvableRenderableDependency extends AbstractRenderableDependency {
+
+        private final Object id;
+        private final String name;
+
+        public UnresolvableRenderableDependency(Object id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @Override
+        public Object getId() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
     }
 }
