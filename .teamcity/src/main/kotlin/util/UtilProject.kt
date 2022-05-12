@@ -10,7 +10,7 @@ object UtilProject : Project({
 
     buildType(RerunFlakyTest(Os.LINUX))
     buildType(RerunFlakyTest(Os.WINDOWS))
-    buildType(RerunFlakyTest(Os.MACOS))
+    buildType(RerunFlakyTest(Os.MACOS, Arch.AMD64))
     buildType(RerunFlakyTest(Os.MACOS, Arch.AARCH64))
     buildType(WarmupEc2Agent)
 
