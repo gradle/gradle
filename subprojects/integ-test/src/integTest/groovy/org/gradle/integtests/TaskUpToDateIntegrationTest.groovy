@@ -484,7 +484,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Only files and directories can be registered as outputs (was: TAR 'readable resource')")
     }
 
-    def "Task with duration input should be skipped"() {
+    def "task with base Java type input property can be up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
                 @Input Duration duration
