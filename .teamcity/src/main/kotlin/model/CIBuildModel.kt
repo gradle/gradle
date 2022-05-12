@@ -264,7 +264,7 @@ data class TestCoverage(
     }
 
     fun asName(): String =
-        "${testType.name.toCapitalized()} ${testJvmVersion.name.toCapitalized()} ${vendor.displayName} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
+        "${testType.name.toCapitalized()} ${testJvmVersion.name.toCapitalized()} ${vendor.displayName} ${os.asName()} ${arch.asName()}${if (withoutDependencies) " without dependencies" else ""}"
 
     val isQuick: Boolean = withoutDependencies || testType == TestType.quick
     val isPlatform: Boolean = testType == TestType.platform
