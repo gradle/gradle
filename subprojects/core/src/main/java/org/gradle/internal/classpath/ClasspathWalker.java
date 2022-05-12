@@ -35,6 +35,7 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.ProviderNotFoundException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -93,9 +94,12 @@ public class ClasspathWalker {
     }
 
     private void visitJarContents(File jarFile, ClasspathEntryVisitor visitor) throws IOException {
-        FileSystem zipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + jarFile.toPath().toUri()), Collections.emptyMap());
-        boolean isCurrentGradleApi = Files.exists(zipFileSystem.getPath(GradleApiVersionProvider.GRADLE_VERSION_MARKER));
-        zipFileSystem.close();
+        boolean isCurrentGradleApi;
+        try (FileSystem zipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + jarFile.toPath().toUri()), Collections.emptyMap())) {
+            isCurrentGradleApi = Files.exists(zipFileSystem.getPath(GradleApiVersionProvider.GRADLE_VERSION_MARKER));
+        } catch (ProviderNotFoundException e) {
+            throw new FileException(e);
+        }
         try (ZipInput entries = FileZipInput.create(jarFile)) {
             for (ZipEntry entry : entries) {
                 if (entry.isDirectory()) {
