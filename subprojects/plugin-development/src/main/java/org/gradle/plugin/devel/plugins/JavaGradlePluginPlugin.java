@@ -233,6 +233,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             CopySpec copyPluginDescriptors = task.getRootSpec().addChild();
             copyPluginDescriptors.into("META-INF/gradle-plugins");
             copyPluginDescriptors.from(generatePluginDescriptors);
+            task.getInputs().property("gradleApiSourceVersion", GradleApiVersionProvider.getGradleApiSourceVersion().orElse("current"));
+            task.doLast(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    GradleApiVersionProvider.createGradleVersionMarker(((Copy) task).getDestinationDir().get().getAsFile());
+                }
+            });
         });
     }
 

@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -344,6 +345,7 @@ class CompileKotlinScript(
         visitor.visitInputProperty("sourceHash") { sourceHash }
         visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
         visitor.visitClassPathProperty("accessorsClassPath", accessorsClassPath)
+        visitor.visitInputProperty("apiVersion") { GradleApiVersionProvider.getGradleApiSourceVersion().orElse("current") }
     }
 
     override fun visitOutputs(
@@ -375,6 +377,7 @@ class CompileKotlinScript(
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
         val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
+        GradleApiVersionProvider.createGradleVersionMarker(classesDir(workspace))
         return workOutputFor(workspace)
     }
 

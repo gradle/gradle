@@ -63,11 +63,13 @@ public class GradleApiVersionProvider {
     public static void createGradleVersionMarker(File classesDirectory) {
         if (!GradleApiVersionProvider.getGradleApiSourceVersion().isPresent()) {
             Path versionMarker = classesDirectory.toPath().resolve(GradleApiVersionProvider.GRADLE_VERSION_MARKER);
-            try {
-                Files.createDirectories(versionMarker.getParent());
-                Files.createFile(versionMarker);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            if (!Files.exists(versionMarker)) {
+                try {
+                    Files.createDirectories(versionMarker.getParent());
+                    Files.createFile(versionMarker);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         }
     }
