@@ -67,7 +67,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         task << ["taskReport", "propertyReport", "dependencyReport", "htmlDependencyReport"]
     }
 
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*dependencyReport", ".*htmlDependencyReport"])
     def "given no output file, does not print link to default #task"(String task) {
         given:
         buildFile << """
