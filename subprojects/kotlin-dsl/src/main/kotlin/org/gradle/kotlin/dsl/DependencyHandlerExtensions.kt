@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -296,3 +297,75 @@ inline fun <T : ModuleDependency> DependencyHandler.add(
  */
 fun <T : ModuleDependency> T.exclude(group: String? = null, module: String? = null): T =
     uncheckedCast(exclude(excludeMapFor(group, module)))
+
+
+/**
+ * Declares a dependency on a platform. If the target coordinates represent multiple
+ * potential components, the platform component will be selected, instead of the library.
+ *
+ * @param group the group of the platform to be added as a dependency.
+ * @param name the name of the platform to be added as a dependency.
+ * @param version the optional version of the platform to be added as a dependency.
+ * @param configuration the optional configuration of the platform to be added as a dependency.
+ * @param classifier the optional classifier of the platform artifact to be added as a dependency.
+ * @param ext the optional extension of the platform artifact to be added as a dependency.
+ *
+ * @return The dependency.
+ *
+ * @see [DependencyHandler.platform]
+ */
+fun DependencyHandler.platform(
+    group: String,
+    name: String,
+    version: String? = null,
+    configuration: String? = null,
+    classifier: String? = null,
+    ext: String? = null
+): Dependency =
+    platform(
+        mapOfNonNullValuesOf(
+            "group" to group,
+            "name" to name,
+            "version" to version,
+            "configuration" to configuration,
+            "classifier" to classifier,
+            "ext" to ext
+        )
+    )
+
+
+/**
+ * Declares a dependency on an enforced platform. If the target coordinates represent multiple
+ * potential components, the platform component will be selected, instead of the library.
+ * An enforced platform is a platform for which the direct dependencies are forced, meaning
+ * that they would override any other version found in the graph.
+ *
+ * @param group the group of the platform to be added as a dependency.
+ * @param name the name of the platform to be added as a dependency.
+ * @param version the optional version of the platform to be added as a dependency.
+ * @param configuration the optional configuration of the platform to be added as a dependency.
+ * @param classifier the optional classifier of the platform artifact to be added as a dependency.
+ * @param ext the optional extension of the platform artifact to be added as a dependency.
+ *
+ * @return The dependency.
+ *
+ * @see [DependencyHandler.enforcedPlatform]
+ */
+fun DependencyHandler.enforcedPlatform(
+    group: String,
+    name: String,
+    version: String? = null,
+    configuration: String? = null,
+    classifier: String? = null,
+    ext: String? = null
+): Dependency =
+    enforcedPlatform(
+        mapOfNonNullValuesOf(
+            "group" to group,
+            "name" to name,
+            "version" to version,
+            "configuration" to configuration,
+            "classifier" to classifier,
+            "ext" to ext
+        )
+    )

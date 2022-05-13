@@ -400,6 +400,64 @@ class DependencyHandlerExtensionsTest {
 
         verify(dependencyHandler).addProvider(eq("config"), eq(notation), any<Action<ExternalModuleDependency>>())
     }
+
+    @Test
+    fun `given group, name, version, configuration, classifier and ext, 'platform' extension will build corresponding map`() {
+
+        val expectedPlatformMap = mapOf(
+            "group" to "g",
+            "name" to "n",
+            "version" to "v",
+            "configuration" to "cfg",
+            "classifier" to "cls",
+            "ext" to "x"
+        )
+
+        val dependencies = newDependencyHandlerMock()
+        val dependency: ExternalModuleDependency = mock()
+        whenever(dependencies.platform(expectedPlatformMap)).thenReturn(dependency)
+
+        assertThat(
+            dependencies.platform(
+                group = "g",
+                name = "n",
+                version = "v",
+                configuration = "cfg",
+                classifier = "cls",
+                ext = "x"
+            ),
+            sameInstance(dependency)
+        )
+    }
+
+    @Test
+    fun `given group, name, version, configuration, classifier and ext, 'enforcedPlatform' extension will build corresponding map`() {
+
+        val expectedEnforcedPlatformMap = mapOf(
+            "group" to "g",
+            "name" to "n",
+            "version" to "v",
+            "configuration" to "cfg",
+            "classifier" to "cls",
+            "ext" to "x"
+        )
+
+        val dependencies = newDependencyHandlerMock()
+        val dependency: ExternalModuleDependency = mock()
+        whenever(dependencies.enforcedPlatform(expectedEnforcedPlatformMap)).thenReturn(dependency)
+
+        assertThat(
+            dependencies.enforcedPlatform(
+                group = "g",
+                name = "n",
+                version = "v",
+                configuration = "cfg",
+                classifier = "cls",
+                ext = "x"
+            ),
+            sameInstance(dependency)
+        )
+    }
 }
 
 
