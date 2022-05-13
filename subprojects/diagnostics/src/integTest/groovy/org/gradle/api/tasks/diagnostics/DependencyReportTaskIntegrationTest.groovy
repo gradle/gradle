@@ -16,14 +16,12 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @ToBeFixedForConfigurationCache
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
         file("settings.gradle") << "include 'client', 'a', 'b', 'c'"
@@ -64,7 +62,6 @@ compile
         output.contains '(*) - dependencies omitted (listed previously)'
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks project dependency that can't be resolved as 'FAILED'"() {
         given:
         settingsFile << "include 'A', 'B', 'C'"
@@ -96,7 +93,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOnModules("unknown").publish()
@@ -127,7 +123,6 @@ foo
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks dynamic versions that can't be resolved as 'FAILED'"() {
         given:
         file("build.gradle") << """
@@ -161,7 +156,6 @@ foo
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOn("foo", "baz", "2.0").publish()
@@ -191,7 +185,6 @@ config
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
         given:
         mavenRepo.module("org", "libA", "1.0").dependsOn("org", "libB", "1.0").dependsOn("org", "libC", "1.0").publish()
@@ -228,7 +221,6 @@ config
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders dependencies even if the configuration was already resolved"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -258,7 +250,6 @@ config
         output.contains "foo:bar:1.0 -> 2.0"
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders selected versions in case of a conflict"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -336,7 +327,6 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders the dependency tree"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -378,7 +368,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "mentions web-based dependency report after legend"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -409,7 +398,6 @@ conf
 A web-based, searchable dependency report is available by adding the --scan option."""
     }
 
-    @ToBeFixedForConfigurationCache
     def "shows selected versions in case of a multi-phase conflict"() {
         given:
         mavenRepo.module("foo", "foo", "1.0").publish()
@@ -450,7 +438,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "deals with dynamic versions with conflicts"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -486,7 +473,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders ivy tree with custom configurations"() {
         given:
         def module = ivyRepo.module("org", "child")
@@ -522,7 +508,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders the ivy tree with conflicts"() {
         given:
         ivyRepo.module("org", "leaf1").publish()
@@ -567,7 +552,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "tells if there are no dependencies"() {
         given:
         buildFile << "configurations { foo }"
@@ -582,7 +566,6 @@ No dependencies
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "tells if there are no configurations"() {
         when:
         run "dependencies"
@@ -591,7 +574,6 @@ No dependencies
         output.contains "No configurations"
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies report does not run for subprojects by default"() {
         given:
         file("settings.gradle") << "include 'a'"
@@ -612,7 +594,6 @@ No dependencies
         //note that 'a' project dependencies are not being resolved
     }
 
-    @ToBeFixedForConfigurationCache
     def "report can be limited to a single configuration via command-line parameter"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -653,7 +634,6 @@ conf2
         !output.contains("conf1")
     }
 
-    @ToBeFixedForConfigurationCache
     void "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
         mavenRepo.module("org.utils", "impl", '1.3').publish()
 
@@ -685,7 +665,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -757,7 +736,6 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
@@ -802,7 +780,6 @@ compile
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports external dependency with version updated by resolve rule"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
 
@@ -845,7 +822,6 @@ compile
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports external dependency substituted with another"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
         mavenRepo.module("org.other", "another", '0.1').publish()
@@ -890,7 +866,6 @@ compile
 """
     }
 
-    @ToBeFixedForConfigurationCache
     void "doesn't fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -937,7 +912,6 @@ api (n)
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders dependency constraints non-transitively"() {
         def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
@@ -972,7 +946,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders version constraints"() {
         mavenRepo.module('group', 'moduleA', '1.0').publish()
         mavenRepo.module('group', 'moduleB', '1.0').publish()
@@ -1019,7 +992,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports imported BOM as a set of dependency constraints"() {
         def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
@@ -1057,7 +1029,6 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "excludes fully deprecated configurations"() {
         executer.expectDeprecationWarning()
 
@@ -1089,7 +1060,6 @@ compileClasspath - Compile classpath for source set 'main'.
         !output.contains("\ncompile\n")
     }
 
-    @ToBeFixedForConfigurationCache
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()

@@ -28,6 +28,7 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
@@ -44,7 +45,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +70,8 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newIdentityHashSet;
+import static java.lang.String.format;
+import static org.gradle.execution.plan.NodeSets.sortedListOf;
 
 /**
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
@@ -144,7 +146,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     public void addNodes(Collection<? extends Node> nodes) {
         Deque<Node> queue = new ArrayDeque<>(nodes.size());
         for (Node node : nodes) {
-            assert node.getDependenciesProcessed() || node instanceof TaskInAnotherBuild;
             assert node.isInKnownState();
             if (node.isRequired()) {
                 entryNodes.add(node);
@@ -328,7 +329,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
-    public WorkSource<Node> finalizePlan() {
+    public void finalizePlan() {
         executionQueue.restart();
         while (executionQueue.hasNext()) {
             Node node = executionQueue.next();
@@ -337,7 +338,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
 
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+    }
 
+    @Override
+    public WorkSource<Node> asWorkSource() {
         // For now
         return this;
     }
@@ -386,43 +390,69 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     private void createOrdinalRelationships(Node node) {
-        if (node instanceof TaskNode && node.getOrdinal() != null) {
-            TaskNode taskNode = (TaskNode) node;
-            TaskClassifier taskClassifier = new TaskClassifier();
-            ProjectInternal project = (ProjectInternal) taskNode.getTask().getProject();
-            ServiceRegistry serviceRegistry = project.getServices();
-            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
+        if (!(node instanceof TaskNode)) {
+            return;
+        }
 
-            // Walk the properties of the task to determine if it is a destroyer or a producer (or neither)
-            propertyWalker.visitProperties(taskNode.getTask(), TypeValidationContext.NOOP, taskClassifier);
-            taskNode.getTask().getOutputs().visitRegisteredProperties(taskClassifier);
-            ((TaskDestroyablesInternal) taskNode.getTask().getDestroyables()).visitRegisteredProperties(taskClassifier);
-            ((TaskLocalStateInternal) taskNode.getTask().getLocalState()).visitRegisteredProperties(taskClassifier);
+        OrdinalGroup ordinal = node.getOrdinal();
+        if (ordinal == null) {
+            return;
+        }
 
-            if (taskClassifier.isDestroyer()) {
-                // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
-                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
-                ordinalNode.addDependenciesFrom(taskNode);
+        TaskNode taskNode = (TaskNode) node;
+        TaskClassifier taskClassifier = classifyTask(taskNode);
 
-                if (taskNode.getOrdinal().getOrdinal() > 0) {
-                    // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
-                    // ordinal)
-                    ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal().getOrdinal())
-                        .forEach(taskNode::addDependencySuccessor);
-                }
-            } else if (taskClassifier.isProducer()) {
-                // Create (or get) a producer ordinal node that depends on the dependencies of this task node
-                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
-                ordinalNode.addDependenciesFrom(taskNode);
+        if (taskClassifier.isDestroyer()) {
+            // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
+            OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(ordinal);
+            ordinalNode.addDependenciesFrom(taskNode);
 
-                if (taskNode.getOrdinal().getOrdinal() > 0) {
-                    // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
-                    // ordinal)
-                    ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal().getOrdinal())
-                        .forEach(taskNode::addDependencySuccessor);
-                }
+            Node precedingProducersNode = ordinalNodeAccess.getPrecedingProducerLocationNode(ordinal);
+            if (precedingProducersNode != null) {
+                // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
+                taskNode.addDependencySuccessor(precedingProducersNode);
+            }
+        } else if (taskClassifier.isProducer()) {
+            // Create (or get) a producer ordinal node that depends on the dependencies of this task node
+            OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(ordinal);
+            ordinalNode.addDependenciesFrom(taskNode);
+
+            Node precedingDestroyersNode = ordinalNodeAccess.getPrecedingDestroyerLocationNode(ordinal);
+            if (precedingDestroyersNode != null) {
+                // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
+                taskNode.addDependencySuccessor(precedingDestroyersNode);
             }
         }
+    }
+
+    /**
+     * Walk the properties of the task to determine if it is a destroyer or a producer (or neither).
+     */
+    private TaskClassifier classifyTask(TaskNode taskNode) {
+        TaskClassifier taskClassifier = new TaskClassifier();
+        TaskInternal task = taskNode.getTask();
+
+        PropertyWalker propertyWalker = propertyWalkerOf(task);
+        propertyWalker.visitProperties(task, TypeValidationContext.NOOP, taskClassifier);
+        task.getOutputs().visitRegisteredProperties(taskClassifier);
+        if (taskClassifier.isDestroyer()) {
+            // avoid walking further properties after discovering the task is destroyer
+            return taskClassifier;
+        }
+
+        ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(taskClassifier);
+        if (taskClassifier.isDestroyer()) {
+            // avoid walking further properties after discovering the task is destroyer
+            return taskClassifier;
+        }
+
+        ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(taskClassifier);
+
+        return taskClassifier;
+    }
+
+    private PropertyWalker propertyWalkerOf(TaskInternal task) {
+        return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
@@ -483,6 +513,17 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     private void onOrderingCycle(Node successor, Node currentNode) {
+        List<Set<Node>> cycles = findCycles(successor);
+        if (cycles.isEmpty()) {
+            // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
+            // https://github.com/gradle/gradle/issues/2293
+            throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
+        }
+        StringWriter cycleString = renderOrderingCycle(cycles.get(0));
+        throw new CircularReferenceException(format("Circular dependency between the following tasks:%n%s", cycleString));
+    }
+
+    private List<Set<Node>> findCycles(Node successor) {
         CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
             connectedNodes.addAll(node.getDependencySuccessors());
             if (node instanceof TaskNode) {
@@ -492,28 +533,24 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             }
         });
         graphWalker.add(successor);
+        return graphWalker.findCycles();
+    }
 
-        List<Set<Node>> cycles = graphWalker.findCycles();
-        if (cycles.isEmpty()) {
-            // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
-            // https://github.com/gradle/gradle/issues/2293
-            throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
-        }
-        List<Node> firstCycle = new ArrayList<>(cycles.get(0));
-        Collections.sort(firstCycle);
+    private StringWriter renderOrderingCycle(Set<Node> nodes) {
+        List<Node> cycle = sortedListOf(nodes);
 
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
             (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
             (it, values, connectedNodes) -> {
-                for (Node dependency : firstCycle) {
+                for (Node dependency : cycle) {
                     if (it.hasHardSuccessor(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
             });
         StringWriter writer = new StringWriter();
-        graphRenderer.renderTo(firstCycle.get(0), writer);
-        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
+        graphRenderer.renderTo(cycle.get(0), writer);
+        return writer;
     }
 
     @Override
@@ -597,7 +634,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 Node node = executionQueue.next();
                 queuedNodes.add(node.healthDiagnostics());
                 reported.add(node);
-                for (Node successor : node.getAllSuccessors()) {
+                for (Node successor : node.getHardSuccessors()) {
                     queue.add(successor);
                 }
             }
@@ -605,7 +642,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 Node node = queue.remove(0);
                 if (reported.add(node)) {
                     otherNodes.add(node.healthDiagnostics());
-                    for (Node successor : node.getAllSuccessors()) {
+                    for (Node successor : node.getHardSuccessors()) {
                         queue.add(successor);
                     }
                 }
@@ -902,7 +939,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         updateAllDependenciesCompleteForPredecessors(node);
 
         if (node instanceof LocalTaskNode) {
-            completionHandler.accept((LocalTaskNode) node);
+            try {
+                completionHandler.accept((LocalTaskNode) node);
+            } catch (Throwable t) {
+                failures.add(t);
+            }
         }
     }
 
@@ -920,7 +961,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             node.setExecutionFailure(failure);
         }
         if (!node.isExecuting()) {
-            throw new IllegalStateException(String.format("Cannot finish executing %s as it is in an unexpected state.", node));
+            throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state.", node));
         }
         try {
             if (maybeNodesReady) {
@@ -1007,8 +1048,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public void abortAllAndFail(Throwable t) {
         lockCoordinator.assertHasStateLock();
-        abortExecution(true);
         failures.add(t);
+        abortExecution(true);
     }
 
     @Override

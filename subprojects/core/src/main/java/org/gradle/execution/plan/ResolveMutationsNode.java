@@ -41,11 +41,6 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         return "Resolve mutations for " + node;
     }
 
-    @Override
-    public int compareTo(Node o) {
-        return -1;
-    }
-
     @Nullable
     @Override
     public Throwable getNodeFailure() {
