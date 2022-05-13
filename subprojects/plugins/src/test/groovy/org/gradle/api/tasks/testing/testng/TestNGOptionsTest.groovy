@@ -38,6 +38,7 @@ class TestNGOptionsTest extends Specification {
             listeners.empty
             parallel == null
             threadCount == -1
+            suiteThreadPoolSize == 1
             suiteName == 'Gradle suite'
             testName == 'Gradle test'
             configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY

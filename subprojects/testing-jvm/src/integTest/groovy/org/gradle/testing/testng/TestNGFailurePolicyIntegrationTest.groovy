@@ -45,6 +45,9 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
     }
 
     def "skips tests after a config method failure by default"() {
+        given:
+        assumeTrue(supportSuiteThreadPoolSize())
+
         expect:
         fails "test"
 

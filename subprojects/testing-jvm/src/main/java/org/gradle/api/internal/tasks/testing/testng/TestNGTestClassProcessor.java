@@ -110,7 +110,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (options.getThreadCount() > 0) {
             testNg.setThreadCount(options.getThreadCount());
         }
-
+        testNg.setSuiteThreadPoolSize(options.getSuiteThreadPoolSize());
         Class<?> configFailurePolicyArgType = getConfigFailurePolicyArgType(testNg);
         Object configFailurePolicyArgValue = getConfigFailurePolicyArgValue(testNg);
 
