@@ -27,13 +27,6 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
 
         // Core tasks
         task.name in listOf(
-            "buildEnvironment",
-            "dependencies",
-            "dependencyInsight",
-            "properties",
-            "projects",
-            "outgoingVariants",
-            "javaToolchains",
             "components",
             "dependantComponents",
             "model",
