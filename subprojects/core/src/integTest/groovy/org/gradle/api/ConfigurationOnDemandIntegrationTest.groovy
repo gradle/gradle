@@ -534,7 +534,7 @@ task printExt {
         outputContains("The Foo says Moo!!!")
     }
 
-    @ToBeFixedForConfigurationCache(because = "runs the dependencies task")
+    @ToBeFixedForConfigurationCache(because = "test expects configuration phase on second run")
     @Issue("https://github.com/gradle/gradle/issues/18460")
     @IntegrationTestTimeout(value = 60, onlyIf = { GradleContextualExecuter.embedded })
     def "can query dependencies with configure on demand enabled"() {

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyLockingLenientModeIntegrationTest extends AbstractLockingIntegrationTest {
     @Override
@@ -255,7 +254,6 @@ configurations {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'dependency report passes without failed dependencies using out-of-date lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -296,7 +294,6 @@ dependencies {
 \\--- org:foo:1.0 -> 1.1 (c)"""
     }
 
-    @ToBeFixedForConfigurationCache
     def 'dependency report passes without FAILED dependencies for all out lock issues'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
