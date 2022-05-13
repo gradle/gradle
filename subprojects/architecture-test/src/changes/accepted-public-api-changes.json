@@ -1,3 +1,28 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.PropertyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make PropertyReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make ProjectReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make AbstractDependencyReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

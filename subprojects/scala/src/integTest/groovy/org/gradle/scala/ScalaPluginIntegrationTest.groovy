@@ -17,7 +17,6 @@ package org.gradle.scala
 
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
@@ -242,7 +241,6 @@ task someTask
         succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     @Issue("gradle/gradle#19300")
     def 'show that log4j-core, if present, is 2_17_1 at the minimum'() {
         given:

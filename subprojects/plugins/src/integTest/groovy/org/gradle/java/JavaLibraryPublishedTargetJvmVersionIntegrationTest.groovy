@@ -87,7 +87,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
 
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can fail resolution if producer doesn't have appropriate target version"() {
         buildFile << """
             configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 5)
