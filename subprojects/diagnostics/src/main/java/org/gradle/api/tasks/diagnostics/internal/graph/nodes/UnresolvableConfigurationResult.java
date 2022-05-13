@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -35,7 +34,6 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         return new UnresolvableConfigurationResult(
             configuration.getClass().getName() + configuration.hashCode(),
             configuration.getName(),
-            configuration.getDescription(),
             unresolvableChildren(configuration)
         );
     }
@@ -71,19 +69,15 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
 
     private final Object id;
     private final String name;
-    @Nullable
-    private final String description;
     private final Set<? extends RenderableDependency> children;
 
     private UnresolvableConfigurationResult(
         Object id,
         String name,
-        @Nullable String description,
         Set<? extends RenderableDependency> children
     ) {
         this.id = id;
         this.name = name;
-        this.description = description;
         this.children = children;
     }
 
@@ -95,11 +89,6 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public String getDescription() {
-        return description + "(n)";
     }
 
     @Override
