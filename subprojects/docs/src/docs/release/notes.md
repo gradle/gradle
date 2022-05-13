@@ -24,7 +24,6 @@ We would like to thank the following community members for their contributions t
 [Xin Wang](https://github.com/scaventz),
 [Atsuto Yamashita](https://github.com/att55),
 [Taeik Lim](https://github.com/acktsap),
-[David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [Peter Gafert](https://github.com/codecholeric),
 [Alex Landau](https://github.com/AlexLandau),
 [Jerry Wiltse](https://github.com/solvingj),
