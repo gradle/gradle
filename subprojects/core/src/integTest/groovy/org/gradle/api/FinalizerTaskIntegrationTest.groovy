@@ -26,6 +26,75 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
+    void 'ge misdetected cycle'() {
+        given:
+        buildKotlinFile << '''
+
+            plugins { `java-library` }
+
+            tasks {
+                register("dockerTest") {
+                    mustRunAfter("clean")
+                    shouldRunAfter("jar")
+                    dependsOn("buildHarborImage")
+                    dependsOn("dockerUp")
+                    finalizedBy("dockerStop")
+                }
+
+                register("buildHarborImage") {
+                    mustRunAfter("clean")
+                }
+
+                register("startHarborContainer") {
+                    mustRunAfter("clean")
+                    dependsOn("createHarborContainer")
+                    dependsOn("configureHarborBindMounts")
+                }
+
+                register("stopHarborContainer") {
+                    mustRunAfter("clean")
+                }
+
+                register("configureHarborBindMounts") {
+                    mustRunAfter("clean")
+                }
+
+                register("dockerUp") {
+                    mustRunAfter("clean")
+                    dependsOn("createHarborContainer")
+                }
+
+                register("dockerStop") {
+                    mustRunAfter("clean")
+                    dependsOn("removeHarborContainer")
+                    dependsOn("stopHarborContainer")
+                }
+
+                register("removeHarborContainer") {
+                    mustRunAfter("clean")
+                    dependsOn("stopHarborContainer")
+                    mustRunAfter("stopHarborContainer")
+                }
+
+                register("dockerRunHarbor") {
+                    mustRunAfter("clean")
+                    dependsOn("buildHarborImage")
+                    dependsOn("startHarborContainer")
+                    mustRunAfter("dockerStopHarbor")
+                }
+
+                register("createHarborContainer") {
+                    mustRunAfter("clean")
+                    dependsOn("buildHarborImage")
+                    mustRunAfter("removeHarborContainer")
+                }
+            }
+        '''
+
+        expect:
+        succeeds 'dockerTest'
+    }
+
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
