@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
@@ -157,6 +158,7 @@ fun compileKotlinScriptModuleTo(
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
+                put(JVMConfigurationKeys.IR, true)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
                 addScriptDefinition(scriptDef)
@@ -207,6 +209,7 @@ fun compileToDirectory(
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
                 PathUtil.getJdkClassesRoots(File(System.getProperty("java.home"))).forEach(::addJvmClasspathRoot)
+                this.put(JVMConfigurationKeys.IR, true)
             }
             val environment = kotlinCoreEnvironmentFor(configuration)
             return compileBunchOfSources(environment)
