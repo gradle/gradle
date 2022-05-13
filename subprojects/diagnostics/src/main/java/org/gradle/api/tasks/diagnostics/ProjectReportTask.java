@@ -28,7 +28,6 @@ import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -144,8 +143,9 @@ public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectRep
     ) {
         renderer.visit(styledTextOutput -> {
             styledTextOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
-            if (GUtil.isTrue(model.project.getDescription())) {
-                String description = model.project.getDescription().trim();
+            String projectDescription = model.project.getDescription();
+            if (projectDescription != null && !projectDescription.isEmpty()) {
+                String description = projectDescription.trim();
                 int newlineInDescription = description.indexOf('\n');
                 if (newlineInDescription > 0) {
                     textOutput.withStyle(Description).text(" - " + description.substring(0, newlineInDescription) + "...");
