@@ -58,6 +58,12 @@ public class GradleApiVersionProvider {
             .map(repositoryHandler::gradleApi)
             .orElseGet(repositoryHandler::gradleApi);
         configuration.getDependencies().add(gradleApiDependency);
+        if (getGradleApiSourceVersion().isPresent()) {
+            configuration.getDependencies().add(repositoryHandler.create("org.codehaus.groovy:groovy:3.0.10"));
+            configuration.getDependencies().add(repositoryHandler.create("javax.inject:javax.inject:1"));
+            configuration.getDependencies().add(repositoryHandler.create("org.slf4j:slf4j-api:1.7.30"));
+            configuration.getDependencies().add(repositoryHandler.create("org.apache.ant:ant:1.10.11"));
+        }
     }
 
     public static Collection<File> resolveGradleSourceApi(DependencyResolutionServices dependencyResolutionServices) {
