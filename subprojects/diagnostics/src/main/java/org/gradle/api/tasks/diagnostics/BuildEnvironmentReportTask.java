@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
@@ -67,8 +68,12 @@ public class BuildEnvironmentReportTask extends DefaultTask {
     private BuildEnvironmentReportModel calculateReportModel() {
         return new BuildEnvironmentReportModel(
             ProjectDetails.of(getProject()),
-            ConfigurationDetails.of(getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION))
+            ConfigurationDetails.of(classpathConfiguration())
         );
+    }
+
+    private Configuration classpathConfiguration() {
+        return getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
     }
 
     @Inject
