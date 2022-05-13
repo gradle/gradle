@@ -33,7 +33,10 @@ We would like to thank the following community members for their contributions t
 [Filip Daca](https://github.com/filip-daca),
 [Simão Gomes Viana](https://github.com/xdevs23),
 [Vaidotas Valuckas](https://github.com/rieske),
-[Edgars Jasmans](https://github.com/yasmans)
+[Edgars Jasmans](https://github.com/yasmans),
+[Tomasz Godzik](https://github.com/tgodzik),
+[Jeff](https://github.com/mathjeff),
+[Lajos Veres](https://github.com/vlajos)
 
 ## Upgrade instructions
 
