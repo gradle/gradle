@@ -179,7 +179,7 @@ public class JsonProjectDependencyRenderer {
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
             return createDependencyChildren(root, new HashSet<>());
         } else {
-            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<>());
+            return createDependencyChildren(UnresolvableConfigurationResult.of(configuration), new HashSet<>());
         }
     }
 
@@ -225,7 +225,7 @@ public class JsonProjectDependencyRenderer {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             root = new RenderableModuleResult(result.getRoot());
         } else {
-            root = new UnresolvableConfigurationResult(configuration);
+            root = UnresolvableConfigurationResult.of(configuration);
         }
         Set<ModuleIdentifier> modules = Sets.newHashSet();
         Set<ComponentIdentifier> visited = Sets.newHashSet();

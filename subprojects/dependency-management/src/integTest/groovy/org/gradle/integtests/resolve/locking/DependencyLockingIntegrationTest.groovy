@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
@@ -26,7 +25,6 @@ class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrat
         LockMode.DEFAULT
     }
 
-    @ToBeFixedForConfigurationCache
     def 'succeeds without lock file present and does not create one'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -102,7 +100,6 @@ task check {
         succeeds 'check'
     }
 
-    @ToBeFixedForConfigurationCache
     def 'writes a new lock file if update done without lockfile present'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -137,7 +134,6 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
     }
 
-    @ToBeFixedForConfigurationCache
     def 'does not write an empty lock file for an empty configuration if not requested'() {
         buildFile << """
 dependencyLocking {
@@ -193,7 +189,6 @@ task doIt {
         failureHasCause("The value for property 'lockMode' is final and cannot be changed any further.")
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can use a custom file location for reading and writing per project lock state'() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()

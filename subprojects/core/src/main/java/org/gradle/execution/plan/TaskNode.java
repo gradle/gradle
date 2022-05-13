@@ -25,12 +25,14 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 public abstract class TaskNode extends Node {
-    private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> mustSuccessors = newSortedNodeSet();
     private final Set<Node> mustPredecessors = Sets.newHashSet();
-    private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizers = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> finalizers = newSortedNodeSet();
+    private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
     public DependenciesState doCheckDependenciesComplete() {

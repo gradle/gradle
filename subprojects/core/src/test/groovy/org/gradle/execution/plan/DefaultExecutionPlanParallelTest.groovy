@@ -67,7 +67,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.taskDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         _ * task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         _ * task.finalizedBy >> taskDependencyResolvingTo(task, options.finalizedBy ?: [])
-        _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
+        _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, options.shouldRunAfter ?: [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
         TaskStateInternal state = Mock()
@@ -1123,6 +1123,64 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == producer
     }
 
+    def "producer ordered before destroyer on command-line overrides conflicting shouldRunAfter relationship"() {
+        given:
+        Task destroyer = task("destroyer", type: AsyncWithDestroysFile)
+        _ * destroyer.destroysFile >> file("inputDir")
+        Task producer = task("producer", type: AsyncWithOutputDirectory, shouldRunAfter: [destroyer])
+        _ * producer.outputDirectory >> file("inputDir")
+
+        when:
+        addToGraphAndPopulate(producer, destroyer)
+
+        then:
+        // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
+        executionPlan.tasks as List == [destroyer, producer]
+        ordinalGroups == [1, 0]
+        assertLastTaskOfGroupReady(producer)
+        assertLastTaskOfGroupReadyAndNoMoreToStart(destroyer)
+        assertAllWorkComplete()
+    }
+
+    def "destroyer ordered before producer on command-line overrides conflicting shouldRunAfter relationship"() {
+        given:
+        Task producer = task("producer", type: AsyncWithOutputDirectory)
+        _ * producer.outputDirectory >> file("inputDir")
+        Task destroyer = task("destroyer", type: AsyncWithDestroysFile, shouldRunAfter: [producer])
+        _ * destroyer.destroysFile >> file("inputDir")
+
+        when:
+        addToGraphAndPopulate(destroyer, producer)
+
+        then:
+        // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
+        executionPlan.tasks as List == [producer, destroyer]
+        ordinalGroups == [1, 0]
+        assertLastTaskOfGroupReady(destroyer)
+        assertLastTaskOfGroupReadyAndNoMoreToStart(producer)
+        assertAllWorkComplete()
+    }
+
+    def "non-conflicting producers in all later groups can start once destroyer is complete"() {
+        given:
+        Task producer1 = task("producer1", type: AsyncWithOutputDirectory)
+        _ * producer1.outputDirectory >> file("dir1")
+        Task producer2 = task("producer2", type: AsyncWithOutputDirectory)
+        _ * producer2.outputDirectory >> file("dir2")
+        Task destroyer = task("destroyer", type: AsyncWithDestroysFile)
+        _ * destroyer.destroysFile >> file("dir3")
+
+        when:
+        addToGraphAndPopulate(destroyer, producer1, producer2)
+
+        then:
+        executionPlan.tasks as List == [destroyer, producer1, producer2]
+        ordinalGroups == [0, 1, 2]
+        assertLastTaskOfGroupReady(destroyer)
+        assertLastTasksOfGroupReadyAndNoMoreToStart(producer1, producer2)
+        assertAllWorkComplete()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/20559")
     def "a task that destroys the output of a task in another project runs first if it is ordered first"() {
         given:
@@ -1616,11 +1674,37 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
+    void assertLastTaskOfGroupReady(Task task, boolean needToSelect = true) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        def ordinalNode = selectNextNode()
+        assert ordinalNode instanceof OrdinalNode
+        if (needToSelect) {
+            assertNoWorkReadyToStartAfterSelect()
+        } else {
+            assertNoWorkReadyToStart()
+        }
+        finishedExecuting(node)
+        assertNoWorkReadyToStart()
+        finishedExecuting(ordinalNode)
+    }
+
     void assertTaskReadyAndNoMoreToStart(Task task, boolean needToSelect = false) {
         def node = selectNextTaskNode()
         assert node.task == task
         assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node)
+    }
+
+    void assertLastTaskOfGroupReadyAndNoMoreToStart(Task task, boolean needToSelect = false) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        def ordinalNode = selectNextNode()
+        assert ordinalNode instanceof OrdinalNode
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node)
+        assertNoMoreWorkToStartButNotAllComplete(false)
+        finishedExecuting(ordinalNode)
     }
 
     void assertTasksReady(Task task1, Task task2, boolean needToSelect = true) {
@@ -1644,7 +1728,27 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert node2.task == task2
         assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node2)
+        assertNoMoreWorkToStartButNotAllComplete(false)
         finishedExecuting(node1)
+    }
+
+    void assertLastTasksOfGroupReadyAndNoMoreToStart(Task task1, Task task2, boolean needToSelect = false) {
+        def node1 = selectNextTaskNode()
+        assert node1.task == task1
+        def node2 = selectNextTaskNode()
+        assert node2.task == task2
+        def node3 = selectNextNode()
+        assert node3 instanceof OrdinalNode
+        assertNoWorkReadyToStartAfterSelect()
+        finishedExecuting(node2)
+        assertNoWorkReadyToStart()
+        finishedExecuting(node1)
+        assertNoWorkReadyToStart()
+        finishedExecuting(node3)
+        def node4 = selectNextNode()
+        assert node4 instanceof OrdinalNode
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node4)
     }
 
     void assertTasksReadyAndNoMoreToStart(Task task1, Task task2, Task task3, boolean needToSelect = false) {
@@ -1656,7 +1760,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert node3.task == task3
         assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node3)
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node2)
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node1)
     }
 
@@ -1835,11 +1941,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         @Override
         String toString() {
             return "test node"
-        }
-
-        @Override
-        int compareTo(Node o) {
-            return -1
         }
 
         @Override
