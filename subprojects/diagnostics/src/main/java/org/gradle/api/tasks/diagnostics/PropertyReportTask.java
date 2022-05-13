@@ -25,6 +25,7 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.Pair;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -82,7 +83,7 @@ public class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyR
                 model.putProperty(propertyName, projectProperties.get(propertyName));
             }
         } else {
-            for (Map.Entry<String, ?> entry : projectProperties.entrySet()) {
+            for (Map.Entry<String, ?> entry : new TreeMap<>(projectProperties).entrySet()) {
                 if ("properties".equals(entry.getKey())) {
                     model.putProperty(entry.getKey(), "{...}");
                 } else {
@@ -101,8 +102,8 @@ public class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyR
                 warning.name, warning.valueClass, warning.exception
             );
         }
-        for (Map.Entry<String, String> entry : model.properties.entrySet()) {
-            renderer.addProperty(entry.getKey(), entry.getValue());
+        for (Pair<String, String> entry : model.properties) {
+            renderer.addProperty(entry.getLeft(), entry.getRight());
         }
     }
 
@@ -117,8 +118,8 @@ public class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyR
         private PropertyReportModel() {
         }
 
-        private final Map<String, String> properties = new TreeMap<>();
         private final List<PropertyWarning> warnings = new ArrayList<>();
+        private final List<Pair<String, String>> properties = new ArrayList<>();
 
         private void putProperty(String name, @Nullable Object value) {
             String strValue;
@@ -129,7 +130,7 @@ public class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyR
                 warnings.add(new PropertyWarning(name, valueClass, e));
                 strValue = valueClass + " [Rendering failed]";
             }
-            properties.put(name, strValue);
+            properties.add(Pair.of(name, strValue));
         }
     }
 
