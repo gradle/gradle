@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
 import org.jetbrains.kotlin.codegen.CompilationException
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -159,12 +160,12 @@ fun compileKotlinScriptModuleTo(
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 put(JVMConfigurationKeys.IR, true)
+                put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
                 addScriptDefinition(scriptDef)
                 scriptFiles.forEach { addKotlinSourceRoot(it) }
                 classPath.forEach { addJvmClasspathRoot(it) }
-                PathUtil.getJdkClassesRoots(File(System.getProperty("java.home"))).forEach(::addJvmClasspathRoot)
             }
 
             val environment = kotlinCoreEnvironmentFor(configuration).apply {
@@ -205,11 +206,11 @@ fun compileToDirectory(
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(OUTPUT_DIRECTORY, outputDirectory)
+                put(JVMConfigurationKeys.IR, true)
+                put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
                 setModuleName(moduleName)
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
-                PathUtil.getJdkClassesRoots(File(System.getProperty("java.home"))).forEach(::addJvmClasspathRoot)
-                this.put(JVMConfigurationKeys.IR, true)
             }
             val environment = kotlinCoreEnvironmentFor(configuration)
             return compileBunchOfSources(environment)
