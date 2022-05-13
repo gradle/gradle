@@ -204,7 +204,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         node.getHardSuccessors().forEach(successor -> {
             // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
             // For example we can skip all the transform nodes between two task nodes.
-            if (successor instanceof TaskNode) {
+            if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
                 }
