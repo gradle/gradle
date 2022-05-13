@@ -30,7 +30,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleRes
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.internal.GUtil;
 
 import java.util.Collections;
 
@@ -78,10 +77,6 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         hasConfigs = true;
         configurationDetailsAction.setConfiguration(configuration);
         renderer.visit(configurationDetailsAction, true);
-    }
-
-    private String getDescription(ConfigurationDetails configuration) {
-        return GUtil.isTrue(configuration.getDescription()) ? " - " + configuration.getDescription() : "";
     }
 
     @Override
@@ -138,6 +133,16 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             if (!configuration.isCanBeResolved()) {
                 getTextOutput().withStyle(Info).text(" (n)");
             }
+        }
+
+        private String getDescription(ConfigurationDetails configuration) {
+            String description = configuration.getDescription();
+            if (description != null && !description.isEmpty()) {
+                description = " - " + description;
+            } else {
+                description = "";
+            }
+            return description;
         }
     }
 }
