@@ -45,10 +45,6 @@ data class GitHubPullRequest(
 )
 
 
-val contributorSectionRegex =
-    "(?s)(.*We would like to thank the following community members for their contributions to this release of Gradle:\\n)(.*)(\\n<!--\nInclude only their name.*)".toRegex()
-
-
 val contributorLineRegex = "\\[(.*)]\\(https://github.com/(.*)\\)".toRegex()
 
 
@@ -71,16 +67,32 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
     @Internal
     protected
     fun getContributorsInReleaseNotes(): Set<GitHubUser> {
-        val releaseNotesText = releaseNotes.asFile.get().readText()
-        if (!contributorSectionRegex.containsMatchIn(releaseNotesText)) {
-            throw IllegalStateException("Can't find the contributors section in the release notes $releaseNotes. You may need to update the regular expression.")
-        }
-        return contributorSectionRegex.find(releaseNotesText)!!.groupValues[2].lines()
+        val (_, contributorLines, _) = parseReleaseNotes()
+        return contributorLines
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .onEach { if (!contributorLineRegex.containsMatchIn(it)) throw IllegalStateException("Invalid contributor line: $it") }
             .map { GitHubUser(contributorLineRegex.find(it)!!.groupValues[2], contributorLineRegex.find(it)!!.groupValues[1]) }
             .toSet()
+    }
+
+    /**
+     * Parses the release notes file and returns the triple: (linesBeforeContributors, contributorLines, linesAfterContributors)
+     */
+    protected
+    fun parseReleaseNotes(): Triple<List<String>, List<String>, List<String>> {
+        val releaseNotesLines: List<String> = releaseNotes.asFile.get().readLines()
+        val contributorSectionBeginIndex = releaseNotesLines.indexOfFirst { it.startsWith("We would like to thank the following community members for their contributions to this release of Gradle:") } + 1
+
+        if (contributorSectionBeginIndex == 0) {
+            throw IllegalStateException("Can't find the contributors section in the release notes $releaseNotes.")
+        }
+
+        val contributorSectionEndIndex = (contributorSectionBeginIndex until releaseNotesLines.size).firstOrNull {
+            val line = releaseNotesLines[it].trim()
+            line.isNotEmpty() && !line.startsWith("[")
+        } ?: throw IllegalStateException("Can't find the contributors section end in the release notes $releaseNotes.")
+        return Triple(releaseNotesLines.subList(0, contributorSectionBeginIndex), releaseNotesLines.subList(contributorSectionBeginIndex, contributorSectionEndIndex), releaseNotesLines.subList(contributorSectionEndIndex, releaseNotesLines.size))
     }
 
     @Internal
