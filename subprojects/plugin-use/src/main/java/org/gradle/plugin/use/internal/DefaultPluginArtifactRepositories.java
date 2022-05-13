@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
 import org.gradle.internal.Factory;
@@ -45,6 +46,7 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
         if (repositoryHandler.isEmpty()) {
             repositoryHandler.gradlePluginPortal();
         }
+        GradleApiVersionProvider.addGradleSourceApiRepository(repositoryHandler);
     }
 
     @Override

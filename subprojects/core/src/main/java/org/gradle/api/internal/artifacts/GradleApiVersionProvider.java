@@ -35,6 +35,7 @@ public class GradleApiVersionProvider {
 
     public static final String GRADLE_API_SOURCE_VERSION_PROPERTY = "org.gradle.api.source-version";
     public static final String GRADLE_VERSION_MARKER = "META-INF/org.gradle/gradle-version.properties";
+    private static final String GRADLE_API_REPO_NAME = "gradle-internal-added-gradle-api-repo";
 
     public static Optional<String> getGradleApiSourceVersion() {
         return Optional.ofNullable(System.getProperty(GRADLE_API_SOURCE_VERSION_PROPERTY));
@@ -42,8 +43,13 @@ public class GradleApiVersionProvider {
 
     public static void addGradleSourceApiRepository(RepositoryHandler repositoryHandler) {
         getGradleApiSourceVersion().ifPresent(version -> {
-            String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
-            repositoryHandler.maven(repo -> repo.setUrl(repositoryUrl));
+            if (repositoryHandler.findByName(GRADLE_API_REPO_NAME) == null) {
+                String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
+                repositoryHandler.maven(repo -> {
+                    repo.setUrl(repositoryUrl);
+                    repo.setName(GRADLE_API_REPO_NAME);
+                });
+            }
         });
     }
 
