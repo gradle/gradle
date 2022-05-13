@@ -72,7 +72,7 @@ public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectRep
         private final String rootProjectProjectsTaskPath;
         private final List<Path> includedBuildIdentityPaths;
 
-        public ProjectReportModel(
+        private ProjectReportModel(
             ProjectDetails project,
             List<ProjectReportModel> children,
             boolean isRootProject,
