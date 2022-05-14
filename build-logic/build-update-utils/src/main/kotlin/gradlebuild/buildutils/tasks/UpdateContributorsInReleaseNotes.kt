@@ -17,6 +17,7 @@
 package gradlebuild.buildutils.tasks
 
 import org.gradle.api.tasks.TaskAction
+import org.gradle.util.internal.TextUtil
 import org.gradle.work.DisableCachingByDefault
 
 

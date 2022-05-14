@@ -64,6 +64,10 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
     @get: Internal
     abstract val githubToken: Property<String>
 
+    init {
+        githubToken.convention(System.getenv("GITHUB_TOKEN"))
+    }
+
     @Internal
     protected
     fun getContributorsInReleaseNotes(): Set<GitHubUser> {
