@@ -83,7 +83,7 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
          *
          * @see $compiledScriptTypeName
          */
-        class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
+        public class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
             override fun apply(target: $targetType) {
                 try {
                     Class
