@@ -55,4 +55,10 @@ public interface ZipEntry {
      * The size of the content in bytes, or -1 if not known.
      */
     int size();
+
+    /**
+     * Whether or not the zip entry can safely fallback and be read again if any bytes
+     * have already been read from it.
+     */
+    boolean isSafeForFallback();
 }

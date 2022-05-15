@@ -201,6 +201,11 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
             int size() {
                 return file.bytes.length
             }
+
+            @Override
+            boolean isSafeForFallback() {
+                return true
+            }
         }
         return new DefaultZipEntryContext(zipEntry, file.path, "foo.zip")
     }

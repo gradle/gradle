@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.io.IoSupplier;
 
 import javax.annotation.Nullable;
@@ -71,11 +73,20 @@ public class LineEndingNormalizingResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return hashContent(zipEntryContext)
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(zipEntryContext)));
+        Optional<ZipEntryContext> safeZipEntryContext = zipEntryContext.withFallbackSafety();
+        // If we can fallback safely, attempt to hash the file.
+        // If we cannot fallback safely, or we attempted to hash the file and it wasn't a text file,
+        // hash with the delegate.
+        return safeZipEntryContext.flatMap(IoFunction.wrap(this::hashContent))
+            .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeZipEntryContext.orElse(zipEntryContext))));
     }
 
     private Optional<HashCode> hashContent(ZipEntryContext zipEntryContext) throws IOException {
-        return zipEntryContext.getEntry().isDirectory() ? Optional.empty() : zipEntryContext.getEntry().withInputStream(hasher::hashContent);
+        return shouldHash(zipEntryContext.getEntry()) ? zipEntryContext.getEntry().withInputStream(hasher::hashContent) : Optional.empty();
     }
+
+    private static boolean shouldHash(ZipEntry zipEntry) {
+        return zipEntry.isSafeForFallback() && !zipEntry.isDirectory();
+    }
+
 }

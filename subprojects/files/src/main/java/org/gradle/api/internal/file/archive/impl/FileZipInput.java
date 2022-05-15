@@ -93,7 +93,7 @@ public class FileZipInput implements ZipInput {
                             throw new FileException(e);
                         }
                     }
-                }, null);
+                }, null, true);
             }
         };
     }

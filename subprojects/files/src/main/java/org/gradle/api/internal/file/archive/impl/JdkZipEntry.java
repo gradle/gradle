@@ -29,11 +29,13 @@ class JdkZipEntry implements ZipEntry {
     private final java.util.zip.ZipEntry entry;
     private final Supplier<InputStream> inputStreamSupplier;
     private final Runnable closeAction;
+    private final boolean canRewind;
 
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, @Nullable Runnable closeAction) {
+    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, @Nullable Runnable closeAction, boolean canRewind) {
         this.entry = entry;
         this.inputStreamSupplier = inputStreamSupplier;
         this.closeAction = closeAction;
+        this.canRewind = canRewind;
     }
 
     @Override
@@ -80,5 +82,10 @@ class JdkZipEntry implements ZipEntry {
     @Override
     public int size() {
         return (int) entry.getSize();
+    }
+
+    @Override
+    public boolean isSafeForFallback() {
+        return canRewind;
     }
 }

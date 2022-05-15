@@ -60,7 +60,7 @@ public class StreamZipInput implements ZipInput {
                             throw new FileException(e);
                         }
                     }
-                });
+                }, false);
             }
         };
     }
