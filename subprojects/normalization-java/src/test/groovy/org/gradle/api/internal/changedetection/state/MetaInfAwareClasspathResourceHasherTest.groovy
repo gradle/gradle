@@ -442,6 +442,11 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             int size() {
                 return bos.size()
             }
+
+            @Override
+            boolean isSafeForFallback() {
+                return true
+            }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }

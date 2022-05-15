@@ -341,6 +341,11 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             int size() {
                 return bytes.length
             }
+
+            @Override
+            boolean isSafeForFallback() {
+                return true
+            }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }

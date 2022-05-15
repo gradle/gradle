@@ -19,10 +19,18 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class DefaultZipEntryContext implements ZipEntryContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultZipEntryContext.class);
+    private static final int MAX_FALLBACK_CONTENT_SIZE = 1024*1024*10;
+
     private final ZipEntry entry;
     private final String fullName;
     private final String rootParentName;
@@ -53,6 +61,18 @@ public class DefaultZipEntryContext implements ZipEntryContext {
         return new ZipEntryRelativePath(entry);
     }
 
+    @Override
+    public Optional<ZipEntryContext> withFallbackSafety() {
+        if (entry.isSafeForFallback()) {
+            return Optional.of(this);
+        } else if (entry.size() > MAX_FALLBACK_CONTENT_SIZE) {
+            LOGGER.debug(getFullName() + " is too large (" + entry.size() + ") for safe fallback - skipping.");
+            return Optional.empty();
+        } else {
+            return Optional.of(new FallbackSafeZipEntryContext(this));
+        }
+    }
+
     private static class ZipEntryRelativePath implements Supplier<String[]> {
         private final ZipEntry zipEntry;
 
@@ -63,6 +83,83 @@ public class DefaultZipEntryContext implements ZipEntryContext {
         @Override
         public String[] get() {
             return FilePathUtil.getPathSegments(zipEntry.getName());
+        }
+    }
+
+    private static class CachingZipEntry implements ZipEntry {
+        private final ZipEntry delegate;
+        private byte[] content;
+
+        public CachingZipEntry(ZipEntry delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return delegate.isDirectory();
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public byte[] getContent() throws IOException {
+            if (content == null) {
+                content = delegate.getContent();
+            }
+            return content;
+        }
+
+        @Override
+        public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
+            return action.run(new ByteArrayInputStream(getContent()));
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public boolean isSafeForFallback() {
+            return true;
+        }
+    }
+
+    private static class FallbackSafeZipEntryContext implements ZipEntryContext {
+        private final ZipEntryContext delegate;
+        private final ZipEntry zipEntry;
+
+        public FallbackSafeZipEntryContext(ZipEntryContext delegate) {
+            this.delegate = delegate;
+            this.zipEntry = new CachingZipEntry(delegate.getEntry());
+        }
+
+        @Override
+        public ZipEntry getEntry() {
+            return zipEntry;
+        }
+
+        @Override
+        public String getFullName() {
+            return delegate.getFullName();
+        }
+
+        @Override
+        public String getRootParentName() {
+            return delegate.getRootParentName();
+        }
+
+        @Override
+        public Supplier<String[]> getRelativePathSegments() {
+            return delegate.getRelativePathSegments();
+        }
+
+        @Override
+        public Optional<ZipEntryContext> withFallbackSafety() {
+            return Optional.of(this);
         }
     }
 }

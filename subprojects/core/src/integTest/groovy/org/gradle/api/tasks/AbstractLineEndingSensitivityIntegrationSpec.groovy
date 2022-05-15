@@ -189,6 +189,94 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         api << Api.values()
     }
 
+    def "runtime classpath properties with zip entries can ignore line endings when specified (#api)"() {
+        createTaskWithNormalization(Classpath, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, null, api)
+
+        buildFile << """
+            task jarTask(type: Jar) {
+                from(project.files("foo"))
+                archiveFile.set(project.file("\${buildDir}/foo.jar"))
+            }
+            taskWithInputs {
+                sources.from(jarTask)
+                outputFile = project.file("\${buildDir}/output.txt")
+            }
+        """
+        file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+
+        when:
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        file('foo/Changing.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        reused(":taskWithInputs")
+
+        when:
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        where:
+        api << Api.values()
+    }
+
+    def "runtime classpath properties with nested zip files can ignore line endings when specified (#api)"() {
+        createTaskWithNormalization(Classpath, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, null, api)
+
+        buildFile << """
+            task zipTask(type: Zip) {
+                from(project.files("foo"))
+                archiveFile.set(project.file("\${buildDir}/foo.zip"))
+            }
+            task jarTask(type: Jar) {
+                from(zipTask)
+                archiveFile.set(project.file("\${buildDir}/foo.jar"))
+            }
+            taskWithInputs {
+                sources.from(jarTask)
+                outputFile = project.file("\${buildDir}/output.txt")
+            }
+        """
+        file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+
+        when:
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        file('foo/Changing.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        reused(":taskWithInputs")
+
+        when:
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        where:
+        api << Api.values()
+    }
+
     def "compile classpath properties are always sensitive to line endings (#api, #lineEndingNormalization)"() {
         createTaskWithNormalization(CompileClasspath, LineEndingSensitivity.DEFAULT, null, api)
 
