@@ -45,8 +45,10 @@ import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
+import static org.gradle.nativeplatform.platform.internal.ArchitectureInternal.InstructionSet.ARM
 import static org.gradle.nativeplatform.platform.internal.ArchitectureInternal.InstructionSet.X86
 
 @UsesNativeServices
@@ -254,6 +256,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         assert platformActionApplied == 2
     }
 
+    @IgnoreIf(value = {os.macOs}, reason = "Not true on MacOS with multi-arch support")
     def "supplies no additional arguments to target native binary for tool chain default"() {
         def action = Mock(Action)
 
@@ -263,22 +266,26 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getArchitecture() >> dummyArch
         toolChain.eachPlatform(action)
         metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
+        GccPlatformToolChain platformToolChain;
+
 
         when:
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.linker) == []
-            argsFor(platformToolChain.cCompiler) == []
-            argsFor(platformToolChain.cppCompiler) == []
-            argsFor(platformToolChain.assembler) == []
-            argsFor(platformToolChain.staticLibArchiver) == []
-            argsFor(platformToolChain.objcCompiler) == []
-            argsFor(platformToolChain.objcppCompiler) == []
+        1 * action.execute(_) >> { GccPlatformToolChain chain ->
+            platformToolChain = chain
         }
+        argsFor(platformToolChain.linker) == []
+        argsFor(platformToolChain.cCompiler) == []
+        argsFor(platformToolChain.cppCompiler) == []
+        argsFor(platformToolChain.assembler) == []
+        argsFor(platformToolChain.staticLibArchiver) == []
+        argsFor(platformToolChain.objcCompiler) == []
+        argsFor(platformToolChain.objcppCompiler) == []
     }
 
+    @IgnoreIf(value = {os.macOs}, reason = "Code under test depends on current platform")
     def "supplies args for supported architecture for non-macOS platforms"() {
         def action = Mock(Action)
 
@@ -288,20 +295,23 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.architecture >> Architectures.forInput(arch)
         toolChain.eachPlatform(action)
         metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
+        GccPlatformToolChain platformToolChain;
+
 
         when:
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.linker) == [linkerArg]
-            argsFor(platformToolChain.cppCompiler) == [compilerArg]
-            argsFor(platformToolChain.cCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcppCompiler) == [compilerArg]
-            argsFor(platformToolChain.assembler) == [compilerArg]
-            argsFor(platformToolChain.staticLibArchiver) == []
+        1 * action.execute(_) >> { GccPlatformToolChain chain ->
+            platformToolChain = chain
         }
+        argsFor(platformToolChain.linker) == [linkerArg]
+        argsFor(platformToolChain.cppCompiler) == [compilerArg]
+        argsFor(platformToolChain.cCompiler) == [compilerArg]
+        argsFor(platformToolChain.objcCompiler) == [compilerArg]
+        argsFor(platformToolChain.objcppCompiler) == [compilerArg]
+        argsFor(platformToolChain.assembler) == [compilerArg]
+        argsFor(platformToolChain.staticLibArchiver) == []
 
         where:
         arch     | linkerArg | compilerArg
@@ -309,6 +319,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | "-m64"    | "-m64"
     }
 
+    @IgnoreIf(value = {!os.macOs}, reason = "Code under test depends on current platform")
     def "supplies args for supported architecture for macOS platforms"() {
         def action = Mock(Action)
 
@@ -317,28 +328,29 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.operatingSystem >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
         platform.architecture >> new DefaultArchitecture(arch)
         metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
-
-        toolChain.target(platform.name)
         toolChain.eachPlatform(action)
+        GccPlatformToolChain platformToolChain;
 
         when:
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.linker) == [linkerArg]
-            argsFor(platformToolChain.cppCompiler) == [compilerArg]
-            argsFor(platformToolChain.cCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcppCompiler) == [compilerArg]
-            argsFor(platformToolChain.assembler) == assemblerArgs
-            argsFor(platformToolChain.staticLibArchiver) == []
+        1 * action.execute(_) >> { GccPlatformToolChain chain ->
+            platformToolChain = chain
         }
+        argsFor(platformToolChain.linker) == linkerArgs
+        argsFor(platformToolChain.cppCompiler) == compilerArgs
+        argsFor(platformToolChain.cCompiler) == compilerArgs
+        argsFor(platformToolChain.objcCompiler) == compilerArgs
+        argsFor(platformToolChain.objcppCompiler) == compilerArgs
+        argsFor(platformToolChain.assembler) == assemblerArgs
+        argsFor(platformToolChain.staticLibArchiver) == []
 
         where:
-        arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArgs
-        "i386"   | X86            | 32           | "-m32"    | "-m32"      | ["-arch", "i386"]
-        "x86_64" | X86            | 64           | "-m64"    | "-m64"      | ["-arch", "x86_64"]
+        arch      | instructionSet | registerSize | linkerArgs          | compilerArgs        | assemblerArgs
+        "i386"    | X86            | 32           | ["-m32"]            | ["-m32"]            | ["-m32"]
+        "x86_64"  | X86            | 64           | ["-arch", "x86_64"] | ["-arch", "x86_64"] | ["-arch", "x86_64"]
+        "aarch64" | ARM            | 64           | ["-arch", "arm64"]  | ["-arch", "arm64"]  | ["-arch", "arm64"]
     }
 
     def "uses supplied platform configurations in order to target binary"() {
@@ -429,4 +441,5 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         tool.getArgAction().execute(args)
         args
     }
+
 }
