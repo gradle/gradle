@@ -46,7 +46,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
     applyDefaultSettings(os, arch, buildJvm = BuildToolBuildJvm, timeout = 0)
-    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
+    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
             listOf(extraParameters) +
