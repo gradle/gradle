@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.api.internal.file.archive.ZipEntryHandler;
 import org.gradle.internal.file.FileException;
 
 import java.io.File;
@@ -84,16 +84,7 @@ public class FileZipInput implements ZipInput {
                     return endOfData();
                 }
                 final java.util.zip.ZipEntry zipEntry = entries.nextElement();
-                return new JdkZipEntry(zipEntry, new Supplier<InputStream>() {
-                    @Override
-                    public InputStream get() {
-                        try {
-                            return file.getInputStream(zipEntry);
-                        } catch (IOException e) {
-                            throw new FileException(e);
-                        }
-                    }
-                }, null, true);
+                return new JdkZipEntry(new FileZipEntryHandler(zipEntry));
             }
         };
     }
@@ -101,5 +92,48 @@ public class FileZipInput implements ZipInput {
     @Override
     public void close() throws IOException {
         file.close();
+    }
+
+    private class FileZipEntryHandler implements ZipEntryHandler {
+        private final java.util.zip.ZipEntry zipEntry;
+        private InputStream inputStream;
+
+        public FileZipEntryHandler(java.util.zip.ZipEntry zipEntry) {
+            this.zipEntry = zipEntry;
+        }
+
+        @Override
+        public java.util.zip.ZipEntry getZipEntry() {
+            return zipEntry;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            if (inputStream == null) {
+                try {
+                    inputStream = file.getInputStream(zipEntry);
+                } catch (IOException e) {
+                    throw new FileException(e);
+                }
+            }
+
+            return inputStream;
+        }
+
+        @Override
+        public void closeEntry() throws IOException {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } finally {
+                inputStream = null;
+            }
+        }
+
+        @Override
+        public boolean canReopen() {
+            return true;
+        }
     }
 }
