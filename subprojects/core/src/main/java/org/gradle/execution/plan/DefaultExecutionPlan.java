@@ -219,7 +219,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     @Override
     public void determineExecutionPlan() {
-        new DetermineExecutionPlanAction(nodeMapping, ordinalNodeAccess, entryNodes, finalizers).run();
+        new DetermineExecutionPlanAction(
+            nodeMapping,
+            ordinalNodeAccess,
+            entryNodes,
+            finalizers
+        ).run();
         dependencyResolver.clear();
         executionQueue.setNodes(nodeMapping);
     }
