@@ -67,6 +67,17 @@ class DetermineExecutionPlanAction {
     private final Set<Node> entryNodes;
     private final Set<Node> finalizers;
 
+    private final LinkedList<NodeInVisitingSegment> nodeQueue = newLinkedList();
+    private final HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
+    private final Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
+    private final Deque<Node> path = new ArrayDeque<>();
+    private final Map<Node, Integer> planBeforeVisiting = new HashMap<>();
+
+    private int visitingSegmentCounter = 0;
+
+    /**
+     * See {@link DetermineExecutionPlanAction}
+     */
     public DetermineExecutionPlanAction(DefaultExecutionPlan.NodeMapping nodeMapping, OrdinalNodeAccess ordinalNodeAccess, Set<Node> entryNodes, Set<Node> finalizers) {
         this.entryNodes = entryNodes;
         this.nodeMapping = nodeMapping;
@@ -76,87 +87,9 @@ class DetermineExecutionPlanAction {
 
     public void run() {
         updateFinalizerGroups();
-
-        LinkedList<NodeInVisitingSegment> nodeQueue = newLinkedList();
-        int visitingSegmentCounter = 0;
-        for (Node node : entryNodes) {
-            nodeQueue.add(new NodeInVisitingSegment(node, visitingSegmentCounter++));
-        }
-
-        HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
-        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
-        Deque<Node> path = new ArrayDeque<>();
-        Map<Node, Integer> planBeforeVisiting = new HashMap<>();
-
-        while (!nodeQueue.isEmpty()) {
-            NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
-            int currentSegment = nodeInVisitingSegment.visitingSegment;
-            Node node = nodeInVisitingSegment.node;
-
-            if (node.isDoNotIncludeInPlan() || nodeMapping.contains(node)) {
-                // Discard the node because it has already been visited or should not be included, for example:
-                // - it has already executed in another execution plan
-                // - it is reachable only via a must-run-after or should-run-after edge
-                // - it is filtered
-                nodeQueue.removeFirst();
-                visitingNodes.remove(node, currentSegment);
-                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
-                continue;
-            }
-
-            boolean alreadyVisited = visitingNodes.containsKey(node);
-            visitingNodes.put(node, currentSegment);
-
-            if (!alreadyVisited) {
-                // Have not seen this node before - add its dependencies to the head of the queue and leave this
-                // node in the queue
-                recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, node);
-                removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, nodeInVisitingSegment);
-                takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, node);
-
-                // Add any finalizers to the queue just after the current node
-                for (Node finalizer : node.getFinalizers()) {
-                    addFinalizerToQueue(nodeQueue, visitingSegmentCounter++, finalizer);
-                }
-
-                for (Node successor : node.getAllSuccessorsInReverseOrder()) {
-                    if (visitingNodes.containsEntry(successor, currentSegment)) {
-                        if (!walkedShouldRunAfterEdges.isEmpty()) {
-                            //remove the last walked should run after edge and restore state from before walking it
-                            GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
-                            // Should run after edges only exist between tasks, so this cast is safe
-                            TaskNode sourceTask = (TaskNode) toBeRemoved.from;
-                            TaskNode targetTask = (TaskNode) toBeRemoved.to;
-                            sourceTask.removeShouldSuccessor(targetTask);
-                            restorePath(path, toBeRemoved);
-                            restoreQueue(nodeQueue, visitingNodes, toBeRemoved);
-                            restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
-                            break;
-                        } else {
-                            onOrderingCycle(successor, node);
-                        }
-                    }
-                    nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
-                }
-                path.push(node);
-            } else {
-                // Have visited this node's dependencies - add it to the end of the plan
-                nodeQueue.removeFirst();
-                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
-                visitingNodes.remove(node, currentSegment);
-                path.pop();
-                nodeMapping.add(node);
-
-                for (Node dependency : node.getDependencySuccessors()) {
-                    dependency.getMutationInfo().consumingNodes.add(node);
-                }
-            }
-        }
-
-        for (Node node : nodeMapping) {
-            node.maybeUpdateOrdinalGroup();
-            createOrdinalRelationships(node);
-        }
+        processEntryNodes();
+        processNodeQueue();
+        createOrdinalRelationships();
 
         ordinalNodeAccess.createInterNodeRelationships();
         nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
@@ -195,7 +128,87 @@ class DetermineExecutionPlanAction {
         finalizers.clear();
     }
 
-    private void addFinalizerToQueue(LinkedList<NodeInVisitingSegment> nodeQueue, int visitingSegmentCounter, Node finalizer) {
+    private void processEntryNodes() {
+        for (Node node : entryNodes) {
+            nodeQueue.add(new NodeInVisitingSegment(node, visitingSegmentCounter++));
+        }
+    }
+
+    private void processNodeQueue() {
+        while (!nodeQueue.isEmpty()) {
+            final NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
+            final int currentSegment = nodeInVisitingSegment.visitingSegment;
+            final Node node = nodeInVisitingSegment.node;
+
+            if (node.isDoNotIncludeInPlan() || nodeMapping.contains(node)) {
+                // Discard the node because it has already been visited or should not be included, for example:
+                // - it has already executed in another execution plan
+                // - it is reachable only via a must-run-after or should-run-after edge
+                // - it is filtered
+                nodeQueue.removeFirst();
+                visitingNodes.remove(node, currentSegment);
+                maybeRemoveProcessedShouldRunAfterEdge(node);
+                continue;
+            }
+
+            if (visitingNodes.put(node, currentSegment)) {
+                // Have not seen this node before - add its dependencies to the head of the queue and leave this
+                // node in the queue
+                if (node instanceof TaskNode) {
+                    TaskNode taskNode = (TaskNode) node;
+                    recordEdgeIfArrivedViaShouldRunAfter(path, taskNode);
+                    removeShouldRunAfterSuccessorsIfTheyImposeACycle(taskNode, nodeInVisitingSegment.visitingSegment);
+                    takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, taskNode);
+                }
+
+                // Add any finalizers to the queue just after the current node
+                for (Node finalizer : node.getFinalizers()) {
+                    addFinalizerToQueue(visitingSegmentCounter++, finalizer);
+                }
+
+                for (Node successor : node.getAllSuccessorsInReverseOrder()) {
+                    if (visitingNodes.containsEntry(successor, currentSegment)) {
+                        if (!walkedShouldRunAfterEdges.isEmpty()) {
+                            //remove the last walked should run after edge and restore state from before walking it
+                            GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
+                            // Should run after edges only exist between tasks, so this cast is safe
+                            TaskNode sourceTask = (TaskNode) toBeRemoved.from;
+                            TaskNode targetTask = (TaskNode) toBeRemoved.to;
+                            sourceTask.removeShouldSuccessor(targetTask);
+                            restorePath(path, toBeRemoved);
+                            restoreQueue(toBeRemoved);
+                            restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
+                            break;
+                        } else {
+                            onOrderingCycle(successor, node);
+                        }
+                    }
+                    nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
+                }
+                path.push(node);
+            } else {
+                // Have visited this node's dependencies - add it to the end of the plan
+                nodeQueue.removeFirst();
+                maybeRemoveProcessedShouldRunAfterEdge(node);
+                visitingNodes.remove(node, currentSegment);
+                path.pop();
+                nodeMapping.add(node);
+
+                for (Node dependency : node.getDependencySuccessors()) {
+                    dependency.getMutationInfo().consumingNodes.add(node);
+                }
+            }
+        }
+    }
+
+    private void createOrdinalRelationships() {
+        for (Node node : nodeMapping) {
+            node.maybeUpdateOrdinalGroup();
+            createOrdinalRelationships(node);
+        }
+    }
+
+    private void addFinalizerToQueue(int visitingSegmentCounter, Node finalizer) {
         int insertPosition = 1;
         int pos = 0;
         for (NodeInVisitingSegment segment : nodeQueue) {
@@ -212,7 +225,7 @@ class DetermineExecutionPlanAction {
         nodeQueue.add(insertPosition, new NodeInVisitingSegment(finalizer, visitingSegmentCounter));
     }
 
-    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
+    private void maybeRemoveProcessedShouldRunAfterEdge(Node node) {
         GraphEdge edge = walkedShouldRunAfterEdges.peek();
         if (edge != null && edge.to.equals(node)) {
             walkedShouldRunAfterEdges.pop();
@@ -224,7 +237,7 @@ class DetermineExecutionPlanAction {
         nodeMapping.retainFirst(count);
     }
 
-    private void restoreQueue(Deque<NodeInVisitingSegment> nodeQueue, HashMultimap<Node, Integer> visitingNodes, GraphEdge toBeRemoved) {
+    private void restoreQueue(GraphEdge toBeRemoved) {
         NodeInVisitingSegment nextInQueue = null;
         while (nextInQueue == null || !toBeRemoved.from.equals(nextInQueue.node)) {
             nextInQueue = nodeQueue.peekFirst();
@@ -242,29 +255,26 @@ class DetermineExecutionPlanAction {
         }
     }
 
-    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<Node, Integer> visitingNodes, final NodeInVisitingSegment nodeWithVisitingSegment) {
-        Node node = nodeWithVisitingSegment.node;
-        if (!(node instanceof TaskNode)) {
-            return;
-        }
+    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(TaskNode node, int visitingSegment) {
         Iterables.removeIf(
-            ((TaskNode) node).getShouldSuccessors(),
-            input -> visitingNodes.containsEntry(input, nodeWithVisitingSegment.visitingSegment)
+            node.getShouldSuccessors(),
+            input -> visitingNodes.containsEntry(input, visitingSegment)
         );
     }
 
-    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(Map<Node, Integer> planBeforeVisiting, Node node) {
-        if (node instanceof TaskNode && !((TaskNode) node).getShouldSuccessors().isEmpty()) {
+    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(Map<Node, Integer> planBeforeVisiting, TaskNode node) {
+        if (!node.getShouldSuccessors().isEmpty()) {
             planBeforeVisiting.put(node, nodeMapping.size());
         }
     }
 
-    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<Node> path, Node node) {
-        if (!(node instanceof TaskNode)) {
+    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<Node> path, TaskNode node) {
+        Node previous = path.peek();
+        if (!(previous instanceof TaskNode)) {
             return;
         }
-        Node previous = path.peek();
-        if (previous instanceof TaskNode && ((TaskNode) previous).getShouldSuccessors().contains(node)) {
+        TaskNode previousTaskNode = (TaskNode) previous;
+        if (previousTaskNode.getShouldSuccessors().contains(node)) {
             walkedShouldRunAfterEdges.push(new GraphEdge(previous, node));
         }
     }
@@ -375,7 +385,6 @@ class DetermineExecutionPlanAction {
     private PropertyWalker propertyWalkerOf(TaskInternal task) {
         return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
     }
-
 
     private static class TaskClassifier extends PropertyVisitor.Adapter {
         private boolean isProducer;
