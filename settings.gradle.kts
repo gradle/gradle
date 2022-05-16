@@ -12,6 +12,7 @@ pluginManagement {
                 includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
             }
         }
+        mavenLocal()
         gradlePluginPortal()
     }
 }

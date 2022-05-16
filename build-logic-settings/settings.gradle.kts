@@ -16,8 +16,16 @@
 
 rootProject.name = "build-logic-settings"
 
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
     }
 }
