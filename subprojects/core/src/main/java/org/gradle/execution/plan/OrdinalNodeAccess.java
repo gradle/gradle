@@ -50,19 +50,16 @@ public class OrdinalNodeAccess {
      * the ordinal group it represents have no explicit dependencies.
      */
     void createInterNodeRelationships() {
-        destroyerLocationNodes.forEach((ordinal, destroyer) -> {
+        createInterNodeRelationshipsFor(destroyerLocationNodes);
+        createInterNodeRelationshipsFor(producerLocationNodes);
+    }
+
+    private void createInterNodeRelationshipsFor(Map<OrdinalGroup, OrdinalNode> nodes) {
+        nodes.forEach((ordinal, node) -> {
             for (int i = 0; i < ordinal.getOrdinal(); i++) {
-                Node precedingNode = destroyerLocationNodes.get(group(i));
+                Node precedingNode = nodes.get(group(i));
                 if (precedingNode != null) {
-                    destroyer.addDependencySuccessor(precedingNode);
-                }
-            }
-        });
-        producerLocationNodes.forEach((ordinal, producer) -> {
-            for (int i = 0; i < ordinal.getOrdinal(); i++) {
-                Node precedingNode = producerLocationNodes.get(group(i));
-                if (precedingNode != null) {
-                    producer.addDependencySuccessor(precedingNode);
+                    node.addDependencySuccessor(precedingNode);
                 }
             }
         });
