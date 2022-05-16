@@ -247,6 +247,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private ImmutableMetadataSources createMetadataSources() {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
+        sources.add(new DefaultArtifactMetadataSource(metadataFactory, new DefaultArtifactMetadataSource.ExplicitExtensionArtifactSupplier()));
         DefaultGradleModuleMetadataSource gradleModuleMetadataSource = new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory, true, checksumService);
         if (metadataSources.gradleMetadata) {
             sources.add(gradleModuleMetadataSource);
@@ -260,7 +261,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             }
         }
         if (metadataSources.artifact) {
-            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+            sources.add(new DefaultArtifactMetadataSource(metadataFactory, new DefaultArtifactMetadataSource.JarDefaultingArtifactSupplier()));
         }
         return new DefaultImmutableMetadataSources(sources.build());
     }

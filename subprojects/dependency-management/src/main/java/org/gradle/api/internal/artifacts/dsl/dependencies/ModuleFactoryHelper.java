@@ -19,19 +19,21 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 
+import javax.annotation.Nullable;
+
 public class ModuleFactoryHelper {
-    public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, String artifactType, String classifier) {
-        String actualArtifactType = artifactType;
-        if (actualArtifactType == null) {
+    public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, @Nullable String extension, @Nullable String classifier) {
+        String artifactType = extension;
+        if (artifactType == null) {
             if (classifier != null) {
-                actualArtifactType = DependencyArtifact.DEFAULT_TYPE;
+                artifactType = DependencyArtifact.DEFAULT_TYPE;
             }
         } else {
             moduleDependency.setTransitive(false);
         }
-        if (actualArtifactType != null) {
+        if (artifactType != null) {
             moduleDependency.addArtifact(new DefaultDependencyArtifact(moduleDependency.getName(),
-                    actualArtifactType, actualArtifactType, classifier, null));
+                    artifactType, extension, classifier, null));
         }
     }
 }

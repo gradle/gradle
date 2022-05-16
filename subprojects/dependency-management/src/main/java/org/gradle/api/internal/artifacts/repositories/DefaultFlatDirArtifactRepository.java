@@ -163,7 +163,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     private ImmutableMetadataSources createMetadataSources() {
-        MetadataSource<MutableModuleComponentResolveMetadata> artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
+        MetadataSource<MutableModuleComponentResolveMetadata> artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory, new DefaultArtifactMetadataSource.JarDefaultingArtifactSupplier());
         return new DefaultImmutableMetadataSources(Collections.singletonList(artifactMetadataSource));
     }
 

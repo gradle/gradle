@@ -194,7 +194,9 @@ public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWrit
             if (artifact != null) {
                 writer.attribute("artifact", artifact.getName());
                 writer.attribute("type", artifact.getType());
-                writer.attribute("ext", artifact.getExtension());
+                if (artifact.getExtension() != null) {
+                    writer.attribute("ext", artifact.getExtension());
+                }
             }
             writer.attribute("conf", excludePair.getRight());
             writer.endElement();
@@ -212,7 +214,9 @@ public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWrit
             if (artifact != null) {
                 writer.attribute("name", artifact.getName());
                 writer.attribute("type", artifact.getType());
-                writer.attribute("ext", artifact.getExtension());
+                if (artifact.getExtension() != null) {
+                    writer.attribute("ext", artifact.getExtension());
+                }
             }
             writer.endElement();
         }
@@ -222,7 +226,9 @@ public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWrit
         writer.startElement("artifact");
         writer.attribute("name", artifact.getName());
         writer.attribute("type", artifact.getType());
-        writer.attribute("ext", artifact.getExtension());
+        if (artifact.getExtension() != null) {
+            writer.attribute("ext", artifact.getExtension());
+        }
         if (artifact.getClassifier() != null) {
             printExtraAttributes(Collections.singletonMap("m:classifier", artifact.getClassifier()), writer);
         }

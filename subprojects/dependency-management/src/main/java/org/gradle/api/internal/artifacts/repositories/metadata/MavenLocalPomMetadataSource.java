@@ -17,20 +17,19 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 
 import javax.inject.Inject;
 import java.util.List;
-
-import static org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource.getPrimaryDependencyArtifact;
 
 public class MavenLocalPomMetadataSource extends DefaultMavenPomMetadataSource {
 
@@ -41,7 +40,12 @@ public class MavenLocalPomMetadataSource extends DefaultMavenPomMetadataSource {
 
     @Override
     public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
-        IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
+        IvyArtifactName dependencyArtifact;
+        if (dependency.getArtifacts().isEmpty()) {
+            dependencyArtifact = new DefaultIvyArtifactName(dependency.getSelector().getModule(), "jar", "jar");
+        } else {
+            dependencyArtifact = dependency.getArtifacts().get(0);
+        }
         versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
     }
 }

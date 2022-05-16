@@ -35,10 +35,6 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    private String getExtension(DependencyArtifact artifact) {
-        return artifact.getExtension() != null ? artifact.getExtension() : artifact.getType();
-    }
-
     protected List<ExcludeMetadata> convertExcludeRules(Set<ExcludeRule> excludeRules) {
         return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, excludeRuleConverter::convertExcludeRule);
     }
@@ -49,7 +45,7 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         }
         ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
         for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
-            DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
+            DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), dependencyArtifact.getExtension(), dependencyArtifact.getClassifier());
             names.add(name);
         }
         return names.build();

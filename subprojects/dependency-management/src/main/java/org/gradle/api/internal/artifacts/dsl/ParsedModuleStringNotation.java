@@ -22,11 +22,11 @@ public class ParsedModuleStringNotation {
     private String name;
     private String version;
     private String classifier;
-    private final String artifactType;
+    private final String extension;
 
-    public ParsedModuleStringNotation(String moduleNotation, String artifactType) {
+    public ParsedModuleStringNotation(String moduleNotation, String extension) {
         assignValuesFromModuleNotation(moduleNotation);
-        this.artifactType = artifactType;
+        this.extension = extension;
     }
 
     private void assignValuesFromModuleNotation(String moduleNotation) {
@@ -80,7 +80,7 @@ public class ParsedModuleStringNotation {
         return classifier;
     }
 
-    public String getArtifactType() {
-        return artifactType;
+    public String getExtension() {
+        return extension;
     }
 }

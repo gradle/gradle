@@ -62,7 +62,7 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
             stringInterner.intern(parsedNotation.getGroup()), stringInterner.intern(parsedNotation.getName()), stringInterner.intern(version.require));
         maybeEnrichVersion(version, moduleDependency);
         if (moduleDependency instanceof ExternalDependency) {
-            ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) moduleDependency, parsedNotation.getExtension(), parsedNotation.getClassifier());
         }
 
         return moduleDependency;
