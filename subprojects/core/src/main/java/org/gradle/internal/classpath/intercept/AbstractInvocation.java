@@ -16,14 +16,14 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.codehaus.groovy.runtime.wrappers.Wrapper;
+import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
 
 /**
  * A base implementation of the Invocation that provides everything except {@link #callOriginal()}.
  *
  * @param <R> the type of the receiver
  */
-abstract class AbstractInvocation<R> implements CallInterceptor.Invocation {
+abstract class AbstractInvocation<R> implements Invocation {
     protected final R receiver;
     protected final Object[] args;
 
@@ -47,10 +47,4 @@ abstract class AbstractInvocation<R> implements CallInterceptor.Invocation {
         return unwrap(args[pos]);
     }
 
-    private static Object unwrap(Object obj) {
-        if (obj instanceof Wrapper) {
-            return ((Wrapper) obj).unwrap();
-        }
-        return obj;
-    }
 }

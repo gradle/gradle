@@ -16,18 +16,23 @@
 
 package org.gradle.configurationcache
 
-class ConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+abstract class AbstractConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
+    abstract boolean enableIndy()
+
     def "#title is intercepted in groovy build script"(VarInitializer varInitializer) {
         given:
         def cwd = testDirectory.file(expectedPwdSuffix)
-        buildFile("""
-        import org.codehaus.groovy.runtime.ProcessGroovyMethods
-        import static org.codehaus.groovy.runtime.ProcessGroovyMethods.execute
-
-        ${varInitializer.getGroovy(baseScript.getRelativeCommandLine(cwd))}
-        def process = $processCreator
-        process.waitForProcessOutput(System.out, System.err)
-        """)
+        withPluginCode("""
+                import org.codehaus.groovy.runtime.ProcessGroovyMethods
+                import static org.codehaus.groovy.runtime.ProcessGroovyMethods.execute
+            """, """
+                ${varInitializer.getGroovy(baseScript.getRelativeCommandLine(cwd))}
+                def process = $processCreator
+                process.waitForProcessOutput(System.out, System.err)
+            """)
 
         when:
         configurationCacheFails(":help")
@@ -35,7 +40,7 @@ class ConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegration
         then:
         failure.assertOutputContains("FOOBAR=$expectedEnvVar\nCWD=${cwd.path}")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': external process started")
+            withProblem("Plugin class 'SomePlugin': external process started")
         }
 
         where:
@@ -197,51 +202,78 @@ class ConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegration
 
         generateClassesWithClashingMethods()
 
-        buildFile << """
-        import java.io.*
-        import static ProcessGroovyMethodsExecute.execute
+        withPluginCode("""
+                import java.io.*
+                import static ProcessGroovyMethodsExecute.execute
+            """,
+            """
+                ProcessGroovyMethodsExecute.execute("some string")
+                ProcessGroovyMethodsExecute.execute("some string", ["array"] as String[], file("test"))
+                ProcessGroovyMethodsExecute.execute("some string", ["array"], file("test"))
 
-        ProcessGroovyMethodsExecute.execute("some string")
-        ProcessGroovyMethodsExecute.execute("some string", ["array"] as String[], file("test"))
-        ProcessGroovyMethodsExecute.execute("some string", ["array"], file("test"))
+                ProcessGroovyMethodsExecute.execute(["some", "string"] as String[])
+                ProcessGroovyMethodsExecute.execute(["some", "string"] as String[], ["array"] as String[], file("test"))
+                ProcessGroovyMethodsExecute.execute(["some", "string"] as String[], ["array"], file("test"))
 
-        ProcessGroovyMethodsExecute.execute(["some", "string"] as String[])
-        ProcessGroovyMethodsExecute.execute(["some", "string"] as String[], ["array"] as String[], file("test"))
-        ProcessGroovyMethodsExecute.execute(["some", "string"] as String[], ["array"], file("test"))
+                ProcessGroovyMethodsExecute.execute(["some", "string"])
+                ProcessGroovyMethodsExecute.execute(["some", "string"], ["array"] as String[], file("test"))
+                ProcessGroovyMethodsExecute.execute(["some", "string"], ["array"], file("test"))
 
-        ProcessGroovyMethodsExecute.execute(["some", "string"])
-        ProcessGroovyMethodsExecute.execute(["some", "string"], ["array"] as String[], file("test"))
-        ProcessGroovyMethodsExecute.execute(["some", "string"], ["array"], file("test"))
+                execute("some string")
+                execute("some string", ["array"] as String[], file("test"))
+                execute("some string", ["array"], file("test"))
 
-        execute("some string")
-        execute("some string", ["array"] as String[], file("test"))
-        execute("some string", ["array"], file("test"))
+                execute(["some", "string"] as String[])
+                execute(["some", "string"] as String[], ["array"] as String[], file("test"))
+                execute(["some", "string"] as String[], ["array"], file("test"))
 
-        execute(["some", "string"] as String[])
-        execute(["some", "string"] as String[], ["array"] as String[], file("test"))
-        execute(["some", "string"] as String[], ["array"], file("test"))
+                execute(["some", "string"])
+                execute(["some", "string"], ["array"] as String[], file("test"))
+                execute(["some", "string"], ["array"], file("test"))
 
-        execute(["some", "string"])
-        execute(["some", "string"], ["array"] as String[], file("test"))
-        execute(["some", "string"], ["array"], file("test"))
+                def e = new RuntimeExec()
+                e.exec("some string")
+                e.exec("some string", ["array"] as String[])
+                e.exec("some string", ["array"] as String[], file("test"))
+                e.exec(["some", "string"] as String[])
+                e.exec(["some", "string"] as String[], ["array"] as String[])
+                e.exec(["some", "string"] as String[], ["array"] as String[], file("test"))
 
-        def e = new RuntimeExec()
-        e.exec("some string")
-        e.exec("some string", ["array"] as String[])
-        e.exec("some string", ["array"] as String[], file("test"))
-        e.exec(["some", "string"] as String[])
-        e.exec(["some", "string"] as String[], ["array"] as String[])
-        e.exec(["some", "string"] as String[], ["array"] as String[], file("test"))
-
-
-        def s = new ProcessBuilderStart()
-        s.start()
-        """
+                def s = new ProcessBuilderStart()
+                s.start()
+            """)
 
         when:
         configurationCacheRun("-q", ":help")
 
         then:
         configurationCache.assertStateStored()
+    }
+
+    private void withPluginCode(String imports, String codeUnderTest) {
+        file("buildSrc/src/main/groovy/SomePlugin.groovy") << """
+            import ${Plugin.name}
+            import ${Project.name}
+
+            $imports
+
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tap {
+                        $codeUnderTest
+                    }
+                }
+            }
+        """
+
+        file("buildSrc/build.gradle") << """
+        compileGroovy {
+            groovyOptions.optimizationOptions.indy = ${enableIndy()}
+        }
+        """
+
+        buildScript("""
+            apply plugin: SomePlugin
+        """)
     }
 }
