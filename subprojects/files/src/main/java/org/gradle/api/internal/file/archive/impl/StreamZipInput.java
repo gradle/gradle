@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.api.internal.file.archive.ZipEntryHandler;
 import org.gradle.internal.file.FileException;
 
 import java.io.IOException;
@@ -46,21 +46,7 @@ public class StreamZipInput implements ZipInput {
                 } catch (IOException e) {
                     throw new FileException(e);
                 }
-                return nextEntry == null ? endOfData() : new JdkZipEntry(nextEntry, new Supplier<InputStream>() {
-                    @Override
-                    public InputStream get() {
-                        return in;
-                    }
-                }, new Runnable() {
-                    @Override
-                    public void run()  {
-                        try {
-                            in.closeEntry();
-                        } catch (IOException e) {
-                            throw new FileException(e);
-                        }
-                    }
-                }, false);
+                return nextEntry == null ? endOfData() : new JdkZipEntry(new StreamZipEntryHandler(nextEntry, in));
             }
         };
     }
@@ -68,5 +54,45 @@ public class StreamZipInput implements ZipInput {
     @Override
     public void close() throws IOException {
         in.close();
+    }
+
+    private static class StreamZipEntryHandler implements ZipEntryHandler {
+        private final java.util.zip.ZipEntry zipEntry;
+        private final ZipInputStream inputStream;
+        private boolean closed;
+
+        public StreamZipEntryHandler(java.util.zip.ZipEntry zipEntry, ZipInputStream inputStream) {
+            this.zipEntry = zipEntry;
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public java.util.zip.ZipEntry getZipEntry() {
+            return zipEntry;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            if (closed) {
+                throw new IllegalStateException("The input stream for " + zipEntry.getName() + " has already been closed.  It cannot be reopened again.");
+            }
+
+            return inputStream;
+        }
+
+        @Override
+        public void closeEntry() {
+            try {
+                closed = true;
+                inputStream.closeEntry();
+            } catch (IOException e) {
+                throw new FileException(e);
+            }
+        }
+
+        @Override
+        public boolean canReopen() {
+            return false;
+        }
     }
 }

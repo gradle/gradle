@@ -16,36 +16,28 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipEntryHandler;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 
 class JdkZipEntry implements ZipEntry {
+    private final ZipEntryHandler zipEntryHandler;
 
-    private final java.util.zip.ZipEntry entry;
-    private final Supplier<InputStream> inputStreamSupplier;
-    private final Runnable closeAction;
-    private final boolean canRewind;
-
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, @Nullable Runnable closeAction, boolean canRewind) {
-        this.entry = entry;
-        this.inputStreamSupplier = inputStreamSupplier;
-        this.closeAction = closeAction;
-        this.canRewind = canRewind;
+    public JdkZipEntry(ZipEntryHandler zipEntryHandler) {
+        this.zipEntryHandler = zipEntryHandler;
     }
 
     @Override
     public boolean isDirectory() {
-        return entry.isDirectory();
+        return zipEntryHandler.getZipEntry().isDirectory();
     }
 
     @Override
     public String getName() {
-        return entry.getName();
+        return zipEntryHandler.getZipEntry().getName();
     }
 
     @Override
@@ -67,25 +59,21 @@ class JdkZipEntry implements ZipEntry {
 
     @Override
     public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
-        InputStream is = inputStreamSupplier.get();
+        InputStream is = zipEntryHandler.getInputStream();
         try {
             return action.run(is);
         } finally {
-            if (closeAction != null) {
-                closeAction.run();
-            } else {
-                is.close();
-            }
+            zipEntryHandler.closeEntry();
         }
     }
 
     @Override
     public int size() {
-        return (int) entry.getSize();
+        return (int) zipEntryHandler.getZipEntry().getSize();
     }
 
     @Override
     public boolean isSafeForFallback() {
-        return canRewind;
+        return zipEntryHandler.canReopen();
     }
 }
