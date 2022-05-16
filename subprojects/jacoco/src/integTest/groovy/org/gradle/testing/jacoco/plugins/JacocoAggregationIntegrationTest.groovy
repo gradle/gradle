@@ -210,12 +210,12 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         succeeds(':application:dumpAllCodeCoverageReportClassDirectoriesConfiguration')
 
         then:
-        outputContains('application/build/classes/java/main')
-        outputDoesNotContain('application/build/libs/application-1.0.jar')
-        outputContains('direct/build/classes/java/main')
-        outputDoesNotContain('direct/build/libs/direct-1.0.jar')
-        outputContains('transitive/build/classes/java/main')
-        outputDoesNotContain('transitive/build/libs/transitive-1.0.jar')
+        outputContains(file('application/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('application/build/libs/application-1.0.jar').absolutePath)
+        outputContains(file('direct/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('direct/build/libs/direct-1.0.jar').absolutePath)
+        outputContains(file('transitive/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('transitive/build/libs/transitive-1.0.jar').absolutePath)
     }
 
     def 'aggregated report infers dependency versions from platform'() {
