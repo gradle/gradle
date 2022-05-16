@@ -60,13 +60,8 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
     @get: Internal
     abstract val milestone: Property<String>
 
-    @get: Option(option = "github-token", description = "The GitHub token to use for API requests. Will use anonymous requests if not specified.")
     @get: Internal
     abstract val githubToken: Property<String>
-
-    init {
-        githubToken.convention(System.getenv("GITHUB_TOKEN"))
-    }
 
     @Internal
     protected
