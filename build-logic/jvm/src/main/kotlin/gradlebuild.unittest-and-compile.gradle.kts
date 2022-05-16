@@ -119,9 +119,7 @@ fun configureClasspathManifestGeneration() {
         this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
         this.manifestFile.set(moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() })
     }
-    sourceSets.main.get().output.dir(
-        classpathManifest.map { it.manifestFile.get().asFile.parentFile }
-    )
+    sourceSets.main.get().output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
 }
 
 fun addDependencies() {
@@ -175,12 +173,7 @@ fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
         archiveBaseName.set(moduleIdentity.baseName)
         archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
-        manifest.attributes(
-            mapOf(
-                Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
-            )
-        )
+        manifest.attributes(mapOf(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle", Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
     }
 }
 
@@ -293,7 +286,7 @@ fun configureTests() {
             server.set(uri("https://ge-td-dogfooding.grdev.net"))
         }
 
-        if (project.testDistributionEnabled && !isUnitTest()) {
+        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {
@@ -327,11 +320,9 @@ fun configureTests() {
             // Don't move this line into the lambda as it may cause config cache problems
             (predictiveSelection as PredictiveTestSelectionExtensionInternal).server.set(uri("https://ge.gradle.org"))
             predictiveSelection {
-                enabled.convention(
-                    project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
-                        enabled && !rerunAllTests && supportedTask
-                    }
-                )
+                enabled.convention(project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
+                    enabled && !rerunAllTests && supportedTask
+                })
             }
         }
     }
@@ -340,8 +331,7 @@ fun configureTests() {
 fun removeTeamcityTempProperty() {
     // Undo: https://github.com/JetBrains/teamcity-gradle/blob/e1dc98db0505748df7bea2e61b5ee3a3ba9933db/gradle-runner-agent/src/main/scripts/init.gradle#L818
     if (project.hasProperty("teamcity")) {
-        @Suppress("UNCHECKED_CAST")
-        val teamcity = project.property("teamcity") as MutableMap<String, Any>
+        @Suppress("UNCHECKED_CAST") val teamcity = project.property("teamcity") as MutableMap<String, Any>
         teamcity["teamcity.build.tempDir"] = ""
     }
 }
