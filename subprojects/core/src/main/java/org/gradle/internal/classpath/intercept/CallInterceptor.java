@@ -17,6 +17,12 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.codehaus.groovy.vmplugin.v8.IndyInterface;
+import org.gradle.api.GradleException;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 /**
  * Intercepts method and constructor calls as well as property reads in dynamic Groovy bytecode.
@@ -27,59 +33,23 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
  * Descendants of this class should be thread-safe, making a stateless implementation is perfect.
  */
 public abstract class CallInterceptor {
-    /**
-     * Represents a single invocation of the intercepted method/constructor/property.
-     */
-    public interface Invocation {
-        /**
-         * Returns the receiver of the invocation.
-         * It can be a {@link Class} if the invocation targets constructor, static method, or static property.
-         * It can be the instance if the invocation targets the instance method or property.
-         *
-         * @return the receiver of the method
-         * @see CallSite
-         */
-        Object getReceiver();
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
-        /**
-         * Returns a number of arguments supplied for this invocation.
-         */
-        int getArgsCount();
+    private static final MethodHandle INTERCEPTOR;
 
-        /**
-         * Returns an <b>unwrapped</b> argument at the position {@code pos}.
-         * Arguments are numbered left-to-right, from 0 to {@code getArgsCount() - 1} inclusive.
-         * Throws {@link ArrayIndexOutOfBoundsException} if {@code pos} is outside the bounds.
-         *
-         * @param pos the position of the argument
-         * @return the unwrapped value of the argument
-         */
-        Object getArgument(int pos);
-
-        /**
-         * Returns an <b>unwrapped</b> argument at the position {@code pos} or {@code null} if the {@code pos} is greater or equal than {@link #getArgsCount()}.
-         * This method is useful for handling optional arguments represented as "telescopic" overloads, like the one of the {@code Runtime.exec}:
-         * <pre>
-         *     Runtime.exec("/usr/bin/echo")
-         *     Runtime.exec("/usr/bin/echo", new String[] {"FOO=BAR"})
-         * </pre>
-         * @param pos the position of the argument
-         * @return the unwrapped value of the argument or {@code null} if {@code pos >= getArgsCount()}
-         */
-        default Object getOptionalArgument(int pos) {
-            return pos < getArgsCount() ? getArgument(pos) : null;
+    static {
+        try {
+            INTERCEPTOR = LOOKUP.findVirtual(CallInterceptor.class, "interceptMethodHandle", MethodType.methodType(Object.class, MethodHandle.class, int.class, String.class, Object[].class));
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new GradleException("Failed to set up an interceptor method", e);
         }
-
-        /**
-         * Forwards the call to the original Groovy implementation and returns the result.
-         *
-         * @return the value produced by the original Groovy implementation
-         * @throws Throwable if the original Groovy implementation throws
-         */
-        Object callOriginal() throws Throwable;
     }
 
     private final InterceptScope[] interceptScopes;
+
+    protected CallInterceptor(InterceptScope... interceptScopes) {
+        this.interceptScopes = interceptScopes;
+    }
 
     /**
      * Called when the method/constructor/property read is intercepted.
@@ -94,8 +64,15 @@ public abstract class CallInterceptor {
      */
     protected abstract Object doIntercept(Invocation invocation, String consumer) throws Throwable;
 
-    protected CallInterceptor(InterceptScope... interceptScopes) {
-        this.interceptScopes = interceptScopes;
+    MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags) {
+        MethodHandle spreader = original.asSpreader(Object[].class, original.type().parameterCount());
+        MethodHandle decorated = MethodHandles.insertArguments(INTERCEPTOR, 0, this, spreader, flags, caller.lookupClass().getName());
+        return decorated.asCollector(Object[].class, original.type().parameterCount()).asType(original.type());
+    }
+
+    private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
+        boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
+        return doIntercept(new MethodHandleInvocation(original, args, isSpread), consumer);
     }
 
     InterceptScope[] getInterceptScopes() {

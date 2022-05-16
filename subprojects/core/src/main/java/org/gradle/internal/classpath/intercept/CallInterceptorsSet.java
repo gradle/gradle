@@ -18,7 +18,12 @@ package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
+import org.gradle.api.GradleException;
 
+import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,6 +35,24 @@ import java.util.Set;
 public class CallInterceptorsSet {
     private final Map<InterceptScope, CallInterceptor> interceptors = new HashMap<>();
     private final Set<String> interceptedCallSiteNames = new HashSet<>();
+
+    // There is no information about the type returned by the constructor invocation in the bytecode, so the
+    // dynamic dispatch has to happen somewhere. Wrapping the dispatch logic into the CallInterceptor allows
+    // to reuse the common MethodHandle decoration routine in maybeDecorateIndyCallSite instead of using a
+    // dedicated MethodHandle decorator method just for constructors.
+    private final CallInterceptor dispatchingConstructorInterceptor = new CallInterceptor() {
+        @Override
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            Object receiver = invocation.getReceiver();
+            if (receiver instanceof Class) {
+                CallInterceptor realConstructorInterceptor = interceptors.get(InterceptScope.constructorsOf((Class<?>) receiver));
+                if (realConstructorInterceptor != null) {
+                    return realConstructorInterceptor.doIntercept(invocation, consumer);
+                }
+            }
+            return invocation.callOriginal();
+        }
+    };
 
     /**
      * Creates the interceptor set out of provided interceptors.
@@ -50,6 +73,39 @@ public class CallInterceptorsSet {
             }
             interceptedCallSiteNames.add(scope.getCallSiteName());
         }
+    }
+
+    public java.lang.invoke.CallSite maybeDecorateIndyCallSite(java.lang.invoke.CallSite originalCallSite, MethodHandles.Lookup caller, String callType, String name, int flags) {
+        CacheableCallSite ccs = toGroovyCacheableCallSite(originalCallSite);
+        switch (callType) {
+            case "invoke":
+                maybeApplyInterceptor(ccs, caller, flags, interceptors.get(InterceptScope.methodsNamed(name)));
+                break;
+            case "getProperty":
+                maybeApplyInterceptor(ccs, caller, flags, interceptors.get(InterceptScope.readsOfPropertiesNamed(name)));
+                break;
+            case "init":
+                maybeApplyInterceptor(ccs, caller, flags, dispatchingConstructorInterceptor);
+                break;
+        }
+        return ccs;
+    }
+
+    private static void maybeApplyInterceptor(CacheableCallSite cs, MethodHandles.Lookup caller, int flags, @Nullable CallInterceptor interceptor) {
+        if (interceptor == null) {
+            return;
+        }
+        MethodHandle defaultTarget = interceptor.decorateMethodHandle(cs.getDefaultTarget(), caller, flags);
+        cs.setTarget(defaultTarget);
+        cs.setDefaultTarget(defaultTarget);
+        cs.setFallbackTarget(interceptor.decorateMethodHandle(cs.getFallbackTarget(), caller, flags));
+    }
+
+    private static CacheableCallSite toGroovyCacheableCallSite(java.lang.invoke.CallSite cs) {
+        if (!(cs instanceof CacheableCallSite)) {
+            throw new GradleException("Groovy produced unrecognized call site type of " + cs.getClass());
+        }
+        return (CacheableCallSite) cs;
     }
 
     /**
@@ -119,19 +175,13 @@ public class CallInterceptorsSet {
 
         @Override
         public Object callConstructor(Object receiver, Object[] args) throws Throwable {
-            if (receiver instanceof Class) {
-                Class<?> constructorClass = (Class<?>) receiver;
-                CallInterceptor interceptor = interceptors.get(InterceptScope.constructorsOf(constructorClass));
-                if (interceptor != null) {
-                    return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, args) {
-                        @Override
-                        public Object callOriginal() throws Throwable {
-                            return DecoratingCallSite.super.callConstructor(receiver, args);
-                        }
-                    }, array.owner.getName());
+            return dispatchingConstructorInterceptor.doIntercept(new AbstractInvocation<Object>(receiver, args) {
+                @Override
+                public Object callOriginal() throws Throwable {
+                    return DecoratingCallSite.super.callConstructor(receiver, args);
                 }
-            }
-            return super.callConstructor(receiver, args);
+            }, array.owner.getName());
         }
     }
+
 }
