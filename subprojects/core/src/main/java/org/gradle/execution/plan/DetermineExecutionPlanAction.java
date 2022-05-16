@@ -422,6 +422,14 @@ class DetermineExecutionPlanAction {
             this.node = node;
             this.visitingSegment = visitingSegment;
         }
+
+        @Override
+        public String toString() {
+            return "NodeInVisitingSegment{" +
+                "node=" + node +
+                ", visitingSegment=" + visitingSegment +
+                '}';
+        }
     }
 
     private static class GraphEdge {
@@ -432,6 +440,13 @@ class DetermineExecutionPlanAction {
             this.from = from;
             this.to = to;
         }
-    }
 
+        @Override
+        public String toString() {
+            return "GraphEdge{" +
+                "from=" + from +
+                ", to=" + to +
+                '}';
+        }
+    }
 }
