@@ -63,7 +63,7 @@ public class DefaultZipEntryContext implements ZipEntryContext {
 
     @Override
     public Optional<ZipEntryContext> withFallbackSafety() {
-        if (entry.isSafeForFallback()) {
+        if (entry.canReopen()) {
             return Optional.of(this);
         } else if (entry.size() > MAX_FALLBACK_CONTENT_SIZE) {
             LOGGER.debug(getFullName() + " is too large (" + entry.size() + ") for safe fallback - skipping.");
@@ -123,7 +123,7 @@ public class DefaultZipEntryContext implements ZipEntryContext {
         }
 
         @Override
-        public boolean isSafeForFallback() {
+        public boolean canReopen() {
             return true;
         }
     }

@@ -26,7 +26,8 @@ public interface ZipEntry {
     String getName();
 
     /**
-     * This method or {@link #withInputStream(InputStreamAction)} ()} can be called at most once per entry.
+     * This method or {@link #withInputStream(InputStreamAction)} ()} may or may not support being called more than
+     * once per entry.  Use {@link #canReopen()} to determine if more than one call is supported.
      */
     byte[] getContent() throws IOException;
 
@@ -47,7 +48,8 @@ public interface ZipEntry {
      * The {@link InputStream} passed to the {@link InputStreamAction#run(InputStream)} will
      * be closed right after the action's return.
      *
-     * This method or {@link #getContent()} can be called at most once per entry.
+     * This method or {@link #getContent()} may or may not support being called more than once per entry.
+     * Use {@link #canReopen()} to determine if more than one call is supported.
      */
     <T> T withInputStream(InputStreamAction<T> action) throws IOException;
 
@@ -57,8 +59,8 @@ public interface ZipEntry {
     int size();
 
     /**
-     * Whether or not the zip entry can safely fallback and be read again if any bytes
+     * Whether or not the zip entry can safely be read again if any bytes
      * have already been read from it.
      */
-    boolean isSafeForFallback();
+    boolean canReopen();
 }
