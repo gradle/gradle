@@ -139,7 +139,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata failure(File jdkPath, Exception cause) {
-        return JvmInstallationMetadata.failure(jdkPath, cause.getMessage());
+        return JvmInstallationMetadata.failure(jdkPath, cause);
     }
 
     private File writeProbeClass(File tmpDir) {
