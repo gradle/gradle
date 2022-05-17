@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -73,20 +72,25 @@ public class LineEndingNormalizingResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        Optional<ZipEntryContext> safeZipEntryContext = zipEntryContext.withFallbackSafety();
-        // If we can fallback safely, attempt to hash the file.
-        // If we cannot fallback safely, or we attempted to hash the file and it wasn't a text file,
-        // hash with the delegate.
-        return safeZipEntryContext.flatMap(IoFunction.wrap(this::hashContent))
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeZipEntryContext.orElse(zipEntryContext))));
+        Optional<ZipEntryContext> safeContext = Optional.of(zipEntryContext)
+            .filter(context -> !context.getEntry().isDirectory())
+            .flatMap(ZipEntryContext::withFallbackSafety);
+
+        // We can't just map() here because the delegate can return null, which means we can't
+        // distinguish between a context unsafe for fallback and a call to a delegate that
+        // returns null.  To avoid calling the delegate twice, we use a conditional instead.
+        if (safeContext.isPresent()) {
+            // If we can fallback safely, attempt to hash the file.  If we encounter an error,
+            // hash with the delegate using the safe fallback.
+            return safeContext.flatMap(IoFunction.wrap(this::hashContent))
+                .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeContext.get())));
+        } else {
+            // If we can't fallback safely, or this isn't a file, hash with the delegate.
+            return delegate.hash(zipEntryContext);
+        }
     }
 
     private Optional<HashCode> hashContent(ZipEntryContext zipEntryContext) throws IOException {
-        return shouldHash(zipEntryContext.getEntry()) ? zipEntryContext.getEntry().withInputStream(hasher::hashContent) : Optional.empty();
+        return zipEntryContext.getEntry().withInputStream(hasher::hashContent);
     }
-
-    private static boolean shouldHash(ZipEntry zipEntry) {
-        return zipEntry.isSafeForFallback() && !zipEntry.isDirectory();
-    }
-
 }

@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.IoFunction;
+import org.gradle.internal.io.IoSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.Attributes;
@@ -63,41 +65,49 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         String relativePath = join("/", snapshotContext.getRelativePathSegments().get());
-        if (isManifestFile(relativePath)) {
-            return tryHashWithFallback(snapshotContext);
-        } else {
-            return delegate.hash(snapshotContext);
-        }
+
+        return Optional.of(relativePath)
+            .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
+            .flatMap(path -> tryHashWithFallback(snapshotContext))
+            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
     }
 
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        ZipEntry zipEntry = zipEntryContext.getEntry();
-        if (isManifestFile(zipEntry.getName())) {
-            return tryHashWithFallback(zipEntryContext);
+        Optional<ZipEntryContext> safeContext = Optional.of(zipEntryContext)
+            .filter(context -> isManifestFile(zipEntryContext.getEntry().getName()))
+            .flatMap(ZipEntryContext::withFallbackSafety);
+
+        // We can't just map() here because the delegate can return null, which means we can't
+        // distinguish between a context unsafe for fallback and a call to a delegate that
+        // returns null.  To avoid calling the delegate twice, we use a conditional instead.
+        if (safeContext.isPresent()) {
+            // If this is a manifest file and we can fallback safely, attempt to hash the manifest.
+            // If we encounter an error, hash with the delegate using the safe fallback.
+            return safeContext.flatMap(IoFunction.wrap(this::tryHashWithFallback))
+                    .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeContext.get())));
         } else {
+            // If this is not a manifest file, or we cannot fallback safely, hash with the delegate.
             return delegate.hash(zipEntryContext);
         }
     }
 
-    @Nullable
-    private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) throws IOException {
+    private Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
         try (FileInputStream manifestFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
-            return hashManifest(manifestFileInputStream);
+            return Optional.of(hashManifest(manifestFileInputStream));
         } catch (IOException e) {
             LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
-            return delegate.hash(snapshotContext);
+            return Optional.empty();
         }
     }
 
-    @Nullable
-    private HashCode tryHashWithFallback(ZipEntryContext zipEntryContext) throws IOException {
+    private Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext) {
         try {
-            return zipEntryContext.getEntry().withInputStream(this::hashManifest);
+            return Optional.of(zipEntryContext.getEntry().withInputStream(this::hashManifest));
         } catch (IOException e) {
             LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
-            return delegate.hash(zipEntryContext);
+            return Optional.empty();
         }
     }
 
