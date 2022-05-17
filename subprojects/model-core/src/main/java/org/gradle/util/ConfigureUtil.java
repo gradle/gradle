@@ -87,7 +87,7 @@ public class ConfigureUtil {
 
             result = dynamicObject.tryInvokeMethod(name, value);
             if (!result.isFound()) {
-                throw dynamicObject.setMissingProperty(name);
+                throw dynamicObject.setMissingProperty(result, name);
             }
         }
 

@@ -217,7 +217,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         public DynamicInvokeResult getProperty(String name) {
             if (!includeProperties) {
-                return DynamicInvokeResult.notFound();
+                return propertyNotFound(name);
             }
 
             MetaClass metaClass = getMetaClass();
@@ -246,7 +246,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             if (!implementsMissing) {
-                return DynamicInvokeResult.notFound();
+                return propertyNotFound(name);
             }
 
             // Fall back to propertyMissing, if available
@@ -266,7 +266,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         protected DynamicInvokeResult getOpaqueProperty(String name) {
-            return DynamicInvokeResult.notFound();
+            return propertyNotFound(name);
         }
 
         @Nullable
@@ -351,7 +351,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         public DynamicInvokeResult setProperty(final String name, Object value) {
             if (!includeProperties) {
-                return DynamicInvokeResult.notFound();
+                return propertyNotFound(name);
             }
 
             MetaClass metaClass = getMetaClass();
@@ -369,7 +369,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
                             if (metaBeanProperty.getField() == null) {
-                                throw setReadOnlyProperty(name);
+                                throw setReadOnlyProperty(DynamicInvokeResult.notFound(), name);
                             }
                             value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
                             metaBeanProperty.getField().setProperty(bean, value);
@@ -416,7 +416,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, Object value) {
-            return DynamicInvokeResult.notFound();
+            return propertyNotFound(name);
         }
 
         public Map<String, ?> getProperties() {
@@ -505,7 +505,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             if (!implementsMissing) {
-                return DynamicInvokeResult.notFound();
+                return methodNotFound(name, arguments);
             }
 
             return invokeOpaqueMethod(metaClass, name, arguments);
@@ -535,7 +535,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     // Ignore
                 }
             }
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, arguments);
         }
     }
 
@@ -560,7 +560,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 // Else, ignore
             }
-            return DynamicInvokeResult.notFound();
+            return propertyNotFound(name);
         }
 
         @Override
@@ -574,7 +574,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 // Else, ignore
             }
-            return DynamicInvokeResult.notFound();
+            return propertyNotFound(name);
         }
 
         @Override
@@ -594,7 +594,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 // Else, ignore
             }
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, arguments);
         }
     }
 

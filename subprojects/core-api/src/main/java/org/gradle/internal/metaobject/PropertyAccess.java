@@ -17,6 +17,9 @@
 package org.gradle.internal.metaobject;
 
 import java.util.Map;
+import java.util.Optional;
+
+import org.gradle.internal.metaobject.DynamicInvokeResult.AdditionalContext;
 
 /**
  * Provides dynamic access to properties of some object.
@@ -46,4 +49,12 @@ public interface PropertyAccess {
      */
     Map<String, ?> getProperties();
 
+    default DynamicInvokeResult propertyNotFound(String name, Object... arguments) {
+        if (this instanceof ProvidesMissingMethodContext) {
+            Optional<AdditionalContext> context = ((ProvidesMissingMethodContext) this).getAdditionalContext(name, arguments);
+            return DynamicInvokeResult.notFound(context.orElse(null));
+        } else {
+            return DynamicInvokeResult.notFound();
+        }
+    }
 }

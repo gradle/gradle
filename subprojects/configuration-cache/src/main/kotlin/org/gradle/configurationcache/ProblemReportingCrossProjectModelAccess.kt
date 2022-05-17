@@ -170,7 +170,7 @@ class ProblemReportingCrossProjectModelAccess(
             if (delegateResult.isFound) {
                 return delegateResult.value
             }
-            throw thisBean.getMissingProperty(propertyName)
+            throw thisBean.getMissingProperty(delegateResult, propertyName)
         }
 
         override fun invokeMethod(name: String, args: Any): Any {
@@ -187,7 +187,7 @@ class ProblemReportingCrossProjectModelAccess(
             if (delegateResult.isFound) {
                 return delegateResult.value
             }
-            throw thisBean.methodMissingException(name, args)
+            throw thisBean.methodMissingException(delegateResult, name, args)
         }
 
         override fun compareTo(other: Project?): Int {

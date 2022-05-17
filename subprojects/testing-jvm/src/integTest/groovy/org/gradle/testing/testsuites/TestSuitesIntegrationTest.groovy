@@ -796,6 +796,30 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest(JvmTestSuite) {
                         dependencies {
+                            turtle(3)
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        fails("help")
+        failure.assertHasErrorOutput("Could not find method turtle() for arguments [3] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        !failure.getOutput().contains("This method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.");
+    }
+
+    def "missing method matching configuration name is well handled"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        dependencies {
                             integTestImplementation("foo:bar:1.0")
                         }
                     }

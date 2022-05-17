@@ -41,13 +41,17 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
-import org.gradle.internal.metaobject.MethodAccess;
+import org.gradle.internal.metaobject.DynamicInvokeResult.AdditionalContext;
+import org.gradle.internal.metaobject.MethodAccessWithContext;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
@@ -204,9 +208,9 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Override
-    public MethodAccess getAdditionalMethods() {
+    public MethodAccessWithContext getAdditionalMethods() {
         ConfigurationContainer configurationContainer = getConfigurationContainer();
-        return new MethodAccess() {
+        return new MethodAccessWithContext() {
             @Override
             public boolean hasMethod(String name, Object... arguments) {
                 return arguments.length != 0 && configurationContainer.findByName(name) != null;
@@ -214,33 +218,72 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
 
             @Override
             public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
-                if (arguments.length == 0) {
-                    return DynamicInvokeResult.notFound();
-                }
-                Configuration configuration = configurationContainer.findByName(name);
-                if (configuration == null) {
-                    return DynamicInvokeResult.notFound();
+                return methodNotFound(name, arguments);
+            }
+
+            @Override
+            public Optional<AdditionalContext> getAdditionalContext(String name, Object... arguments) {
+                boolean methodWithSameNameAndDifferentArgsExists = Arrays.stream(this.getClass().getMethods()).anyMatch(m -> m.getName().equals(name));
+                if (methodWithSameNameAndDifferentArgsExists) {
+                    // They probably meant to call this method, they just provided the wrong args, use the default error message, no context needed
+                    return Optional.empty();
                 }
 
-                List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
-                if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                    // adding a dependency with a closure, like:
-                    // implementation("foo:bar:1.0") {
-                    //    transitive = false
-                    // }
-                    System.out.println("looks like you're trying to configure " + name + ", do <this> instead.");
-                    return DynamicInvokeResult.notFound();
-                } else if (normalizedArgs.size() == 1) {
-                    // adding a dependency, like:
-                    // implementation("foo:bar:1.0")
-                    System.out.println("looks like you're trying to configure " + name + ", do <this> instead.");
-                    return DynamicInvokeResult.notFound();
-                } else {
-                    // adding multiple dependencies, like:
-                    // implementation("foo:bar:1.0", "baz:bar:2.0", "foobar:foobar:3.0")
-                    System.out.println("looks like you're trying to configure " + name + ", do <this> instead.");
-                    return DynamicInvokeResult.notFound();
+                Optional<Method> correspondingMethodExistsOnDependencyHandler = findMethod(DependencyHandler.class, name, arguments);
+                if (correspondingMethodExistsOnDependencyHandler.isPresent()) {
+                    // Exact match for static method on the top-level dependency handler, let them no they can't use that method here
+                    return Optional.of(msgPresentOnTopLevelDepsBlock(JvmComponentDependencies.class, DependencyHandler.class));
                 }
+
+                Optional<Configuration> configurationWithSameNameAsMethodExists = Optional.ofNullable(configurationContainer.findByName(name));
+                List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
+                if (configurationWithSameNameAsMethodExists.isPresent()) {
+                    if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
+                        // adding a dependency with a closure, like:
+                        // implementation("foo:bar:1.0") {
+                        //    transitive = false
+                        // }
+                        return Optional.of(msgTryingToDynamicallyAccessConfiguration(configurationWithSameNameAsMethodExists.get().getName()));
+                    } else if (normalizedArgs.size() == 1) {
+                        // adding a dependency, like:
+                        // implementation("foo:bar:1.0")
+                        return Optional.of(msgTryingToDynamicallyAccessConfiguration(configurationWithSameNameAsMethodExists.get().getName()));
+                    } else {
+                        // adding multiple dependencies, like:
+                        // implementation("foo:bar:1.0", "baz:bar:2.0", "foobar:foobar:3.0")
+                        return Optional.of(msgTryingToDynamicallyAccessConfiguration(configurationWithSameNameAsMethodExists.get().getName()));
+                    }
+                }
+
+                return Optional.empty(); // Don't know what they're trying to do, can't provide context
+            }
+
+            private Optional<Method> findMethod(Class<?> clazz, String method, Object[] arguments) {
+                Class<?>[] argTypes = Arrays.stream(arguments).map(Object::getClass).toArray(Class<?>[]::new);
+                try {
+                    return Optional.of(clazz.getMethod(method, argTypes));
+                } catch (NoSuchMethodException e) {
+                    return Optional.empty();
+                }
+            }
+
+            private String dslLinkFor(Class<?> block) {
+                String cleansedName = block.getName().endsWith("_Decorated") ? block.getName().substring(0, block.getName().length() - "_Decorated".length()) : block.getName();
+                return "https://docs.gradle.org/current/dsl/" + cleansedName + ".html";
+            }
+
+            private AdditionalContext msgPresentOnTopLevelDepsBlock(Class<?> currentBlock, Class<?> intendedBlock) {
+                return AdditionalContext.forString("This method is present in the top-level dependencies block, but can not be used within a Test Suite's dependencies block."
+                        + "\nSee https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html for an overview on the differences between these two blocks, or compare the following DSL references:"
+                        + "\n\t" + dslLinkFor(currentBlock)
+                        + "\n\t" + dslLinkFor(intendedBlock));
+            }
+
+            private AdditionalContext msgTryingToDynamicallyAccessConfiguration(String configurationName) {
+                return AdditionalContext.forString("It looks like you are trying to dynamically access a configuration named '" + configurationName + "'."
+                        + "\nReferring to configurations by name is not supported within the Test Suites' dependencies block."
+                        + "\nPlease use one of the provided methods instead: annotationProcessor, implementation, compileOnly, runtimeOnly.  See the following DSL reference:"
+                        + "\n\t" + dslLinkFor(JvmComponentDependencies.class));
             }
         };
     }

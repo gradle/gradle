@@ -51,7 +51,7 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
         if (extension.has(name)) {
             return DynamicInvokeResult.found(extension.get(name));
         }
-        return DynamicInvokeResult.notFound();
+        return propertyNotFound(name);
     }
 
     @Override
@@ -60,6 +60,6 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
             extension.set(name, value);
             return DynamicInvokeResult.found();
         }
-        return DynamicInvokeResult.notFound();
+        return propertyNotFound(name);
     }
 }

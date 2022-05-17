@@ -259,7 +259,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 return DynamicInvokeResult.found(extension);
             }
             if (plugins == null) {
-                return DynamicInvokeResult.notFound();
+                return propertyNotFound(name);
             }
             for (Object object : plugins.values()) {
                 DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
@@ -268,7 +268,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                     return result;
                 }
             }
-            return DynamicInvokeResult.notFound();
+            return propertyNotFound(name);
         }
 
         public Object propertyMissing(String name) {
@@ -279,7 +279,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         public DynamicInvokeResult trySetProperty(String name, Object value) {
             checkExtensionIsNotReassigned(name);
             if (plugins == null) {
-                return DynamicInvokeResult.notFound();
+                return propertyNotFound(name);
             }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
@@ -288,7 +288,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                     return result;
                 }
             }
-            return DynamicInvokeResult.notFound();
+            return propertyNotFound(name);
         }
 
         public void propertyMissing(String name, Object value) {
@@ -301,7 +301,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 return DynamicInvokeResult.found(configureExtension(name, args));
             }
             if (plugins == null) {
-                return DynamicInvokeResult.notFound();
+                return methodNotFound(name, args);
             }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
@@ -310,7 +310,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                     return result;
                 }
             }
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, args);
         }
 
         public Object methodMissing(String name, Object args) {
