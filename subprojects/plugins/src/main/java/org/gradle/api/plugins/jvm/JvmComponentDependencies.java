@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
  *
  * <ul>
+ *     <li><code>annotationProcessor</code> dependencies containing annotation processor code to run during compilation.</li>
  *     <li><code>implementation</code> dependencies are used at compilation and runtime.</li>
  *     <li><code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.</li>
  *     <li><code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.</li>

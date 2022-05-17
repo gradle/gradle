@@ -19,11 +19,13 @@ import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.metaclass.MissingMethodExecutionFailed;
+import org.gradle.internal.metaobject.DynamicInvokeResult.AdditionalContext;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * An empty {@link DynamicObject}.
@@ -43,7 +45,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Override
     public DynamicInvokeResult tryGetProperty(String name) {
-        return DynamicInvokeResult.notFound();
+        return propertyNotFound(name);
     }
 
     @Nullable
@@ -59,26 +61,26 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     public Object getProperty(String name) throws MissingPropertyException {
         DynamicInvokeResult result = tryGetProperty(name);
         if (!result.isFound()) {
-            throw getMissingProperty(name);
+            throw getMissingProperty(result, name);
         }
         return result.getValue();
     }
 
     @Override
     public DynamicInvokeResult trySetProperty(String name, Object value) {
-        return DynamicInvokeResult.notFound();
+        return propertyNotFound(name);
     }
 
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
         DynamicInvokeResult result = trySetProperty(name, value);
         if (!result.isFound()) {
-            throw setMissingProperty(name);
+            throw setMissingProperty(result, name);
         }
     }
 
     @Override
-    public MissingPropertyException getMissingProperty(String name) {
+    public MissingPropertyException getMissingProperty(DynamicInvokeResult result, String name) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
@@ -111,36 +113,50 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public MissingPropertyException setMissingProperty(String name) {
+    public MissingPropertyException setMissingProperty(DynamicInvokeResult result, String name) {
+        StringBuilder message = new StringBuilder();
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
-            return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s of type %s.", name,
-                    getDisplayName(), publicType.getName()), name, publicType);
+            message.append(String.format("Could not set unknown property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
-            return new MissingPropertyException(String.format("Could not set unknown property '%s' for object of type %s.", name,
-                    publicType.getName()), name, publicType);
+            message.append(String.format("Could not set unknown property '%s' for object of type %s.", name, publicType.getName()));
         } else {
             // Use the display name anyway
-            return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
-                    getDisplayName()), name, null);
+            message.append(String.format("Could not set unknown property '%s' for %s.", name, getDisplayName()));
         }
+
+        if (result.hasAdditionalContext()) {
+            result.getAdditionalContext().stream()
+                    .map(DynamicInvokeResult.AdditionalContext::getMessage)
+                    .map("\n\t"::concat)
+                    .forEach(message::append);
+        }
+
+        return new MissingPropertyException(message.toString(), name, publicType);
     }
 
-    protected GroovyRuntimeException setReadOnlyProperty(String name) {
+    protected GroovyRuntimeException setReadOnlyProperty(DynamicInvokeResult result, String name) {
+        StringBuilder message = new StringBuilder();
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
-            return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
+            message.append(String.format("Cannot set the value of read-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
-            return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for object of type %s.", name, publicType.getName()));
+            message.append(String.format("Cannot set the value of read-only property '%s' for object of type %s.", name, publicType.getName()));
         } else {
             // Use the display name anyway
-            return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
+            message.append(String.format("Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
         }
+
+        if (result.hasAdditionalContext()) {
+            result.getAdditionalContext().stream()
+                    .map(DynamicInvokeResult.AdditionalContext::getMessage)
+                    .map("\n\t"::concat)
+                    .forEach(message::append);
+        }
+
+        throw new GroovyRuntimeException(message.toString());
     }
 
     @Override
@@ -155,7 +171,12 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Override
     public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
-        return DynamicInvokeResult.notFound();
+        if (this instanceof ProvidesMissingMethodContext) {
+            Optional<AdditionalContext> context = ((ProvidesMissingMethodContext) this).getAdditionalContext(name, arguments);
+            return DynamicInvokeResult.notFound(context.orElse(null));
+        } else {
+            return methodNotFound(name, arguments);
+        }
     }
 
     @Override
@@ -164,24 +185,30 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         if (result.isFound()) {
             return result.getValue();
         }
-        throw methodMissingException(name, arguments);
+        throw methodMissingException(result, name, arguments);
     }
 
-    @Override
-    public MissingMethodException methodMissingException(String name, Object... params) {
+    public MissingMethodException methodMissingException(DynamicInvokeResult result, String name, Object... params) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
-        final String message;
+        final StringBuilder message = new StringBuilder();
         if (publicType != null && includeDisplayName) {
-            message = String.format("Could not find method %s() for arguments %s on %s of type %s.", name, Arrays.toString(params), getDisplayName(), publicType.getName());
+            message.append(String.format("Could not find method %s() for arguments %s on %s of type %s.", name, Arrays.toString(params), getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
-            message = String.format("Could not find method %s() for arguments %s on object of type %s.", name, Arrays.toString(params), publicType.getName());
+            message.append(String.format("Could not find method %s() for arguments %s on object of type %s.", name, Arrays.toString(params), publicType.getName()));
         } else {
             // Include the display name anyway
-            message = String.format("Could not find method %s() for arguments %s on %s.", name, Arrays.toString(params), getDisplayName());
+            message.append(String.format("Could not find method %s() for arguments %s on %s.", name, Arrays.toString(params), getDisplayName()));
         }
+        if (result.hasAdditionalContext()) {
+            result.getAdditionalContext().stream()
+                    .map(DynamicInvokeResult.AdditionalContext::getMessage)
+                    .map("\n\t"::concat)
+                    .forEach(message::append);
+        }
+
         // https://github.com/apache/groovy/commit/75c068207ba24648ea2d698c520601c6fcf0a45b
-        return new CustomMissingMethodExecutionFailed(name, publicType, message, params);
+        return new CustomMissingMethodExecutionFailed(name, publicType, message.toString(), params);
     }
 
     private static class CustomMissingMethodExecutionFailed extends MissingMethodExecutionFailed {

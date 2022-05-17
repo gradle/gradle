@@ -16,6 +16,10 @@
 
 package org.gradle.internal.metaobject;
 
+import java.util.Optional;
+
+import org.gradle.internal.metaobject.DynamicInvokeResult.AdditionalContext;
+
 /**
  * Provides dynamic access to methods of some object.
  */
@@ -31,4 +35,13 @@ public interface MethodAccess {
      * Invokes the method with the given name and arguments.
      */
     DynamicInvokeResult tryInvokeMethod(String name, Object... arguments);
+
+    default DynamicInvokeResult methodNotFound(String name, Object... arguments) {
+        if (this instanceof ProvidesMissingMethodContext) {
+            Optional<AdditionalContext> context = ((ProvidesMissingMethodContext) this).getAdditionalContext(name, arguments);
+            return DynamicInvokeResult.notFound(context.orElse(null));
+        } else {
+            return DynamicInvokeResult.notFound();
+        }
+    }
 }

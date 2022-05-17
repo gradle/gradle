@@ -102,11 +102,11 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (arguments.length == 0) {
-                return DynamicInvokeResult.notFound();
+                return methodNotFound(name, arguments);
             }
             Configuration configuration = configurationContainer.findByName(name);
             if (configuration == null) {
-                return DynamicInvokeResult.notFound();
+                return methodNotFound(name, arguments);
             }
             List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(arguments), false);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {

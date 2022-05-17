@@ -523,7 +523,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public DynamicInvokeResult tryGetProperty(String name) {
             T t = findByName(name);
-            return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
+            return t == null ? propertyNotFound(name) : DynamicInvokeResult.found(t);
         }
 
         @Override
@@ -541,7 +541,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             if (isConfigureMethod(name, arguments)) {
                 return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, arguments);
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {

@@ -42,11 +42,11 @@ class DynamicAddDependencyMethods implements MethodAccess {
     @Override
     public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
         if (arguments.length == 0) {
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, arguments);
         }
         Configuration configuration = configurationContainer.findByName(name);
         if (configuration == null) {
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, arguments);
         }
 
         List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);

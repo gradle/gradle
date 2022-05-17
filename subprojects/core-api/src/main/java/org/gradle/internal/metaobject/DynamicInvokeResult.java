@@ -16,14 +16,20 @@
 
 package org.gradle.internal.metaobject;
 
+import com.google.common.base.Preconditions;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class DynamicInvokeResult {
 
     private static final Object NO_VALUE = new Object();
-    private static final DynamicInvokeResult NOT_FOUND = new DynamicInvokeResult(NO_VALUE);
-    private static final DynamicInvokeResult NULL = new DynamicInvokeResult(null);
+    private static final DynamicInvokeResult NULL = new DynamicInvokeResult(null, null);
 
     public static DynamicInvokeResult found(Object value) {
-        return value == null ? found() : new DynamicInvokeResult(value);
+        return value == null ? found() : new DynamicInvokeResult(value, null);
     }
 
     public static DynamicInvokeResult found() {
@@ -31,13 +37,23 @@ public class DynamicInvokeResult {
     }
 
     public static DynamicInvokeResult notFound() {
-        return DynamicInvokeResult.NOT_FOUND;
+        return new DynamicInvokeResult(NO_VALUE, null);
     }
 
+    public static DynamicInvokeResult notFound(@Nullable AdditionalContext additionalContext) {
+        return new DynamicInvokeResult(NO_VALUE, additionalContext);
+    }
+
+    private final List<AdditionalContext> additionalContexts;
     private final Object value;
 
-    private DynamicInvokeResult(Object value) {
+
+    private DynamicInvokeResult(Object value, @Nullable AdditionalContext additionalContext) {
         this.value = value;
+        this.additionalContexts = new ArrayList<>(1);
+        if (additionalContext != null) {
+            this.additionalContexts.add(additionalContext);
+        }
     }
 
     public Object getValue() {
@@ -50,5 +66,46 @@ public class DynamicInvokeResult {
 
     public boolean isFound() {
         return value != NO_VALUE;
+    }
+
+    public boolean hasAdditionalContext() {
+        return !additionalContexts.isEmpty();
+    }
+
+    public List<AdditionalContext> getAdditionalContext() {
+        return Collections.unmodifiableList(additionalContexts);
+    }
+
+    public void addAdditionalContexts(List<AdditionalContext> additionalContexts) {
+        Preconditions.checkState(value == NO_VALUE, "Can't set additional context when a method is found");
+        this.additionalContexts.addAll(additionalContexts);
+    }
+
+    public void addAdditionalContext(AdditionalContext additionalContext) {
+        this.additionalContexts.add(additionalContext);
+    }
+
+    public void addAdditionalContext(DynamicInvokeResult result) {
+        addAdditionalContexts(result.additionalContexts);
+    }
+
+    public interface AdditionalContext {
+        String getMessage();
+
+        static AdditionalContext forString(String message) {
+            return new DefaultAdditionalContext(message);
+        }
+
+        class DefaultAdditionalContext implements AdditionalContext {
+            private final String message;
+
+            private DefaultAdditionalContext(String message) {
+                this.message = message;
+            }
+
+            public String getMessage() {
+                return message;
+            }
+        }
     }
 }

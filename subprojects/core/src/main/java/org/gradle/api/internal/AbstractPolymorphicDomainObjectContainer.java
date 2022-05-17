@@ -128,7 +128,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         @Override
         public DynamicInvokeResult tryGetProperty(String name) {
             Object object = findByName(name);
-            return object == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(object);
+            return object == null ? propertyNotFound(name) : DynamicInvokeResult.found(object);
         }
 
         @Override
@@ -151,7 +151,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
                 }
                 return DynamicInvokeResult.found(element);
             }
-            return DynamicInvokeResult.notFound();
+            return methodNotFound(name, arguments);
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {
