@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
@@ -152,7 +153,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void applyDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+        GradleApiVersionProvider.addToConfiguration(project.getConfigurations().getByName(API_CONFIGURATION), dependencies);
+        GradleApiVersionProvider.addGradleSourceApiRepository(project.getRepositories());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
@@ -231,6 +233,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             CopySpec copyPluginDescriptors = task.getRootSpec().addChild();
             copyPluginDescriptors.into("META-INF/gradle-plugins");
             copyPluginDescriptors.from(generatePluginDescriptors);
+            task.getInputs().property("gradleApiSourceVersion", GradleApiVersionProvider.getGradleApiSourceVersion().orElse("current"));
+            task.doLast(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    GradleApiVersionProvider.createGradleVersionMarker(((Copy) task).getDestinationDir().get().getAsFile());
+                }
+            });
         });
     }
 

@@ -25,6 +25,7 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
+import org.junit.Assume
 
 import java.util.concurrent.Callable
 
@@ -198,6 +199,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "fails when untyped value is set using incompatible type"() {
         def property = propertyWithNoValue()
+        Assume.assumeFalse("String uses Object.toString()", property.type == String)
 
         when:
         property.setFromAnyValue(new Thing())

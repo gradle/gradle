@@ -93,23 +93,26 @@ public class WorkerSharedProjectScopeServices {
             Factory<PatternSet> patternSetFactory,
             Deleter deleter,
             DocumentationRegistry documentationRegistry,
-            ProviderFactory providers
+            ProviderFactory providers,
+            FilePropertyFactory filePropertyFactory
     ) {
         return new DefaultFileOperations(
-                fileResolver,
-                temporaryFileProvider,
-                instantiator,
-                directoryFileTreeFactory,
-                streamHasher,
-                fileHasher,
-                resourceHandlerFactory,
-                fileCollectionFactory,
-                objectFactory,
-                fileSystem,
-                patternSetFactory,
-                deleter,
-                documentationRegistry,
-                providers);
+            fileResolver,
+            temporaryFileProvider,
+            instantiator,
+            directoryFileTreeFactory,
+            streamHasher,
+            fileHasher,
+            resourceHandlerFactory,
+            fileCollectionFactory,
+            objectFactory,
+            fileSystem,
+            patternSetFactory,
+            deleter,
+            documentationRegistry,
+            providers,
+            filePropertyFactory
+        );
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {

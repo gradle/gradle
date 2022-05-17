@@ -16,8 +16,12 @@
 
 package org.gradle.api.plugins.antlr.internal
 
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.antlr.AntlrTask
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import spock.lang.Specification
 
 class AntlrSpecFactoryTest extends Specification {
@@ -29,10 +33,11 @@ class AntlrSpecFactoryTest extends Specification {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
-
         _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> []
-        _ * task.isTrace() >> true
+        _ * task.getArguments() >> stubArguments()
+        _ * task.getTrace() >> Stub(Property) {
+            get() >> true
+        }
         _ * task.isTraceLexer() >> true
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
@@ -51,8 +56,10 @@ class AntlrSpecFactoryTest extends Specification {
         AntlrTask task = Mock()
 
         _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> []
-        _ * task.isTrace() >> true
+        _ * task.getArguments() >> stubArguments()
+        _ * task.getTrace() >> Stub(Property) {
+            get() >> true
+        }
         _ * task.isTraceLexer() >> true
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
@@ -63,12 +70,21 @@ class AntlrSpecFactoryTest extends Specification {
         spec.inputDirectories.isEmpty()
     }
 
+    private ListProperty<String> stubArguments(String... args) {
+        return Stub(ListProperty) {
+            get() >> args.toList()
+        }
+    }
+
     def customTraceArgumentsOverrideProperties() {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
         _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
+        _ * task.getTrace() >> Stub(Property) {
+            get() >> false
+        }
+        _ * task.getArguments() >> stubArguments("-trace", "-traceLexer", "-traceParser", "-traceTreeWalker")
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -84,8 +100,10 @@ class AntlrSpecFactoryTest extends Specification {
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
         _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
-        _ * task.isTrace() >> true
+        _ * task.getArguments() >> stubArguments("-trace", "-traceLexer", "-traceParser", "-traceTreeWalker")
+        _ * task.getTrace() >> Stub(Property) {
+            get() >> true
+        }
         _ * task.isTraceLexer() >> true
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
@@ -106,6 +124,10 @@ class AntlrSpecFactoryTest extends Specification {
     def destFile() {
         File dest = Mock()
         dest.getAbsolutePath() >> "/output"
-        dest
+        return Stub(DirectoryProperty) {
+            get() >> Stub(Directory) {
+                getAsFile() >> dest
+            }
+        }
     }
 }

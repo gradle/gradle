@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
@@ -26,11 +27,17 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.ProviderNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 
 /**
@@ -59,10 +66,14 @@ public class ClasspathWalker {
     }
 
     private void visitDirectoryContents(File dir, ClasspathEntryVisitor visitor) throws IOException {
-        visitDir(dir, "", visitor);
+        boolean isCurrentGradleApi = new File(dir, GradleApiVersionProvider.GRADLE_VERSION_MARKER).exists();
+        if (!isCurrentGradleApi) {
+            LoggerFactory.getLogger(ClasspathWalker.class).warn("Not using current Gradle API for " + dir);
+        }
+        visitDir(dir, "", isCurrentGradleApi, visitor);
     }
 
-    private void visitDir(File dir, String prefix, ClasspathEntryVisitor visitor) throws IOException {
+    private void visitDir(File dir, String prefix, boolean isCurrentGradleApi, ClasspathEntryVisitor visitor) throws IOException {
         File[] files = dir.listFiles();
 
         // Apply a consistent order, regardless of file system ordering
@@ -71,33 +82,41 @@ public class ClasspathWalker {
         for (File file : files) {
             FileMetadata fileMetadata = stat.stat(file);
             if (fileMetadata.getType() == FileType.RegularFile) {
-                visitFile(file, prefix + file.getName(), visitor);
+                visitFile(file, prefix + file.getName(), isCurrentGradleApi, visitor);
             } else if (fileMetadata.getType() == FileType.Directory) {
-                visitDir(file, prefix + file.getName() + "/", visitor);
+                visitDir(file, prefix + file.getName() + "/", isCurrentGradleApi, visitor);
             }
         }
     }
 
-    private void visitFile(File file, String name, ClasspathEntryVisitor visitor) throws IOException {
-        visitor.visit(new FileEntry(name, file));
+    private void visitFile(File file, String name, boolean isCurrentGradleApi, ClasspathEntryVisitor visitor) throws IOException {
+        visitor.visit(new FileEntry(name, file, isCurrentGradleApi));
     }
 
     private void visitJarContents(File jarFile, ClasspathEntryVisitor visitor) throws IOException {
+        boolean isCurrentGradleApi;
+        try (FileSystem zipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + jarFile.toPath().toUri()), Collections.emptyMap())) {
+            isCurrentGradleApi = Files.exists(zipFileSystem.getPath(GradleApiVersionProvider.GRADLE_VERSION_MARKER));
+        } catch (ProviderNotFoundException e) {
+            throw new FileException(e);
+        }
         try (ZipInput entries = FileZipInput.create(jarFile)) {
             for (ZipEntry entry : entries) {
                 if (entry.isDirectory()) {
                     continue;
                 }
-                visitor.visit(new ZipClasspathEntry(entry));
+                visitor.visit(new ZipClasspathEntry(entry, isCurrentGradleApi));
             }
         }
     }
 
-    private static class ZipClasspathEntry implements ClasspathEntryVisitor.Entry {
+    public static class ZipClasspathEntry implements ClasspathEntryVisitor.Entry {
         private final ZipEntry entry;
+        private final boolean isCurrentGradleApi;
 
-        public ZipClasspathEntry(ZipEntry entry) {
+        public ZipClasspathEntry(ZipEntry entry, boolean isCurrentGradleApi) {
             this.entry = entry;
+            this.isCurrentGradleApi = isCurrentGradleApi;
         }
 
         @Override
@@ -111,6 +130,11 @@ public class ClasspathWalker {
         }
 
         @Override
+        public boolean isCurrentGradleApi() {
+            return isCurrentGradleApi;
+        }
+
+        @Override
         public byte[] getContent() throws IOException {
             return entry.getContent();
         }
@@ -119,10 +143,12 @@ public class ClasspathWalker {
     private static class FileEntry implements ClasspathEntryVisitor.Entry {
         private final String name;
         private final File file;
+        private final boolean isCurrentGradleApi;
 
-        public FileEntry(String name, File file) {
+        public FileEntry(String name, File file, boolean isCurrentGradleApi) {
             this.name = name;
             this.file = file;
+            this.isCurrentGradleApi = isCurrentGradleApi;
         }
 
         @Override
@@ -133,6 +159,11 @@ public class ClasspathWalker {
         @Override
         public RelativePath getPath() {
             return RelativePath.parse(false, name);
+        }
+
+        @Override
+        public boolean isCurrentGradleApi() {
+            return isCurrentGradleApi;
         }
 
         @Override

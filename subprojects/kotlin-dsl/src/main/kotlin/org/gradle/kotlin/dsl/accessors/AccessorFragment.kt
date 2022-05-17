@@ -20,6 +20,7 @@ import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.util.GradleVersion
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -30,7 +31,8 @@ data class AccessorFragment(
     val source: String,
     val bytecode: BytecodeWriter,
     val metadata: MetadataWriter,
-    val signature: JvmMethodSignature
+    val signature: JvmMethodSignature,
+    val supportedSince: GradleVersion? = null
 )
 
 

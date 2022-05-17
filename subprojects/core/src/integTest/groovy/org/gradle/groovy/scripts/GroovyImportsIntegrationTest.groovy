@@ -38,5 +38,4 @@ import org.apache.commons.math3.util.FastMath
         args("--init-script", initScript.toString())
         succeeds("help")
     }
-
 }

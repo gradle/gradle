@@ -19,12 +19,14 @@ package org.gradle.internal.extensibility;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.gradle.internal.reflect.PropertyAccessor;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,7 +69,18 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                     .nagUser();
         }
 
-        _mappings.put(propertyName, mapping);
+        if (_source.getClass().getName().contains("Compile") && propertyName.equals("classpath")) {
+            @SuppressWarnings("unchecked")
+            PropertyAccessor<IConventionAware, ConfigurableFileCollection> property = (PropertyAccessor<IConventionAware, ConfigurableFileCollection>) JavaPropertyReflectionUtil.readableProperty(_source.getClass(), propertyName);
+            property.getValue(_source).setFrom(new Callable<Object>() {
+                @Override
+                public Object call() {
+                    return mapping.getValue(_convention, _source);
+                }
+            });
+        } else {
+            _mappings.put(propertyName, mapping);
+        }
         return mapping;
     }
 
@@ -92,7 +105,18 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public MappedProperty map(String propertyName, final Callable<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
             @Override
+            @SuppressWarnings({"unchecked", "rawtypes"})
             public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
+//                This causes stack overflow since we call get multiple times
+//                Object object = uncheckedCall(value);
+//                if (object instanceof Configuration) {
+//                    PropertyAccessor property = JavaPropertyReflectionUtil.readableProperty(_source.getClass(), propertyName);
+//                    if (ConfigurableFileCollection.class.isAssignableFrom(property.getType())) {
+//                        ConfigurableFileCollection configurableFileCollection = (ConfigurableFileCollection) property.getValue(_source);
+//                        configurableFileCollection.setFrom(object);
+//                        return object;
+//                    }
+//                }
                 return uncheckedCall(value);
             }
         });

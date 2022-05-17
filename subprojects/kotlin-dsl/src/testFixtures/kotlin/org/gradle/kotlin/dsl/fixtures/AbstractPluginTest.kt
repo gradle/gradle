@@ -1,6 +1,8 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.junit.Assume
 
 import org.junit.Before
 
@@ -16,6 +18,8 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
     @Before
     fun setUpDefaultSetttings() {
         withDefaultSettings()
+        // TODO wolfs: Bytecode rewriting doesn't work in this case with the embedded executor, yet
+        Assume.assumeFalse(GradleContextualExecuter.isEmbedded())
     }
 
     override val defaultSettingsScript: String

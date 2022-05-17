@@ -262,7 +262,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
         where:
@@ -315,7 +315,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
 
@@ -436,7 +436,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
 
@@ -548,7 +548,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
         where:
@@ -669,9 +669,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
 
-2 problems were found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':included:compileClasspath'' failed to visit file collection"""))
+2 problems were found storing the configuration cache, 1 of which seems unique.
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'file collection' failed to visit file collection"""))
         }
 
         where:

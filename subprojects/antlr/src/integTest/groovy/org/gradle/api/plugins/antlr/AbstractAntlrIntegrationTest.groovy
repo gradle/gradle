@@ -28,7 +28,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java'
                 ${mavenCentralRepository()}
                 tasks.withType(JavaCompile) {
-                    options.compilerArgs << "-proc:none"
+                    options.compilerArgs.add("-proc:none")
                 }
             }
             project(":grammar-builder") {

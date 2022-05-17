@@ -558,8 +558,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
                 DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();
                 if (mode.useProjectRepositories()) {
-                    if (repositories.isEmpty()) {
-                        repositories = collectRepositories(drm.getRepositories());
+                    if (repositories.isEmpty() || repositories.stream().allMatch(it -> it.getDescriptor().name.startsWith("gradle-internal-added"))) {
+                        repositories.addAll(collectRepositories(drm.getRepositories()));
                     }
                 } else {
                     repositories = collectRepositories(drm.getRepositories());

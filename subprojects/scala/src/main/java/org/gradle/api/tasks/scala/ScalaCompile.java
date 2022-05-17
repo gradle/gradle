@@ -42,7 +42,7 @@ import javax.inject.Inject;
  * Compiles Scala source files, and optionally, Java source files.
  */
 @CacheableTask
-public class ScalaCompile extends AbstractScalaCompile {
+public abstract class ScalaCompile extends AbstractScalaCompile {
 
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;

@@ -31,6 +31,8 @@ public interface ClasspathEntryVisitor {
 
         RelativePath getPath();
 
+        boolean isCurrentGradleApi();
+
         /**
          * Can be called at most once for a given entry. If not called, content is skipped.
          */

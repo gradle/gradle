@@ -15,11 +15,13 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -36,11 +38,9 @@ import java.util.concurrent.Callable;
  * The base class for all JVM-based language compilation tasks.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractCompile extends SourceTask {
+public abstract class AbstractCompile extends SourceTask implements BridgeAbstractCompile {
     private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
-    private String sourceCompatibility;
-    private String targetCompatibility;
+    private final ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -50,20 +50,13 @@ public abstract class AbstractCompile extends SourceTask {
     /**
      * Returns the classpath to use to compile the source files.
      *
+     * @since 7.6
      * @return The classpath.
      */
+    @Incubating
     @Classpath
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         return classpath;
-    }
-
-    /**
-     * Sets the classpath to use to compile the source files.
-     *
-     * @param configuration The classpath. Must not be null, but may be empty.
-     */
-    public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
     }
 
     /**
@@ -136,42 +129,20 @@ public abstract class AbstractCompile extends SourceTask {
     }
 
     /**
-     * Returns the Java language level to use to compile the source files.
+     * The Java language level to use to compile the source files.
      *
      * @return The source language level.
      */
     @Input
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
+    public abstract Property<String> getSourceCompatibility();
 
     /**
-     * Sets the Java language level to use to compile the source files.
-     *
-     * @param sourceCompatibility The source language level. Must not be null.
-     */
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
-
-    /**
-     * Returns the target JVM to generate the {@code .class} files for.
+     * The target JVM to generate the {@code .class} files for.
      *
      * @return The target JVM.
      */
     @Input
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    /**
-     * Sets the target JVM to generate the {@code .class} files for.
-     *
-     * @param targetCompatibility The target JVM. Must not be null.
-     */
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
+    public abstract Property<String> getTargetCompatibility();
 
     /**
      * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile and override the deprecated methods.

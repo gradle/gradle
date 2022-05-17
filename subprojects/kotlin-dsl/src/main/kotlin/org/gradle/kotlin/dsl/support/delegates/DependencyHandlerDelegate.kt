@@ -87,6 +87,9 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun gradleApi(): Dependency =
         delegate.gradleApi()
 
+    override fun gradleApi(version: String): Dependency =
+        delegate.gradleApi(version)
+
     override fun gradleTestKit(): Dependency =
         delegate.gradleTestKit()
 

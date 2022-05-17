@@ -60,16 +60,16 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.VERSION_1_7
                 targetCompatibility = JavaVersion.VERSION_1_8
             }
-            sourceSets { 
-                unitTest { } 
+            sourceSets {
+                unitTest { }
             }
             compileUnitTestJava {
                 options.fork = true
                 options.forkOptions.javaHome = file('${jdk.javaHome.toURI()}')
             }
             compileUnitTestJava.doFirst {
-                assert sourceCompatibility == "1.7"
-                assert targetCompatibility == "1.8"
+                assert sourceCompatibility.get() == "1.7"
+                assert targetCompatibility.get() == "1.8"
             }
         """
         file("src/unitTest/java/Test.java") << """public class Test { }"""

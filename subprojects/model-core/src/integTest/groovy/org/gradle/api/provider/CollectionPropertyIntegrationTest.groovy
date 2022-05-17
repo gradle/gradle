@@ -314,7 +314,7 @@ task wrongValueTypeDsl {
 
 task wrongRuntimeElementType {
     doLast {
-        verify.prop = [123]
+        verify.prop = [java.time.LocalDate.now()]
         verify.prop.get()
     }
 }
@@ -356,7 +356,7 @@ task wrongPropertyElementTypeApi {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType'.")
-        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.time.LocalDate.")
 
         when:
         fails("wrongPropertyTypeDsl")

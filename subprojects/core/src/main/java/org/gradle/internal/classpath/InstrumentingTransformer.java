@@ -24,12 +24,16 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.upgrade.ApiUpgradeHandler;
+import org.gradle.internal.upgrade.ApiUpgrader;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -55,10 +61,12 @@ import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getMethodType;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
 class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingTransformer.class);
 
     /**
      * Decoration format. Increment this when making changes.
@@ -69,6 +77,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type STRING_TYPE = getType(String.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
+    private static final Type API_UPGRADE_HANDLER_TYPE = getType(ApiUpgradeHandler.class);
     private static final Type OBJECT_TYPE = getType(Object.class);
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
     private static final Type LONG_TYPE = getType(Long.class);
@@ -180,26 +189,38 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String[] NO_EXCEPTIONS = new String[0];
 
+    private final ApiUpgrader apiUpgrader;
+
+    InstrumentingTransformer(ApiUpgrader apiUpgrader) {
+        this.apiUpgrader = apiUpgrader;
+    }
+
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
         hasher.putInt(DECORATION_FORMAT);
+        apiUpgrader.applyConfigurationTo(hasher);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor)));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(
+            new InstrumentingBackwardsCompatibilityVisitor(visitor),
+            entry.isCurrentGradleApi() ? ApiUpgrader.NO_UPGRADES : apiUpgrader));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
+        private final ApiUpgrader apiUpgrader;
+
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
 
-        public InstrumentingVisitor(ClassVisitor visitor) {
+        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgrader apiUpgrader) {
             super(ASM_LEVEL, visitor);
+            this.apiUpgrader = apiUpgrader;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -222,7 +243,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor);
+            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgrader);
         }
 
         @Override
@@ -281,6 +302,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
                 _DUP();
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                if (apiUpgrader.shouldDecorateCallsiteArray()) {
+                    _DUP();
+                    _INVOKESTATIC(API_UPGRADE_HANDLER_TYPE, "decorateCallSiteArray", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                }
                 _ARETURN();
                 visitMaxs(2, 0);
                 visitEnd();
@@ -295,11 +320,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
+        private final ApiUpgrader apiUpgrader;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgrader apiUpgrader) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.apiUpgrader = apiUpgrader;
         }
 
         @Override
@@ -307,7 +334,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
                 return;
             }
-            if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor)) {
+            if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor, isInterface)) {
                 return;
             }
             if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
@@ -415,7 +442,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             return false;
         }
 
-        private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor) {
+        private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor, boolean isInterface) {
             // Runtime.exec(...)
             if (owner.equals(RUNTIME_TYPE.getInternalName()) && name.equals("exec")) {
                 Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForRuntimeExecDescriptor(descriptor);
@@ -432,6 +459,14 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
                     return true;
                 }
+            }
+            if (apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, owner, name, descriptor, isInterface)) {
+                Type methodType = getMethodType(descriptor);
+                String arguments = Stream.of(methodType.getArgumentTypes())
+                    .map(Type::getClassName)
+                    .collect(Collectors.joining(", "));
+                LOGGER.warn("Matched call to {}.{}({}) in {}, replacing...", Type.getObjectType(owner).getClassName(), name, arguments, Type.getObjectType(className).getClassName());
+                return true;
             }
             return false;
         }

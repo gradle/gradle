@@ -277,7 +277,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Copy
         task dependsOn()
         task.source.files == project.sourceSets.main.resources.files
-        task.destinationDir == project.sourceSets.main.output.resourcesDir
+        task.destinationDir.asFile.get() == project.sourceSets.main.output.resourcesDir
 
         when:
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
@@ -285,7 +285,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof JavaCompile
         task dependsOn()
-        task.classpath.is(project.sourceSets.main.compileClasspath)
+        // TODO fix
+        task.classpath.files == project.sourceSets.main.compileClasspath.files
         task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
@@ -307,7 +308,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Copy
         task dependsOn()
         task.source.files == project.sourceSets.test.resources.files
-        task.destinationDir == project.sourceSets.test.output.resourcesDir
+        task.destinationDir.asFile.get() == project.sourceSets.test.output.resourcesDir
 
         when:
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
@@ -315,7 +316,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof JavaCompile
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        task.classpath.is(project.sourceSets.test.compileClasspath)
+        // TODO fix
+        task.classpath.files == project.sourceSets.test.compileClasspath.files
         task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
@@ -536,9 +538,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileJava.options.release.set(9)
 
         then:
-        compileJava.targetCompatibility == "1.8"
-        compileJava.sourceCompatibility == "1.8"
-        testCompileJava.targetCompatibility == "1.9"
-        testCompileJava.sourceCompatibility == "1.9"
+        compileJava.targetCompatibility.get() == "1.8"
+        compileJava.sourceCompatibility.get() == "1.8"
+        testCompileJava.targetCompatibility.get() == "1.9"
+        testCompileJava.sourceCompatibility.get() == "1.9"
     }
 }

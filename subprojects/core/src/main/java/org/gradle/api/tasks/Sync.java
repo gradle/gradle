@@ -71,10 +71,10 @@ public class Sync extends AbstractCopyTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir == null) {
+        if (!getRootSpec().getDestinationDir().isPresent()) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
+        File destinationDir = getDestinationDir();
         return new SyncCopyActionDecorator(
             destinationDir,
             new FileCopyAction(getFileLookup().getFileResolver(destinationDir)),
@@ -101,7 +101,7 @@ public class Sync extends AbstractCopyTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return getRootSpec().getDestinationDir();
+        return getRootSpec().getDestinationDir().get().getAsFile();
     }
 
     /**

@@ -137,7 +137,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         processResources.description == "Processes custom resources."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
-        processResources.destinationDir == new File(project.buildDir, 'resources/custom')
+        processResources.destinationDir.asFile.get() == new File(project.buildDir, 'resources/custom')
         def resources = processResources.source
         resources.files == project.sourceSets.custom.resources.files
 
@@ -145,7 +145,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava.description == "Compiles custom Java source."
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
-        compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
+        // TODO fix
+        compileJava.classpath.files == project.sourceSets.custom.compileClasspath.files
         compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
@@ -220,10 +221,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getSourceCompatibility().get() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getTargetCompatibility().get() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getSourceCompatibility().get() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getTargetCompatibility().get() == Jvm.current().javaVersion.majorVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -261,11 +262,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
-        javaCompileTask.sourceCompatibility // accessing the property throws
-
+        javaCompileTask.sourceCompatibility.get() // accessing the property throws
 
         then:
-        def error = thrown(InvalidUserDataException)
+        def queryException = thrown(RuntimeException)
+        def error = queryException.cause
+        error instanceof InvalidUserDataException
         error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
     }
 
@@ -286,7 +288,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def processResources = project.tasks['processCustomResources']
-        processResources.destinationDir == resourcesDir
+        processResources.destinationDir.asFile.get() == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.destinationDir == classesDir
@@ -363,7 +365,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility.get() == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -49,6 +50,7 @@ import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+import org.gradle.util.GradleVersion
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 
@@ -71,6 +73,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
     val (functionFlags, deprecationBlock) =
         if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
         else publicFunctionFlags to ""
+    val sourceApiGradleVersion = GradleVersion.version(
+        GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version)
+    ).baseVersion
 
     className to sequenceOf(
         AccessorFragment(
@@ -265,7 +270,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             signature = JvmMethodSignature(
                 propertyName,
                 "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Lorg/gradle/api/provider/ProviderConvertible;Lorg/gradle/api/Action;)V"
-            )
+            ),
+            supportedSince = GradleVersion.version("7.4")
         ),
         AccessorFragment(
             source = name.run {
@@ -598,7 +604,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 ""
             )
         )
-    )
+    ).filter { it.supportedSince?.let { it <= sourceApiGradleVersion } ?: true }
 }
 
 

@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.GradleApiVersionProvider
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.ClasspathNormalizer
@@ -45,6 +46,7 @@ import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.deserialization.Flags
@@ -117,6 +119,7 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
+        const val SOURCE_GRADLE_API_VERSION = "sourceGradleApiVersion"
     }
 
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
@@ -144,6 +147,7 @@ class GenerateProjectAccessors(
     override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
         val hasher = Hashing.newHasher()
         requireNotNull(identityInputs[PROJECT_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        requireNotNull(identityInputs[SOURCE_GRADLE_API_VERSION]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
         return UnitOfWork.Identity { identityHash }
@@ -157,6 +161,7 @@ class GenerateProjectAccessors(
 
     override fun visitIdentityInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY) { hashCodeFor(projectSchema) }
+        visitor.visitInputProperty(SOURCE_GRADLE_API_VERSION) { GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version) }
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
@@ -593,6 +598,10 @@ fun IO.writeAccessorsTo(
     }
 }
 
+val sourceGradleApiVersion
+    get() = GradleApiVersionProvider.getGradleApiSourceVersion().orElse(GradleVersion.current().version)
+val supportsProviderConvertible
+    get() = GradleVersion.version(sourceGradleApiVersion).baseVersion >= GradleVersion.version("7.4")
 
 internal
 fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
@@ -615,7 +624,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderConvertible
+${if (supportsProviderConvertible) "import org.gradle.api.provider.ProviderConvertible" else ""}
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 

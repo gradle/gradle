@@ -37,7 +37,7 @@ class JavaCompileTaskIntegrationTest extends AbstractIntegrationSpec {
     def "can use the task without applying java-base plugin"() {
         buildFile << """
             task compile(type: JavaCompile) {
-                classpath = files()
+                classpath.setFrom(files())
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDirectory = file("build/classes")

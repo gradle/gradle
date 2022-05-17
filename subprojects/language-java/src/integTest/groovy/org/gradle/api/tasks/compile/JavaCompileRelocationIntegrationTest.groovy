@@ -52,7 +52,7 @@ class JavaCompileRelocationIntegrationTest extends ForkCapableRelocationIntegrat
                 targetCompatibility = JavaVersion.current()
                 destinationDirectory = file("build/classes")
                 source "src/main/java"
-                classpath = files('libs')
+                classpath.setFrom(files('libs'))
             }
         """
     }

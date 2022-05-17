@@ -82,7 +82,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  * Compiles Groovy source files, and optionally, Java source files.
  */
 @CacheableTask
-public class GroovyCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
@@ -107,7 +107,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @Override
     @CompileClasspath
     @Incremental
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
         // See https://github.com/gradle/gradle/pull/9513
         return super.getClasspath();
@@ -288,12 +288,12 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         JavaInstallationMetadata toolchain = getToolchain();
         if (toolchain != null) {
             boolean isSourceOrTargetConfigured = false;
-            if (super.getSourceCompatibility() != null) {
-                spec.setSourceCompatibility(getSourceCompatibility());
+            if (getSourceCompatibility().isPresent()) {
+                spec.setSourceCompatibility(getSourceCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
-            if (super.getTargetCompatibility() != null) {
-                spec.setTargetCompatibility(getTargetCompatibility());
+            if (getTargetCompatibility().isPresent()) {
+                spec.setTargetCompatibility(getTargetCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
             if (!isSourceOrTargetConfigured) {
@@ -302,8 +302,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
                 spec.setTargetCompatibility(languageVersion);
             }
         } else {
-            spec.setSourceCompatibility(getSourceCompatibility());
-            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setSourceCompatibility(getSourceCompatibility().getOrNull());
+            spec.setTargetCompatibility(getTargetCompatibility().getOrNull());
         }
     }
 

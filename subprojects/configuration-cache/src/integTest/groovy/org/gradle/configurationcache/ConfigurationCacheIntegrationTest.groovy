@@ -81,7 +81,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
             tasks.register("copy", org.gradle.api.tasks.Copy) {
                 it.from(zipTree(${provider}))
-                it.destinationDir(new File(project.buildDir, "copied"))
+                it.destinationDir.set(new File(project.buildDir, "copied"))
             }
         """
         file("a.file") << "42"
