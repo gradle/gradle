@@ -46,6 +46,7 @@ import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Specification
 
 import static org.gradle.nativeplatform.platform.internal.ArchitectureInternal.InstructionSet.ARM
@@ -319,7 +320,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | "-m64"    | "-m64"
     }
 
-    @IgnoreIf(value = {!os.macOs}, reason = "Code under test depends on current platform")
+    @Requires(value = {os.macOs}, reason = "Code under test depends on current platform")
     def "supplies args for supported architecture for macOS platforms"() {
         def action = Mock(Action)
 
@@ -441,5 +442,4 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         tool.getArgAction().execute(args)
         args
     }
-
 }
