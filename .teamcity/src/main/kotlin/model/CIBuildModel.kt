@@ -105,6 +105,7 @@ data class CIBuildModel(
                 SpecificBuild.TestPerformanceTest,
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
+                SpecificBuild.FlakyTestQuarantineMacOsM1,
                 SpecificBuild.FlakyTestQuarantineWindows
             ),
             functionalTests = listOf(
@@ -420,6 +421,11 @@ enum class SpecificBuild {
     FlakyTestQuarantineMacOs {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.MACOS)
+        }
+    },
+    FlakyTestQuarantineMacOsM1 {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
         }
     },
     FlakyTestQuarantineWindows {
