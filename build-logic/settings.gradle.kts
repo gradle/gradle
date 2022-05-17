@@ -16,7 +16,13 @@
 
 pluginManagement {
     repositories {
-        mavenLocal()
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
         gradlePluginPortal()
     }
 }
@@ -40,8 +46,14 @@ dependencyResolutionManagement {
                 includeModule("classycle", "classycle")
             }
         }
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
         mavenCentral()
-        mavenLocal()
         gradlePluginPortal()
     }
 }

@@ -12,7 +12,13 @@ pluginManagement {
                 includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
             }
         }
-        mavenLocal()
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
         gradlePluginPortal()
     }
 }

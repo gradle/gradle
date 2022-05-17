@@ -40,6 +40,12 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
+    maven {
+        name = "Kotlin Snapshots"
+        url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+        content {
+            includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+        }
+    }
     mavenCentral()
-    mavenLocal()
 }
