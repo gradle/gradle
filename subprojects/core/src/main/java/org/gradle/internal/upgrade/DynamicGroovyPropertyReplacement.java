@@ -49,6 +49,7 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
     @Override
     public Optional<CallSite> decorateCallSite(CallSite callSite) {
         if (callSite.getName().equals(propertyName)) {
+            LOGGER.warn("Replacing CallSite for property {} in {}", propertyName, callSite.getArray().owner.getName());
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
                 public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {

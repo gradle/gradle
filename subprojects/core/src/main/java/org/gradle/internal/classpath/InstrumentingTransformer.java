@@ -32,6 +32,8 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -57,10 +61,12 @@ import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getMethodType;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
 class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingTransformer.class);
 
     /**
      * Decoration format. Increment this when making changes.
@@ -455,6 +461,11 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 }
             }
             if (apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, owner, name, descriptor, isInterface)) {
+                Type methodType = getMethodType(descriptor);
+                String arguments = Stream.of(methodType.getArgumentTypes())
+                    .map(Type::getClassName)
+                    .collect(Collectors.joining(", "));
+                LOGGER.warn("Matched call to {}.{}({}) in {}, replacing...", Type.getObjectType(owner).getClassName(), name, arguments, Type.getObjectType(className).getClassName());
                 return true;
             }
             return false;

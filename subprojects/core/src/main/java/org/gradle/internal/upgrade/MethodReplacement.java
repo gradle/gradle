@@ -154,6 +154,7 @@ class MethodReplacement<T> implements Replacement {
     @Override
     public Optional<CallSite> decorateCallSite(CallSite callSite) {
         if (callSite.getName().equals(methodName)) {
+            LOGGER.warn("Replacing CallSite for {} in {}", methodName, callSite.getArray().owner.getName());
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
                 public Object call(Object receiver, Object[] args) throws Throwable {
