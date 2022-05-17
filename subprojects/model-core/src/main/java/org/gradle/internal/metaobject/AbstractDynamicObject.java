@@ -126,8 +126,8 @@ public abstract class AbstractDynamicObject implements DynamicObject {
             message.append(String.format("Could not set unknown property '%s' for %s.", name, getDisplayName()));
         }
 
-        if (result.hasAdditionalContext()) {
-            result.getAdditionalContext().stream()
+        if (DynamicInvokeResult.hasAdditionalContext()) {
+            DynamicInvokeResult.getAdditionalContext().stream()
                     .map(DynamicInvokeResult.AdditionalContext::getMessage)
                     .map("\n\t"::concat)
                     .forEach(message::append);
@@ -149,8 +149,8 @@ public abstract class AbstractDynamicObject implements DynamicObject {
             message.append(String.format("Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
         }
 
-        if (result.hasAdditionalContext()) {
-            result.getAdditionalContext().stream()
+        if (DynamicInvokeResult.hasAdditionalContext()) {
+            DynamicInvokeResult.getAdditionalContext().stream()
                     .map(DynamicInvokeResult.AdditionalContext::getMessage)
                     .map("\n\t"::concat)
                     .forEach(message::append);
@@ -200,8 +200,8 @@ public abstract class AbstractDynamicObject implements DynamicObject {
             // Include the display name anyway
             message.append(String.format("Could not find method %s() for arguments %s on %s.", name, Arrays.toString(params), getDisplayName()));
         }
-        if (result.hasAdditionalContext()) {
-            result.getAdditionalContext().stream()
+        if (DynamicInvokeResult.hasAdditionalContext()) {
+            DynamicInvokeResult.getAdditionalContext().stream()
                     .map(DynamicInvokeResult.AdditionalContext::getMessage)
                     .map("\n\t"::concat)
                     .forEach(message::append);

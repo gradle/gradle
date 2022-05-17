@@ -784,7 +784,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // region: Dependencies block misuse
-    def "missing method in both test suites dependencies block and top-level dependencies block is well handled"() {
+    def "missing method in both test suites dependencies block and all outer blocks produces default error message"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -805,10 +805,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("help")
         failure.assertHasErrorOutput("Could not find method turtle() for arguments [3] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
-        !failure.getOutput().contains("This method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.");
+        !failure.getError().contains("\tThis method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.")
+        !failure.getError().contains("\tIt looks like you are trying to dynamically access a configuration named")
     }
 
-    def "missing method matching configuration name is well handled"() {
+    def "missing method matching configuration name produces informative context"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -828,11 +829,15 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         fails("help")
-        failure.assertHasErrorOutput("Could not find method turtle() for arguments [3] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
-        !failure.getOutput().contains("This method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.");
+        failure.assertHasErrorOutput("Could not find method integTestImplementation() for arguments [foo:bar:1.0] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        failure.assertHasErrorOutput("\tIt looks like you are trying to dynamically access a configuration named 'integTestImplementation'.")
+        failure.assertHasErrorOutput("\tReferring to configurations by name is not supported within the Test Suites' dependencies block.")
+        failure.assertHasErrorOutput("Please use one of the provided methods instead: annotationProcessor, implementation, compileOnly, runtimeOnly.  See the following DSL reference:")
+        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html")
+
     }
 
-    def "missing method in test suites dependency block present in top-level dependencies block is well handled"() {
+    def "missing method in test suites dependency block present in top-level dependencies block produces informative context"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -853,10 +858,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("help")
         failure.assertHasErrorOutput("Could not find method gradleTestKit() for arguments [] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
-        failure.assertHasErrorOutput("This method is present in the top-level dependencies block, but can not be used within a test suite's dependencies block.");
-        failure.assertHasErrorOutput("See https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html for an overview on the differences between these two blocks, or compare the following DSL references:");
-        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html");
-        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html");
+        failure.assertHasErrorOutput("\tThis method is present in the top-level dependencies block, but can not be used within a Test Suite's dependencies block.")
+        failure.assertHasErrorOutput("See https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html for an overview on the differences between these two blocks, or compare the following DSL references:")
+        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html")
+        failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html")
+        !failure.getError().contains("\tIt looks like you are trying to dynamically access a configuration named")
     }
     // endregion Dependencies block misuse
 }

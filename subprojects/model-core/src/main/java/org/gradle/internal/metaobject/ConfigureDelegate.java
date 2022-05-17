@@ -29,7 +29,6 @@ public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
     private boolean _configuring;
-    private List<DynamicInvokeResult> _previousConfigureAttemptResults = new ArrayList<>();
 
     public ConfigureDelegate(Closure configureClosure, Object delegate) {
         _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
@@ -54,49 +53,39 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         Object[] params = (Object[])paramsObj;
 
         boolean isAlreadyConfiguring = _configuring;
-        if (!isAlreadyConfiguring) {
-            _previousConfigureAttemptResults.clear();
-        }
         _configuring = true;
         try {
             DynamicInvokeResult result = _delegate.tryInvokeMethod(name, params);
             if (result.isFound()) {
                 return result.getValue();
-            } else {
-                _previousConfigureAttemptResults.add(result);
             }
 
             MissingMethodException failure = null;
             if (!isAlreadyConfiguring) {
                 // Try to configure element
-                DynamicInvokeResult configureResult = null;
                 try {
-                    configureResult = _configure(name, params);
+                    result = _configure(name, params);
                 } catch (MissingMethodException e) {
                     // Workaround for backwards compatibility. Previously, this case would unintentionally cause the method to be invoked on the owner
                     // continue below
                     failure = e;
                 }
-                if (configureResult.isFound()) {
-                    return configureResult.getValue();
-                } else {
-                    _previousConfigureAttemptResults.add(configureResult);
+                if (result.isFound()) {
+                    return result.getValue();
                 }
             }
 
             // try the owner
-            DynamicInvokeResult ownerResult = _owner.tryInvokeMethod(name, params);
-            if (ownerResult.isFound()) {
-                return ownerResult.getValue();
-            } else {
-                _previousConfigureAttemptResults.add(ownerResult);
+            result = _owner.tryInvokeMethod(name, params);
+            if (result.isFound()) {
+                return result.getValue();
             }
 
             if (failure != null) {
                 throw failure;
             }
 
-            throw _delegate.methodMissingException(ownerResult, name, params);
+            throw _delegate.methodMissingException(result, name, params);
         } finally {
             _configuring = isAlreadyConfiguring;
         }

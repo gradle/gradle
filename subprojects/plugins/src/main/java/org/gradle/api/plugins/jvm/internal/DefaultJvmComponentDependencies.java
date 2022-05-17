@@ -281,7 +281,7 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
 
             private AdditionalContext msgTryingToDynamicallyAccessConfiguration(String configurationName) {
                 return AdditionalContext.forString("It looks like you are trying to dynamically access a configuration named '" + configurationName + "'."
-                        + "\nReferring to configurations by name is not supported within the Test Suites' dependencies block."
+                        + "\n\tReferring to configurations by name is not supported within the Test Suites' dependencies block."
                         + "\nPlease use one of the provided methods instead: annotationProcessor, implementation, compileOnly, runtimeOnly.  See the following DSL reference:"
                         + "\n\t" + dslLinkFor(JvmComponentDependencies.class));
             }
