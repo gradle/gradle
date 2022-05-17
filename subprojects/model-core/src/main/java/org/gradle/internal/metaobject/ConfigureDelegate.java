@@ -21,8 +21,6 @@ import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
-import java.util.List;
 
 @NotThreadSafe
 public class ConfigureDelegate extends GroovyObjectSupport {
@@ -85,7 +83,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 throw failure;
             }
 
-            throw _delegate.methodMissingException(result, name, params);
+            throw _delegate.methodMissingException(name, params);
         } finally {
             _configuring = isAlreadyConfiguring;
         }
@@ -103,7 +101,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
             return;
         }
 
-        throw _delegate.setMissingProperty(result, property);
+        throw _delegate.setMissingProperty(property);
     }
 
     @Override
@@ -129,7 +127,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 }
             }
 
-            throw _delegate.getMissingProperty(result, name);
+            throw _delegate.getMissingProperty(name);
         } finally {
             _configuring = isAlreadyConfiguring;
         }

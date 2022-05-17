@@ -369,7 +369,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
                             if (metaBeanProperty.getField() == null) {
-                                throw setReadOnlyProperty(DynamicInvokeResult.notFound(), name);
+                                throw setReadOnlyProperty(name);
                             }
                             value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
                             metaBeanProperty.getField().setProperty(bean, value);

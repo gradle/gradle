@@ -17,7 +17,6 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.Incubating;
 
 /**
  * An object that can be worked with in a dynamic fashion.
@@ -28,23 +27,19 @@ import org.gradle.api.Incubating;
  */
 public interface DynamicObject extends MethodAccess, PropertyAccess {
     /**
-     * Creates a {@link MissingPropertyException} for getting an unknown property of this object, including
-     *      * any additional context information present on the result.
+     * Creates a {@link MissingPropertyException} for getting an unknown property of this object.
      */
-    MissingPropertyException getMissingProperty(DynamicInvokeResult result, String name);
+    MissingPropertyException getMissingProperty(String name);
 
     /**
-     * Creates a {@link MissingPropertyException} for setting an unknown property of this object, including
-     *      * any additional context information present on the result.
+     * Creates a {@link MissingPropertyException} for setting an unknown property of this object.
      */
-    MissingPropertyException setMissingProperty(DynamicInvokeResult result, String name);
+    MissingPropertyException setMissingProperty(String name);
 
     /**
-     * Creates a {@link MissingMethodException} for invoking an unknown method on this object, including
-     * any additional context information present on the result.
+     * Creates a {@link MissingMethodException} for invoking an unknown method on this object.
      */
-    @Incubating
-    MissingMethodException methodMissingException(DynamicInvokeResult result, String name, Object... params);
+    MissingMethodException methodMissingException(String name, Object... params);
 
     /**
      * Don't use this method. Use the overload {@link #tryGetProperty(String)} instead.

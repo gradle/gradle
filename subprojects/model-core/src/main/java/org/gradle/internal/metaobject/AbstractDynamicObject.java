@@ -61,7 +61,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     public Object getProperty(String name) throws MissingPropertyException {
         DynamicInvokeResult result = tryGetProperty(name);
         if (!result.isFound()) {
-            throw getMissingProperty(result, name);
+            throw getMissingProperty(name);
         }
         return result.getValue();
     }
@@ -75,25 +75,32 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     public void setProperty(String name, Object value) throws MissingPropertyException {
         DynamicInvokeResult result = trySetProperty(name, value);
         if (!result.isFound()) {
-            throw setMissingProperty(result, name);
+            throw setMissingProperty(name);
         }
     }
 
     @Override
-    public MissingPropertyException getMissingProperty(DynamicInvokeResult result, String name) {
+    public MissingPropertyException getMissingProperty(String name) {
+        StringBuilder message = new StringBuilder();
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
-            return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s of type %s.", name,
-                    getDisplayName(), publicType.getName()), name, publicType);
+            message.append(String.format("Could not get unknown property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
-            return new MissingPropertyException(String.format("Could not get unknown property '%s' for object of type %s.", name,
-                    publicType.getName()), name, publicType);
+            message.append(String.format("Could not get unknown property '%s' for object of type %s.", name, publicType.getName()));
         } else {
             // Use the display name anyway
-            return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
-                    getDisplayName()), name, null);
+            message.append(String.format("Could not get unknown property '%s' for %s.", name, getDisplayName()));
         }
+
+        if (DynamicInvokeResult.hasAdditionalContext()) {
+            DynamicInvokeResult.getAdditionalContext().stream()
+                    .map(DynamicInvokeResult.AdditionalContext::getMessage)
+                    .map("\n\t"::concat)
+                    .forEach(message::append);
+        }
+
+        return new MissingPropertyException(message.toString(), name, publicType);
     }
 
     protected GroovyRuntimeException getWriteOnlyProperty(String name) {
@@ -113,7 +120,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public MissingPropertyException setMissingProperty(DynamicInvokeResult result, String name) {
+    public MissingPropertyException setMissingProperty(String name) {
         StringBuilder message = new StringBuilder();
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
@@ -136,7 +143,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         return new MissingPropertyException(message.toString(), name, publicType);
     }
 
-    protected GroovyRuntimeException setReadOnlyProperty(DynamicInvokeResult result, String name) {
+    protected GroovyRuntimeException setReadOnlyProperty(String name) {
         StringBuilder message = new StringBuilder();
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
@@ -185,10 +192,10 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         if (result.isFound()) {
             return result.getValue();
         }
-        throw methodMissingException(result, name, arguments);
+        throw methodMissingException(name, arguments);
     }
 
-    public MissingMethodException methodMissingException(DynamicInvokeResult result, String name, Object... params) {
+    public MissingMethodException methodMissingException(String name, Object... params) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         final StringBuilder message = new StringBuilder();

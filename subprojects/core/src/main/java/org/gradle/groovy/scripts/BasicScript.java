@@ -153,18 +153,18 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         }
 
         @Override
-        public MissingPropertyException getMissingProperty(DynamicInvokeResult result, String name) {
-            return dynamicTarget.getMissingProperty(result, name);
+        public MissingPropertyException getMissingProperty(String name) {
+            return dynamicTarget.getMissingProperty(name);
         }
 
         @Override
-        public MissingMethodException methodMissingException(DynamicInvokeResult result, String name, Object... params) {
-            return dynamicTarget.methodMissingException(result, name, params);
+        public MissingMethodException methodMissingException(String name, Object... params) {
+            return dynamicTarget.methodMissingException(name, params);
         }
 
         @Override
-        public MissingPropertyException setMissingProperty(DynamicInvokeResult result, String name) {
-            return dynamicTarget.setMissingProperty(result, name);
+        public MissingPropertyException setMissingProperty(String name) {
+            return dynamicTarget.setMissingProperty(name);
         }
 
         @Override

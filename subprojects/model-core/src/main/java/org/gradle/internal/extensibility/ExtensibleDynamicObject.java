@@ -194,18 +194,18 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public MissingPropertyException getMissingProperty(DynamicInvokeResult result, String name) {
-            return dynamicDelegate.getMissingProperty(result, name);
+        public MissingPropertyException getMissingProperty(String name) {
+            return dynamicDelegate.getMissingProperty(name);
         }
 
         @Override
-        public MissingPropertyException setMissingProperty(DynamicInvokeResult result, String name) {
-            return dynamicDelegate.setMissingProperty(result, name);
+        public MissingPropertyException setMissingProperty(String name) {
+            return dynamicDelegate.setMissingProperty(name);
         }
 
         @Override
-        public MissingMethodException methodMissingException(DynamicInvokeResult result, String name, Object... params) {
-            return dynamicDelegate.methodMissingException(result, name, params);
+        public MissingMethodException methodMissingException(String name, Object... params) {
+            return dynamicDelegate.methodMissingException(name, params);
         }
 
         @Override
