@@ -203,7 +203,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
             }
 
             @Override
-            boolean isSafeForFallback() {
+            boolean canReopen() {
                 return true
             }
         }

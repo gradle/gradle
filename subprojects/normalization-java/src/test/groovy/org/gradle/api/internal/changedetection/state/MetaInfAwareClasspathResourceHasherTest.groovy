@@ -444,7 +444,7 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            boolean isSafeForFallback() {
+            boolean canReopen() {
                 return true
             }
         }

@@ -73,7 +73,7 @@ class JdkZipEntry implements ZipEntry {
     }
 
     @Override
-    public boolean isSafeForFallback() {
+    public boolean canReopen() {
         return zipEntryHandler.canReopen();
     }
 }

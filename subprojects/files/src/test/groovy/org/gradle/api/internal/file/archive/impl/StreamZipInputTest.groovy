@@ -77,7 +77,7 @@ class StreamZipInputTest extends Specification {
         while(b != -1) {
             baos.write(b)
             b = is.read()
-        } 
+        }
         return baos.toByteArray()
     }
 
