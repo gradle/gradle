@@ -31,4 +31,17 @@ public interface IvyArtifactName {
 
     @Nullable
     String getClassifier();
+
+    /**
+     * Get extension of the file referenced by this artifact name.
+     * @return The extension if present, the type otherwise.
+     */
+    default String getEffectiveExtension() {
+        String extension = getExtension();
+        if (extension != null) {
+            return extension;
+        }
+
+        return getType();
+    }
 }

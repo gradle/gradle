@@ -173,7 +173,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         private ModuleComponentArtifactIdentifier createSignatureArtifactIdFromIvyArtifactName(ModuleComponentIdentifier moduleComponentIdentifier, IvyArtifactName ivyArtifactName) {
-            String extension = ivyArtifactName.getExtension() != null ? ivyArtifactName.getExtension() : ivyArtifactName.getType();
+            String extension = ivyArtifactName.getEffectiveExtension();
             return new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, ivyArtifactName.getName(), "asc", extension + ".asc", ivyArtifactName.getClassifier());
         }
 
@@ -269,11 +269,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 // This is a bit hackish but the mapping from file names to ivy artifact names is completely broken
                 String fileName = artifactIdentifier.getFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
                 fileName = Files.getNameWithoutExtension(fileName); // removes the .asc
-                DefaultIvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
+                IvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
                 return new DefaultIvyArtifactName(
                     base.getName(),
                     "asc",
-                    base.getExtension() + ".asc"
+                    base.getEffectiveExtension() + ".asc"
                 );
             }
 

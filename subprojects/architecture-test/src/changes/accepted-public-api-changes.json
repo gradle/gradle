@@ -55,6 +55,22 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getClassifier()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getExtension()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
         }
     ]
 }

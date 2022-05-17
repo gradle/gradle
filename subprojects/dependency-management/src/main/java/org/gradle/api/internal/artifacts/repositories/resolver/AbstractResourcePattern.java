@@ -86,7 +86,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
         attributes.put(IvyPatternHelper.TYPE_KEY, ivyArtifact.getType());
-        attributes.put(IvyPatternHelper.EXT_KEY, ivyArtifact.getExtension() != null ? ivyArtifact.getExtension() : ivyArtifact.getType());
+        attributes.put(IvyPatternHelper.EXT_KEY, ivyArtifact.getEffectiveExtension());
         attributes.put(CLASSIFIER_KEY, ivyArtifact.getClassifier());
         return attributes;
     }
@@ -128,7 +128,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
             && isValidSubstitute(componentIdentifier.getVersion(), revisionIsOptional)
             && isValidSubstitute(artifactName.getName(), artifactIsOptional)
             && isValidSubstitute(artifactName.getClassifier(), classifierIsOptional)
-            && isValidSubstitute(artifactName.getExtension() != null ? artifactName.getExtension() : artifactName.getType(), extensionIsOptional)
+            && isValidSubstitute(artifactName.getEffectiveExtension(), extensionIsOptional)
             && isValidSubstitute(artifactName.getType(), typeIsOptional);
     }
 

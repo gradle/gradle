@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
@@ -140,5 +141,10 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
     @Override
     public String getClassifier() {
         return artifact.getClassifier();
+    }
+
+    @VisibleForTesting
+    public String getEffectiveExtension() {
+        return artifact.getEffectiveExtension();
     }
 }

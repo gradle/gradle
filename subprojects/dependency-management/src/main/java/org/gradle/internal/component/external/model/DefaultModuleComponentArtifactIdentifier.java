@@ -46,8 +46,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     @Override
     public String getFileName() {
         String classifier = StringUtils.isNotEmpty(name.getClassifier()) ? "-" + name.getClassifier() : "";
-        String extension = StringUtils.isNotEmpty(name.getExtension()) ? "." + name.getExtension() : "";
-        return name.getName() + "-" + componentIdentifier.getVersion() + classifier + extension;
+        return name.getName() + "-" + componentIdentifier.getVersion() + classifier + '.' + name.getEffectiveExtension();
     }
 
     @Override

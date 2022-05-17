@@ -100,11 +100,10 @@ class DependencyState {
     }
 
     private DefaultIvyArtifactName createArtifact(ComponentSelector target, DependencyArtifactSelector avs) {
-        String extension = avs.getExtension() != null ? avs.getExtension() : avs.getType();
         return new DefaultIvyArtifactName(
             nameOf(target),
             avs.getType(),
-            extension,
+            avs.getExtension(),
             avs.getClassifier()
         );
     }

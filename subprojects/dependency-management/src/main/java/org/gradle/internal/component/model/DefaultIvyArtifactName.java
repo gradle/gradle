@@ -72,9 +72,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             result.append("-");
             result.append(classifier);
         }
-        if (GUtil.isTrue(extension) && !Files.getFileExtension(name).equals(extension)) {
+        String effectiveExtension = getEffectiveExtension();
+        if (GUtil.isTrue(effectiveExtension) && !Files.getFileExtension(name).equals(effectiveExtension)) {
             result.append(".");
-            result.append(extension);
+            result.append(effectiveExtension);
         }
         return result.toString();
     }

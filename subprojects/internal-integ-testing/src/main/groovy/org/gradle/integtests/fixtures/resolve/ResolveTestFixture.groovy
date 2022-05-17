@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
@@ -942,13 +943,13 @@ class GenerateGraphTask extends DefaultTask {
             }
 
             configuration.resolvedConfiguration.resolvedArtifacts.each {
-                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
+                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${((PreResolvedResolvableArtifact) it).effectiveExtension}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
-                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
+                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${((PreResolvedResolvableArtifact) it).effectiveExtension}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
-                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
+                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${((PreResolvedResolvableArtifact) it).effectiveExtension}]")
             }
         }
     }
