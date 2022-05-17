@@ -13,9 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+pluginManagement {
+    repositories {
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
+        gradlePluginPortal()
+    }
+}
 
 dependencyResolutionManagement {
     repositories {
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
         gradlePluginPortal()
     }
 }

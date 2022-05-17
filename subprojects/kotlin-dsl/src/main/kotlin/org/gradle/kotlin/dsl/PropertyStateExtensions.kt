@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 
 import kotlin.reflect.KProperty
 
@@ -35,3 +36,13 @@ operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T
  * Example: `var someProperty by somePropertyState`
  */
 operator fun <T> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)
+
+/**
+ * Property assign for [Property] instances.
+ */
+operator fun <T> Property<T>.assign(value: T) = set(value)
+
+/**
+ * Property assign for [Property] instances.
+ */
+operator fun <T> Property<T>.assign(value: Provider<T>) = set(value)

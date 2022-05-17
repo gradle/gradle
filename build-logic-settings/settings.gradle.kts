@@ -16,8 +16,28 @@
 
 rootProject.name = "build-logic-settings"
 
+pluginManagement {
+    repositories {
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
+        gradlePluginPortal()
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
+        maven {
+            name = "Kotlin Snapshots"
+            url = uri("https://repo.grdev.net/artifactory/ext-snapshots-local/")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin", ".*", ".*-SNAPSHOT")
+            }
+        }
         gradlePluginPortal()
     }
 }
