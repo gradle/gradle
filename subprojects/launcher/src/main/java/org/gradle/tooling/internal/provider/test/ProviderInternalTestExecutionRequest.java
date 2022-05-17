@@ -41,4 +41,14 @@ public interface ProviderInternalTestExecutionRequest {
      * @since 6.1
      */
     Map<String, List<InternalJvmTestRequest>> getTaskAndTests(Map<String, List<InternalJvmTestRequest>> defaults);
+
+    /**
+     * @since 7.6
+     */
+    List<String> getTasks(List<String> defaults);
+
+    /**
+     * @since 7.6
+     */
+    boolean isRunDefaultTasks(boolean dafaults);
 }

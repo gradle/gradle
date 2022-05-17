@@ -42,8 +42,10 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
     private final InternalDebugOptions debugOptions;
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
+    private final boolean isRunDefaultTasks;
+    private final List<String> tasks;
 
-    public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
+    public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests, boolean isRunDefaultTasks, List<String> tasks) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
@@ -51,6 +53,8 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         this.internalJvmTestRequests = internalJvmTestRequests;
         this.debugOptions = debugOptions;
         this.taskAndTests = taskAndTests;
+        this.isRunDefaultTasks = isRunDefaultTasks;
+        this.tasks = tasks;
     }
 
     // Unpacks the request to serialize across to the daemon and creates instance of
@@ -62,7 +66,9 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
             classNames,
             getInternalJvmTestRequests(testExecutionRequest, classNames),
             getDebugOptions(testExecutionRequest),
-            getTaskAndTests(testExecutionRequest));
+            getTaskAndTests(testExecutionRequest),
+            testExecutionRequest.isRunDefaultTasks(false),
+            testExecutionRequest.getTasks(Collections.emptyList()));
     }
 
     private static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {
@@ -135,5 +141,13 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
 
     public Map<String, List<InternalJvmTestRequest>> getTaskAndTests() {
         return taskAndTests;
+    }
+
+    public List<String> getTasks() {
+        return tasks;
+    }
+
+    public boolean isRunDefaultTasks() {
+        return isRunDefaultTasks;
     }
 }

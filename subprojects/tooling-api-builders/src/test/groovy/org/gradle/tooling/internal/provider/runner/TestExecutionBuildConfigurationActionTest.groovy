@@ -96,6 +96,8 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getInternalJvmTestRequests() >> []
         1 * testExecutionRequest.getTaskAndTests() >> [:]
+        1 * testExecutionRequest.isRunDefaultTasks() >> false
+        1 * testExecutionRequest.getTasks() >> []
 
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
@@ -112,6 +114,8 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        1 * testExecutionRequest.isRunDefaultTasks() >> false
+        1 * testExecutionRequest.getTasks() >> []
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:

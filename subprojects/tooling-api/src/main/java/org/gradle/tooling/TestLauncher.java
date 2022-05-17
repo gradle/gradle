@@ -16,6 +16,7 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
@@ -139,6 +140,18 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 5.6
      */
     TestLauncher debugTestsOn(int port);
+
+    /**
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
+     * <p>
+     * The specified tasks are ignored if the target Gradle versions is &lt;7.6.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     * @since 7.6
+     */
+    @Incubating
+    TestLauncher forTasks(String... tasks);
 
     /**
      * Executes the tests, blocking until complete.
