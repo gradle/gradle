@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import groovy.json.JsonOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -139,7 +140,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
         // To avoid [gcc, g++] pair because they have same display name
         result.flatten().each {
-            println((it as ClangToolChain).path)
+            println(JsonOutput.toJson(it))
         }
         println("Tool chain after filter: ${result.findAll { it[0].displayName != it[1].displayName }}")
         return result.findAll { it[0].displayName != it[1].displayName }
