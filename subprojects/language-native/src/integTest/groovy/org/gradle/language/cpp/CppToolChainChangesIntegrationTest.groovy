@@ -137,6 +137,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         // To avoid [gcc, g++] pair because they have same display name
+        println("Tool chain pairs: $result, after filter: ${result.findAll { it[0].displayName != it[1].displayName }}")
         return result.findAll { it[0].displayName != it[1].displayName }
     }
 }
