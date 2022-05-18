@@ -30,6 +30,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -123,23 +124,39 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         withOriginalSourceIn("composite-lib")
     }
 
-    def "can not use ResolvedArtifactResult as task input"() {
+    def "can not use ResolvedArtifactResult as task input annotated with #description"() {
+
+        executer.beforeExecute {
+            executer.noDeprecationChecks()
+            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
+        }
+
         given:
         buildFile << """
             abstract class TaskWithInput extends DefaultTask {
 
-                @Input
-                abstract SetProperty<ResolvedArtifactResult> getInput();
+                $annotation
+                ResolvedArtifactResult getDirect() { null }
 
-                @OutputFile
-                abstract RegularFileProperty getOutputFile()
+                $annotation
+                Provider<ResolvedArtifactResult> getProviderInput() { propertyInput }
+
+                $annotation
+                abstract Property<ResolvedArtifactResult> getPropertyInput();
+
+                $annotation
+                abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
+
+                $annotation
+                abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
             }
 
             tasks.register('verify', TaskWithInput) {
-                input.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
-                outputFile.set(layout.buildDirectory.file('output.txt'))
+                propertyInput.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.map { it[0] })
+                setPropertyInput.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
+                listPropertyInput.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
                 doLast {
-                    println(input.get())
+                    println(setPropertyInput.get())
                 }
             }
         """
@@ -148,8 +165,28 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         fails "verify"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':verify'.")
-        failureHasCause("Cannot fingerprint input property 'input'")
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':verify' (type 'TaskWithInput').")
+        failureDescriptionContains("Type 'TaskWithInput' property 'direct' has $annotation annotation used on property of type 'ResolvedArtifactResult'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'providerInput' has $annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'propertyInput' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'setPropertyInput' has $annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'listPropertyInput' has $annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'.")
+
+        // Because
+        failureDescriptionContains("ResolvedArtifactResult is not supported on task properties annotated with $annotation.")
+
+        // Possible solutions
+        failureDescriptionContains("1. Extract artifact metadata and annotate with @Input.")
+        failureDescriptionContains("2. Extract artifact files and annotate with @InputFiles.")
+
+        // Documentation
+        failureDescriptionContains("Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unsupported_value_type for more details about this problem.")
+
+        where:
+        annotation    | description
+        "@Input"      | "at-input"
+        "@InputFile"  | "at-input-file"
+        "@InputFiles" | "at-input-files"
     }
 
     def "can use #type as task input"() {
@@ -579,12 +616,12 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
         where:
-        changeDesc                                             | changeArg
-        "a new external dependency"                            | "-DexternalDependency=true"
-        "changing selection reasons"                           | "-DselectionReason=changed"
-        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
-        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
-        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
+        changeDesc                                   | changeArg
+        "a new external dependency"                  | "-DexternalDependency=true"
+        "changing selection reasons"                 | "-DselectionReason=changed"
+        "changing project library variant metadata"  | "-DprojectLibAttrValue=new-value"
+        "changing included library variant metadata" | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata" | "-DexternalLibAttrValue=new-value"
     }
 
     def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache (returnAllVariants=true)"() {

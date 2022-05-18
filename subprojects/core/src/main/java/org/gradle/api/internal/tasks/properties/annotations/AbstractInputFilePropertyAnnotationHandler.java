@@ -43,6 +43,7 @@ import org.gradle.work.NormalizeLineEndings;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -93,6 +94,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
             validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();

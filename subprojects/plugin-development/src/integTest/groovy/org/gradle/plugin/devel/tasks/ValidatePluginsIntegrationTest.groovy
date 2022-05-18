@@ -515,4 +515,57 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         expect:
         assertValidationSucceeds()
     }
+
+    @ValidationTestFor(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+    def "can not use ResolvedArtifactResult as task input annotated with #description"() {
+
+        executer.beforeExecute {
+            executer.noDeprecationChecks()
+            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
+        }
+
+        given:
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault
+            public abstract class MyTask extends DefaultTask {
+
+                @$annotation
+                public ResolvedArtifactResult getDirect() { return null; }
+
+                @$annotation
+                public Provider<ResolvedArtifactResult> getProviderInput() { return getPropertyInput(); }
+
+                @$annotation
+                public abstract Property<ResolvedArtifactResult> getPropertyInput();
+
+                @$annotation
+                public abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
+
+                @$annotation
+                public abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            error(unsupportedValueType { type('MyTask').property('direct').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ResolvedArtifactResult').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueType { type('MyTask').property('listPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ListProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueType { type('MyTask').property('propertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueType { type('MyTask').property('providerInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Provider<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueType { type('MyTask').property('setPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('SetProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+        ])
+
+
+        where:
+        annotation    | description
+        "Input"      | "at-input"
+        "InputFile"  | "at-input-file"
+        "InputFiles" | "at-input-files"
+    }
 }
