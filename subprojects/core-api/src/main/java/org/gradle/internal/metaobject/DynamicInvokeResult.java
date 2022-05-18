@@ -31,7 +31,7 @@ public class DynamicInvokeResult {
     private static final DynamicInvokeResult NULL = new DynamicInvokeResult(null, null);
 
     public static boolean hasAdditionalContext() {
-        return !CURRENT_ADDITIONAL_CONTEXT.get().isEmpty();
+        return CURRENT_ADDITIONAL_CONTEXT.get() != null && !CURRENT_ADDITIONAL_CONTEXT.get().isEmpty();
     }
 
     public static List<AdditionalContext> getAdditionalContext() {
@@ -46,7 +46,7 @@ public class DynamicInvokeResult {
     }
 
     public static DynamicInvokeResult found() {
-        CURRENT_ADDITIONAL_CONTEXT.get().clear(); // Clear context when a result is found
+        CURRENT_ADDITIONAL_CONTEXT.set(new ArrayList<>()); // Clear context when a result is found
         return DynamicInvokeResult.NULL;
     }
 
