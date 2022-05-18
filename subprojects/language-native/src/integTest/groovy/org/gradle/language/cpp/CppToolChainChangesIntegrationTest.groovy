@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain
 import org.gradle.util.Requires
 import org.junit.Assume
 
@@ -137,7 +138,10 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         // To avoid [gcc, g++] pair because they have same display name
-        println("Tool chain pairs: $result, after filter: ${result.findAll { it[0].displayName != it[1].displayName }}")
+        result.flatten().each {
+            println((it as ClangToolChain).path)
+        }
+        println("Tool chain after filter: ${result.findAll { it[0].displayName != it[1].displayName }}")
         return result.findAll { it[0].displayName != it[1].displayName }
     }
 }
