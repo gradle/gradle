@@ -28,6 +28,8 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
@@ -368,11 +370,19 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     if (property instanceof MetaBeanProperty) {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
-                            if (metaBeanProperty.getField() == null) {
+                            // FIXME wolfs: Hack for Bridge method + Dynamic object
+                            if ("classpath".equals(name)
+                                && metaBeanProperty.getGetter() != null
+                                && FileCollection.class.isAssignableFrom(metaBeanProperty.getGetter().getReturnType())
+                            ) {
+                                    ConfigurableFileCollection fileCollection = (ConfigurableFileCollection) metaBeanProperty.getProperty(bean);
+                                    fileCollection.setFrom(value);
+                            } else if (metaBeanProperty.getField() == null) {
                                 throw setReadOnlyProperty(name);
+                            } else {
+                                value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
+                                metaBeanProperty.getField().setProperty(bean, value);
                             }
-                            value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
-                            metaBeanProperty.getField().setProperty(bean, value);
                         } else {
                             // Coerce the value to the type accepted by the property setter and invoke the setter directly
                             Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
