@@ -18,6 +18,7 @@ package util
 
 import common.Arch
 import common.BuildToolBuildJvm
+import common.Jvm
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
@@ -34,7 +35,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
-class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
+class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm) : BuildType({
     val id = "Util_RerunFlakyTest${os.asName()}${arch.asName()}"
     name = "Rerun Flaky Test - ${os.asName()} ${arch.asName()}"
     description = "Allows you to rerun a selected flaky test 10 times"
@@ -45,7 +46,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val testNameParameterName = "testName"
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
-    applyDefaultSettings(os, arch, buildJvm = BuildToolBuildJvm, timeout = 0)
+    applyDefaultSettings(os, arch, buildJvm = buildJvm, timeout = 0)
     val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
