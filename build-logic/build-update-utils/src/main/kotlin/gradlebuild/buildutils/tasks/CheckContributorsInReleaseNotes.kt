@@ -36,7 +36,7 @@ abstract class CheckContributorsInReleaseNotes : AbstractCheckOrUpdateContributo
                 Pull requests:  $contributorsFromPullRequests
                 Missed in notes:$contributorsInPullRequestsButNotInReleaseNotes
 
-                You can run `./gradlew docs:updateContributorsInReleaseNotes` to update the release notes with correct contributors automatically.
+                You can run `GITHUB_TOKEN=<YourGitHubToken> ./gradlew docs:updateContributorsInReleaseNotes --milestone <milestone>` to update the release notes with correct contributors automatically.
                 """.trimIndent()
             )
         }

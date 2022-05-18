@@ -5,9 +5,11 @@ This release features [1](), [2](), ... [n](), and more.
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
+
+ THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[altrisi](https://github.com/altrisi)
+[altrisi](https://github.com/altrisi),
 [Frosty-J](https://github.com/Frosty-J)
 
 ## Upgrade instructions
