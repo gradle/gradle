@@ -140,7 +140,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
         // To avoid [gcc, g++] pair because they have same display name
         result.flatten().each {
-            println(JsonOutput.toJson(it))
+            println(it.getClass())
         }
         println("Tool chain after filter: ${result.findAll { it[0].displayName != it[1].displayName }}")
         return result.findAll { it[0].displayName != it[1].displayName }
