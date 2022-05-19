@@ -124,7 +124,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         withOriginalSourceIn("composite-lib")
     }
 
-    def "can not use ResolvedArtifactResult as task input annotated with #description"() {
+    def "can not use ResolvedArtifactResult as task input annotated with #annotation"() {
 
         executer.beforeExecute {
             executer.noDeprecationChecks() // Cannot convert the provided notation to a File or URI
@@ -201,10 +201,10 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         failureDescriptionContains("Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unsupported_value_type for more details about this problem.")
 
         where:
-        annotation    | description
-        "@Input"      | "at-input"
-        "@InputFile"  | "at-input-file"
-        "@InputFiles" | "at-input-files"
+        annotation    | _
+        "@Input"      | _
+        "@InputFile"  | _
+        "@InputFiles" | _
     }
 
     def "can use #type as task input"() {
