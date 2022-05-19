@@ -525,6 +525,17 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         }
 
         given:
+        source("src/main/java/NestedBean.java") << """
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+
+            public interface NestedBean {
+
+                @$annotation
+                Property<ResolvedArtifactResult> getNestedInput();
+            }
+        """
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -534,6 +545,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
             @DisableCachingByDefault
             public abstract class MyTask extends DefaultTask {
+
+                private final NestedBean nested = getProject().getObjects().newInstance(NestedBean.class);
 
                 @$annotation
                 public ResolvedArtifactResult getDirect() { return null; }
@@ -549,6 +562,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
                 @$annotation
                 public abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+
+                @$annotation
+                public abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
+
+                @Nested
+                public NestedBean getNestedBean() { return nested; }
             }
         """
 
@@ -556,6 +575,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationFailsWith([
             error(unsupportedValueType { type('MyTask').property('direct').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ResolvedArtifactResult').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
             error(unsupportedValueType { type('MyTask').property('listPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ListProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueType { type('MyTask').property('mapPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('MapProperty<String, ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            error(unsupportedValueType { type('MyTask').property('nestedBean.nestedInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
             error(unsupportedValueType { type('MyTask').property('propertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
             error(unsupportedValueType { type('MyTask').property('providerInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Provider<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
             error(unsupportedValueType { type('MyTask').property('setPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('SetProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
