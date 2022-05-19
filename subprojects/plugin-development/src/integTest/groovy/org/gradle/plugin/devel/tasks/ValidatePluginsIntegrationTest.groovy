@@ -341,9 +341,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-                error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
-                error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
-                error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+            error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -517,7 +517,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @ValidationTestFor(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
-    def "can not use ResolvedArtifactResult as task input annotated with #description"() {
+    def "can not use ResolvedArtifactResult as task input annotated with @#annotation"() {
 
         executer.beforeExecute {
             executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
@@ -583,9 +583,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
 
         where:
-        annotation    | description
-        "Input"      | "at-input"
-        "InputFile"  | "at-input-file"
-        "InputFiles" | "at-input-files"
+        annotation   | _
+        "Input"      | _
+        "InputFile"  | _
+        "InputFiles" | _
     }
 }
