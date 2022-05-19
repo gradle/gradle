@@ -682,4 +682,117 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
+
+    def "dependencies can be configured on multiple test suites using configure"() {
+        given: "a build with tests in the default and integration test suite which both use AssertJ, and a final test suite which does not"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+
+                        dependencies {
+                            implementation project
+                        }
+                    }
+
+                    finalTest(JvmTestSuite) {
+                        useJUnit()
+
+                        dependencies {
+                            implementation project
+                        }
+                    }
+
+                    configure([test, integrationTest]) {
+                        dependencies {
+                            implementation 'org.assertj:assertj-core:3.21.0'
+                        }
+                    }
+                }
+            }
+
+            tasks.register('assertJIsWhereItShouldBe') {
+                doLast {
+                    assert configurations.testRuntimeClasspath.incoming.files.any { it.name.endsWith("assertj-core-3.21.0.jar") }
+                    assert configurations.integrationTestRuntimeClasspath.incoming.files.any { it.name.endsWith("assertj-core-3.21.0.jar") }
+                    assert !configurations.finalTestRuntimeClasspath.incoming.files.any { it.name.endsWith("assertj-core-3.21.0.jar") }
+                }
+            }
+
+            check.dependsOn testing.suites
+            check.dependsOn assertJIsWhereItShouldBe
+        """
+
+        and: "a sample class"
+        file("src/main/java/org/sample/MyGreeter.java") << """
+            package org.sample;
+
+            public class MyGreeter {
+                public String hello() {
+                    return "Hello, world!";
+                }
+            }
+        """
+
+        and: "some unit and integration tests which exercise it using AssertJ"
+        file("src/test/java/org/sample/MyTest.java") << """
+            package org.sample;
+
+            import static org.assertj.core.api.Assertions.assertThat;
+            import org.junit.Test;
+
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    MyGreeter greeter = new MyGreeter();
+                    assertThat(greeter.hello()).startsWith("Hello");
+                }
+            }
+        """
+
+        file("src/integrationTest/java/org/sample/MyIntegrationTest.java") << """
+            package org.sample;
+
+            import static org.assertj.core.api.Assertions.assertThat;
+            import org.junit.Test;
+
+            public class MyIntegrationTest {
+                @Test
+                public void testSomething() {
+                    MyGreeter greeter = new MyGreeter();
+                    assertThat(greeter.hello()).endsWith("world!");
+                }
+            }
+        """
+
+        and: "a final test which exercises it WITHOUT AssertJ"
+        file("src/finalTest/java/org/sample/MyFinalTest.java") << """
+            package org.sample;
+
+            import org.junit.Test;
+
+            public class MyFinalTest {
+                @Test
+                public void testSomething() {
+                    MyGreeter greeter = new MyGreeter();
+                    greeter.hello().equals("Hello, world!");
+                }
+            }
+        """
+
+        expect:
+        succeeds("check")
+    }
 }

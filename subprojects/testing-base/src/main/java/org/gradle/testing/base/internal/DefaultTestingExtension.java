@@ -16,14 +16,20 @@
 
 package org.gradle.testing.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.List;
 
 public abstract class DefaultTestingExtension implements TestingExtension {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTestingExtension.class);
+
     private final ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites;
 
     @Inject
@@ -37,5 +43,12 @@ public abstract class DefaultTestingExtension implements TestingExtension {
     @Override
     public ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites() {
         return suites;
+    }
+
+    @Override
+    public void configure(List<TestSuite> testSuites, Action<? super TestSuite> configureAction) {
+        for (TestSuite testSuite : testSuites) {
+            configureAction.execute(testSuite);
+        }
     }
 }

@@ -16,8 +16,11 @@
 
 package org.gradle.testing.base;
 
+import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+
+import java.util.List;
 
 /**
  * This DSL element exists to contain a collection of {@link TestSuite}s.
@@ -32,4 +35,38 @@ public interface TestingExtension {
      * The type of test suites available depend on which other plugins are applied.
      */
     ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites();
+
+    /**
+     * Eagerly configure the given test suites.
+     * <p>
+     * This method can be used to avoid duplicating common configuration logic which is shared between test suites.  The test suites must
+     * exist at the time this method is called.
+     * <p>
+     * <pre><code>
+     *  testing {
+     *      suites {
+     *          test { ...}
+     *          integrationTest(JvmTestSuite) { ...}
+     *          functionalTest(JvmTestSuite) { ...}
+     *
+     *          // Add AssertJ to the default and integration test suites, but NOT the functional test suite
+     *          configure([test, integrationTest]) {
+     *              dependencies {
+     *                  implementation 'org.assertj:assertj-core:3.21.0'
+     *              }
+     *          }
+     *      }
+     *  }
+     * </code></pre>
+     * <p>
+     * See also: {@link ExtensiblePolymorphicDomainObjectContainer#configureEach(Action)} and {@link ExtensiblePolymorphicDomainObjectContainer#withType(Class, Action)}
+     * for alternate means of configuring multiple test suites within this container.
+     *
+     * @param testSuites list of test suites to configure
+     * @param configureAction action to apply to each test suite
+     *
+     * @since 7.6
+     */
+    @Incubating
+    void configure(List<TestSuite> testSuites, Action<? super TestSuite> configureAction);
 }
