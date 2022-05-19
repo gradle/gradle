@@ -16,8 +16,12 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import java.io.File
 
 import kotlin.reflect.KProperty
 
@@ -46,3 +50,18 @@ operator fun <T> Property<T>.assign(value: T) = set(value)
  * Property assign for [Property] instances.
  */
 operator fun <T> Property<T>.assign(value: Provider<T>) = set(value)
+
+/**
+ * Property assign for [File]s to [FileSystemLocationProperty] instances.
+ */
+operator fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(value: File) = set(value)
+
+/**
+ * += for [ConfigurableFileCollection] instances.
+ */
+operator fun ConfigurableFileCollection.plusAssign(other: Any) { from(other) }
+
+/**
+ * Assignment for [ConfigurableFileCollection] instances.
+ */
+operator fun ConfigurableFileCollection.assign(other: Any) = setFrom(other)
