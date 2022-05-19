@@ -133,7 +133,14 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         given:
         buildFile << """
+            interface NestedBean {
+                $annotation
+                Property<ResolvedArtifactResult> getNested()
+            }
+
             abstract class TaskWithInput extends DefaultTask {
+
+                private final NestedBean nested = project.objects.newInstance(NestedBean.class)
 
                 $annotation
                 ResolvedArtifactResult getDirect() { null }
@@ -149,12 +156,21 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
                 $annotation
                 abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+
+                $annotation
+                abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
+
+                @Nested
+                abstract NestedBean getNestedInput();
             }
 
             tasks.register('verify', TaskWithInput) {
-                propertyInput.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.map { it[0] })
-                setPropertyInput.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
-                listPropertyInput.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
+                def artifacts = configurations.runtimeClasspath.incoming.artifacts
+                propertyInput.set(artifacts.resolvedArtifacts.map { it[0] })
+                setPropertyInput.set(artifacts.resolvedArtifacts)
+                listPropertyInput.set(artifacts.resolvedArtifacts)
+                mapPropertyInput.put("some", artifacts.resolvedArtifacts.map { it[0] })
+                nestedInput.nested.set(artifacts.resolvedArtifacts.map { it[0] })
                 doLast {
                     println(setPropertyInput.get())
                 }
@@ -171,6 +187,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         failureDescriptionContains("Type 'TaskWithInput' property 'propertyInput' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
         failureDescriptionContains("Type 'TaskWithInput' property 'setPropertyInput' has $annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'.")
         failureDescriptionContains("Type 'TaskWithInput' property 'listPropertyInput' has $annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'mapPropertyInput' has $annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'nestedInput.nested' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
 
         // Because
         failureDescriptionContains("ResolvedArtifactResult is not supported on task properties annotated with $annotation.")

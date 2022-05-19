@@ -25,6 +25,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
@@ -37,7 +38,7 @@ class PropertyAnnotationHandlerSupport {
         Class<? extends Annotation> annotationType
     ) {
         validateUnsupportedPropertyValueType(
-            annotationType, unpackValueTypeOf(propertyMetadata),
+            annotationType, unpackValueTypesOf(propertyMetadata),
             propertyMetadata, validationContext,
             ResolvedArtifactResult.class,
             "Extract artifact metadata and annotate with @Input",
@@ -47,13 +48,13 @@ class PropertyAnnotationHandlerSupport {
 
     private static void validateUnsupportedPropertyValueType(
         Class<? extends Annotation> annotationType,
-        Class<?> valueType,
+        List<Class<?>> valueTypes,
         PropertyMetadata propertyMetadata,
         TypeValidationContext validationContext,
         Class<?> unsupportedType,
         String... possibleSolutions
     ) {
-        if (unsupportedType.isAssignableFrom(valueType)) {
+        if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
             validationContext.visitPropertyProblem(problem -> {
                     problem.withId(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
                         .forProperty(propertyMetadata.getPropertyName())
@@ -69,16 +70,19 @@ class PropertyAnnotationHandlerSupport {
         }
     }
 
-    private static Class<?> unpackValueTypeOf(PropertyMetadata propertyMetadata) {
+    private static List<Class<?>> unpackValueTypesOf(PropertyMetadata propertyMetadata) {
+        List<Class<?>> unpackedValueTypes = new ArrayList<>();
         Method getter = propertyMetadata.getGetterMethod();
         Class<?> returnType = getter.getReturnType();
         if (Provider.class.isAssignableFrom(returnType)) {
             List<TypeOf<?>> typeArguments = TypeOf.typeOf(getter.getGenericReturnType()).getActualTypeArguments();
-            if (!typeArguments.isEmpty()) {
-                return typeArguments.get(0).getConcreteClass();
+            for (TypeOf<?> typeArgument : typeArguments) {
+                unpackedValueTypes.add(typeArgument.getConcreteClass());
             }
+        } else {
+            unpackedValueTypes.add(returnType);
         }
-        return returnType;
+        return unpackedValueTypes;
     }
 
     private PropertyAnnotationHandlerSupport() {
