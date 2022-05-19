@@ -36,6 +36,7 @@ import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -110,6 +111,27 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                 testTasksToRun.add(testTask);
             }
         }
+
+        for (InternalTestPatternSpec patternSpec : testExecutionRequest.getTestPatternSpecs()) {
+            for (Test task : queryTestTasks(patternSpec.getTaskPath())) {
+                testTasksToRun.add(task);
+                TestFilter filter = task.getFilter();
+                for (String cls : patternSpec.getClasses()) {
+                    filter.includeTest(cls, null);
+                }
+                for (Map.Entry<String, List<String>> entry : patternSpec.getMethods().entrySet()) {
+                    String cls = entry.getKey();
+                    for (String method : entry.getValue()) {
+                        filter.includeTest(cls, method);
+                    }
+                }
+                filter.getIncludePatterns().addAll(patternSpec.getPatterns());
+                for (String pkg : patternSpec.getPackages()) {
+                    filter.getIncludePatterns().add(pkg + ".*");
+                }
+            }
+        }
+
         return testTasksToRun;
     }
 
