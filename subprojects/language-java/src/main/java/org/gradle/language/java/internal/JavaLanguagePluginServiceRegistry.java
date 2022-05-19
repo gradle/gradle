@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.provider.migration.ListPropertyWrapper;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
@@ -46,6 +47,7 @@ import org.gradle.tooling.events.OperationType;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -91,7 +93,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
 
     private static class ProviderApiMigrationAction {
         @SuppressWarnings("unchecked")
-        public void configure(ApiUpgradeManager upgradeManager) {
+        public void configure(ApiUpgradeManager upgradeManager, FileCollectionFactory fileCollectionFactory) {
             // It seems like the bytecode references the subclass as an owner
             upgradeManager
                 .matchProperty(AbstractCompile.class, String.class, "targetCompatibility", Collections.singletonList(JavaCompile.class.getName()))
@@ -108,7 +110,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
             upgradeManager
                 .matchProperty(AbstractCompile.class, FileCollection.class, "classpath", ImmutableList.of(JavaCompile.class.getName(), "org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile", "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask", "org.gradle.api.tasks.compile.GroovyCompile"))
                 .replaceWith(
-                    AbstractCompile::getClasspath,
+                    abstractCompile -> fileCollectionFactory
+                        .resolving(new ArrayList<>(abstractCompile.getClasspath().getFrom())),
                     (abstractCompile, value) -> abstractCompile.getClasspath().setFrom(value)
                 );
             upgradeManager
