@@ -520,8 +520,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     def "can not use ResolvedArtifactResult as task input annotated with #description"() {
 
         executer.beforeExecute {
-            executer.noDeprecationChecks()
-            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
+            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
         }
 
         given:
