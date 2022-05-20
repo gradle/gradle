@@ -276,8 +276,8 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                     .documented()
             );
         }
-        //
-        Instrumented.fileOpened(modelFile, DefaultVersionCatalogBuilder.class.getName());
+
+        Instrumented.fileOpened(modelFile, getClass().getName());
         try {
             TomlCatalogFileParser.parse(modelFile.toPath(), this);
         } catch (IOException e) {
