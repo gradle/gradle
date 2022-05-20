@@ -108,10 +108,7 @@ format.version = "1.1"
             TestUtil.providerFactory(),
             Stub(Supplier))
 
-        def inputStream = Files.newInputStream(path)
-        inputStream.withCloseable {
-            TomlCatalogFileParser.parse(path, builder)
-        }
+        TomlCatalogFileParser.parse(path, builder)
         return new Model(builder.build())
     }
 
