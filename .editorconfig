@@ -6,7 +6,7 @@ root = true
 
 [*]
 # Change these settings to your own preference
-indent_style = space
+indent_style = tabs
 indent_size = 4
 
 # We recommend you to keep these unchanged
@@ -17,7 +17,30 @@ insert_final_newline = true
 
 # Markdown files sometimes need trailing whitespaces.
 [*.md]
-trim_trailing_whitespace = false
+trim_trailing_whitespace = true
 
 [gradle/verification-metadata.xml]
-indent_size = 3
+indent_size = 4
+dependencies {
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile 'com.android.support:appcompat-v7:25.0.1'
+
+    compile 'com.google.android.gms:play-services-auth:15.0.1'
+
+    compile 'pub.devrel:easypermissions:0.3.0'
+
+    compile('com.google.api-client:google-api-client-android:1.23.0') {
+
+        exclude group: 'org.apache.httpcomponents'
+
+    }
+
+    compile('com.google.apis:google-api-services-<API>-<VERSION>') {
+
+        exclude group: 'org.apache.httpcomponents'
+
+    }
+
+}
