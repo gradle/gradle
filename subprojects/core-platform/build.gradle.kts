@@ -15,4 +15,7 @@ dependencies {
     runtime(project(":kotlin-dsl")) {
         because("Adds support for Kotlin DSL scripts.")
     }
+    runtime(project(":ntcscript")) {
+        because("Adds support for non-Turing complete DSL scripts.")
+    }
 }

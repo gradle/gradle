@@ -18,10 +18,10 @@ package org.gradle.internal.scripts;
 import org.gradle.scripts.ScriptingLanguage;
 
 import javax.annotation.Nullable;
-
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Registry of scripting languages.
@@ -29,10 +29,13 @@ import java.util.List;
 public final class ScriptingLanguages {
 
     private static final List<ScriptingLanguage> ALL =
-        Collections.unmodifiableList(
-            Arrays.asList(
+        unmodifiableList(
+            asList(
                 scriptingLanguage(".gradle", null),
-                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory")));
+                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
+                scriptingLanguage(".gradle.toml", "org.gradle.ntcscript.NtcScriptPluginFactory")
+            )
+        );
 
     public static List<ScriptingLanguage> all() {
         return ALL;
