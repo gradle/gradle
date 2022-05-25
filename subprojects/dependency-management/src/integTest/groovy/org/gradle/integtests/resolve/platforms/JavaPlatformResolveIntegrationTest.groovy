@@ -864,6 +864,82 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         //Shape of the graph is not checked as bug was failing resolution altogether
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20684")
+    def "multiple platform deselection - reselection does not leave pending constraints in graph - different issue"() {
+        given:
+        def depJackDb20 = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depJackDb201 = mavenHttpRepo.module('jack', 'db', '2.0.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0.1') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depJackDb202 = mavenHttpRepo.module('jack', 'db', '2.0.2').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depJackDx20 = mavenHttpRepo.module('jack', 'dx', '2.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'db', '2.0')
+                dependsOn('jack', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def jackBom20 = mavenHttpRepo.module('jack', 'bom', '2.0').asGradlePlatform().dependencyConstraint(depJackDb20).dependencyConstraint(depJackDx20).publish()
+        def jackBom201 = mavenHttpRepo.module('jack', 'bom', '2.0.1').asGradlePlatform().dependencyConstraint(depJackDb201).dependencyConstraint(depJackDx20).publish()
+
+        def springBom = mavenHttpRepo.module('spring', 'bom', '2.0').asGradlePlatform().dependencyConstraint(depJackDx20).dependencyConstraint(depJackDb201).publish()
+
+        def depSwagCore = mavenHttpRepo.module('org.test', 'swag-core', '1.0').dependsOn(depJackDb202).publish()
+        def depSwagInt = mavenHttpRepo.module('org.test', 'swag-int', '1.0').dependsOn(depSwagCore).publish()
+        def depSwag = mavenHttpRepo.module('org.test', 'swag', '1.0').dependsOn(depSwagInt).publish()
+
+        depJackDb20.allowAll()
+        depJackDb201.allowAll()
+        depJackDb202.allowAll()
+        depJackDx20.allowAll()
+        jackBom20.allowAll()
+        jackBom201.allowAll()
+        springBom.allowAll()
+        depSwagCore.allowAll()
+        depSwagInt.allowAll()
+        depSwag.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf(platform('spring:bom:2.0'))
+                conf 'org.test:swag:1.0'
+                conf 'jack:dx'
+            }
+
+            tasks.register('resolve') {
+                doLast {
+                    // Need a specific path for restoring serialized version, other paths work
+                    println configurations.conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+                }
+            }
+"""
+
+        expect:
+        succeeds 'resolve'
+        //Shape of the graph is not checked as bug was failing resolution altogether
+    }
+
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
         resolve.expectDefaultConfiguration("compile")
