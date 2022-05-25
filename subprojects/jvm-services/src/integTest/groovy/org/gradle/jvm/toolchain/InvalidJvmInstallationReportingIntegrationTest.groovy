@@ -91,6 +91,6 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
     File temporaryDirectory
 
     private int countMatches(String pattern, String text) {
-        return Pattern.compile(Pattern.quote(pattern)).matcher(text).results().count()
+        return Pattern.compile(Pattern.quote(pattern)).matcher(text).count
     }
 }
