@@ -16,21 +16,73 @@
 
 package org.gradle.ntcscript
 
+import groovy.lang.GroovyObject
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.gradle.plugin.use.internal.PluginRequestCollector
+import javax.inject.Inject
 
 
-class NtcScriptPluginFactory : ScriptPluginFactory {
+class NtcScriptPluginFactory @Inject constructor(
+    private val autoAppliedPluginHandler: AutoAppliedPluginHandler,
+    private val pluginRequestApplicator: PluginRequestApplicator
+) : ScriptPluginFactory {
+
     override fun create(
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean
-    ): ScriptPlugin {
-        TODO("Not yet implemented")
+    ): ScriptPlugin = object : ScriptPlugin {
+
+        override fun apply(target: Any) {
+            require(target is ProjectInternal && topLevelScript) {
+                "Only project scripts are supported."
+            }
+            applyTo(target, scriptSource, scriptHandler, targetScope)
+        }
+
+        override fun getSource(): ScriptSource = scriptSource
+    }
+
+    private
+    fun applyTo(
+        target: ProjectInternal,
+        scriptSource: ScriptSource,
+        scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope
+    ) {
+        // get plugins from the script
+        val initialPluginRequests = PluginRequestCollector(scriptSource).run {
+            createSpec(1).id("application")
+            pluginRequests
+        }
+
+        applyPlugin(initialPluginRequests, target, scriptHandler, targetScope)
+
+        // configure project
+        val extension = target.extensions.getByName("application")
+        require(extension is GroovyObject)
+        extension.setProperty("mainClass", "ntc.App")
+    }
+
+    private
+    fun applyPlugin(initialPluginRequests: PluginRequests, target: ProjectInternal, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope) {
+        pluginRequestApplicator.applyPlugins(
+            autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target),
+            scriptHandler as ScriptHandlerInternal,
+            target.pluginManager as PluginManagerInternal,
+            targetScope
+        )
     }
 }

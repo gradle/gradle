@@ -16,14 +16,13 @@
 
 package org.gradle.ntcscript
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
 
-    @NotYetImplemented
-    def "can apply plugins"() {
+    def "can apply plugins and configure extensions"() {
         given:
         ntcScript '''
             [plugins.application]
@@ -33,7 +32,7 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/ntc/App.java') << '''
             package ntc;
             public class App {
-                public static void main() {
+                public static void main(String[] args) {
                     System.out.println("OMG it's TOML!");
                 }
             }
@@ -43,7 +42,7 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'run'
 
         then:
-        outputContains 'It lives!'
+        outputContains "OMG it's TOML!"
     }
 
     protected TestFile ntcScript(@NtcBuildScriptLanguage String script) {
