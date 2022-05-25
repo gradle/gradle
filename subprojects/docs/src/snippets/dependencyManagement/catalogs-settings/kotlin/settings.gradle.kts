@@ -120,13 +120,3 @@ dependencyResolutionManagement {
     }
 }
 // end::extra_catalog[]
-
-// needed for 'use_version_asprovider' snippet
-dependencyResolutionManagement {
-    versionCatalogs {
-        named("libs") {
-            version("mylibrary", "1.0")
-            version("mylibrary-core", "1.0")
-        }
-    }
-}
