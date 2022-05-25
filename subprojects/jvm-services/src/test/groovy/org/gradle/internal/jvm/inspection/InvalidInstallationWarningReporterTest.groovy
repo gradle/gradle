@@ -36,7 +36,7 @@ class InvalidInstallationWarningReporterTest extends Specification {
         reporter.accept(location, metadata)
 
         then:
-        isReported * mockLogger.warn(_ as String, location)
+        isReported * mockLogger.warn(_ as String, location.displayName)
 
         where:
         isValid << [false, true]
