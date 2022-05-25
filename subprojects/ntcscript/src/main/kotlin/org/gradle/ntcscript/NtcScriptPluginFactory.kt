@@ -80,16 +80,7 @@ class NtcScriptPluginFactory @Inject constructor(
             }
         }
 
-        val dependencies = mapOf(
-            "implementation" to listOf(
-                BuildScriptModel.Dependency.ExternalDependency(
-                    group = "com.google.guava",
-                    module = "guava",
-                    version = "30.1.1-jre"
-                )
-            )
-        )
-        dependencies.forEach { (configurationName, deps) ->
+        model.dependencies.forEach { (configurationName, deps) ->
             target.dependencies.run {
                 deps.forEach { dep ->
                     when (dep) {
@@ -98,6 +89,13 @@ class NtcScriptPluginFactory @Inject constructor(
                                 configurationName,
                                 mapOf("group" to dep.group, "name" to dep.module, "version" to dep.version)
                             )
+                        is BuildScriptModel.Dependency.PlatformDependency -> {
+                            add(
+                                configurationName,
+                                platform(mapOf("group" to dep.group, "name" to dep.module, "version" to dep.version))
+                            )
+                        }
+                        is BuildScriptModel.Dependency.ProjectDependency -> TODO("project")
                     }
                 }
             }

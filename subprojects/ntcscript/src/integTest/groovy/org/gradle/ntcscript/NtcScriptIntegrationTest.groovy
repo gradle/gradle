@@ -52,6 +52,26 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
             [dependencies.implementation."com.google.guava"]
             guava = "30.1.1-jre"
         '''
+        withLib()
+
+        expect:
+        succeeds 'assemble'
+    }
+
+    def "can define dependencies using records"() {
+        given:
+        ntcScript '''
+            [plugins.java-library]
+            [dependencies.implementation."com.google.guava"]
+            guava = { version = "30.1.1-jre" }
+        '''
+        withLib()
+
+        expect:
+        succeeds 'assemble'
+    }
+
+    private void withLib() {
         file('src/main/java/ntc/Lib.java') << """
             package ntc;
             public class Lib {
@@ -67,9 +87,6 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
-
-        expect:
-        succeeds 'assemble'
     }
 
     protected TestFile ntcScript(@NtcBuildScriptLanguage String script) {
