@@ -71,6 +71,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, System.getProperty(type.getSystemPropertyKey()));
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", javaHome.getAbsolutePath(), result);
         return asMetadata(javaHome, result);
     }
 
@@ -140,6 +141,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, split[type.ordinal()].trim());
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", jdkPath.getAbsolutePath(), result);
         return asMetadata(jdkPath, result);
     }
 
