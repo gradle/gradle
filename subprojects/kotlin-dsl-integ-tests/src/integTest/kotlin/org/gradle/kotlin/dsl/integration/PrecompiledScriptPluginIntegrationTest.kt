@@ -784,4 +784,29 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }
+
+    @Test
+    fun `should build precompiled script plugins in explicit api mode`() {
+        withBuildScript(
+            """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+
+            extensions.getByName("kotlin").withGroovyBuilder {
+                "explicitApi"()
+            }
+            """
+        )
+        withPrecompiledKotlinScript(
+            "my-plugin.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+
+        compileKotlin()
+    }
 }
