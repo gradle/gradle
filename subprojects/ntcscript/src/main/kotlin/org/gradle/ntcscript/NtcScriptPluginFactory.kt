@@ -31,23 +31,6 @@ import org.gradle.plugin.use.internal.PluginRequestCollector
 import javax.inject.Inject
 
 
-val mvpModel = BuildScriptModel(
-    plugins = listOf(
-        BuildScriptModel.Plugin(
-            id = "application",
-            version = null,
-            position = BuildScriptModel.ElementPosition(42, 1)
-        )
-    ),
-    extensions = listOf(
-        BuildScriptModel.Extension(
-            "application",
-            mapOf("mainClass" to BuildScriptModel.PropertyNode.StringProperty("ntc.App"))
-        )
-    )
-)
-
-
 class NtcScriptPluginFactory @Inject constructor(
     private val autoAppliedPluginHandler: AutoAppliedPluginHandler,
     private val pluginRequestApplicator: PluginRequestApplicator
@@ -78,9 +61,28 @@ class NtcScriptPluginFactory @Inject constructor(
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope
     ) {
-        val model = mvpModel // parse(scriptSource)
+        val model = readModelFrom(scriptSource)
 
-        // get plugins from the script
+        val initialPluginRequests = collectPluginRequests(model, scriptSource)
+
+        applyPlugin(initialPluginRequests, target, scriptHandler, targetScope)
+
+        applyModelTo(target, model)
+    }
+
+    private
+    fun applyModelTo(target: ProjectInternal, model: BuildScriptModel) {
+        model.extensions.forEach { extensionModel ->
+            val extension = target.extensions.getByName(extensionModel.name)
+            require(extension is GroovyObject)
+            extensionModel.properties.forEach { property ->
+                extension.setProperty(property.key, valueOf(property.value))
+            }
+        }
+    }
+
+    private
+    fun collectPluginRequests(model: BuildScriptModel, scriptSource: ScriptSource): PluginRequests {
         val initialPluginRequests = PluginRequestCollector(scriptSource).run {
             model.plugins.forEach { plugin ->
                 val spec = createSpec(plugin.position.line).id(plugin.id)
@@ -90,18 +92,12 @@ class NtcScriptPluginFactory @Inject constructor(
             }
             pluginRequests
         }
-
-        applyPlugin(initialPluginRequests, target, scriptHandler, targetScope)
-
-        // configure project
-        model.extensions.forEach { extensionModel ->
-            val extension = target.extensions.getByName(extensionModel.name)
-            require(extension is GroovyObject)
-            extensionModel.properties.forEach { property ->
-                extension.setProperty(property.key, valueOf(property.value))
-            }
-        }
+        return initialPluginRequests
     }
+
+    private
+    fun readModelFrom(scriptSource: ScriptSource) =
+        NtcScriptReader().readToml(scriptSource.resource.text)
 
     private
     fun valueOf(value: BuildScriptModel.PropertyNode) = when (value) {

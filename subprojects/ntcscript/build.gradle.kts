@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
 
+    implementation(libs.tomlj)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
