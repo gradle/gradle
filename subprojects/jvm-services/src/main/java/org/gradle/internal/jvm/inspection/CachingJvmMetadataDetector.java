@@ -23,8 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
-public class CachingJvmMetadataDetector implements JvmMetadataDetector {
+public class CachingJvmMetadataDetector implements JvmMetadataDetector, ConditionalInvalidation<JvmInstallationMetadata> {
 
     private final Map<File, JvmInstallationMetadata> javaMetadata = new ConcurrentHashMap<>();
     private final JvmMetadataDetector delegate;
@@ -48,4 +49,10 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector {
         }
     }
 
+    @Override
+    public void invalidateItemsMatching(Predicate<JvmInstallationMetadata> predicate) {
+        synchronized (javaMetadata) {
+            javaMetadata.entrySet().removeIf(it -> predicate.test(it.getValue()));
+        }
+    }
 }
