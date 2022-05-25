@@ -16,7 +16,8 @@
 
 package org.gradle.ntcscript
 
-
+import com.google.common.base.Strings
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -43,6 +44,27 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains "OMG it's TOML!"
+    }
+
+    @NotYetImplemented
+    def "can define dependencies"() {
+        given:
+        ntcScript '''
+            [plugins.java-library]
+            [dependencies.implementation."com.google.guava"]
+            guava = "30.1.1-jre"
+        '''
+        file('src/main/java/ntc/Lib.java') << """
+            package ntc;
+            public class Lib {
+                public boolean isIt(String s) {
+                    return ${Strings.name}.isNullOrEmpty(s);
+                }
+            }
+        """
+
+        expect:
+        succeeds 'assemble'
     }
 
     protected TestFile ntcScript(@NtcBuildScriptLanguage String script) {
