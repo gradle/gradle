@@ -560,6 +560,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "ntcscript",
+    "name": "ntcscript",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "performance",
     "name": "performance",
     "unitTests": false,
