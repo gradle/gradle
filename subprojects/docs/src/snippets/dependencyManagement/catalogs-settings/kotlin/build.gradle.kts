@@ -35,12 +35,6 @@ checkstyle {
 }
 // end::use_version[]
 
-// tag::use_version_asprovider[]
-// getting the version of 'mylibrary' requires `asProvider()` when there are other 'mylibrary-...' versions:
-logger.info("Using mylibrary version: " + libs.versions.mylibrary.asProvider().get())
-logger.info("Using mylibrary-core version: " + libs.versions.mylibrary.core.get())
-// end::use_version_asprovider[]
-
 // tag::use_catalog[]
 dependencies {
     implementation(libs.groovy.core)
