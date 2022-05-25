@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -36,13 +37,13 @@ class CachingJvmMetadataDetectorTest extends Specification {
         def metadata = Mock(JvmInstallationMetadata)
         given:
         def delegate = Mock(JvmMetadataDetector) {
-            getMetadata(_ as File) >> metadata
+            getMetadata(_ as InstallationLocation) >> metadata
         }
 
         def detector = new CachingJvmMetadataDetector(delegate)
 
         when:
-        def actual = detector.getMetadata(new File("jdk"))
+        def actual = detector.getMetadata(testLocation(new File("jdk")))
 
         then:
         actual.is(metadata)
@@ -51,14 +52,14 @@ class CachingJvmMetadataDetectorTest extends Specification {
     def "caches metadata by home"() {
         given:
         def delegate = Mock(JvmMetadataDetector) {
-            getMetadata(_ as File) >> Mock(JvmInstallationMetadata)
+            getMetadata(_ as InstallationLocation) >> Mock(JvmInstallationMetadata)
         }
 
         def detector = new CachingJvmMetadataDetector(delegate)
 
         when:
-        def metadata1 = detector.getMetadata(new File("jdk"))
-        def metadata2 = detector.getMetadata(new File("jdk"))
+        def metadata1 = detector.getMetadata(testLocation(new File("jdk")))
+        def metadata2 = detector.getMetadata(testLocation(new File("jdk")))
 
         then:
         metadata1.is(metadata2)
@@ -78,9 +79,9 @@ class CachingJvmMetadataDetectorTest extends Specification {
         link.createLink(javaHome1)
 
         when:
-        def metadata1 = detector.getMetadata(link)
+        def metadata1 = detector.getMetadata(testLocation(link))
         link.createLink(new File("doesntExist"))
-        def metadata2 = detector.getMetadata(link)
+        def metadata2 = detector.getMetadata(testLocation(link))
 
         then:
         metadata1.javaHome.toString().contains(Jvm.current().javaHome.canonicalPath)

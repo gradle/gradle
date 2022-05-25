@@ -17,6 +17,7 @@
 package org.gradle.internal.jvm.inspection;
 
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +31,13 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector {
 
     public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
         this.delegate = delegate;
-        getMetadata(Jvm.current().getJavaHome());
+        getMetadata(new InstallationLocation(Jvm.current().getJavaHome(), "current Java home"));
     }
 
     @Override
-    public JvmInstallationMetadata getMetadata(File javaHome) {
-        javaHome = resolveSymlink(javaHome);
-        return javaMetadata.computeIfAbsent(javaHome, delegate::getMetadata);
+    public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
+        File javaHome = resolveSymlink(javaInstallationLocation.getLocation());
+        return javaMetadata.computeIfAbsent(javaHome, file -> delegate.getMetadata(javaInstallationLocation));
     }
 
     private File resolveSymlink(File jdkPath) {
