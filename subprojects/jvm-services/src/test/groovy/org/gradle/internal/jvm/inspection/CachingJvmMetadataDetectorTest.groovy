@@ -87,4 +87,31 @@ class CachingJvmMetadataDetectorTest extends Specification {
         metadata1.javaHome.toString().contains(Jvm.current().javaHome.canonicalPath)
         metadata2.errorMessage.contains("No such directory")
     }
+
+
+    def "invalidation takes predicate into account"() {
+        def location1 = testLocation(new File("jdk1"))
+        def location2 = testLocation(new File("jdk2"))
+        def metadata1 = Mock(JvmInstallationMetadata)
+        def metadata2 = Mock(JvmInstallationMetadata)
+        def delegate = Mock(JvmMetadataDetector) {
+            getMetadata(location1) >> metadata1
+            getMetadata(location2) >> metadata2
+        }
+        def metadataDetector = new CachingJvmMetadataDetector(delegate)
+        metadataDetector.getMetadata(location1)
+        metadataDetector.getMetadata(location2)
+
+        when: "cache gets invalidated by predicate, and some calls are made that match it and some that don't"
+        metadataDetector.invalidateItemsMatching(it -> it == metadata1)
+        metadataDetector.getMetadata(location1)
+        metadataDetector.getMetadata(location2)
+        then: "only the calls that don't match the predicate get executed again"
+        1 * delegate.getMetadata(location1)
+        0 * delegate.getMetadata(location2)
+    }
+
+    private InstallationLocation testLocation(File file) {
+        return new InstallationLocation(file, "test")
+    }
 }
