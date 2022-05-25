@@ -79,6 +79,29 @@ class NtcScriptPluginFactory @Inject constructor(
                 extension.setProperty(property.key, valueOf(property.value))
             }
         }
+
+        val dependencies = mapOf(
+            "implementation" to listOf(
+                BuildScriptModel.Dependency.ExternalDependency(
+                    group = "com.google.guava",
+                    module = "guava",
+                    version = "30.1.1-jre"
+                )
+            )
+        )
+        dependencies.forEach { (configurationName, deps) ->
+            target.dependencies.run {
+                deps.forEach { dep ->
+                    when (dep) {
+                        is BuildScriptModel.Dependency.ExternalDependency ->
+                            add(
+                                configurationName,
+                                mapOf("group" to dep.group, "name" to dep.module, "version" to dep.version)
+                            )
+                    }
+                }
+            }
+        }
     }
 
     private

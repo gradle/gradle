@@ -17,7 +17,6 @@
 package org.gradle.ntcscript
 
 import com.google.common.base.Strings
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -46,7 +45,6 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
         outputContains "OMG it's TOML!"
     }
 
-    @NotYetImplemented
     def "can define dependencies"() {
         given:
         ntcScript '''
@@ -62,6 +60,13 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        settingsFile '''
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+        '''
 
         expect:
         succeeds 'assemble'

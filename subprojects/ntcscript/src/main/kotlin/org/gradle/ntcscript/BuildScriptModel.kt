@@ -20,12 +20,17 @@ package org.gradle.ntcscript
 data class BuildScriptModel(
     val plugins: List<Plugin> = emptyList(),
     val extensions: List<Extension> = emptyList(),
+    val dependencies: Map<String, List<Dependency>> = emptyMap()
 ) {
     data class ElementPosition(val line: Int, val column: Int)
 
     data class Plugin(val id: String, val version: String?, val position: ElementPosition)
 
     data class Extension(val name: String, val properties: Map<String, PropertyNode>)
+
+    sealed class Dependency {
+        data class ExternalDependency(val group: String, val module: String, val version: String?) : Dependency()
+    }
 
     sealed class PropertyNode {
         data class IntegerProperty(val value: Int) : PropertyNode()
