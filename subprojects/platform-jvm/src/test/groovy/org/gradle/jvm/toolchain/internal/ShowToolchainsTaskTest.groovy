@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -45,15 +46,14 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchains in right order"() {
-        def jdk14 = new File("14")
-        def jdk15 = new File("15")
-        def jdk9 = new File("9")
-        def jdk8 = new File("1.8.0_202")
-        def jdk82 = new File("1.8.0_404")
+        def jdk14 = testLocation(new File("14"))
+        def jdk15 = testLocation(new File("15"))
+        def jdk9 = testLocation(new File("9"))
+        def jdk8 = testLocation(new File("1.8.0_202"))
+        def jdk82 = testLocation(new File("1.8.0_404"))
 
         given:
-        task.installationRegistry.listInstallations() >>
-            [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "TestSource")}
+        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82]
         detector.getMetadata(jdk14) >> metadata("14", "+2")
         detector.getMetadata(jdk15) >> metadata("15-ea", "+2")
         detector.getMetadata(jdk9) >> metadata("9", "+2")
@@ -113,13 +113,12 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchains with good and invalid ones"() {
-        def jdk14 = new File("14")
-        def invalid = new File("invalid")
-        def noSuchDirectory = new File("noSuchDirectory")
+        def jdk14 = testLocation(new File("14"))
+        def invalid = testLocation(new File("invalid"))
+        def noSuchDirectory = testLocation(new File("noSuchDirectory"))
 
         given:
-        task.installationRegistry.listInstallations() >>
-            [jdk14, invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
+        task.installationRegistry.listInstallations() >> [jdk14, invalid, noSuchDirectory]
         detector.getMetadata(jdk14) >> metadata("14", "+1")
         detector.getMetadata(invalid) >> newInvalidMetadata()
         detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
@@ -151,7 +150,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchain probing failure cause lines"() {
-        def path = new File("path")
+        def path = testLocation(new File("path"))
         def createFailureWithNCauses = { n ->
             def rootCause = new Exception("lastLine")
             n == 0
@@ -160,8 +159,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         }
 
         given:
-        task.installationRegistry.listInstallations() >> [new InstallationLocation(path, "TestSource")]
-        detector.getMetadata(path) >> JvmInstallationMetadata.failure(path, createFailureWithNCauses(nCauses))
+        task.installationRegistry.listInstallations() >> [path]
+        detector.getMetadata(path) >> JvmInstallationMetadata.failure(path.location, createFailureWithNCauses(nCauses))
 
         when:
         task.showToolchains()
@@ -234,12 +233,11 @@ $errorLines
     }
 
     def "reports only toolchains with errors"() {
-        def invalid = new File("invalid")
-        def noSuchDirectory = new File("noSuchDirectory")
+        def invalid = testLocation(new File("invalid"))
+        def noSuchDirectory = testLocation(new File("noSuchDirectory"))
 
         given:
-        task.installationRegistry.listInstallations() >> [
-            invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
+        task.installationRegistry.listInstallations() >> [invalid, noSuchDirectory]
         detector.getMetadata(invalid) >> newInvalidMetadata()
         detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
@@ -276,6 +274,10 @@ $errorLines
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.of(String.valueOf(enableDetection))
         providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.of(String.valueOf(enableDownload))
         providerFactory
+    }
+
+    private static InstallationLocation testLocation(File javaHome) {
+        return new InstallationLocation(javaHome, "TestSource");
     }
 
     static class TestShowToolchainsTask extends ShowToolchainsTask {
