@@ -24,12 +24,14 @@ data class BuildScriptModel(
 ) {
     data class ElementPosition(val line: Int, val column: Int)
 
-    data class Plugin(val id: String, val version: String?, val position: ElementPosition)
+    data class Plugin(val id: String, val position: ElementPosition, val version: String?)
 
     data class Extension(val name: String, val properties: Map<String, PropertyNode>)
 
     sealed class Dependency {
         data class ExternalDependency(val group: String, val module: String, val version: String?) : Dependency()
+        data class PlatformDependency(val group: String, val module: String, val version: String?) : Dependency()
+        data class ProjectDependency(val id: String) : Dependency()
     }
 
     sealed class PropertyNode {

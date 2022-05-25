@@ -16,6 +16,8 @@
 
 package org.gradle.ntcscript
 
+import org.gradle.ntcscript.BuildScriptModel.Dependency
+import org.gradle.ntcscript.BuildScriptModel.Dependency.ExternalDependency
 import org.gradle.ntcscript.BuildScriptModel.ElementPosition
 import org.gradle.ntcscript.BuildScriptModel.Extension
 import org.gradle.ntcscript.BuildScriptModel.Plugin
@@ -42,7 +44,12 @@ class NtcScriptReader {
         val result: TomlParseResult = Toml.parse(toml)
         val plugins = readPlugins(result)
         val extensions = readExtensions(result)
-        return BuildScriptModel(plugins = plugins, extensions = extensions)
+        val dependencies = readDependencies(result)
+        return BuildScriptModel(
+            plugins = plugins,
+            extensions = extensions,
+            dependencies = dependencies
+        )
     }
 
     private
@@ -58,15 +65,54 @@ class NtcScriptReader {
     private
     fun TomlTable.readPlugin(id: String, position: ElementPosition): Plugin {
         val version = getString("version")
-        return Plugin(id, version, position)
+        return Plugin(id, position, version)
     }
 
     private
-    fun TomlTable.readPositionOf(key: String): ElementPosition =
-        when (val tomlPosition = inputPositionOf("\"${key}\"")) {
+    fun readDependencies(result: TomlParseResult): Map<String, List<Dependency>> {
+        val dependenciesTable = result.getTable("dependencies")
+        val dependencies = dependenciesTable?.toMap()?.mapValues {
+            (it.value as? TomlTable)?.readConfiguration() ?: emptyList()
+        }?.filterValues { it.isNotEmpty() }
+        return dependencies ?: mapOf()
+    }
+
+    private
+    fun TomlTable.readConfiguration(): List<Dependency> {
+        return toMap()?.flatMap {
+            (it.value as? TomlTable)?.readDependency(it.key) ?: emptyList()
+        } ?: emptyList()
+    }
+
+    private
+    fun TomlTable.readDependency(group: String): List<Dependency> {
+        return keySet().filter {
+            get(it) !is String && getTable(it) != null
+        }.map {
+            val table = getTable(it)!!
+            val version = table.getString("version")
+            val isPlatform = table.getBoolean("platform") { false }
+            when {
+                group == "project" -> Dependency.ProjectDependency(it)
+                isPlatform -> Dependency.PlatformDependency(group, it, version)
+                else -> ExternalDependency(group, it, version)
+            }
+        }.toList() + keySet().filter {
+            get(it) is String
+        }.map {
+            val version = getString(it)
+            ExternalDependency(group, it, version)
+        }
+    }
+
+    private
+    fun TomlTable.readPositionOf(key: String): ElementPosition {
+        val tomlPosition = inputPositionOf("\"${key}\"")
+        return when (tomlPosition) {
             null -> ElementPosition(-1, -1)
             else -> ElementPosition(tomlPosition.line(), tomlPosition.column())
         }
+    }
 
     private
     fun readExtensions(result: TomlParseResult): List<Extension> {
