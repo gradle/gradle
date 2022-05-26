@@ -786,7 +786,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `should build precompiled script plugins in explicit api mode`() {
+    fun `should compile correctly with Kotlin explicit api mode`() {
         withBuildScript(
             """
             plugins {
