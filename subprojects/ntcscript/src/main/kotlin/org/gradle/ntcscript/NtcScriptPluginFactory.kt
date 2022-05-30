@@ -65,7 +65,7 @@ class NtcScriptPluginFactory @Inject constructor(
 
         val initialPluginRequests = collectPluginRequests(model, scriptSource)
 
-        applyPlugin(initialPluginRequests, target, scriptHandler, targetScope)
+        applyPlugins(initialPluginRequests, target, scriptHandler, targetScope)
 
         applyModelTo(target, model)
     }
@@ -103,17 +103,19 @@ class NtcScriptPluginFactory @Inject constructor(
     }
 
     private
-    fun collectPluginRequests(model: BuildScriptModel, scriptSource: ScriptSource): PluginRequests {
-        val initialPluginRequests = PluginRequestCollector(scriptSource).run {
+    fun collectPluginRequests(model: BuildScriptModel, scriptSource: ScriptSource): PluginRequests =
+        PluginRequestCollector(scriptSource).run {
             model.plugins.forEach { plugin ->
-                val spec = createSpec(plugin.position.line).id(plugin.id)
-                plugin.version?.let {
-                    spec.version(it)
-                }
+                createPluginRequestFor(plugin)
             }
             pluginRequests
         }
-        return initialPluginRequests
+
+    private
+    fun PluginRequestCollector.createPluginRequestFor(plugin: BuildScriptModel.Plugin) {
+        createSpec(plugin.position?.line ?: 1)
+            .id(plugin.id)
+            .also { spec -> plugin.version?.let(spec::version) }
     }
 
     private
@@ -121,15 +123,15 @@ class NtcScriptPluginFactory @Inject constructor(
         NtcScriptReader().readToml(scriptSource.resource.text)
 
     private
-    fun valueOf(value: BuildScriptModel.PropertyNode) = when (value) {
-        is BuildScriptModel.PropertyNode.StringProperty -> value.value
-        is BuildScriptModel.PropertyNode.DoubleProperty -> TODO()
-        is BuildScriptModel.PropertyNode.IntegerProperty -> TODO()
-        is BuildScriptModel.PropertyNode.NestedProperty -> TODO()
+    fun valueOf(value: BuildScriptModel.PropertyValue) = when (value) {
+        is BuildScriptModel.PropertyValue.StringValue -> value.value
+        is BuildScriptModel.PropertyValue.DoubleValue -> TODO()
+        is BuildScriptModel.PropertyValue.IntValue -> TODO()
+        is BuildScriptModel.PropertyValue.RecordValue -> TODO()
     }
 
     private
-    fun applyPlugin(initialPluginRequests: PluginRequests, target: ProjectInternal, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope) {
+    fun applyPlugins(initialPluginRequests: PluginRequests, target: ProjectInternal, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope) {
         pluginRequestApplicator.applyPlugins(
             autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target),
             scriptHandler as ScriptHandlerInternal,

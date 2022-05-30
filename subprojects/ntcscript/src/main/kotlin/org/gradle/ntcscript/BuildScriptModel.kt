@@ -24,9 +24,9 @@ data class BuildScriptModel(
 ) {
     data class ElementPosition(val line: Int, val column: Int)
 
-    data class Plugin(val id: String, val position: ElementPosition, val version: String?)
+    data class Plugin(val id: String, val position: ElementPosition?, val version: String?)
 
-    data class Extension(val name: String, val properties: Map<String, PropertyNode>)
+    data class Extension(val name: String, val properties: Map<String, PropertyValue>)
 
     sealed class Dependency {
         data class ExternalDependency(val group: String, val module: String, val version: String?) : Dependency()
@@ -34,10 +34,10 @@ data class BuildScriptModel(
         data class ProjectDependency(val id: String) : Dependency()
     }
 
-    sealed class PropertyNode {
-        data class IntegerProperty(val value: Int) : PropertyNode()
-        data class DoubleProperty(val value: Double) : PropertyNode()
-        data class StringProperty(val value: String) : PropertyNode()
-        data class NestedProperty(val value: Map<String, PropertyNode>) : PropertyNode()
+    sealed class PropertyValue {
+        data class IntValue(val value: Int) : PropertyValue()
+        data class DoubleValue(val value: Double) : PropertyValue()
+        data class StringValue(val value: String) : PropertyValue()
+        data class RecordValue(val value: Map<String, PropertyValue>) : PropertyValue()
     }
 }

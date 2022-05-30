@@ -21,120 +21,123 @@ import org.gradle.ntcscript.BuildScriptModel.Dependency.ExternalDependency
 import org.gradle.ntcscript.BuildScriptModel.ElementPosition
 import org.gradle.ntcscript.BuildScriptModel.Extension
 import org.gradle.ntcscript.BuildScriptModel.Plugin
-import org.gradle.ntcscript.BuildScriptModel.PropertyNode.DoubleProperty
-import org.gradle.ntcscript.BuildScriptModel.PropertyNode.IntegerProperty
-import org.gradle.ntcscript.BuildScriptModel.PropertyNode.StringProperty
+import org.gradle.ntcscript.BuildScriptModel.PropertyValue.DoubleValue
+import org.gradle.ntcscript.BuildScriptModel.PropertyValue.IntValue
+import org.gradle.ntcscript.BuildScriptModel.PropertyValue.StringValue
 import org.tomlj.Toml
 import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
+import java.util.Collections.singletonList
 
 
 class NtcScriptReader {
 
     companion object {
-        val RESERVED_NODES = listOf(
-            "project",
+        /**
+         * Builtin configuration nodes, everything else is considered an extension.
+         */
+        private
+        val BUILTIN_NODES = setOf(
+            // builtin project properties
+            "description",
+            "version",
+            // builtin collections
             "plugins",
             "repositories",
             "dependencies"
         )
     }
 
-    fun readToml(toml: String): BuildScriptModel {
-        val result: TomlParseResult = Toml.parse(toml)
-        val plugins = readPlugins(result)
-        val extensions = readExtensions(result)
-        val dependencies = readDependencies(result)
-        return BuildScriptModel(
-            plugins = plugins,
-            extensions = extensions,
-            dependencies = dependencies
-        )
-    }
+    fun readToml(toml: String): BuildScriptModel =
+        Toml.parse(toml).run {
+            BuildScriptModel(
+                plugins = readPlugins(),
+                extensions = readExtensions(),
+                dependencies = readDependencies()
+            )
+        }
 
     private
-    fun readPlugins(result: TomlParseResult): List<Plugin> {
-        val pluginsTable = result.getTable("plugins")
-        val plugins = pluginsTable?.toMap()?.map {
-            val position: ElementPosition = pluginsTable.readPositionOf(it.key)
-            (it.value as? TomlTable)?.readPlugin(it.key, position)
-        }?.filterNotNull()?.toList()
-        return plugins ?: emptyList()
-    }
-
-    private
-    fun TomlTable.readPlugin(id: String, position: ElementPosition): Plugin {
-        val version = getString("version")
-        return Plugin(id, position, version)
-    }
-
-    private
-    fun readDependencies(result: TomlParseResult): Map<String, List<Dependency>> {
-        val dependenciesTable = result.getTable("dependencies")
-        val dependencies = dependenciesTable?.toMap()?.mapValues {
-            (it.value as? TomlTable)?.readConfiguration() ?: emptyList()
-        }?.filterValues { it.isNotEmpty() }
-        return dependencies ?: mapOf()
-    }
-
-    private
-    fun TomlTable.readConfiguration(): List<Dependency> {
-        return toMap()?.flatMap {
-            (it.value as? TomlTable)?.readDependency(it.key) ?: emptyList()
+    fun TomlParseResult.readPlugins(): List<Plugin> =
+        getTable("plugins")?.run {
+            keySet().mapNotNull { pluginId ->
+                singletonList(pluginId).let { pluginPath ->
+                    getTable(pluginPath)?.readPlugin(pluginId, readPositionOf(pluginPath))
+                }
+            }
         } ?: emptyList()
-    }
 
     private
-    fun TomlTable.readDependency(group: String): List<Dependency> {
-        return keySet().filter {
-            get(it) !is String && getTable(it) != null
-        }.map {
-            val table = getTable(it)!!
-            val version = table.getString("version")
-            val isPlatform = table.getBoolean("platform") { false }
-            when {
-                group == "project" -> Dependency.ProjectDependency(it)
-                isPlatform -> Dependency.PlatformDependency(group, it, version)
-                else -> ExternalDependency(group, it, version)
+    fun TomlTable.readPlugin(id: String, position: ElementPosition?) =
+        Plugin(id, position, getString("version"))
+
+    private
+    fun TomlParseResult.readDependencies(): Map<String, List<Dependency>> =
+        getTable("dependencies")?.run {
+            keySet().asSequence().mapNotNull { configName ->
+                getTable(singletonList(configName))
+                    ?.readConfiguration()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { deps -> configName to deps }
             }
-        }.toList() + keySet().filter {
-            get(it) is String
-        }.map {
-            val version = getString(it)
-            ExternalDependency(group, it, version)
+        }?.toMap() ?: emptyMap()
+
+    private
+    fun TomlTable.readConfiguration(): List<Dependency> =
+        keySet().flatMap { group ->
+            getTable(singletonList(group))
+                ?.readDependency(group)
+                ?: emptyList()
         }
-    }
 
     private
-    fun TomlTable.readPositionOf(key: String): ElementPosition {
-        val tomlPosition = inputPositionOf("\"${key}\"")
-        return when (tomlPosition) {
-            null -> ElementPosition(-1, -1)
-            else -> ElementPosition(tomlPosition.line(), tomlPosition.column())
-        }
-    }
-
-    private
-    fun readExtensions(result: TomlParseResult): List<Extension> {
-        val extensions = result.toMap()?.filter {
-            it.key !in RESERVED_NODES
-        }?.map {
-            (it.value as? TomlTable)?.readExtension(it.key)
-        }?.filterNotNull()?.toList()
-        return extensions ?: emptyList()
-    }
-
-    private
-    fun TomlTable.readExtension(name: String): Extension {
-        val properties = toMap().mapValues {
-            when (it.value) {
-                is Long -> IntegerProperty((it.value as Long).toInt())
-                is Int -> IntegerProperty(it.value as Int)
-                is Double -> DoubleProperty(it.value as Double)
-                is String -> StringProperty(it.value as String)
-                else -> throw UnsupportedOperationException("Parsing of nested ")
+    fun TomlTable.readDependency(group: String): List<Dependency> = keySet().mapNotNull { name ->
+        val path = singletonList(name)
+        when {
+            isTable(path) -> getTable(path)?.let { table ->
+                table.run {
+                    when {
+                        group == "project" -> Dependency.ProjectDependency(name)
+                        getBoolean("platform") { false } -> Dependency.PlatformDependency(group, name, getString("version"))
+                        else -> ExternalDependency(group, name, getString("version"))
+                    }
+                }
+            }
+            else -> getString(path)?.let { version ->
+                ExternalDependency(group, name, version)
             }
         }
-        return Extension(name, properties = properties)
+    }
+
+    private
+    fun TomlTable.readPositionOf(path: List<String>): ElementPosition? =
+        inputPositionOf(path)?.let { position ->
+            ElementPosition(position.line(), position.column())
+        }
+
+    private
+    fun TomlParseResult.readExtensions(): List<Extension> =
+        keySet().asSequence().filter {
+            it !in BUILTIN_NODES
+        }.mapNotNull {
+            getTable(it)?.readExtension(it)
+        }.toList()
+
+    private
+    fun TomlTable.readExtension(name: String): Extension =
+        Extension(
+            name,
+            properties = keySet().associateWith { key ->
+                propertyValueOf(key)
+            }
+        )
+
+    private
+    fun TomlTable.propertyValueOf(key: String) = when (val value = get(key)) {
+        is Long -> IntValue(value.toInt())
+        is Int -> IntValue(value)
+        is Double -> DoubleValue(value)
+        is String -> StringValue(value)
+        else -> throw UnsupportedOperationException("Parsing of nested ")
     }
 }

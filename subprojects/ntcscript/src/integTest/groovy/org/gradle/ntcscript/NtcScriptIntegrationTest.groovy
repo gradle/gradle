@@ -22,6 +22,15 @@ import org.gradle.test.fixtures.file.TestFile
 
 class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        settingsFile """
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
+            rootProject.name = 'ntc-test'
+        """
+    }
+
     def "can apply plugins and configure extensions"() {
         given:
         ntcScript '''
@@ -35,6 +44,29 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
                 public static void main(String[] args) {
                     System.out.println("OMG it's TOML!");
                 }
+            }
+        '''
+
+        when:
+        succeeds 'run'
+
+        then:
+        outputContains "OMG it's TOML!"
+    }
+
+    def "can apply multiple plugins"() {
+        given:
+        ntcScript '''
+            [plugins.application]
+            [plugins."org.jetbrains.kotlin.jvm"]
+            version = "1.6.10"
+            [application]
+            mainClass = "ntc.AppKt"
+        '''
+        file('src/main/kotlin/ntc/App.kt') << '''
+            package ntc
+            fun main() {
+                println("OMG it's TOML!")
             }
         '''
 
@@ -80,13 +112,6 @@ class NtcScriptIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        settingsFile '''
-            dependencyResolutionManagement {
-                repositories {
-                    mavenCentral()
-                }
-            }
-        '''
     }
 
     protected TestFile ntcScript(@NtcBuildScriptLanguage String script) {
