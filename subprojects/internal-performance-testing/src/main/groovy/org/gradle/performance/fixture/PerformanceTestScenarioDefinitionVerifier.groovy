@@ -29,7 +29,11 @@ class PerformanceTestScenarioDefinitionVerifier {
         File newFile = new File(args[1])
         PerformanceTestScenarioDefinition oldJson = new ObjectMapper().readValue(oldFile, PerformanceTestScenarioDefinition).sort()
         PerformanceTestScenarioDefinition newJson = new ObjectMapper().readValue(newFile, PerformanceTestScenarioDefinition).sort()
-        if (oldJson != newJson) {
+
+        oldJson.removeIgnoredScenarios(newJson.ignoredScenarios)
+        newJson.removeIgnoredScenarios(newJson.ignoredScenarios)
+
+        if (oldJson.performanceTests != newJson.performanceTests) {
             int size = Math.min(oldJson.performanceTests.size(), newJson.performanceTests.size())
             int firstDifferentElementIndex = size
             for (int i = 0; i < size; ++i) {

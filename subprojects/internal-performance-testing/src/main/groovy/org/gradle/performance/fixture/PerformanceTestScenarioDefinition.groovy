@@ -28,6 +28,20 @@ import groovy.transform.EqualsAndHashCode
 @CompileStatic
 class PerformanceTestScenarioDefinition {
     List<PerformanceTestsBean> performanceTests = []
+    List<IgnoredScenarioBean> ignoredScenarios = []
+
+    @EqualsAndHashCode
+    static class IgnoredScenarioBean {
+        String testClass
+        String testMethodRegex
+
+        boolean match(PerformanceTestsBean performanceTest) {
+            String[] splitByDot = performanceTest.testId.split(/\./)
+            String className = splitByDot[0..<-1].join('.')
+            String methodName = splitByDot[-1]
+            return className == testClass && methodName.matches(testMethodRegex)
+        }
+    }
 
     @EqualsAndHashCode
     static class PerformanceTestsBean {
@@ -76,6 +90,13 @@ class PerformanceTestScenarioDefinition {
         // Sort all fields before writing to get a deterministic result
         Collections.sort(performanceTests, { a, b -> a.testId <=> b.testId })
         performanceTests.each { Collections.sort(it.groups, { a, b -> a.testProject <=> b.testProject }) }
+        return this
+    }
+
+    PerformanceTestScenarioDefinition removeIgnoredScenarios(List<IgnoredScenarioBean> ignoredScenarios) {
+        performanceTests.removeIf { PerformanceTestsBean performanceTest ->
+            ignoredScenarios.any { it.match(performanceTest) }
+        }
         return this
     }
 }

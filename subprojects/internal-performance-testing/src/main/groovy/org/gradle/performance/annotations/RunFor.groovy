@@ -26,6 +26,7 @@ import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
+import spock.lang.Ignore
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -33,6 +34,8 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 import java.lang.reflect.Method
 
+import static org.gradle.performance.fixture.PerformanceTestScenarioDefinition.IgnoredScenarioBean
+import static org.gradle.performance.fixture.PerformanceTestScenarioDefinition.PerformanceTestsBean
 import static org.gradle.performance.fixture.PerformanceTestScenarioDefinition.PerformanceTestsBean.GroupsBean
 
 /**
@@ -86,24 +89,44 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread({
-            if (SCENARIO_DEFINITION_FILE != null) {
+            if (isGeneratingPerformanceScenarioDefinitions()) {
                 scenarioDefinition.writeTo(SCENARIO_DEFINITION_FILE)
             }
         } as Runnable))
+    }
+
+    private static boolean isGeneratingPerformanceScenarioDefinitions() {
+        return SCENARIO_DEFINITION_FILE != null
     }
 
     @Override
     void visitSpecAnnotation(RunFor runFor, SpecInfo spec) {
         assert runFor.value().every { it.iterationMatcher().isEmpty() }: "No iterationMatchers allowed in class-level @Scenario!"
         for (FeatureInfo feature : spec.getFeatures()) {
+            if (spec.getReflection().isAnnotationPresent(Ignore.class) || feature.getFeatureMethod().getReflection().isAnnotationPresent(Ignore.class)) {
+                addIgnoredScenario(feature)
+            }
             if (!feature.getFeatureMethod().getReflection().isAnnotationPresent(RunFor.class)) {
                 visitFeatureAnnotation(runFor, feature)
             }
         }
     }
 
+    private void addIgnoredScenario(FeatureInfo feature) {
+        String testMethodPattern = feature.name.split(/#\w+/).collect { it.isEmpty() ? '' : /\Q$it\E/ }.join(/.+/)
+        scenarioDefinition.ignoredScenarios.add(
+            new IgnoredScenarioBean(
+                testClass: feature.spec.reflection.name,
+                testMethodRegex: testMethodPattern
+            )
+        )
+    }
+
     @Override
     void visitFeatureAnnotation(RunFor runFor, FeatureInfo feature) {
+        if (feature.getFeatureMethod().getReflection().isAnnotationPresent(Ignore.class)) {
+            addIgnoredScenario(feature)
+        }
         feature.getFeatureMethod().addInterceptor(new AddScenarioDefinitionInterceptor(feature.getFeatureMethod().getReflection(), runFor))
     }
 
@@ -130,7 +153,7 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (SCENARIO_DEFINITION_FILE != null) {
+            if (isGeneratingPerformanceScenarioDefinitions()) {
                 String testId = invocation.getIteration().getDisplayName()
 
                 List<Scenario> scenarios = runFor.value().toList()
@@ -145,7 +168,7 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
                     }
                 }
                 if (!groups.isEmpty()) {
-                    scenarioDefinition.getPerformanceTests().add(new PerformanceTestScenarioDefinition.PerformanceTestsBean("${invocation.getSpec().getReflection().getName()}.$testId", groups))
+                    scenarioDefinition.getPerformanceTests().add(new PerformanceTestsBean("${invocation.getSpec().getReflection().getName()}.$testId", groups))
                 }
                 Assume.assumeFalse(true)
             } else {
