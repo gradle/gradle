@@ -82,7 +82,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param configureClosure The closure to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
-    <S extends T> DomainObjectCollection<S> withType(Class<S> type, @DelegatesTo(type = "S") Closure configureClosure);
+    <S extends T> DomainObjectCollection<S> withType(@DelegatesTo.Target Class<S> type, @DelegatesTo(genericTypeIndex = 0) Closure configureClosure);
 
     /**
      * Returns a collection which contains the objects in this collection which meet the given specification. The
