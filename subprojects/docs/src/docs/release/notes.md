@@ -10,8 +10,12 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 [altrisi](https://github.com/altrisi),
+[aSemy](https://github.com/aSemy),
+[Ashwin Pankaj](https://github.com/ashwinpankaj),
 [Frosty-J](https://github.com/Frosty-J),
-[Ashwin Pankaj](https://github.com/ashwinpankaj)
+[Gabriel Feo](https://github.com/gabrielfeo),
+[Sam Snyder](https://github.com/sambsnyd),
+[teawithbrownsugar](https://github.com/teawithbrownsugar)
 
 ## Upgrade instructions
 
