@@ -654,8 +654,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20846")
-    def "when tests are not run they are not configured"() {
-        given: "a build which adds a task to throw an exception upon configuring test tasks"
+    def "when tests are NOT run they are NOT configured"() {
+        given: "a build which will throw an exception upon configuring test tasks"
         file("build.gradle") << """
             plugins {
                 id 'java-library'
@@ -681,19 +681,18 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         file("src/test/java/org/test/MyTest.java") << """
             package org.test;
 
-            import org.junit.jupiter.api.Test;
-            import static org.junit.jupiter.api.Assertions.*;
+            import org.junit.*;
 
             public class MyTest {
                 @Test
                 public void testSomething() {
                     App classUnderTest = new App();
-                    assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                    Assert.assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
                 }
             }
         """
 
-        expect: "compilation does NOT configure tests"
+        expect: "compilation does not configure tests"
         succeeds("compileJava")
 
         and: "running tests fails due to configuring tests"
@@ -702,8 +701,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20846")
-    def "when tests are not run they are not configured - even when adding an implementation dep"() {
-        given: "a build which adds a task to throw an exception upon configuring test tasks"
+    def "when tests are NOT run they are NOT configured - even when adding an implementation dep"() {
+        given: "a build which will throw an exception upon configuring test tasks"
         file("build.gradle") << """
             plugins {
                 id 'java-library'
@@ -733,14 +732,13 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         file("src/test/java/org/test/MyTest.java") << """
             package org.test;
 
-            import org.junit.jupiter.api.Test;
-            import static org.junit.jupiter.api.Assertions.*;
+            import org.junit.*;
 
             public class MyTest {
                 @Test
                 public void testSomething() {
                     App classUnderTest = new App();
-                    assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                    Assert.assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
                 }
             }
         """
@@ -750,6 +748,65 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         and: "running tests fails due to configuring tests"
         fails("test")
+        failure.assertHasErrorOutput("Configuring tests failed")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20846")
+    def "when tests are NOT run they are NOT configured - even when adding an implementation dep to the integration test suite"() {
+        given: "a build which will throw an exception upon configuring test tasks"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException('Configuring tests failed')
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                    }
+                }
+            }
+
+            dependencies {
+                integrationTestImplementation 'com.google.guava:guava:30.1.1-jre'
+            }
+        """
+
+        and: "containing a class to compile"
+        file("src/main/java/org/test/App.java") << """
+            public class App {
+                public String getGreeting() {
+                    return "Hello World!";
+                }
+            }
+        """
+
+        and: "containing an integration test"
+        file("src/integrationTest/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.*;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    App classUnderTest = new App();
+                    Assert.assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                }
+            }
+        """
+
+        expect: "compilation does NOT configure tests"
+        succeeds("compileJava")
+
+        and: "running integration tests fails due to configuring tests"
+        fails("integrationTest")
         failure.assertHasErrorOutput("Configuring tests failed")
     }
 }
