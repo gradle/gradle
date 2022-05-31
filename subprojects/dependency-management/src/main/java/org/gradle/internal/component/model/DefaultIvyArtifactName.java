@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.io.Files;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -31,15 +30,6 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String extension;
     private final String classifier;
     private final int hashCode;
-
-    public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
-        String name = publishArtifact.getName();
-        if (name == null) {
-            name = publishArtifact.getFile().getName();
-        }
-        String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
-        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
-    }
 
     public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {
         String fileName = file.getName();
@@ -97,14 +87,14 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         if (obj == this) {
             return true;
         }
-        if (obj == null || obj.getClass() != getClass()) {
+        if (!(obj instanceof IvyArtifactName)) {
             return false;
         }
-        DefaultIvyArtifactName other = (DefaultIvyArtifactName) obj;
-        return equal(name, other.name)
-            && equal(type, other.type)
-            && equal(extension, other.extension)
-            && equal(classifier, other.classifier);
+        IvyArtifactName other = (IvyArtifactName) obj;
+        return equal(name, other.getName())
+            && equal(type, other.getType())
+            && equal(extension, other.getExtension())
+            && equal(classifier, other.getClassifier());
     }
 
     @Override

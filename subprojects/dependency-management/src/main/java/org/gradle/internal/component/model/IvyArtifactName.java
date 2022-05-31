@@ -16,6 +16,9 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.util.internal.GUtil;
+
 import javax.annotation.Nullable;
 
 /**
@@ -31,4 +34,32 @@ public interface IvyArtifactName {
 
     @Nullable
     String getClassifier();
+
+    /**
+     * Given a {@link PublishArtifact}, create an {@code IvyArtifactName} by extracting
+     * the relevant information from the artifact. The returned {@code IvyArtifactName} is
+     * lazily initialized, in that it will not attempt to retrieve any information from the
+     * provided {@code publishArtifact} until information is fetched from the returned
+     * {@code IvyArtifactName}. Thus, if the provided {@code publishArtifact} is backed
+     * by a lazily defined entity, calling this method will not cause the backing entity
+     * to become realized.
+     *
+     * @param publishArtifact The artifact to converert.
+     *
+     * @return A lazily initialized {@code IvyArtifactName}.
+     */
+    static IvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
+        // For some publish artifacts, for example LazyPublishArtifacts or those backed by ArchiveTasks, attempting to
+        // fetch any information from the artifact may cause the underlying task to become realized.
+        // So, attempt to further defer realization of the task for the cases where the returned IvyArtifactName is
+        // never actually accessed.
+        return new LazyIvyArtifactName(() -> {
+            String name = publishArtifact.getName();
+            if (name == null) {
+                name = publishArtifact.getFile().getName();
+            }
+            String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
+            return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+        });
+    }
 }
