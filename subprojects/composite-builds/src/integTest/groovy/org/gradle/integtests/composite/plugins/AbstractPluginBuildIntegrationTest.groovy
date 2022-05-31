@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite.plugins
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -138,14 +137,18 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
     }
 
     void publishSettingsPlugin(String pluginId, String repoDeclaration) {
-        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.initialization.Settings")
+        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.initialization.Settings", null)
     }
 
     void publishProjectPlugin(String pluginId, String repoDeclaration) {
-        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.Project")
+        publishProjectPlugin(pluginId, repoDeclaration, "The GradlePluginDevelopmentExtension.isAutomatedPublishing method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
     }
 
-    private void publishPlugin(String pluginId, String repoDeclaration, String pluginTarget) {
+    void publishProjectPlugin(String pluginId, String repoDeclaration, String expectedDeprecationWarning) {
+        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.Project", expectedDeprecationWarning)
+    }
+
+    private void publishPlugin(String pluginId, String repoDeclaration, String pluginTarget, String expectedDeprecationWarning) {
         file("plugin/src/main/java/PublishedPlugin.java") << """
             import org.gradle.api.Plugin;
 
@@ -175,9 +178,13 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
-        executer.inDirectory(file("plugin")).withTasks("publish")
-                .expectDeprecationWarning("The GradlePluginDevelopmentExtension.isAutomatedPublishing method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
-                .run()
+
+        def tasks = executer.inDirectory(file("plugin")).withTasks("publish")
+        if (expectedDeprecationWarning != null) {
+            tasks = tasks.expectDeprecationWarning(expectedDeprecationWarning)
+        }
+        tasks.run()
+
         file("plugin").forceDeleteDir()
         mavenRepo.module("com.example", "plugin", "1.0").assertPublished()
     }
