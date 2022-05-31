@@ -38,6 +38,7 @@ public class MinimalScalaCompileOptions implements Serializable {
     private List<String> loggingPhases;
     private MinimalScalaCompilerDaemonForkOptions forkOptions;
     private transient IncrementalCompileOptions incrementalOptions;
+    private final String keepAliveMode;
 
     public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
         this.failOnError = compileOptions.isFailOnError();
@@ -53,6 +54,7 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
         this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.incrementalOptions = compileOptions.getIncrementalOptions();
+        this.keepAliveMode = compileOptions.getKeepAliveOption().get();
     }
 
     public boolean isFailOnError() {
@@ -160,5 +162,9 @@ public class MinimalScalaCompileOptions implements Serializable {
 
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
         this.incrementalOptions = incrementalOptions;
+    }
+
+    public String getKeepAliveMode() {
+        return keepAliveMode;
     }
 }
