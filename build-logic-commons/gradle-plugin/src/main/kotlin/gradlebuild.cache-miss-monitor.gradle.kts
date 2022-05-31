@@ -17,8 +17,8 @@
 @file:Suppress("UNCHECKED_CAST")
 
 import com.gradle.scan.plugin.BuildScanExtension
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.support.serviceOf
 import java.util.concurrent.atomic.AtomicBoolean
 
 val gradleRootProject = when {
@@ -62,10 +62,10 @@ fun Task.isCompileCacheMissMonitoredTask() = isMonitoredCompileTask() && !isExpe
 
 fun isAsciidoctorCacheMissTask() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
-fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() && !isGroovyCompileOnM1Mac()
+fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() && !isOnM1Mac()
 
 // vendor is an input of GroovyCompile, so GroovyCompile on M1 mac is definitely a cache miss
-fun Task.isGroovyCompileOnM1Mac() = this is GroovyCompile && OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64"
+fun Task.isOnM1Mac() = OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64"
 
 fun Task.isClasspathManifest() = this.javaClass.simpleName.startsWith("ClasspathManifest")
 

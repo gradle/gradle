@@ -198,9 +198,14 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileObserved(file: File) {
+        fileObserved(file, null)
+    }
+
+    override fun fileObserved(file: File, consumer: String?) {
         if (inputTrackingDisabledForThread) {
             return
         }
+        // Ignore consumer for now, only used by Gradle internals and so shouldn't appear in the report.
         captureFile(file)
     }
 

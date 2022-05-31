@@ -105,6 +105,7 @@ data class CIBuildModel(
                 SpecificBuild.TestPerformanceTest,
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
+                SpecificBuild.FlakyTestQuarantineMacOsM1,
                 SpecificBuild.FlakyTestQuarantineWindows
             ),
             functionalTests = listOf(
@@ -264,7 +265,7 @@ data class TestCoverage(
     }
 
     fun asName(): String =
-        "${testType.name.toCapitalized()} ${testJvmVersion.name.toCapitalized()} ${vendor.displayName} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
+        "${testType.name.toCapitalized()} ${testJvmVersion.name.toCapitalized()} ${vendor.displayName} ${os.asName()} ${arch.asName()}${if (withoutDependencies) " without dependencies" else ""}"
 
     val isQuick: Boolean = withoutDependencies || testType == TestType.quick
     val isPlatform: Boolean = testType == TestType.platform
@@ -420,6 +421,11 @@ enum class SpecificBuild {
     FlakyTestQuarantineMacOs {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.MACOS)
+        }
+    },
+    FlakyTestQuarantineMacOsM1 {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
         }
     },
     FlakyTestQuarantineWindows {

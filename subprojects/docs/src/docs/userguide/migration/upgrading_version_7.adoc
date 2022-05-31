@@ -33,6 +33,15 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.6]]
+== Upgrading from 7.5 and earlier
+
+[[exported_key_deduplication]]
+=== Exported keys are now deduplicated
+
+link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
+Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 

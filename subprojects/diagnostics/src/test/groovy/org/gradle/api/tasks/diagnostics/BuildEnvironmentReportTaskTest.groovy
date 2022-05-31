@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -26,25 +25,17 @@ class BuildEnvironmentReportTaskTest extends AbstractProjectBuilderSpec {
     private ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private BuildEnvironmentReportTask task = TestUtil.createTask(BuildEnvironmentReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
-    private Configuration conf1 = project.buildscript.configurations.create("conf1")
-    private Configuration conf2 = project.buildscript.configurations.create("conf2")
-    private Configuration classpath = project.buildscript.configurations.getByName("classpath")
 
     def "renders only classpath build script configuration"() {
+        given:
+        project.buildscript.configurations.create("conf1")
+        project.buildscript.configurations.create("conf2")
+
         when:
         task.setRenderer(renderer)
         task.generate()
 
-        then: 1 * renderer.startConfiguration(classpath)
-        then: 1 * renderer.render(classpath)
-        then: 1 * renderer.completeConfiguration(classpath)
-
-        then: 0 * renderer.startConfiguration(conf1)
-        then: 0 * renderer.render(conf1)
-        then: 0 * renderer.completeConfiguration(conf1)
-
-        then: 0 * renderer.startConfiguration(conf2)
-        then: 0 * renderer.render(conf2)
-        then: 0 * renderer.completeConfiguration(conf2)
+        then:
+        task.reportModel.get().configuration.name == "classpath"
     }
 }

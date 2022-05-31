@@ -174,16 +174,6 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public int compareTo(Node other) {
-        // Prefer to run tasks first
-        if (!(other instanceof LocalTaskNode)) {
-            return -1;
-        }
-        LocalTaskNode localTask = (LocalTaskNode) other;
-        return task.compareTo(localTask.task);
-    }
-
-    @Override
     public String toString() {
         return task.getIdentityPath().toString();
     }

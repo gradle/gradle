@@ -25,6 +25,7 @@ import java.util.function.Consumer;
  * A resource produced by a task in an included build.
  */
 public interface IncludedBuildTaskResource {
+
     enum State {
         Waiting(false), Success(true), Failed(true);
 
@@ -52,4 +53,6 @@ public interface IncludedBuildTaskResource {
     TaskInternal getTask();
 
     State getTaskState();
+
+    String healthDiagnostics();
 }
