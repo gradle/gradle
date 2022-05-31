@@ -17,6 +17,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -516,7 +517,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
-    Task task(String name, Closure configureClosure);
+    Task task(String name, @DelegatesTo(Task.class) Closure configureClosure);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
@@ -606,7 +607,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
-    Project project(String path, Closure configureClosure);
+    Project project(String path, @DelegatesTo(Project.class) Closure configureClosure);
 
     /**
      * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
@@ -780,7 +781,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileCollection files(Object paths, Closure configureClosure);
+    ConfigurableFileCollection files(Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -852,7 +853,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+    ConfigurableFileTree fileTree(Object baseDir, @DelegatesTo(ConfigurableFileTree.class) Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
@@ -907,7 +908,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
-     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(Action)}
      * method to unzip a ZIP file.</p>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -932,7 +933,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>
      * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
      * <p>
-     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * You can combine this method with the {@link #copy(Action)}
      * method to untar a TAR file:
      *
      * <pre class='autoTested'>
@@ -1029,7 +1030,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult javaexec(Closure closure);
+    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
 
     /**
      * Executes an external Java process.
@@ -1048,7 +1049,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult exec(Closure closure);
+    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
 
     /**
      * Executes an external command.
@@ -1146,7 +1147,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      */
-    AntBuilder ant(Closure configureClosure);
+    AntBuilder ant(@DelegatesTo(AntBuilder.class) Closure configureClosure);
 
     /**
      * <p>Executes the given action against the <code>AntBuilder</code> for this project. You can use this in your
@@ -1211,7 +1212,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the published artifacts.
      */
-    void artifacts(Closure configureClosure);
+    void artifacts(@DelegatesTo(ArtifactHandler.class) Closure configureClosure);
 
     /**
      * <p>Configures the published artifacts for this project.
@@ -1293,7 +1294,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void subprojects(Closure configureClosure);
+    void subprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
      * <p>Configures this project and each of its sub-projects.</p>
@@ -1312,7 +1313,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void allprojects(Closure configureClosure);
+    void allprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
      * Adds an action to execute immediately before this project is evaluated.
@@ -1345,7 +1346,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure to call.
      */
-    void afterEvaluate(Closure closure);
+    void afterEvaluate(@DelegatesTo(Project.class) Closure closure);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the
@@ -1585,7 +1586,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
-    WorkResult copy(Closure closure);
+    WorkResult copy(@DelegatesTo(CopySpec.class) Closure closure);
 
     /**
      * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
@@ -1615,7 +1616,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
      */
-    CopySpec copySpec(Closure closure);
+    CopySpec copySpec(@DelegatesTo(CopySpec.class) Closure closure);
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used

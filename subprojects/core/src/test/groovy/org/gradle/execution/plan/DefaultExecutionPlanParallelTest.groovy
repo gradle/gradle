@@ -1944,11 +1944,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
 
         @Override
-        int compareTo(Node o) {
-            return -1
-        }
-
-        @Override
         void execute(NodeExecutionContext context) {
         }
     }

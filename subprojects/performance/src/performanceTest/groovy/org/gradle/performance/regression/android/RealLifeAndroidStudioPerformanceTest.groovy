@@ -43,7 +43,7 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         runner.warmUpRuns = 40
         runner.runs = 40
         runner.minimumBaseVersion = "6.5"
-        runner.targetVersions = ["7.5-20220312232108+0000"]
+        runner.targetVersions = ["7.6-20220513002340+0000"]
         runner.setupAndroidStudioSync()
 
         when:

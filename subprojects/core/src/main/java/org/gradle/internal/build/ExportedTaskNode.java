@@ -32,4 +32,6 @@ public interface ExportedTaskNode {
      * Invokes the given action when this task completes (as per {@link Node#isComplete()}). Does nothing if this task has already completed.
      */
     void onComplete(Runnable action);
+
+    String healthDiagnostics();
 }

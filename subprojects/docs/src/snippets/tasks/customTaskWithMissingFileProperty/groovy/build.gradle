@@ -2,14 +2,8 @@
 // tag::task[]
 abstract class GreetingFileTask extends DefaultTask {
 
-    @Internal
+    @InputFiles
     abstract RegularFileProperty getSource()
-
-    @InputFile
-    @Optional
-    protected Provider<RegularFile> getSourceInternal() {
-        source.map { it.asFile.exists() ? it : null }
-    }
 
     @OutputFile
     abstract RegularFileProperty getDestination()

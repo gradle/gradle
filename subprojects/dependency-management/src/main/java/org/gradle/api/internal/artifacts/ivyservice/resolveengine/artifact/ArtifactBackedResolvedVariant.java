@@ -56,10 +56,10 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifacts) {
-        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, supplyResolvedArtifactSet(identifier, displayName, attributes, capabilities, artifacts));
+        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, supplyResolvedArtifactSet(displayName, attributes, capabilities, artifacts));
     }
 
-    private static Supplier<ResolvedArtifactSet> supplyResolvedArtifactSet(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifactsSupplier) {
+    private static Supplier<ResolvedArtifactSet> supplyResolvedArtifactSet(DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifactsSupplier) {
         return () -> {
             Collection<? extends ResolvableArtifact> artifacts = artifactsSupplier.get();
             if (artifacts.isEmpty()) {

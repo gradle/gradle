@@ -149,6 +149,73 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
 """
     }
+
+    def "reports toolchain probing failure cause lines"() {
+        def path = new File("path")
+        def createFailureWithNCauses = { n ->
+            def rootCause = new Exception("lastLine")
+            n == 0
+                ? rootCause :
+                (1..n).inject(new Exception("lastLine")) { acc, it -> new Exception("line${n - it}", acc) }
+        }
+
+        given:
+        task.installationRegistry.listInstallations() >> [new InstallationLocation(path, "TestSource")]
+        detector.getMetadata(path) >> JvmInstallationMetadata.failure(path, createFailureWithNCauses(nCauses))
+
+        when:
+        task.showToolchains()
+
+        then:
+        output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
+{identifier} + Invalid toolchains{normal}
+{identifier}     + path{normal}
+$errorLines
+
+"""
+
+        where:
+        nCauses << [0, 1, 5, 6, 7]
+        errorLines << [
+            // 0
+            "       | Error:              {description}lastLine{normal}",
+
+            // 1
+            """       | Error:              {description}line0{normal}
+       |     Caused by:      {description}lastLine{normal}""",
+
+            // 5
+            """       | Error:              {description}line0{normal}
+       |     Caused by:      {description}line1{normal}
+       |     Caused by:      {description}line2{normal}
+       |     Caused by:      {description}line3{normal}
+       |     Caused by:      {description}line4{normal}
+       |     Caused by:      {description}lastLine{normal}""",
+
+            // 6
+            """       | Error:              {description}line0{normal}
+       |     Caused by:      {description}line1{normal}
+       |     Caused by:      {description}line2{normal}
+       |     Caused by:      {description}line3{normal}
+       |     Caused by:      {description}line4{normal}
+       |     Caused by:      {description}line5{normal}
+       |                     {description}...{normal}""",
+
+            // 7
+            """       | Error:              {description}line0{normal}
+       |     Caused by:      {description}line1{normal}
+       |     Caused by:      {description}line2{normal}
+       |     Caused by:      {description}line3{normal}
+       |     Caused by:      {description}line4{normal}
+       |     Caused by:      {description}line5{normal}
+       |                     {description}...{normal}"""
+        ]
+    }
+
     def "reports download and detection options"() {
         given:
         task.providerFactory = createProviderFactory(false, false)
