@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,40 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
-import org.apache.tools.tar.TarOutputStream;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 
 import java.io.IOException;
 import java.util.List;
 
-public class AntTarPacker implements Packer {
+public class ApacheCommonsCompressTarPacker implements Packer {
 
     private final byte[] buffer;
 
-    public AntTarPacker(int bufferSizeInKBytes) {
+    public ApacheCommonsCompressTarPacker(int bufferSizeInKBytes) {
         this.buffer = new byte[bufferSizeInKBytes * 1024];
     }
 
     @Override
     public void pack(List<DataSource> inputs, DataTarget output) throws IOException {
-        TarOutputStream tarOutput = new TarOutputStream(output.openOutput());
+        TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(output.openOutput());
         for (DataSource input : inputs) {
-            TarEntry entry = new TarEntry(input.getName());
+            TarArchiveEntry entry = new TarArchiveEntry(input.getName());
             entry.setSize(input.getLength());
-            tarOutput.putNextEntry(entry);
+            tarOutput.putArchiveEntry(entry);
             PackerUtils.packEntry(input, tarOutput, buffer);
-            tarOutput.closeEntry();
+            tarOutput.closeArchiveEntry();
         }
         tarOutput.close();
     }
 
     @Override
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
-        TarInputStream tarInput = new TarInputStream(input.openInput());
+        TarArchiveInputStream tarInput = new TarArchiveInputStream(input.openInput());
         while (true) {
-            TarEntry entry = tarInput.getNextEntry();
+            ArchiveEntry entry = tarInput.getNextEntry();
             if (entry == null) {
                 break;
             }
