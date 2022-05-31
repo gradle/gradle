@@ -652,4 +652,104 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("checkConfiguration")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/20846")
+    def "when tests are not run they are not configured"() {
+        given: "a build which adds a task to throw an exception upon configuring test tasks"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException('Configuring tests failed')
+            }
+        """
+
+        and: "containing a class to compile"
+        file("src/main/java/org/test/App.java") << """
+            public class App {
+                public String getGreeting() {
+                    return "Hello World!";
+                }
+            }
+        """
+
+        and: "containing a test"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.jupiter.api.Test;
+            import static org.junit.jupiter.api.Assertions.*;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    App classUnderTest = new App();
+                    assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                }
+            }
+        """
+
+        expect: "compilation does NOT configure tests"
+        succeeds("compileJava")
+
+        and: "running tests fails due to configuring tests"
+        fails("test")
+        failure.assertHasErrorOutput("Configuring tests failed")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20846")
+    def "when tests are not run they are not configured - even when adding an implementation dep"() {
+        given: "a build which adds a task to throw an exception upon configuring test tasks"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'com.google.guava:guava:30.1.1-jre'
+            }
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException('Configuring tests failed')
+            }
+        """
+
+        and: "containing a class to compile"
+        file("src/main/java/org/test/App.java") << """
+            public class App {
+                public String getGreeting() {
+                    return "Hello World!";
+                }
+            }
+        """
+
+        and: "containing a test"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.jupiter.api.Test;
+            import static org.junit.jupiter.api.Assertions.*;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    App classUnderTest = new App();
+                    assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                }
+            }
+        """
+
+        expect: "compilation does NOT configure tests"
+        succeeds("compileJava")
+
+        and: "running tests fails due to configuring tests"
+        fails("test")
+        failure.assertHasErrorOutput("Configuring tests failed")
+    }
 }
