@@ -21,9 +21,14 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         // Working tasks that would otherwise be matched by filters below
         task.name in listOf(
             "publishLocalPublicationToLocalRepository",
-            "validateExternalPlugins",
+            "publishEmbeddedKotlinPluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslBasePluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslCompilerSettingsPluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslPluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslPrecompiledScriptPluginsPluginMarkerMavenPublicationToTestRepository",
+            "publishPluginMavenPublicationToTestRepository",
+            "publishPluginsToTestRepository",
         ) -> false
-        task.name.startsWith("validatePluginWithId") -> false
 
         // Core tasks
         task.name in listOf(
