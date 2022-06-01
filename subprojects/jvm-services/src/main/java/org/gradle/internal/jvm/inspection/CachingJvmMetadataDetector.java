@@ -21,13 +21,14 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 public class CachingJvmMetadataDetector implements JvmMetadataDetector, ConditionalInvalidation<JvmInstallationMetadata> {
 
-    private final Map<File, JvmInstallationMetadata> javaMetadata = new ConcurrentHashMap<>();
+    private final Map<File, JvmInstallationMetadata> javaMetadata = Collections.synchronizedMap(new HashMap<>());
     private final JvmMetadataDetector delegate;
 
     public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
