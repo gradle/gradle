@@ -36,6 +36,8 @@ import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -191,6 +193,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Inject
     public abstract ObjectFactory getObjectFactory();
 
+    @Inject
+    public abstract ProviderFactory getProviderFactory();
+
     public SourceSet getSources() {
         return sourceSet;
     }
@@ -220,7 +225,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.JUNIT4, version));
+        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.JUNIT4, version)));
+    }
+
+    @Override
+    public void useJUnit(Provider<String> versionProvider) {
+        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.JUNIT4, v)));
     }
 
     @Override
@@ -230,7 +240,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnitJupiter(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, version));
+        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, version)));
+    }
+
+    @Override
+    public void useJUnitJupiter(Provider<String> versionProvider) {
+        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, v)));
     }
 
     @Override
@@ -240,7 +255,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useSpock(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.SPOCK, version));
+        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.SPOCK, version)));
+    }
+
+    @Override
+    public void useSpock(Provider<String> versionProvider) {
+        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.SPOCK, v)));
     }
 
     @Override
@@ -250,7 +270,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useKotlinTest(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.KOTLIN_TEST, version));
+        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.KOTLIN_TEST, version)));
+    }
+
+    @Override
+    public void useKotlinTest(Provider<String> versionProvider) {
+        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.KOTLIN_TEST, v)));
     }
 
     @Override
@@ -260,11 +285,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useTestNG(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.TESTNG, version));
+        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.TESTNG, version)));
     }
 
-    private void setFrameworkTo(VersionedTestingFramework framework) {
-        getVersionedTestingFramework().set(framework);
+    @Override
+    public void useTestNG(Provider<String> versionProvider) {
+        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.TESTNG, v)));
+    }
+
+    private void setFrameworkTo(Provider<VersionedTestingFramework> frameworkProvider) {
+        getVersionedTestingFramework().set(frameworkProvider);
         attachDependencyAction.execute(null);
     }
 
