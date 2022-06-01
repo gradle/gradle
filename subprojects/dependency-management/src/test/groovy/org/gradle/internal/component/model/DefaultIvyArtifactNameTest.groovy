@@ -61,7 +61,7 @@ class DefaultIvyArtifactNameTest extends Specification {
         1 * publishArtifact.getName() >> "art-name"
 
         then:
-        def name = IvyArtifactName.forPublishArtifact(publishArtifact)
+        def name = IvyArtifactName.lazyArtifactName(publishArtifact)
         name.name == "art-name"
         name.extension == "art-ext"
         name.type == "art-type"
@@ -72,7 +72,7 @@ class DefaultIvyArtifactNameTest extends Specification {
         1 * publishArtifact.getFile() >> new File("file-name")
 
         then:
-        def missingName = IvyArtifactName.forPublishArtifact(publishArtifact)
+        def missingName = IvyArtifactName.lazyArtifactName(publishArtifact)
         missingName.name == "file-name"
     }
 }

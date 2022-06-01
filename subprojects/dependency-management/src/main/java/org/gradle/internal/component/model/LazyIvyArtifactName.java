@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.internal.lazy.Lazy;
+
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
@@ -26,66 +28,42 @@ import java.util.function.Supplier;
  * thus optimizing the case where instances of this class are created but not used, and
  * ensuring that expensive generators, for example those which realize tasks, are not
  * executed unless necessary.
- * <p>
- * This class is not thread safe.
  */
-public class LazyIvyArtifactName implements IvyArtifactName {
+public class LazyIvyArtifactName extends AbstractIvyArtifactName {
 
-    private final Supplier<IvyArtifactName> nameSupplier;
+    private final Lazy<IvyArtifactName> lazy;
 
-    private IvyArtifactName delegate;
-
+    /**
+     * @param nameSupplier Lazily generates an {@code IvyArtifactName}. Must not return null.
+     */
     public LazyIvyArtifactName(Supplier<IvyArtifactName> nameSupplier) {
-        this.nameSupplier = nameSupplier;
-    }
-
-    private IvyArtifactName getDelegate() {
-        if (delegate == null) {
-            delegate = nameSupplier.get();
-        }
-        return delegate;
+        lazy = Lazy.locking().of(nameSupplier);
     }
 
     @Override
     public String getName() {
-        return getDelegate().getName();
+        return lazy.get().getName();
     }
 
     @Override
     public String getType() {
-        return getDelegate().getType();
+        return lazy.get().getType();
     }
 
     @Nullable
     @Override
     public String getExtension() {
-        return getDelegate().getExtension();
+        return lazy.get().getExtension();
     }
 
     @Nullable
     @Override
     public String getClassifier() {
-        return getDelegate().getClassifier();
+        return lazy.get().getClassifier();
     }
 
     @Override
     public String toString() {
-        return getDelegate().toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof IvyArtifactName)) {
-            return false;
-        }
-        return getDelegate().equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return getDelegate().hashCode();
+        return lazy.get().toString();
     }
 }

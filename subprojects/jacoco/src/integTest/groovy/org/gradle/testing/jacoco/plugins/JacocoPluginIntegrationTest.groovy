@@ -141,7 +141,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         runAndFail("test")
 
         then:
-        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
+        errorOutput.contains("JaCoCo destination file must be present if output type is FILE")
     }
 
     def "jacoco plugin adds outgoing variants for default test suite"() {

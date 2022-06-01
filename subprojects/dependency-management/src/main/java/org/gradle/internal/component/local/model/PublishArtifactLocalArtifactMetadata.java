@@ -33,7 +33,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
     public PublishArtifactLocalArtifactMetadata(ComponentIdentifier componentIdentifier, PublishArtifact publishArtifact) {
         this.componentIdentifier = componentIdentifier;
         this.publishArtifact = publishArtifact;
-        ivyArtifactName = IvyArtifactName.forPublishArtifact(publishArtifact);
+        ivyArtifactName = IvyArtifactName.lazyArtifactName(publishArtifact);
     }
 
     @Override

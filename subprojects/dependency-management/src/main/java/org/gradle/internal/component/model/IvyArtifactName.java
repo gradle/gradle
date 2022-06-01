@@ -48,7 +48,7 @@ public interface IvyArtifactName {
      *
      * @return A lazily initialized {@code IvyArtifactName}.
      */
-    static IvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
+    static IvyArtifactName lazyArtifactName(PublishArtifact publishArtifact) {
         // For some publish artifacts, for example LazyPublishArtifacts or those backed by ArchiveTasks, attempting to
         // fetch any information from the artifact may cause the underlying task to become realized.
         // So, attempt to further defer realization of the task for the cases where the returned IvyArtifactName is

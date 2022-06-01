@@ -22,14 +22,11 @@ import org.gradle.util.internal.GUtil;
 import javax.annotation.Nullable;
 import java.io.File;
 
-import static com.google.common.base.Objects.equal;
-
-public class DefaultIvyArtifactName implements IvyArtifactName {
+public class DefaultIvyArtifactName extends AbstractIvyArtifactName {
     private final String name;
     private final String type;
     private final String extension;
     private final String classifier;
-    private final int hashCode;
 
     public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {
         String fileName = file.getName();
@@ -51,7 +48,6 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         this.type = type;
         this.extension = extension;
         this.classifier = classifier;
-        this.hashCode = computeHashCode();
     }
 
     @Override
@@ -67,34 +63,6 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             result.append(extension);
         }
         return result.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    private int computeHashCode() {
-        int result = name.hashCode();
-        result = 31 * result + type.hashCode();
-        result = 31 * result + (extension != null ? extension.hashCode() : 0);
-        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof IvyArtifactName)) {
-            return false;
-        }
-        IvyArtifactName other = (IvyArtifactName) obj;
-        return equal(name, other.getName())
-            && equal(type, other.getType())
-            && equal(extension, other.getExtension())
-            && equal(classifier, other.getClassifier());
     }
 
     @Override
