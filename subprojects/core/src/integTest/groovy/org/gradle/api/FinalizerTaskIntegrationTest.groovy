@@ -59,7 +59,24 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'dockerTest'
 
         and:
+        // 7.4 behavior
+        // - PRO: it's the behavior people already get
+        // - CON: violates `mustRunAfter` constraint
         result.assertTasksExecutedInOrder ':createContainer', ':dockerUp', ':dockerTest', ':removeContainer', ':dockerStop'
+
+        // Justifiably correct behavior*
+        // - CON: diverges from 7.4 behavior
+        // - PRO: mustRunAfter says what it means and means what it says
+        // - PRO: it can steer users in the correct direction (e.g. introducing separate tasks for each cleanup step)
+        // * "Gradle ensures that all task dependencies and ordering rules are honored when executing tasks, so that the task is executed after
+        //     all of its dependencies and any "must run after" tasks have been executed."
+        result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+
+        // Fail fast? Report real circular dependency between :removeContainer, :dockerStop and :dockerTest.
+        fails 'dockerTest'
+        failure.assertHasDescription """Circular dependency between the following tasks:
+:createContainer
+\\--- :removeContainer"""
     }
 
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
