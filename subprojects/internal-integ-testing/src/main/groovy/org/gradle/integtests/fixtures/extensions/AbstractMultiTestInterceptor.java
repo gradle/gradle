@@ -20,19 +20,17 @@ import org.junit.AssumptionViolatedException;
 import org.spockframework.lang.SpecInternals;
 import org.spockframework.mock.runtime.MockController;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
+import org.spockframework.runtime.extension.IDataDriver;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
-import org.spockframework.runtime.extension.MethodInvocation;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -62,8 +60,20 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         if (iterationNameProvider == null) {
             feature.setName(feature.getName() + " " + executions);
         } else {
-            feature.setIterationNameProvider(p -> iterationNameProvider.getName(p) + " " + executions);
+            feature.setIterationNameProvider(p -> iterationNameProvider.getName(p) + " " + getCurrentExecution(p));
         }
+
+        feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
+            TestDetails testDetails = new TestDetails(feature);
+            while(dataIterator.hasNext()) {
+                Object[] arguments = dataIterator.next();
+                for (Execution execution : executions) {
+                    if (execution.isTestEnabled(testDetails)) {
+                        iterationRunner.runIteration(IDataDriver.prepareArgumentArray(arguments, parameters));
+                    }
+                }
+            }
+        });
 
         if (canSkipFeature(feature, executions)) {
             feature.skip(executions.toString());
@@ -184,7 +194,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
     }
 
-    private abstract class MultiVersionIterationInterceptor extends AbstractMethodInterceptor {
+    private class NonParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
         private Execution currentExecution;
 
         @Override
@@ -210,7 +220,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
                     initInvocation.proceed();
                 }
                 currentExecution = execution;
-                interceptIteration(invocation, currentExecution);
+                invocation.proceed();
                 // When the current iteration fails, we abort the following executions, which is far from ideal
                 // This, however, makes it evident which iteration failed in this loop
                 if (!runAllExecutions || iterationExceptionInterceptor.hasThrown) {
@@ -227,42 +237,23 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             invocation.proceed();
             currentExecution.after();
         }
-
-        abstract void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable;
     }
 
-    private class NonParameterizedFeatureMultiVersionInterceptor extends MultiVersionIterationInterceptor {
-        @Override
-        void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
-            invocation.proceed();
-        }
-    }
-
-    private class ParameterizedFeatureMultiVersionInterceptor extends MultiVersionIterationInterceptor {
+    private class ParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
         @Override
         public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-            interceptFeatureExecution(invocation);
-        }
-
-        @Override
-        void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
+            Execution currentExecution = getCurrentExecution(invocation.getIteration());
             currentExecution.assertCanExecute();
             currentExecution.before(invocation);
-            resetInterceptors(invocation);
             invocation.proceed();
             currentExecution.after();
         }
 
-        private void resetInterceptors(IMethodInvocation invocation) throws NoSuchFieldException, IllegalAccessException {
-            Iterator<IMethodInterceptor> iterator = invocation.getMethod().getInterceptors().iterator();
-            IMethodInterceptor thisInterceptor = iterator.next(); // This interceptor should be the first - skip it
-            assert this.getClass().isInstance(thisInterceptor);
-            assert invocation instanceof MethodInvocation;
+    }
 
-            Field interceptorsField = MethodInvocation.class.getDeclaredField("interceptors");
-            interceptorsField.setAccessible(true);
-            interceptorsField.set(invocation, iterator);
-        }
+    private Execution getCurrentExecution(IterationInfo iterationInfo) {
+        int executionIndex = iterationInfo.getIterationIndex() % executions.size();
+        return executions.get(executionIndex);
     }
 
 }
