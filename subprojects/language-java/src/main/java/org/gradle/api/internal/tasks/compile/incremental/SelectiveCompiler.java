@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
@@ -35,9 +36,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
+/**
+ * A compiler that selects classes for compilation. It also handles restore of these files in case of a failure.
+ */
 class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
     private static final Logger LOG = LoggerFactory.getLogger(SelectiveCompiler.class);
     private final CleaningJavaCompiler<T> cleaningCompiler;
@@ -88,17 +94,26 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             return rebuildAllCompiler.execute(spec);
         }
 
-        boolean cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, recompilationSpec);
 
+        List<File> cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, recompilationSpec);
         if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
         }
 
+        boolean compilationFinishedWithoutError = true;
+        File destination = spec.getDestinationDir();
+        File stagingDestination = new File(destination.getParentFile(), destination.getName() + ".gradle.tmp");
         try {
+            spec.setDestinationDir(stagingDestination);
             WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, cleaningCompiler.getCompiler().execute(spec));
-            return result.or(WorkResults.didWork(cleanedOutput));
+            return result.or(WorkResults.didWork(!cleanedOutput.isEmpty()));
+        } catch (CompilationFailedException e) {
+            compilationFinishedWithoutError = false;
+            throw e;
         } finally {
+            spec.setDestinationDir(destination);
+            recompilationSpecProvider.finishCompilation(cleanedOutput, stagingDestination, spec, compilationFinishedWithoutError);
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
             LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
             LOG.debug("Recompiled classes {}", classesToCompile);

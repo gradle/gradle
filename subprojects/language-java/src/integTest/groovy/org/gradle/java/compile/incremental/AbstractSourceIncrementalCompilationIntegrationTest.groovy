@@ -509,4 +509,32 @@ sourceSets {
         outputs.deletedClasses("Class\$Name")
         outputs.recompiledClasses("Class\$Name1", "Main")
     }
+
+    def "incremental compilation works after a compile failure"() {
+        source("class A {}", "class B {}")
+        run language.compileTaskName
+        source("class A { garbage }")
+        outputs.snapshot { runAndFail language.compileTaskName }
+
+        when:
+        source("class A { }")
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A")
+    }
+
+    def "nothing is recompiled after a compile failure when file is reverted"() {
+        source("class A {}", "class B {}")
+        run language.compileTaskName
+        source("class A { garbage }")
+        outputs.snapshot { runAndFail language.compileTaskName }
+
+        when:
+        source("class A {}")
+        run language.compileTaskName
+
+        then:
+        outputs.noneRecompiled()
+    }
 }
