@@ -58,7 +58,7 @@ class InvalidInstallationWarningReporterTest extends Specification {
         1 * mockLogger.warn(
             "Invalid Java installation found at {}. " +
                 "It will be re-checked in the next build. This might have performance impact if it keeps failing. " +
-                "Run the 'javaToolChains' task for more details.",
+                "Run the 'javaToolchains' task for more details.",
             location.displayName
         )
     }
