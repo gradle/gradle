@@ -117,18 +117,6 @@ extensions.findByType<SourceSetContainer>()?.all {
     }
 }
 
-// Empty source dirs produce cache misses, and are not caught by `git status`.
-// Fail if we find any.
-tasks.withType<SourceTask>().configureEach {
-    doFirst {
-        source.visit {
-            if (file.isDirectory && file.listFiles()?.isEmpty() == true) {
-                throw IllegalStateException("Empty src dir found. This causes build cache misses. See github.com/gradle/gradle/issues/2463.\nRun the following command to fix it.\nrmdir ${file.absolutePath}")
-            }
-        }
-    }
-}
-
 val SourceSet.allGroovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { allGroovy }
 

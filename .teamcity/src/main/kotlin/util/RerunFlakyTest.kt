@@ -46,7 +46,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
     applyDefaultSettings(os, arch, buildJvm = BuildToolBuildJvm, timeout = 0)
-    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
+    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
             listOf(extraParameters) +
@@ -58,7 +58,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         steps {
             gradleWrapper {
                 name = "GRADLE_RUNNER_$idx"
-                tasks = "%$testTaskParameterName% --rerun --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
+                tasks = "%$testTaskParameterName% -PrerunAllTests --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
@@ -103,7 +103,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
             "",
             display = ParameterDisplay.PROMPT,
             allowEmpty = true,
-            description = "Additional options for the test task to run"
+            description = "Additional options for the test task to run (`-PrerunAllTests` is already added implicitly)"
         )
     }
 
