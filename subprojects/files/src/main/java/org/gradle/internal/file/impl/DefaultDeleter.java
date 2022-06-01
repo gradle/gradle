@@ -16,6 +16,7 @@
 package org.gradle.internal.file.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.file.DeleteStrategy;
 import org.gradle.internal.file.Deleter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +104,16 @@ public class DefaultDeleter implements Deleter {
             throw new IOException("Couldn't delete " + target);
         }
         return true;
+    }
+
+    @Override
+    public Deleter withDeleteStrategy(final DeleteStrategy strategy) {
+        return new DefaultDeleter(timeProvider, isSymlink, runGcOnFailedDelete) {
+            @Override
+            protected boolean deleteFile(File file) {
+                return strategy.delete(file);
+            }
+        };
     }
 
     private boolean deleteRecursively(File root, Handling handling) throws IOException {
