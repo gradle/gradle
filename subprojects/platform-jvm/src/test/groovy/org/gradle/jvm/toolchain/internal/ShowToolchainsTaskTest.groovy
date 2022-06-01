@@ -46,11 +46,11 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchains in right order"() {
-        def jdk14 = testLocation(new File("14"))
-        def jdk15 = testLocation(new File("15"))
-        def jdk9 = testLocation(new File("9"))
-        def jdk8 = testLocation(new File("1.8.0_202"))
-        def jdk82 = testLocation(new File("1.8.0_404"))
+        def jdk14 = testLocation("14")
+        def jdk15 = testLocation("15")
+        def jdk9 = testLocation("9")
+        def jdk8 = testLocation("1.8.0_202")
+        def jdk82 = testLocation("1.8.0_404")
 
         given:
         task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82]
@@ -113,9 +113,9 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchains with good and invalid ones"() {
-        def jdk14 = testLocation(new File("14"))
-        def invalid = testLocation(new File("invalid"))
-        def noSuchDirectory = testLocation(new File("noSuchDirectory"))
+        def jdk14 = testLocation("14")
+        def invalid = testLocation("invalid")
+        def noSuchDirectory = testLocation("noSuchDirectory")
 
         given:
         task.installationRegistry.listInstallations() >> [jdk14, invalid, noSuchDirectory]
@@ -150,7 +150,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchain probing failure cause lines"() {
-        def path = testLocation(new File("path"))
+        def path = testLocation("path")
         def createFailureWithNCauses = { n ->
             def rootCause = new Exception("lastLine")
             n == 0
@@ -233,8 +233,8 @@ $errorLines
     }
 
     def "reports only toolchains with errors"() {
-        def invalid = testLocation(new File("invalid"))
-        def noSuchDirectory = testLocation(new File("noSuchDirectory"))
+        def invalid = testLocation("invalid")
+        def noSuchDirectory = testLocation("noSuchDirectory")
 
         given:
         task.installationRegistry.listInstallations() >> [invalid, noSuchDirectory]
@@ -276,8 +276,8 @@ $errorLines
         providerFactory
     }
 
-    private static InstallationLocation testLocation(File javaHome) {
-        return new InstallationLocation(javaHome, "TestSource");
+    private static InstallationLocation testLocation(String javaHomePath) {
+        return new InstallationLocation(new File(javaHomePath), "TestSource");
     }
 
     static class TestShowToolchainsTask extends ShowToolchainsTask {

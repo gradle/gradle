@@ -31,6 +31,8 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
         // Require a different JDK to be able to find the logs of its probing for system properties
         def existingJdk = AvailableJavaHomes.differentJdk
 
+        // Use two invalid installation paths to verify that the implementation reports a warning on each of them
+        // (as opposed to e.g. reporting only the first one)
         def invalidJdkHome1 = new File(temporaryDirectory, "jdk1")
         def invalidJdkHome2 = new File(temporaryDirectory, "jdk2")
         assert(invalidJdkHome1.mkdirs())
@@ -38,21 +40,22 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
 
         // The builds should trigger toolchains discovery; here it's done from different subprojects in order to test
         // that the JVM installation detection is cached during a build
-        multiProjectBuild("invalidJvmInstallationReporting", ["sub1", "sub2"])
-        buildFile << """
-            import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
-
-            subprojects {
-                apply plugin: 'jvm-toolchains'
-                tasks.register('exec', JavaExec) {
-                    javaLauncher.set(javaToolchains.launcherFor {
-                        languageVersion = JavaLanguageVersion.of(${existingJdk.javaVersion.majorVersion})
-                    })
-                    mainClass.set("None")
-                    jvmArgs = ['-version']
-                }
+        def configureJavaExecToUseToolchains =
+            """
+            apply plugin: 'jvm-toolchains'
+            tasks.register('exec', JavaExec) {
+                javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${existingJdk.javaVersion.majorVersion})
+                })
+                mainClass.set("None")
+                jvmArgs = ['-version']
             }
-        """
+            """
+
+        multiProjectBuild("invalidJvmInstallationReporting", ["sub1", "sub2"]) {
+            project("sub1").buildFile << configureJavaExecToUseToolchains
+            project("sub2").buildFile << configureJavaExecToUseToolchains
+        }
 
         when: "running two consecutive builds in a daemon"
         def results = (0..1).collect {
