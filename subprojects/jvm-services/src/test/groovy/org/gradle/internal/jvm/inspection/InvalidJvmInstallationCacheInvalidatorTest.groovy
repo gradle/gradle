@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jvm.inspection;
+package org.gradle.internal.jvm.inspection
 
-import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import spock.lang.Specification
 
-public interface JvmMetadataDetector {
+import java.util.function.Predicate
 
-    JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation);
+class InvalidJvmInstallationCacheInvalidatorTest extends Specification {
+    def 'closing triggers cache invalidation'() {
+        def cache = Mock(ConditionalInvalidation<JvmInstallationMetadata>)
 
+        given:
+        def invalidator = new InvalidJvmInstallationCacheInvalidator(cache)
+
+        when:
+        invalidator.close()
+
+        then:
+        1 * cache.invalidateItemsMatching(_ as Predicate)
+    }
 }

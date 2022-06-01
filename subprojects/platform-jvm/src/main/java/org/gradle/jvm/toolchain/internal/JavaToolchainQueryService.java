@@ -68,14 +68,13 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain query(JavaToolchainSpec filter) {
         if (filter instanceof CurrentJvmToolchainSpec) {
-            return asToolchain(Jvm.current().getJavaHome(), filter).get();
+            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), filter).get();
         }
         if (filter instanceof SpecificInstallationToolchainSpec) {
-            return asToolchain(((SpecificInstallationToolchainSpec) filter).getJavaHome(), filter).get();
+            return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) filter).getJavaHome(), "specific installation"), filter).get();
         }
 
         return registry.listInstallations().stream()
-            .map(InstallationLocation::getLocation)
             .map(javaHome -> asToolchain(javaHome, filter))
             .filter(Optional::isPresent)
             .map(Optional::get)
@@ -87,7 +86,7 @@ public class JavaToolchainQueryService {
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
         final Optional<JavaToolchain> toolchain = installation
-            .map(home -> asToolchain(home, spec))
+            .map(home -> asToolchain(new InstallationLocation(home, "provisioned toolchain"), spec))
             .orElseThrow(noToolchainAvailable(spec));
         return toolchain.orElseThrow(provisionedToolchainIsInvalid(installation::get));
     }
@@ -100,7 +99,7 @@ public class JavaToolchainQueryService {
         return () -> new GradleException("Provisioned toolchain '" + javaHome.get() + "' could not be probed.");
     }
 
-    private Optional<JavaToolchain> asToolchain(File javaHome, JavaToolchainSpec spec) {
+    private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
         return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec));
     }
 }
