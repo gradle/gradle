@@ -310,7 +310,7 @@ fun configureTests() {
             }
         }
 
-        if (project.supportsPredictiveTestSelection()) {
+        if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
             // Temporary workaround for Gradle Enterprise issue which in 2022.2 and 2022.2.1
             // only supports tasks of the exact type `org.gradle.api.tasks.testing.Test`.
             val supportedTask = taskIdentity.taskType == Test::class.java
