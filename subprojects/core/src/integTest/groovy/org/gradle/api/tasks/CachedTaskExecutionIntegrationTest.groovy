@@ -120,6 +120,24 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         rerunMethod << ["--rerun-tasks", "-PupToDateWhenFalse=true"]
     }
 
+    def "cached tasks are re-executed with per-task rerun"() {
+        expect:
+        cacheDir.listFiles() as List == []
+
+        when:
+        withBuildCache().run"compileJava", "jar"
+        def originalCacheContents = listCacheFiles()
+        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
+        then:
+        noneSkipped()
+
+        when:
+        withBuildCache().run"compileJava", "jar", "--rerun"
+        then:
+        skipped ":compileJava"
+        executedAndNotSkipped ":jar"
+    }
+
     def "task results don't get stored when pushing is disabled"() {
         settingsFile << """
             buildCache {
