@@ -194,9 +194,10 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
-fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: String, testJvmVendor: String): String {
+fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
     val buildScanValues = mapOf(
         "coverageOs" to os.name.lowercase(),
+        "coverageArch" to arch.name.lowercase(),
         "coverageJvmVendor" to testJvmVendor,
         "coverageJvmVersion" to "java$testJvmVersion"
     )

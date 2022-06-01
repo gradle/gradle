@@ -2,13 +2,20 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-We would like to thank the following community members for their contributions to this release of Gradle:
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
+
+ THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
-[altrisi](https://github.com/altrisi)
-[Frosty-J](https://github.com/Frosty-J)
+We would like to thank the following community members for their contributions to this release of Gradle:
+[altrisi](https://github.com/altrisi),
+[aSemy](https://github.com/aSemy),
+[Ashwin Pankaj](https://github.com/ashwinpankaj),
+[Frosty-J](https://github.com/Frosty-J),
+[Gabriel Feo](https://github.com/gabrielfeo),
+[Sam Snyder](https://github.com/sambsnyd),
+[teawithbrownsugar](https://github.com/teawithbrownsugar)
 
 ## Upgrade instructions
 
@@ -55,6 +62,37 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 Gradle 7.6 introduces new failure types for the `Failure` interface returned by [FailureResult.getFailures()](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure. 
 IDEs can now easily distinguish between different failures using standard progress event listeners. 
 Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
+
+#### Task execution with TestLauncher
+
+The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tasks.
+
+```
+ProjectConnection connection = ...
+connection.newTestLauncher()
+          .withTaskAndTestClasses("integTest", ["org.MyTest"])
+          .forTasks("startDB")
+          .run()
+```
+
+Note, that the task execution only works if the target Gradle version is >=7.6.
+
+#### Fine-grained test selection with TestLauncher
+
+The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
+
+```
+TestLauncher testLauncher = projectConnection.newTestLauncher();
+testLauncher.withTestsFor(spec -> {
+    spec.forTaskPath(":test")
+        .includePackage("org.pkg")
+        .includeClass("com.TestClass")
+        .includeMethod("com.TestClass")
+        .includePattern("io.*")
+}).run();
+```
+
+Note, that the new test selection interface only works if the target Gradle version is >=7.6.
 
 ### Improved Maven Conversion
 
