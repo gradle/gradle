@@ -393,6 +393,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integrationTest(JvmTestSuite) {
                         useJUnit()
+                        includeInCheck()
+
                         targets.all {
                             testTask.configure {
                                 options {
@@ -407,8 +409,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             integrationTest {
                 useTestNG()
             }
-
-            check.dependsOn testing.suites
         """
 
         executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
@@ -479,6 +479,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integrationTest(JvmTestSuite) {
                         useJUnit()
+                        includeInCheck()
                         targets.all {
                             // explicitly realize the task now to cause this configuration to run now
                             testTask.get().configure {
@@ -499,8 +500,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-
-            check.dependsOn testing.suites
         """
 
         expect:
@@ -681,5 +680,41 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
         failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
         failure.assertHasErrorOutput("error: package org.junit does not exist")
+    }
+
+    def "a custom test suite runs with the check task if the includeInCheck() method is called"() {
+        given: "a build which defines a custom test suite calling includeInCheck"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    intTest(JvmTestSuite) {
+                        includeInCheck()
+                    }
+                }
+            }
+        """.stripIndent()
+
+        and: "containing a test"
+        file("src/intTest/java/org/sample/SomeTest.java") << """
+            package org.sample;
+
+            import org.junit.jupiter.api.Test;
+
+            public class SomeTest {
+                @Test
+                public void testOK() {}
+            }
+        """.stripIndent()
+
+        expect: "integration tests run with check"
+        succeeds("check")
+        def integTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/intTest')
+        integTestResults.assertTestClassesExecuted('org.sample.SomeTest')
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.base.TestSuite;
@@ -165,4 +166,22 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Configure dependencies for this component.
      */
     void dependencies(Action<? super JvmComponentDependencies> dependencies);
+
+    /**
+     * Adds this suite's test tasks as a task dependency of this project's {@code check} task.
+     *
+     * @since 7.6
+     */
+    void includeInCheck();
+
+    /**
+     * Checks whether this is the default (unit) test suite for this project.
+     *
+     * @return {@code true} if so; {@code false} otherwise
+     *
+     * @since 7.6
+     */
+    default boolean isDefaultTestSuite() {
+        return JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(getName());
+    }
 }

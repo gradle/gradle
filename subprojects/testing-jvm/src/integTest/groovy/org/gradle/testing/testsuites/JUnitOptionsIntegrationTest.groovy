@@ -36,7 +36,7 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
                     }
                 }
             }
-            
+
         """
         writeSources(file("src/test/java"))
 
@@ -52,6 +52,7 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
                 suites {
                     integrationTest(JvmTestSuite) {
                         useJUnit()
+                        includeInCheck()
                         targets.all {
                             testTask.configure {
                                 options {
@@ -77,6 +78,7 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
                 suites {
                     integrationTest(JvmTestSuite) {
                         useJUnitJupiter()
+                        includeInCheck()
                         dependencies {
                             implementation "junit:junit:4.13"
                         }

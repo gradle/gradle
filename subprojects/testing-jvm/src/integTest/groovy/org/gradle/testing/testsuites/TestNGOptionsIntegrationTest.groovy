@@ -51,6 +51,7 @@ class TestNGOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrati
                 suites {
                     integrationTest(JvmTestSuite) {
                         useTestNG()
+                        includeInCheck()
                         targets.all {
                             testTask.configure {
                                 options {

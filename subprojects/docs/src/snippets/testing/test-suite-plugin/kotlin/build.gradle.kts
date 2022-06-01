@@ -36,11 +36,13 @@ testing {
         }
 
         val integrationTest by registering(JvmTestSuite::class) { // <4>
+            includeInCheck() // <5>
+
             dependencies {
-                implementation(project) // <5>
+                implementation(project) // <6>
             }
 
-            targets { // <6>
+            targets { // <7>
                 all {
                     testTask.configure {
                         shouldRunAfter(test)
@@ -49,9 +51,5 @@ testing {
             }
         }
     }
-}
-
-tasks.named("check") { // <7>
-    dependsOn(testing.suites.named("integrationTest"))
 }
 // end::configure-testing-extension[]

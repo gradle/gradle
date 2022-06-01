@@ -51,6 +51,7 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsInt
                 suites {
                     integrationTest(JvmTestSuite) {
                         useJUnitJupiter()
+                        includeInCheck()
                         targets.all {
                             testTask.configure {
                                 options {
@@ -75,6 +76,7 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsInt
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
+                        includeInCheck()
                         targets.all {
                             testTask.configure {
                                 options {
@@ -101,6 +103,7 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsInt
                     integrationTest(JvmTestSuite) {
                         useJUnit() // use JUnit4
                         useJUnitJupiter() // on second thought, use JUnit Jupiter
+                        includeInCheck()
                         targets.all {
                             testTask.configure {
                                 options {

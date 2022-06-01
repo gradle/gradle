@@ -28,8 +28,6 @@ abstract class AbstractTestFrameworkOptionsIntegrationTest extends AbstractInteg
             }
 
             ${mavenCentralRepository()}
-
-            check.dependsOn testing.suites
         """
     }
 

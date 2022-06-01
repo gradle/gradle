@@ -98,7 +98,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private String getDefaultTestType(JvmTestSuite testSuite) {
-        return DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
+        return testSuite.isDefaultTestSuite() ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
     }
 
     private void configureTestDataElementsVariants(Project project) {

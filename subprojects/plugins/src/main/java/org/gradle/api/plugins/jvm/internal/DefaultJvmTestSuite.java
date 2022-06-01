@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jvm.internal;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -31,7 +32,6 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
@@ -39,6 +39,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -123,7 +124,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         // We could then always add these dependencies.
         this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencies, implementation);
 
-        if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+        if (!isDefaultTestSuite()) {
             useJUnitJupiter();
         } else {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
@@ -204,7 +205,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     public void addDefaultTestTarget() {
         final String target;
-        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+        if (isDefaultTestSuite()) {
             target = JavaPlugin.TEST_TASK_NAME;
         } else {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
@@ -286,5 +287,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 getTargets().forEach(context::add);
             }
         };
+    }
+
+    @Inject
+    public abstract Project getProject();
+
+    @Override
+    public void includeInCheck() {
+        getProject().getTasks().getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(this);
     }
 }

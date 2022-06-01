@@ -34,7 +34,8 @@ include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[ta
 Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] project property.
 
 `check` — _lifecycle task_::
-Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
+Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`  If defining additional test suites using the <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite Plugin>>, users should call the
+link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html#org.gradle.api.plugins.jvm.JvmTestSuite:includeInCheck[JvmTestSuite.includeInCheck()] method to configure those suites' `test` tasks to run upon running `check`.
 
 `assemble` — _lifecycle task_::
 Plugins and build authors should attach tasks that produce distributions and other consumable artifacts to this lifecycle task. For example, `jar` produces the consumable artifact for Java libraries. Attach tasks to this lifecycle task using `assemble.dependsOn(__task__)`.
