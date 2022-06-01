@@ -68,18 +68,12 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
         then: "invalid JVM installation warning should be printed in every build"
         results.size() == 2
         results.every { result ->
-            1 == countMatches(
-                "Invalid Java installation found at '${invalidJdkHome1.canonicalPath}' (system property 'org.gradle.java.installations.paths'). " +
+            def expectedErrorMessages = [invalidJdkHome1, invalidJdkHome2].collect {
+                "Invalid Java installation found at '${it.canonicalPath}' (system property 'org.gradle.java.installations.paths'). " +
                     "It will be re-checked in the next build. This might have performance impact if it keeps failing. " +
-                    "Run the 'javaToolChains' task for more details.",
-                result.plainTextOutput
-            )
-            1 == countMatches(
-                "Invalid Java installation found at '${invalidJdkHome2.canonicalPath}' (system property 'org.gradle.java.installations.paths'). " +
-                    "It will be re-checked in the next build. This might have performance impact if it keeps failing. " +
-                    "Run the 'javaToolChains' task for more details.",
-                result.plainTextOutput
-            )
+                    "Run the 'javaToolchains' task for more details."
+            }
+            expectedErrorMessages.every { countMatches(it, result.plainTextOutput) == 1 }
         }
         // valid JVM installation metadata should be cached across the builds
         def metadataAccessMarker = "Received JVM installation metadata from '$existingJdk.javaHome.absolutePath'"
