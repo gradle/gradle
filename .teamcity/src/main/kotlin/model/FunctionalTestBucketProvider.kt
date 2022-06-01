@@ -5,9 +5,6 @@ import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import common.Os
 import configurations.FunctionalTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import java.io.File
 
 /**
@@ -113,8 +110,12 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
         }
 
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
-        return buckets.getValue(testCoverage).mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->
-            bucket.createFunctionalTestsFor(model, stage, testCoverage, bucketIndex)
+        return if (testCoverage.uuid != 4) {
+            emptyList()
+        } else {
+            buckets.getValue(testCoverage).mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->
+                bucket.createFunctionalTestsFor(model, stage, testCoverage, bucketIndex)
+            }
         }
     }
 }
@@ -129,7 +130,7 @@ class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: Strin
             testCoverage,
             stage,
             enableTestDistribution = testCoverage.os == Os.LINUX,
-            emptyList(),
+            subprojects = emptyList(),
             extraParameters = "-PonlyTestGradleVersion=$startInclusive-$endExclusive"
         )
 }
@@ -148,11 +149,9 @@ class TestClassAndSourceSet(
 
 class LargeSubprojectSplitBucket(
     val subproject: GradleSubproject,
-    val number: Int,
-    val include: Boolean,
-    val classes: List<TestClassAndSourceSet>
+    val batches: Int
 ) : BuildTypeBucket {
-    val name = "${subproject.name}_$number"
+    val name = subproject.name
 
     override fun getName(testCoverage: TestCoverage): String = "${testCoverage.asName()} ($name)"
 
@@ -168,46 +167,8 @@ class LargeSubprojectSplitBucket(
             stage,
             subprojects = listOf(subproject.name),
             enableTestDistribution = false,
-            extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
-            preBuildSteps = prepareTestClassesStep(testCoverage.os)
+            numberOfBatches = batches
         )
-
-    private fun prepareTestClassesStep(os: Os): BuildSteps.() -> Unit {
-        val testClasses = classes.map { it.toPropertiesLine() }
-        val action = if (include) "include" else "exclude"
-        val unixScript = """
-mkdir -p test-splits
-rm -rf test-splits/*-test-classes.properties
-cat > test-splits/$action-test-classes.properties << EOL
-${testClasses.joinToString("\n")}
-EOL
-
-echo "Tests to be ${action}d in this build"
-cat test-splits/$action-test-classes.properties
-"""
-
-        val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
-
-        val windowsScript = """
-mkdir test-splits
-del /f /q test-splits\include-test-classes.properties
-del /f /q test-splits\exclude-test-classes.properties
-(
-$linesWithEcho
-) > test-splits\$action-test-classes.properties
-
-echo "Tests to be ${action}d in this build"
-type test-splits\$action-test-classes.properties
-"""
-
-        return {
-            script {
-                name = "PREPARE_TEST_CLASSES"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
-            }
-        }
-    }
 }
 
 class SmallSubprojectBucket(
@@ -235,7 +196,7 @@ class SmallSubprojectBucket(
             testCoverage,
             stage,
             enableTestDistribution,
-            subprojects.map { it.name }
+            subprojects = subprojects.map { it.name }
         )
 
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")

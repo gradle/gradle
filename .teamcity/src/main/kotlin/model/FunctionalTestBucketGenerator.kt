@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package model
 
 import com.alibaba.fastjson.JSON
@@ -52,7 +68,7 @@ interface FunctionalTestBucket {
     fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket
 }
 
-fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObject.containsKey("classes")) {
+fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObject.containsKey("batches")) {
     FunctionalTestBucketWithSplitClasses(jsonObject)
 } else {
     MultipleSubprojectsFunctionalTestBucket(jsonObject)
@@ -60,22 +76,16 @@ fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObjec
 
 data class FunctionalTestBucketWithSplitClasses(
     val subproject: String,
-    val number: Int,
-    val classes: List<String>,
-    val include: Boolean
+    val batches: Int,
 ) : FunctionalTestBucket {
     constructor(jsonObject: JSONObject) : this(
         jsonObject.getString("subproject"),
-        jsonObject.getIntValue("number"),
-        jsonObject.getJSONArray("classes").map { it.toString() },
-        jsonObject.getBoolean("include")
+        jsonObject.getIntValue("batches"),
     )
 
     override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket = LargeSubprojectSplitBucket(
         gradleSubprojectProvider.getSubprojectByName(subproject)!!,
-        number,
-        include,
-        classes.map { TestClassAndSourceSet(it) }
+        batches
     )
 }
 
@@ -99,7 +109,7 @@ data class MultipleSubprojectsFunctionalTestBucket(
 fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket {
     return when (this) {
         is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, enableTestDistribution)
-        is LargeSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, number, classes.map { it.toPropertiesLine() }, include)
+        is LargeSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, batches)
         else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
     }
 }
@@ -132,7 +142,7 @@ class SubprojectTestClassTime(
             buckets.mapIndexed { index: Int, classesInBucket: List<TestClassTime> ->
                 val include = index != buckets.size - 1
                 val classes = if (include) classesInBucket else buckets.subList(0, buckets.size - 1).flatten()
-                LargeSubprojectSplitBucket(subProject, index + 1, include, classes.map { it.testClassAndSourceSet })
+                LargeSubprojectSplitBucket(subProject, 1)
             }
         }
     }
@@ -218,17 +228,10 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     // docs subproject is special
     private fun splitDocsSubproject(allSubprojects: List<GradleSubproject>): List<BuildTypeBucket> {
         val docs = allSubprojects.find { it.name == "docs" }!!
-        val docs1 = LargeSubprojectSplitBucket(docs, 1, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest")))
-        val docs2 = LargeSubprojectSplitBucket(docs, 2, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest")))
-        val docs3 = LargeSubprojectSplitBucket(docs, 3, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")))
-        val docs4 = LargeSubprojectSplitBucket(
-            docs, 4, false,
-            listOf(
-                TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest"),
-                TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest"),
-                TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")
-            )
-        )
+        val docs1 = LargeSubprojectSplitBucket(docs, 1)
+        val docs2 = LargeSubprojectSplitBucket(docs, 2)
+        val docs3 = LargeSubprojectSplitBucket(docs, 3)
+        val docs4 = LargeSubprojectSplitBucket(docs, 4)
         return listOf(docs1, docs2, docs3, docs4)
     }
 

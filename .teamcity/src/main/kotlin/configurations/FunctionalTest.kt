@@ -2,6 +2,7 @@ package configurations
 
 import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.parallelTests
 import model.CIBuildModel
 import model.Stage
 import model.StageNames
@@ -19,6 +20,7 @@ class FunctionalTest(
     val testCoverage: TestCoverage,
     stage: Stage,
     enableTestDistribution: Boolean,
+    numberOfBatches: Int = 1,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
     extraBuildSteps: BuildSteps.() -> Unit = {},
@@ -28,6 +30,14 @@ class FunctionalTest(
     this.description = description
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
+
+    if (numberOfBatches > 1) {
+        features {
+            parallelTests {
+                this.numberOfBatches = numberOfBatches
+            }
+        }
+    }
 
     if (name.contains("(configuration-cache)")) {
         requirements {
