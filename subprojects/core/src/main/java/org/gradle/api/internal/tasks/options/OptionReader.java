@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.tasks.options.Option;
@@ -38,11 +39,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
+
+    @VisibleForTesting
+    static final BuiltInOptionElement[] BUILT_IN_OPTIONS = {
+        new BuiltInOptionElement(
+            "Causes the task to be re-run even if up-to-date.",
+            "rerun",
+            task -> task.getOutputs().upToDateWhen(taskSpec -> false)
+        )
+    };
+
+    /**
+     * Builds a list of implicit built-in options available for every task.
+     */
+    private List<OptionDescriptor> buildBuiltInOptions(Object target) {
+        return Arrays.stream(BUILT_IN_OPTIONS).map(optionElement ->
+            new InstanceOptionDescriptor(target, optionElement)
+        ).collect(Collectors.toList());
+    }
 
     public List<OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
@@ -54,7 +74,15 @@ public class OptionReader {
             JavaMethod<Object, Collection> optionValueMethod = cachedOptionValueMethods.get(optionElement);
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
-        return CollectionUtils.sort(options.values());
+        List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
+        // add additional built-in options only if they not clash with declared options
+        for (OptionDescriptor builtInOption : buildBuiltInOptions(target)) {
+            if (!options.containsKey(builtInOption.getName())) {
+                taskOptions.add(builtInOption);
+            }
+        }
+
+        return taskOptions;
     }
 
     private void loadClassDescriptorInCache(Object target) {
