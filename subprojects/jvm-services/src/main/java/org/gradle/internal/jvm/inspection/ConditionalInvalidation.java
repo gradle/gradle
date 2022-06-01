@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import java.util.function.Predicate;
 
-public interface JvmMetadataDetector {
-
-    JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation);
-
+/**
+ * A feature of a cache-like storage that provides an ability to invalidate the items matching a predicate.
+ * @param <T> the type of the stored items.
+ */
+public interface ConditionalInvalidation<T> {
+    /**
+     * Instructs the cache to drop the stored items matching the predicate.
+     */
+    void invalidateItemsMatching(Predicate<T> predicate);
 }
