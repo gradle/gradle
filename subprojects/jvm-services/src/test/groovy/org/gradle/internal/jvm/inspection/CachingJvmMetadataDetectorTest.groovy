@@ -43,7 +43,7 @@ class CachingJvmMetadataDetectorTest extends Specification {
         def detector = new CachingJvmMetadataDetector(delegate)
 
         when:
-        def actual = detector.getMetadata(testLocation(new File("jdk")))
+        def actual = detector.getMetadata(testLocation("jdk"))
 
         then:
         actual.is(metadata)
@@ -58,8 +58,8 @@ class CachingJvmMetadataDetectorTest extends Specification {
         def detector = new CachingJvmMetadataDetector(delegate)
 
         when:
-        def metadata1 = detector.getMetadata(testLocation(new File("jdk")))
-        def metadata2 = detector.getMetadata(testLocation(new File("jdk")))
+        def metadata1 = detector.getMetadata(testLocation("jdk"))
+        def metadata2 = detector.getMetadata(testLocation("jdk"))
 
         then:
         metadata1.is(metadata2)
@@ -79,9 +79,9 @@ class CachingJvmMetadataDetectorTest extends Specification {
         link.createLink(javaHome1)
 
         when:
-        def metadata1 = detector.getMetadata(testLocation(link))
+        def metadata1 = detector.getMetadata(testLocation(link.absolutePath))
         link.createLink(new File("doesntExist"))
-        def metadata2 = detector.getMetadata(testLocation(link))
+        def metadata2 = detector.getMetadata(testLocation(link.absolutePath))
 
         then:
         metadata1.javaHome.toString().contains(Jvm.current().javaHome.canonicalPath)
@@ -90,8 +90,8 @@ class CachingJvmMetadataDetectorTest extends Specification {
 
 
     def "invalidation takes predicate into account"() {
-        def location1 = testLocation(new File("jdk1"))
-        def location2 = testLocation(new File("jdk2"))
+        def location1 = testLocation("jdk1")
+        def location2 = testLocation("jdk2")
         def metadata1 = Mock(JvmInstallationMetadata)
         def metadata2 = Mock(JvmInstallationMetadata)
         def delegate = Mock(JvmMetadataDetector) {
@@ -111,7 +111,7 @@ class CachingJvmMetadataDetectorTest extends Specification {
         0 * delegate.getMetadata(location2)
     }
 
-    private InstallationLocation testLocation(File file) {
-        return new InstallationLocation(file, "test")
+    private InstallationLocation testLocation(String filePath) {
+        return new InstallationLocation(new File(filePath), "test")
     }
 }
