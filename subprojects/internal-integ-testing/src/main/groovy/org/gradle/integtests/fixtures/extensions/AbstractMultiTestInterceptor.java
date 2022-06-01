@@ -15,23 +15,27 @@
  */
 package org.gradle.integtests.fixtures.extensions;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
-import org.junit.AssumptionViolatedException;
-import org.spockframework.lang.SpecInternals;
-import org.spockframework.mock.runtime.MockController;
+import org.gradle.internal.Cast;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IDataDriver;
-import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
+import org.spockframework.runtime.model.DataProcessorMetadata;
+import org.spockframework.runtime.model.DataProviderInfo;
 import org.spockframework.runtime.model.FeatureInfo;
+import org.spockframework.runtime.model.Invoker;
 import org.spockframework.runtime.model.IterationInfo;
+import org.spockframework.runtime.model.MethodInfo;
+import org.spockframework.runtime.model.MethodKind;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A base class for those test interceptors which execute a test multiple times.
@@ -39,6 +43,7 @@ import java.util.List;
 public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterceptor {
     protected final Class<?> target;
     private final List<Execution> executions = new ArrayList<>();
+    private final Map<FeatureInfo, Map<Integer, Execution>> executionIndexForFeature = new HashMap<>();
     private final boolean runAllExecutions;
 
     private boolean executionsInitialized;
@@ -56,20 +61,30 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     public void interceptFeature(FeatureInfo feature) {
         initExecutions();
 
+        boolean featureIsParameterized = feature.isParameterized();
+        if (!featureIsParameterized) {
+            parameterizeFeature(feature);
+        }
+
         NameProvider<IterationInfo> iterationNameProvider = feature.getIterationNameProvider();
         if (iterationNameProvider == null) {
-            feature.setName(feature.getName() + " " + executions);
+            feature.setIterationNameProvider(p -> feature.getName() + " " + getCurrentExecution(p));
         } else {
             feature.setIterationNameProvider(p -> iterationNameProvider.getName(p) + " " + getCurrentExecution(p));
         }
 
         feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
+            Map<Integer, Execution> executionIndexForIteration = new HashMap<>();
+            executionIndexForFeature.put(feature, executionIndexForIteration);
+            int iterationIndex = 0;
             TestDetails testDetails = new TestDetails(feature);
             while(dataIterator.hasNext()) {
                 Object[] arguments = dataIterator.next();
+                Object[] actualArguments =  featureIsParameterized ? IDataDriver.prepareArgumentArray(arguments, parameters) : new Object[0];
                 for (Execution execution : executions) {
                     if (execution.isTestEnabled(testDetails)) {
-                        iterationRunner.runIteration(IDataDriver.prepareArgumentArray(arguments, parameters));
+                        executionIndexForIteration.put(iterationIndex++, execution);
+                        iterationRunner.runIteration(actualArguments);
                     }
                 }
             }
@@ -80,12 +95,42 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             return;
         }
 
-        if (feature.isParameterized()) {
-            feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
-        } else {
-            IMethodInterceptor interceptor = new NonParameterizedFeatureMultiVersionInterceptor();
-            feature.addInterceptor(interceptor);
-            feature.addIterationInterceptor(interceptor);
+        feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
+    }
+
+    private void parameterizeFeature(FeatureInfo feature) {
+        if (feature.getDataProcessorMethod() == null) {
+            MethodInfo dataProcessor = new MethodInfo(new ConstantInvoker(new Object[]{"data"})) {
+                @Override
+                public <ANN extends Annotation> ANN getAnnotation(Class<ANN> clazz) {
+                    if (clazz.equals(DataProcessorMetadata.class)) {
+                        return Cast.uncheckedCast(new DataProcessorMetadata() {
+                            @Override
+                            public String[] dataVariables() {
+                                return new String[0];
+                            }
+
+                            @Override
+                            public Class<? extends Annotation> annotationType() {
+                                return DataProcessorMetadata.class;
+                            }
+                        });
+                    }
+                    return null;
+                }
+            };
+            dataProcessor.setParent(feature.getSpec());
+            dataProcessor.setName("internalDataProcessor");
+            dataProcessor.setKind(MethodKind.DATA_PROCESSOR);
+
+            MethodInfo dataProviderMethod = new MethodInfo(new ConstantInvoker(Collections.singleton("data")));
+            feature.setDataProcessorMethod(dataProcessor);
+            DataProviderInfo dataProvider = new DataProviderInfo();
+            dataProvider.setParent(feature);
+            dataProvider.setDataVariables(new ArrayList<>());
+            dataProvider.setPreviousDataTableVariables(new ArrayList<>());
+            dataProvider.setDataProviderMethod(dataProviderMethod);
+            feature.getDataProviders().add(dataProvider);
         }
     }
 
@@ -176,70 +221,16 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
     }
 
-    private static class IterationExceptionInterceptor implements IMethodInterceptor {
-
-        private boolean hasThrown = false;
-
-        @Override
-        public void intercept(IMethodInvocation invocation) throws Throwable {
-            try {
-                invocation.proceed();
-            } catch (AssumptionViolatedException e) {
-                System.out.println("Skipping iteration: assumption not satisfied");
-                throw e;
-            } catch (Throwable t) {
-                hasThrown = true;
-                throw t;
-            }
-        }
-    }
-
-    private class NonParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
-        private Execution currentExecution;
-
+    private class ParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
         @Override
         public void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
-            IterationExceptionInterceptor iterationExceptionInterceptor = new IterationExceptionInterceptor();
-            invocation.getFeature().getFeatureMethod().addInterceptor(iterationExceptionInterceptor);
-
-            TestDetails testDetails = new TestDetails(invocation.getFeature());
-
-            for (Execution execution : executions) {
-                if (!execution.isTestEnabled(testDetails)) {
-                    continue;
-                }
-                // Spock 2 does not treat a test repeatedly invoked from an interceptor as a new test iteration
-                // Until we can solve this in a better way, the printout below indicates the start of an iteration with a different configuration
-                if (executions.size() > 1) {
-                    System.out.println("\nRUNNING ITERATION [" + execution.getDisplayName() + "]\n");
-                }
-                if (AbstractIntegrationSpec.class.isAssignableFrom(target)) {
-                    ((AbstractIntegrationSpec) invocation.getInstance()).resetExecuter();
-                }
-                if (initInvocation != null) { // null happens when a test class contains only features with 'where' clause
-                    initInvocation.proceed();
-                }
-                currentExecution = execution;
+            try {
                 invocation.proceed();
-                // When the current iteration fails, we abort the following executions, which is far from ideal
-                // This, however, makes it evident which iteration failed in this loop
-                if (!runAllExecutions || iterationExceptionInterceptor.hasThrown) {
-                    break;
-                }
-                ((MockController) ((SpecInternals) invocation.getInstance()).getSpecificationContext().getMockController()).enterScope();
+            } finally {
+                executionIndexForFeature.remove(invocation.getFeature());
             }
         }
 
-        @Override
-        public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-            currentExecution.assertCanExecute();
-            currentExecution.before(invocation);
-            invocation.proceed();
-            currentExecution.after();
-        }
-    }
-
-    private class ParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
         @Override
         public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
             Execution currentExecution = getCurrentExecution(invocation.getIteration());
@@ -252,8 +243,19 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     }
 
     private Execution getCurrentExecution(IterationInfo iterationInfo) {
-        int executionIndex = iterationInfo.getIterationIndex() % executions.size();
-        return executions.get(executionIndex);
+        return executionIndexForFeature.get(iterationInfo.getFeature()).get(iterationInfo.getIterationIndex());
     }
 
+    public static class ConstantInvoker implements Invoker {
+        private final Object value;
+
+        public ConstantInvoker(Object value) {
+            this.value = value;
+        }
+
+        @Override
+        public Object invoke(Object target, Object... arguments) throws Throwable {
+            return value;
+        }
+    }
 }
