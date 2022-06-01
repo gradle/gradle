@@ -19,7 +19,6 @@ plugins {
 }
 
 // tag::use_version_asprovider[]
-// getting the version of 'zinc' requires `asProvider()` when there are other 'zinc-...' versions:
 scala {
     zincVersion = libs.versions.zinc.asProvider().get()
 }
