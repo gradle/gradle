@@ -583,7 +583,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     Declaration(
                         "",
                         "JavaProjectPlugin",
-                        null
+                        Visibilities.Public
                     )
                 )
             )
