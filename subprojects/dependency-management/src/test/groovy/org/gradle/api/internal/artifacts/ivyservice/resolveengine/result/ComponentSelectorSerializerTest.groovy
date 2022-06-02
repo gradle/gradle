@@ -92,7 +92,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes other build root ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:someProject"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
