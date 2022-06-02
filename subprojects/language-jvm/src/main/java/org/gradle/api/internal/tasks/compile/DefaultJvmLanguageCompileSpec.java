@@ -25,6 +25,7 @@ import java.util.List;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private File workingDir;
+    private File buildDir;
     private File tempDir;
     private List<File> classpath;
     private File destinationDir;
@@ -42,6 +43,16 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     @Override
     public void setWorkingDir(File workingDir) {
         this.workingDir = workingDir;
+    }
+
+    @Override
+    public File getBuildDir() {
+        return buildDir;
+    }
+
+    @Override
+    public void setBuildDir(File buildDir) {
+        this.buildDir = buildDir;
     }
 
     @Override

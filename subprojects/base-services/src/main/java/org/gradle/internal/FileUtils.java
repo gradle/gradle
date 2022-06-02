@@ -238,12 +238,14 @@ public class FileUtils {
      *
      * Note: If the destination file already exists it is deleted and after that move operation is run.
      */
-    public static void moveFile(File sourceFile, File destinationFile) {
+    public static boolean moveFile(File sourceFile, File destinationFile) {
         try {
             if (destinationFile.exists()) {
                 destinationFile.delete();
             }
+            destinationFile.getParentFile().mkdirs();
             org.apache.commons.io.FileUtils.moveFile(sourceFile, destinationFile);
+            return destinationFile.exists();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

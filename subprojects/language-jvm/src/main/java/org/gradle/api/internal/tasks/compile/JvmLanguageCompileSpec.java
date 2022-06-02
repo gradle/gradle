@@ -31,6 +31,10 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setWorkingDir(File workingDir);
 
+    File getBuildDir();
+
+    void setBuildDir(File buildDir);
+
     File getDestinationDir();
 
     void setDestinationDir(File destinationDir);

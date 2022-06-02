@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpe
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -36,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -94,8 +94,15 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             return rebuildAllCompiler.execute(spec);
         }
 
-
-        List<File> cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, recompilationSpec);
+        File deleteStagingDestination = new File(spec.getTempDir(), "deletedClasses");
+        File compileStagingDestination = new File(spec.getTempDir(), "compiledClasses");
+        if (deleteStagingDestination.exists()) {
+            FileUtils.deleteQuietly(deleteStagingDestination);
+        }
+        if (compileStagingDestination.exists()) {
+            FileUtils.deleteQuietly(compileStagingDestination);
+        }
+        List<File> cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, deleteStagingDestination, recompilationSpec);
         if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
@@ -103,9 +110,8 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         boolean compilationFinishedWithoutError = true;
         File destination = spec.getDestinationDir();
-        File stagingDestination = new File(destination.getParentFile(), destination.getName() + ".gradle.tmp");
         try {
-            spec.setDestinationDir(stagingDestination);
+            spec.setDestinationDir(compileStagingDestination);
             WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, cleaningCompiler.getCompiler().execute(spec));
             return result.or(WorkResults.didWork(!cleanedOutput.isEmpty()));
         } catch (CompilationFailedException e) {
@@ -113,7 +119,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             throw e;
         } finally {
             spec.setDestinationDir(destination);
-            recompilationSpecProvider.finishCompilation(cleanedOutput, stagingDestination, spec, compilationFinishedWithoutError);
+            recompilationSpecProvider.finishCompilation(cleanedOutput, deleteStagingDestination, compileStagingDestination, spec, compilationFinishedWithoutError);
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
             LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
             LOG.debug("Recompiled classes {}", classesToCompile);
