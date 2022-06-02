@@ -510,11 +510,25 @@ sourceSets {
         outputs.recompiledClasses("Class\$Name1", "Main")
     }
 
+    def "old classes are kept after the compile failure"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+
+        then:
+        outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
     def "incremental compilation works after a compile failure"() {
         source("class A {}", "class B {}")
-        run language.compileTaskName
+        outputs.snapshot { run language.compileTaskName }
         source("class A { garbage }")
-        outputs.snapshot { runAndFail language.compileTaskName }
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
 
         when:
         source("class A { }")
@@ -522,13 +536,33 @@ sourceSets {
 
         then:
         outputs.recompiledClasses("A")
+        outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
+    def "incremental compilation works after multiple compile failures"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
+
+        when:
+        source("class A { }")
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A")
+        outputs.hasFiles(file("A.class"), file("B.class"))
     }
 
     def "nothing is recompiled after a compile failure when file is reverted"() {
         source("class A {}", "class B {}")
-        run language.compileTaskName
+        outputs.snapshot { run language.compileTaskName }
         source("class A { garbage }")
-        outputs.snapshot { runAndFail language.compileTaskName }
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
 
         when:
         source("class A {}")
@@ -536,5 +570,6 @@ sourceSets {
 
         then:
         outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
     }
 }
