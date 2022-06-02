@@ -335,7 +335,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
 
                 dependencies {
-                    implementation(files("${utils}"))
+                    implementation(files("$utils"))
                 }
             """.trimIndent()
         )

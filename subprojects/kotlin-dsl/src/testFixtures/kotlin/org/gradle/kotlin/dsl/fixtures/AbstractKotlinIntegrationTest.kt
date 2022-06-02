@@ -150,7 +150,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun scriptWithKotlinDslPlugin(version: String? = null): String =
         """
             plugins {
-                `kotlin-dsl`${if(version == null) "" else " version \"$version\""}
+                `kotlin-dsl`${if (version == null) "" else " version \"$version\""}
             }
 
             $repositoriesBlock
