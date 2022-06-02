@@ -787,6 +787,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `should compile correctly with Kotlin explicit api mode`() {
+        assumeNonEmbeddedGradleExecuter()
         withBuildScript(
             """
             plugins {
@@ -795,8 +796,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
             $repositoriesBlock
 
-            extensions.getByName("kotlin").withGroovyBuilder {
-                "explicitApi"()
+            kotlin {
+                explicitApi()
             }
             """
         )
