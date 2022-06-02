@@ -295,6 +295,61 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+### `mustRunAfter` constraint is violated by `finalizedBy` dependency
+
+In previous Gradle versions, `mustRunAfter` constraints between regular tasks and finalizer task dependencies would not be honored.
+
+For a concrete example, consider the following task graph definition:
+
+```kotlin
+          tasks {
+                register("dockerTest") {
+                    dependsOn("dockerUp")     // dependsOn createContainer mustRunAfter removeContainer
+                    finalizedBy("dockerStop") // dependsOn removeContainer
+                }
+
+                register("dockerUp") {
+                    dependsOn("createContainer")
+                }
+
+                register("dockerStop") {
+                    dependsOn("removeContainer")
+                }
+
+                register("createContainer") {
+                    mustRunAfter("removeContainer")
+                }
+
+                register("removeContainer") {
+                }
+            }
+```
+
+The relevant constraints are:
+- `dockerStop` is a finalizer of `dockerTest` so it must be run after `dockerTest`;
+- `removeContainer` is a dependency of `dockerStop` so it must be run before `dockerStop`;
+- `createContainer` must run after `removeContainer`;
+
+Prior to Gradle 7.5, `gradle dockerTest` would yield the following order of execution, in violation of the `mustRunAfter` constraint between `:createContainer` and `:removeContainer`:
+
+```
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :removeContainer UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
+
+Starting with Gradle 7.5, `mustRunAfter` constraints are fully honored yielding the following order of execution:
+
+```
+> Task :removeContainer UP-TO-DATE
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
