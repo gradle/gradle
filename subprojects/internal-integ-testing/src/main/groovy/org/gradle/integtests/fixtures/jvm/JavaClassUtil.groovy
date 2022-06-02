@@ -21,20 +21,28 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class JavaClassUtil {
 
+    private static final int MAGIC_BYTES = (int) 0xCAFEBABE
+
     static int getClassMajorVersion(Class<?> javaClass) {
-        def classPath = javaClass.name.replace('.', '/') + '.class'
-        def data = new DataInputStream(javaClass.classLoader.getResourceAsStream(classPath))
+        URL url = classFileUrlOf(javaClass)
+        DataInputStream data = new DataInputStream(url.openStream())
         try {
-            int magicBytes = (int) 0xCAFEBABE
-            int header = data.readInt()
-            if (magicBytes != header) {
-                throw new IOException("Invalid class header $header")
+            if (MAGIC_BYTES != data.readInt()) {
+                throw new IOException("Invalid .class file header for '$javaClass' in '${url}'")
             }
             data.readUnsignedShort() // minor
             return data.readUnsignedShort() // major
         } finally {
             data.close()
         }
+    }
+
+    private static URL classFileUrlOf(Class<?> javaClass) {
+        return javaClass.classLoader.getResource(classpathPathFor(javaClass))
+    }
+
+    private static String classpathPathFor(Class<?> javaClass) {
+        return javaClass.name.replace('.', '/') + '.class'
     }
 
     private JavaClassUtil() {}
