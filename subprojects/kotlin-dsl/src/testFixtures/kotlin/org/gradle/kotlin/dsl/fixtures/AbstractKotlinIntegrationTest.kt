@@ -233,6 +233,11 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
+    fun assumeJavaLessThan17() {
+        assumeTrue("Test disabled under JDK 17 and higher", JavaVersion.current() < JavaVersion.VERSION_17)
+    }
+
+    protected
     fun assumeJava11() {
         assumeTrue("Test requires Java 11 or higher", JavaVersion.current().isJava11Compatible)
     }

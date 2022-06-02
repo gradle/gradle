@@ -32,6 +32,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     fun `can run with first major of current kotlin-dsl plugin version`() {
 
         assumeNonEmbeddedGradleExecuter()
+        assumeJavaLessThan17() // Previous Kotlin versions did not work on Java 17
         executer.noDeprecationChecks()
 
         val testedVersion = "2.0.0"
