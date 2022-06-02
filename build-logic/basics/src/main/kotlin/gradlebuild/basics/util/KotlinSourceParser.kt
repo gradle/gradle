@@ -16,8 +16,8 @@
 
 package gradlebuild.basics.util
 
-import org.gradle.internal.jvm.Jvm
 
+import org.gradle.internal.jvm.Jvm
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -28,22 +28,20 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
+import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
 import org.jetbrains.kotlin.load.java.Jsr305Settings
 import org.jetbrains.kotlin.load.java.ReportLevel
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.PathUtil
-
-
 import java.io.File
 
 
@@ -113,8 +111,8 @@ class KotlinSourceParser {
         put(
             CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS,
             LanguageVersionSettingsImpl(
-                languageVersion = LanguageVersion.KOTLIN_1_4,
-                apiVersion = ApiVersion.KOTLIN_1_4,
+                languageVersion = LanguageVersion.KOTLIN_1_7,
+                apiVersion = ApiVersion.KOTLIN_1_7,
                 analysisFlags = mapOf(
                     JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
                         Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)
