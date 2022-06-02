@@ -30,10 +30,8 @@ import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,6 +44,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     private final boolean runAllExecutions;
 
     private boolean executionsInitialized;
+
+    // Yay, mutable state for storing the current execution.
+    private Execution currentExecution;
 
     protected AbstractMultiTestInterceptor(Class<?> target) {
         this(target, true);
@@ -66,15 +67,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
 
         NameProvider<IterationInfo> iterationNameProvider = feature.getIterationNameProvider();
         if (iterationNameProvider == null) {
-            feature.setIterationNameProvider(p -> feature.getName() + " " + getCurrentExecution(p));
+            feature.setIterationNameProvider(p -> feature.getName() + " " + currentExecution);
         } else {
-            feature.setIterationNameProvider(iteration -> {
-                Object[] augmentedDataValues = iteration.getDataValues();
-                setDataValues(iteration, Arrays.copyOf(augmentedDataValues, augmentedDataValues.length - 1));
-                String iterationName = iterationNameProvider.getName(iteration);
-                setDataValues(iteration, augmentedDataValues);
-                return iterationName + " " + getCurrentExecution(iteration);
-            });
+            feature.setIterationNameProvider(iteration -> iterationNameProvider.getName(iteration) + " " + currentExecution);
         }
 
         feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
@@ -84,10 +79,13 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
                 Object[] actualArguments =  featureIsParameterized ? IDataDriver.prepareArgumentArray(arguments, parameters) : new Object[0];
                 for (Execution execution : executions) {
                     if (execution.isTestEnabled(testDetails)) {
-                        Object[] augmentedArguments = new Object[actualArguments.length + 1];
-                        System.arraycopy(actualArguments, 0, augmentedArguments, 0, actualArguments.length);
-                        augmentedArguments[actualArguments.length] = execution;
-                        iterationRunner.runIteration(augmentedArguments);
+                        currentExecution = execution;
+                        try {
+                            iterationRunner.runIteration(actualArguments);
+                        } catch (Throwable t) {
+                            currentExecution = null;
+                        }
+
                         if (!runAllExecutions) {
                             break;
                         }
@@ -225,28 +223,11 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
 
         @Override
         public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-            IterationInfo iteration = invocation.getIteration();
-            Execution currentExecution = (Execution) iteration.getDataValues()[iteration.getDataValues().length - 1];
-            setDataValues(iteration, Arrays.copyOf(iteration.getDataValues(), iteration.getDataValues().length - 1));
             currentExecution.assertCanExecute();
             currentExecution.before(invocation);
             invocation.proceed();
             currentExecution.after();
         }
-    }
-
-    private void setDataValues(IterationInfo iteration, Object... values) {
-        try {
-            Field dataValuesField = IterationInfo.class.getDeclaredField("dataValues");
-            dataValuesField.setAccessible(true);
-            dataValuesField.set(iteration, values);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Execution getCurrentExecution(IterationInfo iterationInfo) {
-        return (Execution) iterationInfo.getDataValues()[iterationInfo.getDataValues().length - 1];
     }
 
     public static class ConstantInvoker implements Invoker {
