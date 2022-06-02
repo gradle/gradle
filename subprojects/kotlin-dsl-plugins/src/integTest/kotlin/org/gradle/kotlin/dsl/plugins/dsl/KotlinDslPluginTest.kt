@@ -325,7 +325,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         assumeJava11()
 
-        val utils = withClassJar("utils.jar", JavaClassUtil::class.java)
+        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
         withDefaultSettingsIn("buildSrc")
         withKotlinDslPluginIn("buildSrc").appendText(
@@ -335,7 +335,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
 
                 dependencies {
-                    implementation(files("$utils"))
+                    implementation(files("utils.jar"))
                 }
             """.trimIndent()
         )
