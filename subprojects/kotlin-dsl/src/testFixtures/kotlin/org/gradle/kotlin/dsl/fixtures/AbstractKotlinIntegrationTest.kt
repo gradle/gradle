@@ -147,10 +147,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
 
     protected
-    fun scriptWithKotlinDslPlugin(): String =
+    fun scriptWithKotlinDslPlugin(version: String? = null): String =
         """
             plugins {
-                `kotlin-dsl`
+                `kotlin-dsl`${if(version == null) "" else " version \"$version\""}
             }
 
             $repositoriesBlock
