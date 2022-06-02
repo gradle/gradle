@@ -30,12 +30,12 @@ import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A base class for those test interceptors which execute a test multiple times.
@@ -43,11 +43,9 @@ import java.util.Map;
 public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterceptor {
     protected final Class<?> target;
     private final List<Execution> executions = new ArrayList<>();
-    private final Map<FeatureInfo, Map<Integer, Execution>> executionIndexForFeature = new HashMap<>();
     private final boolean runAllExecutions;
 
     private boolean executionsInitialized;
-    private IMethodInvocation initInvocation;
 
     protected AbstractMultiTestInterceptor(Class<?> target) {
         this(target, true);
@@ -70,21 +68,29 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         if (iterationNameProvider == null) {
             feature.setIterationNameProvider(p -> feature.getName() + " " + getCurrentExecution(p));
         } else {
-            feature.setIterationNameProvider(p -> iterationNameProvider.getName(p) + " " + getCurrentExecution(p));
+            feature.setIterationNameProvider(iteration -> {
+                Object[] augmentedDataValues = iteration.getDataValues();
+                setDataValues(iteration, Arrays.copyOf(augmentedDataValues, augmentedDataValues.length - 1));
+                String iterationName = iterationNameProvider.getName(iteration);
+                setDataValues(iteration, augmentedDataValues);
+                return iterationName + " " + getCurrentExecution(iteration);
+            });
         }
 
         feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
-            Map<Integer, Execution> executionIndexForIteration = new HashMap<>();
-            executionIndexForFeature.put(feature, executionIndexForIteration);
-            int iterationIndex = 0;
             TestDetails testDetails = new TestDetails(feature);
             while(dataIterator.hasNext()) {
                 Object[] arguments = dataIterator.next();
                 Object[] actualArguments =  featureIsParameterized ? IDataDriver.prepareArgumentArray(arguments, parameters) : new Object[0];
                 for (Execution execution : executions) {
                     if (execution.isTestEnabled(testDetails)) {
-                        executionIndexForIteration.put(iterationIndex++, execution);
-                        iterationRunner.runIteration(actualArguments);
+                        Object[] augmentedArguments = new Object[actualArguments.length + 1];
+                        System.arraycopy(actualArguments, 0, augmentedArguments, 0, actualArguments.length);
+                        augmentedArguments[actualArguments.length] = execution;
+                        iterationRunner.runIteration(augmentedArguments);
+                        if (!runAllExecutions) {
+                            break;
+                        }
                     }
                 }
             }
@@ -132,12 +138,6 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             dataProvider.setDataProviderMethod(dataProviderMethod);
             feature.getDataProviders().add(dataProvider);
         }
-    }
-
-    @Override
-    public void interceptInitializerMethod(IMethodInvocation invocation) throws Throwable {
-        this.initInvocation = invocation;
-        initInvocation.proceed();
     }
 
     protected abstract void createExecutions();
@@ -222,28 +222,31 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     }
 
     private class ParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
-        @Override
-        public void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
-            try {
-                invocation.proceed();
-            } finally {
-                executionIndexForFeature.remove(invocation.getFeature());
-            }
-        }
 
         @Override
         public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-            Execution currentExecution = getCurrentExecution(invocation.getIteration());
+            IterationInfo iteration = invocation.getIteration();
+            Execution currentExecution = (Execution) iteration.getDataValues()[iteration.getDataValues().length - 1];
+            setDataValues(iteration, Arrays.copyOf(iteration.getDataValues(), iteration.getDataValues().length - 1));
             currentExecution.assertCanExecute();
             currentExecution.before(invocation);
             invocation.proceed();
             currentExecution.after();
         }
+    }
 
+    private void setDataValues(IterationInfo iteration, Object... values) {
+        try {
+            Field dataValuesField = IterationInfo.class.getDeclaredField("dataValues");
+            dataValuesField.setAccessible(true);
+            dataValuesField.set(iteration, values);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Execution getCurrentExecution(IterationInfo iterationInfo) {
-        return executionIndexForFeature.get(iterationInfo.getFeature()).get(iterationInfo.getIterationIndex());
+        return (Execution) iterationInfo.getDataValues()[iterationInfo.getDataValues().length - 1];
     }
 
     public static class ConstantInvoker implements Invoker {
