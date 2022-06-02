@@ -46,7 +46,11 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
     def "idea"() {
         given:
         runner.tasksToRun = ['idea']
+<<<<<<< HEAD
         runner.targetVersions = ["7.6-20220513002340+0000"]
+=======
+        runner.targetVersions = ["7.5-20220514015008+0000"]
+>>>>>>> origin/release
 
         when:
         def result = runner.run()
