@@ -225,12 +225,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit(String version) {
-        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.JUNIT4, version)));
+        useJUnit(getProviderFactory().provider(() -> version));
     }
 
     @Override
     public void useJUnit(Provider<String> versionProvider) {
-        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.JUNIT4, v)));
+        setFrameworkTo(Frameworks.JUNIT4, versionProvider);
     }
 
     @Override
@@ -240,12 +240,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnitJupiter(String version) {
-        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, version)));
+        useJUnitJupiter(getProviderFactory().provider(() -> version));
     }
 
     @Override
     public void useJUnitJupiter(Provider<String> versionProvider) {
-        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, v)));
+        setFrameworkTo(Frameworks.JUNIT_JUPITER, versionProvider);
     }
 
     @Override
@@ -255,12 +255,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useSpock(String version) {
-        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.SPOCK, version)));
+        useSpock(getProviderFactory().provider(() -> version));
     }
 
     @Override
     public void useSpock(Provider<String> versionProvider) {
-        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.SPOCK, v)));
+        setFrameworkTo(Frameworks.SPOCK, versionProvider);
     }
 
     @Override
@@ -270,12 +270,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useKotlinTest(String version) {
-        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.KOTLIN_TEST, version)));
+        useKotlinTest(getProviderFactory().provider(() -> version));
     }
 
     @Override
     public void useKotlinTest(Provider<String> versionProvider) {
-        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.KOTLIN_TEST, v)));
+        setFrameworkTo(Frameworks.KOTLIN_TEST, versionProvider);
     }
 
     @Override
@@ -285,16 +285,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useTestNG(String version) {
-        setFrameworkTo(getProviderFactory().provider(() -> new VersionedTestingFramework(Frameworks.TESTNG, version)));
+        useTestNG(getProviderFactory().provider(() -> version));
     }
 
     @Override
     public void useTestNG(Provider<String> versionProvider) {
-        setFrameworkTo(versionProvider.map(v -> new VersionedTestingFramework(Frameworks.TESTNG, v)));
+        setFrameworkTo(Frameworks.TESTNG, versionProvider);
     }
 
-    private void setFrameworkTo(Provider<VersionedTestingFramework> frameworkProvider) {
-        getVersionedTestingFramework().set(frameworkProvider);
+    private void setFrameworkTo(Frameworks framework, Provider<String> versionProvider) {
+        getVersionedTestingFramework().set(versionProvider.map(v -> new VersionedTestingFramework(framework, v)));
         attachDependencyAction.execute(null);
     }
 
