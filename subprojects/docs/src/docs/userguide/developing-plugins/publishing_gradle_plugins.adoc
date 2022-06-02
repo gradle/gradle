@@ -62,21 +62,22 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 The latest version of the {publishplugin} can be found on the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
 
 NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
-<<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> (assists in developing Gradle plugins) and the
+<<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> (assists with developing Gradle plugins) and the
 <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> (generates plugin publication metadata).
 If using older versions of the Plugin Publish Plugin, these helper plugins need to be applied explicitly.
 
 [[sec:configuring-publish-plugin]]
 == Configure the {publishplugin}
 
-First specify information applicable to all the plugins published by your build. This helps other people browsing the portal find
-more information about your plugins and learn how to contribute to their development.
+The first thing to do when configuring the publication of your plugins is to specify the common properties that apply to all of them.
+This includes their identity plus the sources and documentation related to them. This will help people browsing the portal find more
+information about your plugins and learn how to contribute to their development.
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
 ====
-<1> Make sure your project has a `group` set which is used for the artifacts (jar and metadata) you publish for your plugins
+<1> Make sure your project has a `group` set which is used to identify the artifacts (jar and metadata) you publish for your plugins
 in the repository of the {portal} and which is descriptive of the plugin author or the organization the plugins belong too.
 <2> Set the version of your project, which will also be used as the version of your plugins.
 <3> Use the `gradlePlugin` block provided by the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>
