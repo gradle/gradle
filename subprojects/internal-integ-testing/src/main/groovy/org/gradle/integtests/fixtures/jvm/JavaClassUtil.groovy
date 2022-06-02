@@ -23,14 +23,17 @@ class JavaClassUtil {
 
     static int getClassMajorVersion(Class<?> javaClass) {
         def classPath = javaClass.name.replace('.', '/') + '.class'
-        return new DataInputStream(javaClass.classLoader.getResourceAsStream(classPath)).withCloseable { data ->
+        def data = new DataInputStream(javaClass.classLoader.getResourceAsStream(classPath))
+        try {
             int magicBytes = (int) 0xCAFEBABE
             int header = data.readInt()
             if (magicBytes != header) {
                 throw new IOException("Invalid class header $header")
             }
             data.readUnsignedShort() // minor
-            data.readUnsignedShort() // major
+            return data.readUnsignedShort() // major
+        } finally {
+            data.close()
         }
     }
 
