@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * A compiler that selects classes for compilation. It also handles restore of these files in case of a failure.
+ * A compiler that selects classes for compilation. It also handles restore of output state in case of a failure.
  */
 class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
     private static final Logger LOG = LoggerFactory.getLogger(SelectiveCompiler.class);
