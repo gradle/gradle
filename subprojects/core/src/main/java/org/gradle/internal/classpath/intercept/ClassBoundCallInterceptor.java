@@ -17,13 +17,18 @@
 package org.gradle.internal.classpath.intercept;
 
 /**
- * A special case of the CallInterceptor for static methods, constructors, and static properties.
+ * A special case of the CallInterceptor for static methods and static properties.
  * It only intercepts the calls where the receiver is the class of interest.
+ * <p>
+ * It is possible but not strictly necessary to use this interceptor to intercept constructors.
+ * Due to the way constructor interception works, having an {@link InterceptScope#constructorsOf(Class)
+ * as a scope already guarantees that the invocation would have the given class object as the receiver.
  */
 public abstract class ClassBoundCallInterceptor extends CallInterceptor {
     private final Class<?> expectedReceiver;
 
-    public ClassBoundCallInterceptor(Class<?> expectedReceiver) {
+    public ClassBoundCallInterceptor(Class<?> expectedReceiver, InterceptScope... scopes) {
+        super(scopes);
         this.expectedReceiver = expectedReceiver;
     }
 

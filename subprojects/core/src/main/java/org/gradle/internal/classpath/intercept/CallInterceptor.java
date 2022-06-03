@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 
 /**
@@ -80,6 +79,8 @@ public abstract class CallInterceptor {
         Object callOriginal() throws Throwable;
     }
 
+    private final InterceptScope[] interceptScopes;
+
     /**
      * Called when the method/constructor/property read is intercepted.
      * The return value of this method becomes the result of the intercepted call.
@@ -93,60 +94,11 @@ public abstract class CallInterceptor {
      */
     protected abstract Object doIntercept(Invocation invocation, String consumer) throws Throwable;
 
-    /**
-     * Decorates a Groovy {@link CallSite}. The returned CallSite instance will perform the actual interception.
-     *
-     * @param prev the CallSite to decorate
-     * @return the new CallSite capable of intercepting calls.
-     */
-    public CallSite decorateCallSite(CallSite prev) {
-        return new DecoratingCallSite(prev);
+    protected CallInterceptor(InterceptScope... interceptScopes) {
+        this.interceptScopes = interceptScopes;
     }
 
-    private class DecoratingCallSite extends AbstractCallSite {
-        public DecoratingCallSite(CallSite prev) {
-            super(prev);
-        }
-
-        @Override
-        public Object call(Object receiver, Object[] args) throws Throwable {
-            return doIntercept(new AbstractInvocation<Object>(receiver, args) {
-                @Override
-                public Object callOriginal() throws Throwable {
-                    return DecoratingCallSite.super.call(receiver, args);
-                }
-            }, array.owner.getName());
-        }
-
-        @Override
-        public Object callGetProperty(Object receiver) throws Throwable {
-            return doIntercept(new AbstractInvocation<Object>(receiver, new Object[0]) {
-                @Override
-                public Object callOriginal() throws Throwable {
-                    return DecoratingCallSite.super.callGetProperty(receiver);
-                }
-            }, array.owner.getName());
-        }
-
-        @Override
-        public Object callStatic(Class receiver, Object[] args) throws Throwable {
-            return doIntercept(new AbstractInvocation<Class<?>>(receiver, args) {
-                @Override
-                public Object callOriginal() throws Throwable {
-                    return DecoratingCallSite.super.callStatic(receiver, args);
-                }
-            }, array.owner.getName());
-        }
-
-        @Override
-        public Object callConstructor(Object receiver, Object[] args) throws Throwable {
-            return doIntercept(new AbstractInvocation<Object>(receiver, args) {
-                @Override
-                public Object callOriginal() throws Throwable {
-                    return DecoratingCallSite.super.callConstructor(receiver, args);
-                }
-            }, array.owner.getName());
-        }
+    InterceptScope[] getInterceptScopes() {
+        return interceptScopes;
     }
-
 }
