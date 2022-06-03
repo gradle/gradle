@@ -68,7 +68,7 @@ interface FunctionalTestBucket {
     fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket
 }
 
-fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObject.containsKey("batches")) {
+fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObject.containsKey("classes")) {
     FunctionalTestBucketWithSplitClasses(jsonObject)
 } else {
     MultipleSubprojectsFunctionalTestBucket(jsonObject)
@@ -76,42 +76,60 @@ fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObjec
 
 data class FunctionalTestBucketWithSplitClasses(
     val subproject: String,
-    val batches: Int,
+    val number: Int,
+    val classes: List<String>,
+    val include: Boolean
 ) : FunctionalTestBucket {
     constructor(jsonObject: JSONObject) : this(
         jsonObject.getString("subproject"),
-        jsonObject.getIntValue("batches"),
+        jsonObject.getIntValue("number"),
+        jsonObject.getJSONArray("classes").map { it.toString() },
+        jsonObject.getBoolean("include")
     )
 
-    override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket = LargeSubprojectSplitBucket(
+    override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket = SingleSubprojectSplitBucket(
         gradleSubprojectProvider.getSubprojectByName(subproject)!!,
-        batches
+        number,
+        include,
+        classes.map { TestClassAndSourceSet(it) }
     )
 }
 
 data class MultipleSubprojectsFunctionalTestBucket(
     val subprojects: List<String>,
-    val enableTD: Boolean
+    val testParallelizationMode: TestParallelizationMode,
+    val parallelismFactor: Int? = null
 ) : FunctionalTestBucket {
     constructor(jsonObject: JSONObject) : this(
         jsonObject.getJSONArray("subprojects").map { it.toString() },
-        jsonObject.getBoolean("enableTD")
+        jsonObject.getString("testParallelizationMode").let {
+            when (it) {
+                "TestDistribution" -> TestParallelizationMode.TestDistribution
+                "ParallelTesting" -> TestParallelizationMode.ParallelTesting
+                "None" -> TestParallelizationMode.None
+                else -> throw IllegalArgumentException("Invalid test parallelization mode: $it")
+            }
+        },
+        jsonObject.getIntValue("parallelismFactor")
     )
 
-    override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket {
-        return SmallSubprojectBucket(
-            subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
-            enableTD
-        )
-    }
+    override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket =
+        when (testParallelizationMode) {
+            TestParallelizationMode.None -> MultiSubprojectBucket(
+                subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
+            )
+            TestParallelizationMode.ParallelTesting -> MultiSubprojectParallelBucket(
+                subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! }
+            )
+            else -> throw IllegalArgumentException("Unsupported parallelization mode ($testParallelizationMode) for multi-subproject functional test")
+        }
 }
 
-fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket {
-    return when (this) {
-        is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, enableTestDistribution)
-        is LargeSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, batches)
-        else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
-    }
+fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket = when (this) {
+    is MultiSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, TestParallelizationMode.None, null)
+    is MultiSubprojectParallelBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, TestParallelizationMode.ParallelTesting, this.parallelizationFactor)
+    is SingleSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, number, classes.map { it.toPropertiesLine() }, include)
+    else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
 }
 
 class SubprojectTestClassTime(
@@ -123,7 +141,7 @@ class SubprojectTestClassTime(
     fun split(expectedBucketNumber: Int, enableTestDistribution: Boolean = false): List<BuildTypeBucket> {
         return if (expectedBucketNumber == 1) {
             listOf(
-                SmallSubprojectBucket(
+                MultiSubprojectBucket(
                     listOf(subProject),
                     enableTestDistribution
                 )
@@ -142,7 +160,7 @@ class SubprojectTestClassTime(
             buckets.mapIndexed { index: Int, classesInBucket: List<TestClassTime> ->
                 val include = index != buckets.size - 1
                 val classes = if (include) classesInBucket else buckets.subList(0, buckets.size - 1).flatten()
-                LargeSubprojectSplitBucket(subProject, 1)
+                SingleSubprojectSplitBucket(subProject, index + 1, include, classes.map { it.testClassAndSourceSet })
             }
         }
     }
@@ -192,11 +210,11 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
 
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
-            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, false) }
+            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { MultiSubprojectBucket(it, false) }
 
         validSubprojects.forEach {
-            if (!subProjectToClassTimes.containsKey(it.name)) {
-                subProjectToClassTimes[it.name] = emptyList()
+            subProjectToClassTimes.computeIfAbsent(it.name) {
+                emptyList()
             }
         }
 
@@ -212,26 +230,33 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return when {
             testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX ->
                 splitDocsSubproject(validSubprojects) +
-                    SmallSubprojectBucket(validSubprojects.first { it.name == "file-watching" }, false) +
-                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs", "file-watching"), true)
+                    MultiSubprojectBucket(validSubprojects.first { it.name == "file-watching" }) +
+                    splitIntoParallels(subProjectTestClassTimes, listOf("docs", "file-watching"))
             testCoverage.testType == TestType.platform ->
                 splitDocsSubproject(validSubprojects) +
-                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), false)
+                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"))
             testCoverage.os == Os.LINUX ->
-                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("file-watching"), true) +
-                    SmallSubprojectBucket(validSubprojects.first { it.name == "file-watching" }, false)
+                splitIntoParallels(subProjectTestClassTimes, listOf("file-watching")) +
+                    MultiSubprojectBucket(validSubprojects.first { it.name == "file-watching" })
             else ->
-                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("file-watching"), false)
+                splitIntoParallels(subProjectTestClassTimes, listOf("file-watching"))
         }
     }
 
     // docs subproject is special
     private fun splitDocsSubproject(allSubprojects: List<GradleSubproject>): List<BuildTypeBucket> {
         val docs = allSubprojects.find { it.name == "docs" }!!
-        val docs1 = LargeSubprojectSplitBucket(docs, 1)
-        val docs2 = LargeSubprojectSplitBucket(docs, 2)
-        val docs3 = LargeSubprojectSplitBucket(docs, 3)
-        val docs4 = LargeSubprojectSplitBucket(docs, 4)
+        val docs1 = SingleSubprojectSplitBucket(docs, 1, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest")))
+        val docs2 = SingleSubprojectSplitBucket(docs, 2, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest")))
+        val docs3 = SingleSubprojectSplitBucket(docs, 3, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")))
+        val docs4 = SingleSubprojectSplitBucket(
+            docs, 4, false,
+            listOf(
+                TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest"),
+                TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest"),
+                TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")
+            )
+        )
         return listOf(docs1, docs2, docs3, docs4)
     }
 
@@ -253,9 +278,26 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
                 else
                     largeElement.split(size)
             },
-            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list.map { it.subProject }, enableTestDistribution) },
+            { list: List<SubprojectTestClassTime> ->
+                MultiSubprojectBucket(list.map { it.subProject }, enableTestDistribution)
+            },
             testCoverage.expectedBucketNumber - specialSubprojects.size,
             MAX_PROJECT_NUMBER_IN_BUCKET
+        )
+    }
+
+    private fun splitIntoParallels(
+        subProjectTestClassTimes: List<SubprojectTestClassTime>,
+        excludedSubprojectNames: List<String> = listOf(),
+    ): List<BuildTypeBucket> {
+        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
+        return splitIntoTimeslots(
+            otherSubProjectTestClassTimes,
+            SubprojectTestClassTime::totalTime,
+            { list: List<SubprojectTestClassTime>, parallelizationFactor: Int ->
+                MultiSubprojectParallelBucket(list.map { it.subProject }, parallelizationFactor)
+            },
+            300 * 1000
         )
     }
 

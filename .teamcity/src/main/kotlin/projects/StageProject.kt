@@ -26,6 +26,7 @@ import model.SpecificBuild
 import model.Stage
 import model.StageNames
 import model.TestCoverage
+import model.TestParallelizationMode
 import model.TestType
 
 class StageProject(
@@ -67,7 +68,7 @@ class StageProject(
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
         val topLevelFunctionalTests = topLevelCoverage
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, enableTestDistribution = false) }
+            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, testParallelizationMode = TestParallelizationMode.None) }
         topLevelFunctionalTests.forEach(this::buildType)
 
         val functionalTestProjects = allCoverage

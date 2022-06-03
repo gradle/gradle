@@ -8,6 +8,7 @@ import model.Stage
 import model.StageNames
 import model.StageNames.READY_FOR_RELEASE
 import model.TestCoverage
+import model.TestParallelizationMode
 import model.TestType
 
 const val functionalTestTag = "FunctionalTest"
@@ -19,7 +20,7 @@ class FunctionalTest(
     description: String,
     val testCoverage: TestCoverage,
     stage: Stage,
-    enableTestDistribution: Boolean,
+    testParallelizationMode: TestParallelizationMode,
     numberOfBatches: Int = 1,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
@@ -31,7 +32,7 @@ class FunctionalTest(
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
-    if (numberOfBatches > 1) {
+    if (testParallelizationMode == TestParallelizationMode.ParallelTesting) {
         features {
             parallelTests {
                 this.numberOfBatches = numberOfBatches
@@ -51,12 +52,18 @@ class FunctionalTest(
         model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
         arch = testCoverage.arch,
-        extraParameters = (
-            listOf(functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
-                (if (enableTestDistribution) "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%" else "") +
-                "-PflakyTests=${determineFlakyTestStrategy(stage)}" +
-                extraParameters
-            ).filter { it.isNotBlank() }.joinToString(separator = " "),
+        extraParameters = listOf(
+            functionalTestExtraParameters(
+                functionalTestTag,
+                testCoverage.os,
+                testCoverage.arch,
+                testCoverage.testJvmVersion.major.toString(),
+                testCoverage.vendor.name
+            ),
+            "-PflakyTests=${determineFlakyTestStrategy(stage)}",
+            (if (testParallelizationMode == TestParallelizationMode.TestDistribution) "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%" else ""),
+            extraParameters
+        ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
         extraSteps = extraBuildSteps,
         preSteps = preBuildSteps

@@ -17,6 +17,7 @@
 package model
 
 import java.util.LinkedList
+import kotlin.math.ceil
 import kotlin.math.min
 
 /**
@@ -72,4 +73,36 @@ fun <T, R> splitIntoBuckets(
         }
         listOf(smallElementAggregateFunction(buckets)) + splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - 1, maxNumberInBucket, noElementSplitFunction, canRunTogether)
     }
+}
+
+fun <T, R> splitIntoTimeslots(
+    list: List<T>,
+    toIntFunction: (T) -> Int,
+    smallElementAggregateFunction: (List<T>, Int) -> R,
+    expectedTime: Int
+): List<R> {
+    val sortedRuntime = list.map {
+        Pair(toIntFunction(it), it)
+    }.sortedBy { it.first }
+    val sortedRuntimeIterator = sortedRuntime.iterator()
+
+    val buckets = mutableListOf<R>()
+    while (sortedRuntimeIterator.hasNext()) {
+        var totalRuntime = 0
+        val elements = mutableListOf<T>()
+
+        while (totalRuntime < expectedTime) {
+            val (runtime, element) = sortedRuntimeIterator.next()
+            totalRuntime += runtime
+            elements += element
+        }
+
+        val bucket = smallElementAggregateFunction(
+            elements,
+            ceil(totalRuntime.toDouble() / expectedTime.toDouble()).toInt()
+        )
+        buckets += bucket
+    }
+
+    return buckets
 }
