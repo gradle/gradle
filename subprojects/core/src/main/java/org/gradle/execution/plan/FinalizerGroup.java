@@ -54,6 +54,12 @@ public class FinalizerGroup extends HasFinalizers {
         return delegate;
     }
 
+    @Override
+    public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+        ordinal = newOrdinal;
+        return this;
+    }
+
     public NodeGroup getDelegate() {
         return delegate;
     }
@@ -87,13 +93,6 @@ public class FinalizerGroup extends HasFinalizers {
     @Override
     public Collection<Node> getSuccessorsInReverseOrder() {
         return node.getFinalizingSuccessorsInReverseOrder();
-    }
-
-    public void maybeInheritFrom(NodeGroup fromGroup) {
-        OrdinalGroup ordinal = fromGroup.asOrdinal();
-        if (ordinal != null && (this.ordinal == null || this.ordinal.getOrdinal() < ordinal.getOrdinal())) {
-            this.ordinal = ordinal;
-        }
     }
 
     @Override

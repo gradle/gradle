@@ -337,8 +337,8 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
 
         then:
         result.assertTaskOrder(generateBar.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        // generateBar must run after cleanBar, as generateBar finalizes cleanBar
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
 
         where:

@@ -16,15 +16,15 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.10")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3") // Sync with `settings.gradle.kts`
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.10.1")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3.2-milestone-1") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.20.1")
-        api("com.gradle.publish:plugin-publish-plugin:1.0.0-rc-1")
+        api("com.gradle.publish:plugin-publish-plugin:1.0.0-rc-2")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
-        api("org.gradle:test-retry-gradle-plugin:1.3.1")
+        api("org.gradle:test-retry-gradle-plugin:1.4.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
@@ -36,7 +36,7 @@ dependencies {
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
         api("com.google.guava:guava:27.1-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
-        api("com.google.code.gson:gson:2.8.6")
+        api("com.google.code.gson:gson:2.8.9")
         api("com.nhaarman:mockito-kotlin:1.6.0")
         api("com.thoughtworks.qdox:qdox:2.0.0")
         api("com.uwyn:jhighlight:1.0")
@@ -58,7 +58,7 @@ dependencies {
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
-        api("org.codenarc:CodeNarc:2.0.0")
+        api("org.codenarc:CodeNarc:3.0.1")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1")

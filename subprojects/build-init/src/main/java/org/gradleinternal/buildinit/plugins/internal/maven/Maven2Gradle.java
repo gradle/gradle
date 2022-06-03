@@ -154,7 +154,7 @@ public class Maven2Gradle {
             BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "build", useIncubatingAPIs, insecureProtocolOption);
             generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
 
-            scriptBuilder.plugin(null, "java");
+            scriptBuilder.plugin(null, "java-library");
             scriptBuilder.plugin(null, "maven-publish");
             coordinatesForProject(this.rootProject, scriptBuilder);
             descriptionForProject(this.rootProject, scriptBuilder);
@@ -350,7 +350,7 @@ public class Maven2Gradle {
         if (!compileTimeScope.isEmpty() || !runtimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
             if (!compileTimeScope.isEmpty()) {
                 for (org.apache.maven.model.Dependency dep : compileTimeScope) {
-                    createGradleDep("implementation", result, dep, war);
+                    createGradleDep("api", result, dep, war);
                 }
             }
             if (!runtimeScope.isEmpty()) {

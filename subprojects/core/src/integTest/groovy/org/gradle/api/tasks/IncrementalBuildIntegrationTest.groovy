@@ -17,6 +17,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -25,7 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
+class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture, ExecutionOptimizationDeprecationFixture {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -1108,31 +1109,27 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        }
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
+        }
         succeeds "customTask"
         then:
         noneSkipped()
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        }
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
+        }
         succeeds "customTask"
         then:
         noneSkipped()
@@ -1164,16 +1161,14 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        }
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
+        }
         withBuildCache().run "customTask", "-PunknownClassloader"
         then:
         executedAndNotSkipped(":customTask")
@@ -1189,16 +1184,14 @@ task b(dependsOn: a)
         skipped(":customTask")
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        }
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
+        }
         withBuildCache().run "customTask", "-PunknownClassloader"
         then:
         executedAndNotSkipped(":customTask")
@@ -1262,21 +1255,19 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTaskAction')
-            includeLink()
-        })
+        }
         succeeds "customTask"
         then:
         noneSkipped()
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTaskAction')
-            includeLink()
-        })
+        }
         succeeds "customTask"
         then:
         noneSkipped()

@@ -32,7 +32,7 @@ import java.util.Collections;
  *
  * <p>A node may be included in more than one group, for example when it is reachable from both a requested task and a finalizer.</p>
  *
- * <p>The the groups that the node belongs to can affect how the node is scheduled relative to other nodes in the graph.</p>
+ * <p>The groups that the node belongs to can affect how the node is scheduled relative to other nodes in the graph.</p>
  */
 public abstract class NodeGroup {
     public static final NodeGroup DEFAULT_GROUP = new NodeGroup() {
@@ -45,6 +45,11 @@ public abstract class NodeGroup {
         @Override
         public OrdinalGroup asOrdinal() {
             return null;
+        }
+
+        @Override
+        public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+            return newOrdinal;
         }
 
         @Override
@@ -83,4 +88,6 @@ public abstract class NodeGroup {
 
     public void removeMember(Node node) {
     }
+
+    public abstract NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal);
 }

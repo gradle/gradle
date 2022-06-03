@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.exceptions;
+package org.gradle.execution.plan;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-import org.gradle.api.tasks.testing.TestFailure;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import java.util.List;
+/**
+ * Base class for nodes that are ordered based on their order of creation.
+ */
+abstract public class CreationOrderedNode extends Node {
 
-public class TestFailures {
+    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
-    public static TestFailure createTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes) {
-        return DefaultTestFailure.fromTestAssertionFailure(failure, expected, actual, causes);
-    }
+    private final int order = ORDER_COUNTER.incrementAndGet();
 
-    public static TestFailure createTestFrameworkFailure(Throwable failure, List<TestFailure> causes) {
-        return DefaultTestFailure.fromTestFrameworkFailure(failure);
+    public final int getOrder() {
+        return order;
     }
 }

@@ -40,6 +40,11 @@ public class OrdinalGroup extends NodeGroup {
     }
 
     @Override
+    public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+        return newOrdinal;
+    }
+
+    @Override
     public boolean isReachableFromEntryPoint() {
         return true;
     }

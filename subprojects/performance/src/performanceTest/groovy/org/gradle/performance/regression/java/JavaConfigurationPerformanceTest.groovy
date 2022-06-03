@@ -31,7 +31,7 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
     def "configure"() {
         given:
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["7.5-20220206232035+0000"]
+        runner.targetVersions = ["7.6-20220513002340+0000"]
 
         when:
         def result = runner.run()
