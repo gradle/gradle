@@ -53,6 +53,7 @@ public class CompileTransaction {
     private final List<BooleanSupplier> stashBeforeExecutionActions = new ArrayList<>();
     private final List<Runnable> stashAfterExecutionActions = new ArrayList<>();
     private final List<Runnable> onSuccessActions = new ArrayList<>();
+    private final List<Runnable> beforeExecutionDoActions = new ArrayList<>();
     private final List<Runnable> afterExecutionAlwaysDoActions = new ArrayList<>();
     private final AtomicInteger uniqueStashDirIdGenerator = new AtomicInteger();
     private Predicate<Throwable> stashThrowablePredicate = t -> true;
@@ -74,6 +75,9 @@ public class CompileTransaction {
      * Stash a pattern set of files from source directory to some stash directory in stashRootDirectory. Files are moved before execution and on failure rolled back.
      */
     public CompileTransaction stashStaleFilesTo(PatternSet patternSet, File sourceDirectory, File stashRootDirectory) {
+        if (patternSet == null || patternSet.isEmpty() || sourceDirectory == null) {
+            return this;
+        }
         // Create stash function first
         AtomicReference<Set<File>> stashedFiles = new AtomicReference<>();
         File stashDirectory = new File(stashRootDirectory, "stash-" + uniqueStashDirIdGenerator.getAndIncrement());
@@ -89,7 +93,7 @@ public class CompileTransaction {
     }
 
     private Set<File> moveFilesFromDirectoryTo(Set<File> files, File sourceDirectory, File destinationDirectory) {
-        if (files.isEmpty()) {
+        if (files.isEmpty() || sourceDirectory == null) {
             return Collections.emptySet();
         }
         Set<File> newFiles = new HashSet<>();
@@ -131,6 +135,15 @@ public class CompileTransaction {
         return this;
     }
 
+
+    /**
+     * Adds action that will be run just before execution.
+     */
+    public CompileTransaction beforeExecutionDo(Runnable runnable) {
+        beforeExecutionDoActions.add(runnable);
+        return this;
+    }
+
     /**
      * Adds action that will be run after execution always, even if there is a failure.
      */
@@ -147,6 +160,7 @@ public class CompileTransaction {
         deleteDirectoriesBeforeAll();
         WorkResult workResult = stashFilesBeforeExecution();
         try {
+            beforeExecutionDoActions.forEach(Runnable::run);
             T result = function.apply(workResult);
             onSuccessActions.forEach(Runnable::run);
             return result;

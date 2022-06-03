@@ -95,9 +95,8 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         File stashRootDir = new File(spec.getTempDir(), "compileStash");
         File compileStaging = new File(spec.getTempDir(), "compileStaging");
         File destinationDir = spec.getDestinationDir();
-        // Modify spec destination dir
-        spec.setDestinationDir(compileStaging);
         return CompileTransaction.newTransaction(fileOperations, deleter)
+            // Delete before transaction, never trust that someone cleaned folders after them
             .beforeAllRecursivelyDeleteDirectories(stashRootDir, compileStaging)
             .stashStaleFilesTo(classesToDelete, destinationDir, stashRootDir)
             .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), stashRootDir)
@@ -109,6 +108,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory(), stashRootDir)
             .onSuccessMoveAllFilesFromDirectoryTo(compileStaging, destinationDir)
             .onFailureRollbackStashIfException(t -> t instanceof CompilationFailedException)
+            .beforeExecutionDo(() -> {
+                // Modify spec destination dir
+                compileStaging.mkdirs();
+                spec.setDestinationDir(compileStaging);
+            })
             // Revert spec destination back to original
             .afterExecutionAlwaysDo(() -> spec.setDestinationDir(destinationDir));
     }
