@@ -116,15 +116,11 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
             }
         }
 
-    override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
-        return if (testCoverage.uuid != 4) {
-            emptyList()
-        } else {
-            buckets.getValue(testCoverage).mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->
-                bucket.createFunctionalTestsFor(model, stage, testCoverage, bucketIndex)
-            }
+    override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> = buckets
+        .getValue(testCoverage)
+        .mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->
+            bucket.createFunctionalTestsFor(model, stage, testCoverage, bucketIndex)
         }
-    }
 }
 
 class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: String, private val endExclusive: String) : BuildTypeBucket {
