@@ -204,6 +204,15 @@ abstract class AbstractSmokeTest extends Specification {
             versions.last()
         }
 
+        String latestStable() {
+            versions.reverse().find { version ->
+                !version.containsIgnoreCase("rc") &&
+                !version.containsIgnoreCase("beta") &&
+                !version.containsIgnoreCase("alpha") &&
+                !version.containsIgnoreCase("milestone")
+            }
+        }
+
         String latestStartsWith(String prefix) {
             return versions.reverse().find { it.startsWith(prefix) }
         }
