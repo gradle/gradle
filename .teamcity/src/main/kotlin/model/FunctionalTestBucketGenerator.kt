@@ -231,15 +231,15 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX ->
                 splitDocsSubproject(validSubprojects) +
                     MultiSubprojectBucket(validSubprojects.first { it.name == "file-watching" }) +
-                    splitIntoParallels(subProjectTestClassTimes, listOf("docs", "file-watching"))
+                    splitIntoParallelizedJobs(subProjectTestClassTimes, listOf("docs", "file-watching"))
             testCoverage.testType == TestType.platform ->
                 splitDocsSubproject(validSubprojects) +
                     splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"))
             testCoverage.os == Os.LINUX ->
-                splitIntoParallels(subProjectTestClassTimes, listOf("file-watching")) +
+                splitIntoParallelizedJobs(subProjectTestClassTimes, listOf("file-watching")) +
                     MultiSubprojectBucket(validSubprojects.first { it.name == "file-watching" })
             else ->
-                splitIntoParallels(subProjectTestClassTimes, listOf("file-watching"))
+                splitIntoParallelizedJobs(subProjectTestClassTimes, listOf("file-watching"))
         }
     }
 
@@ -286,12 +286,12 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         )
     }
 
-    private fun splitIntoParallels(
+    private fun splitIntoParallelizedJobs(
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         excludedSubprojectNames: List<String> = listOf(),
     ): List<BuildTypeBucket> {
         val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
-        return splitIntoTimeslots(
+        return splitIntoParallelizedJobs(
             otherSubProjectTestClassTimes,
             SubprojectTestClassTime::totalTime,
             { list: List<SubprojectTestClassTime>, parallelizationFactor: Int ->

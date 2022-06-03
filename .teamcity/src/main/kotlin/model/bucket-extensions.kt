@@ -75,7 +75,7 @@ fun <T, R> splitIntoBuckets(
     }
 }
 
-fun <T, R> splitIntoTimeslots(
+fun <T, R> splitIntoParallelizedJobs(
     list: List<T>,
     toIntFunction: (T) -> Int,
     smallElementAggregateFunction: (List<T>, Int) -> R,
