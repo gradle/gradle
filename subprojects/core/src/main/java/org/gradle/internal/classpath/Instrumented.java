@@ -22,14 +22,15 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
+import org.gradle.internal.classpath.intercept.InterceptScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,37 +87,28 @@ public class Instrumented {
         setListener(NO_OP);
     }
 
-    private static final Map<String, CallInterceptor> GROOVY_CALLSITE_INTERCEPTORS = new HashMap<>();
+    private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
+        new SystemGetPropertyInterceptor(),
+        new SystemSetPropertyInterceptor(),
+        new SystemGetPropertiesInterceptor(),
+        new SystemSetPropertiesInterceptor(),
+        new SystemClearPropertyInterceptor(),
+        new IntegerGetIntegerInterceptor(),
+        new LongGetLongInterceptor(),
+        new BooleanGetBooleanInterceptor(),
+        new SystemGetenvInterceptor(),
+        new RuntimeExecInterceptor(),
+        new ProcessGroovyMethodsExecuteInterceptor(),
+        new ProcessBuilderStartInterceptor(),
+        new ProcessBuilderStartPipelineInterceptor(),
+        new FileInputStreamConstructorInterceptor());
 
-    static {
-        GROOVY_CALLSITE_INTERCEPTORS.put("getProperty", new SystemGetPropertyInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("setProperty", new SystemSetPropertyInterceptor());
-
-        SystemGetPropertiesInterceptor getPropertiesInterceptor = new SystemGetPropertiesInterceptor();
-        GROOVY_CALLSITE_INTERCEPTORS.put("getProperties", getPropertiesInterceptor);
-        GROOVY_CALLSITE_INTERCEPTORS.put("properties", getPropertiesInterceptor);
-
-        GROOVY_CALLSITE_INTERCEPTORS.put("setProperties", new SystemSetPropertiesInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("clearProperty", new SystemClearPropertyInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("getInteger", new IntegerGetIntegerInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("getLong", new LongGetLongInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("getBoolean", new BooleanGetBooleanInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("getenv", new SystemGetenvInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("exec", new RuntimeExecInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("execute", new ProcessGroovyMethodsExecuteInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("start", new ProcessBuilderStartInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("startPipeline", new ProcessBuilderStartPipelineInterceptor());
-        GROOVY_CALLSITE_INTERCEPTORS.put("<$constructor$>", new FileInputStreamConstructorInterceptor());
-    }
 
     // Called by generated code
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            CallInterceptor interceptor = GROOVY_CALLSITE_INTERCEPTORS.get(callSite.getName());
-            if (interceptor != null) {
-                array.array[callSite.getIndex()] = interceptor.decorateCallSite(callSite);
-            }
+            array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -480,7 +472,7 @@ public class Instrumented {
      */
     private static class IntegerGetIntegerInterceptor extends ClassBoundCallInterceptor {
         public IntegerGetIntegerInterceptor() {
-            super(Integer.class);
+            super(Integer.class, InterceptScope.methodsNamed("getInteger"));
         }
 
         @Override
@@ -500,7 +492,7 @@ public class Instrumented {
      */
     private static class LongGetLongInterceptor extends ClassBoundCallInterceptor {
         public LongGetLongInterceptor() {
-            super(Long.class);
+            super(Long.class, InterceptScope.methodsNamed("getLong"));
         }
 
         @Override
@@ -520,7 +512,7 @@ public class Instrumented {
      */
     private static class BooleanGetBooleanInterceptor extends ClassBoundCallInterceptor {
         public BooleanGetBooleanInterceptor() {
-            super(Boolean.class);
+            super(Boolean.class, InterceptScope.methodsNamed("getBoolean"));
         }
 
         @Override
@@ -537,7 +529,7 @@ public class Instrumented {
      */
     private static class SystemGetPropertyInterceptor extends ClassBoundCallInterceptor {
         public SystemGetPropertyInterceptor() {
-            super(System.class);
+            super(System.class, InterceptScope.methodsNamed("getProperty"));
         }
 
         @Override
@@ -557,7 +549,7 @@ public class Instrumented {
      */
     private static class SystemSetPropertyInterceptor extends ClassBoundCallInterceptor {
         public SystemSetPropertyInterceptor() {
-            super(System.class);
+            super(System.class, InterceptScope.methodsNamed("setProperty"));
         }
 
         @Override
@@ -574,7 +566,9 @@ public class Instrumented {
      */
     private static class SystemGetPropertiesInterceptor extends ClassBoundCallInterceptor {
         public SystemGetPropertiesInterceptor() {
-            super(System.class);
+            super(System.class,
+                InterceptScope.readsOfPropertiesNamed("properties"),
+                InterceptScope.methodsNamed("getProperties"));
         }
 
         @Override
@@ -591,7 +585,7 @@ public class Instrumented {
      */
     private static class SystemSetPropertiesInterceptor extends ClassBoundCallInterceptor {
         public SystemSetPropertiesInterceptor() {
-            super(System.class);
+            super(System.class, InterceptScope.methodsNamed("setProperties"));
         }
 
         @Override
@@ -609,7 +603,7 @@ public class Instrumented {
      */
     private static class SystemClearPropertyInterceptor extends ClassBoundCallInterceptor {
         public SystemClearPropertyInterceptor() {
-            super(System.class);
+            super(System.class, InterceptScope.methodsNamed("clearProperty"));
         }
 
         @Override
@@ -626,7 +620,7 @@ public class Instrumented {
      */
     private static class SystemGetenvInterceptor extends ClassBoundCallInterceptor {
         public SystemGetenvInterceptor() {
-            super(System.class);
+            super(System.class, InterceptScope.methodsNamed("getenv"));
         }
 
         @Override
@@ -645,6 +639,10 @@ public class Instrumented {
      * The interceptor for all overloads of {@code Runtime.exec}.
      */
     private static class RuntimeExecInterceptor extends CallInterceptor {
+        public RuntimeExecInterceptor() {
+            super(InterceptScope.methodsNamed("exec"));
+        }
+
         @Override
         protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             int argsCount = invocation.getArgsCount();
@@ -685,6 +683,10 @@ public class Instrumented {
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
     private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
+        protected ProcessGroovyMethodsExecuteInterceptor() {
+            super(InterceptScope.methodsNamed("execute"));
+        }
+
         @Override
         protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
@@ -748,6 +750,10 @@ public class Instrumented {
      * The interceptor for {@link ProcessBuilder#start()}.
      */
     private static class ProcessBuilderStartInterceptor extends CallInterceptor {
+        ProcessBuilderStartInterceptor() {
+            super(InterceptScope.methodsNamed("start"));
+        }
+
         @Override
         protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
@@ -763,7 +769,7 @@ public class Instrumented {
      */
     private static class ProcessBuilderStartPipelineInterceptor extends ClassBoundCallInterceptor {
         public ProcessBuilderStartPipelineInterceptor() {
-            super(ProcessBuilder.class);
+            super(ProcessBuilder.class, InterceptScope.methodsNamed("startPipeline"));
         }
 
         @SuppressWarnings("unchecked")
@@ -779,13 +785,13 @@ public class Instrumented {
     /**
      * The interceptor for {@link FileInputStream#FileInputStream(File)} and {@link FileInputStream#FileInputStream(String)}.
      */
-    private static class FileInputStreamConstructorInterceptor extends ClassBoundCallInterceptor {
+    private static class FileInputStreamConstructorInterceptor extends CallInterceptor {
         public FileInputStreamConstructorInterceptor() {
-            super(FileInputStream.class);
+            super(InterceptScope.constructorsOf(FileInputStream.class));
         }
 
         @Override
-        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             if (invocation.getArgsCount() == 1) {
                 Object argument = invocation.getArgument(0);
                 if (argument instanceof CharSequence) {
