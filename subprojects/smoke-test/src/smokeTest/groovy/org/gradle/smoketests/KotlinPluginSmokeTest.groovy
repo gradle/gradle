@@ -326,7 +326,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 missingAnnotationMessage { type(task).property(property).missingInputOrOutput().includeLink() }
             }
         }.collect {
-            it.lines().findAll { !it.isBlank() }.join("\n")
+            it.readLines().findAll { !it.isBlank() }.join("\n")
         }.collectEntries { message ->
             [(message): Severity.ERROR]
         }
