@@ -36,6 +36,9 @@ import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * A helper class to handle incremental compilation after failure: it makes moving files around easier and reverting state easier.
+ */
 public class CompileTransaction {
 
     private final Deleter deleter;
@@ -52,19 +55,32 @@ public class CompileTransaction {
         this.deleter = deleter;
     }
 
+    /**
+     * Directories that should be deleted before the transaction. Normally stash and staging directories should be deleted, so they are clean for a new transaction.
+     */
     public CompileTransaction beforeAllRecursivelyDeleteDirectories(File... directories) {
         directoriesToCleanBeforeAll.addAll(Arrays.asList(directories));
         return this;
     }
 
+    /**
+     * Stash a pattern set of files from source directory to stash directory. Files are moved before execution and on failure rolled back.
+     */
     public CompileTransaction stashStaleFilesTo(PatternSet files, File sourceDirectory, File stashDirectory) {
         return this;
     }
 
+    /**
+     * Stash a set of files from source directory to stash directory. Files are moved before execution and on failure rolled back.
+     */
     public CompileTransaction stashStaleFilesTo(Set<File> files, File sourceDirectory, File stashDirectory) {
         return this;
     }
 
+    /**
+     * Moves files from source directory to destination directory, but only on success. Any file that already exist in destination directory is replaced.
+     * Folder hierarchy is automatically created.
+     */
     public CompileTransaction onSuccessMoveFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
         onSuccessActions.add(() -> fileOperations.fileTree(sourceDirectory).visit(fileVisitDetails -> {
             if (!fileVisitDetails.isDirectory()) {
@@ -75,20 +91,31 @@ public class CompileTransaction {
         return this;
     }
 
+    /**
+     * Adds a predicate to test if transaction should roll back stash or not.
+     */
     public CompileTransaction onFailureRollbackStashIfException(Predicate<Throwable> predicate) {
         stashThrowablePredicate = checkNotNull(predicate);
         return this;
     }
 
+    /**
+     * Adds action that will be run after execution always, even if there is a failure.
+     */
     public CompileTransaction afterExecutionAlwaysDo(Runnable runnable) {
+        afterExecutionAlwaysDoActions.add(runnable);
         return this;
     }
 
-    public <T> T execute(Function<WorkResult, T> runnable) {
+    /**
+     * Executes the function that is wrapped in the transaction. Function accepts a work result,
+     * that has a result of a stash operation. If some files were stashed, then work will be marked as "did work".
+     */
+    public <T> T execute(Function<WorkResult, T> function) {
         deleteDirectoriesBeforeAll();
         stashBeforeExecutionActions.forEach(Runnable::run);
         try {
-            T result = runnable.apply(WorkResults.didWork(true));
+            T result = function.apply(WorkResults.didWork(true));
             onSuccessActions.forEach(Runnable::run);
             return result;
         } catch (Throwable t) {
