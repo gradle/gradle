@@ -188,8 +188,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 // Make sure it has been configured
                 node.prepareForExecution(this::monitoredNodeReady);
                 node.resolveDependencies(dependencyResolver);
-                for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
+                for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup());
+                }
+                for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
                     if (!visiting.contains(successor)) {
                         queue.addFirst(successor);
                     }
