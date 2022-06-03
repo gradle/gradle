@@ -21,17 +21,16 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.Deleter;
-import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.work.FileChange;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -75,11 +74,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     @Override
-    public List<File> initializeCompilation(JavaCompileSpec spec, File deleteStagingDestination, RecompilationSpec recompilationSpec) {
+    public CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(ImmutableSet.of());
             spec.setClasses(Collections.emptySet());
-            return Collections.emptyList();
+            return CompileTransaction.newTransaction(fileOperations, deleter);
         }
         PatternSet classesToDelete = fileOperations.patternSet();
         PatternSet sourceToCompile = fileOperations.patternSet();
@@ -91,39 +90,46 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
 
-        List<File> cleanedFiles = deleteStaleFilesIn(classesToDelete, deleteStagingDestination, spec.getBuildDir(), spec.getDestinationDir());
-        cleanedFiles.addAll(deleteStaleFilesIn(classesToDelete, deleteStagingDestination, spec.getBuildDir(), spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory()));
-        cleanedFiles.addAll(deleteStaleFilesIn(classesToDelete, deleteStagingDestination, spec.getBuildDir(), spec.getCompileOptions().getHeaderOutputDirectory()));
-
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-        cleanedFiles.addAll(deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), deleteStagingDestination, spec.getBuildDir(), spec.getDestinationDir()));
-        // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so clean that instead.
-        cleanedFiles.addAll(deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), deleteStagingDestination, spec.getBuildDir(), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir())));
-        // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
-        cleanedFiles.addAll(deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), deleteStagingDestination, spec.getBuildDir(), spec.getCompileOptions().getHeaderOutputDirectory()));
 
-        return cleanedFiles;
+        File stashDir = new File(spec.getTempDir(), "compileStash");
+        File compileStaging = new File(spec.getTempDir(), "compileStaging");
+        File destinationDir = spec.getDestinationDir();
+        spec.setDestinationDir(compileStaging);
+        return CompileTransaction.newTransaction(fileOperations, deleter)
+            .beforeAllRecursivelyDeleteDirectories(stashDir, compileStaging)
+            .stashStaleFilesTo(classesToDelete, spec.getDestinationDir(), new File(stashDir, "destinationDir"))
+            .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), new File(stashDir, "annProcessorGeneratedSources"))
+            .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory(), new File(stashDir, "headerOutput"))
+            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), spec.getDestinationDir(), new File(stashDir, "classOutput"))
+            // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so clean that instead.
+            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir()), new File(stashDir, "sourceOutput"))
+            // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
+            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory(), new File(stashDir, "nativeHeaderOutput"))
+            .onSuccessMoveFilesFromDirectoryTo(compileStaging, destinationDir)
+            .onFailureRollbackStashIfException(t -> t instanceof CompilationFailedException)
+            .afterExecutionAlwaysDo(() -> spec.setDestinationDir(destinationDir));
     }
 
-    @Override
-    public void finishCompilation(List<File> deletedFiles, File deleteStagingDir, File stagingDestination, JavaCompileSpec spec, boolean compilationFinishedWithoutError) {
-        if (compilationFinishedWithoutError) {
-            fileOperations.fileTree(stagingDestination).visit(fileVisitDetails -> {
-                if (!fileVisitDetails.isDirectory()) {
-                    File newFile = new File(spec.getDestinationDir(), fileVisitDetails.getPath());
-                    FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
-                }
-            });
-        } else {
-            File buildDir = spec.getBuildDir();
-            fileOperations.fileTree(deleteStagingDir).visit(fileVisitDetails -> {
-                if (!fileVisitDetails.isDirectory()) {
-                    File newFile = new File(buildDir, fileVisitDetails.getPath());
-                    FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
-                }
-            });
-        }
-    }
+//    @Override
+//    public void finishCompilation(List<File> deletedFiles, File deleteStagingDir, File stagingDestination, JavaCompileSpec spec, boolean compilationFinishedWithoutError) {
+//        if (compilationFinishedWithoutError) {
+//            fileOperations.fileTree(stagingDestination).visit(fileVisitDetails -> {
+//                if (!fileVisitDetails.isDirectory()) {
+//                    File newFile = new File(spec.getDestinationDir(), fileVisitDetails.getPath());
+//                    FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
+//                }
+//            });
+//        } else {
+//            File buildDir = spec.getBuildDir();
+//            fileOperations.fileTree(deleteStagingDir).visit(fileVisitDetails -> {
+//                if (!fileVisitDetails.isDirectory()) {
+//                    File newFile = new File(buildDir, fileVisitDetails.getPath());
+//                    FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
+//                }
+//            });
+//        }
+//    }
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
         return sourceTree.matching(sourceToCompile);
@@ -186,17 +192,18 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.addResourcesToGenerate(dependents.getDependentResources());
     }
 
-    private List<File> deleteStaleFilesIn(PatternSet filesToDelete, final File deleteStagingDir, final File buildDir, final File destinationDir) {
+    private List<File> getStaleFilesIn(CompileTransaction transaction, PatternSet filesToDelete, File destinationDir, File stashDirectory) {
         if (filesToDelete == null || filesToDelete.isEmpty() || destinationDir == null) {
             return Collections.emptyList();
         }
         Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
+//        transaction.stashStaleFilesTo(toDelete, destinationDir, stashDirectory);
         List<File> deletedFiles = new ArrayList<>(toDelete.size());
-        StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
-            Path relativePath = buildDir.toPath().relativize(file.toPath());
-            File newFile = new File(deleteStagingDir, relativePath.toString());
-            return FileUtils.moveFile(file, newFile);
-        }), toDelete, destinationDir);
+//        StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
+//            Path relativePath = buildDir.toPath().relativize(file.toPath());
+//            File newFile = new File(deleteStagingDir, relativePath.toString());
+//            return FileUtils.moveFile(file, newFile);
+//        }), toDelete, destinationDir);
         return deletedFiles;
     }
 

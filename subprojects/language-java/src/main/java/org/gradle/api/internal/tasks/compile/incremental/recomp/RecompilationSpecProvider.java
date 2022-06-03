@@ -17,15 +17,13 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
 import org.gradle.api.tasks.WorkResult;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * In a typical incremental recompilation, there're three steps:
  * First, examine the incremental change files to get the classes to be recompiled: {@link #provideRecompilationSpec(CurrentCompilation, PreviousCompilation)}
- * Second, initialize the recompilation (e.g. delete stale class files and narrow down the source files to be recompiled): {@link #initializeCompilation(JavaCompileSpec, File, RecompilationSpec)}
+ * Second, initialize the recompilation (e.g. delete stale class files and narrow down the source files to be recompiled): {@link #initCompilationSpecAndTransaction(JavaCompileSpec, RecompilationSpec)}
  * Third, decorate the compilation result if necessary: {@link #decorateResult(RecompilationSpec, PreviousCompilationData, WorkResult)}, for example, notify whether current recompilation is full recompilation.
  */
 public interface RecompilationSpecProvider {
@@ -34,9 +32,7 @@ public interface RecompilationSpecProvider {
 
     RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous);
 
-    List<File> initializeCompilation(JavaCompileSpec spec, File deleteStagingDestination, RecompilationSpec recompilationSpec);
-
-    void finishCompilation(List<File> deletedFiles, File deleteStagingDir, File stagingDestination, JavaCompileSpec spec, boolean compilationFinishedWithoutError);
+    CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec);
 
     default WorkResult decorateResult(RecompilationSpec recompilationSpec, PreviousCompilationData previousCompilationData, WorkResult workResult) {
         if (!recompilationSpec.isFullRebuildNeeded()) {
