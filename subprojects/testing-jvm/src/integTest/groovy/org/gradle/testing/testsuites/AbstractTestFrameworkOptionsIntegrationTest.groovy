@@ -27,9 +27,7 @@ abstract class AbstractTestFrameworkOptionsIntegrationTest extends AbstractInteg
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             check.dependsOn testing.suites
         """

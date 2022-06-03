@@ -22,6 +22,3 @@ subprojects/enterprise-workers/     @gradle/ge-build-insights
 # Testing
 subprojects/testing-junit-platform/ @gradle/ge-test-distribution
 subprojects/testing-jvm/            @gradle/ge-test-distribution
-
-# Release notes
-subprojects/docs/src/docs/release/notes.md @pioterj

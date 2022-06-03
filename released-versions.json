@@ -1,11 +1,11 @@
 {
   "latestReleaseSnapshot": {
-    "version": "7.5-20220429115913+0000",
-    "buildTime": "20220429115913+0000"
+    "version": "7.5-20220602001028+0000",
+    "buildTime": "20220602001028+0000"
   },
   "latestRc": {
-    "version": "7.4-rc-2",
-    "buildTime": "20220202150044+0000"
+    "version": "7.5-rc-1",
+    "buildTime": "20220512190923+0000"
   },
   "finalReleases": [
     {

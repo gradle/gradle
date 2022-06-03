@@ -42,7 +42,7 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
         rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
-        rootReference.update { root -> nonEmptySnapshotHierarchy }
+        rootReference.updateUnderLock { root -> nonEmptySnapshotHierarchy }
         watchingNotSupportedHandler.beforeBuildFinished(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         rootReference.getRoot() == emptySnapshotHierarchy

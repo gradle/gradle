@@ -401,6 +401,20 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+        display(SimpleMessage, 'dummy') {
+            type(onType).property(onProperty)
+            description(desc)
+            reason(testReason)
+            includeLink()
+            documentationId("id")
+            documentationSection("section")
+        }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
     String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         display(SimpleMessage, 'dummy') {
             type('InvalidTask').property('dummy')
@@ -409,6 +423,16 @@ trait ValidationMessageChecker {
             spec.delegate = delegate
             spec()
         }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_VALUE_TYPE
+    )
+    String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnsupportedValueType, "unsupported_value_type", spec)
+        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+        config.render()
     }
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
@@ -908,6 +932,32 @@ trait ValidationMessageChecker {
         NotCacheableWithoutReason noReasonOnArtifactTransform() {
             workType = "transform action"
             cacheableAnnotation = "@CacheableTransform"
+            this
+        }
+    }
+
+    static class UnsupportedValueType extends ValidationMessageDisplayConfiguration<UnsupportedValueType> {
+
+        String annotationType
+        String propertyType
+        String unsupportedValueType
+
+        UnsupportedValueType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnsupportedValueType annotationType(String annotationType) {
+            this.annotationType = annotationType
+            this
+        }
+
+        UnsupportedValueType propertyType(String propertyType) {
+            this.propertyType = propertyType
+            this
+        }
+
+        UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
+            this.unsupportedValueType = unsupportedValueType
             this
         }
     }

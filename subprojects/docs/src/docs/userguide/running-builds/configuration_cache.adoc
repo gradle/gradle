@@ -200,6 +200,28 @@ If you need to invalidate the cache, simply delete that directory:
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+[[config_cache:stable]]
+== Stable configuration cache
+
+Working towards the stabilization of configuration caching we implement some strictness behind a feature flag when it is too disruptive for early adopters.
+
+You can enable that feature flag as follows:
+
+====
+include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/configurationCache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
+====
+
+The `STABLE_CONFIGURATION_CACHE` feature flag enables the following:
+
+Undeclared shared build service usage::
+When enabled, tasks using a <<build_services#build_services, shared build service>> without declaring the requirement via the `Task.usesService` method will emit a deprecation warning.
+
+External processes used at configuration time::
+When enabled, external processes launched at configuration time are reported as problems unless done in accordance with the <<configuration_cache#config_cache:requirements:external_processes>> requirement.
+
+It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features the default.
+
 [[config_cache:ide]]
 == IDE support
 
@@ -326,7 +348,7 @@ link:{gradle-issues}13466[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}13455[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
 link:{gradle-issues}13472[[.red]#✖#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
-link:{gradle-issues}13472[[.red]#✖#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
+link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
 |===
@@ -572,7 +594,7 @@ This requires testing the plugin with a supported Gradle version.
 If the plugin already supports a range of Gradle versions it might already have tests for multiple Gradle versions.
 In that case we recommend enabling the configuration cache starting with the Gradle version that supports it.
 
-If this can’t be done right away, using tests that runs all tasks contributed by the plugin several times, for e.g. asserting the `UP_TO_DATE` and `FROM_CACHE` behavior, is also a good strategy.
+If this can’t be done right away, using tests that run all tasks contributed by the plugin several times, for e.g. asserting the `UP_TO_DATE` and `FROM_CACHE` behavior, is also a good strategy.
 ====
 
 [[config_cache:requirements]]
