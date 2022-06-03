@@ -23,7 +23,6 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -223,13 +222,6 @@ public class FileUtils {
             parent = root.getParentFile();
         }
         return root;
-    }
-
-    /**
-     * Deletes a file, never throwing an exception. If file is a directory, delete it and all sub-directories.
-     */
-    public static void deleteQuietly(File file) {
-        org.apache.commons.io.FileUtils.deleteQuietly(file);
     }
 
     /**

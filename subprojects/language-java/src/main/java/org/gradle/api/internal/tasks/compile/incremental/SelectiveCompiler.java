@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
@@ -27,9 +26,8 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilat
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -38,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -94,35 +91,17 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             return rebuildAllCompiler.execute(spec);
         }
 
-        File deleteStagingDestination = new File(spec.getTempDir(), "deletedClasses");
-        File compileStagingDestination = new File(spec.getTempDir(), "compiledClasses");
-        if (deleteStagingDestination.exists()) {
-            FileUtils.deleteQuietly(deleteStagingDestination);
-        }
-        if (compileStagingDestination.exists()) {
-            FileUtils.deleteQuietly(compileStagingDestination);
-        }
-        List<File> cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, deleteStagingDestination, recompilationSpec);
-        if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
-            LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
-            return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
-        }
-
-        boolean compilationFinishedWithoutError = true;
-        File destination = spec.getDestinationDir();
-        try {
-            spec.setDestinationDir(compileStagingDestination);
+        CompileTransaction transaction = recompilationSpecProvider.initCompilationSpecAndTransaction(spec, recompilationSpec);
+        return transaction.execute(workResult -> {
+            if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
+                LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
+                return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
+            }
             WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, cleaningCompiler.getCompiler().execute(spec));
-            return result.or(WorkResults.didWork(!cleanedOutput.isEmpty()));
-        } catch (CompilationFailedException e) {
-            compilationFinishedWithoutError = false;
-            throw e;
-        } finally {
-            spec.setDestinationDir(destination);
-            recompilationSpecProvider.finishCompilation(cleanedOutput, deleteStagingDestination, compileStagingDestination, spec, compilationFinishedWithoutError);
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
             LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
             LOG.debug("Recompiled classes {}", classesToCompile);
-        }
+            return result.or(workResult);
+        });
     }
 }
