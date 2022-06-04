@@ -156,7 +156,9 @@ public class JavaCompilerArgumentsBuilder {
                 args.add(targetCompatibility);
             }
         }
-        File destinationDir = spec.getDestinationDir();
+        File destinationDir = spec.getStagingDir() != null
+            ? spec.getStagingDir()
+            : spec.getDestinationDir();
         if (destinationDir != null) {
             args.add("-d");
             args.add(destinationDir.getPath());

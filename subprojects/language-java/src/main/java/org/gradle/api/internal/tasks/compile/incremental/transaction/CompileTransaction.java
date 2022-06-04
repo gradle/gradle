@@ -64,9 +64,11 @@ public class CompileTransaction {
     }
 
     /**
-     * Directories that should be deleted before the transaction. Normally stash and staging directories should be deleted, so they are clean for a new transaction.
+     * Makes sure that the given target is an empty directory or if directory doesn't exist it creates it and also all parent directories.
+     *
+     * For implementation details check {@link org.gradle.internal.file.Deleter#ensureEmptyDirectory(File)}.
      */
-    public CompileTransaction beforeAllRecursivelyDeleteDirectories(File... directories) {
+    public CompileTransaction beforeAllEnsureEmptyDirectories(File... directories) {
         directoriesToCleanBeforeAll.addAll(Arrays.asList(directories));
         return this;
     }
@@ -129,12 +131,12 @@ public class CompileTransaction {
 
     /**
      * Adds a predicate to test if transaction should roll back stash or not.
+     * By default, any exception will cause rollback.
      */
     public CompileTransaction onFailureRollbackStashIfException(Predicate<Throwable> predicate) {
         stashThrowablePredicate = checkNotNull(predicate);
         return this;
     }
-
 
     /**
      * Adds action that will be run just before execution.
@@ -157,7 +159,7 @@ public class CompileTransaction {
      * that has a result of a stash operation. If some files were stashed, then work will be marked as "did work".
      */
     public <T> T execute(Function<WorkResult, T> function) {
-        deleteDirectoriesBeforeAll();
+        ensureEmptyDirectoriesBeforeAll();
         WorkResult workResult = stashFilesBeforeExecution();
         try {
             beforeExecutionDoActions.forEach(Runnable::run);
@@ -182,10 +184,10 @@ public class CompileTransaction {
         return WorkResults.didWork(didWork);
     }
 
-    private void deleteDirectoriesBeforeAll() {
+    private void ensureEmptyDirectoriesBeforeAll() {
         try {
             for (File directory : directoriesToCleanBeforeAll) {
-                deleter.deleteRecursively(directory);
+                deleter.ensureEmptyDirectory(directory);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
