@@ -146,7 +146,11 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
         configuration.setTargetBytecode(spec.getTargetCompatibility());
-        configuration.setTargetDirectory(spec.getDestinationDir());
+        if (spec.getStagingDir() != null) {
+            configuration.setTargetDirectory(spec.getStagingDir());
+        } else {
+            configuration.setTargetDirectory(spec.getDestinationDir());
+        }
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
 
         VersionNumber version = parseGroovyVersion();

@@ -94,27 +94,21 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         File stashRootDir = new File(spec.getTempDir(), "compileStash");
         File compileStaging = new File(spec.getTempDir(), "compileStaging");
-        File destinationDir = spec.getDestinationDir();
+        spec.setStagingDir(compileStaging);
         return CompileTransaction.newTransaction(fileOperations, deleter)
-            // Delete before transaction, never trust that someone cleaned folders after them
-            .beforeAllRecursivelyDeleteDirectories(stashRootDir, compileStaging)
-            .stashStaleFilesTo(classesToDelete, destinationDir, stashRootDir)
+            // Make temporary directories empty or if they don't exist create them
+            .beforeAllEnsureEmptyDirectories(stashRootDir, compileStaging)
+            // Stash some files that should be deleted in case there is a compilation error, so we can restore state
+            .stashStaleFilesTo(classesToDelete, spec.getDestinationDir(), stashRootDir)
             .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), stashRootDir)
             .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory(), stashRootDir)
-            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), destinationDir, stashRootDir)
-            // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so clean that instead.
-            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), destinationDir), stashRootDir)
+            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), spec.getDestinationDir(), stashRootDir)
+            // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so stash that instead.
+            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir()), stashRootDir)
             // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
             .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory(), stashRootDir)
-            .onSuccessMoveAllFilesFromDirectoryTo(compileStaging, destinationDir)
-            .onFailureRollbackStashIfException(t -> t instanceof CompilationFailedException)
-            .beforeExecutionDo(() -> {
-                // Modify spec destination dir
-                compileStaging.mkdirs();
-                spec.setDestinationDir(compileStaging);
-            })
-            // Revert spec destination back to original
-            .afterExecutionAlwaysDo(() -> spec.setDestinationDir(destinationDir));
+            .onSuccessMoveAllFilesFromDirectoryTo(compileStaging, spec.getDestinationDir())
+            .onFailureRollbackStashIfException(t -> t instanceof CompilationFailedException);
     }
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
