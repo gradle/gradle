@@ -124,6 +124,32 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath)
     }
 
+    def "allows command line order to override shouldRunAfter relationship"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').outputs('build/foo')
+        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        // conflicts with command line order
+        cleanBar.shouldRunAfter(generateBar)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath)
+    }
+
     def "destroyer task with a dependency in another project followed by a producer task followed by a destroyer task are run in the correct order"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -360,8 +386,40 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         then:
         result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
+
+        // cleanFoo must run after generateFoo, as cleanFoo finalizes generateFoo
+        // cleanFoo must run after generate, as cleanFoo destroys an output produced by generateFoo and consumed by generate
+        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath, cleanFoo.fullPath, clean.fullPath)
+
+        // cleanBar depends on cleanFoo, but cleanFoo must run after generate (per above)
+        result.assertTaskOrder(generateBar.fullPath, generate.fullPath, cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20272")
+    def "a destroyer task that mustRunAfter a task that does not get executed will run before producer tasks when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanSpecialBar = bar.task('cleanSpecialBar')
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo).mustRunAfter(cleanSpecialBar)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type)
+        def generateBar = bar.task('generateBar').produces('build/bar', type)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
 
         where:

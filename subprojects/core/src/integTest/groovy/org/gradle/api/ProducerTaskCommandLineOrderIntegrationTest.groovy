@@ -337,9 +337,37 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
 
         then:
         result.assertTaskOrder(generateBar.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        // generateBar must run after cleanBar, as generateBar finalizes cleanBar
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20272")
+    def "producer task that mustRunAfter a task that does not get executed will run before destroyer tasks when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateSpecialBar = bar.task('generateSpecialBar')
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type)
+        def generateBar = bar.task('generateBar').produces('build/bar', type).dependsOn(generateFoo).mustRunAfter(generateSpecialBar)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateFoo.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
 
         where:
         type << ProductionType.values()

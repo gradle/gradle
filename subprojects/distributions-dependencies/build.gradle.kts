@@ -77,7 +77,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.8.6") }}
+        api(libs.gson)                  { version { strictly("2.8.9") }}
         api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
@@ -129,7 +129,7 @@ dependencies {
         api(libs.snakeyaml)             { version { strictly("1.28") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
-        api(libs.trove4j)               { version { strictly("1.0.20181211") }}
+        api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly("5.10.0") }}
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
@@ -168,6 +168,7 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
+        api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
         api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}

@@ -140,6 +140,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -495,7 +496,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildState currentBuild,
                                                        TransformedVariantFactory transformedVariantFactory,
                                                        DependencyVerificationOverride dependencyVerificationOverride,
-                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                                       WorkerLeaseService workerLeaseService) {
             return new ErrorHandlingConfigurationResolver(
                 new ShortCircuitEmptyConfigurationResolver(
                     new DefaultConfigurationResolver(
@@ -522,7 +524,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         currentBuild.getBuildIdentifier(),
                         new AttributeDesugaring(attributesFactory),
                         dependencyVerificationOverride,
-                        componentSelectionDescriptorFactory),
+                        componentSelectionDescriptorFactory,
+                        workerLeaseService),
                     componentIdentifierFactory,
                     moduleIdentifierFactory,
                     currentBuild.getBuildIdentifier()));

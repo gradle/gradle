@@ -52,7 +52,6 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Inject
     public ScalaCompile() {
-        super(new ScalaCompileOptions());
         ObjectFactory objectFactory = getObjectFactory();
         this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
     }

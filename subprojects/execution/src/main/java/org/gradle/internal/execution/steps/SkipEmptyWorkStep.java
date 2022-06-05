@@ -264,7 +264,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
             try {
-                outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
+                outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
                 outputsCleaner.cleanupOutputs(outputFileSnapshot);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);

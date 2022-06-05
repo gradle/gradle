@@ -33,6 +33,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
@@ -74,6 +75,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val report: ConfigurationCacheReport,
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val taskExecutionTracker: TaskExecutionTracker,
+    private val environmentChangeTracker: EnvironmentChangeTracker,
 ) : Stoppable {
 
     interface Host {
@@ -121,7 +123,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 writeContextForOutputStream(projectScopedOutputStream),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
-                taskExecutionTracker
+                taskExecutionTracker,
+                environmentChangeTracker
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)

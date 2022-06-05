@@ -20,6 +20,10 @@ import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 
 abstract class EnvVariableInjection extends BuildInputInjection {
     static EnvVariableInjection environmentVariable(String key, String value) {
+        return environmentVariables((key): value)
+    }
+
+    static EnvVariableInjection environmentVariables(Map<String, String> variables) {
         return new EnvVariableInjection() {
             @Override
             String getDescription() {
@@ -29,11 +33,13 @@ abstract class EnvVariableInjection extends BuildInputInjection {
             @Override
             void setup(AbstractConfigurationCacheIntegrationTest test) {
                 HashMap<String, String> environment = new HashMap<>(System.getenv())
-                if (value != null) {
-                    environment.put(key, value)
-                } else {
-                    environment.remove(key)
-                }
+                variables.forEach((k, v) -> {
+                    if (v != null) {
+                        environment.put(k, v)
+                    } else {
+                        environment.remove(k)
+                    }
+                })
                 test.executer.withEnvironmentVars(environment)
             }
         }

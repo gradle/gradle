@@ -91,7 +91,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             // create copy now - https://github.com/gradle/gradle/issues/12527
             Set<Task> requestedTasks = plan.getRequestedTasks();
             Set<Task> filteredTasks = plan.getFilteredTasks();
-            List<Node> scheduledWork = plan.getScheduledNodes();
+            ExecutionPlan.ScheduledNodes scheduledWork = plan.getScheduledNodes();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
@@ -109,11 +109,16 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                     return toPlannedTasks(scheduledWork);
                 }
 
-                private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(List<Node> scheduledWork) {
-                    return FluentIterable.from(scheduledWork)
-                        .filter(LocalTaskNode.class)
-                        .transform(this::toPlannedTask)
-                        .toList();
+                private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(ExecutionPlan.ScheduledNodes scheduledWork) {
+                    List<CalculateTaskGraphBuildOperationType.PlannedTask> tasks = new ArrayList<>();
+                    scheduledWork.visitNodes(nodes -> {
+                        for (Node node : nodes) {
+                            if (node instanceof LocalTaskNode) {
+                                tasks.add(toPlannedTask((LocalTaskNode) node));
+                            }
+                        }
+                    });
+                    return tasks;
                 }
 
                 private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(LocalTaskNode taskNode) {

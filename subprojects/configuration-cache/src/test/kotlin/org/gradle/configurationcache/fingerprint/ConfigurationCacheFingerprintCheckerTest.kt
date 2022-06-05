@@ -27,8 +27,10 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.CircularReferences
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.ReadIdentities
 import org.gradle.configurationcache.serialization.ReadIsolate
@@ -286,6 +288,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override val isolate: WriteIsolate
             get() = undefined()
 
+        override val circularReferences: CircularReferences
+            get() = undefined()
+
         override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
             undefined()
 
@@ -300,6 +305,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             set(_) {}
 
         override fun onProblem(problem: PropertyProblem): Unit =
+            undefined()
+
+        override fun onError(error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =
@@ -379,6 +387,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override val classLoader: ClassLoader
             get() = undefined()
 
+        override fun onFinish(action: () -> Unit) =
+            undefined()
+
         override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
             undefined()
 
@@ -400,6 +411,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             set(_) {}
 
         override fun onProblem(problem: PropertyProblem): Unit =
+            undefined()
+
+        override fun onError(error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =

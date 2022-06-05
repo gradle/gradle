@@ -16,14 +16,9 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Represents a node in the graph that controls ordinality of destroyers and producers as they are
@@ -34,14 +29,15 @@ import java.util.List;
  * ordinality even if the destroyers are delayed waiting on dependencies (and vice versa).
  */
 public class OrdinalNode extends Node implements SelfExecutingNode {
-    public enum Type { DESTROYER, PRODUCER }
+    public enum Type {DESTROYER, PRODUCER}
 
     private final Type type;
-    private final int ordinal;
+    private final OrdinalGroup ordinal;
 
-    public OrdinalNode(Type type, int ordinal) {
+    public OrdinalNode(Type type, OrdinalGroup ordinal) {
         this.type = type;
         this.ordinal = ordinal;
+        setGroup(ordinal);
     }
 
     @Nullable
@@ -51,47 +47,36 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() { }
-
-    @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) { }
-
-    @Nullable
-    @Override
-    public ResourceLock getProjectToLock() {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public ProjectInternal getOwningProject() {
-        return null;
-    }
-
-    @Override
-    public List<? extends ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
     }
 
     @Override
     // TODO is there a better term to use here than "task group"
     public String toString() {
-        return type.name().toLowerCase() + " locations for task group " + ordinal;
+        return type.name().toLowerCase() + " locations for " + getGroup();
     }
 
     @Override
-    public int compareTo(Node o) {
-        return -1;
+    public void execute(NodeExecutionContext context) {
     }
-
-    @Override
-    public void execute(NodeExecutionContext context) { }
 
     public Type getType() {
         return type;
     }
 
-    public int getOrdinal() {
+    public OrdinalGroup getOrdinalGroup() {
         return ordinal;
+    }
+
+    public void addDependenciesFrom(TaskNode taskNode) {
+        // Only add hard successors that will actually be executed
+        Node prepareNode = taskNode.getPrepareNode();
+        if (taskNode.isRequired() && prepareNode != null) {
+            if (!prepareNode.isRequired()) {
+                prepareNode.require();
+                prepareNode.updateAllDependenciesComplete();
+            }
+            addDependencySuccessor(prepareNode);
+        }
     }
 }

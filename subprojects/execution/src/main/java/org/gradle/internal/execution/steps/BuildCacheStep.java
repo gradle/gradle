@@ -137,7 +137,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             @Override
             public void visitLocalState(File localStateRoot) {
                 try {
-                    outputChangeListener.beforeOutputChange(ImmutableList.of(localStateRoot.getAbsolutePath()));
+                    outputChangeListener.invalidateCachesFor(ImmutableList.of(localStateRoot.getAbsolutePath()));
                     deleter.deleteRecursively(localStateRoot);
                 } catch (IOException ex) {
                     throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);

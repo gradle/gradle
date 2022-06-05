@@ -40,7 +40,6 @@ import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetect
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
@@ -108,7 +107,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def outputChangeListener = new OutputChangeListener() {
 
         @Override
-        void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+        void invalidateCachesFor(Iterable<String> affectedOutputPaths) {
             fileSystemAccess.write(affectedOutputPaths) {}
         }
     }
@@ -167,13 +166,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new CreateOutputsStep<>(
             new ResolveInputChangesStep<>(
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, outputChangeListener,
+            new CreateOutputsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))
+        ))))))))))))))))))
         // @formatter:on
     }
 
@@ -299,6 +297,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                     it.withId(ValidationProblemId.TEST_PROBLEM)
                         .reportAs(WARNING)
                         .withDescription("Validation problem")
+                        .documentedAt("id", "section")
                         .happensBecause("Test")
                 }
             }
@@ -607,6 +606,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         .reportAs(ERROR)
                         .forType(Object)
                         .withDescription("Validation error")
+                        .documentedAt("id", "section")
                         .happensBecause("Test")
                 }
             }
@@ -619,7 +619,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            hasProblem dummyValidationProblem('java.lang.Object', null, 'Validation error', 'Test').trim()
+            hasProblem dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
         }
     }
 

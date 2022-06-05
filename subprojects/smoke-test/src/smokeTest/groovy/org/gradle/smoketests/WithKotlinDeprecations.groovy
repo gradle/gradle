@@ -23,6 +23,7 @@ import org.gradle.util.internal.VersionNumber
 @SelfType(BaseDeprecations)
 trait WithKotlinDeprecations {
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
+    private static final VersionNumber KOTLIN_VERSION_USING_INPUT_CHANGES_API = VersionNumber.parse('1.6.0')
 
     private static final String ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION = "The AbstractCompile.destinationDir property has been deprecated. " +
         "This is scheduled to be removed in Gradle 8.0. " +
@@ -36,6 +37,12 @@ trait WithKotlinDeprecations {
     boolean kotlinPluginUsesOldWorkerApi(String kotlinPluginVersion) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
         kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API
+    }
+
+    void expectKotlinIncrementalTaskInputsDeprecation(String kotlinVersion) {
+        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_USING_INPUT_CHANGES_API,
+            getIncrementalTaskInputsDeprecationWarning('AbstractKotlinCompile.execute'))
     }
 
     void expectKotlinCompileDestinationDirPropertyDeprecation(String version) {

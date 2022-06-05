@@ -20,7 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.10']
+    private static final String[] FUTURE = ['4.0.0']
 
     static final List<String> SUPPORTED_BY_JDK
 
@@ -48,6 +49,8 @@ class GroovyCoverage {
         if (!GroovySystem.version.endsWith("-SNAPSHOT")) {
             allVersions += GroovySystem.version
         }
+
+        allVersions.addAll(FUTURE)
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_16)) {
             return versionsAbove(allVersions, '3.0.0')

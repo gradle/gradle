@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
@@ -62,7 +63,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 18;
+    private static final int DECORATION_FORMAT = 19;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -72,6 +73,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
     private static final Type LONG_TYPE = getType(Long.class);
     private static final Type BOOLEAN_TYPE = getType(Boolean.class);
+    public static final Type PROPERTIES_TYPE = getType(Properties.class);
 
     private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE);
@@ -93,8 +95,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_OBJECT_FROM_INT = getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
     private static final String RETURN_BOOLEAN_FROM_OBJECT = getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
-    private static final String RETURN_PROPERTIES = getMethodDescriptor(getType(Properties.class));
-    private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(getType(Properties.class), STRING_TYPE);
+    private static final String RETURN_PROPERTIES = getMethodDescriptor(PROPERTIES_TYPE);
+    private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(PROPERTIES_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_PROPERTIES = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE);
+    private static final String RETURN_VOID_FROM_PROPERTIES_STRING = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
     private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
@@ -330,6 +334,18 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
                     return true;
+                } else if (name.equals("setProperties") && descriptor.equals(RETURN_VOID_FROM_PROPERTIES)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperties", RETURN_VOID_FROM_PROPERTIES_STRING);
+                    return true;
+                } else if (name.equals("setProperty") && descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
+                    return true;
+                } else if (name.equals("clearProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "clearSystemProperty", RETURN_STRING_FROM_STRING_STRING);
+                    return true;
                 } else if (name.equals("getenv")) {
                     if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
                         // System.getenv(String) -> String
@@ -519,7 +535,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private boolean isGradleLambdaDescriptor(String descriptor) {
             return descriptor.endsWith(ACTION_LAMBDA_SUFFIX)
-                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX);
+                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX)
+                || descriptor.endsWith(TRANSFORMER_LAMBDA_SUFFIX);
         }
 
         private String binaryClassNameOf(String className) {
@@ -528,6 +545,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();
         private static final String SPEC_LAMBDA_SUFFIX = ")" + getType(Spec.class).getDescriptor();
+        private static final String TRANSFORMER_LAMBDA_SUFFIX = ")" + getType(Transformer.class).getDescriptor();
     }
 
     private static class LambdaFactoryDetails {

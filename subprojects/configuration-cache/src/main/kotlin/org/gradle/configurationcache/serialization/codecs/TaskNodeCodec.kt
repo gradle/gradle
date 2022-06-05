@@ -226,10 +226,10 @@ suspend fun <T> T.withTaskOf(
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
-            if (!task.isCompatibleWithConfigurationCache) {
-                forIncompatibleType(action)
-            } else {
+            if (task.isCompatibleWithConfigurationCache) {
                 action()
+            } else {
+                forIncompatibleType(action)
             }
         }
     }

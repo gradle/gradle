@@ -47,11 +47,11 @@ import java.util.Map;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
-        JUNIT4("junit:junit", "4.13"),
-        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
+        JUNIT4("junit:junit", "4.13.2"),
+        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.8.2"),
         SPOCK("org.spockframework:spock-core", "2.1-groovy-3.0"),
-        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.6.10"),
-        TESTNG("org.testng:testng", "7.4.0"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit5", "1.6.21"),
+        TESTNG("org.testng:testng", "7.5"),
         NONE(null, null);
 
         @Nullable
@@ -114,6 +114,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
+        Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
         this.attachedDependencies = false;
         // This complexity is to keep the built-in test suite from automatically adding dependencies
@@ -134,7 +135,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
 
         addDefaultTestTarget();
 
@@ -148,9 +149,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 task.getTestFrameworkProperty().convention(getVersionedTestingFramework().map(vtf -> {
                     switch(vtf.type) {
                         case NONE: // fall-through
-                        case JUNIT4: // fall-through
-                        case KOTLIN_TEST:
+                        case JUNIT4:
                             return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter()));
+                        case KOTLIN_TEST: // fall-through
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
                             return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter()));

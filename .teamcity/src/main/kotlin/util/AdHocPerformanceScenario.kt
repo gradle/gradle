@@ -1,5 +1,6 @@
 package util
 
+import common.Arch
 import common.JvmVendor
 import common.Os
 import common.applyPerformanceTestSettings
@@ -15,12 +16,12 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
 
-abstract class AdHocPerformanceScenario(os: Os) : BuildType({
-    val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}"
-    name = "AdHoc Performance Scenario - ${os.asName()}"
+abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : BuildType({
+    val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}${arch.asName()}"
+    name = "AdHoc Performance Scenario - ${os.asName()} ${arch.asName()}"
     id(id)
 
-    applyPerformanceTestSettings(os = os, timeout = 420)
+    applyPerformanceTestSettings(os = os, arch = arch, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
 
     params {
@@ -52,7 +53,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         text("testJavaVersion", "8", display = ParameterDisplay.PROMPT, allowEmpty = false, description = "The java version to run the performance tests, e.g. 8/11/17")
         select(
             "testJavaVendor",
-            JvmVendor.adoptiumopenjdk.name,
+            JvmVendor.openjdk.name,
             display = ParameterDisplay.PROMPT,
             description = "The java vendor to run the performance tests",
             options = JvmVendor.values().map { it.displayName to it.name }
@@ -86,6 +87,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     "%baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
                     os,
+                    Arch.AMD64,
                     "%testJavaVersion%",
                     "%testJavaVendor%",
                 ) + buildToolGradleParameters(isContinue = false)
@@ -109,4 +111,5 @@ fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
 
 object AdHocPerformanceScenarioLinux : AdHocPerformanceScenario(Os.LINUX)
 object AdHocPerformanceScenarioWindows : AdHocPerformanceScenario(Os.WINDOWS)
-object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS)
+object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS, Arch.AMD64)
+object AdHocPerformanceScenarioMacM1 : AdHocPerformanceScenario(Os.MACOS, Arch.AARCH64)

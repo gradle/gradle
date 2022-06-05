@@ -17,10 +17,8 @@
 package gradlebuild.docs;
 
 import gradlebuild.basics.PublicApi;
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
@@ -29,12 +27,14 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.Exec;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import java.util.Collections;
 
@@ -111,24 +111,20 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     }
 
     private void addUtilityTasks(TaskContainer tasks, GradleDocumentationExtension extension) {
-        tasks.register("serveDocs", Exec.class, task -> {
+        tasks.register("serveDocs", JavaExec.class, task -> {
             task.setDescription("Runs a local webserver to serve generated documentation.");
             task.setGroup("documentation");
 
             int webserverPort = 8000;
+            task.getJavaLauncher().set(
+                task.getProject().getExtensions().getByType(JavaToolchainService.class)
+                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(18)))
+            );
             task.workingDir(extension.getDocumentationRenderedRoot());
-            task.executable("python3");
-            task.args("-m", "http.server", webserverPort);
+            task.getMainModule().set("jdk.httpserver");
+            task.args("-p", String.valueOf(webserverPort));
 
             task.dependsOn(extension.getRenderedDocumentation());
-
-            //noinspection Convert2Lambda
-            task.doFirst(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    task.getLogger().lifecycle("ctrl+C to restart, serving Gradle docs at http://localhost:" + webserverPort);
-                }
-            });
         });
 
         tasks.register("docs", task -> {

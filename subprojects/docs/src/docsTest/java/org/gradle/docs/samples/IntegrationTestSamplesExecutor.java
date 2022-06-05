@@ -18,6 +18,7 @@ package org.gradle.docs.samples;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.integtests.fixtures.AvailableJavaHomes;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
@@ -27,7 +28,6 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.io.File;
@@ -37,9 +37,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toCollection;
+
 class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     private static final String WARNING_MODE_FLAG_PREFIX = "--warning-mode=";
+
+    private static final String NO_STACKTRACE_CHECK = "-Dorg.gradle.sampletest.noStackTraceCheck=true";
 
     private final File workingDir;
     private final boolean expectFailure;
@@ -54,16 +58,14 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     @Override
     protected int run(String executable, List<String> args, List<String> flags, OutputStream outputStream) {
-        List<String> filteredFlags = new ArrayList<>();
-        WarningMode warningMode = WarningMode.Fail;
-        for (String flag : flags) {
-            if (flag.startsWith(WARNING_MODE_FLAG_PREFIX)) {
-                warningMode = WarningMode.valueOf(capitalize(flag.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase()));
-            } else {
-                filteredFlags.add(flag);
-            }
-        }
-        configureAvailableJdks(filteredFlags);
+        WarningMode warningMode = flags.stream()
+            .filter(it -> it.startsWith(WARNING_MODE_FLAG_PREFIX))
+            .map(it -> WarningMode.valueOf(capitalize(it.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase())))
+            .findFirst().orElse(WarningMode.Fail);
+        List<String> filteredFlags = flags.stream()
+            .filter(it -> !it.startsWith(WARNING_MODE_FLAG_PREFIX) && !it.equals(NO_STACKTRACE_CHECK))
+            .collect(toCollection(ArrayList::new));
+        filteredFlags.add(getAvailableJdksFlag());
         GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
             .withStacktraceDisabled()
             .noDeprecationChecks()
@@ -71,6 +73,11 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
             .withTasks(args);
+
+        if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {
+            executer.withStackTraceChecksDisabled();
+        }
+
         try {
             if (expectFailure) {
                 ExecutionFailure result = executer.runWithFailure();
@@ -85,12 +92,12 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
         }
     }
 
-    private void configureAvailableJdks(List<String> flags) {
+    private String getAvailableJdksFlag() {
         String allJdkPaths = AvailableJavaHomes.getAvailableJvms().stream()
             .map(Jvm::getJavaHome)
             .map(File::getAbsolutePath)
             .collect(Collectors.joining(","));
-        flags.add("-Porg.gradle.java.installations.paths=" + allJdkPaths);
+        return "-Porg.gradle.java.installations.paths=" + allJdkPaths;
     }
 
     private static String capitalize(String s) {

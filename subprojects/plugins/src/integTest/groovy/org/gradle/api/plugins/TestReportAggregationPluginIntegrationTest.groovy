@@ -428,7 +428,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
                .assertThatCause(startsWith("There were failing tests"))
-        result.assertTaskNotExecuted(':application:testAggregateTestReport"')
+        result.assertTaskNotExecuted(':application:testAggregateTestReport')
 
         file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()
     }

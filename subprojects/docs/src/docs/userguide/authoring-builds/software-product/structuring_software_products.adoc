@@ -264,7 +264,7 @@ For using classes to implement plugins, and for writing more advanced custom bui
 As demonstrated in the architecture figure, our production code components depend on each other.
 Above, we already saw that the `platforms` component is used in the `build-logic` component.
 We also said that we want to use the `build-logic` component, which declares project types through convention plugins,
-to asssign those types to the projects in our production code components.
+to assign those types to the projects in our production code components.
 
 How do you define these dependencies?
 There are two distinct things to do:

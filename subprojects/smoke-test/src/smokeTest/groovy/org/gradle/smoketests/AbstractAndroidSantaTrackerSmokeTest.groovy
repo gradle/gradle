@@ -35,7 +35,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
-    String kotlinVersion = TestedVersions.kotlin.latest()
+    String kotlinVersion = TestedVersions.kotlin.latestStable()
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
@@ -55,6 +55,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug")
             .deprecations(SantaTrackerDeprecations) {
                 expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             }.build()
     }
 
@@ -63,6 +64,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             .deprecations(SantaTrackerDeprecations) {
                 expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             }.build()
     }
 

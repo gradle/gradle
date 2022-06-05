@@ -25,7 +25,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
@@ -124,7 +123,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
     private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
         // Release worker lease while waiting
-        workerLeaseService.withoutLocks(Collections.singletonList(workerLeaseService.getCurrentWorkerLease()), () -> {
+        workerLeaseService.withoutLock(workerLeaseService.getCurrentWorkerLease(), () -> {
             final List<Throwable> failures = Lists.newArrayList();
             for (AsyncWorkCompletion item : workItems) {
                 try {

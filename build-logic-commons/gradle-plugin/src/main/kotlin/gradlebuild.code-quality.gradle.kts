@@ -61,7 +61,7 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:2.0.0")
+    codenarc("org.codenarc:CodeNarc:3.0.1")
     codenarc(embeddedKotlin("stdlib"))
 
     classycle("classycle:classycle:1.4.2@jar")
@@ -114,18 +114,6 @@ extensions.findByType<SourceSetContainer>()?.all {
         reportName.set(this@all.name)
         reportDir.set(reporting.baseDirectory.dir("classycle"))
         reportResourcesZip.from(rules)
-    }
-}
-
-// Empty source dirs produce cache misses, and are not caught by `git status`.
-// Fail if we find any.
-tasks.withType<SourceTask>().configureEach {
-    doFirst {
-        source.visit {
-            if (file.isDirectory && file.listFiles()?.isEmpty() == true) {
-                throw IllegalStateException("Empty src dir found. This causes build cache misses. See github.com/gradle/gradle/issues/2463.\nRun the following command to fix it.\nrmdir ${file.absolutePath}")
-            }
-        }
     }
 }
 

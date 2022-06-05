@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resources
 
-
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -344,11 +343,12 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         def listener = Mock(Action)
         coordinationService.addLockReleaseListener(listener)
 
-        def lock = resourceLock("lock1", true, true)
+        def lock = resourceLock("lock1")
 
         when:
         async {
             start {
+                coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(lock))
                 coordinationService.withStateLock { state ->
                     if (lock.isLockedByCurrentThread()) {
                         instant.unlocked

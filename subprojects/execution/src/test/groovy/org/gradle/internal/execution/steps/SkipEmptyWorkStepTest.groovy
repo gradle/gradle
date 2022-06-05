@@ -180,7 +180,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         }
 
         and:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
 
         and:
         1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
@@ -215,7 +215,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         }
 
         and:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
 
         and:
         1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
