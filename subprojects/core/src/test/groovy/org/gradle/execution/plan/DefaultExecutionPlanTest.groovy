@@ -49,7 +49,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def "schedules tasks in dependency order"() {

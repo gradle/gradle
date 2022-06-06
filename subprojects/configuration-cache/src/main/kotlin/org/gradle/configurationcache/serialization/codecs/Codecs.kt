@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
@@ -54,6 +55,7 @@ import org.gradle.configurationcache.serialization.codecs.transform.TransformedE
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
 import org.gradle.configurationcache.serialization.reentrant
 import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
@@ -95,6 +97,7 @@ class Codecs(
     instantiator: Instantiator,
     listenerManager: ListenerManager,
     val taskNodeFactory: TaskNodeFactory,
+    val ordinalGroupFactory: OrdinalGroupFactory,
     inputFingerprinter: InputFingerprinter,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
@@ -223,7 +226,7 @@ class Codecs(
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(DelegatingCodec<TransformationNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
-        bind(OrdinalNodeCodec())
+        bind(OrdinalNodeCodec(ordinalGroupFactory))
 
         bind(NotImplementedCodec)
     }.build()
@@ -320,4 +323,7 @@ class Codecs(
 
         bind(BuildIdentifierSerializer())
     }
+
+    fun workNodeCodecFor(gradle: GradleInternal) =
+        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory)
 }
