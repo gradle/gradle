@@ -119,7 +119,8 @@ data class MultipleSubprojectsFunctionalTestBucket(
                 subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
             )
             TestParallelizationMode.ParallelTesting -> MultiSubprojectParallelBucket(
-                subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! }
+                subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
+                batches!!
             )
             else -> throw IllegalArgumentException("Unsupported parallelization mode ($testParallelizationMode) for multi-subproject functional test")
         }
