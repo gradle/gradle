@@ -112,7 +112,7 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
             val firstAvailableBucket = first { it is MultiSubprojectBucket || it is MultiSubprojectParallelBucket }
             when (firstAvailableBucket) {
                 is MultiSubprojectBucket -> MultiSubprojectBucket(firstAvailableBucket.subprojects + unknownSubprojects, firstAvailableBucket.enableTestDistribution)
-                is MultiSubprojectParallelBucket -> MultiSubprojectParallelBucket(firstAvailableBucket.subprojects + unknownSubprojects, firstAvailableBucket.parallelizationFactor)
+                is MultiSubprojectParallelBucket -> MultiSubprojectParallelBucket(firstAvailableBucket.subprojects + unknownSubprojects, firstAvailableBucket.numberOfBatches)
             }
         }
 
@@ -261,7 +261,7 @@ class MultiSubprojectBucket(
 
 class MultiSubprojectParallelBucket(
     val subprojects: List<GradleSubproject>,
-    val parallelizationFactor: Int = 1
+    val numberOfBatches: Int = 1
 ) : BuildTypeBucket {
     val name = truncateName(subprojects.joinToString(","))
 
@@ -283,7 +283,7 @@ class MultiSubprojectParallelBucket(
             stage,
             TestParallelizationMode.ParallelTesting,
             subprojects = subprojects.map { it.name },
-            numberOfBatches = parallelizationFactor
+            numberOfBatches = numberOfBatches
         )
 
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")

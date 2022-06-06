@@ -97,9 +97,10 @@ fun <T, R> splitIntoParallelizedJobs(
             elements += element
         }
 
+        val estimatedBatchSize = ceil(totalRuntime.toDouble() / expectedTime.toDouble()).toInt()
         val bucket = smallElementAggregateFunction(
             elements,
-            ceil(totalRuntime.toDouble() / expectedTime.toDouble()).toInt()
+            estimatedBatchSize
         )
         buckets += bucket
     }

@@ -98,7 +98,7 @@ data class FunctionalTestBucketWithSplitClasses(
 data class MultipleSubprojectsFunctionalTestBucket(
     val subprojects: List<String>,
     val testParallelizationMode: TestParallelizationMode,
-    val parallelismFactor: Int? = null
+    val batches: Int? = null
 ) : FunctionalTestBucket {
     constructor(jsonObject: JSONObject) : this(
         jsonObject.getJSONArray("subprojects").map { it.toString() },
@@ -110,7 +110,7 @@ data class MultipleSubprojectsFunctionalTestBucket(
                 else -> throw IllegalArgumentException("Invalid test parallelization mode: $it")
             }
         },
-        jsonObject.getIntValue("parallelismFactor")
+        jsonObject.getIntValue("batches")
     )
 
     override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket =
@@ -127,7 +127,7 @@ data class MultipleSubprojectsFunctionalTestBucket(
 
 fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket = when (this) {
     is MultiSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, TestParallelizationMode.None, null)
-    is MultiSubprojectParallelBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, TestParallelizationMode.ParallelTesting, this.parallelizationFactor)
+    is MultiSubprojectParallelBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, TestParallelizationMode.ParallelTesting, this.numberOfBatches)
     is SingleSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, number, classes.map { it.toPropertiesLine() }, include)
     else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
 }
@@ -294,8 +294,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return splitIntoParallelizedJobs(
             otherSubProjectTestClassTimes,
             SubprojectTestClassTime::totalTime,
-            { list: List<SubprojectTestClassTime>, parallelizationFactor: Int ->
-                MultiSubprojectParallelBucket(list.map { it.subProject }, parallelizationFactor)
+            { list: List<SubprojectTestClassTime>, estimatedBatchSize: Int ->
+                MultiSubprojectParallelBucket(list.map { it.subProject }, estimatedBatchSize)
             },
             300 * 1000
         )

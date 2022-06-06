@@ -2,7 +2,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"hashing",
 					"build-option",
@@ -51,7 +51,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"model-groovy",
 					"build-events",
@@ -61,7 +61,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-s3",
 					"antlr",
@@ -70,7 +70,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"test-kit",
 					"platform-base",
@@ -79,7 +79,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"persistent-cache",
 					"file-collections"
@@ -87,7 +87,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"platform-native",
 					"testing-native"
@@ -95,7 +95,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"jacoco",
 					"kotlin-dsl-tooling-builders"
@@ -103,203 +103,203 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl-plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"tooling-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":11,
+				"batches":11,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":13,
+				"batches":13,
 				"subprojects":[
 					"core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":14,
+				"batches":14,
 				"subprojects":[
 					"dependency-management"
 				],
@@ -317,7 +317,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"hashing",
 					"build-option",
@@ -362,7 +362,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-s3",
 					"model-groovy",
@@ -373,7 +373,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"reporting",
 					"signing",
@@ -382,7 +382,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"wrapper",
 					"platform-base",
@@ -391,7 +391,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"antlr",
 					"testing-native"
@@ -399,7 +399,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"persistent-cache",
 					"diagnostics"
@@ -407,7 +407,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"file-collections",
 					"language-groovy"
@@ -415,7 +415,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"platform-native",
 					"test-kit"
@@ -423,210 +423,210 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"jacoco"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl-plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"kotlin-dsl-tooling-builders"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":10,
+				"batches":10,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":11,
+				"batches":11,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":16,
+				"batches":16,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":17,
+				"batches":17,
 				"subprojects":[
 					"tooling-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":22,
+				"batches":22,
 				"subprojects":[
 					"core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":22,
+				"batches":22,
 				"subprojects":[
 					"dependency-management"
 				],
@@ -678,7 +678,7 @@
 				"testParallelizationMode":"None"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"hashing",
 					"build-option",
@@ -720,7 +720,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-gcs",
 					"build-cache",
@@ -730,7 +730,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-s3",
 					"core-api",
@@ -739,7 +739,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"reporting",
 					"antlr",
@@ -748,7 +748,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"persistent-cache",
 					"signing"
@@ -756,7 +756,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"platform-base",
 					"language-groovy"
@@ -764,259 +764,259 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"diagnostics"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"wrapper"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"file-collections"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"jacoco"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl-plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"platform-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"kotlin-dsl-tooling-builders"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":12,
+				"batches":12,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":12,
+				"batches":12,
 				"subprojects":[
 					"tooling-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":14,
+				"batches":14,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":16,
+				"batches":16,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":24,
+				"batches":24,
 				"subprojects":[
 					"core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":34,
+				"batches":34,
 				"subprojects":[
 					"dependency-management"
 				],
@@ -3296,7 +3296,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"configuration-cache",
 					"docs",
@@ -3323,7 +3323,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ear",
 					"resources-sftp",
@@ -3333,7 +3333,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"reporting",
 					"build-cache-http",
@@ -3342,7 +3342,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-events",
 					"signing",
@@ -3351,7 +3351,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"language-groovy",
 					"antlr"
@@ -3359,7 +3359,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"diagnostics",
 					"wrapper"
@@ -3367,231 +3367,231 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"tooling-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"platform-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"file-collections"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"jacoco"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl-plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":10,
+				"batches":10,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":21,
+				"batches":21,
 				"subprojects":[
 					"core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":31,
+				"batches":31,
 				"subprojects":[
 					"dependency-management"
 				],
@@ -3609,7 +3609,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"docs",
 					"execution",
@@ -3633,7 +3633,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-gcs",
 					"ear",
@@ -3644,7 +3644,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-events",
 					"core-api",
@@ -3653,7 +3653,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"antlr",
 					"model-groovy"
@@ -3661,7 +3661,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"persistent-cache",
 					"platform-native"
@@ -3669,7 +3669,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"diagnostics",
 					"signing"
@@ -3677,7 +3677,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"wrapper",
 					"ide-native"
@@ -3685,7 +3685,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"jacoco",
 					"kotlin-dsl-integ-tests"
@@ -3693,7 +3693,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl-plugins",
 					"tooling-api"
@@ -3701,7 +3701,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"file-collections",
 					"code-quality"
@@ -3709,7 +3709,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"language-groovy",
 					"platform-base"
@@ -3717,182 +3717,182 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":9,
+				"batches":9,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":23,
+				"batches":23,
 				"subprojects":[
 					"dependency-management"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":23,
+				"batches":23,
 				"subprojects":[
 					"core"
 				],
@@ -3910,7 +3910,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"docs",
 					"execution",
@@ -3933,7 +3933,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-gcs",
 					"reporting"
@@ -3941,7 +3941,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-sftp",
 					"persistent-cache"
@@ -3949,7 +3949,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"language-groovy",
 					"build-cache"
@@ -3957,7 +3957,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ear",
 					"antlr"
@@ -3965,7 +3965,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-events",
 					"wrapper"
@@ -3973,7 +3973,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"core-api",
 					"resources-s3"
@@ -3981,273 +3981,273 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-cache-http"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"model-groovy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"signing"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"tooling-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"jacoco"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"file-collections"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"platform-base"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"diagnostics"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"platform-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"kotlin-dsl-plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":9,
+				"batches":9,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":9,
+				"batches":9,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":9,
+				"batches":9,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":17,
+				"batches":17,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":18,
+				"batches":18,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":31,
+				"batches":31,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":56,
+				"batches":56,
 				"subprojects":[
 					"core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":77,
+				"batches":77,
 				"subprojects":[
 					"dependency-management"
 				],
@@ -4265,7 +4265,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"docs",
 					"execution",
@@ -4285,7 +4285,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"messaging",
 					"platform-jvm",
@@ -4294,7 +4294,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"persistent-cache",
 					"resources-gcs"
@@ -4302,343 +4302,343 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-events"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"antlr"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"reporting"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-sftp"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ear"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"language-groovy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"wrapper"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"resources-s3"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"build-cache-http"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"signing"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"core-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"tooling-api"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"model-groovy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"jacoco"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"file-collections"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"kotlin-dsl-plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"platform-base"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"version-control"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"enterprise"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"platform-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"diagnostics"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":9,
+				"batches":9,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":10,
+				"batches":10,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":10,
+				"batches":10,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":12,
+				"batches":12,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":12,
+				"batches":12,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":13,
+				"batches":13,
 				"subprojects":[
 					"ivy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":13,
+				"batches":13,
 				"subprojects":[
 					"ide"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":16,
+				"batches":16,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":16,
+				"batches":16,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":16,
+				"batches":16,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":18,
+				"batches":18,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":18,
+				"batches":18,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":20,
+				"batches":20,
 				"subprojects":[
 					"maven"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":20,
+				"batches":20,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":23,
+				"batches":23,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":24,
+				"batches":24,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":29,
+				"batches":29,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":53,
+				"batches":53,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":74,
+				"batches":74,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":101,
+				"batches":101,
 				"subprojects":[
 					"core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":137,
+				"batches":137,
 				"subprojects":[
 					"dependency-management"
 				],
@@ -5938,7 +5938,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"docs",
 					"execution",
@@ -5968,7 +5968,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"testing-base",
 					"build-cache-http",
@@ -5979,7 +5979,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ide-native",
 					"platform-base",
@@ -5988,7 +5988,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"test-kit",
 					"language-groovy",
@@ -5997,7 +5997,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"antlr",
 					"version-control"
@@ -6005,7 +6005,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"persistent-cache",
 					"platform-native"
@@ -6013,7 +6013,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"file-collections",
 					"enterprise"
@@ -6021,7 +6021,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"testing-native",
 					"tooling-api"
@@ -6029,7 +6029,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"jacoco",
 					"ivy"
@@ -6037,7 +6037,7 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl-plugins",
 					"maven"
@@ -6045,147 +6045,147 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"plugin-development"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"samples"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"composite-builds"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"logging"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"build-init"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"workers"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"kotlin-dsl-integ-tests"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"model-core"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"integ-test"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"language-java"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"language-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"plugin-use"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"configuration-cache"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"launcher"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":18,
+				"batches":18,
 				"subprojects":[
 					"dependency-management"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":22,
+				"batches":22,
 				"subprojects":[
 					"core"
 				],
@@ -6203,7 +6203,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"antlr",
 					"base-services",
@@ -6267,70 +6267,70 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"platform-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":2,
+				"batches":2,
 				"subprojects":[
 					"language-groovy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":3,
+				"batches":3,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":9,
+				"batches":9,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":11,
+				"batches":11,
 				"subprojects":[
 					"language-native"
 				],
@@ -6348,7 +6348,7 @@
 	{
 		"buckets":[
 			{
-				"parallelismFactor":4,
+				"batches":4,
 				"subprojects":[
 					"antlr",
 					"base-services",
@@ -6412,70 +6412,70 @@
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"testing-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":5,
+				"batches":5,
 				"subprojects":[
 					"language-groovy"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":6,
+				"batches":6,
 				"subprojects":[
 					"platform-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"ide-native"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":7,
+				"batches":7,
 				"subprojects":[
 					"scala"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"test-kit"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"testing-jvm"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":8,
+				"batches":8,
 				"subprojects":[
 					"code-quality"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":20,
+				"batches":20,
 				"subprojects":[
 					"plugins"
 				],
 				"testParallelizationMode":"ParallelTesting"
 			},
 			{
-				"parallelismFactor":20,
+				"batches":20,
 				"subprojects":[
 					"language-native"
 				],
