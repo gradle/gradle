@@ -181,6 +181,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
+            System.out.println();
+            System.out.print("To see help contextual to the project, use ");
+            clientMetaData().describeCommand(System.out, "help");
+            System.out.println();
             showUsage(System.out, parser);
         }
     }
