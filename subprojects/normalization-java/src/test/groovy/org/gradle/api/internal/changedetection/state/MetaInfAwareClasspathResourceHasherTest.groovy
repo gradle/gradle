@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.internal.file.archive.InputStreamAction
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
@@ -431,7 +432,7 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+            <T> T withInputStream(InputStreamAction<T> action) throws IOException {
                 if (exception) {
                     throw exception
                 }

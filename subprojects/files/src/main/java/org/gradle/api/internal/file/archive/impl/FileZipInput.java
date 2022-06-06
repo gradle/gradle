@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.collect.AbstractIterator;
+import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.ZipEntryHandler;
@@ -107,7 +108,7 @@ public class FileZipInput implements ZipInput {
         }
 
         @Override
-        public <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+        public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
             InputStream inputStream = getInputStream();
             try {
                 return action.run(inputStream);

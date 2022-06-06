@@ -17,18 +17,16 @@
 package org.gradle.api.internal.file.archive;
 
 import java.io.IOException;
-import java.util.zip.ZipEntry;
+import java.io.InputStream;
 
-public interface ZipEntryHandler {
+ /**
+ * Functional interface to run an action against a {@link InputStream}
+ *
+ * @param <T> the action's result.
+ */
+public interface InputStreamAction<T> {
     /**
-     * Returns the ZipEntry object associated with this handler
+     * action to run against the passed {@link InputStream}.
      */
-    ZipEntry getZipEntry();
-
-    <T> T withInputStream(InputStreamAction<T> action) throws IOException;
-
-    /**
-     * Whether the entry can be reopened (by calling {@link #withInputStream(InputStreamAction)} ()} again) once bytes have been read from it
-     */
-    boolean canReopen();
+    T run(InputStream inputStream) throws IOException;
 }

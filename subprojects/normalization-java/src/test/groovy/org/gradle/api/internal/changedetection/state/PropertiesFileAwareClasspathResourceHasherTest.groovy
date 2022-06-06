@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
+import org.gradle.api.internal.file.archive.InputStreamAction
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.file.FileMetadata
@@ -333,7 +334,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+            <T> T withInputStream(InputStreamAction<T> action) throws IOException {
                 action.run(new ByteArrayInputStream(bytes))
             }
 

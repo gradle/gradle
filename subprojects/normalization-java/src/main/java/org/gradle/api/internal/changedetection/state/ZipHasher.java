@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
@@ -116,7 +117,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
+                zipEntryContext.getEntry().withInputStream((InputStreamAction<Void>) inputStream -> {
                     fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
                     return null;
                 });

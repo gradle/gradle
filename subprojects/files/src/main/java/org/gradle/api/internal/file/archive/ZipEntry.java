@@ -32,18 +32,6 @@ public interface ZipEntry {
     byte[] getContent() throws IOException;
 
     /**
-     * Functional interface to run an action against a {@link InputStream}
-     *
-     * @param <T> the action's result.
-     */
-    interface InputStreamAction<T> {
-        /**
-         * action to run against the passed {@link InputStream}.
-         */
-        T run(InputStream inputStream) throws IOException;
-    }
-
-    /**
      * Declare an action to be run against this ZipEntry's content as a {@link InputStream}.
      * The {@link InputStream} passed to the {@link InputStreamAction#run(InputStream)} will
      * be closed right after the action's return.

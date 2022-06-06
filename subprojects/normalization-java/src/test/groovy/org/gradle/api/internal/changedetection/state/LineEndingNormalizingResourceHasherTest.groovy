@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.file.archive.InputStreamAction
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -43,7 +44,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         when:
         hasher.hash(snapshotContext(file))
 
-        then:
+        then:\
         0 * delegate._
 
         when:
@@ -193,7 +194,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+            <T> T withInputStream(InputStreamAction<T> action) throws IOException {
                 action.run(new ByteArrayInputStream(file.bytes))
             }
 
