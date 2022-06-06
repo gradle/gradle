@@ -96,7 +96,6 @@ public class FileZipInput implements ZipInput {
 
     private class FileZipEntryHandler implements ZipEntryHandler {
         private final java.util.zip.ZipEntry zipEntry;
-        private InputStream inputStream;
 
         public FileZipEntryHandler(java.util.zip.ZipEntry zipEntry) {
             this.zipEntry = zipEntry;
@@ -108,26 +107,20 @@ public class FileZipInput implements ZipInput {
         }
 
         @Override
-        public InputStream getInputStream() {
-            if (inputStream == null) {
-                try {
-                    inputStream = file.getInputStream(zipEntry);
-                } catch (IOException e) {
-                    throw new FileException(e);
-                }
+        public <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+            InputStream inputStream = getInputStream();
+            try {
+                return action.run(inputStream);
+            } finally {
+                inputStream.close();
             }
-
-            return inputStream;
         }
 
-        @Override
-        public void closeEntry() throws IOException {
+        public InputStream getInputStream() {
             try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } finally {
-                inputStream = null;
+                return file.getInputStream(zipEntry);
+            } catch (IOException e) {
+                throw new FileException(e);
             }
         }
 

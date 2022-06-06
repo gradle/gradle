@@ -29,10 +29,10 @@ import java.util.zip.ZipInputStream;
 
 public class StreamZipInput implements ZipInput {
 
-    private final ZipInputStream in;
+    private final ZipInputStream inputStream;
 
-    public StreamZipInput(InputStream in) {
-        this.in = new ZipInputStream(in);
+    public StreamZipInput(InputStream inputStream) {
+        this.inputStream = new ZipInputStream(inputStream);
     }
 
     @Override
@@ -42,28 +42,26 @@ public class StreamZipInput implements ZipInput {
             protected ZipEntry computeNext() {
                 java.util.zip.ZipEntry nextEntry;
                 try {
-                    nextEntry = in.getNextEntry();
+                    nextEntry = inputStream.getNextEntry();
                 } catch (IOException e) {
                     throw new FileException(e);
                 }
-                return nextEntry == null ? endOfData() : new JdkZipEntry(new StreamZipEntryHandler(nextEntry, in));
+                return nextEntry == null ? endOfData() : new JdkZipEntry(new StreamZipEntryHandler(nextEntry));
             }
         };
     }
 
     @Override
     public void close() throws IOException {
-        in.close();
+        inputStream.close();
     }
 
-    private static class StreamZipEntryHandler implements ZipEntryHandler {
+    private class StreamZipEntryHandler implements ZipEntryHandler {
         private final java.util.zip.ZipEntry zipEntry;
-        private final ZipInputStream inputStream;
-        private boolean closed;
+        private boolean opened;
 
-        public StreamZipEntryHandler(java.util.zip.ZipEntry zipEntry, ZipInputStream inputStream) {
+        public StreamZipEntryHandler(java.util.zip.ZipEntry zipEntry) {
             this.zipEntry = zipEntry;
-            this.inputStream = inputStream;
         }
 
         @Override
@@ -72,18 +70,21 @@ public class StreamZipInput implements ZipInput {
         }
 
         @Override
-        public InputStream getInputStream() {
-            if (closed) {
-                throw new IllegalStateException("The input stream for " + zipEntry.getName() + " has already been closed.  It cannot be reopened again.");
+        public <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+            if (opened) {
+                throw new IllegalStateException("The input stream for " + zipEntry.getName() + " has already been opened.  It cannot be reopened again.");
             }
 
-            return inputStream;
+            opened = true;
+            try {
+                return action.run(inputStream);
+            } finally {
+                closeEntry();
+            }
         }
 
-        @Override
         public void closeEntry() {
             try {
-                closed = true;
                 inputStream.closeEntry();
             } catch (IOException e) {
                 throw new FileException(e);
