@@ -19,26 +19,34 @@ package org.gradle.api.internal.file.archive.impl;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.api.internal.file.archive.ZipEntryHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-class JdkZipEntry implements ZipEntry {
-    private final ZipEntryHandler zipEntryHandler;
+abstract class AbstractZipEntry implements ZipEntry {
+    private final java.util.zip.ZipEntry entry;
 
-    public JdkZipEntry(ZipEntryHandler zipEntryHandler) {
-        this.zipEntryHandler = zipEntryHandler;
+    public AbstractZipEntry(java.util.zip.ZipEntry entry) {
+        this.entry = entry;
+    }
+
+    protected java.util.zip.ZipEntry getEntry() {
+        return entry;
     }
 
     @Override
     public boolean isDirectory() {
-        return zipEntryHandler.getZipEntry().isDirectory();
+        return entry.isDirectory();
     }
 
     @Override
     public String getName() {
-        return zipEntryHandler.getZipEntry().getName();
+        return entry.getName();
+    }
+
+    @Override
+    public int size() {
+        return (int) entry.getSize();
     }
 
     @Override
@@ -56,20 +64,5 @@ class JdkZipEntry implements ZipEntry {
                 }
             }
         });
-    }
-
-    @Override
-    public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
-        return zipEntryHandler.withInputStream(action);
-    }
-
-    @Override
-    public int size() {
-        return (int) zipEntryHandler.getZipEntry().getSize();
-    }
-
-    @Override
-    public boolean canReopen() {
-        return zipEntryHandler.canReopen();
     }
 }

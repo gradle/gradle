@@ -20,7 +20,6 @@ import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.api.internal.file.archive.ZipEntryHandler;
 import org.gradle.internal.file.FileException;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ public class StreamZipInput implements ZipInput {
                 } catch (IOException e) {
                     throw new FileException(e);
                 }
-                return nextEntry == null ? endOfData() : new JdkZipEntry(new StreamZipEntryHandler(nextEntry));
+                return nextEntry == null ? endOfData() : new StreamZipEntry(nextEntry);
             }
         };
     }
@@ -57,29 +56,23 @@ public class StreamZipInput implements ZipInput {
         inputStream.close();
     }
 
-    private class StreamZipEntryHandler implements ZipEntryHandler {
-        private final java.util.zip.ZipEntry zipEntry;
+    private class StreamZipEntry extends AbstractZipEntry {
         private boolean opened;
 
-        public StreamZipEntryHandler(java.util.zip.ZipEntry zipEntry) {
-            this.zipEntry = zipEntry;
-        }
-
-        @Override
-        public java.util.zip.ZipEntry getZipEntry() {
-            return zipEntry;
+        public StreamZipEntry(java.util.zip.ZipEntry entry) {
+            super(entry);
         }
 
         @Override
         public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
             if (opened) {
-                throw new IllegalStateException("The input stream for " + zipEntry.getName() + " has already been opened.  It cannot be reopened again.");
+                throw new IllegalStateException("The input stream for " + getName() + " has already been opened.  It cannot be reopened again.");
             }
 
-            opened = true;
             try {
                 return action.run(inputStream);
             } finally {
+                opened = true;
                 closeEntry();
             }
         }
