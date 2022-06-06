@@ -220,6 +220,7 @@ public class CompileTransaction {
 
         /**
          * Add additional prefix to the folder. This is optional, but it makes it easier to debug.
+         * If stash or move files operation are used with valid directories, prefix is automatically set to 'stash-of-${dir.name}' or 'out-of-${dir.name} if not set manually.
          */
         public TransactionalDirectory withNamePrefix(String namePrefix) {
             this.directory = new File(directory.getParentFile(), namePrefix + "-" + uniqueDirectoryId);
