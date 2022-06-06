@@ -20,7 +20,6 @@ import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.api.internal.file.archive.ZipEntryHandler;
 import org.gradle.internal.file.FileException;
 
 import java.io.File;
@@ -85,7 +84,7 @@ public class FileZipInput implements ZipInput {
                     return endOfData();
                 }
                 final java.util.zip.ZipEntry zipEntry = entries.nextElement();
-                return new JdkZipEntry(new FileZipEntryHandler(zipEntry));
+                return new FileZipEntry(zipEntry);
             }
         };
     }
@@ -95,16 +94,9 @@ public class FileZipInput implements ZipInput {
         file.close();
     }
 
-    private class FileZipEntryHandler implements ZipEntryHandler {
-        private final java.util.zip.ZipEntry zipEntry;
-
-        public FileZipEntryHandler(java.util.zip.ZipEntry zipEntry) {
-            this.zipEntry = zipEntry;
-        }
-
-        @Override
-        public java.util.zip.ZipEntry getZipEntry() {
-            return zipEntry;
+    private class FileZipEntry extends AbstractZipEntry {
+        public FileZipEntry(java.util.zip.ZipEntry entry) {
+            super(entry);
         }
 
         @Override
@@ -119,7 +111,7 @@ public class FileZipInput implements ZipInput {
 
         public InputStream getInputStream() {
             try {
-                return file.getInputStream(zipEntry);
+                return file.getInputStream(getEntry());
             } catch (IOException e) {
                 throw new FileException(e);
             }
