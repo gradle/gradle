@@ -44,17 +44,17 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
     private static final DefaultDirectoryProvider DIRECTORY_PROVIDER = new DefaultDirectoryProvider();
 
     private static final Map<String, Packer> PACKERS = ImmutableMap.<String, Packer>builder()
-        .put("tar.snappy", new SnappyPacker(new ApacheCommonsCompressTarPacker(4)))
-        .put("tar.snappy.commons", new SnappyCommonsPacker(new ApacheCommonsCompressTarPacker(4)))
-        .put("tar.snappy.dain", new SnappyDainPacker(new ApacheCommonsCompressTarPacker(4)))
-        .put("tar.snappy.small", new SnappyPacker(new ApacheCommonsCompressTarPacker(2)))
-        .put("tar.snappy.large", new SnappyPacker(new ApacheCommonsCompressTarPacker(64)))
-        .put("tar", new ApacheCommonsCompressTarPacker(4))
+        .put("tar.snappy", new SnappyPacker(new CommonsTarPacker(4)))
+        .put("tar.snappy.commons", new SnappyCommonsPacker(new CommonsTarPacker(4)))
+        .put("tar.snappy.dain", new SnappyDainPacker(new CommonsTarPacker(4)))
+        .put("tar.snappy.small", new SnappyPacker(new CommonsTarPacker(2)))
+        .put("tar.snappy.large", new SnappyPacker(new CommonsTarPacker(64)))
+        .put("tar", new CommonsTarPacker(4))
         .put("tar.commons", new CommonsTarPacker(4))
         .put("tar.jtar", new JTarPacker(4))
-        .put("tar.small", new ApacheCommonsCompressTarPacker(2))
-        .put("tar.large", new ApacheCommonsCompressTarPacker(64))
-        .put("tar.gz", new GzipPacker(new ApacheCommonsCompressTarPacker(4)))
+        .put("tar.small", new CommonsTarPacker(2))
+        .put("tar.large", new CommonsTarPacker(64))
+        .put("tar.gz", new GzipPacker(new CommonsTarPacker(4)))
         .put("zip", new ZipPacker(4))
         .build();
 

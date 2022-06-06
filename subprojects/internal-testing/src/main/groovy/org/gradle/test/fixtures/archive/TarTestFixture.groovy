@@ -16,8 +16,8 @@
 
 package org.gradle.test.fixtures.archive
 
-import org.apache.tools.tar.TarEntry
-import org.apache.tools.tar.TarInputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.charset.Charset
@@ -26,21 +26,39 @@ import java.util.zip.GZIPInputStream
 class TarTestFixture extends ArchiveTestFixture {
     private final TestFile tarFile
 
-    public TarTestFixture(TestFile tarFile, String metadataCharset = null, String contentCharset = null) {
+    TarTestFixture(TestFile tarFile, String metadataCharset = null, String contentCharset = null) {
         this.tarFile = tarFile
 
         boolean gzip = !tarFile.name.endsWith("tar")
         tarFile.withInputStream { inputStream ->
-            TarInputStream tarInputStream = new TarInputStream(gzip ? new GZIPInputStream(inputStream) : inputStream, metadataCharset)
-            for (TarEntry tarEntry = tarInputStream.nextEntry; tarEntry != null; tarEntry = tarInputStream.nextEntry) {
+            TarArchiveInputStream tarInputStream = new TarArchiveInputStream(gzip ? new GZIPInputStream(inputStream) : inputStream, metadataCharset)
+            for (TarArchiveEntry tarEntry = nextEntry(tarInputStream); tarEntry != null; tarEntry = nextEntry(tarInputStream)) {
                 addMode(tarEntry.name, tarEntry.mode)
                 if (tarEntry.directory) {
                     continue
                 }
-                ByteArrayOutputStream stream = new ByteArrayOutputStream()
-                tarInputStream.copyEntryContents(stream)
-                add(tarEntry.name, new String(stream.toByteArray(), contentCharset ?: Charset.defaultCharset().name()))
+                def tarEntryContent = entryContent(tarEntry, tarInputStream, contentCharset)
+                add(tarEntry.name, tarEntryContent)
             }
         }
+    }
+
+    private static TarArchiveEntry nextEntry(TarArchiveInputStream tarInputStream) {
+        (TarArchiveEntry) tarInputStream.nextEntry
+    }
+
+    private static String entryContent(TarArchiveEntry entry, TarArchiveInputStream inputStream, String contentCharset) {
+        OutputStream outputStream = new ByteArrayOutputStream()
+        byte[] buf = new byte[1024];
+        long bytesRemaining = entry.getSize();
+        while (bytesRemaining > 0) {
+            int bytesRead = inputStream.read(buf, 0, buf.length);
+            if (bytesRead == -1) {
+                break;
+            }
+            outputStream.write(buf, 0, bytesRead);
+            bytesRemaining -= bytesRead;
+        }
+        new String(outputStream.toByteArray(), contentCharset ?: Charset.defaultCharset().name())
     }
 }
