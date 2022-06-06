@@ -21,7 +21,6 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 
 public interface JvmLanguageCompileSpec extends CompileSpec {
     File getTempDir();
@@ -32,27 +31,9 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setWorkingDir(File workingDir);
 
-    File getBuildDir();
-
-    void setBuildDir(File buildDir);
-
     File getDestinationDir();
 
     void setDestinationDir(File destinationDir);
-
-    /**
-     * A staging dir if present should be used to compile classes to.
-     * If not set then destination dir should be used.
-     *
-     * Used so we can revert previous state in case of a compilation failure.
-     */
-    @Nullable
-    File getStagingDir();
-
-    /**
-     * Set a staging dir to compile classes to
-     */
-    void setStagingDir(@Nullable File stagingDir);
 
     Iterable<File> getSourceFiles();
 

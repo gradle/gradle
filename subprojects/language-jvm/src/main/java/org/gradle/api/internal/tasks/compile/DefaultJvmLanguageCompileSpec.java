@@ -25,11 +25,9 @@ import java.util.List;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private File workingDir;
-    private File buildDir;
     private File tempDir;
     private List<File> classpath;
     private File destinationDir;
-    private File stagingDir;
     private Iterable<File> sourceFiles;
     private Integer release;
     private String sourceCompatibility;
@@ -47,16 +45,6 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public File getBuildDir() {
-        return buildDir;
-    }
-
-    @Override
-    public void setBuildDir(File buildDir) {
-        this.buildDir = buildDir;
-    }
-
-    @Override
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -64,16 +52,6 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     @Override
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
-    }
-
-    @Override
-    public File getStagingDir() {
-        return stagingDir;
-    }
-
-    @Override
-    public void setStagingDir(@Nullable File stagingDir) {
-        this.stagingDir = stagingDir;
     }
 
     @Override
