@@ -89,7 +89,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
         }
 
         List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
-        String joinedArgs = compilerArgs.stream().map(it -> it != null && StringUtils.isBlank(it) ? ('"' + it + '"') : it).collect(Collectors.joining(" "));
+        String joinedArgs = compilerArgs.stream().map(it -> StringUtils.isBlank(it) ? ('"' + it + '"') : it).collect(Collectors.joining(" "));
         LOGGER.debug("Compiler arguments: {}", joinedArgs);
     }
 
