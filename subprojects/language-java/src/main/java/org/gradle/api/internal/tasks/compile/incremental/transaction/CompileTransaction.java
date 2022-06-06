@@ -49,8 +49,8 @@ public class CompileTransaction {
     private final FileOperations fileOperations;
     private final File tempDir;
     private final List<TransactionalDirectory> transactionalDirectories = new ArrayList<>();
+    private final AtomicInteger uniqueDirIdGenerator = new AtomicInteger();
     private Predicate<Throwable> stashThrowablePredicate = t -> true;
-    private final AtomicInteger uniqueStashDirIdGenerator = new AtomicInteger();
 
     private CompileTransaction(File tempDir, FileOperations fileOperations, Deleter deleter) {
         this.tempDir = tempDir;
@@ -63,7 +63,7 @@ public class CompileTransaction {
      * Actual directory is created only when execute() method is called.
      */
     public CompileTransaction newTransactionalDirectory(Consumer<TransactionalDirectory> directoryConsumer) {
-        File directory = new File(tempDir, "dir-uniqueId" + uniqueStashDirIdGenerator.getAndIncrement());
+        File directory = new File(tempDir, "dir-uniqueId" + uniqueDirIdGenerator.getAndIncrement());
         TransactionalDirectory transactionalDirectory = new TransactionalDirectory(directory, fileOperations, deleter);
         directoryConsumer.accept(transactionalDirectory);
         transactionalDirectories.add(transactionalDirectory);
