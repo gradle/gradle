@@ -28,9 +28,13 @@ import java.util.stream.Collectors;
  * A factory for creating and accessing ordinal nodes
  */
 public class OrdinalNodeAccess {
-    private final Map<Integer, OrdinalGroup> groups = Maps.newHashMap();
+    private final OrdinalGroupFactory ordinalGroups;
     private final Map<OrdinalGroup, OrdinalNode> destroyerLocationNodes = Maps.newHashMap();
     private final Map<OrdinalGroup, OrdinalNode> producerLocationNodes = Maps.newHashMap();
+
+    public OrdinalNodeAccess(OrdinalGroupFactory ordinalGroups) {
+        this.ordinalGroups = ordinalGroups;
+    }
 
     OrdinalNode getOrCreateDestroyableLocationNode(OrdinalGroup ordinal) {
         return destroyerLocationNodes.computeIfAbsent(ordinal, i -> createDestroyerLocationNode(ordinal));
@@ -80,7 +84,7 @@ public class OrdinalNodeAccess {
     }
 
     public OrdinalGroup group(int ordinal) {
-        return groups.computeIfAbsent(ordinal, integer -> new OrdinalGroup(ordinal));
+        return ordinalGroups.group(ordinal);
     }
 
     @Nullable
