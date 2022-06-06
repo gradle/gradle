@@ -29,14 +29,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -49,152 +47,224 @@ public class CompileTransaction {
 
     private final Deleter deleter;
     private final FileOperations fileOperations;
-    private final Set<File> directoriesToCleanBeforeAll = new HashSet<>();
-    private final List<BooleanSupplier> stashBeforeExecutionActions = new ArrayList<>();
-    private final List<Runnable> stashAfterExecutionActions = new ArrayList<>();
-    private final List<Runnable> onSuccessActions = new ArrayList<>();
-    private final List<Runnable> beforeExecutionDoActions = new ArrayList<>();
-    private final List<Runnable> afterExecutionAlwaysDoActions = new ArrayList<>();
-    private final AtomicInteger uniqueStashDirIdGenerator = new AtomicInteger();
+    private final File tempDir;
+    private final List<TransactionalDirectory> transactionalDirectories = new ArrayList<>();
     private Predicate<Throwable> stashThrowablePredicate = t -> true;
+    private final AtomicInteger uniqueStashDirIdGenerator = new AtomicInteger();
 
-    private CompileTransaction(FileOperations fileOperations, Deleter deleter) {
+    private CompileTransaction(File tempDir, FileOperations fileOperations, Deleter deleter) {
+        this.tempDir = tempDir;
         this.fileOperations = fileOperations;
         this.deleter = deleter;
     }
 
     /**
-     * Makes sure that the given target is an empty directory or if directory doesn't exist it creates it and also all parent directories.
-     *
-     * For implementation details check {@link org.gradle.internal.file.Deleter#ensureEmptyDirectory(File)}.
+     * Creates a new transactional directory in a temp directory that can be used to move files to.
+     * Actual directory is created only when execute() method is called.
      */
-    public CompileTransaction beforeAllEnsureEmptyDirectories(File... directories) {
-        directoriesToCleanBeforeAll.addAll(Arrays.asList(directories));
+    public CompileTransaction newTransactionalDirectory(Consumer<TransactionalDirectory> directoryConsumer) {
+        File directory = new File(tempDir, "dir-uniqueId" + uniqueStashDirIdGenerator.getAndIncrement());
+        TransactionalDirectory transactionalDirectory = new TransactionalDirectory(directory, fileOperations, deleter);
+        directoryConsumer.accept(transactionalDirectory);
+        transactionalDirectories.add(transactionalDirectory);
         return this;
     }
 
     /**
-     * Stash a pattern set of files from source directory to some stash directory in stashRootDirectory. Files are moved before execution and on failure rolled back.
+     * Creates and registers transactional directory only if condition is met. If it is not met directory will not be register. Also, any action set on directory won't run.
      */
-    public CompileTransaction stashStaleFilesTo(PatternSet patternSet, File sourceDirectory, File stashRootDirectory) {
-        if (patternSet == null || patternSet.isEmpty() || sourceDirectory == null) {
-            return this;
-        }
-        // Create stash function first
-        AtomicReference<Set<File>> stashedFiles = new AtomicReference<>();
-        File stashDirectory = new File(stashRootDirectory, "stash-" + uniqueStashDirIdGenerator.getAndIncrement());
-        stashBeforeExecutionActions.add(() -> {
-            Set<File> files = fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
-            stashedFiles.set(moveFilesFromDirectoryTo(files, sourceDirectory, stashDirectory));
-            return !stashedFiles.get().isEmpty();
-        });
-
-        // Then create also unstash function
-        stashAfterExecutionActions.add(() -> moveFilesFromDirectoryTo(stashedFiles.get(), stashDirectory, sourceDirectory));
-        return this;
+    public CompileTransaction newTransactionalDirectory(boolean registerCondition, Consumer<TransactionalDirectory> directoryConsumer) {
+        return registerCondition ? newTransactionalDirectory(directoryConsumer) : this;
     }
 
-    private Set<File> moveFilesFromDirectoryTo(Set<File> files, File sourceDirectory, File destinationDirectory) {
-        if (files.isEmpty() || sourceDirectory == null) {
-            return Collections.emptySet();
-        }
-        Set<File> newFiles = new HashSet<>();
-        StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
-            Path relativePath = sourceDirectory.toPath().relativize(file.toPath());
-            File newFile = new File(destinationDirectory, relativePath.toString());
-            if (FileUtils.moveFile(file, newFile)) {
-                newFiles.add(newFile);
-                return true;
-            }
-            return false;
-        }), files, sourceDirectory);
-        return newFiles;
-    }
-
-    /**
-     * Moves files from source directory to destination directory, but only on success. Any file that already exist in destination directory is replaced.
-     * Folder hierarchy is automatically created.
-     */
-    public CompileTransaction onSuccessMoveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
-        onSuccessActions.add(() -> moveAllFilesFromDirectoryTo(sourceDirectory, destinationDirectory));
-        return this;
-    }
-
-    private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
-        fileOperations.fileTree(sourceDirectory).visit(fileVisitDetails -> {
-            if (!fileVisitDetails.isDirectory()) {
-                File newFile = new File(destinationDirectory, fileVisitDetails.getPath());
-                FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
-            }
-        });
-    }
-
-    /**
-     * Adds a predicate to test if transaction should roll back stash or not.
-     * By default, any exception will cause rollback.
-     */
     public CompileTransaction onFailureRollbackStashIfException(Predicate<Throwable> predicate) {
         stashThrowablePredicate = checkNotNull(predicate);
         return this;
     }
 
     /**
-     * Adds action that will be run just before execution.
-     */
-    public CompileTransaction beforeExecutionDo(Runnable runnable) {
-        beforeExecutionDoActions.add(runnable);
-        return this;
-    }
-
-    /**
-     * Adds action that will be run after execution always, even if there is a failure.
-     */
-    public CompileTransaction afterExecutionAlwaysDo(Runnable runnable) {
-        afterExecutionAlwaysDoActions.add(runnable);
-        return this;
-    }
-
-    /**
      * Executes the function that is wrapped in the transaction. Function accepts a work result,
      * that has a result of a stash operation. If some files were stashed, then work will be marked as "did work".
+     *
+     * Execute will always clean temp directory, so it is empty before execution.
      */
     public <T> T execute(Function<WorkResult, T> function) {
         ensureEmptyDirectoriesBeforeAll();
         WorkResult workResult = stashFilesBeforeExecution();
         try {
-            beforeExecutionDoActions.forEach(Runnable::run);
+            transactionalDirectories.forEach(dir -> dir.beforeExecutionAction.run());
             T result = function.apply(workResult);
-            onSuccessActions.forEach(Runnable::run);
+            transactionalDirectories.forEach(dir -> dir.onSuccessMoveAction.run());
             return result;
         } catch (Throwable t) {
             if (stashThrowablePredicate.test(t)) {
-                stashAfterExecutionActions.forEach(Runnable::run);
+                transactionalDirectories.forEach(dir -> dir.stashRollbackAction.run());
             }
             throw t;
         } finally {
-            afterExecutionAlwaysDoActions.forEach(Runnable::run);
+            transactionalDirectories.forEach(dir -> dir.afterExecutionAlwaysDoAction.run());
         }
     }
 
     private WorkResult stashFilesBeforeExecution() {
         boolean didWork = false;
-        for (BooleanSupplier supplier : stashBeforeExecutionActions) {
-            didWork |= supplier.getAsBoolean();
+        for (TransactionalDirectory directory : transactionalDirectories) {
+            didWork |= directory.stashFilesAction.getAsBoolean();
         }
         return WorkResults.didWork(didWork);
     }
 
     private void ensureEmptyDirectoriesBeforeAll() {
         try {
-            for (File directory : directoriesToCleanBeforeAll) {
-                deleter.ensureEmptyDirectory(directory);
+            deleter.ensureEmptyDirectory(tempDir);
+            for (TransactionalDirectory directory : transactionalDirectories) {
+                if (directory.isCreateDirectoryBeforeExecution) {
+                    deleter.ensureEmptyDirectory(directory.getAsFile());
+                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static CompileTransaction newTransaction(FileOperations fileOperations, Deleter deleter) {
-        return new CompileTransaction(fileOperations, deleter);
+    /**
+     * Creates new transaction.
+     *
+     * @param tempDir a temporary directory that will be used the create transactional directories, it will always be cleaned before transaction execution.
+     * @param fileOperations file operations for move operations.
+     * @param deleter for delete operations.
+     */
+    public static CompileTransaction newTransaction(File tempDir, FileOperations fileOperations, Deleter deleter) {
+        return new CompileTransaction(tempDir, fileOperations, deleter);
+    }
+
+    public static class TransactionalDirectory {
+
+        private final String uniqueDirectoryId;
+        private final Deleter deleter;
+        private final FileOperations fileOperations;
+        private File directory;
+        private BooleanSupplier stashFilesAction = () -> false;
+        private Runnable stashRollbackAction = () -> {};
+        private Runnable onSuccessMoveAction = () -> {};
+        private Runnable beforeExecutionAction = () -> {};
+        private Runnable afterExecutionAlwaysDoAction = () -> {};
+        private boolean isCreateDirectoryBeforeExecution;
+
+        public TransactionalDirectory(File directory, FileOperations fileOperations, Deleter deleter) {
+            this.uniqueDirectoryId = directory.getName();
+            this.directory = directory;
+            this.fileOperations = fileOperations;
+            this.deleter = deleter;
+        }
+
+        /**
+         * Stash a pattern set of files from source directory to this directory. Files are moved before execution and on failure rolled back.
+         */
+        public TransactionalDirectory stashFilesForRollbackOnFailure(PatternSet patternSet, File sourceDirectory) {
+            if (patternSet == null || patternSet.isEmpty() || sourceDirectory == null || !sourceDirectory.exists()) {
+                return this;
+            }
+
+            createDirectoryBeforeExecution();
+            if (!hasNamePrefix()) {
+                withNamePrefix("stash-for-" + sourceDirectory.getName());
+            }
+
+            // Create stash function first
+            Set<File> newFiles = new HashSet<>();
+            stashFilesAction = () -> {
+                Set<File> files = fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
+                moveFilesFromDirectoryTo(files, sourceDirectory, directory, newFiles::add);
+                return !newFiles.isEmpty();
+            };
+
+            // Then create also unstash function
+            stashRollbackAction = () -> moveFilesFromDirectoryTo(newFiles, directory, sourceDirectory, file -> {});
+            return this;
+        }
+
+        /**
+         * Moves files from this directory to destination directory, but only on success. Any file that already exists in destination directory is replaced.
+         * Folder hierarchy is automatically created.
+         */
+        public TransactionalDirectory onSuccessMoveFilesTo(File destinationDirectory) {
+            if (destinationDirectory == null) {
+                return this;
+            }
+
+            createDirectoryBeforeExecution();
+            if (!hasNamePrefix()) {
+                withNamePrefix("out-for-" + destinationDirectory.getName());
+            }
+
+            onSuccessMoveAction = () -> moveAllFilesFromDirectoryTo(directory, destinationDirectory);
+            return this;
+        }
+
+        /**
+         * Sets an action that will be run just before execution.
+         */
+        public TransactionalDirectory beforeExecutionDo(Runnable runnable) {
+            beforeExecutionAction = runnable;
+            return this;
+        }
+
+        /**
+         * Sets an action that will be run after execution always, even if there is a failure.
+         */
+        public TransactionalDirectory afterExecutionAlwaysDo(Runnable runnable) {
+            afterExecutionAlwaysDoAction = runnable;
+            return this;
+        }
+
+        /**
+         * Add additional prefix to the folder. This is optional, but it makes it easier to debug.
+         */
+        public TransactionalDirectory withNamePrefix(String namePrefix) {
+            this.directory = new File(directory.getParentFile(), namePrefix + "-" + uniqueDirectoryId);
+            return this;
+        }
+
+        private boolean hasNamePrefix() {
+            return !directory.getName().equals(uniqueDirectoryId);
+        }
+
+        /**
+         * A flag that tells that a directory on disk should be created before execution.
+         * If stash or move files operation are used with valid directories, this is set to true by default.
+         */
+        public TransactionalDirectory createDirectoryBeforeExecution() {
+            this.isCreateDirectoryBeforeExecution = true;
+            return this;
+        }
+
+        public File getAsFile() {
+            return directory;
+        }
+
+        private void moveFilesFromDirectoryTo(Set<File> files, File sourceDirectory, File destinationDirectory, Consumer<File> newFileCollector) {
+            if (files.isEmpty() || sourceDirectory == null) {
+                return;
+            }
+            StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
+                Path relativePath = sourceDirectory.toPath().relativize(file.toPath());
+                File newFile = new File(destinationDirectory, relativePath.toString());
+                if (FileUtils.moveFile(file, newFile)) {
+                    newFileCollector.accept(newFile);
+                    return true;
+                }
+                return false;
+            }), files, sourceDirectory);
+        }
+
+        private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
+            fileOperations.fileTree(sourceDirectory).visit(fileVisitDetails -> {
+                if (!fileVisitDetails.isDirectory()) {
+                    File newFile = new File(destinationDirectory, fileVisitDetails.getPath());
+                    FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
+                }
+            });
+        }
     }
 }

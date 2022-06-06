@@ -175,7 +175,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
-        spec.setBuildDir(getProjectLayout().getBuildDirectory().get().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         configureCompatibilityOptions(spec);

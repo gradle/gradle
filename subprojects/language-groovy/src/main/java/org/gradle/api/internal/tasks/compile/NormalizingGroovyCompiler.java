@@ -25,6 +25,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -86,14 +87,16 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         spec.setSourceFiles(ImmutableSet.copyOf(filtered));
     }
 
+    /**
+     * Necessary for Groovy compilation to pick up output of regular and joint Java compilation,
+     * and for joint Java compilation to pick up the output of regular Java compilation.
+     * Assumes that output of regular Java compilation (which is not under this task's control) also goes
+     * into {@link GroovyCompile#getDestinationDirectory()}. We could configure this on source set level, but then spec.getDestinationDir()
+     * would end up on the compile class path of every compile task for that source set, which may not be desirable.
+     */
     private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
-        // Necessary for Groovy compilation to pick up output of regular and joint Java compilation,
-        // and for joint Java compilation to pick up the output of regular Java compilation.
-        // Assumes that output of regular Java compilation (which is not under this task's control) also goes
-        // into spec.getDestinationDir(). We could configure this on source set level, but then spec.getDestinationDir()
-        // would end up on the compile class path of every compile task for that source set, which may not be desirable.
         List<File> classPath = Lists.newArrayList(spec.getCompileClasspath());
-        classPath.add(spec.getDestinationDir());
+        classPath.add(spec.getJavaDestinationDir());
         spec.setCompileClasspath(classPath);
     }
 

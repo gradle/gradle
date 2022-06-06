@@ -22,6 +22,7 @@ import java.util.List;
 public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec implements GroovyJavaJointCompileSpec {
     private MinimalGroovyCompileOptions groovyCompileOptions;
     private List<File> groovyClasspath;
+    private File javaDestinationDir;
 
     @Override
     public MinimalGroovyCompileOptions getGroovyCompileOptions() {
@@ -45,5 +46,15 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     @Override
     public boolean incrementalCompilationEnabled() {
         return getCompileOptions().getPreviousCompilationDataFile() != null;
+    }
+
+    @Override
+    public File getJavaDestinationDir() {
+        return javaDestinationDir;
+    }
+
+    @Override
+    public void setJavaDestinationDir(File javaDestinationDir) {
+        this.javaDestinationDir = javaDestinationDir;
     }
 }

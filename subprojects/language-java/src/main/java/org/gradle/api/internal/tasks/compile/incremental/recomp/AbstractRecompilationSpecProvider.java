@@ -41,6 +41,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.CLASS_OUTPUT;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.SOURCE_OUTPUT;
+
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
     private final Deleter deleter;
     private final FileOperations fileOperations;
@@ -76,39 +79,57 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     @Override
     public CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
+            File tempDir = newCompileTransactionTempDir(spec);
             spec.setSourceFiles(ImmutableSet.of());
             spec.setClasses(Collections.emptySet());
-            return CompileTransaction.newTransaction(fileOperations, deleter);
+            return CompileTransaction.newTransaction(tempDir, fileOperations, deleter);
         }
+
         PatternSet classesToDelete = fileOperations.patternSet();
         PatternSet sourceToCompile = fileOperations.patternSet();
 
         SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(recompilationSpec.getPreviousCompilation());
-
         prepareFilePatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile, sourceFileClassNameConverter);
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
-
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
 
-        File stashRootDir = new File(spec.getTempDir(), "compileStash");
-        File compileStaging = new File(spec.getTempDir(), "compileStaging");
-        spec.setStagingDir(compileStaging);
-        return CompileTransaction.newTransaction(fileOperations, deleter)
-            // Make temporary directories empty or if they don't exist create them
-            .beforeAllEnsureEmptyDirectories(stashRootDir, compileStaging)
-            // Stash some files that should be deleted in case there is a compilation error, so we can restore state
-            .stashStaleFilesTo(classesToDelete, spec.getDestinationDir(), stashRootDir)
-            .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), stashRootDir)
-            .stashStaleFilesTo(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory(), stashRootDir)
-            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), spec.getDestinationDir(), stashRootDir)
-            // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so stash that instead.
-            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir()), stashRootDir)
+        File tempDir = newCompileTransactionTempDir(spec);
+        File compileDestinationDir = spec.getDestinationDir();
+        File annProcessorGeneratedSourcesDir = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
+        File headerOutputDir = spec.getCompileOptions().getHeaderOutputDirectory();
+        return CompileTransaction.newTransaction(tempDir, fileOperations, deleter)
+            .onFailureRollbackStashIfException(t -> t instanceof CompilationFailedException)
+            // Move files that should be deleted to new folders that will be reverted in case of a failure
+            .newTransactionalDirectory(dir -> dir.stashFilesForRollbackOnFailure(classesToDelete, compileDestinationDir))
+            .newTransactionalDirectory(dir -> dir.stashFilesForRollbackOnFailure(classesToDelete, annProcessorGeneratedSourcesDir))
+            .newTransactionalDirectory(dir -> dir.stashFilesForRollbackOnFailure(classesToDelete, headerOutputDir))
+            .newTransactionalDirectory(dir -> dir.stashFilesForRollbackOnFailure(resourcesToDelete.get(CLASS_OUTPUT), compileDestinationDir))
+            // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so delete that instead.
+            .newTransactionalDirectory(dir -> dir.stashFilesForRollbackOnFailure(resourcesToDelete.get(SOURCE_OUTPUT), MoreObjects.firstNonNull(annProcessorGeneratedSourcesDir, compileDestinationDir)))
             // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
-            .stashStaleFilesTo(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory(), stashRootDir)
-            .onSuccessMoveAllFilesFromDirectoryTo(compileStaging, spec.getDestinationDir())
-            .onFailureRollbackStashIfException(t -> t instanceof CompilationFailedException);
+            .newTransactionalDirectory(dir -> dir.stashFilesForRollbackOnFailure(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), headerOutputDir))
+            // Set compile outputs to new folders and in case of a success move content to original folders
+            .newTransactionalDirectory(dir -> dir
+                .onSuccessMoveFilesTo(compileDestinationDir)
+                .beforeExecutionDo(() -> spec.setDestinationDir(dir.getAsFile()))
+                .afterExecutionAlwaysDo(() -> spec.setDestinationDir(compileDestinationDir))
+            )
+            .newTransactionalDirectory(annProcessorGeneratedSourcesDir != null, dir -> dir
+                .onSuccessMoveFilesTo(annProcessorGeneratedSourcesDir)
+                .beforeExecutionDo(() -> spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(dir.getAsFile()))
+                .afterExecutionAlwaysDo(() -> spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annProcessorGeneratedSourcesDir))
+            )
+            .newTransactionalDirectory(headerOutputDir != null, dir -> dir
+                .onSuccessMoveFilesTo(headerOutputDir)
+                .beforeExecutionDo(() -> spec.getCompileOptions().setHeaderOutputDirectory(dir.getAsFile()))
+                .afterExecutionAlwaysDo(() -> spec.getCompileOptions().setHeaderOutputDirectory(headerOutputDir))
+            );
+    }
+
+    private File newCompileTransactionTempDir(JavaCompileSpec spec) {
+        return new File(spec.getTempDir(), "compileTransaction");
     }
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
