@@ -277,7 +277,7 @@ fun Project.enableScriptCompilationOf(
                 metadataDir.set(accessorsMetadata)
                 classPathFiles.from(compileClasspath)
                 onConfigure { resolverEnvironment ->
-                    objects.withInstance<TaskContainerScope>() {
+                    objects.withInstance<TaskContainerScope> {
                         configureScriptResolverEnvironment(resolverEnvironment)
                     }
                 }
@@ -299,7 +299,7 @@ fun Task.configureScriptResolverEnvironmentOnDoFirst(
     accessorsMetadata: Provider<Directory>
 ) {
     doFirst {
-        objects.withInstance<ResolverEnvironmentScope>() {
+        objects.withInstance<ResolverEnvironmentScope> {
             configureScriptResolverEnvironment(
                 resolverEnvironmentStringFor(
                     implicitImports,
