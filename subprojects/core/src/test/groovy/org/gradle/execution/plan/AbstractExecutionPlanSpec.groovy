@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -48,6 +49,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     def thisBuild = backing.gradle
     def project = project()
     def nodeValidator = Mock(NodeValidator)
+    def coordinator = new DefaultResourceLockCoordinationService()
 
     protected Set<ProjectInternal> getLockedProjects() {
         return locks.findAll { it.locked }.collect { it.project } as Set

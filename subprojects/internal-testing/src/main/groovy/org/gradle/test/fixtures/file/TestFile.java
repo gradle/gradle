@@ -448,8 +448,12 @@ public class TestFile extends File {
     public TestFile assertDoesNotExist() {
         if (exists()) {
             Set<String> descendants = new TreeSet<String>();
-            visit(descendants, "", this, false);
-            throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+            if (isFile()) {
+                throw new AssertionError(String.format("%s should not exist", this));
+            } else {
+                visit(descendants, "", this, false);
+                throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+            }
         }
         return this;
     }

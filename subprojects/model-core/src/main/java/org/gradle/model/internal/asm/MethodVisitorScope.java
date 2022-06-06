@@ -301,6 +301,10 @@ public class MethodVisitorScope extends MethodVisitor {
         super.visitFieldInsn(PUTFIELD, owner, name, descriptor);
     }
 
+    protected void _PUTFIELD(String owner, String name, Type fieldType) {
+        _PUTFIELD(owner, name, fieldType.getDescriptor());
+    }
+
     protected void _PUTFIELD(Type owner, String name, Type fieldType) {
         _PUTFIELD(owner, name, fieldType.getDescriptor());
     }
@@ -311,6 +315,10 @@ public class MethodVisitorScope extends MethodVisitor {
 
     protected void _GETFIELD(String owner, String name, String descriptor) {
         super.visitFieldInsn(GETFIELD, owner, name, descriptor);
+    }
+
+    protected void _GETFIELD(String owner, String name, Type fieldType) {
+        _GETFIELD(owner, name, fieldType.getDescriptor());
     }
 
     protected void _GETFIELD(Type owner, String name, Type fieldType) {

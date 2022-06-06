@@ -58,10 +58,9 @@ public class ClassFileExtractionManager {
                 Set<File> jarFiles = packageJarFilesMappings.get(packageName);
                 if (jarFiles == null) {
                     jarFiles = new TreeSet<File>();
+                    packageJarFilesMappings.put(packageName, jarFiles);
                 }
                 jarFiles.add(libraryJar);
-
-                packageJarFilesMappings.put(packageName, jarFiles);
             }
         });
     }

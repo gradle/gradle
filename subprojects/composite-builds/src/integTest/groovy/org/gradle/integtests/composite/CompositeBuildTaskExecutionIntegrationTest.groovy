@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -33,7 +35,10 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        succeeds(":other-build:doSomething")
+        2.times {
+            succeeds(":other-build:doSomething")
+            outputContains("do something")
+        }
     }
 
     def "can run included build task included with --include-build"() {
@@ -68,7 +73,10 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        succeeds(":other-build:sub:doSomething")
+        2.times {
+            succeeds(":other-build:sub:doSomething")
+            outputContains("do something")
+        }
     }
 
     def "only absolute task paths can be used to target included builds"() {
@@ -149,6 +157,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds(":other-plugin:taskFromIncludedPlugin")
         output.count(":other-plugin:jar") == 1
+        succeeds(":other-plugin:taskFromIncludedPlugin")
     }
 
     def "can pass options to task in included build"() {
@@ -349,5 +358,51 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds("doSomething")
         outputContains("do something")
+    }
+
+    def "can run task from included build that also produces build logic"() {
+        setup:
+        settingsFile << "includeBuild('build-logic')"
+        def rootDir = file("build-logic")
+        rootDir.file("settings.gradle") << """
+            rootProject.name="lib"
+        """
+        rootDir.file("build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    p {
+                        id = "test.plugin"
+                        implementationClass = "test.PluginImpl"
+                    }
+                }
+            }
+        """
+        rootDir.file("src/main/java/test/PluginImpl.java") << """
+            package test;
+
+            import ${Project.name};
+            import ${Plugin.name};
+
+            public class PluginImpl implements Plugin<Project> {
+                public void apply(Project project) { }
+            }
+        """
+        buildFile("""
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+            dependencies {
+                implementation("lib:lib:1.0")
+            }
+        """)
+
+        expect:
+        2.times {
+            succeeds(":build-logic:classes")
+        }
     }
 }

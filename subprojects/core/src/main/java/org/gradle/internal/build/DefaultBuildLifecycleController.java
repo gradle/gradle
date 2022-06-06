@@ -30,7 +30,6 @@ import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Describables;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final InternalBuildFinishedListener buildFinishedListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
-    private final BuildScopeServices buildServices;
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
     private final StateTransitionController<State> state;
@@ -71,7 +69,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
-        BuildScopeServices buildServices,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
         StateTransitionControllerFactory controllerFactory
     ) {
@@ -82,7 +79,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
         this.buildFinishedListener = buildFinishedListener;
-        this.buildServices = buildServices;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }

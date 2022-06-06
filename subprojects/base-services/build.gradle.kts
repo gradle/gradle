@@ -40,6 +40,7 @@ dependencies {
 
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.xerces)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 

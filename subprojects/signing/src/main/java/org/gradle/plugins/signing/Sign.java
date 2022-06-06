@@ -229,7 +229,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
      */
     private Map<String, Signature> sanitizedSignatures() {
-        return signatures.matching(signature -> signature.getToSign().exists()).stream().collect(toMap(Signature::toKey, identity(), (signature, duplicate) -> signature));
+        return signatures.matching(signature -> signature.getToSign().exists())
+            .stream()
+            .collect(
+                toMap(
+                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
+                    identity(),
+                    (signature, duplicate) -> signature
+                )
+            );
     }
 
     /**

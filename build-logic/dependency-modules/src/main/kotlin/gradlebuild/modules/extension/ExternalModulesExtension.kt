@@ -20,8 +20,9 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension {
 
-    val groovyVersion = "3.0.9"
-    val kotlinVersion = "1.6.10"
+    val groovyVersion = "3.0.10"
+    val configurationCacheReportVersion = "1.1"
+    val kotlinVersion = "1.6.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -50,6 +51,7 @@ abstract class ExternalModulesExtension {
     val commonsLang = "commons-lang:commons-lang"
     val commonsLang3 = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
+    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -109,7 +111,6 @@ abstract class ExternalModulesExtension {
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
-    val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
@@ -126,7 +127,6 @@ abstract class ExternalModulesExtension {
     val jna = "net.java.dev.jna:jna"
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
-    val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
 
     // Compile only dependencies (dynamically downloaded if needed)
@@ -164,6 +164,7 @@ abstract class ExternalModulesExtension {
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
+    val socksProxy = "com.github.bbottema:java-socks-proxy-server"
     val spock = "org.spockframework:spock-core"
     val spockJUnit4 = "org.spockframework:spock-junit4"
     val sshdCore = "org.apache.sshd:sshd-core"
@@ -171,6 +172,7 @@ abstract class ExternalModulesExtension {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
+    val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
@@ -198,6 +200,7 @@ abstract class ExternalModulesExtension {
         commonsLang to License.Apache2,
         commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
@@ -246,7 +249,6 @@ abstract class ExternalModulesExtension {
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
-        nekohtml to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
         plexusInterpolation to License.Apache2,
@@ -261,7 +263,6 @@ abstract class ExternalModulesExtension {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xerces to License.Apache2,
         xmlApis to License.Apache2
     )
 }

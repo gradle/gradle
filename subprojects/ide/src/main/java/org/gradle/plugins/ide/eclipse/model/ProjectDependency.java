@@ -107,7 +107,7 @@ public class ProjectDependency extends AbstractClasspathEntry {
     }
 
     /**
-     * Returns the tasks to be executed to build the the file returned by {@link #getPublication()}
+     * Returns the tasks to be executed to build the file returned by {@link #getPublication()}
      * <p>
      * This property doesn't have a direct effect to the Gradle Eclipse plugin's behaviour. It is used, however, by
      * Buildship to execute the configured tasks each time before the user imports the project or before a project
@@ -120,7 +120,7 @@ public class ProjectDependency extends AbstractClasspathEntry {
     }
 
     /**
-     * Sets the tasks to be executed to build the the file returned by {@link #getPublication()}
+     * Sets the tasks to be executed to build the file returned by {@link #getPublication()}
      *
      * @see #getBuildDependencies()
      * @since 5.6

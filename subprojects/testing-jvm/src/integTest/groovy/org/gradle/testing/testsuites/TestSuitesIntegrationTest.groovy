@@ -34,9 +34,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
+
             testing {
                 suites {
                     eagerTest(JvmTestSuite)
@@ -55,9 +54,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             task checkConfiguration {
                 dependsOn test
@@ -77,9 +74,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -108,9 +103,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -139,9 +132,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -155,7 +146,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.size() == 7
                     assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -170,9 +161,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -201,9 +190,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -215,7 +202,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -230,9 +217,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -261,8 +246,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
         'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.Frameworks.SPOCK.getDefaultVersion()}.jar"
         'useSpock("2.1-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.1-groovy-3.0.jar" // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
-        'useKotlinTest()'            | JUnitTestFramework         | "kotlin-test-junit-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
-        'useKotlinTest("1.5.30")'    | JUnitTestFramework         | "kotlin-test-junit-1.5.30.jar"
+        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
         'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.Frameworks.TESTNG.getDefaultVersion()}.jar"
         'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
     }
@@ -273,9 +258,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -290,7 +273,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -299,7 +282,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
                     assert configurations.integTestRuntimeClasspath.files.size() == 2
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
                 }
             }
         """
@@ -325,9 +308,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -351,7 +332,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert integTest.testFramework instanceof ${JUnitTestFramework.canonicalName}
 
                     // but test suite still adds JUnit Jupiter
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -366,9 +347,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -393,7 +372,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
                     // but test suite still adds JUnit4
                     assert configurations.integTestRuntimeClasspath.files.size() == 2
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
                 }
             }
         """
@@ -408,9 +387,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -496,9 +473,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -541,9 +516,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("mytest", Test)
             apply plugin: 'java'
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {

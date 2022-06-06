@@ -21,6 +21,12 @@ import spock.lang.Issue
 
 class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
+    def setup() {
+        executer.beforeExecute {
+            expectIncrementalTaskInputsDeprecationWarning()
+        }
+    }
+
     String getTaskAction() {
         """
             void execute(IncrementalTaskInputs inputs) {
@@ -101,6 +107,9 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
             }
         """
         String myTask = ':myTask'
+        executer.beforeExecute {
+            expectIncrementalTaskInputsDeprecationWarning('MyTask', 'doStuff')
+        }
 
         when:
         file("inputDir1/child") << "inputFile1"
@@ -116,5 +125,10 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
 
         where:
         inputAnnotation << [InputFiles.name, InputDirectory.name]
+    }
+
+    void expectIncrementalTaskInputsDeprecationWarning(String className = 'BaseIncrementalTask', String methodName = 'execute') {
+        String source = "${className}.${methodName}"
+        executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method '$source' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
     }
 }

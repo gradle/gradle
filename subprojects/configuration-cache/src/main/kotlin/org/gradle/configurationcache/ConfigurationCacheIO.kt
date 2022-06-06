@@ -246,6 +246,8 @@ class ConfigurationCacheIO internal constructor(
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
+                    }.also {
+                        finish()
                     }
                 }
             }

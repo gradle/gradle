@@ -1027,9 +1027,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
         buildFile << """
             apply from: 'script.gradle'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             configurations {
                 thing
             }

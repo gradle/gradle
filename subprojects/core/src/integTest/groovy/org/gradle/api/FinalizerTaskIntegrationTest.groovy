@@ -93,6 +93,32 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         ['a', 'b']     | 'c'         | [any(':c', ':d'), ':b'] // :c and :d might run in parallel with the configuration cache
     }
 
+    void 'finalizer tasks are not run when finalized task does not run due to unrelated task failure and not using --continue'() {
+        given:
+        buildScript("""
+            task a {
+            }
+            task b {
+                finalizedBy a
+                doLast {
+                    throw new RuntimeException("broken")
+                }
+            }
+            task c {
+            }
+            task d {
+                finalizedBy c
+                mustRunAfter(b)
+            }
+        """)
+
+        expect:
+        2.times {
+            fails("b", "d")
+            result.assertTasksExecutedInOrder ":b", ":a"
+        }
+    }
+
     @Ignore
     void 'finalizer tasks work with task disabling (#taskDisablingStatement)'() {
         setupProject()
@@ -188,13 +214,13 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:a
-\\--- :c
-     \\--- :b
-          \\--- :a (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                                            |:a
+                                            |\\--- :c
+                                            |     \\--- :b
+                                            |          \\--- :a (*)
+                                            |
+                                            |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 
@@ -215,11 +241,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:c
-\\--- :c (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                                            |:c
+                                            |\\--- :c (*)
+                                            |
+                                            |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 
@@ -244,16 +270,47 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:d
-\\--- :f
-     \\--- :e
-          \\--- :d (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                                            |:d
+                                            |\\--- :f
+                                            |     \\--- :e
+                                            |          \\--- :d (*)
+                                            |
+                                            |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20800")
+    void 'finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints'() {
+        given:
+        buildFile '''
+            task dockerTest {
+                dependsOn 'dockerUp'     // dependsOn createContainer mustRunAfter removeContainer
+                finalizedBy 'dockerStop' // dependsOn removeContainer
+            }
+
+            task dockerUp {
+                dependsOn 'createContainer'
+            }
+
+            task dockerStop {
+                dependsOn 'removeContainer'
+            }
+
+            task createContainer {
+                mustRunAfter 'removeContainer'
+            }
+
+            task removeContainer {
+            }
+        '''
+
+        expect:
+        succeeds 'dockerTest'
+
+        and:
+        result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+    }
 
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile """

@@ -16,8 +16,10 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.file.FileCollection
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
@@ -66,10 +68,11 @@ val allowedProperties = setOf(
 class InstrumentedInputAccessListener(
     listenerManager: ListenerManager,
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
+    private val environmentChangeTracker: EnvironmentChangeTracker,
 ) : Instrumented.Listener {
 
     private
-    val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
+    val undeclaredInputBroadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
 
     private
     val externalProcessListener = configurationCacheProblemsListener
@@ -78,14 +81,26 @@ class InstrumentedInputAccessListener(
         if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }
-        broadcast.systemPropertyRead(key, value, consumer)
+        undeclaredInputBroadcast.systemPropertyRead(key, value, consumer)
+    }
+
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String) {
+        environmentChangeTracker.systemPropertyChanged(key, value, consumer)
+    }
+
+    override fun systemPropertyRemoved(key: Any, consumer: String) {
+        environmentChangeTracker.systemPropertyRemoved(key)
+    }
+
+    override fun systemPropertiesCleared(consumer: String) {
+        environmentChangeTracker.systemPropertiesCleared()
     }
 
     override fun envVariableQueried(key: String, value: String?, consumer: String) {
         if (Workarounds.canReadEnvironmentVariable(consumer)) {
             return
         }
-        broadcast.envVariableRead(key, value, consumer)
+        undeclaredInputBroadcast.envVariableRead(key, value, consumer)
     }
 
     override fun externalProcessStarted(command: String, consumer: String) {
@@ -99,6 +114,14 @@ class InstrumentedInputAccessListener(
         if (Workarounds.canReadFiles(consumer)) {
             return
         }
-        broadcast.fileOpened(file, consumer)
+        undeclaredInputBroadcast.fileOpened(file, consumer)
+    }
+
+    override fun fileObserved(file: File, consumer: String?) {
+        undeclaredInputBroadcast.fileObserved(file, consumer)
+    }
+
+    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
+        undeclaredInputBroadcast.fileCollectionObserved(fileCollection, consumer)
     }
 }

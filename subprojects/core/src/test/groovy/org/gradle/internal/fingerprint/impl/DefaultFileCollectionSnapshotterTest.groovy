@@ -200,6 +200,16 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
             }
 
             @Override
+            File newTemporaryDirectory(String... path) {
+                return null
+            }
+
+            @Override
+            Factory<File> temporaryDirectoryFactory(String... path) {
+                return null
+            }
+
+            @Override
             File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
                 return null
             }

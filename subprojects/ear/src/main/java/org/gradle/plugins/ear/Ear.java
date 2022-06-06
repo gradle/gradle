@@ -110,7 +110,7 @@ public class Ear extends Jar {
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    file -> outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath())),
+                    file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath())),
                     outputStream -> {
                         try {
                             outputStream.write(cachedDescriptor.get());

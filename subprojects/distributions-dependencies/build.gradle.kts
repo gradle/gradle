@@ -53,7 +53,7 @@ dependencies {
         api(libs.commonsCodec)          { version { strictly("1.15") }}
         api(libs.commonsCompress)       { version { strictly("1.21") }}
         api(libs.commonsHttpclient)     { version { strictly("4.5.13") }}
-        api(libs.commonsIo)             { version { strictly("2.6") }}
+        api(libs.commonsIo)             { version { strictly("2.11.0") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
@@ -63,7 +63,7 @@ dependencies {
         api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.gradleProfiler)        { version { strictly("0.18.0-alpha01") }}
+        api(libs.gradleProfiler)        { version { strictly("0.18.0") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAstbuilder)      { version { strictly(libs.groovyVersion) }}
@@ -77,7 +77,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.8.6") }}
+        api(libs.gson)                  { version { strictly("2.8.9") }}
         api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
@@ -118,7 +118,6 @@ dependencies {
         api(libs.minlog)                { version { strictly("1.2") }}
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
-        api(libs.nekohtml)              { version { strictly("1.9.22") }}
         api(libs.objenesis)             { version { strictly("2.6") }}
         api(libs.plexusCipher)          { version { strictly("1.7"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
@@ -130,12 +129,11 @@ dependencies {
         api(libs.snakeyaml)             { version { strictly("1.28") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
-        api(libs.trove4j)               { version { strictly("1.0.20181211") }}
+        api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly("5.10.0") }}
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.7") }}
-        api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
 
         // compile only
@@ -170,6 +168,7 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
+        api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
         api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
@@ -177,6 +176,7 @@ dependencies {
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
+        api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
 }

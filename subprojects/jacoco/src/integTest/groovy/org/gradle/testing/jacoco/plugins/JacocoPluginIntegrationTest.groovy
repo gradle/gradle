@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
@@ -63,7 +62,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds 'help'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "dependencies report shows default jacoco dependencies"() {
         when:
         succeeds("dependencies", "--configuration", "jacocoAgent")
@@ -76,7 +74,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         output.contains "org.jacoco:org.jacoco.ant:"
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "allows configuring tool dependencies explicitly"() {
         when:
         buildFile << """

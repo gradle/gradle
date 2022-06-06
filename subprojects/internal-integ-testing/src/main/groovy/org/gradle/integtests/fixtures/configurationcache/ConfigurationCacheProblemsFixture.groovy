@@ -395,6 +395,11 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     @Nullable
+    static TestFile resolveConfigurationCacheReport(File rootDir, String output) {
+        resolveConfigurationCacheReportDirectory(rootDir, output)?.file(PROBLEMS_REPORT_HTML_FILE_NAME)
+    }
+
+    @Nullable
     static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output) {
         def baseDirUri = clickableUrlFor(rootDir)
         def pattern = Pattern.compile("^See the complete report at (${Pattern.quote(baseDirUri)}.*/)${Pattern.quote(PROBLEMS_REPORT_HTML_FILE_NAME)}\$", Pattern.MULTILINE)

@@ -19,6 +19,7 @@ dependencies {
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
     implementation("org.gradle:test-retry-gradle-plugin")
+    implementation("com.gradle.enterprise:test-distribution-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")

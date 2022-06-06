@@ -1005,7 +1005,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                // always 1.0 because calling `getLibVersion` will always loose the rich aspect
+                // always 1.0 because calling `getLibVersion` will always lose the rich aspect
                 // of the version model
                 module("org.gradle.test:lib:1.0")
             }

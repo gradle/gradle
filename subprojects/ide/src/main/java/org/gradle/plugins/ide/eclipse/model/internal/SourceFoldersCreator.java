@@ -71,7 +71,7 @@ public class SourceFoldersCreator {
     }
 
     /**
-     * Returns the the list of external source folders defining only the name and path attributes.
+     * Returns the list of external source folders defining only the name and path attributes.
      *
      * @return source folders that live outside of the project
      */

@@ -27,7 +27,9 @@ final class JacocoCoverage {
 
     // Release notes: https://www.jacoco.org/jacoco/trunk/doc/changes.html
     static List<String> getSupportedVersionsByJdk() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)) {
+            return filter(JacocoVersion.SUPPORTS_JDK_18)
+        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
             return filter(JacocoVersion.SUPPORTS_JDK_17)
         } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             return filter(JacocoVersion.SUPPORTS_JDK_16)
@@ -52,6 +54,7 @@ final class JacocoCoverage {
         static final SUPPORTS_JDK_15 = new JacocoVersion(0, 8, 6)
         static final SUPPORTS_JDK_16 = new JacocoVersion(0, 8, 6)
         static final SUPPORTS_JDK_17 = new JacocoVersion(0, 8, 7)
+        static final SUPPORTS_JDK_18 = new JacocoVersion(0, 8, 8)
 
         private final int major
         private final int minor

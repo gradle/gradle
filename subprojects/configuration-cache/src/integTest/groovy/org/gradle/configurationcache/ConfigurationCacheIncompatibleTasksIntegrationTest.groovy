@@ -21,6 +21,43 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
 
+    def "reports incompatible task serialization error and discards cache entry when task is scheduled"() {
+        given:
+        withBrokenSerializableType()
+        addTasksWithProblems('new BrokenSerializable()')
+
+        when:
+        configurationCacheRun("declared")
+
+        then:
+        result.assertTasksExecuted(":declared")
+        fixture.assertStateStoredAndDiscarded {
+            problem "Task `:declared` of type `Broken`: error writing value of type 'BrokenSerializable'"
+            problem "Task `:declared` of type `Broken`: invocation of 'Task.project' at execution time is unsupported."
+        }
+
+        when:
+        configurationCacheRun("declared")
+
+        then:
+        result.assertTasksExecuted(":declared")
+        fixture.assertStateStoredAndDiscarded {
+            problem "Task `:declared` of type `Broken`: error writing value of type 'BrokenSerializable'"
+            problem "Task `:declared` of type `Broken`: invocation of 'Task.project' at execution time is unsupported."
+        }
+    }
+
+    private withBrokenSerializableType() {
+        buildFile '''
+            import java.io.*
+            @SuppressWarnings('GrMethodMayBeStatic')
+            class BrokenSerializable implements Serializable {
+                String toString() { 'BrokenSerializable' }
+                private Object writeReplace() { throw new RuntimeException('BOOM!') }
+            }
+        '''
+    }
+
     def "reports incompatible task serialization and execution problems and discards cache entry when task is scheduled"() {
         addTasksWithProblems()
 
@@ -169,7 +206,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
     private addTasksWithoutProblems() {
         buildFile """
-            task declared {
+            tasks.register('declared') {
                 notCompatibleWithConfigurationCache("not really")
                 doLast {
                 }
@@ -177,11 +214,11 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         """
     }
 
-    private addTasksWithProblems() {
-        buildFile("""
+    private addTasksWithProblems(String brokenFieldValue = 'project.configurations') {
+        buildFile """
             class Broken extends DefaultTask {
                 // Serialization time problem
-                private final configurations = project.configurations
+                private final brokenField = $brokenFieldValue
 
                 @TaskAction
                 void execute() {
@@ -200,6 +237,6 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
             tasks.register("ok") {
                 doLast { }
             }
-        """)
+        """
     }
 }

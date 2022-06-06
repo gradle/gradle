@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resources;
 
+import com.google.common.base.Supplier;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.service.scopes.Scopes;
@@ -45,6 +46,16 @@ public interface ResourceLockCoordinationService {
      * @return true if the lock state changes finished successfully, otherwise false.
      */
     boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction);
+
+    /**
+     * A convenience for using {@link #withStateLock(Transformer)}.
+     */
+    void withStateLock(Runnable action);
+
+    /**
+     * A convenience for using {@link #withStateLock(Transformer)}.
+     */
+    <T> T withStateLock(Supplier<T> action);
 
     /**
      * Notify other threads about changes to resource locks.

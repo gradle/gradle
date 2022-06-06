@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import com.google.common.reflect.TypeToken
-import groovy.test.NotYetImplemented
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
@@ -172,7 +171,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/16982")
     def "transform can set convention on parameter of type #type"() {
         given:
@@ -212,12 +210,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("processing using prop: ${expected}")
 
         where:
-        type                          | value          | expected
-        "Property<Boolean>"           | 'true'         | 'true'
-        "Property<String>"            | "'value'"      | 'value'
-        "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"
-        "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"
-        "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]"
+        type                          | value            | expected
+        "Property<Byte>"              | '42.byteValue()' | '42'
+        "Property<Boolean>"           | 'true'           | 'true'
+        "Property<String>"            | "'value'"        | 'value'
+        "ListProperty<String>"        | "['a', 'b']"     | "[a, b]"
+        "SetProperty<String>"         | "['a', 'b']"     | "[a, b]"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]"   | "[a:1, b:2]"
     }
 
     def "transform can receive a build service as a parameter"() {

@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -24,11 +23,9 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 public class ActionNode extends Node implements SelfExecutingNode {
-    private final WorkNodeAction action;
+    private WorkNodeAction action;
     private final ProjectInternal owningProject;
     private final ProjectInternal projectToLock;
 
@@ -49,15 +46,10 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
-    }
-
-    @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
         TaskDependencyContainer dependencies = action::visitDependencies;
         for (Node node : dependencyResolver.resolveDependenciesFor(null, dependencies)) {
             addDependencySuccessor(node);
-            processHardSuccessor.execute(node);
         }
     }
 
@@ -71,8 +63,8 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public int compareTo(Node o) {
-        return -1;
+    public boolean isPriority() {
+        return getProjectToLock() != null;
     }
 
     @Nullable
@@ -91,12 +83,11 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public List<ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
-    }
-
-    @Override
     public void execute(NodeExecutionContext context) {
-        action.run(context);
+        try {
+            action.run(context);
+        } finally {
+            action = null;
+        }
     }
 }

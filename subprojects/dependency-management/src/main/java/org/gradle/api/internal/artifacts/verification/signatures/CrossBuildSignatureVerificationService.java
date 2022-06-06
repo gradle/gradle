@@ -97,7 +97,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         if (missingKeys == null || missingKeys.isEmpty()) {
             return false;
         }
-        long elapsed = entry.timestamp - timeProvider.getCurrentTime();
+        long elapsed = timeProvider.getCurrentTime() - entry.timestamp;
         return refreshKeys || elapsed > MISSING_KEY_TIMEOUT;
     }
 

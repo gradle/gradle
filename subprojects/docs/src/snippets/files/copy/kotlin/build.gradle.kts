@@ -7,7 +7,7 @@ version = "1.1"
 
 // tag::copy-single-file-example[]
 tasks.register<Copy>("copyReport") {
-    from(layout.buildDirectory.dir("reports/my-report.pdf"))
+    from(layout.buildDirectory.file("reports/my-report.pdf"))
     into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-single-file-example[]

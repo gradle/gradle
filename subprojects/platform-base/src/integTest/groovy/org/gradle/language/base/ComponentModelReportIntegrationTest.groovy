@@ -16,12 +16,16 @@
 
 package org.gradle.language.base
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "model report for unmanaged software components shows them all"() {
         given:
         buildFile << """
@@ -88,6 +92,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent().trim()
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "model report for managed software components show them all with their managed properties"() {
         given:
         buildFile << """

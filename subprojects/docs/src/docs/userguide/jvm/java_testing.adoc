@@ -580,7 +580,7 @@ Thus, there is no special support for this in Gradle right now.
 You can however, setup module patching for tests like this:
 
 * Add a `module-info.java` to your test source set that is a copy of the main `module-info.java` with additional dependencies needed for testing (e.g. `requires org.junit.jupiter.api`).
-* Configure both the `testCompileJava` and `test` tasks with arguments to patch the the main classes with the test classes as shown below.
+* Configure both the `testCompileJava` and `test` tasks with arguments to patch the main classes with the test classes as shown below.
 
 .Patch module for testing using command line arguments
 ====

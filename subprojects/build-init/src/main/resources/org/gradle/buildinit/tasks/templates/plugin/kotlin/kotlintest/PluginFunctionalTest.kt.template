@@ -7,16 +7,17 @@ import java.nio.file.Files
 import kotlin.test.assertTrue
 import kotlin.test.Test
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.io.TempDir
 
 /**
  * A simple functional test for the '${pluginId.value}' plugin.
  */
 class ${className.javaIdentifier} {
-    @get:Rule val tempFolder = TemporaryFolder()
+    @TempDir
+    @JvmField
+    val tempFolder: File? = null
 
-    private fun getProjectDir() = tempFolder.root
+    private fun getProjectDir() = tempFolder!!
     private fun getBuildFile() = getProjectDir().resolve("build.gradle")
     private fun getSettingsFile() = getProjectDir().resolve("settings.gradle")
 
