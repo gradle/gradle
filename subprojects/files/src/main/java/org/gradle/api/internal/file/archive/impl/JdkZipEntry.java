@@ -59,12 +59,7 @@ class JdkZipEntry implements ZipEntry {
 
     @Override
     public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
-        InputStream is = zipEntryHandler.getInputStream();
-        try {
-            return action.run(is);
-        } finally {
-            zipEntryHandler.closeEntry();
-        }
+        return zipEntryHandler.withInputStream(action);
     }
 
     @Override

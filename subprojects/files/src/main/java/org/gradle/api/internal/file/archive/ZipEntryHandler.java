@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.archive;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 public interface ZipEntryHandler {
     /**
@@ -25,18 +24,10 @@ public interface ZipEntryHandler {
      */
     java.util.zip.ZipEntry getZipEntry();
 
-    /**
-     * Get an input stream positioned to read the content of this zip entry
-     */
-    InputStream getInputStream();
+    <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException;
 
     /**
-     * Close the entry and clean up any streams associated with it
-     */
-    void closeEntry() throws IOException;
-
-    /**
-     * Whether the entry can be reopened (by calling {@link #getInputStream()} again) once bytes have been read from it
+     * Whether the entry can be reopened (by calling {@link #withInputStream(ZipEntry.InputStreamAction)} ()} again) once bytes have been read from it
      */
     boolean canReopen();
 }
