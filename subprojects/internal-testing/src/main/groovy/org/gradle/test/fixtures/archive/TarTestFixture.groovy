@@ -32,22 +32,22 @@ class TarTestFixture extends ArchiveTestFixture {
         boolean gzip = !tarFile.name.endsWith("tar")
         tarFile.withInputStream { inputStream ->
             TarArchiveInputStream tarInputStream = new TarArchiveInputStream(gzip ? new GZIPInputStream(inputStream) : inputStream, metadataCharset)
-            for (TarArchiveEntry tarEntry = nextEntry(tarInputStream); tarEntry != null; tarEntry = nextEntry(tarInputStream)) {
+            for (TarArchiveEntry tarEntry = getNextEntry(tarInputStream); tarEntry != null; tarEntry = getNextEntry(tarInputStream)) {
                 addMode(tarEntry.name, tarEntry.mode)
                 if (tarEntry.directory) {
                     continue
                 }
-                def tarEntryContent = entryContent(tarEntry, tarInputStream, contentCharset)
+                def tarEntryContent = getContentForEntry(tarEntry, tarInputStream, contentCharset)
                 add(tarEntry.name, tarEntryContent)
             }
         }
     }
 
-    private static TarArchiveEntry nextEntry(TarArchiveInputStream tarInputStream) {
+    private static TarArchiveEntry getNextEntry(TarArchiveInputStream tarInputStream) {
         (TarArchiveEntry) tarInputStream.nextEntry
     }
 
-    private static String entryContent(TarArchiveEntry entry, TarArchiveInputStream inputStream, String contentCharset) {
+    private static String getContentForEntry(TarArchiveEntry entry, TarArchiveInputStream inputStream, String contentCharset) {
         OutputStream outputStream = new ByteArrayOutputStream()
         byte[] buf = new byte[1024];
         long bytesRemaining = entry.getSize();

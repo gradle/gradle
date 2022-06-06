@@ -34,7 +34,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
-    implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
+    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.inject)

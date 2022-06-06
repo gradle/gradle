@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.tools.zip.UnixStat;
+import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
