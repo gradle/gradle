@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipEntryHandler;
 

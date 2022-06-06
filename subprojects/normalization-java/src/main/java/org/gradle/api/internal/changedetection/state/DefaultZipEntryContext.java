@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
