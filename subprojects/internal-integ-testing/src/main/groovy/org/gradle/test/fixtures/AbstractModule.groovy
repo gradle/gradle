@@ -77,7 +77,7 @@ abstract class AbstractModule implements Module {
         try {
             def entry = new ZipArchiveEntry(testFile.name)
             entry.setTime(lmd.getTime())
-            zipStream.putNextEntry(entry)
+            zipStream.putArchiveEntry(entry)
             zipStream << bos.toByteArray()
             zipStream.closeArchiveEntry()
             zipStream.finish()
