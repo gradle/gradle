@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.apache.tools.bzip2.CBZip2InputStream;
-import org.apache.tools.bzip2.CBZip2OutputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -46,7 +46,7 @@ public class Bzip2Archiver extends AbstractArchiver {
             try {
                 outStr.write('B');
                 outStr.write('Z');
-                return new CBZip2OutputStream(outStr);
+                return new BZip2CompressorOutputStream(outStr);
             } catch (Exception e) {
                 IoActions.closeQuietly(outStr);
                 String message = String.format("Unable to create bzip2 output stream for file %s", destination);
@@ -62,7 +62,7 @@ public class Bzip2Archiver extends AbstractArchiver {
             // CBZip2InputStream expects the opening "BZ" to be skipped
             byte[] skip = new byte[2];
             input.read(skip);
-            return new CBZip2InputStream(input);
+            return new BZip2CompressorInputStream(input);
         } catch (Exception e) {
             IoActions.closeQuietly(input);
             throw ResourceExceptions.readFailed(resource.getDisplayName(), e);

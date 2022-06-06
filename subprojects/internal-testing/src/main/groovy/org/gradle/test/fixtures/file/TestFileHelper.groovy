@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.file
 
 import com.google.common.io.ByteStreams
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.Project
@@ -26,7 +27,6 @@ import org.apache.tools.ant.taskdefs.Zip
 import org.apache.tools.ant.types.ArchiveFileSet
 import org.apache.tools.ant.types.EnumeratedAttribute
 import org.apache.tools.ant.types.ZipFileSet
-import org.apache.tools.bzip2.CBZip2OutputStream
 
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
@@ -284,7 +284,7 @@ class TestFileHelper {
         def outStr = new FileOutputStream(compressedFile)
         try {
             outStr.write('BZ'.getBytes("us-ascii"))
-            def zipStream = new CBZip2OutputStream(outStr)
+            def zipStream = new BZip2CompressorOutputStream(outStr)
             zipStream.bytes = file.bytes
             zipStream.close()
         } finally {
