@@ -20,6 +20,7 @@ We would like to thank the following community members for their contributions t
 [aSemy](https://github.com/aSemy),
 [Rene Groeschke](https://github.com/breskeby),
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
+[Aurimas Liutikas](https://github.com/liutikas),
 [Jamie Tanna](https://github.com/jamietanna),
 [Xin Wang](https://github.com/scaventz),
 [Atsuto Yamashita](https://github.com/att55),
