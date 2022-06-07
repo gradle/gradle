@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.groovyTest)
     implementation(libs.groovyXml)
     implementation(libs.ant)
+    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
