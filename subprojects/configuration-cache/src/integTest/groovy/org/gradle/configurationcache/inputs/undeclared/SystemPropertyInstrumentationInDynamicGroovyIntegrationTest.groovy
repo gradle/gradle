@@ -59,18 +59,22 @@ class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends Abstra
         }
 
         where:
-        method                                                 | _
-        "System.properties['some.property']"                   | _
-        "System.getProperties().get('some.property')"          | _
-        "getProperties().get('some.property')"                 | _
-        "System.getProperty('some.property')"                  | _
-        "getProperty('some.property')"                         | _
-        "System.getProperty('some.property', 'default.value')" | _
-        "getProperty('some.property', 'default.value')"        | _
-        "System.setProperty('some.property', 'new.value')"     | _
-        "setProperty('some.property', 'new.value')"            | _
-        "System.clearProperty('some.property')"                | _
-        "clearProperty('some.property')"                       | _
+        method                                                    | _
+        "System.properties['some.property']"                      | _
+        "System.getProperties().get('some.property')"             | _
+        "getProperties().get('some.property')"                    | _
+        "System.getProperty('some.property')"                     | _
+        "System.getProperty(*['some.property'])"                  | _
+        "getProperty('some.property')"                            | _
+        "System.getProperty('some.property', 'default.value')"    | _
+        "System.getProperty(*['some.property', 'default.value'])" | _
+        "getProperty('some.property', 'default.value')"           | _
+        "System.setProperty('some.property', 'new.value')"        | _
+        "System.setProperty(*['some.property', 'new.value'])"     | _
+        "setProperty('some.property', 'new.value')"               | _
+        "System.clearProperty('some.property')"                   | _
+        "System.clearProperty(*['some.property'])"                | _
+        "clearProperty('some.property')"                          | _
     }
 
     def "#setProperties is instrumented in dynamic Groovy"() {
