@@ -67,8 +67,19 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
     @Option(option = "recursive", description = "Lists all extended configurations of the reported configurations, including any which are extended transitively")
     public abstract Property<Boolean> getRecursive();
 
+    /**
+     * Show attribute disambiguation precedence.
+     *
+     * @return property holding the flag to show attribute disambiguation precedence
+     * @since 7.6
+     */
+    @Input
+    @Optional
+    @Option(option = "precedence", description = "Displays the attribute disambiguation precedence of each attribute in the configuration")
+    public abstract Property<Boolean> getShowAttributePrecedence();
+
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get(), getRecursive().get());
+        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get(), getRecursive().get(), getShowAttributePrecedence().get());
     }
 }
