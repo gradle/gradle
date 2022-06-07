@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
+
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.util.PatternSet
@@ -23,6 +24,8 @@ import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.util.concurrent.ExecutionException
+
+import static com.google.common.base.Preconditions.checkNotNull
 
 class CompileTransactionTest extends Specification {
 
@@ -75,8 +78,8 @@ class CompileTransactionTest extends Specification {
 
         then:
         thrown(RuntimeException)
-        sourceDir.list() == ["file.txt", "subDir"] as String[]
-        new File(sourceDir,"subDir").list() == ["another-file.txt"] as String[]
+        sourceDir.list() as Set ==~ ["file.txt", "subDir"]
+        new File(sourceDir,"subDir").list() as Set ==~ ["another-file.txt"]
     }
 
     def "files are stashed but not restored on success"() {
@@ -155,9 +158,11 @@ class CompileTransactionTest extends Specification {
     }
 
     def "nothing is stashed and directory is not created if #description"() {
-        if (directory != null) {
+        File directory = null
+        if (directoryPath) {
+            directory = file(directoryPath)
             directory.mkdir()
-            new File((File) directory, "test-file.txt").createNewFile()
+            new File(directory, "test-file.txt").createNewFile()
         }
         def stashDir = null
 
@@ -173,9 +178,9 @@ class CompileTransactionTest extends Specification {
         !stashDirExists
 
         where:
-        pattern                              | directory         | description
-        new PatternSet()                     | file("sourceDir") | "empty pattern"
-        new PatternSet().include("**/*.txt") | null              | "null directory"
+        pattern                              | directoryPath | description
+        new PatternSet()                     | "sourceDir"   | "empty pattern"
+        new PatternSet().include("**/*.txt") | null          | "null directory"
     }
 
     def "on success all files in stash dir are moved to a specific directory"() {
@@ -196,7 +201,7 @@ class CompileTransactionTest extends Specification {
 
         then:
         destinationDir.list() as Set ==~ ["file.txt", "subDir"]
-        new File(destinationDir,"subDir").list() == ["another-file.txt"] as String[]
+        new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt"]
     }
 
     def "on failure files are not moved to a specific directory"() {
@@ -282,11 +287,11 @@ class CompileTransactionTest extends Specification {
     }
 
     private File fileInTransactionDir(String path) {
-        return new File(transactionDir, path)
+        return new File(checkNotNull(transactionDir), path)
     }
 
     private File file(String path) {
-        return new File(temporaryFolder as File, path)
+        return new File(checkNotNull(temporaryFolder) as File, path)
     }
 
     private boolean isEmptyDirectory(File file) {
