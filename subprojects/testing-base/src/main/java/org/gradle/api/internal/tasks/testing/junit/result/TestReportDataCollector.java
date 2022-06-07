@@ -70,6 +70,12 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             methodResult.completed(result);
             classResult.add(methodResult);
             results.put(suite.getName(), classResult);
+        } else if (result.getResultType() == TestResult.ResultType.SKIPPED) {
+            String parentName = suite.getParent().getDisplayName();
+            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, suite.getName());
+            TestClassResult classResult = results.get(parentName);
+            methodResult.completed(result);
+            classResult.add(methodResult);
         }
     }
 

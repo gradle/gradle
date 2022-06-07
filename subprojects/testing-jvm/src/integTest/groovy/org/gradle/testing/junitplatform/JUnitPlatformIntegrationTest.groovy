@@ -397,4 +397,112 @@ public class StaticInnerTest {
         "w/o filters"  | []
         "with filters" | ['--tests', 'JUnitJupiterTest']
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/20081")
+    def "test report of disabled parameterized test"() {
+        given:
+        file('src/test/java/DisabledParameterizedTest.java') << '''
+            import org.junit.jupiter.api.Disabled;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.params.ParameterizedTest;
+            import org.junit.jupiter.params.provider.ValueSource;
+            import static org.junit.jupiter.api.Assertions.assertEquals;
+            public class DisabledParameterizedTest {
+                @Disabled
+                @Test
+                public void disabledTest() { assertEquals(42, 42); }
+
+                @Test
+                public void test() { assertEquals(42, 42); }
+
+                @Disabled
+                @ParameterizedTest
+                @ValueSource(strings = {"First Name", "Second Name"})
+                public void disabledParameterizedTest(String testParam) {
+                    assertEquals(testParam, testParam);
+                }
+            }
+        '''
+
+        when:
+        run "test"
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        def results = [result, result.htmlResult, result.xmlResult]
+        for (each in results) {
+            each.assertTestClassesExecuted("DisabledParameterizedTest")
+                .testClass("DisabledParameterizedTest")
+                .assertTestCount(3, 0, 0)
+                .assertTestsSkipped("disabledTest", "disabledParameterizedTest(String)")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20081")
+    def "test report of disabled parameterized test within test suite"() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.platform:junit-platform-suite-engine:${LATEST_PLATFORM_VERSION}'
+            }
+        """
+
+        file('src/test/java/TestSuite.java') << '''
+            import org.junit.platform.suite.api.SelectClasses;
+            import org.junit.platform.suite.api.Suite;
+
+            @Suite
+            @SelectClasses({Test1.class, Test2.class})
+            public class TestSuite { }
+        '''
+
+        file('src/test/java/Test1.java') << '''
+            import org.junit.jupiter.api.Disabled;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.params.ParameterizedTest;
+            import org.junit.jupiter.params.provider.ValueSource;
+            import static org.junit.jupiter.api.Assertions.assertEquals;
+            public class Test1 {
+                @Test
+                public void test() { assertEquals(42, 42); }
+
+                @Disabled
+                @ParameterizedTest
+                @ValueSource(strings = {"First Name", "Second Name"})
+                public void disabledParameterizedTest(String testParam) {
+                    assertEquals(testParam, testParam);
+                }
+            }
+        '''
+
+        file('src/test/java/Test2.java') << '''
+            import org.junit.jupiter.api.Disabled;
+            import org.junit.jupiter.api.Test;
+            import static org.junit.jupiter.api.Assertions.assertEquals;
+            public class Test2 {
+                @Disabled
+                @Test
+                public void disabledTest() { assertEquals(42, 42); }
+            }
+        '''
+
+        when:
+        run("test", "--tests", "TestSuite")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        def results = [result, result.htmlResult, result.xmlResult]
+        for (each in results) {
+            each.assertTestClassesExecuted("Test1", "Test2")
+
+            each.testClass("Test1")
+                .assertTestCount(2, 0, 0)
+                .assertTestPassed("test")
+                .assertTestSkipped("disabledParameterizedTest(String)")
+
+            each.testClass("Test2")
+                .assertTestCount(1, 0, 0)
+                .assertTestSkipped("disabledTest")
+        }
+    }
 }
