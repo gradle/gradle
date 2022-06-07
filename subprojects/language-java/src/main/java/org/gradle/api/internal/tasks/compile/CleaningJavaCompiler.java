@@ -50,8 +50,8 @@ public class CleaningJavaCompiler<T extends JavaCompileSpec> implements Compiler
         boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), outputDirs.build());
 
         Compiler<? super T> compiler = getCompiler();
-        WorkResult executed = compiler.execute(spec);
-        return executed.or(WorkResults.didWork(cleanedOutputs));
+        return compiler.execute(spec)
+            .or(WorkResults.didWork(cleanedOutputs));
     }
 
     private void addDirectoryIfNotNull(ImmutableSet.Builder<File> outputDirs, @Nullable File dir) {
