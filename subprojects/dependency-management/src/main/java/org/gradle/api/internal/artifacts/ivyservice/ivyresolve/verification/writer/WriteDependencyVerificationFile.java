@@ -19,8 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
+import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
+import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
+import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
@@ -74,6 +77,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -566,10 +570,17 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     out.write('\n');
                 }
             }
+
+            // Reusable fingerprint calculator for exporting
+            KeyFingerPrintCalculator fingerprintCalculator = new BcKeyFingerprintCalculator();
+
             // Then write the ascii armored keyring
-            try (FileOutputStream fos = new FileOutputStream(ascii, true);
-                 ArmoredOutputStream out = new ArmoredOutputStream(fos)) {
-                key.encode(out, true);
+            try (FileOutputStream fos = new FileOutputStream(ascii, true); ArmoredOutputStream out = new ArmoredOutputStream(fos)) {
+                // Cut the subkeys
+                PGPPublicKey trimmedKey = new PGPPublicKey(key.getPublicKeyPacket(), fingerprintCalculator);
+                trimmedKey.encode(out, true);
+            } catch (PGPException e) {
+                throw new RemoteException("Cannot trim key info");
             }
         }
     }
