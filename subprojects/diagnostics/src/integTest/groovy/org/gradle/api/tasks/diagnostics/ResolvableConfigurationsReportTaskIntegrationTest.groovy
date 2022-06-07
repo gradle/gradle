@@ -590,6 +590,67 @@ The following Attributes have disambiguation rules defined.
         doesNotHaveIncubatingLegend()
     }
 
+    def "specifying --precedence with disambiguation rules prints attribute disambiguation precedence"() {
+        given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def flavor = Attribute.of('flavor', String)
+
+            configurations {
+                custom {
+                    description = "My custom configuration"
+                    canBeResolved = true
+                    canBeConsumed = false
+
+                    attributes {
+                        attribute(flavor, 'vanilla')
+                    }
+                }
+            }
+
+            class CategorySelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    if (details.candidateValues.contains('chocolate')) {
+                        details.closestMatch('chocolate')
+                    }
+                }
+            }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    disambiguationRules.add(CategorySelectionRule)
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations', '--precedence'
+
+        then:
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+The following Attributes have disambiguation rules defined.
+
+    - flavor
+    - org.gradle.category (1)
+    - org.gradle.dependency.bundling (5)
+    - org.gradle.jvm.environment (6)
+    - org.gradle.jvm.version (3)
+    - org.gradle.libraryelements (4)
+    - org.gradle.plugin.api-version
+    - org.gradle.usage (2)
+
+(Attribute disambiguation precedence)""")
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+    }
+
     def "specifying --recursive includes transitively extended configurations"() {
         given:
         buildFile << """
