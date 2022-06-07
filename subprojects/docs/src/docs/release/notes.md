@@ -3,6 +3,7 @@ The Gradle team is excited to announce Gradle @version@.
 This release includes [building code and running Gradle with Java 18](#java18), [building code with Groovy 4](#groovy4), [much more responsive continuous builds](#continuous-build), [improved diagnostics for dependency resolution](#dependency-diagnostics), as well as [configuration cache improvements](#configuration-cache-improvements) for better performance, [Adoptium toolchain provisioning](#adoptium-provisioning) for JVM, and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Michael Bailey](https://github.com/yogurtearl),
 [Josh Kasten](https://github.com/jkasten2),
 [Marcono1234](https://github.com/Marcono1234),
 [mataha](https://github.com/mataha),
