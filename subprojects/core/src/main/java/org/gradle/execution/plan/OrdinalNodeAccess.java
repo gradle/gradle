@@ -16,11 +16,11 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
  */
 public class OrdinalNodeAccess {
     private final OrdinalGroupFactory ordinalGroups;
-    private final Map<OrdinalGroup, OrdinalNode> destroyerLocationNodes = Maps.newHashMap();
-    private final Map<OrdinalGroup, OrdinalNode> producerLocationNodes = Maps.newHashMap();
+    private final IdentityHashMap<OrdinalGroup, OrdinalNode> destroyerLocationNodes = new IdentityHashMap<>();
+    private final IdentityHashMap<OrdinalGroup, OrdinalNode> producerLocationNodes = new IdentityHashMap<>();
 
     public OrdinalNodeAccess(OrdinalGroupFactory ordinalGroups) {
         this.ordinalGroups = ordinalGroups;
