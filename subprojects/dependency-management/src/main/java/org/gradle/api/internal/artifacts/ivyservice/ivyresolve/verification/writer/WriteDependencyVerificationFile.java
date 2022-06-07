@@ -68,6 +68,7 @@ import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -77,6 +78,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Collections;
@@ -500,11 +502,15 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         Collection<PGPPublicKeyRing> allPublicKeyRings = collectPublicKeyRings(publicKeyService, keyrings, publicKeys, isDryRun);
         Collection<PGPPublicKey> allPublicKeys = collectDistinctPublicKeys(allPublicKeyRings);
 
-        File keyringFile = keyrings.getBinaryKeyringsFile();
-        writeBinaryKeyringFile(keyringFile, allPublicKeys);
-        File asciiArmoredFile = keyrings.getAsciiKeyringsFile();
-        writeAsciiArmoredKeyRingFile(asciiArmoredFile, allPublicKeys);
-        LOGGER.lifecycle("Exported {} keys to {} and {}", allPublicKeys.size(), keyringFile, asciiArmoredFile);
+        // Write out the binary keyfile
+        Path keyringPath = keyrings.getBinaryKeyringsFile().toPath();
+        writeBinaryKeyringFile(keyringPath, allPublicKeys);
+
+        // Write out the ASCII-armored keyfile
+        Path asciiArmoredPath = keyrings.getAsciiKeyringsFile().toPath();
+        writeAsciiArmoredKeyRingFile(asciiArmoredPath, allPublicKeys);
+
+        LOGGER.lifecycle("Exported {} keys to {} and {}", allPublicKeys.size(), keyringPath, asciiArmoredPath);
     }
 
     protected static Collection<PGPPublicKeyRing> collectPublicKeyRings(PublicKeyService publicKeyService, BuildTreeDefinedKeys keyrings, Collection<String> publicKeys, boolean isDryRun) throws IOException {
@@ -552,41 +558,43 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .collect(Collectors.toList());
     }
 
-    private void writeAsciiArmoredKeyRingFile(File ascii, Iterable<PGPPublicKey> allKeys) throws IOException {
-        Files.deleteIfExists(ascii.toPath());
+    private void writeAsciiArmoredKeyRingFile(Path keyFilePath, Iterable<PGPPublicKey> allKeys) throws IOException {
+        // Reusable fingerprint calculator for exporting
+        KeyFingerPrintCalculator fingerprintCalculator = new BcKeyFingerprintCalculator();
 
-        for (PGPPublicKey key : allKeys) {
-            // First let's write some human readable info about the key being serialized
-            try (OutputStream out = new FileOutputStream(ascii, true)) {
-                boolean hasUid = false;
-                String keyType = key.isMasterKey() ? "pub" : "sub";
-                out.write((keyType + "    " + SecuritySupport.toLongIdHexString(key.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
-                List<String> userIDs = PGPUtils.getUserIDs(key);
-                for (String uid : userIDs) {
-                    hasUid = true;
-                    out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
+        try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(keyFilePath))) {
+            for (PGPPublicKey key : allKeys) {
+                // Custom header for better readibility
+                outputStream.write("=====KEY INFO=====\n".getBytes(StandardCharsets.US_ASCII));
+
+                // Print the fingerprint of the key
+                String pubLine = String.format("pub    %s\n", SecuritySupport.toLongIdHexString(key.getKeyID()).toUpperCase());
+                outputStream.write(pubLine.getBytes(StandardCharsets.US_ASCII));
+
+                // Print all the user IDs of a key
+                for (String userId : PGPUtils.getUserIDs(key)) {
+                    String uidLine = String.format("uid    %s\n", userId);
+                    outputStream.write(uidLine.getBytes(StandardCharsets.US_ASCII));
                 }
-                if (hasUid) {
-                    out.write('\n');
+                outputStream.write("\n".getBytes(StandardCharsets.US_ASCII));
+
+                // Armored output streams should be opened per key (see close() on ArmoredOutputStream)
+                try (ArmoredOutputStream armoredOutputStream = new ArmoredOutputStream(outputStream)) {
+                    // Create a new key without any sub-key information
+                    // We don't need sub-keys as we directly look up public keys by their fingerprints.
+                    PGPPublicKey trimmedKey = new PGPPublicKey(key.getPublicKeyPacket(), fingerprintCalculator);
+                    trimmedKey.encode(armoredOutputStream, true);
                 }
-            }
 
-            // Reusable fingerprint calculator for exporting
-            KeyFingerPrintCalculator fingerprintCalculator = new BcKeyFingerprintCalculator();
-
-            // Then write the ascii armored keyring
-            try (FileOutputStream fos = new FileOutputStream(ascii, true); ArmoredOutputStream out = new ArmoredOutputStream(fos)) {
-                // Cut the subkeys
-                PGPPublicKey trimmedKey = new PGPPublicKey(key.getPublicKeyPacket(), fingerprintCalculator);
-                trimmedKey.encode(out, true);
-            } catch (PGPException e) {
-                throw new RemoteException("Cannot trim key info");
+                outputStream.write("\n".getBytes(StandardCharsets.US_ASCII));
             }
+        } catch (PGPException e) {
+            throw new RemoteException("Cannot trim key info");
         }
     }
 
-    private void writeBinaryKeyringFile(File keyringFile, Iterable<PGPPublicKey> allKeys) throws IOException {
-        try (OutputStream out = new FileOutputStream(keyringFile)) {
+    private void writeBinaryKeyringFile(Path keyringPath, Iterable<PGPPublicKey> allKeys) throws IOException {
+        try (OutputStream out = Files.newOutputStream(keyringPath)) {
             for (PGPPublicKey key : allKeys) {
                 key.encode(out, true);
             }
@@ -608,6 +616,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         public List<PGPPublicKeyRing> build() {
             return builder.build();
         }
+
     }
 
     private static boolean hasAtLeastOnePublicKey(PGPPublicKeyRing ring) {
