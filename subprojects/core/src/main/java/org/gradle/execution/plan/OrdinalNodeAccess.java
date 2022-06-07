@@ -16,13 +16,12 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Streams;
-
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.Streams.concat;
 
 /**
  * A factory for creating and accessing ordinal nodes
@@ -37,15 +36,15 @@ public class OrdinalNodeAccess {
     }
 
     OrdinalNode getOrCreateDestroyableLocationNode(OrdinalGroup ordinal) {
-        return destroyerLocationNodes.computeIfAbsent(ordinal, i -> createDestroyerLocationNode(ordinal));
+        return destroyerLocationNodes.computeIfAbsent(ordinal, this::createDestroyerLocationNode);
     }
 
     OrdinalNode getOrCreateOutputLocationNode(OrdinalGroup ordinal) {
-        return producerLocationNodes.computeIfAbsent(ordinal, i -> createProducerLocationNode(ordinal));
+        return producerLocationNodes.computeIfAbsent(ordinal, this::createProducerLocationNode);
     }
 
-    List<OrdinalNode> getAllNodes() {
-        return Streams.concat(destroyerLocationNodes.values().stream(), producerLocationNodes.values().stream()).collect(Collectors.toList());
+    Stream<OrdinalNode> getAllNodes() {
+        return concat(destroyerLocationNodes.values().stream(), producerLocationNodes.values().stream());
     }
 
     /**
