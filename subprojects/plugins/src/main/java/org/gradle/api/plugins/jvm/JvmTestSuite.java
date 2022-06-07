@@ -165,4 +165,104 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Configure dependencies for this component.
      */
     void dependencies(Action<? super JvmComponentDependencies> dependencies);
+
+    /**
+     * This method controls to what extent the project source and its existing dependencies are available to this test
+     * suite for its compilation and runtime.
+     *
+     * See the {@link ProjectTransparencyLevel} documentation for explanations of the available options.
+     *
+     * Note that the default test suite <strong>has a fixed transparency level of CONSUMER</strong> which can <strong>NOT</strong>
+     * be altered.
+     *
+     * @since 7.6
+     */
+    void transparencyLevel(ProjectTransparencyLevel level);
+
+    /**
+     * Defines levels of access to the project and its dependencies.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    enum ProjectTransparencyLevel {
+        /**
+         * The tests in this suite will compile and run using only the project classes from the main source set,
+         * no dependencies will be automatically added.
+         *
+         * This is the equivalent of adding:
+         * <pre>
+         * mySuite.sources.compileClasspath += sourceSets.main.output
+         * </pre>
+         */
+        PROJECT_CLASSES_ONLY,
+
+        /**
+         * This test suite will compile and run using the project as if it was a typical consumer project; it can see project classes
+         * and tests can compile against any transitive dependencies exported as part of the project's {@code api} configuration.
+         *
+         * Note that {@code implementation} deps <strong>will</strong> be available at suite runtime (but <strong>NOT</strong> compile time), as per
+         * the typical rules.
+         *
+         * This is the default level of transparency for the default test suite.
+         *
+         * This is the equivalent of a separate consumer project adding:
+         * <pre>
+         * dependencies {
+         *     implementation project(':thisProjectName')
+         * }
+         * </pre>
+         */
+        CONSUMER,
+
+        /**
+         * This test suite will compile and run using everything visible to {@link #CONSUMER}, as well as any {@code testRuntimeClasspath}
+         * dependencies (this will implicitly include any deps on {@code testImplementation} during runtime).
+         *
+         * This test suite will function as an extension of the default test suite, and gains access to every dependency added to that suite.
+         * This level of transparency can be used to avoid duplicating already declared test dependencies, if you want to reuse the existing
+         * test classpath for a new suite of tests without otherwise changing your build logic.
+         *
+         * This level is meant as a transitional step until better utilities are available to reuse dependencies across multiple test suites.
+         *
+         * This is the equivalent of a separate consumer project adding:
+         * <pre>
+         * testing {
+         *     suites {
+         *         mySuite(JvmTestSuite) {
+         *             dependencies {
+         *                 implementation project(':thisProjectName')
+         *                 implementation(project(path: ':', configuration: 'testRuntimeClasspath')
+         *             }
+         *         }
+         *     }
+         * }
+         * </pre>
+         */
+        @Deprecated
+        TEST_CONSUMER,
+
+        /**
+         * This test suite will compile and run using everything visible to {@link #CONSUMER}, as well as the project's
+         * {@code runtimeClasspath} configuration.
+         *
+         * This level gives full "clearbox" access to the internals of the project code being tested, above what a typical project
+         * consumer would have access to, but does <strong>NOT</strong> share test dependencies used by the default suite.
+         *
+         * This is the equivalent of a test suite manually configuring:
+         * <pre>
+         * testing {
+         *     suites {
+         *         mySuite(JvmTestSuite) {
+         *             dependencies {
+         *                 implementation project(':thisProjectName')
+         *                 implementation(project(path: ':', configuration: 'runtimeClasspath')
+         *             }
+         *         }
+         *     }
+         * }
+         * </pre>
+         */
+        INTERNAL_CONSUMER;
+    }
 }

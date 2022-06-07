@@ -19,6 +19,8 @@ package org.gradle.api.plugins.jvm.internal;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.GradleException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -31,6 +33,7 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -286,5 +289,42 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 getTargets().forEach(context::add);
             }
         };
+    }
+
+    @Inject
+    public abstract Project getProject();
+
+    @Override
+    public void transparencyLevel(ProjectTransparencyLevel level) {
+        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) { // TODO: replace this with .isDefaultTestSuite() method once that branch is merged
+            throw new GradleException("Can't set " + level.name() + " transparency on the default test suite!");
+        }
+
+        JavaPluginExtension javaExtension = getProject().getExtensions().getByType(JavaPluginExtension.class);
+
+        switch (level) {
+            case PROJECT_CLASSES_ONLY:
+                dependencies.implementation(javaExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+                break;
+            case CONSUMER:
+                dependencies.implementation(getProject());
+                break;
+            case TEST_CONSUMER:
+                dependencies.implementation(getProject());
+                addAccessToConfiguration(javaExtension.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspathConfigurationName());
+                break;
+            case INTERNAL_CONSUMER:
+                dependencies.implementation(getProject());
+                addAccessToConfiguration(javaExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspathConfigurationName());
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown enum constant: " + level);
+        }
+    }
+
+    private void addAccessToConfiguration(String configurationName) {
+        Configuration configuration = getProject().getConfigurations().getByName(configurationName);
+        Configuration testSuiteImplementation = getProject().getConfigurations().getByName(getSources().getImplementationConfigurationName());
+        testSuiteImplementation.extendsFrom(configuration);
     }
 }
