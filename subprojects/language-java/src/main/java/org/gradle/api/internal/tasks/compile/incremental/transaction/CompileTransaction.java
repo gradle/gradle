@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.WorkResult;
@@ -27,6 +26,7 @@ import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * A helper class to handle incremental compilation after failure: it makes moving files around easier and reverting state easier.
@@ -270,18 +271,14 @@ public class CompileTransaction {
 
         /**
          * Moves file to the destination file. It also creates all intermediate folders if they don't exist.
-         * When the destination file is on another file system, do a "copy and delete" (check org.apache.commons.io.FileUtils.moveFile for details).
          *
-         * Note: If the destination file already exists it is deleted and after that move operation is run.
+         * Note: If the destination file already exists it replaced.
          */
         private boolean moveFile(File sourceFile, File destinationFile) {
             try {
-                if (destinationFile.exists()) {
-                    destinationFile.delete();
-                }
                 destinationFile.getParentFile().mkdirs();
-                FileUtils.moveFile(sourceFile, destinationFile);
-                return destinationFile.exists();
+                Files.move(sourceFile.toPath(), destinationFile.toPath(), REPLACE_EXISTING);
+                return true;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
