@@ -16,21 +16,23 @@
 package org.gradle.test.fixtures.file
 
 import com.google.common.io.ByteStreams
+import groovy.io.FileType
+import org.apache.commons.compress.archivers.ArchiveEntry
+import org.apache.commons.compress.archivers.ArchiveOutputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
+import org.apache.commons.compress.utils.IOUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Expand
-import org.apache.tools.ant.taskdefs.Tar
 import org.apache.tools.ant.taskdefs.Untar
-import org.apache.tools.ant.taskdefs.Zip
-import org.apache.tools.ant.types.ArchiveFileSet
-import org.apache.tools.ant.types.EnumeratedAttribute
-import org.apache.tools.ant.types.ZipFileSet
 
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
-import java.util.zip.GZIPOutputStream
+import java.util.function.Function
 import java.util.zip.ZipInputStream
 
 import static org.hamcrest.CoreMatchers.equalTo
@@ -219,85 +221,69 @@ class TestFileHelper {
         return result
     }
 
-    public void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
+    void zipTo(TestFile zipFile, boolean nativeTools) {
         if (nativeTools && isUnix()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            Zip zip = new Zip();
-            zip.setProject(new Project())
-            setSourceDirectory(zip, readOnly);
-            zip.setDestFile(zipFile);
-            def whenEmpty = new Zip.WhenEmpty()
-            whenEmpty.setValue("create")
-            zip.setWhenempty(whenEmpty);
-            zip.execute();
+            archiveTo(zipFile, ZipArchiveOutputStream::new)
         }
     }
 
-    private void setSourceDirectory(archiveTask, boolean readOnly) {
-        if (readOnly) {
-            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet();
-            archiveFileSet.setDir(file);
-            archiveFileSet.setFileMode("0444");
-            archiveFileSet.setDirMode("0555");
-            archiveTask.add(archiveFileSet);
-        } else {
-            archiveTask.setBasedir(file);
-        }
-    }
-
-    public void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
+    void tarTo(TestFile tarFile, boolean nativeTools) {
         if (nativeTools && isUnix()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            Tar tar = new Tar();
-            tar.setProject(new Project())
-            setSourceDirectory(tar, readOnly);
-            tar.setDestFile(tarFile);
-            tar.execute();
+            archiveTo(tarFile, TarArchiveOutputStream::new)
         }
     }
 
-    public void tgzTo(TestFile tarFile, boolean readOnly) {
-        Tar tar = new Tar();
-        tar.setProject(new Project())
-        setSourceDirectory(tar, readOnly);
-        tar.setDestFile(tarFile);
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
-        tar.execute();
+    void tgzTo(TestFile archiveFile) {
+        archiveTo(archiveFile, os -> new TarArchiveOutputStream(new GzipCompressorOutputStream(os)))
     }
 
-    public void tbzTo(TestFile tarFile, boolean readOnly) {
-        Tar tar = new Tar();
-        tar.setProject(new Project())
-        setSourceDirectory(tar, readOnly);
-        tar.setDestFile(tarFile);
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
-        tar.execute();
+    void tbzTo(TestFile archiveFile) {
+        archiveTo(archiveFile, os -> new TarArchiveOutputStream(new BZip2CompressorOutputStream(os)))
     }
 
-    void bzip2To(TestFile compressedFile) {
-        def outStr = new FileOutputStream(compressedFile)
-        try {
-            outStr.write('BZ'.getBytes("us-ascii"))
-            def zipStream = new BZip2CompressorOutputStream(outStr)
-            zipStream.bytes = file.bytes
-            zipStream.close()
-        } finally {
-            outStr.close()
+    void bzip2To(TestFile archiveFile) {
+        archiveTo(archiveFile, BZip2CompressorOutputStream::new)
+    }
+
+    void gzipTo(TestFile archiveFile) {
+        archiveTo(archiveFile, GzipCompressorOutputStream::new)
+    }
+
+    private void archiveTo(TestFile archiveFile, Function<OutputStream, ArchiveOutputStream> compressor) {
+        def filesToArchive = getFilesToArchive()
+        try (OutputStream fo = Files.newOutputStream(archiveFile.toPath())
+             ArchiveOutputStream o = compressor.apply(fo)) {
+            for (File f : filesToArchive) {
+                ArchiveEntry entry = o.createArchiveEntry(f, entryName(f))
+                o.putArchiveEntry(entry)
+                if (f.isFile()) {
+                    try (InputStream i = Files.newInputStream(f.toPath())) {
+                        IOUtils.copy(i, o)
+                    }
+                }
+                o.closeArchiveEntry()
+            }
         }
     }
 
-    void gzipTo(TestFile compressedFile) {
-        def outStr = new GZIPOutputStream(new FileOutputStream(compressedFile))
-        try {
-            outStr.bytes = file.bytes
-        } finally {
-            outStr.close()
+    private Collection<File> getFilesToArchive() {
+        def list = []
+        file.eachFileRecurse (FileType.ANY) { f ->
+            list << f
         }
+        return list
     }
+
+    private String entryName(File f) {
+        file.toPath().relativize(f.toPath()).toString()
+    }
+
 }
