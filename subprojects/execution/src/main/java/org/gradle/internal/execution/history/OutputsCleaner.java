@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Predicate;
@@ -135,8 +137,12 @@ public class OutputsCleaner {
         }
     }
 
-    private boolean isEmpty(File parentDir) {
-        String[] children = parentDir.list();
-        return children != null && children.length == 0;
+    private boolean isEmpty(File parentDir) throws IOException {
+        if (!parentDir.exists()) {
+            return false;
+        }
+        try (DirectoryStream<Path> directory = Files.newDirectoryStream(parentDir.toPath())) {
+            return !directory.iterator().hasNext();
+        }
     }
 }
