@@ -503,7 +503,7 @@ This will set up a new source set called `intTest` that automatically creates:
 
 [NOTE]
 ====
-If you are working with the IntelliJ IDE, you may wish to flag the directories in these additional source sets as containing test source rather than production source as explained in <<idea_plugin.adoc#sec:idea_identify_additional_source_sets,the Idea Plugin>> documentation.
+If you are working with the IntelliJ IDE, you may wish to flag the directories in these additional source sets as containing test source rather than production source as explained in the <<idea_plugin.adoc#sec:idea_identify_additional_source_sets,Idea Plugin>> documentation.
 ====
 
 The example also does the following, not all of which you may need for your specific integration tests:
