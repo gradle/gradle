@@ -79,4 +79,39 @@ public abstract class StaleOutputCleaner {
 
         return outputsCleaner.getDidWork();
     }
+
+    @CheckReturnValue
+    public static boolean cleanOutputDirectories(Deleter deleter, Iterable<File> filesToDelete, File directoryToClean) {
+        return cleanOutputDirectories(deleter, filesToDelete, ImmutableSet.of(directoryToClean));
+    }
+
+    @CheckReturnValue
+    public static boolean cleanOutputDirectories(Deleter deleter, Iterable<File> directories, ImmutableSet<File> directoriesToClean) {
+        Set<String> prefixes = directoriesToClean.stream()
+            .map(directoryToClean -> directoryToClean.getAbsolutePath() + File.separator)
+            .collect(Collectors.toSet());
+
+        OutputsCleaner outputsCleaner = new OutputsCleaner(
+            deleter,
+            file -> {
+                String absolutePath = file.getAbsolutePath();
+                return prefixes.stream()
+                    .anyMatch(absolutePath::startsWith);
+            },
+            dir -> !directoriesToClean.contains(dir)
+        );
+
+        try {
+            for (File dir : directories) {
+                if (dir.isDirectory()) {
+                    outputsCleaner.cleanupOutput(dir, FileType.Directory);
+                }
+            }
+            outputsCleaner.cleanupDirectories();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to clean up stale outputs", e);
+        }
+
+        return outputsCleaner.getDidWork();
+    }
 }

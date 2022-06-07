@@ -33,10 +33,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -95,6 +97,7 @@ public class CompileTransaction {
         try {
             transactionalDirectories.forEach(dir -> dir.beforeExecutionAction.run());
             T result = function.apply(workResult);
+            transactionalDirectories.forEach(dir -> dir.onSuccessStashAction.run());
             transactionalDirectories.forEach(dir -> dir.onSuccessMoveAction.run());
             return result;
         } catch (Throwable t) {
@@ -147,6 +150,7 @@ public class CompileTransaction {
         private File directory;
         private BooleanSupplier stashFilesAction = () -> false;
         private Runnable stashRollbackAction = () -> {};
+        private Runnable onSuccessStashAction = () -> {};
         private Runnable onSuccessMoveAction = () -> {};
         private Runnable beforeExecutionAction = () -> {};
         private Runnable afterExecutionAlwaysDoAction = () -> {};
@@ -173,11 +177,18 @@ public class CompileTransaction {
             }
 
             // Create stash function first
+            AtomicReference<Set<File>> fRef = new AtomicReference<>();
             Set<File> newFiles = new HashSet<>();
             stashFilesAction = () -> {
                 Set<File> files = fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
+                fRef.set(files);
                 moveFilesFromDirectoryTo(files, sourceDirectory, directory, newFiles::add);
                 return !newFiles.isEmpty();
+            };
+
+            onSuccessStashAction = () -> {
+                Set<File> parents = fRef.get().stream().map(File::getParentFile).collect(Collectors.toSet());
+                StaleOutputCleaner.cleanOutputDirectories(deleter, parents, sourceDirectory);
             };
 
             // Then create also unstash function
@@ -249,15 +260,13 @@ public class CompileTransaction {
             if (files.isEmpty() || sourceDirectory == null) {
                 return;
             }
-            StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
+
+            for (File file : files) {
                 Path relativePath = sourceDirectory.toPath().relativize(file.toPath());
                 File newFile = new File(destinationDirectory, relativePath.toString());
-                if (moveFile(file, newFile)) {
-                    newFileCollector.accept(newFile);
-                    return true;
-                }
-                return false;
-            }), files, sourceDirectory);
+                moveFile(file, newFile);
+                newFileCollector.accept(newFile);
+            }
         }
 
         private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
