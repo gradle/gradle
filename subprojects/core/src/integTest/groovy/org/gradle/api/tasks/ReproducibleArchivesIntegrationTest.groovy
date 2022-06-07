@@ -125,7 +125,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         where:
         compression | md5
         'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? 'c4d89909b123359774c0a5dfd3cc8e46' : '7b86e679a3c6cda52736e1f167cc04f5')
-        'bzip2'     | '54615d3194655da3f7f72c8859f66fa5'
+        'bzip2'     | 'acfaf50166adbf6b99dc697c30b1fbcb'
     }
 
     def "#taskName preserves order of child specs"() {

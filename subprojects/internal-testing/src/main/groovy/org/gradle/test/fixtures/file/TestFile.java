@@ -766,38 +766,22 @@ public class TestFile extends File {
     }
 
     public TestFile zipTo(TestFile zipFile) {
-        return zipTo(zipFile, false);
-    }
-
-    public TestFile zipTo(TestFile zipFile, boolean readOnly) {
-        new TestFileHelper(this).zipTo(zipFile, useNativeTools, readOnly);
+        new TestFileHelper(this).zipTo(zipFile, useNativeTools);
         return this;
     }
 
     public TestFile tarTo(TestFile tarFile) {
-        return tarTo(tarFile, false);
-    }
-
-    public TestFile tarTo(TestFile tarFile, boolean readOnly) {
-        new TestFileHelper(this).tarTo(tarFile, useNativeTools, readOnly);
+        new TestFileHelper(this).tarTo(tarFile, useNativeTools);
         return this;
     }
 
     public TestFile tgzTo(TestFile tarFile) {
-        return tgzTo(tarFile, false);
-    }
-
-    public TestFile tgzTo(TestFile tarFile, boolean readOnly) {
-        new TestFileHelper(this).tgzTo(tarFile, readOnly);
+        new TestFileHelper(this).tgzTo(tarFile);
         return this;
     }
 
     public TestFile tbzTo(TestFile tarFile) {
-        return tbzTo(tarFile, false);
-    }
-
-    public TestFile tbzTo(TestFile tarFile, boolean readOnly) {
-        new TestFileHelper(this).tbzTo(tarFile, readOnly);
+        new TestFileHelper(this).tbzTo(tarFile);
         return this;
     }
 
