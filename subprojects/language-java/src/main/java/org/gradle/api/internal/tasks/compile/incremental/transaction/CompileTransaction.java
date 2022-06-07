@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 
@@ -251,7 +251,7 @@ public class CompileTransaction {
             StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
                 Path relativePath = sourceDirectory.toPath().relativize(file.toPath());
                 File newFile = new File(destinationDirectory, relativePath.toString());
-                if (FileUtils.moveFile(file, newFile)) {
+                if (moveFile(file, newFile)) {
                     newFileCollector.accept(newFile);
                     return true;
                 }
@@ -263,9 +263,28 @@ public class CompileTransaction {
             fileOperations.fileTree(sourceDirectory).visit(fileVisitDetails -> {
                 if (!fileVisitDetails.isDirectory()) {
                     File newFile = new File(destinationDirectory, fileVisitDetails.getPath());
-                    FileUtils.moveFile(fileVisitDetails.getFile(), newFile);
+                    moveFile(fileVisitDetails.getFile(), newFile);
                 }
             });
+        }
+
+        /**
+         * Moves file to the destination file. It also creates all intermediate folders if they don't exist.
+         * When the destination file is on another file system, do a "copy and delete" (check org.apache.commons.io.FileUtils.moveFile for details).
+         *
+         * Note: If the destination file already exists it is deleted and after that move operation is run.
+         */
+        private boolean moveFile(File sourceFile, File destinationFile) {
+            try {
+                if (destinationFile.exists()) {
+                    destinationFile.delete();
+                }
+                destinationFile.getParentFile().mkdirs();
+                FileUtils.moveFile(sourceFile, destinationFile);
+                return destinationFile.exists();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 }

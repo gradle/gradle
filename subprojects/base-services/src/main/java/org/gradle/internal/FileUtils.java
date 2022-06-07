@@ -224,22 +224,4 @@ public class FileUtils {
         return root;
     }
 
-    /**
-     * Moves file to the destination file. It also creates all intermediate folders if they don't exist.
-     * When the destination file is on another file system, do a "copy and delete" (check org.apache.commons.io.FileUtils.moveFile for details).
-     *
-     * Note: If the destination file already exists it is deleted and after that move operation is run.
-     */
-    public static boolean moveFile(File sourceFile, File destinationFile) {
-        try {
-            if (destinationFile.exists()) {
-                destinationFile.delete();
-            }
-            destinationFile.getParentFile().mkdirs();
-            org.apache.commons.io.FileUtils.moveFile(sourceFile, destinationFile);
-            return destinationFile.exists();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
 }

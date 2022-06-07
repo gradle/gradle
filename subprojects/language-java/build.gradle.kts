@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
+    implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
     implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
@@ -42,7 +43,6 @@ dependencies {
     runtimeOnly(project(":java-compiler-plugin"))
 
     testImplementation(project(":base-services-groovy"))
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platform-base")))
 
