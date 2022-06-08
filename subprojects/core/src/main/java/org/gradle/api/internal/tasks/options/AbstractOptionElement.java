@@ -35,9 +35,6 @@ abstract class AbstractOptionElement implements OptionElement {
     }
 
     protected AbstractOptionElement(String description, String optionName, Class<?> optionType) {
-        if (description == null) {
-            throw new OptionValidationException(String.format("No description set on option '%s'.", optionName));
-        }
         this.description = description;
         this.optionName = optionName;
         this.optionType = optionType;

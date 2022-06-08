@@ -75,7 +75,7 @@ public class OptionReader {
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
         List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
-        // add additional built-in options only if they not clash with declared options
+        // add additional built-in options only if they do not clash with declared options
         for (OptionDescriptor builtInOption : buildBuiltInOptions(target)) {
             if (!options.containsKey(builtInOption.getName())) {
                 taskOptions.add(builtInOption);

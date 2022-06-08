@@ -125,14 +125,14 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         cacheDir.listFiles() as List == []
 
         when:
-        withBuildCache().run"compileJava", "jar"
+        withBuildCache().run "compileJava", "jar"
         def originalCacheContents = listCacheFiles()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
         noneSkipped()
 
         when:
-        withBuildCache().run"compileJava", "jar", "--rerun"
+        withBuildCache().run "compileJava", "jar", "--rerun"
         then:
         skipped ":compileJava"
         executedAndNotSkipped ":jar"
