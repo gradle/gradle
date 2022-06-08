@@ -438,7 +438,7 @@ public class Wrapper extends DefaultTask {
      * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
      * as downloading the wrapper jar.
      *
-     * @since 7.4
+     * @since 7.6
      */
     @Input
     @Incubating
