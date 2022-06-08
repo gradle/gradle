@@ -21,13 +21,10 @@ import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 
 class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "#method is instrumented in dynamic Groovy"() {
+    def "#method is instrumented in dynamic Groovy #indyStatus"() {
         def configurationCache = newConfigurationCacheFixture()
 
         given:
-        // Why the separate plugin? The Project.getProperties() is available in the build.gradle as getProperties().
-        // Therefore, it is impossible to call System.getProperties() with static import there, and testing static
-        // import is important because Groovy generates different code in this case.
         file("buildSrc/src/main/groovy/SomePlugin.groovy") << """
             import ${Plugin.name}
             import ${Project.name}
@@ -41,6 +38,11 @@ class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends Abstra
                     def returned = $method
                     println("returned = \$returned")
                 }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            compileGroovy {
+                groovyOptions.optimizationOptions.indy = $enableIndy
             }
         """
 
@@ -59,41 +61,58 @@ class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends Abstra
         }
 
         where:
-        method                                                    | _
-        "System.properties['some.property']"                      | _
-        "System.getProperties().get('some.property')"             | _
-        "getProperties().get('some.property')"                    | _
-        "System.getProperty('some.property')"                     | _
-        "System.getProperty(*['some.property'])"                  | _
-        "getProperty('some.property')"                            | _
-        "System.getProperty('some.property', 'default.value')"    | _
-        "System.getProperty(*['some.property', 'default.value'])" | _
-        "getProperty('some.property', 'default.value')"           | _
-        "System.setProperty('some.property', 'new.value')"        | _
-        "System.setProperty(*['some.property', 'new.value'])"     | _
-        "setProperty('some.property', 'new.value')"               | _
-        "System.clearProperty('some.property')"                   | _
-        "System.clearProperty(*['some.property'])"                | _
-        "clearProperty('some.property')"                          | _
+        [method, enableIndy] << [[
+                                     "System.properties['some.property']",
+                                     "System.getProperties().get('some.property')",
+                                     "getProperties().get('some.property')",
+                                     "System.getProperty('some.property')",
+                                     "System.getProperty(*['some.property'])",
+                                     "getProperty('some.property')",
+                                     "System.getProperty('some.property', 'default.value')",
+                                     "System.getProperty(*['some.property', 'default.value'])",
+                                     "getProperty('some.property', 'default.value')",
+                                     "System.setProperty('some.property', 'new.value')",
+                                     "System.setProperty(*['some.property', 'new.value'])",
+                                     "setProperty('some.property', 'new.value')",
+                                     "System.clearProperty('some.property')",
+                                     "System.clearProperty(*['some.property'])",
+                                     "clearProperty('some.property')",
+                                 ], [false, true]].combinations()
+        indyStatus = enableIndy ? "with indy" : "without indy"
     }
 
-    def "#setProperties is instrumented in dynamic Groovy"() {
+    def "#setProperties is instrumented in dynamic Groovy #indyStatus"() {
         def configurationCache = newConfigurationCacheFixture()
 
         given:
-        buildScript("""
+        file("buildSrc/src/main/groovy/SomePlugin.groovy") << """
+            import ${Plugin.name}
+            import ${Project.name}
             import static ${System.name}.setProperties
 
-            def newProps = new Properties()
-            System.properties.forEach { k, v -> newProps[k] = v }
-            newProps.replace("some.property", "new.value")
-            ${setProperties}(newProps)
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    def newProps = new Properties()
+                    System.properties.forEach { k, v -> newProps[k] = v }
+                    newProps.replace("some.property", "new.value")
+                    ${setProperties}(newProps)
 
-            tasks.register("printProperty") {
-                doLast {
-                    println("returned = \${System.getProperty("some.property")}")
+                    project.tasks.register("printProperty") {
+                        doLast {
+                            println("returned = \${System.getProperty("some.property")}")
+                        }
+                    }
                 }
             }
+        """
+        file("buildSrc/build.gradle") << """
+            compileGroovy {
+                groovyOptions.optimizationOptions.indy = $enableIndy
+            }
+        """
+
+        buildScript("""
+            apply plugin: SomePlugin
         """)
 
         when:
@@ -111,8 +130,10 @@ class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends Abstra
         outputContains("returned = new.value")
 
         where:
-        setProperties          | _
-        "System.setProperties" | _
-        "setProperties"        | _
+        [setProperties, enableIndy] << [
+            ["System.setProperties", "setProperties"],
+            [false, true]
+        ].combinations()
+        indyStatus = enableIndy ? "with indy" : "without indy"
     }
 }
