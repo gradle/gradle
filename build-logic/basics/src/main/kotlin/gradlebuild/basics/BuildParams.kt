@@ -44,21 +44,23 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DB_USERNAME
 import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
+import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
-import gradlebuild.basics.BuildParams.TEST_FILTERING_ENABLED
 import gradlebuild.basics.BuildParams.TEST_JAVA_VENDOR
 import gradlebuild.basics.BuildParams.TEST_JAVA_VERSION
 import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_INCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_ONLY_TEST_GRADLE_VERSION
+import gradlebuild.basics.BuildParams.VENDOR_MAPPING
 import gradlebuild.basics.BuildParams.YARNPKG_MIRROR_URL
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 
@@ -85,6 +87,7 @@ object BuildParams {
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val GRADLE_INSTALL_PATH = "gradle_installPath"
 
+
     /**
      * Specify the flaky test quarantine strategy:
      *
@@ -106,9 +109,9 @@ object BuildParams {
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val RERUN_ALL_TESTS = "rerunAllTests"
+    const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
-    const val TEST_FILTERING_ENABLED = "gradle.internal.testselection.enabled"
     const val TEST_SPLIT_INCLUDE_TEST_CLASSES = "includeTestClasses"
     const val TEST_SPLIT_EXCLUDE_TEST_CLASSES = "excludeTestClasses"
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
@@ -117,6 +120,8 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+    internal
+    val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
     const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
 }
 
@@ -275,12 +280,12 @@ val Project.gradleInstallPath: Provider<String>
     )
 
 
-val Project.rerunAllTests: Provider<String>
-    get() = gradleProperty(RERUN_ALL_TESTS)
+val Project.rerunAllTests: Provider<Boolean>
+    get() = gradleProperty(RERUN_ALL_TESTS).map { true }.orElse(false)
 
 
-val Project.testJavaVendor: Provider<String>
-    get() = propertyFromAnySource(TEST_JAVA_VENDOR)
+val Project.testJavaVendor: Provider<JvmVendorSpec>
+    get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { VENDOR_MAPPING.getValue(it) }
 
 
 val Project.testJavaVersion: String
@@ -299,8 +304,15 @@ val Project.testSplitOnlyTestGradleVersion: String
     get() = project.stringPropertyOrEmpty(TEST_SPLIT_ONLY_TEST_GRADLE_VERSION)
 
 
-val Project.isExperimentalTestFilteringEnabled: Boolean
-    get() = systemProperty(TEST_FILTERING_ENABLED).getOrElse("false").toBoolean()
+val Project.predictiveTestSelectionEnabled: Provider<Boolean>
+    get() = systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED)
+        .map { it.toBoolean() }
+        .orElse(
+            buildBranch.zip(buildRunningOnCi) { branch, ci ->
+                val protectedBranches = listOf("master", "release")
+                ci && !protectedBranches.contains(branch) && !branch.startsWith("pre-test/")
+            }
+        )
 
 
 val Project.testDistributionEnabled: Boolean

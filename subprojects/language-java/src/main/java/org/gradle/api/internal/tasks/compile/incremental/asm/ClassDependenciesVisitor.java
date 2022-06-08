@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -61,7 +63,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
-        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        reader.accept(visitor, ClassReader.SKIP_FRAMES);
 
         // Remove the "API accessible" types from the "privately used types"
         visitor.privateTypes.removeAll(visitor.accessibleTypes);
@@ -73,6 +75,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        maybeAddClassTypesFromSignature(signature, types);
         if (superName != null) {
             // superName can be null if what we are analyzing is `java.lang.Object`
             // which can happen when a custom Java SDK is on classpath (typically, android.jar)
@@ -108,6 +111,19 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         }
     }
 
+    private void maybeAddClassTypesFromSignature(String signature, Set<String> types) {
+        if (signature != null) {
+            SignatureReader signatureReader = new SignatureReader(signature);
+            signatureReader.accept(new SignatureVisitor(API) {
+                @Override
+                public void visitClassType(String className) {
+                    Type type = Type.getObjectType(className);
+                    maybeAddDependentType(types, type);
+                }
+            });
+        }
+    }
+
     protected void maybeAddDependentType(Set<String> types, Type type) {
         while (type.getSort() == Type.ARRAY) {
             type = type.getElementType();
@@ -140,6 +156,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        maybeAddClassTypesFromSignature(signature, types);
         maybeAddDependentType(types, Type.getType(desc));
         if (isAccessibleConstant(access, value)) {
             // we need to compute a hash for a constant, which is based on the name of the constant + its value
@@ -218,7 +235,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-            maybeAddDependentType(types, Type.getType(desc));
+            maybeAddClassTypesFromSignature(signature, privateTypes);
+            maybeAddDependentType(privateTypes, Type.getType(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
         }
 

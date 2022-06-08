@@ -119,7 +119,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         warningLogger = watchMode.loggerForWarnings(LOGGER);
         stateInvalidatedAtStartOfBuild = false;
         reasonForNotWatchingFiles = null;
-        rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        rootReference.updateUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchMode.isEnabled()) {
@@ -205,7 +205,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy) {
-        rootReference.update(currentRoot -> {
+        rootReference.updateUnderLock(currentRoot -> {
             if (watchRegistry == null) {
                 watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
                 return currentRoot;
@@ -225,7 +225,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
-        rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        rootReference.updateUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 watchableHierarchiesRegisteredEarly.clear();
@@ -359,7 +359,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            rootReference.update(root -> updateNotifyingListeners(
+            rootReference.updateUnderLock(root -> updateNotifyingListeners(
                 diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
             ));
         }
@@ -470,7 +470,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy, WatchMode, List)}}.
      */
     private void stopWatchingAndInvalidateHierarchyAfterError() {
-        rootReference.update(this::stopWatchingAndInvalidateHierarchyAfterError);
+        rootReference.updateUnderLock(this::stopWatchingAndInvalidateHierarchyAfterError);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchyAfterError(SnapshotHierarchy currentRoot) {
@@ -506,7 +506,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     @Override
     public void close() {
         LOGGER.debug("Closing VFS, dropping state");
-        rootReference.update(currentRoot -> {
+        rootReference.updateUnderLock(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();
         });

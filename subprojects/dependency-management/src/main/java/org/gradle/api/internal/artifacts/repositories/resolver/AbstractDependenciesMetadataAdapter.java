@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.DependencyMetadata;
@@ -26,56 +25,33 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
-import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata<T>> extends AbstractList<T> implements DependenciesMetadata<T> {
-    private final List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata;
-    protected final Map<Integer, T> dependencyMetadataAdapters;
+public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata<T>, E extends T> extends ArrayList<T> implements DependenciesMetadata<T> {
     private final Instantiator instantiator;
     private final NotationParser<Object, T> dependencyNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public AbstractDependenciesMetadataAdapter(ImmutableAttributesFactory attributesFactory, List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata, Instantiator instantiator, NotationParser<Object, T> dependencyNotationParser) {
+    public AbstractDependenciesMetadataAdapter(ImmutableAttributesFactory attributesFactory, Instantiator instantiator, NotationParser<Object, T> dependencyNotationParser) {
         this.attributesFactory = attributesFactory;
-        this.dependenciesMetadata = dependenciesMetadata;
-        this.dependencyMetadataAdapters = Maps.newHashMap();
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
     }
 
-    protected abstract Class<? extends T> adapterImplementationType();
+    protected abstract Class<E> adapterImplementationType();
+
+    protected abstract ModuleDependencyMetadata getAdapterMetadata(E adapter);
 
     protected abstract boolean isConstraint();
 
     protected abstract boolean isEndorsingStrictVersions(T details);
-
-    @Override
-    public T get(int index) {
-        if (!dependencyMetadataAdapters.containsKey(index)) {
-            dependencyMetadataAdapters.put(index, instantiator.newInstance(adapterImplementationType(), attributesFactory, dependenciesMetadata, index));
-        }
-        return dependencyMetadataAdapters.get(index);
-    }
-
-    @Override
-    public int size() {
-        return dependenciesMetadata.size();
-    }
-
-    @Override
-    public T remove(int index) {
-        T componentDependencyMetadata = get(index);
-        dependenciesMetadata.remove(index);
-        dependencyMetadataAdapters.remove(index);
-        return componentDependencyMetadata;
-    }
 
     @Override
     public void add(String dependencyNotation) {
@@ -106,15 +82,29 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
             // but then it wouldn't be mutable. Therefore we proceed with "late injection" of the attributes
             ((AbstractDependencyImpl<?>) dependencyMetadata).setAttributes(attributesFactory.mutable());
         }
+
+        T adapted = adapt(dependencyMetadata);
         if (configureAction != null) {
-            configureAction.execute(dependencyMetadata);
+            configureAction.execute(adapted);
         }
-        dependenciesMetadata.add(toDependencyMetadata(dependencyMetadata));
+        add(adapted);
     }
 
-    private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(T details) {
-        // TODO: CC make capabilities accessible to rules
+    public ImmutableList<ModuleDependencyMetadata> getMetadatas() {
+        return this.stream().map(this::maybeAdapt).map(this::getAdapterMetadata).collect(ImmutableList.toImmutableList());
+    }
+
+    private E maybeAdapt(T details) {
+        if (adapterImplementationType().isInstance(details)) {
+            return adapterImplementationType().cast(details);
+        }
+
+        return adapt(details);
+    }
+
+    private E adapt(T details) {
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getModule(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()), details.getAttributes(), ImmutableList.of());
-        return new GradleDependencyMetadata(selector, Collections.emptyList(), isConstraint(), isEndorsingStrictVersions(details), details.getReason(), false, null);
+        GradleDependencyMetadata dependencyMetadata = new GradleDependencyMetadata(selector, Collections.emptyList(), isConstraint(), isEndorsingStrictVersions(details), details.getReason(), false, null);
+        return instantiator.newInstance(adapterImplementationType(), attributesFactory, dependencyMetadata);
     }
 }
