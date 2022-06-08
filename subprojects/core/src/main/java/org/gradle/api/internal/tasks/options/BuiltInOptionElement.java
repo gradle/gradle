@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Built-in options are additional task options available
  * to all tasks.
@@ -37,8 +39,8 @@ public class BuiltInOptionElement extends AbstractOptionElement {
     private final Consumer<Task> optionAction;
 
     public BuiltInOptionElement(String description, String optionName, Consumer<Task> optionAction) {
-        super(description, optionName, Void.TYPE);
-        this.optionAction = optionAction;
+        super(requireNonNull(description), requireNonNull(optionName), Void.TYPE);
+        this.optionAction = requireNonNull(optionAction);
     }
 
     @Override
