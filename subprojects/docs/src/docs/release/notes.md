@@ -15,7 +15,9 @@ We would like to thank the following community members for their contributions t
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
 [Sam Snyder](https://github.com/sambsnyd),
-[teawithbrownsugar](https://github.com/teawithbrownsugar)
+[teawithbrownsugar](https://github.com/teawithbrownsugar),
+[John](https://github.com/goughy000),
+[sll552](https://github.com/sll552)
 
 ## Upgrade instructions
 
