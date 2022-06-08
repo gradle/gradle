@@ -31,6 +31,7 @@ import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeValidator
+import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
@@ -197,7 +198,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
         def nodeFactory = new TaskNodeFactory(Stub(GradleInternal), Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator))
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
-        def plan = new DefaultExecutionPlan(displayName, nodeFactory, Stub(TaskDependencyResolver), hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.coordinationService)
+        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), Stub(TaskDependencyResolver), hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.coordinationService)
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }
