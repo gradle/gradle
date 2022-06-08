@@ -113,16 +113,19 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             // Set compile outputs to new folders and in case of a success move content to original folders
             .newTransactionalDirectory(dir -> dir
                 .onSuccessMoveFilesTo(compileDestinationDir)
+                .ensureEmptyKeepingDirectoriesFrom(compileDestinationDir)
                 .beforeExecutionDo(() -> spec.setDestinationDir(dir.getAsFile()))
                 .afterExecutionAlwaysDo(() -> spec.setDestinationDir(compileDestinationDir))
             )
             .newTransactionalDirectory(annProcessorGeneratedSourcesDir != null, dir -> dir
                 .onSuccessMoveFilesTo(annProcessorGeneratedSourcesDir)
+                .ensureEmptyKeepingDirectoriesFrom(annProcessorGeneratedSourcesDir)
                 .beforeExecutionDo(() -> spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(dir.getAsFile()))
                 .afterExecutionAlwaysDo(() -> spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annProcessorGeneratedSourcesDir))
             )
             .newTransactionalDirectory(headerOutputDir != null, dir -> dir
                 .onSuccessMoveFilesTo(headerOutputDir)
+                .ensureEmptyKeepingDirectoriesFrom(headerOutputDir)
                 .beforeExecutionDo(() -> spec.getCompileOptions().setHeaderOutputDirectory(dir.getAsFile()))
                 .afterExecutionAlwaysDo(() -> spec.getCompileOptions().setHeaderOutputDirectory(headerOutputDir))
             );

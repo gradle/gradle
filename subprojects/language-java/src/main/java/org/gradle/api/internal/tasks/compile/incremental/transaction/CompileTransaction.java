@@ -296,12 +296,16 @@ public class CompileTransaction {
         }
 
         private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
-            fileOperations.fileTree(sourceDirectory).visit(fileVisitDetails -> {
-                if (!fileVisitDetails.isDirectory()) {
-                    File newFile = new File(destinationDirectory, fileVisitDetails.getPath());
-                    moveFile(fileVisitDetails.getFile(), newFile);
-                }
-            });
+            Path sourcePath = sourceDirectory.toPath();
+            try (Stream<Path> dirStream = Files.walk(sourcePath)) {
+                dirStream.filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        File newFile = new File(destinationDirectory, sourcePath.relativize(path).toString());
+                        moveFile(path.toFile(), newFile);
+                    });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
         /**
