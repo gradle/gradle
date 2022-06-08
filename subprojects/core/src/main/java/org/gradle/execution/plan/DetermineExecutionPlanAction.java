@@ -92,7 +92,7 @@ class DetermineExecutionPlanAction {
         createOrdinalRelationships();
 
         ordinalNodeAccess.createInterNodeRelationships();
-        nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
+        ordinalNodeAccess.getAllNodes().forEach(nodeMapping::add);
     }
 
     private void updateFinalizerGroups() {

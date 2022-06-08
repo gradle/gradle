@@ -82,7 +82,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final Set<Node> finalizers = new LinkedHashSet<>();
-    private final OrdinalNodeAccess ordinalNodeAccess = new OrdinalNodeAccess();
+    private final OrdinalNodeAccess ordinalNodeAccess;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
 
@@ -99,6 +99,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     public DefaultExecutionPlan(
         String displayName,
         TaskNodeFactory taskNodeFactory,
+        OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
@@ -110,6 +111,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinator = lockCoordinator;
+        this.ordinalNodeAccess = new OrdinalNodeAccess(ordinalGroupFactory);
     }
 
     @Override
