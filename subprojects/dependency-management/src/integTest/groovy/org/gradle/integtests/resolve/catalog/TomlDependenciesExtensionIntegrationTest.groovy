@@ -729,4 +729,99 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with file collection containing more than one file"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files("gradle/a.versions.toml", "gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, tooManyImportFiles {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with an empty file collection"() {
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files())
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, noImportFiles {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called multiple times"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(file("gradle/a.versions.toml"))
+            from(file("gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, tooManyImportInvokation {
+            inCatalog("testLibs")
+        })
+    }
+
 }

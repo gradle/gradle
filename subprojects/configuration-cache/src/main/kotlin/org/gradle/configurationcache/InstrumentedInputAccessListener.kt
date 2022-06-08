@@ -78,7 +78,7 @@ class InstrumentedInputAccessListener(
     val externalProcessListener = configurationCacheProblemsListener
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
-        if (allowedProperties.contains(key) || environmentChangeTracker.isSystemPropertyMutated(key) || Workarounds.canReadSystemProperty(consumer)) {
+        if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }
         undeclaredInputBroadcast.systemPropertyRead(key, value, consumer)
@@ -115,6 +115,10 @@ class InstrumentedInputAccessListener(
             return
         }
         undeclaredInputBroadcast.fileOpened(file, consumer)
+    }
+
+    override fun fileObserved(file: File, consumer: String?) {
+        undeclaredInputBroadcast.fileObserved(file, consumer)
     }
 
     override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {

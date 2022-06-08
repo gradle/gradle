@@ -54,7 +54,7 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
         return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
     }
 
-    protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.Waiting;
+    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Waiting;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
@@ -73,6 +73,10 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
 
     public String getTaskPath() {
         return taskPath;
+    }
+
+    public Path getTaskIdentityPath() {
+        return taskIdentityPath;
     }
 
     @Override
@@ -128,35 +132,36 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     }
 
     @Override
-    public boolean allDependenciesSuccessful() {
-        return super.allDependenciesSuccessful() && state == IncludedBuildTaskResource.State.Success;
-    }
-
-    @Override
-    public boolean doCheckDependenciesComplete() {
-        if (!super.doCheckDependenciesComplete()) {
-            return false;
+    public DependenciesState doCheckDependenciesComplete() {
+        DependenciesState dependenciesState = super.doCheckDependenciesComplete();
+        if (dependenciesState != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+            return dependenciesState;
         }
+
         // This node is ready to "execute" when the task in the other build has completed
-        if (state.isComplete()) {
-            return true;
+        if (!taskState.isComplete()) {
+            taskState = target.getTaskState();
         }
-        state = target.getTaskState();
-        return state.isComplete();
-    }
-
-    @Override
-    public int compareTo(Node other) {
-        if (getClass() != other.getClass()) {
-            return getClass().getName().compareTo(other.getClass().getName());
+        switch (taskState) {
+            case Waiting:
+                return DependenciesState.NOT_COMPLETE;
+            case Success:
+                return DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            case Failed:
+                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
+            default:
+                throw new IllegalArgumentException();
         }
-        TaskInAnotherBuild taskNode = (TaskInAnotherBuild) other;
-        return taskIdentityPath.compareTo(taskNode.taskIdentityPath);
     }
 
     @Override
     public String toString() {
         return taskIdentityPath.toString();
+    }
+
+    @Override
+    protected String nodeSpecificHealthDiagnostics() {
+        return "taskState=" + taskState + ", " + target.healthDiagnostics();
     }
 
     @Override

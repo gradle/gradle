@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -32,10 +31,12 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
-public abstract class Node implements Comparable<Node> {
+public abstract class Node {
     @VisibleForTesting
     enum ExecutionState {
         // Node is not scheduled to run in any plan
@@ -51,10 +52,15 @@ public abstract class Node implements Comparable<Node> {
         FAILED_DEPENDENCY
     }
 
-    enum DependenciesState {
+    public enum DependenciesState {
+        // Still waiting for dependencies to complete
         NOT_COMPLETE,
+        // All dependencies complete, can run this node
         COMPLETE_AND_SUCCESSFUL,
-        COMPLETE_AND_NOT_SUCCESSFUL
+        // All dependencies complete, but cannot run this node due to failure
+        COMPLETE_AND_NOT_SUCCESSFUL,
+        // All dependencies complete, but this node does not need to run
+        COMPLETE_AND_CAN_SKIP
     }
 
     private ExecutionState state = ExecutionState.NOT_SCHEDULED;
@@ -62,8 +68,8 @@ public abstract class Node implements Comparable<Node> {
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private boolean filtered;
-    private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
+    private final NavigableSet<Node> dependencySuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> dependencyPredecessors = newSortedNodeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
@@ -72,14 +78,32 @@ public abstract class Node implements Comparable<Node> {
         return state;
     }
 
+    String healthDiagnostics() {
+        if (isComplete()) {
+            return this + " (state=" + state + ")";
+        } else {
+            String specificState = nodeSpecificHealthDiagnostics();
+            if (!specificState.isEmpty()) {
+                specificState = ", " + specificState;
+            }
+            return this + " (state=" + state + ", dependencies=" + dependenciesState + specificState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
+        }
+    }
+
+    protected String nodeSpecificHealthDiagnostics() {
+        return "";
+    }
+
     public NodeGroup getGroup() {
         return group;
     }
 
     public void setGroup(NodeGroup group) {
-        this.group.removeMember(this);
-        this.group = group;
-        this.group.addMember(this);
+        if (this.group != group) {
+            this.group.removeMember(this);
+            this.group = group;
+            this.group.addMember(this);
+        }
     }
 
     @Nullable
@@ -145,6 +169,20 @@ public abstract class Node implements Comparable<Node> {
         builder.addAll(currentFinalizers.getFinalizerGroups());
         builder.addAll(finalizers.getFinalizerGroups());
         return new CompositeNodeGroup(currentFinalizers.getOrdinalGroup(), builder.build());
+    }
+
+    public void maybeUpdateOrdinalGroup() {
+        OrdinalGroup ordinal = getGroup().asOrdinal();
+        OrdinalGroup newOrdinal = ordinal;
+        for (Node successor : getHardSuccessors()) {
+            OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
+            if (successorOrdinal != null && (ordinal == null || successorOrdinal.getOrdinal() > ordinal.getOrdinal())) {
+                newOrdinal = successorOrdinal;
+            }
+        }
+        if (newOrdinal != ordinal) {
+            setGroup(getGroup().withOrdinalGroup(newOrdinal));
+        }
     }
 
     @Nullable
@@ -251,14 +289,16 @@ public abstract class Node implements Comparable<Node> {
         completionAction.accept(this);
     }
 
-    public void skipExecution(Consumer<Node> completionAction) {
+    public void markFailedDueToDependencies(Consumer<Node> completionAction) {
         assert state == ExecutionState.SHOULD_RUN;
         state = ExecutionState.FAILED_DEPENDENCY;
         completionAction.accept(this);
     }
 
-    public void abortExecution(Consumer<Node> completionAction) {
-        assert !isCannotRunInAnyPlan();
+    public void cancelExecution(Consumer<Node> completionAction) {
+        if (isCannotRunInAnyPlan()) {
+            throw new IllegalStateException("Cannot cancel node " + this);
+        }
         state = ExecutionState.NOT_SCHEDULED;
         completionAction.accept(this);
     }
@@ -293,6 +333,7 @@ public abstract class Node implements Comparable<Node> {
             filtered = false;
             dependenciesProcessed = false;
             state = ExecutionState.NOT_SCHEDULED;
+            dependenciesState = DependenciesState.NOT_COMPLETE;
         }
     }
 
@@ -329,13 +370,16 @@ public abstract class Node implements Comparable<Node> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected boolean doCheckDependenciesComplete() {
+    protected DependenciesState doCheckDependenciesComplete() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
-                return false;
+                return DependenciesState.NOT_COMPLETE;
+            } else if (!shouldContinueExecution(dependency)) {
+                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
             }
         }
-        return group.isSuccessorsCompleteFor(this);
+        // All dependencies are complete and successful, delegate to the group
+        return group.checkSuccessorsCompleteFor(this);
     }
 
     /**
@@ -350,15 +394,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void forceAllDependenciesCompleteUpdate() {
-        if (doCheckDependenciesComplete()) {
-            if (dependencySuccessors.stream().allMatch(this::shouldContinueExecution)) {
-                dependenciesState = DependenciesState.COMPLETE_AND_SUCCESSFUL;
-            } else {
-                dependenciesState = DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
-            }
-        } else {
-            dependenciesState = DependenciesState.NOT_COMPLETE;
-        }
+        dependenciesState = doCheckDependenciesComplete();
     }
 
     /**
@@ -369,10 +405,17 @@ public abstract class Node implements Comparable<Node> {
     }
 
     /**
-     * Can this node execute or should it be discarded? Should only be called when {@link #allDependenciesComplete()} return true.
+     * Can this node execute or should it be discarded? Should only be called when {@link #allDependenciesComplete()} returns true.
      */
     public boolean allDependenciesSuccessful() {
-        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL && group.isSuccessorsSuccessfulFor(this);
+        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL;
+    }
+
+    /**
+     * Should this node be cancelled or marked as failed? Should only be called when {@link #allDependenciesSuccessful()} returns false.
+     */
+    public boolean shouldCancelExecutionDueToDependencies() {
+        return dependenciesState == DependenciesState.COMPLETE_AND_CAN_SKIP;
     }
 
     /**

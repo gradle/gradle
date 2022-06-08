@@ -19,7 +19,7 @@ val asmVersion = "9.2"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
 val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
-val jacksonVersion = "2.12.1"
+val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val mavenVersion = "3.6.3"
@@ -77,7 +77,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.8.6") }}
+        api(libs.gson)                  { version { strictly("2.8.9") }}
         api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
@@ -101,6 +101,7 @@ dependencies {
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.1.55") }}
+        api(libs.jsoup)                 { version { strictly("1.15.1") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
@@ -129,7 +130,7 @@ dependencies {
         api(libs.snakeyaml)             { version { strictly("1.28") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
-        api(libs.trove4j)               { version { strictly("1.0.20181211") }}
+        api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly("5.10.0") }}
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
@@ -156,7 +157,6 @@ dependencies {
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
-        api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
@@ -168,6 +168,7 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
+        api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
         api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}

@@ -25,26 +25,29 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 public abstract class TaskNode extends Node {
-    private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> mustSuccessors = newSortedNodeSet();
     private final Set<Node> mustPredecessors = Sets.newHashSet();
-    private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizers = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> finalizers = newSortedNodeSet();
+    private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
-    public boolean doCheckDependenciesComplete() {
-        if (!super.doCheckDependenciesComplete()) {
-            return false;
+    public DependenciesState doCheckDependenciesComplete() {
+        DependenciesState state = super.doCheckDependenciesComplete();
+        if (state != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+            return state;
         }
 
         for (Node dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
-                return false;
+                return DependenciesState.NOT_COMPLETE;
             }
         }
 
-        return true;
+        return DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
     public Set<Node> getMustSuccessors() {
@@ -168,9 +171,6 @@ public abstract class TaskNode extends Node {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
             FinalizerGroup finalizerGroup = new FinalizerGroup(this, getGroup());
             setGroup(finalizerGroup);
-            for (Node node : getFinalizingSuccessors()) {
-                finalizerGroup.maybeInheritFrom(node.getGroup());
-            }
         }
     }
 }

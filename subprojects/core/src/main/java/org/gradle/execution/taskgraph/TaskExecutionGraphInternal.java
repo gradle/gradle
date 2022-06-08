@@ -23,6 +23,7 @@ import org.gradle.internal.build.ExecutionResult;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
@@ -55,5 +56,5 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Returns all of the work items in this graph scheduled for execution plus all
      * dependencies from other builds.
      */
-    List<Node> getScheduledWorkPlusDependencies();
+    void visitScheduledNodes(Consumer<List<Node>> visitor);
 }

@@ -54,6 +54,12 @@ public class FinalizerGroup extends HasFinalizers {
         return delegate;
     }
 
+    @Override
+    public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+        ordinal = newOrdinal;
+        return this;
+    }
+
     public NodeGroup getDelegate() {
         return delegate;
     }
@@ -89,13 +95,6 @@ public class FinalizerGroup extends HasFinalizers {
         return node.getFinalizingSuccessorsInReverseOrder();
     }
 
-    public void maybeInheritFrom(NodeGroup fromGroup) {
-        OrdinalGroup ordinal = fromGroup.asOrdinal();
-        if (ordinal != null && (this.ordinal == null || this.ordinal.getOrdinal() < ordinal.getOrdinal())) {
-            this.ordinal = ordinal;
-        }
-    }
-
     @Override
     public Set<FinalizerGroup> getFinalizerGroups() {
         return ImmutableSet.of(this);
@@ -120,41 +119,32 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     @Override
-    public boolean isSuccessorsCompleteFor(Node node) {
+    public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         // If this node is reachable from an entry point and is not the finalizer itself, then it can start at any time
         if (delegate.isReachableFromEntryPoint() && node != this.node) {
-            return true;
+            return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
         }
 
         // Otherwise, wait for all finalized nodes to complete
         boolean isAnyExecuted = false;
         for (Node finalized : getFinalizedNodes()) {
             if (!finalized.isComplete()) {
-                return false;
+                return Node.DependenciesState.NOT_COMPLETE;
             }
             isAnyExecuted |= finalized.isExecuted();
         }
-        if (isAnyExecuted) {
-            return true;
+        // Can run if any finalized node executed or if this node is reachable from an entry point
+        if (isAnyExecuted || delegate.isReachableFromEntryPoint()) {
+            return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
         }
 
-        // All finalized nodes are complete but none executed, so wait for upstream finalizers
-        return delegate.isSuccessorsCompleteFor(node);
-    }
-
-    @Override
-    public boolean isSuccessorsSuccessfulFor(Node node) {
-        // If this node is reachable from an entry point, it should run even if none of the finalized nodes have executed
-        if (delegate.isReachableFromEntryPoint()) {
-            return true;
+        // All finalized nodes are complete but none executed
+        if (delegate instanceof HasFinalizers) {
+            // Wait for upstream finalizers
+            return delegate.checkSuccessorsCompleteFor(node);
+        } else {
+            // Can skip execution
+            return Node.DependenciesState.COMPLETE_AND_CAN_SKIP;
         }
-
-        // Otherwise, this node can run if any finalized node has executed
-        for (Node finalized : getFinalizedNodes()) {
-            if (finalized.isExecuted()) {
-                return true;
-            }
-        }
-        return delegate instanceof HasFinalizers && delegate.isSuccessorsSuccessfulFor(node);
     }
 }

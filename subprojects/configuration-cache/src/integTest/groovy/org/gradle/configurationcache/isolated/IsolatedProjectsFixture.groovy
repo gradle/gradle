@@ -170,7 +170,8 @@ class IsolatedProjectsFixture {
         // Scripts - one or more for settings, and one for each project build script
         def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)
         assert !scripts.empty
-        assert scripts.first().details.targetType == "settings"
+        def sortedScripts = scripts.toSorted { it -> it.startTime }
+        assert sortedScripts.first().details.targetType == "settings"
         def otherScripts = scripts.findAll { it.details.targetType != "settings" }
         assert otherScripts.size() == projectsWithScripts(details.projects).size()
     }

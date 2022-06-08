@@ -19,6 +19,8 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.function.Supplier
@@ -391,6 +393,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("some.removed.property = null")
     }
 
+    // Running with --no-daemon causes the test to fail when changing the command line because the
+    // internal property sun.java.command changes.
+    @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
     def "properties set after clearing system properties with #systemPropsCleaner do not become inputs"() {
         given:
         buildFile("""
@@ -683,6 +688,137 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
             withInput("Build file 'build.gradle': environment variable 'CI1'")
         }
         outputContains("CI1 = defined")
+    }
+
+    def "build logic can read environment variables with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.environmentVariablesPrefixedBy("CI")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
+        configurationCacheRun("print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: CI1 = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variables prefixed by 'CI'")
+        }
+
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
+        configurationCacheRun("print")
+        outputContains("Execution: CI1 = 1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        EnvVariableInjection.environmentVariables(CI1: "1", CI2: "2").setup(this)
+        configurationCacheRun("print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: CI1 = 1")
+        outputContains("Configuration: CI2 = 2")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variables prefixed by 'CI'")
+        }
+    }
+
+    def "build logic can read system properties with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.systemPropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system properties prefixed by 'some.property.'")
+        }
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 1")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputContains("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system properties prefixed by 'some.property.'")
+        }
+    }
+
+    def "system properties overwritten in build logic are not inputs to prefixed system properties"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            System.properties.putAll(("some.property.1"): "0")
+            def ciVars = providers.systemPropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 0")
+        outputContains("Configuration: some.property.2 = 2")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=-1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 0")
+        outputContains("Execution: some.property.2 = 2")
     }
 
     def "reports build logic reading files in #title"() {

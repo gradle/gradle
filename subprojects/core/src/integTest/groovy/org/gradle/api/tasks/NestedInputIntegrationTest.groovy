@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -29,7 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -780,21 +781,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             nestedProperty('bean')
             unknownClassloader('NestedBean')
-            includeLink()
-        })
+        }
         run "customTask"
         then:
         executedAndNotSkipped ":customTask"
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             nestedProperty('bean')
             unknownClassloader('NestedBean')
-            includeLink()
-        })
+        }
         run "customTask"
         then:
         executedAndNotSkipped ":customTask"

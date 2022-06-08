@@ -54,6 +54,12 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     MAC_OS_X({
         OperatingSystem.current().macOsX
     }),
+    MAC_OS_X_M1({
+        OperatingSystem.current().macOsX && OperatingSystem.current().toString().contains("aarch64")
+    }),
+    NOT_MAC_OS_X_M1({
+        !MAC_OS_X_M1.fulfilled
+    }),
     NOT_MAC_OS_X({
         !OperatingSystem.current().macOsX
     }),
@@ -118,6 +124,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK16_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_16
+    }),
+    JDK17_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_17
     }),
     JDK17_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_17

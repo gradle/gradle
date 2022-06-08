@@ -1,124 +1,27 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask.getShowAll()",
-            "acceptation": "Task semantics are changing anyways, task type is now abstract",
+            "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.PropertyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make PropertyReportTask compatible with configuration caching",
             "changes": [
-                "Method is now abstract"
+                "Method has been removed"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask.getVariantName()",
-            "acceptation": "Task semantics are changing anyways, task type is now abstract",
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make ProjectReportTask compatible with configuration caching",
             "changes": [
-                "Method is now abstract"
+                "Method has been removed"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
-            "acceptation": "Method is deprecated for removal",
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make AbstractDependencyReportTask compatible with configuration caching",
             "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS",
-                "ANNOTATION_DEPRECATED_ADDED"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfiguration()",
-            "acceptation": "Method always could return null",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
-            "acceptation": "Method always could return null",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAccess()",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getIncludeAuthor()",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getIncludeMainForScripts()",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getProcessScripts()",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Class org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "Interface has been added"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Field PACKAGE",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Field PUBLIC",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Field PROTECTED",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Field PRIVATE",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Method org.gradle.api.tasks.javadoc.GroovydocAccess.valueOf(java.lang.String)",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
-            "member": "Method org.gradle.api.tasks.javadoc.GroovydocAccess.values()",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
+                "Method has been removed"
             ]
         }
     ]

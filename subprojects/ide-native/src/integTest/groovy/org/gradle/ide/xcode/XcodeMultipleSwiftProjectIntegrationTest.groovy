@@ -33,7 +33,7 @@ import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-@Requires(TestPrecondition.XCODE)
+@Requires([TestPrecondition.XCODE, TestPrecondition.NOT_MAC_OS_X_M1])
 class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         settingsFile << """

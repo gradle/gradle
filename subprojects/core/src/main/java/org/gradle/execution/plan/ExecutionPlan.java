@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,8 +29,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Represents a graph of dependent work items, returned in execution order.
+ * Represents a graph of dependent work items, returned in execution order. The methods of this interface are not thread safe.
  */
+@NotThreadSafe
 public interface ExecutionPlan extends Describable, Closeable {
 
     ExecutionPlan EMPTY = new ExecutionPlan() {
@@ -68,7 +70,12 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public WorkSource<Node> finalizePlan() {
+        public void finalizePlan() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public WorkSource<Node> asWorkSource() {
             throw new IllegalStateException();
         }
 
@@ -83,8 +90,8 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public List<Node> getScheduledNodes() {
-            return Collections.emptyList();
+        public ScheduledNodes getScheduledNodes() {
+            return visitor -> visitor.accept(Collections.emptyList());
         }
 
         @Override
@@ -129,21 +136,38 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
 
+    /**
+     * Calculates the execution plan for the current entry tasks. May be called multiple times.
+     */
     void determineExecutionPlan();
 
-    WorkSource<Node> finalizePlan();
+    /**
+     * Finalizes this plan once all nodes have been added. Must be called after {@link #determineExecutionPlan()}.
+     */
+    void finalizePlan();
+
+    /**
+     * Returns this plan as a {@link WorkSource} ready for execution. Must be called after {@link #finalizePlan()}.
+     */
+    WorkSource<Node> asWorkSource();
 
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     Set<Task> getTasks();
 
+    /**
+     * Returns a snapshot of the requested tasks for this plan.
+     */
     Set<Task> getRequestedTasks();
 
-    List<Node> getScheduledNodes();
+    /**
+     * Returns a snapshot of the current set of scheduled nodes, which can later be visited.
+     */
+    ScheduledNodes getScheduledNodes();
 
     /**
-     * @return The set of all filtered tasks that don't get executed.
+     * Returns a snapshot of the filtered tasks for this plan.
      */
     Set<Task> getFilteredTasks();
 
@@ -159,4 +183,11 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     @Override
     void close();
+
+    /**
+     * An immutable snapshot of the set of scheduled nodes.
+     */
+    interface ScheduledNodes {
+        void visitNodes(Consumer<List<Node>> visitor);
+    }
 }

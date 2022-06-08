@@ -117,9 +117,9 @@ class LocalFileDependencyBackedArtifactSetCodec(
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
-                    mappings.put(sourceAttributes, TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformation!!))
+                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformation!!)
                 } else {
-                    mappings.put(sourceAttributes, IdentityMapping)
+                    mappings[sourceAttributes] = IdentityMapping
                 }
             }
             write(mappings)
@@ -269,15 +269,15 @@ class FixedVariantSelector(
     override fun select(candidates: ResolvedVariantSet, factory: VariantSelector.Factory): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
         val variant = candidates.variants.first()
-        val spec = transforms.get(variant.attributes.asImmutable())
-        return when (spec) {
-            null ->
-                // was no mapping for extension, so it can be discarded
+        return when (val spec = transforms[variant.attributes.asImmutable()]) {
+            null -> {
+                // no mapping for extension, so it can be discarded
                 if (matchingOnArtifactFormat) {
                     ResolvedArtifactSet.EMPTY
                 } else {
                     variant.artifacts
                 }
+            }
             is IdentityMapping -> variant.artifacts
             is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(fileCollectionFactory), transformedVariantFactory)
         }
@@ -366,6 +366,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
 
 private
 object EmptyVariantTransformRegistry : VariantTransformRegistry {
+    @Deprecated("Deprecated in Java", ReplaceWith("throw UnsupportedOperationException(\"Should not be called\")"))
     override fun registerTransform(registrationAction: Action<in VariantTransform>) {
         throw UnsupportedOperationException("Should not be called")
     }

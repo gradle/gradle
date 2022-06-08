@@ -24,6 +24,7 @@ public class WrapperConfiguration {
     private String distributionSha256Sum;
     private String zipBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
+    private int networkTimeout = Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS;
 
     public URI getDistribution() {
         return distribution;
@@ -71,5 +72,13 @@ public class WrapperConfiguration {
 
     public void setZipPath(String zipPath) {
         this.zipPath = zipPath;
+    }
+
+    public int getNetworkTimeout() {
+        return networkTimeout;
+    }
+
+    public void setNetworkTimeout(int networkTimeout) {
+        this.networkTimeout = networkTimeout;
     }
 }

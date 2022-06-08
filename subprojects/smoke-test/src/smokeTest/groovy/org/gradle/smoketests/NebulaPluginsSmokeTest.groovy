@@ -53,7 +53,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener")
+    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener and TaskExecutionGraph.addTaskExecutionListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -87,7 +87,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
     @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
-    @ToBeFixedForConfigurationCache
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -130,21 +129,24 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
-    def 'nebula dependency lock plugin'() {
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished, TaskExecutionGraph.addTaskExecutionListener and Task.project at execution time")
+    def 'nebula dependency lock plugin #nebulaDepLockVersion'() {
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "${TestedVersions.nebulaDependencyLock.latest()}"
+                id "nebula.dependency-lock" version "$nebulaDepLockVersion"
             }
         """.stripIndent()
 
         then:
         runner('buildEnvironment', 'generateLock').build()
+
+        where:
+        nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
     }
 
     @Issue("gradle/gradle#3798")
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished and TaskExecutionGraph.addTaskExecutionListener")
     def "nebula dependency lock plugin version #version binary compatibility"() {
         when:
         buildFile << """
@@ -209,7 +211,6 @@ testImplementation('junit:junit:4.7')""")
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @ToBeFixedForConfigurationCache
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """

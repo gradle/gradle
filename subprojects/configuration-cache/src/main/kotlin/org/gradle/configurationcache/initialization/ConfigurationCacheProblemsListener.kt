@@ -19,6 +19,7 @@ package org.gradle.configurationcache.initialization
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.ExternalProcessStartedListener
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
@@ -48,6 +49,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
+    private val featurePreviews: FeaturePreviews,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -65,7 +67,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE) || !atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
             return
         }
         problems.onProblem(

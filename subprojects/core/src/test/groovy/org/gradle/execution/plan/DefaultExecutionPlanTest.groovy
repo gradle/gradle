@@ -49,7 +49,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -912,6 +912,26 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(a, b)
     }
 
+    def "builds graph for finalizer task whose execution was cancelled in a previous plan"() {
+        given:
+        Task a = task("a", failure: new RuntimeException())
+        Task b = task("b")
+        Task c = task("c", dependsOn: [a], finalizedBy: [b])
+        addToGraphAndPopulate([c])
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        assert executedTasks == [a]
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([b])
+
+        then:
+        executes(b)
+
+        where:
+        continueOnFailure << [true, false]
+    }
+
     def "required nodes added to the graph are executed in dependency order"() {
         given:
         def node1 = requiredNode()
@@ -970,10 +990,33 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         when:
         addToGraphAndPopulate([task1, task2, task3])
-        executedTasks == [task1]
+        assert executedTasks == [task1]
 
         then:
         1 * listener.accept({ it.task == task1 })
+        1 * listener.accept({ it.task == task2 })
+        1 * listener.accept({ it.task == task3 })
+        0 * listener._
+    }
+
+    def "collects failure but does not abort execution when task completion listener fails"() {
+        def listener = Mock(Consumer)
+        def failure = new RuntimeException()
+        executionPlan.onComplete(listener)
+
+        def task1 = task("a")
+        def task2 = task("b", dependsOn: [task1])
+        def task3 = task("c", dependsOn: [task2])
+
+        when:
+        addToGraphAndPopulate([task3])
+        executes(task1, task2, task3)
+        def failures = []
+        executionPlan.collectFailures(failures)
+
+        then:
+        failures == [failure]
+        1 * listener.accept({ it.task == task1 }) >> { throw failure }
         1 * listener.accept({ it.task == task2 })
         1 * listener.accept({ it.task == task3 })
         0 * listener._

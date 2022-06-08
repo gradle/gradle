@@ -1301,7 +1301,54 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         where:
         terse << [true, false]
+    }
 
+    def "fallbacks to checksum and fails if artifact has an entry in the verification-metadata but no checksum and .asc file when verify-signatures=#enableVerifySignatures"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            enableVerifySignatures ? verifySignatures() : {}
+            // Add trusted keys just so there is an entry in the verification-metadata
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0")
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+        """
+
+        when:
+        terseConsoleOutput(false)
+        serveValidKey()
+
+        then:
+        fails ":compileJava"
+        if (enableVerifySignatures) {
+            failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
+      - in repository 'maven': artifact wasn't signed
+      - in repository 'maven': checksum is missing from verification metadata.
+  - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
+      - in repository 'maven': artifact wasn't signed
+      - in repository 'maven': checksum is missing from verification metadata.""")
+        } else {
+            failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
+        }
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
+
+1 problem was found storing the configuration cache.
+- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+        }
+
+        where:
+        enableVerifySignatures << [true, false]
     }
 
     def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
@@ -1575,8 +1622,11 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         javaLibrary()
         def module = mavenHttpRepo.module("org", "foo", "1.0")
             .withSourceAndJavadoc()
+            .withSignature {
+                signAsciiArmored(it)
+            }
             .publish()
-
+        serveValidKey()
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
