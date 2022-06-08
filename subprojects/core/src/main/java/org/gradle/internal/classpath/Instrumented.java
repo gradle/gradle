@@ -19,17 +19,21 @@ package org.gradle.internal.classpath;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
+import org.gradle.internal.classpath.intercept.Invocation;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +114,24 @@ public class Instrumented {
         for (CallSite callSite : array.array) {
             array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
         }
+    }
+
+    /**
+     * The bootstrap method for method calls from Groovy compiled code with indy enabled.
+     * Gradle's bytecode processor replaces the Groovy's original {@link IndyInterface#bootstrap(MethodHandles.Lookup, String, MethodType, String, int)}
+     * with this method to intercept potentially "interesting" calls and do some additional work.
+     *
+     * @param caller the lookup for the caller (JVM-supplied)
+     * @param callType the type of the call (corresponds to {@link IndyInterface.CallType} constant)
+     * @param type the call site type
+     * @param name the real method name
+     * @param flags call flags
+     * @return the produced CallSite
+     * @see IndyInterface
+     */
+    public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return CALL_INTERCEPTORS.maybeDecorateIndyCallSite(
+            IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
     // Called by generated code.
