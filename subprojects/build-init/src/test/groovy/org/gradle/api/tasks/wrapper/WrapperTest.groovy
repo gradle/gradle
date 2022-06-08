@@ -163,7 +163,7 @@ class WrapperTest extends AbstractTaskTest {
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == 6000
+        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
     }
 
     def "check inputs"() {
