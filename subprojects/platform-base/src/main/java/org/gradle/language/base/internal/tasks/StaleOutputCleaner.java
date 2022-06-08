@@ -24,10 +24,7 @@ import org.gradle.internal.file.FileType;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class StaleOutputCleaner {

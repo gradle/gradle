@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
-
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.util.PatternSet
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.ExecutionException
+import java.util.stream.Stream
 
 import static com.google.common.base.Preconditions.checkNotNull
 
-@Ignore
 class CompileTransactionTest extends Specification {
 
     private static final DID_WORK = WorkResults.didWork(true)
@@ -72,9 +72,10 @@ class CompileTransactionTest extends Specification {
             it.stashFilesForRollbackOnFailure(pattern, sourceDir)
             stashDir = it.getAsFile()
         }.execute {
-            assert isEmptyDirectory(sourceDir)
-            assert stashDir.list() as Set ==~ ["file.txt", "subDir"]
-            assert new File(stashDir, "subDir").list() as Set ==~ ["another-file.txt"]
+            assert hasOnlyDirectories(sourceDir)
+            assert stashDir.list()
+                .collect { it.replaceAll(".uniqueId.*", "")}
+                .containsAll(["file.txt", "another-file.txt"])
             throw new RuntimeException("Exception")
         }
 
@@ -97,7 +98,7 @@ class CompileTransactionTest extends Specification {
             stashDir = it.getAsFile()
         }.execute {
             assert isEmptyDirectory(sourceDir)
-            assert stashDir.list() as Set ==~ ["file.txt"]
+            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
             return DID_WORK
         }
 
@@ -120,7 +121,7 @@ class CompileTransactionTest extends Specification {
             it instanceof ExecutionException
         }.execute {
             assert isEmptyDirectory(sourceDir)
-            assert stashDir.list() as Set ==~ ["file.txt"]
+            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
             throw new RuntimeException("Exception")
         }
 
@@ -298,5 +299,11 @@ class CompileTransactionTest extends Specification {
 
     private boolean isEmptyDirectory(File file) {
         file.listFiles().length == 0
+    }
+
+    private boolean hasOnlyDirectories(File file) {
+        try (Stream<Path> stream = Files.walk(file.toPath())) {
+            return stream.allMatch { Files.isDirectory(it) }
+        }
     }
 }
