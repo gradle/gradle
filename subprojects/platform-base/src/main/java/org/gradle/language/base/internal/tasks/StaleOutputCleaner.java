@@ -24,7 +24,10 @@ import org.gradle.internal.file.FileType;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class StaleOutputCleaner {
@@ -70,6 +73,33 @@ public abstract class StaleOutputCleaner {
             for (File f : filesToDelete) {
                 if (f.isFile()) {
                     outputsCleaner.cleanupOutput(f, FileType.RegularFile);
+                }
+            }
+            outputsCleaner.cleanupDirectories();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to clean up stale outputs", e);
+        }
+
+        return outputsCleaner.getDidWork();
+    }
+
+    @CheckReturnValue
+    public static boolean cleanEmptyOutputDirectories(Deleter deleter, Iterable<File> filesToDelete, File directoryToClean) {
+        return cleanEmptyOutputDirectories(deleter, filesToDelete, ImmutableSet.of(directoryToClean));
+    }
+
+    @CheckReturnValue
+    public static boolean cleanEmptyOutputDirectories(Deleter deleter, Iterable<File> directories, ImmutableSet<File> directoriesToClean) {
+        OutputsCleaner outputsCleaner = new OutputsCleaner(
+            deleter,
+            file -> false,
+            dir -> !directoriesToClean.contains(dir)
+        );
+
+        try {
+            for (File f : directories) {
+                if (f.isDirectory()) {
+                    outputsCleaner.cleanupOutput(f, FileType.Directory);
                 }
             }
             outputsCleaner.cleanupDirectories();
