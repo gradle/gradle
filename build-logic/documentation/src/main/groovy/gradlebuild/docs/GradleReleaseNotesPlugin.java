@@ -16,7 +16,10 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.buildutils.tasks.AbstractCheckOrUpdateContributorsInReleaseNotes;
 import gradlebuild.identity.extension.ModuleIdentityExtension;
+import gradlebuild.buildutils.tasks.CheckContributorsInReleaseNotes;
+import gradlebuild.buildutils.tasks.UpdateContributorsInReleaseNotes;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -74,6 +77,12 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/release-notes.html"));
         });
 
+        tasks.register("checkContributorsInReleaseNotes", CheckContributorsInReleaseNotes.class);
+        tasks.register("updateContributorsInReleaseNotes", UpdateContributorsInReleaseNotes.class);
+        tasks.withType(AbstractCheckOrUpdateContributorsInReleaseNotes.class).configureEach(task -> {
+            task.getGithubToken().set(project.getProviders().environmentVariable("GITHUB_TOKEN"));
+            task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
+        });
 
         Configuration jquery = project.getConfigurations().create("jquery", conf -> {
             conf.setDescription("JQuery dependencies embedded by release notes.");

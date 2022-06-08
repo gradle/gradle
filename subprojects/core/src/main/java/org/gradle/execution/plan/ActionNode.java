@@ -63,16 +63,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public int compareTo(Node other) {
-        // Prefer to run task nodes before action nodes
-        if (other instanceof LocalTaskNode) {
-            return 1;
-        } else {
-            return -1;
-        }
-    }
-
-    @Override
     public boolean isPriority() {
         return getProjectToLock() != null;
     }

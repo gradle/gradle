@@ -49,6 +49,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
@@ -80,16 +81,35 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     private final ConfigurableFileCollection analysisFiles;
     private final Property<JavaLauncher> javaLauncher;
 
-    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
+    {
+        // Calling this(getProject().getObject()...) in the constructor is invalid as getProject() is an instance method.
+        // To avoid code duplication, the initialization logic is extracted to an instance initialization block.
         ObjectFactory objectFactory = getObjectFactory();
         this.analysisMappingFile = objectFactory.fileProperty();
         this.analysisFiles = getProject().files();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
+        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    protected AbstractScalaCompile() {
+        ObjectFactory objectFactory = getObjectFactory();
+        this.scalaCompileOptions = getProject().getObjects().newInstance(ScalaCompileOptions.class);
+        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
+    }
+
+    @Deprecated // Kept to preserve binary compatibility; will be removed in Gradle 8.
+    @SuppressWarnings("unused")
+    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
+        ObjectFactory objectFactory = getObjectFactory();
         this.scalaCompileOptions = scalaCompileOptions;
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
-        this.javaLauncher = objectFactory.property(JavaLauncher.class);
-
-        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
     /**

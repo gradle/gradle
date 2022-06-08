@@ -20,6 +20,7 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "#method is instrumented in Kotlin"() {
@@ -43,9 +44,7 @@ class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfi
             plugins {
                 `kotlin-dsl`
             }
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
 
         buildScript("""

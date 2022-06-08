@@ -17,7 +17,16 @@
 package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
+import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.id.CompositeIdGenerator
@@ -173,6 +182,21 @@ class TestEventSerializerTest extends SerializerSpec {
         result.message == "broken"
         result.cause.class == RuntimeException
         result.cause.message == "cause"
+    }
+
+    def "serializes TestFailure"() {
+        TestFailure failure = TestFailure.fromTestAssertionFailure(new RuntimeException("cause"), 'expectedValue', 'actualValue')
+
+        when:
+        TestFailure result = serialize(failure, DefaultTestFailure)
+
+        then:
+        result.rawFailure.message == 'cause'
+        result.details.assertionFailure == true
+        result.details.message == 'cause'
+        result.details.expected == 'expectedValue'
+        result.details.actual == 'actualValue'
+        result.details.stacktrace.contains('java.lang.RuntimeException: cause')
     }
 
     Object serialize(Object source, Class type = source.getClass()) {

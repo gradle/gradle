@@ -24,7 +24,6 @@ import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.UserManualReference;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
@@ -41,14 +40,7 @@ public class DefaultNodeValidator implements NodeValidator {
         problems.stream()
             .filter(problem -> problem.getSeverity().isWarning())
             .forEach(problem -> {
-                Optional<UserManualReference> userManualReference = problem.getUserManualReference();
-                String docId = "more_about_tasks";
-                String section = "sec:up_to_date_checks";
-                if (userManualReference.isPresent()) {
-                    UserManualReference docref = userManualReference.get();
-                    docId = docref.getId();
-                    section = docref.getSection();
-                }
+                UserManualReference userManualReference = problem.getUserManualReference();
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
                 // and rendering
@@ -56,7 +48,7 @@ public class DefaultNodeValidator implements NodeValidator {
                 DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
                     .willBeRemovedInGradle8()
-                    .withUserManual(docId, section)
+                    .withUserManual(userManualReference.getId(), userManualReference.getSection())
                     .nagUser();
             });
         return !problems.isEmpty();

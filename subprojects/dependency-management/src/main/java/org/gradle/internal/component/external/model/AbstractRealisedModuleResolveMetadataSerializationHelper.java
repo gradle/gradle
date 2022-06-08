@@ -78,8 +78,10 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl realisedVariant = (AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl) variant;
                 encoder.writeString(realisedVariant.getName());
                 encoder.writeSmallInt(realisedVariant.getDependencyMetadata().size());
-                for (GradleDependencyMetadata dependencyMetadata: realisedVariant.getDependencyMetadata()) {
-                    writeDependencyMetadata(encoder, dependencyMetadata);
+                for (ModuleDependencyMetadata dependencyMetadata: realisedVariant.getDependencyMetadata()) {
+                    if (dependencyMetadata instanceof GradleDependencyMetadata) {
+                        writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependencyMetadata);
+                    }
                 }
             } else {
                 throw new IllegalStateException("Unknown type of variant: " + variant.getClass());

@@ -52,7 +52,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
@@ -117,6 +116,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
+        project.getPluginManager().apply(JvmToolchainsPlugin.class);
 
         DefaultJavaPluginExtension javaPluginExtension = addExtensions(projectInternal);
 
@@ -134,7 +134,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
         project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
-        project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaPluginExtension;
     }
 

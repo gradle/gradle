@@ -92,8 +92,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             }
 
             allprojects {
+                def pingEndings = ['FailingPing', 'PingWithCacheableWarnings', 'SerialPing', 'InvalidPing']
+
                 tasks.addRule("<>Ping") { String name ->
-                    if (name.endsWith("Ping") && name.size() == 5) {
+                    if (name.endsWith("Ping") && pingEndings.every { !name.endsWith(it) }) {
                         tasks.create(name, Ping)
                     }
                 }
@@ -151,8 +153,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         """
         expect:
         2.times {
-            blockingServer.expect(":aPing")
-            blockingServer.expect(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -331,8 +332,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -350,8 +350,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":a:aPing")
-            blockingServer.expectConcurrent(":b:bPing")
+            blockingServer.expectConcurrent(1, ":a:aPing", ":b:bPing")
             run ":a:aPing", ":b:bPing"
         }
     }
@@ -363,21 +362,21 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         buildFile << """
             def foo = file("foo")
 
-            aPing.destroyables.register foo
+            destroyerPing.destroyables.register foo
 
-            bPing.outputs.file foo
-            bPing.doLast { foo << "foo" }
+            producerPing.outputs.file foo
+            producerPing.doLast { foo << "foo" }
 
-            cPing.inputs.file foo
-            cPing.dependsOn bPing
+            consumerPing.inputs.file foo
+            consumerPing.dependsOn producerPing
         """
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
-            blockingServer.expectConcurrent(":cPing")
-            run ":aPing", ":cPing"
+            blockingServer.expectConcurrent(":destroyerPing")
+            blockingServer.expectConcurrent(":producerPing")
+            blockingServer.expectConcurrent(":consumerPing")
+            run ":destroyerPing", ":consumerPing"
         }
     }
 
@@ -531,7 +530,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expect(":aInvalidPing")
             blockingServer.expectConcurrent(":bPing", ":cPing")
@@ -557,7 +556,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expectConcurrent(":aPing", ":bPing")
             blockingServer.expect(":cInvalidPing")

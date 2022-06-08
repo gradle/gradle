@@ -49,7 +49,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -990,10 +990,33 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         when:
         addToGraphAndPopulate([task1, task2, task3])
-        executedTasks == [task1]
+        assert executedTasks == [task1]
 
         then:
         1 * listener.accept({ it.task == task1 })
+        1 * listener.accept({ it.task == task2 })
+        1 * listener.accept({ it.task == task3 })
+        0 * listener._
+    }
+
+    def "collects failure but does not abort execution when task completion listener fails"() {
+        def listener = Mock(Consumer)
+        def failure = new RuntimeException()
+        executionPlan.onComplete(listener)
+
+        def task1 = task("a")
+        def task2 = task("b", dependsOn: [task1])
+        def task3 = task("c", dependsOn: [task2])
+
+        when:
+        addToGraphAndPopulate([task3])
+        executes(task1, task2, task3)
+        def failures = []
+        executionPlan.collectFailures(failures)
+
+        then:
+        failures == [failure]
+        1 * listener.accept({ it.task == task1 }) >> { throw failure }
         1 * listener.accept({ it.task == task2 })
         1 * listener.accept({ it.task == task3 })
         0 * listener._

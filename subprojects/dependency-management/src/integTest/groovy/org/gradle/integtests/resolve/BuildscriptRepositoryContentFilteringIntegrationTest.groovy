@@ -17,11 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class BuildscriptRepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @ToBeFixedForConfigurationCache(because = "buildEnvironment")
     def "can exclude a module from a repository using #notation for buildscript classpath (in settings: #inSettings)"() {
         def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
 
