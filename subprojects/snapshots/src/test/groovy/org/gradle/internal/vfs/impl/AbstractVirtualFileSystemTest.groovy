@@ -27,8 +27,7 @@ import java.util.function.Supplier
 
 class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapshotFixture {
 
-    def rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE))
-    def vfs = new AbstractVirtualFileSystem(rootReference) {
+    def vfs = new AbstractVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
         @Override
         protected SnapshotHierarchy updateNotifyingListeners(AbstractVirtualFileSystem.UpdateFunction updateFunction) {
             return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP)
