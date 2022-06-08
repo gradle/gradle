@@ -133,6 +133,25 @@ networkTimeout=30000
 
 See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
 
+### Improvements for plugin authors
+
+### Integer task options
+
+It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
+
+For example, the following task option:
+```java
+@Option(option = "integer-option", description = "Your description")
+public abstract Property<Integer> getIntegerOption();
+```
+
+
+can be passed from the command line as follows:
+```shell
+gradle myCustomTask --integer-option=123
+```
+
+See the [user manual](userguide/custom_tasks.html#sec:supported_task_option_data_types) for more information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
