@@ -590,7 +590,71 @@ The following Attributes have disambiguation rules defined.
         doesNotHaveIncubatingLegend()
     }
 
-    def "specifying --precedence with disambiguation rules prints attribute disambiguation precedence"() {
+    def "disambiguation rules are printed if added to attributes"() {
+        given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def flavor = Attribute.of('flavor', String)
+
+            configurations {
+                custom {
+                    description = "My custom configuration"
+                    canBeResolved = true
+                    canBeConsumed = false
+
+                    attributes {
+                        attribute(flavor, 'vanilla')
+                    }
+                }
+            }
+
+            class CategorySelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    if (details.candidateValues.contains('chocolate')) {
+                        details.closestMatch('chocolate')
+                    }
+                }
+            }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    disambiguationRules.add(CategorySelectionRule)
+                }
+
+                def usage = getAttributes().find { it.name == 'org.gradle.usage' }
+                setAttributeDisambiguationPrecedence([flavor, usage])
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+The following Attributes have disambiguation rules defined.
+
+    - flavor (1)
+    - org.gradle.category
+    - org.gradle.dependency.bundling
+    - org.gradle.jvm.environment
+    - org.gradle.jvm.version
+    - org.gradle.libraryelements
+    - org.gradle.plugin.api-version
+    - org.gradle.usage (2)
+
+(Attribute disambiguation precedence)""")
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+    }
+
+    def "report prints attribute disambiguation precedence"() {
         given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
         buildFile << """
             plugins {
@@ -627,7 +691,7 @@ The following Attributes have disambiguation rules defined.
         """.stripIndent()
 
         when:
-        succeeds ':resolvableConfigurations', '--precedence'
+        succeeds ':resolvableConfigurations'
 
         then:
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------

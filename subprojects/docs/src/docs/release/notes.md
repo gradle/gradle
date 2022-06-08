@@ -109,8 +109,7 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 
 ### New option for resolvableConfigurations report
 
-There is now a `--precedence` option on the `resolvableConfigurations` reporting task that will
-print the order that [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules) will be checked when resolving project dependencies if multiple variants of a dependency are available with different compatible values for the requested attributes.
+The `resolvableConfigurations` reporting task will now print the order that [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules) will be checked when resolving project dependencies.  These rules are used if multiple variants of a dependency are available with different compatible values for a requested attribute, and no exact match.  Disambiguation rules will be run on all attributes with multiple compatible matches in this order to select a single matching variant.
 
 ```
 --------------------------------------------------
