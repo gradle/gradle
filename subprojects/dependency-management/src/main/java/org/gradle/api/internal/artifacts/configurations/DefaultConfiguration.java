@@ -71,8 +71,8 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.NameConflictResolvingFileCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -89,6 +89,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -169,6 +170,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final TemporaryFileProvider temporaryFileProvider;
     private final ProjectStateRegistry projectStateRegistry;
     private CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
@@ -270,6 +272,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
+        TemporaryFileProvider temporaryFileProvider,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
@@ -277,6 +280,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.temporaryFileProvider = temporaryFileProvider;
         this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -547,7 +551,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
-        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new DefaultResolutionHost());
+        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new DefaultResolutionHost(), fileCollectionFactory, temporaryFileProvider);
     }
 
     @Override
@@ -844,7 +848,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, new DefaultResolutionHost());
+                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, new DefaultResolutionHost(), fileCollectionFactory, temporaryFileProvider);
                 });
         }
         return dependenciesResolverFactory;
@@ -1454,6 +1458,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final ResolutionResultProvider<VisitedArtifactSet> resultProvider;
         private final ResolutionHost resolutionHost;
         private SelectedArtifactSet selectedArtifacts;
+        private final FileCollectionFactory fileCollectionFactory;
+        private final TemporaryFileProvider temporaryFileProvider;
 
         private ConfigurationFileCollection(
             ResolutionResultProvider<VisitedArtifactSet> resultProvider,
@@ -1462,7 +1468,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             Spec<? super ComponentIdentifier> componentSpec,
             boolean lenient,
             boolean allowNoMatchingVariants,
-            ResolutionHost resolutionHost
+            ResolutionHost resolutionHost,
+            FileCollectionFactory fileCollectionFactory,
+            TemporaryFileProvider temporaryFileProvider
         ) {
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
@@ -1471,6 +1479,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.lenient = lenient;
             this.allowNoMatchingVariants = allowNoMatchingVariants;
             this.resolutionHost = resolutionHost;
+            this.fileCollectionFactory = fileCollectionFactory;
+            this.temporaryFileProvider = temporaryFileProvider;
         }
 
         @Override
@@ -1490,11 +1500,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         protected void visitContents(FileCollectionStructureVisitor visitor) {
-            ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
+            NameConflictResolvingFileCollectingVisitor collectingVisitor = new NameConflictResolvingFileCollectingVisitor(visitor, fileCollectionFactory, temporaryFileProvider.temporaryDirectoryFactory("renamed"));
             getSelectedArtifacts().visitArtifacts(collectingVisitor, lenient);
             if (!lenient) {
                 resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
             }
+            collectingVisitor.visitCollectedFiles();
         }
 
         @Override
@@ -1758,7 +1769,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
-        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, failureHandler);
+        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, failureHandler, fileCollectionFactory, temporaryFileProvider);
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
@@ -1884,7 +1895,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
-                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost());
+                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost(), fileCollectionFactory, temporaryFileProvider);
             }
         }
 

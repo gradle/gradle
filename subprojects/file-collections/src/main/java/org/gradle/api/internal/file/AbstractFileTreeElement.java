@@ -60,13 +60,8 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     @Override
     public void copyTo(OutputStream output) {
-        try {
-            InputStream inputStream = open();
-            try {
-                IOUtils.copyLarge(inputStream, output);
-            } finally {
-                inputStream.close();
-            }
+        try (InputStream inputStream = open()) {
+            IOUtils.copyLarge(inputStream, output);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

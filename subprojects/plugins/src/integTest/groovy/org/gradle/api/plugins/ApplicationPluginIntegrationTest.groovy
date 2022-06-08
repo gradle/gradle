@@ -263,6 +263,33 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20642")
+    def "conflicting dependency files are renamed to include their group"() {
+        given:
+        mavenRepo.module('org.gradle.first', 'name', '1.0').publish()
+        mavenRepo.module('org.gradle.second', 'name', '1.0').publish()
+        mavenRepo.module('org.gradle.first', 'other', '1.0').publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url '$mavenRepo.uri' }
+}
+
+dependencies {
+    implementation 'org.gradle.first:name:1.0'
+    implementation 'org.gradle.second:name:1.0'
+    implementation 'org.gradle.first:other:1.0'
+}
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/lib').allDescendants() ==
+            ['org-gradle-first-name-1.0.jar', 'org-gradle-second-name-1.0.jar', 'other-1.0.jar', 'sample.jar'] as Set
+    }
+
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """

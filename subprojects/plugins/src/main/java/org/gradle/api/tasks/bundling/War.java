@@ -39,7 +39,6 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -156,7 +155,11 @@ public class War extends Jar {
      */
     public void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath();
-        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
+        if (oldClasspath == null) {
+            this.classpath = getProject().files(classpath);
+        } else {
+            this.classpath = getProject().files(oldClasspath, classpath);
+        }
     }
 
     /**

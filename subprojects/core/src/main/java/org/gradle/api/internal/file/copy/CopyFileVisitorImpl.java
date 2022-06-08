@@ -44,21 +44,13 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
 
     @Override
     public void visitDir(FileVisitDetails dirDetails) {
-        processDir(dirDetails);
+        DefaultFileCopyDetails details = createDefaultFileCopyDetails(dirDetails);
+        action.processFile(details);
     }
 
     @Override
     public void visitFile(FileVisitDetails fileDetails) {
-        processFile(fileDetails);
-    }
-
-    private void processDir(FileVisitDetails visitDetails) {
-        DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
-        action.processFile(details);
-    }
-
-    private void processFile(FileVisitDetails visitDetails) {
-        DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
+        DefaultFileCopyDetails details = createDefaultFileCopyDetails(fileDetails);
         for (Action<? super FileCopyDetails> action : copySpecResolver.getAllCopyActions()) {
             action.execute(details);
             if (details.isExcluded()) {

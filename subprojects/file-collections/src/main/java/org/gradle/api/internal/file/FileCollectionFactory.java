@@ -149,6 +149,11 @@ public interface FileCollectionFactory {
     FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator);
 
     /**
+     * Creates a file tree containing the given file, renamed to the given name.
+     */
+    FileTreeInternal renamed(File file, String name, Factory<File> temporaryDirFactory);
+
+    /**
      * Creates a file tree made up of the union of the given trees.
      *
      * <p>The tree is not live. The provided list is queried on construction and discarded.

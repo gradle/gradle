@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
@@ -64,6 +65,7 @@ public class DefaultConfigurationFactory {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -81,7 +83,8 @@ public class DefaultConfigurationFactory {
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        TemporaryFileProvider temporaryFileProvider
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -99,6 +102,7 @@ public class DefaultConfigurationFactory {
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     /**
@@ -135,6 +139,7 @@ public class DefaultConfigurationFactory {
             workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
+            temporaryFileProvider,
             this
         );
     }

@@ -18,8 +18,10 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTree;
@@ -46,6 +48,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -213,6 +216,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Override
     public FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter) {
         return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), patternSetFactory);
+    }
+
+    @Override
+    public FileTreeInternal renamed(File file, String name, Factory<File> temporaryDirFactory) {
+        return generated(temporaryDirFactory, name, x -> {}, output -> {
+            try {
+                Files.copy(file, output);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     private static final class EmptyFileCollection extends AbstractFileCollection {
