@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -120,9 +122,25 @@ public class CompileTransaction {
 
     private void ensureEmptyDirectoriesBeforeAll() {
         try {
-            deleter.ensureEmptyDirectory(tempDir);
+//            deleter.ensureEmptyDirectory(tempDir);
             for (TransactionalDirectory directory : transactionalDirectories) {
-                if (directory.isCreateDirectoryBeforeExecution) {
+                if (directory.getAsFile().exists() && directory.keepFolderStructure != null) {
+                    Path currentDir = directory.getAsFile().toPath();
+                    try (Stream<Path> dirStream = Files.walk(currentDir)) {
+                        dirStream
+                            .map(Path::toFile)
+                            .sorted(Comparator.reverseOrder())
+                            .filter(it -> {
+                                if (it.isFile()) {
+                                    return true;
+                                }
+                                Path relativePath = currentDir.relativize(it.toPath());
+                                File newFile = new File(directory.keepFolderStructure, relativePath.toString());
+                                return !newFile.exists();
+                            })
+                            .forEach(File::delete);
+                    }
+                } else if (directory.isCreateDirectoryBeforeExecution) {
                     deleter.ensureEmptyDirectory(directory.getAsFile());
                 }
             }
@@ -155,6 +173,7 @@ public class CompileTransaction {
         private Runnable beforeExecutionAction = () -> {};
         private Runnable afterExecutionAlwaysDoAction = () -> {};
         private boolean isCreateDirectoryBeforeExecution;
+        private File keepFolderStructure;
 
         public TransactionalDirectory(File directory, FileOperations fileOperations, Deleter deleter) {
             this.uniqueDirectoryId = directory.getName();
@@ -171,7 +190,7 @@ public class CompileTransaction {
                 return this;
             }
 
-            createDirectoryBeforeExecution();
+            ensureEmptyKeepingDirectoriesFrom(sourceDirectory);
             if (!hasNamePrefix()) {
                 withNamePrefix("stash-for-" + sourceDirectory.getName());
             }
@@ -187,7 +206,9 @@ public class CompileTransaction {
             };
 
             onSuccessStashAction = () -> {
-                Set<File> parents = fRef.get().stream().map(File::getParentFile).collect(Collectors.toSet());
+                Set<File> parents = fRef.get().stream()
+                    .map(File::getParentFile)
+                    .collect(Collectors.toSet());
                 StaleOutputCleaner.cleanOutputDirectories(deleter, parents, sourceDirectory);
             };
 
@@ -249,6 +270,11 @@ public class CompileTransaction {
          */
         public TransactionalDirectory createDirectoryBeforeExecution() {
             this.isCreateDirectoryBeforeExecution = true;
+            return this;
+        }
+
+        public TransactionalDirectory ensureEmptyKeepingDirectoriesFrom(File file) {
+            this.keepFolderStructure = file;
             return this;
         }
 
