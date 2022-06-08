@@ -107,6 +107,30 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 
 The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
 
+### Configurable wrapper download network timeout
+
+It is now possible to configure the network timeout for downloading the wrapper files.
+The default value is 10000ms and can be changed in several ways:
+
+From the command line:
+```shell
+gradle wrapper --network-timeout=30000
+```
+
+In your build scripts or convention plugins:
+```kotlin
+tasks.wrapper {
+    networkTimeout.set(30000)
+}
+```
+
+Or in `gradle/wrapper/gradle-wrapper.properties`:
+```properties
+networkTimeout=30000
+```
+
+See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
