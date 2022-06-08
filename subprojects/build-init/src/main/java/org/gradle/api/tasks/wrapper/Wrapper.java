@@ -164,7 +164,7 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
         if (networkTimeout.isPresent()) {
-            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, networkTimeout.get());
+            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout.get()));
         }
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
