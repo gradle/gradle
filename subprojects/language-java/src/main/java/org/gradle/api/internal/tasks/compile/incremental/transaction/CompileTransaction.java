@@ -29,14 +29,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -95,6 +99,7 @@ public class CompileTransaction {
         try {
             transactionalDirectories.forEach(dir -> dir.beforeExecutionAction.run());
             T result = function.apply(workResult);
+            transactionalDirectories.forEach(dir -> dir.onSuccessStashAction.run());
             transactionalDirectories.forEach(dir -> dir.onSuccessMoveAction.run());
             return result;
         } catch (Throwable t) {
@@ -117,12 +122,54 @@ public class CompileTransaction {
 
     private void ensureEmptyDirectoriesBeforeAll() {
         try {
-            deleter.ensureEmptyDirectory(tempDir);
+            tempDir.mkdirs();
+            // Delete or create directories marked as "ensure empty"
+            Set<File> ensureEmptyDirectories = new HashSet<>();
             for (TransactionalDirectory directory : transactionalDirectories) {
-                if (directory.isCreateDirectoryBeforeExecution) {
+                if (directory.keepFolderStructureFrom != null && directory.getAsFile().exists()) {
+                    ensureEmptyKeepingFolderStructure(directory);
+                    ensureEmptyDirectories.add(directory.getAsFile());
+                } else if (directory.ensureEmptyBeforeExecution) {
                     deleter.ensureEmptyDirectory(directory.getAsFile());
+                    ensureEmptyDirectories.add(directory.getAsFile());
                 }
             }
+            // Delete any other file or directory
+            try (Stream<Path> dirStream = Files.list(tempDir.toPath())) {
+                dirStream.map(Path::toFile)
+                    .filter(file -> !ensureEmptyDirectories.contains(file))
+                    .forEach(this::deleteRecursively);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void ensureEmptyKeepingFolderStructure(TransactionalDirectory directory) throws IOException {
+        Path currentDir = directory.getAsFile().toPath();
+        try (Stream<Path> dirStream = Files.walk(currentDir)) {
+            // Delete all files and delete all directories
+            // that don't exist in "keepFolderStructureFrom" directory
+            dirStream.map(Path::toFile)
+                // Order files in a direction that we can avoid recursive deletion
+                .sorted(Comparator.reverseOrder())
+                .filter(file -> file.isFile() || isDirAndIsNotDirInOtherRoot(file, currentDir, directory.keepFolderStructureFrom))
+                .forEach(File::delete);
+        }
+    }
+
+    private boolean isDirAndIsNotDirInOtherRoot(File directory, Path root, File otherRoot) {
+        if (directory.isDirectory()) {
+            Path relativePath = root.relativize(directory.toPath());
+            File dirInOtherRoot = new File(otherRoot, relativePath.toString());
+            return !dirInOtherRoot.exists() || !dirInOtherRoot.isDirectory();
+        }
+        return false;
+    }
+
+    private void deleteRecursively(File file) {
+        try {
+            deleter.deleteRecursively(file);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -144,13 +191,16 @@ public class CompileTransaction {
         private final String uniqueDirectoryId;
         private final Deleter deleter;
         private final FileOperations fileOperations;
+        private final AtomicInteger uniqueIdGenerator = new AtomicInteger();
         private File directory;
         private BooleanSupplier stashFilesAction = () -> false;
         private Runnable stashRollbackAction = () -> {};
+        private Runnable onSuccessStashAction = () -> {};
         private Runnable onSuccessMoveAction = () -> {};
         private Runnable beforeExecutionAction = () -> {};
         private Runnable afterExecutionAlwaysDoAction = () -> {};
-        private boolean isCreateDirectoryBeforeExecution;
+        private boolean ensureEmptyBeforeExecution;
+        private File keepFolderStructureFrom;
 
         public TransactionalDirectory(File directory, FileOperations fileOperations, Deleter deleter) {
             this.uniqueDirectoryId = directory.getName();
@@ -167,22 +217,44 @@ public class CompileTransaction {
                 return this;
             }
 
-            createDirectoryBeforeExecution();
+            ensureEmptyBeforeExecution();
             if (!hasNamePrefix()) {
                 withNamePrefix("stash-for-" + sourceDirectory.getName());
             }
 
             // Create stash function first
-            Set<File> newFiles = new HashSet<>();
+            List<StashedFile> stashedFiles = new ArrayList<>();
+            AtomicReference<Set<File>> sourceFilesRef = new AtomicReference<>();
             stashFilesAction = () -> {
-                Set<File> files = fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
-                moveFilesFromDirectoryTo(files, sourceDirectory, directory, newFiles::add);
-                return !newFiles.isEmpty();
+                Set<File> sourceFiles = fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
+                sourceFilesRef.set(sourceFiles);
+                stashFiles(sourceFiles, sourceDirectory, directory, stashedFiles::add);
+                return !stashedFiles.isEmpty();
             };
 
-            // Then create also unstash function
-            stashRollbackAction = () -> moveFilesFromDirectoryTo(newFiles, directory, sourceDirectory, file -> {});
+            // On failure rollback stashed files
+            stashRollbackAction = () -> stashedFiles.forEach(stashedFile -> moveFile(stashedFile.stashFile, stashedFile.sourceFile));
+
+            // On success delete folders that become empty due to deleted files
+            onSuccessStashAction = () -> {
+                Set<File> potentiallyEmptyFolders = sourceFilesRef.get().stream()
+                    .map(File::getParentFile)
+                    .collect(Collectors.toSet());
+                StaleOutputCleaner.cleanEmptyOutputDirectories(deleter, potentiallyEmptyFolders, sourceDirectory);
+            };
             return this;
+        }
+
+        private void stashFiles(Set<File> sourceFiles, File sourceDirectory, File destinationDirectory, Consumer<StashedFile> newFileCollector) {
+            if (sourceFiles.isEmpty() || sourceDirectory == null) {
+                return;
+            }
+
+            for (File sourceFile : sourceFiles) {
+                File stashedFile = new File(destinationDirectory, sourceFile.getName() + ".uniqueId" + uniqueIdGenerator.getAndIncrement());
+                moveFile(sourceFile, stashedFile);
+                newFileCollector.accept(StashedFile.of(sourceFile, stashedFile));
+            }
         }
 
         /**
@@ -201,6 +273,19 @@ public class CompileTransaction {
 
             onSuccessMoveAction = () -> moveAllFilesFromDirectoryTo(directory, destinationDirectory);
             return this;
+        }
+
+        private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
+            Path sourcePath = sourceDirectory.toPath();
+            try (Stream<Path> dirStream = Files.walk(sourcePath)) {
+                dirStream.filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        File newFile = new File(destinationDirectory, sourcePath.relativize(path).toString());
+                        moveFile(path.toFile(), newFile);
+                    });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
         /**
@@ -237,36 +322,23 @@ public class CompileTransaction {
          * If stash or move files operation are used with valid directories, this is set to true by default.
          */
         public TransactionalDirectory createDirectoryBeforeExecution() {
-            this.isCreateDirectoryBeforeExecution = true;
+            this.ensureEmptyBeforeExecution = true;
+            return this;
+        }
+
+        public TransactionalDirectory ensureEmptyBeforeExecution() {
+            this.ensureEmptyBeforeExecution = true;
+            return this;
+        }
+
+        public TransactionalDirectory ensureEmptyKeepingDirectoryStructureFrom(File file) {
+            this.ensureEmptyBeforeExecution = true;
+            this.keepFolderStructureFrom = file;
             return this;
         }
 
         public File getAsFile() {
             return directory;
-        }
-
-        private void moveFilesFromDirectoryTo(Set<File> files, File sourceDirectory, File destinationDirectory, Consumer<File> newFileCollector) {
-            if (files.isEmpty() || sourceDirectory == null) {
-                return;
-            }
-            StaleOutputCleaner.cleanOutputs(deleter.withDeleteStrategy(file -> {
-                Path relativePath = sourceDirectory.toPath().relativize(file.toPath());
-                File newFile = new File(destinationDirectory, relativePath.toString());
-                if (moveFile(file, newFile)) {
-                    newFileCollector.accept(newFile);
-                    return true;
-                }
-                return false;
-            }), files, sourceDirectory);
-        }
-
-        private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
-            fileOperations.fileTree(sourceDirectory).visit(fileVisitDetails -> {
-                if (!fileVisitDetails.isDirectory()) {
-                    File newFile = new File(destinationDirectory, fileVisitDetails.getPath());
-                    moveFile(fileVisitDetails.getFile(), newFile);
-                }
-            });
         }
 
         /**
@@ -282,6 +354,20 @@ public class CompileTransaction {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+        }
+    }
+
+    private static class StashedFile {
+        private final File sourceFile;
+        private final File stashFile;
+
+        private StashedFile(File sourceFile, File stashFile) {
+            this.sourceFile = sourceFile;
+            this.stashFile = stashFile;
+        }
+
+        public static StashedFile of(File sourceFile, File stashFile) {
+            return new StashedFile(sourceFile, stashFile);
         }
     }
 }
