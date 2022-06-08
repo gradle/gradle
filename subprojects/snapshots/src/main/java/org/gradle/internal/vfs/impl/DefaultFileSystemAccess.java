@@ -93,23 +93,25 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 }
                 return Optional.empty();
             })
-            .orElseGet(() -> {
+            .orElseGet(() -> virtualFileSystem.store(location, vfsStorer -> {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 if (fileMetadata.getType() == FileType.Missing) {
-                    virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                    vfsStorer.accept(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 }
                 if (fileMetadata.getType() != FileType.RegularFile) {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
                     () -> virtualFileSystem.findSnapshot(location)
-                        .orElseGet(() -> virtualFileSystem.store(location, () -> {
+                        .orElseGet(() -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                            return new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
-                        })).getHash());
+                            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
+                            vfsStorer.accept(fileSnapshot);
+                            return fileSnapshot;
+                        })).getHash();
                 return Optional.of(hash);
-            })
+            }))
             .map(visitor);
     }
 
@@ -135,27 +137,28 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
-        File file = new File(location);
-        FileMetadata fileMetadata = this.stat.stat(file);
-        switch (fileMetadata.getType()) {
-            case RegularFile:
-                return virtualFileSystem.store(location, () -> {
+        return virtualFileSystem.store(location, vfsStorer -> {
+            File file = new File(location);
+            FileMetadata fileMetadata = this.stat.stat(file);
+            switch (fileMetadata.getType()) {
+                case RegularFile:
                     HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                    return new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
-                });
-            case Missing:
-                return virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
-            case Directory:
-                return virtualFileSystem.store(
-                    location,
-                    vfsStorer -> directorySnapshotter.snapshot(
+                    RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
+                    vfsStorer.accept(regularFileSnapshot);
+                    return regularFileSnapshot;
+                case Missing:
+                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, fileMetadata.getAccessType());
+                    vfsStorer.accept(missingFileSnapshot);
+                    return missingFileSnapshot;
+                case Directory:
+                    return directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
-                        vfsStorer)
-                );
-            default:
-                throw new UnsupportedOperationException();
-        }
+                        vfsStorer);
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        });
     }
 
     private FileSystemLocationSnapshot readLocation(String location) {
