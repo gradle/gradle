@@ -83,8 +83,7 @@ public class FileZipInput implements ZipInput {
                 if (!entries.hasMoreElements()) {
                     return endOfData();
                 }
-                final java.util.zip.ZipEntry zipEntry = entries.nextElement();
-                return new FileZipEntry(zipEntry);
+                return new FileZipEntry(entries.nextElement());
             }
         };
     }
@@ -109,7 +108,7 @@ public class FileZipInput implements ZipInput {
             }
         }
 
-        public InputStream getInputStream() {
+        private InputStream getInputStream() {
             try {
                 return file.getInputStream(getEntry());
             } catch (IOException e) {
