@@ -68,7 +68,7 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
     }
 
     @Override
-    public Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
+    public Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
         return Optional.ofNullable(matchingFiltersFor(snapshotContext.getRelativePathSegments()))
             .map(resourceEntryFilter -> {
                 try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
@@ -81,7 +81,7 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
     }
 
     @Override
-    public Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext) {
+    public Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
         return Optional.ofNullable(matchingFiltersFor(zipEntryContext.getRelativePathSegments()))
             .map(resourceEntryFilter -> {
                 try {

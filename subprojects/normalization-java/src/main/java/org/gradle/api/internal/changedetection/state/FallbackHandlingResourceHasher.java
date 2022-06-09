@@ -45,7 +45,7 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         return Optional.of(snapshotContext)
-            .flatMap(path -> tryHashWithFallback(snapshotContext))
+            .flatMap(path -> tryHash(snapshotContext))
             .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
     }
 
@@ -57,14 +57,15 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
 
         // We can't just map() here because the delegate can return null, which means we can't
         // distinguish between a context unsafe for fallback and a call to a delegate that
-        // returns null.  To avoid calling the delegate twice, we use a conditional instead.
+        // legitimately returns null.  To avoid calling the delegate twice, we use a conditional instead.
         if (safeContext.isPresent()) {
-            // If this is a manifest file and we can fallback safely, attempt to hash the manifest.
-            // If we encounter an error, hash with the delegate using the safe fallback.
-            return safeContext.flatMap(IoFunction.wrap(this::tryHashWithFallback))
+            // If we can fallback safely, attempt to hash the resource.
+            // If we encounter an error, or the hasher elects not to handle the resource, hash with
+            // the delegate using the safe fallback.
+            return safeContext.flatMap(IoFunction.wrap(this::tryHash))
                 .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeContext.get())));
         } else {
-            // If this is not a manifest file, or we cannot fallback safely, hash with the delegate.
+            // If we cannot fallback safely, hash with the delegate.
             return delegate.hash(zipEntryContext);
         }
     }
@@ -74,12 +75,12 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
      *
      * @return An Optional containing the hash, or an empty Optional if fallback should be triggered
      */
-    abstract Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext);
+    abstract Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext);
 
     /**
      * Try to hash the resource, and signal for fallback if it can't be hashed.
      *
      * @return An Optional containing the hash, or an empty Optional if fallback should be triggered
      */
-    abstract Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext);
+    abstract Optional<HashCode> tryHash(ZipEntryContext zipEntryContext);
 }

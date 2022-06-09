@@ -44,7 +44,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         when:
         hasher.hash(snapshotContext(file))
 
-        then:\
+        then:
         0 * delegate._
 
         when:
