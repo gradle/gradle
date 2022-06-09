@@ -18,7 +18,6 @@ package org.gradle.internal.fingerprint.hashing;
 
 import org.gradle.api.internal.file.archive.ZipEntry;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface ZipEntryContext {
@@ -29,6 +28,4 @@ public interface ZipEntryContext {
     String getRootParentName();
 
     Supplier<String[]> getRelativePathSegments();
-
-    Optional<ZipEntryContext> withFallbackSafety();
 }
