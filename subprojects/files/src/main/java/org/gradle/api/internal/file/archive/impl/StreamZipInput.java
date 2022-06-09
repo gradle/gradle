@@ -77,7 +77,7 @@ public class StreamZipInput implements ZipInput {
             }
         }
 
-        public void closeEntry() {
+        private void closeEntry() {
             try {
                 inputStream.closeEntry();
             } catch (IOException e) {
