@@ -123,7 +123,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
             }
         """
         file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
         execute("taskWithInputs")
@@ -140,7 +140,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         when:
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_CRLF
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -161,7 +161,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
             }
         """
         file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+        file('foo/Changing.class').bytes = JPG_CONTENT_WITH_LF
 
         when:
         execute("taskWithInputs")
@@ -178,7 +178,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         reused(":taskWithInputs")
 
         when:
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        file('foo/Changing.class').bytes = JPG_CONTENT_WITH_CRLF
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -203,7 +203,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
             }
         """
         file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
         execute("taskWithInputs")
@@ -220,7 +220,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         reused(":taskWithInputs")
 
         when:
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_CRLF
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -249,7 +249,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
             }
         """
         file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
         execute("taskWithInputs")
@@ -266,7 +266,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         reused(":taskWithInputs")
 
         when:
-        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_CRLF
         cleanWorkspace()
         execute("taskWithInputs")
 
