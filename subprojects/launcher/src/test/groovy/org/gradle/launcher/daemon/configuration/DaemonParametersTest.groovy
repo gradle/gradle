@@ -102,6 +102,9 @@ class DaemonParametersTest extends Specification {
         def addOpensArgs = parameters.effectiveJvmArgs.findAll { it.startsWith("--add-opens") }
         !addOpensArgs.isEmpty()
         addOpensArgs.every { it.matches("--add-opens=.*?/.*?=ALL-UNNAMED") }
+
+        and: "The required --add-opens args should not contain duplicates"
+        addOpensArgs.toSet().size() == addOpensArgs.size()
     }
 
     def "can configure debug mode"() {
