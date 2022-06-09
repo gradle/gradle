@@ -15,7 +15,9 @@ We would like to thank the following community members for their contributions t
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
 [Sam Snyder](https://github.com/sambsnyd),
-[teawithbrownsugar](https://github.com/teawithbrownsugar)
+[teawithbrownsugar](https://github.com/teawithbrownsugar),
+[John](https://github.com/goughy000),
+[sll552](https://github.com/sll552)
 
 ## Upgrade instructions
 
@@ -128,6 +130,49 @@ The following Attributes have disambiguation rules defined.
 
 (Attribute disambiguation precedence)
 ```
+
+### Configurable wrapper download network timeout
+
+It is now possible to configure the network timeout for downloading the wrapper files.
+The default value is 10000ms and can be changed in several ways:
+
+From the command line:
+```shell
+gradle wrapper --network-timeout=30000
+```
+
+In your build scripts or convention plugins:
+```kotlin
+tasks.wrapper {
+    networkTimeout.set(30000)
+}
+```
+
+Or in `gradle/wrapper/gradle-wrapper.properties`:
+```properties
+networkTimeout=30000
+```
+
+See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
+
+### Improvements for plugin authors
+
+### Integer task options
+
+It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
+
+For example, the following task option:
+```java
+@Option(option = "integer-option", description = "Your description")
+public abstract Property<Integer> getIntegerOption();
+```
+
+
+can be passed from the command line as follows:
+```shell
+gradle myCustomTask --integer-option=123
+```
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
