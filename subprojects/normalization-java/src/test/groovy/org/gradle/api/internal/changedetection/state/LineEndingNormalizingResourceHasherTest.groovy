@@ -135,7 +135,8 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         hasher.hash(snapshotContext)
 
         then:
-        thrown(FileNotFoundException)
+        def e = thrown(UncheckedIOException)
+        e.cause instanceof FileNotFoundException
     }
 
     def "throws #exception.simpleName generated from delegate"() {

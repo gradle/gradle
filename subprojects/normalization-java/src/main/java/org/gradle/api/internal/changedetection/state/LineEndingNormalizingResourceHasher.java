@@ -23,9 +23,7 @@ import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.IoFunction;
-import org.gradle.internal.io.IoSupplier;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -36,12 +34,11 @@ import java.util.Optional;
  *
  * See {@link LineEndingNormalizingInputStreamHasher}.
  */
-public class LineEndingNormalizingResourceHasher implements ResourceHasher {
-    private final ResourceHasher delegate;
+public class LineEndingNormalizingResourceHasher extends FallbackHandlingResourceHasher {
     private final LineEndingNormalizingInputStreamHasher hasher;
 
     private LineEndingNormalizingResourceHasher(ResourceHasher delegate) {
-        this.delegate = delegate;
+        super(delegate);
         this.hasher = new LineEndingNormalizingInputStreamHasher();
     }
 
@@ -58,36 +55,25 @@ public class LineEndingNormalizingResourceHasher implements ResourceHasher {
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        delegate.appendConfigurationToHasher(hasher);
+        super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
     }
 
-    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        return hasher.hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()))
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
+    Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
+        return Optional.of(snapshotContext)
+            .flatMap(IoFunction.wrap(this::hashContent));
     }
 
-    @Nullable
     @Override
-    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        Optional<ZipEntryContext> safeContext = Optional.of(zipEntryContext)
+    Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext) {
+        return Optional.of(zipEntryContext)
             .filter(context -> !context.getEntry().isDirectory())
-            .flatMap(ZipEntryContext::withFallbackSafety);
+            .flatMap(IoFunction.wrap(this::hashContent));
+    }
 
-        // We can't just map() here because the delegate can return null, which means we can't
-        // distinguish between a context unsafe for fallback and a call to a delegate that
-        // returns null.  To avoid calling the delegate twice, we use a conditional instead.
-        if (safeContext.isPresent()) {
-            // If we can fallback safely, attempt to hash the file.  If we encounter an error,
-            // hash with the delegate using the safe fallback.
-            return safeContext.flatMap(IoFunction.wrap(this::hashContent))
-                .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeContext.get())));
-        } else {
-            // If we can't fallback safely, or this isn't a file, hash with the delegate.
-            return delegate.hash(zipEntryContext);
-        }
+    private Optional<HashCode> hashContent(RegularFileSnapshotContext snapshotContext) throws IOException {
+        return hasher.hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()));
     }
 
     private Optional<HashCode> hashContent(ZipEntryContext zipEntryContext) throws IOException {
