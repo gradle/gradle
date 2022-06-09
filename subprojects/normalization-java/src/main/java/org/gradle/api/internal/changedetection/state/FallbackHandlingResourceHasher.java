@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.file.archive.InputStreamAction;
+import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
@@ -23,12 +25,18 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.io.IoSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Optional;
 
 abstract class FallbackHandlingResourceHasher implements ResourceHasher {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultZipEntryContext.class);
+    private static final int MAX_FALLBACK_CONTENT_SIZE = 1024*1024*10;
+
     private final ResourceHasher delegate;
 
     public FallbackHandlingResourceHasher(ResourceHasher delegate) {
@@ -53,7 +61,7 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         Optional<ZipEntryContext> safeContext = Optional.of(zipEntryContext)
-            .flatMap(ZipEntryContext::withFallbackSafety);
+            .flatMap(FallbackHandlingResourceHasher::withFallbackSafety);
 
         // We can't just map() here because the delegate can return null, which means we can't
         // distinguish between a context unsafe for fallback and a call to a delegate that
@@ -70,6 +78,18 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         }
     }
 
+    private static Optional<ZipEntryContext> withFallbackSafety(ZipEntryContext zipEntryContext) {
+        ZipEntry entry = zipEntryContext.getEntry();
+        if (entry.canReopen()) {
+            return Optional.of(zipEntryContext);
+        } else if (entry.size() > MAX_FALLBACK_CONTENT_SIZE) {
+            LOGGER.debug(zipEntryContext.getFullName() + " is too large (" + entry.size() + ") for safe fallback - skipping.");
+            return Optional.empty();
+        } else {
+            return Optional.of(new DefaultZipEntryContext(new CachingZipEntry(entry), zipEntryContext.getFullName(), zipEntryContext.getRootParentName()));
+        }
+    }
+
     /**
      * Try to hash the resource, and signal for fallback if it can't be hashed.
      *
@@ -83,4 +103,46 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
      * @return An Optional containing the hash, or an empty Optional if fallback should be triggered
      */
     abstract Optional<HashCode> tryHash(ZipEntryContext zipEntryContext);
+
+    private static class CachingZipEntry implements ZipEntry {
+        private final ZipEntry delegate;
+        private byte[] content;
+
+        public CachingZipEntry(ZipEntry delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return delegate.isDirectory();
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public byte[] getContent() throws IOException {
+            if (content == null) {
+                content = delegate.getContent();
+            }
+            return content;
+        }
+
+        @Override
+        public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
+            return action.run(new ByteArrayInputStream(getContent()));
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public boolean canReopen() {
+            return true;
+        }
+    }
 }
