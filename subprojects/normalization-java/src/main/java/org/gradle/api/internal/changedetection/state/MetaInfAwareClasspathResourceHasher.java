@@ -58,7 +58,7 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
     }
 
     @Override
-    Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
+    Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
         return Optional.of(snapshotContext)
             .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
             .map(context -> {
@@ -72,7 +72,7 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
     }
 
     @Override
-    Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext) {
+    Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
         return Optional.of(zipEntryContext)
             .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
             .map(context -> {
