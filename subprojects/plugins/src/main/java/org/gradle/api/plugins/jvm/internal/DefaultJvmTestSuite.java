@@ -229,8 +229,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useJUnit(Provider<String> versionProvider) {
-        setFrameworkTo(Frameworks.JUNIT4, versionProvider);
+    public void useJUnit(Provider<String> version) {
+        setFrameworkTo(Frameworks.JUNIT4, version);
     }
 
     @Override
@@ -244,8 +244,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useJUnitJupiter(Provider<String> versionProvider) {
-        setFrameworkTo(Frameworks.JUNIT_JUPITER, versionProvider);
+    public void useJUnitJupiter(Provider<String> version) {
+        setFrameworkTo(Frameworks.JUNIT_JUPITER, version);
     }
 
     @Override
@@ -259,8 +259,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useSpock(Provider<String> versionProvider) {
-        setFrameworkTo(Frameworks.SPOCK, versionProvider);
+    public void useSpock(Provider<String> version) {
+        setFrameworkTo(Frameworks.SPOCK, version);
     }
 
     @Override
@@ -274,8 +274,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useKotlinTest(Provider<String> versionProvider) {
-        setFrameworkTo(Frameworks.KOTLIN_TEST, versionProvider);
+    public void useKotlinTest(Provider<String> version) {
+        setFrameworkTo(Frameworks.KOTLIN_TEST, version);
     }
 
     @Override
@@ -289,8 +289,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useTestNG(Provider<String> versionProvider) {
-        setFrameworkTo(Frameworks.TESTNG, versionProvider);
+    public void useTestNG(Provider<String> version) {
+        setFrameworkTo(Frameworks.TESTNG, version);
     }
 
     private void setFrameworkTo(Frameworks framework, Provider<String> versionProvider) {
