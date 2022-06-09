@@ -46,6 +46,11 @@ class GroovyCoverage {
         SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
         SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0")
         SINCE_3_0 = versionsAbove(SUPPORTED_BY_JDK, "3.0.0")
+        INDY_VERSIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0").collect {
+            VersionNumber.parse(it).major >= 4
+                ? it
+                : "$it:indy"
+        }
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
             : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
