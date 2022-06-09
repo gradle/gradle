@@ -25,13 +25,14 @@ class GroovyCoverage {
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.11']
     private static final String[] FUTURE = ['4.0.0']
 
-    static final List<String> SUPPORTED_BY_JDK
+    static final Set<String> SUPPORTED_BY_JDK
 
-    static final List<String> SUPPORTS_GROOVYDOC
-    static final List<String> SUPPORTS_TIMESTAMP
-    static final List<String> SUPPORTS_PARAMETERS
-    static final List<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
-    static final List<String> SINCE_3_0
+    static final Set<String> SUPPORTS_GROOVYDOC
+    static final Set<String> SUPPORTS_TIMESTAMP
+    static final Set<String> SUPPORTS_PARAMETERS
+    static final Set<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
+    static final Set<String> SINCE_3_0
+    static final Set<String> INDY_VERSIONS
 
     /**
      * The current Groovy version if stable, otherwise the latest stable version before the current version.
@@ -77,19 +78,19 @@ class GroovyCoverage {
         !GroovySystem.version.endsWith("-SNAPSHOT")
     }
 
-    private static List<String> versionsAbove(List<String> versionsToFilter, String threshold) {
+    private static Set<String> versionsAbove(Collection<String> versionsToFilter, String threshold) {
         filterVersions(versionsToFilter, threshold, null)
     }
 
-    private static List<String> versionsBelow(List<String> versionsToFilter, String threshold) {
+    private static Set<String> versionsBelow(Collection<String> versionsToFilter, String threshold) {
         filterVersions(versionsToFilter, null, threshold)
     }
 
-    private static List<String> versionsBetween(List<String> versionsToFilter, String lowerBound, String upperBound) {
+    private static Set<String> versionsBetween(Collection<String> versionsToFilter, String lowerBound, String upperBound) {
         filterVersions(versionsToFilter, lowerBound, upperBound)
     }
 
-    private static List<String> filterVersions(List<String> versionsToFilter, @Nullable String lowerBound, @Nullable String upperBound) {
+    private static Set<String> filterVersions(Collection<String> versionsToFilter, @Nullable String lowerBound, @Nullable String upperBound) {
         versionsToFilter.findAll {
             def version = VersionNumber.parse(it)
             if (lowerBound != null && version < VersionNumber.parse(lowerBound)) {
@@ -99,6 +100,6 @@ class GroovyCoverage {
                 return false
             }
             return true
-        }.asImmutable()
+        }.toSet().asImmutable()
     }
 }
