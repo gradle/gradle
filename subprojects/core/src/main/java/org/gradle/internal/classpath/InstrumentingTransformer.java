@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
@@ -54,6 +55,7 @@ import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.INT_TYPE;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
@@ -63,7 +65,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 19;
+    private static final int DECORATION_FORMAT = 20;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -172,6 +174,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
+
+    private static final String GROOVY_INDY_INTERFACE_TYPE = getType(IndyInterface.class).getInternalName();
+
+    @SuppressWarnings("deprecation")
+    private static final String GROOVY_INDY_INTERFACE_V7_TYPE = getType(org.codehaus.groovy.vmplugin.v7.IndyInterface.class).getInternalName();
+    private static final String GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE);
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
@@ -528,6 +536,15 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 args.add(LambdaMetafactory.FLAG_SERIALIZABLE);
                 super.visitInvokeDynamicInsn(name, descriptor, altMethod, args.toArray());
                 owner.addSerializedLambda(new LambdaFactoryDetails(name, descriptor, altMethod, args));
+            } else if (isGroovyIndyCallsite(descriptor, bootstrapMethodHandle)) {
+                Handle interceptor = new Handle(
+                    H_INVOKESTATIC,
+                    INSTRUMENTED_TYPE.getInternalName(),
+                    "bootstrap",
+                    GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
+                    false
+                );
+                super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
             } else {
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
@@ -541,6 +558,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private String binaryClassNameOf(String className) {
             return getObjectType(className).getClassName();
+        }
+
+        private boolean isGroovyIndyCallsite(String descriptor, Handle bootstrapMethodHandle) {
+            return (bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_TYPE) ||
+                bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_V7_TYPE)) &&
+                bootstrapMethodHandle.getName().equals("bootstrap") &&
+                bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
         }
 
         private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();

@@ -60,9 +60,12 @@ public class GradleWrapperMain {
         Logger logger = logger(options);
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
+        WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
+        IDownload download = new Download(logger, "gradlew", UNKNOWN_VERSION, configuration.getNetworkTimeout());
+
         wrapperExecutor.execute(
                 args,
-                new Install(logger, new Download(logger, "gradlew", UNKNOWN_VERSION), new PathAssembler(gradleUserHome, rootDir)),
+                new Install(logger, download, new PathAssembler(gradleUserHome, rootDir)),
                 new BootstrapMainStarter());
     }
 
