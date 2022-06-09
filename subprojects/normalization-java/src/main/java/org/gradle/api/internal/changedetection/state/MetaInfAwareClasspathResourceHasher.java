@@ -57,18 +57,10 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
         attributeResourceFilter.appendConfigurationToHasher(hasher);
     }
 
-    private boolean shouldHash(RegularFileSnapshotContext snapshotContext) {
-        return isManifestFile(join("/", snapshotContext.getRelativePathSegments().get()));
-    }
-
-    private boolean shouldHash(ZipEntryContext zipEntryContext) {
-        return isManifestFile(zipEntryContext.getEntry().getName());
-    }
-
     @Override
     Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
         return Optional.of(snapshotContext)
-            .filter(this::shouldHash)
+            .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
             .map(context -> {
                 try (FileInputStream manifestFileInputStream = new FileInputStream(context.getSnapshot().getAbsolutePath())) {
                     return hashManifest(manifestFileInputStream);
@@ -82,7 +74,7 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
     @Override
     Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext) {
         return Optional.of(zipEntryContext)
-            .filter(this::shouldHash)
+            .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
             .map(context -> {
                 try {
                     return zipEntryContext.getEntry().withInputStream(this::hashManifest);
@@ -91,6 +83,14 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
                     return null;
                 }
             });
+    }
+
+    private static boolean isManifestFile(RegularFileSnapshotContext snapshotContext) {
+        return isManifestFile(join("/", snapshotContext.getRelativePathSegments().get()));
+    }
+
+    private static boolean isManifestFile(ZipEntryContext zipEntryContext) {
+        return isManifestFile(zipEntryContext.getEntry().getName());
     }
 
     private static boolean isManifestFile(final String name) {
