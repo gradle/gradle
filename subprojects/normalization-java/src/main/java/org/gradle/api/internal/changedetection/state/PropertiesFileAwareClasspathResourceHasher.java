@@ -27,8 +27,6 @@ import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.io.IoFunction;
-import org.gradle.internal.io.IoSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,14 +42,13 @@ import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class PropertiesFileAwareClasspathResourceHasher implements ResourceHasher {
+public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandlingResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesFileAwareClasspathResourceHasher.class);
-    private final ResourceHasher delegate;
     private final Map<PathMatcher, ResourceEntryFilter> propertiesFileFilters;
     private final List<String> propertiesFilePatterns;
 
     public PropertiesFileAwareClasspathResourceHasher(ResourceHasher delegate, Map<String, ResourceEntryFilter> propertiesFileFilters) {
-        this.delegate = delegate;
+        super(delegate);
         ImmutableList.Builder<String> patterns = ImmutableList.builder();
         ImmutableMap.Builder<PathMatcher, ResourceEntryFilter> filters = ImmutableMap.builder();
         propertiesFileFilters.forEach((pattern, resourceEntryFilter) -> {
@@ -64,60 +61,36 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        delegate.appendConfigurationToHasher(hasher);
+        super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
         propertiesFilePatterns.forEach(hasher::putString);
         propertiesFileFilters.values().forEach(resourceEntryFilter -> resourceEntryFilter.appendConfigurationToHasher(hasher));
     }
 
-    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        ResourceEntryFilter resourceEntryFilter = matchingFiltersFor(snapshotContext.getRelativePathSegments());
-        // If this is a properties file and we have matching filters for it, attempt to hash the properties.
-        // If this is not a properties file, or we encounter an error while hashing the properties, hash with the delegate.
-        return Optional.ofNullable(resourceEntryFilter)
-            .flatMap(filter -> tryHashWithFallback(snapshotContext, filter))
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
+    public Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
+        return Optional.ofNullable(matchingFiltersFor(snapshotContext.getRelativePathSegments()))
+            .map(resourceEntryFilter -> {
+                try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
+                    return hashProperties(propertiesFileInputStream, resourceEntryFilter);
+                } catch (Exception e) {
+                    LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
+                    return null;
+                }
+            });
     }
 
-    @Nullable
     @Override
-    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        ResourceEntryFilter resourceEntryFilter = matchingFiltersFor(zipEntryContext.getRelativePathSegments());
-        Optional<ZipEntryContext> safeContext = Optional.ofNullable(resourceEntryFilter)
-            .flatMap(filter -> zipEntryContext.withFallbackSafety());
-
-        // We can't just map() here because the delegate can return null, which means we can't
-        // distinguish between a context unsafe for fallback and a call to a delegate that
-        // returns null.  To avoid calling the delegate twice, we use a conditional instead.
-        if (safeContext.isPresent()) {
-            // If this is a properties file and we can fallback safely, attempt to hash the properties.
-            // If we encounter an error, hash with the delegate using the safe fallback.
-            return safeContext.flatMap(IoFunction.wrap(context -> tryHashWithFallback(context, resourceEntryFilter)))
-                .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeContext.get())));
-        } else {
-            // If this is not a properties file, or we cannot fallback safely, hash with the delegate.
-            return delegate.hash(zipEntryContext);
-        }
-    }
-
-    private Optional<HashCode> tryHashWithFallback(RegularFileSnapshotContext snapshotContext, ResourceEntryFilter resourceEntryFilter) {
-        try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
-            return Optional.of(hashProperties(propertiesFileInputStream, resourceEntryFilter));
-        } catch (Exception e) {
-            LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
-            return Optional.empty();
-        }
-    }
-
-    private Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext, ResourceEntryFilter resourceEntryFilter) {
-        try {
-            return Optional.of(zipEntryContext.getEntry().withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter)));
-        } catch (Exception e) {
-            LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
-            return Optional.empty();
-        }
+    public Optional<HashCode> tryHashWithFallback(ZipEntryContext zipEntryContext) {
+        return Optional.ofNullable(matchingFiltersFor(zipEntryContext.getRelativePathSegments()))
+            .map(resourceEntryFilter -> {
+                try {
+                    return zipEntryContext.getEntry().withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter));
+                } catch (Exception e) {
+                    LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
+                    return null;
+                }
+            });
     }
 
     @Nullable
