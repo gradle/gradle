@@ -98,11 +98,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
      *
-     * @param versionProvider version of JUnit Jupiter to use
+     * @param version provider supplying the version of JUnit Jupiter to use
      *
      * @since 7.6
      */
-    void useJUnitJupiter(Provider<String> versionProvider);
+    void useJUnitJupiter(Provider<String> version);
 
     /**
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
@@ -122,11 +122,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
      *
-     * @param versionProvider version of JUnit4 to use
+     * @param version provider supplying the version of JUnit4 to use
      *
      * @since 7.6
      */
-    void useJUnit(Provider<String> versionProvider);
+    void useJUnit(Provider<String> version);
 
     /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
@@ -146,11 +146,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
      *
-     * @param versionProvider the version of Spock to use
+     * @param version provider supplying the version of Spock to use
      *
      * @since 7.6
      */
-    void useSpock(Provider<String> versionProvider);
+    void useSpock(Provider<String> version);
 
     /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
@@ -170,11 +170,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
      *
-     * @param versionProvider the version of kotlin.test to use
+     * @param version provider supplying the version of kotlin.test to use
      *
      * @since 7.6
      */
-    void useKotlinTest(Provider<String> versionProvider);
+    void useKotlinTest(Provider<String> version);
 
     /**
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
@@ -194,11 +194,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
      *
-     * @param versionProvider version of TestNG to use
+     * @param version provider supplying the version of TestNG to use
      *
      * @since 7.6
      */
-    void useTestNG(Provider<String> versionProvider);
+    void useTestNG(Provider<String> version);
 
     /**
      * Dependency handler for this component.
