@@ -647,7 +647,7 @@ The following Attributes have disambiguation rules defined.
     - org.gradle.plugin.api-version
     - org.gradle.usage (2)
 
-(Attribute disambiguation precedence)""")
+(#): Attribute disambiguation precedence""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -708,7 +708,7 @@ The following Attributes have disambiguation rules defined.
     - org.gradle.plugin.api-version
     - org.gradle.usage (2)
 
-(Attribute disambiguation precedence)""")
+(#): Attribute disambiguation precedence""")
 
         and:
         doesNotHaveLegacyLegend()
