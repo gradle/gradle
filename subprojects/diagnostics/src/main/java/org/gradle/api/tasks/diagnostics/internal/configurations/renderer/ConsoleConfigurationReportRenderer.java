@@ -147,7 +147,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             }
 
             if (spec.isShowAttributePrecedence()) {
-                writeDescription("(Attribute disambiguation precedence)");
+                writeDescription("(#): Attribute disambiguation precedence");
                 newLine();
             }
         }
