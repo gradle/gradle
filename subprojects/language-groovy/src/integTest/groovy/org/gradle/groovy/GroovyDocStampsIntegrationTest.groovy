@@ -34,7 +34,7 @@ class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
                 id("groovy")
             }
 
-            ${mavenCentralRepository()}
+            ${groovyRepositories(versionNumber)}
 
             dependencies {
                 implementation "${groovyModuleDependency("groovy", versionNumber)}"

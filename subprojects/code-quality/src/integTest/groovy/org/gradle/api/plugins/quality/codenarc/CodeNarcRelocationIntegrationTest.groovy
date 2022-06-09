@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.codenarc
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
@@ -50,7 +51,7 @@ class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegra
         projectDir.file("build.gradle") << """
             apply plugin: "codenarc"
 
-            ${mavenCentralRepository()}
+            ${groovyRepositories(VersionNumber.parse(GroovySystem.version))}
 
             task codenarc(type: CodeNarc) {
                 source "src/main/groovy"

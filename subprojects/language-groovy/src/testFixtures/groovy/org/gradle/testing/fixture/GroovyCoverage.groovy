@@ -22,7 +22,7 @@ import org.gradle.util.internal.VersionNumber
 import javax.annotation.Nullable
 
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.11']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9',  '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8']
     private static final String[] FUTURE = ['4.0.0']
 
     static final List<String> SUPPORTED_BY_JDK
@@ -45,9 +45,7 @@ class GroovyCoverage {
         SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
         SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0")
         SINCE_3_0 = versionsAbove(SUPPORTED_BY_JDK, "3.0.0")
-        CURRENT_STABLE =!isCurrentGroovyVersionStable()
-            ? GroovySystem.version
-            : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
+        CURRENT_STABLE = GroovySystem.version
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
@@ -55,14 +53,9 @@ class GroovyCoverage {
     }
 
     private static List<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
-        def allVersions = [*PREVIOUS]
+        def allVersions = [*PREVIOUS, GroovySystem.version, *FUTURE]
 
-        // Only test current Groovy version if it isn't a SNAPSHOT
-        if (isCurrentGroovyVersionStable()) {
-            allVersions += GroovySystem.version
-        }
-
-        allVersions.addAll(FUTURE)
+        checkNoVersionIsSkipped(allVersions)
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_16)) {
             return versionsAbove(allVersions, '3.0.0')
@@ -73,8 +66,27 @@ class GroovyCoverage {
         }
     }
 
-    private static boolean isCurrentGroovyVersionStable() {
-        !GroovySystem.version.endsWith("-SNAPSHOT")
+    private static void checkNoVersionIsSkipped(List<String> versions) {
+        def toCheck = versions.collect { VersionNumber.parse(it) } as ArrayDeque
+        def previous = toCheck.poll()
+        while (true) {
+            def current = toCheck.poll();
+            if (current == null) {
+                break;
+            }
+            switch (current.major - previous.major) {
+                case 0:
+                    assert current.minor - previous.minor <= 1, "Missing coverage for Groovy ${current.major}.${previous.minor + 1}"
+                    break;
+                case 1:
+                    assert current.minor == 0, "Missing coverage for Groovy ${current.major}.0"
+                    break;
+                default:
+                    assert false, "Missing coverage for Groovy ${current.major}.x"
+                    break;
+            }
+            previous = current
+        }
     }
 
     private static List<String> versionsAbove(List<String> versionsToFilter, String threshold) {

@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
@@ -61,7 +62,9 @@ class RepoScriptBlockUtil {
         GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven')
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
+        GROOVY_CODEHAUS_SNAPSHOTS('https://groovy.jfrog.io/artifactory/libs-snapshot-local', System.getProperty('org.gradle.integtest.mirrors.groovycodehaussnapshots'), 'maven'),
+        APACHE_SNAPSHOTS('https://repository.apache.org/content/repositories/snapshots', System.getProperty('org.gradle.integtest.mirrors.apachesnapshots'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -118,6 +121,24 @@ class RepoScriptBlockUtil {
                 ${googleRepositoryDefinition(dsl)}
             }
         """
+    }
+
+    static String groovyRepositories(VersionNumber groovyVersion, GradleDsl dsl = GROOVY) {
+        String result = """
+            repositories {
+                ${mavenCentralRepositoryDefinition(dsl)}
+        """
+
+        if (groovyVersion.qualifier == "SNAPSHOT") {
+            def repo = groovyVersion.major >= 4
+                ? MirroredRepository.APACHE_SNAPSHOTS
+                : MirroredRepository.GROOVY_CODEHAUS_SNAPSHOTS
+            result += repo.getRepositoryDefinition(dsl)
+        }
+        result += """
+            }
+        """
+        return result
     }
 
     static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {

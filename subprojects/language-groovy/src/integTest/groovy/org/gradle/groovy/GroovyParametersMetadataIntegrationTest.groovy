@@ -32,7 +32,7 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
                 id("groovy")
             }
 
-            ${mavenCentralRepository()}
+            ${groovyRepositories(versionNumber)}
 
             dependencies {
                 implementation "${groovyModuleDependency("groovy", versionNumber)}"
@@ -45,7 +45,7 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
         given:
         buildFile << """
             apply plugin: "groovy"
-            ${mavenCentralRepository()}
+            ${groovyRepositories(versionNumber)}
             compileGroovy.groovyOptions.parameters = true
         """.stripIndent()
 

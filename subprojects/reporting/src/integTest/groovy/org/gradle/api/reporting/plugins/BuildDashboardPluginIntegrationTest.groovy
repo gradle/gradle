@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -93,7 +94,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: 'build-dashboard'
 
             allprojects {
-                ${mavenCentralRepository()}
+                ${groovyRepositories(VersionNumber.parse(GroovySystem.version))}
             }
         """
     }

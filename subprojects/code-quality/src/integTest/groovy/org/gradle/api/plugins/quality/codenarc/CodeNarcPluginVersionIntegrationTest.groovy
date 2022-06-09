@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
+import org.gradle.util.internal.VersionNumber
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -35,7 +36,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             apply plugin: "groovy"
             apply plugin: "codenarc"
 
-            ${mavenCentralRepository()}
+            ${groovyRepositories(VersionNumber.parse(GroovySystem.version))}
 
             codenarc {
                 toolVersion = '${version}'

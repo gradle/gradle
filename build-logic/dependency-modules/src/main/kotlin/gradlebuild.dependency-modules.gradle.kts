@@ -19,8 +19,28 @@ import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import gradlebuild.basics.repoRoot
 import gradlebuild.modules.extension.ExternalModulesExtension
+import org.gradle.util.internal.VersionNumber
 
 val libs = extensions.create<ExternalModulesExtension>("libs")
+
+val groovyVersion = VersionNumber.parse(libs.groovyVersion)
+if (groovyVersion.qualifier == "SNAPSHOT") {
+    repositories {
+        maven {
+            if (groovyVersion.major >= 4) {
+                url = uri( "https://repository.apache.org/content/repositories/snapshots")
+                content {
+                    includeGroup("org.apache.groovy")
+                }
+            } else {
+                url = uri( "https://groovy.jfrog.io/artifactory/libs-snapshot-local")
+                content {
+                    includeGroup("org.codehaus.groovy")
+                }
+            }
+        }
+    }
+}
 
 applyAutomaticUpgradeOfCapabilities()
 dependencies {
