@@ -82,6 +82,9 @@ public class CompileTransaction {
         return registerCondition ? newTransactionalDirectory(directoryConsumer) : this;
     }
 
+    /**
+     * Rollback stash only if predicate is true. By default, any failure will cause rollback of a stash.
+     */
     public CompileTransaction onFailureRollbackStashIfException(Predicate<Throwable> predicate) {
         stashThrowablePredicate = checkNotNull(predicate);
         return this;
@@ -123,7 +126,7 @@ public class CompileTransaction {
     private void ensureEmptyDirectoriesBeforeAll() {
         try {
             tempDir.mkdirs();
-            // Delete or create directories marked as "ensure empty"
+            // Create or clean directories marked as "ensure empty"
             Set<File> ensureEmptyDirectories = new HashSet<>();
             for (TransactionalDirectory directory : transactionalDirectories) {
                 if (directory.keepFolderStructureFrom != null && directory.getAsFile().exists()) {
@@ -150,21 +153,18 @@ public class CompileTransaction {
         try (Stream<Path> dirStream = Files.walk(currentDir)) {
             // Delete all files and delete all directories
             // that don't exist in "keepFolderStructureFrom" directory
-            dirStream.map(Path::toFile)
+            dirStream
                 // Order files in a direction that we can avoid recursive deletion
                 .sorted(Comparator.reverseOrder())
-                .filter(file -> file.isFile() || isDirAndIsNotDirInOtherRoot(file, currentDir, directory.keepFolderStructureFrom))
-                .forEach(File::delete);
+                .filter(path -> !Files.isDirectory(path) || !isDirectoryAlsoInOtherRoot(path, currentDir, directory.keepFolderStructureFrom))
+                .forEach(path -> path.toFile().delete());
         }
     }
 
-    private boolean isDirAndIsNotDirInOtherRoot(File directory, Path root, File otherRoot) {
-        if (directory.isDirectory()) {
-            Path relativePath = root.relativize(directory.toPath());
-            File dirInOtherRoot = new File(otherRoot, relativePath.toString());
-            return !dirInOtherRoot.exists() || !dirInOtherRoot.isDirectory();
-        }
-        return false;
+    private boolean isDirectoryAlsoInOtherRoot(Path directory, Path root, File otherRoot) {
+        Path relativePath = root.relativize(directory);
+        File fileInOtherRoot = new File(otherRoot, relativePath.toString());
+        return fileInOtherRoot.isDirectory();
     }
 
     private void deleteRecursively(File file) {
@@ -266,7 +266,7 @@ public class CompileTransaction {
                 return this;
             }
 
-            createDirectoryBeforeExecution();
+            ensureEmptyBeforeExecution();
             if (!hasNamePrefix()) {
                 withNamePrefix("out-for-" + destinationDirectory.getName());
             }
@@ -318,19 +318,18 @@ public class CompileTransaction {
         }
 
         /**
-         * A flag that tells that a directory on disk should be created before execution.
+         * A flag that tells that a directory on disk should be an empty directory before execution.
          * If stash or move files operation are used with valid directories, this is set to true by default.
          */
-        public TransactionalDirectory createDirectoryBeforeExecution() {
-            this.ensureEmptyBeforeExecution = true;
-            return this;
-        }
-
         public TransactionalDirectory ensureEmptyBeforeExecution() {
             this.ensureEmptyBeforeExecution = true;
             return this;
         }
 
+        /**
+         * Same as {@link #ensureEmptyBeforeExecution()}, but additionally it also makes sure that folders
+         * that exist in a passed file are kept and not deleted. In other words directory structure is kept but content is deleted.
+         */
         public TransactionalDirectory ensureEmptyKeepingDirectoryStructureFrom(File file) {
             this.ensureEmptyBeforeExecution = true;
             this.keepFolderStructureFrom = file;
