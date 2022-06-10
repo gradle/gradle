@@ -123,6 +123,19 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         lineEndingSensitivity << LineEndingSensitivity.values()
     }
 
+    def "hashes original context with delegate for directories"() {
+        def delegate = Mock(ResourceHasher)
+        def hasher = LineEndingNormalizingResourceHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
+        def dir = file('dir')
+        def zipContext = zipContext(dir, true, true)
+
+        when:
+        hasher.hash(zipContext)
+
+        then:
+        1 * delegate.hash(zipContext)
+    }
+
     def "throws IOException generated from hasher"() {
         def file = file('doesNotExist').tap { it.text = "" }
         def delegate = Mock(ResourceHasher)
@@ -177,7 +190,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         return new File(tempDir, path)
     }
 
-    static ZipEntryContext zipContext(File file, boolean directory = false) {
+    static ZipEntryContext zipContext(File file, boolean directory = false, boolean unsafe = false) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
@@ -206,7 +219,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
 
             @Override
             boolean canReopen() {
-                return true
+                return !unsafe
             }
         }
         return new DefaultZipEntryContext(zipEntry, file.path, "foo.zip")

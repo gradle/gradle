@@ -53,6 +53,7 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         return Optional.of(snapshotContext)
+            .filter(this::filter)
             .flatMap(path -> tryHash(snapshotContext))
             .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
     }
@@ -61,6 +62,7 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         Optional<ZipEntryContext> safeContext = Optional.of(zipEntryContext)
+            .filter(this::filter)
             .flatMap(FallbackHandlingResourceHasher::withFallbackSafety);
 
         // We can't just map() here because the delegate can return null, which means we can't
@@ -89,6 +91,16 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
             return Optional.of(new DefaultZipEntryContext(new CachingZipEntry(entry), zipEntryContext.getFullName(), zipEntryContext.getRootParentName()));
         }
     }
+
+    /**
+     * Whether this resource hasher should try to hash the file or pass it to the delegate
+     */
+    abstract boolean filter(RegularFileSnapshotContext context);
+
+    /**
+     * Whether this resource hasher should try to hash the zip entry or pass it to the delegate
+     */
+    abstract boolean filter(ZipEntryContext context);
 
     /**
      * Try to hash the resource, and signal for fallback if it can't be hashed.

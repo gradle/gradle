@@ -274,6 +274,32 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
+    def "hashes original context with delegate for files that do not match a resource filter (filename: #filename)"() {
+        delegate = Mock(ResourceHasher)
+        def hasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
+        def notProperties = unsafeContextFor(filename, "foo".bytes)
+
+        when:
+        hasher.hash(notProperties)
+
+        then:
+        1 * delegate.hash(notProperties)
+
+        where:
+        filename << ['foo.txt', 'foo.properties']
+    }
+
+    def "always hashes directories with delegate"() {
+        delegate = Mock(ResourceHasher)
+        def directory = directoryContextfor("foo.properties")
+
+        when:
+        filteredHasher.hash(directory)
+
+        then:
+        1 * delegate.hash(directory)
+    }
+
     enum SnapshotContext {
         ZIP_ENTRY, FILE_SNAPSHOT
     }
@@ -304,11 +330,19 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         contextFor(context, "META-INF/build-info.properties", attributes, comments)
     }
 
+    static unsafeContextFor(String path, byte[] bytes) {
+        return zipEntry(path, bytes, true)
+    }
+
+    static directoryContextfor(String path) {
+        return zipEntry(path, [] as byte[], true, true)
+    }
+
     static filter(String... properties) {
         return new IgnoringResourceEntryFilter(ImmutableSet.copyOf(properties))
     }
 
-    ZipEntryContext zipEntry(String path, Map<String, String> attributes, String comments = "") {
+    static ZipEntryContext zipEntry(String path, Map<String, String> attributes, String comments = "") {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
@@ -316,11 +350,11 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         return zipEntry(path, bos.toByteArray())
     }
 
-    ZipEntryContext zipEntry(String path, byte[] bytes) {
+    static ZipEntryContext zipEntry(String path, byte[] bytes, boolean unsafe = false, boolean directory = false) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
-                return false
+                return directory
             }
 
             @Override
@@ -345,7 +379,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
 
             @Override
             boolean canReopen() {
-                return true
+                return !unsafe
             }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
