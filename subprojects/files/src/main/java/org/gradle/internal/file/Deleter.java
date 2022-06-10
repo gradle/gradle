@@ -107,6 +107,4 @@ public interface Deleter {
      * @throws IOException if the file cannot be deleted.
      */
     boolean delete(File target) throws IOException;
-
-    Deleter withDeleteStrategy(DeleteStrategy strategy);
 }

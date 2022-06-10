@@ -59,11 +59,9 @@ class CompileTransactionTest extends Specification {
     }
 
     def "files are stashed and restored on failure"() {
-        def sourceDir = file("sourceDir")
-        sourceDir.mkdir()
-        new File(sourceDir, "file.txt").createNewFile()
-        new File(sourceDir, "subDir").mkdir()
-        new File(sourceDir, "subDir/another-file.txt").createNewFile()
+        def sourceDir = newDirectory(file("sourceDir"))
+        createNewFile(new File(sourceDir, "file.txt"))
+        createNewFile(new File(sourceDir, "subDir/another-file.txt"))
         def pattern = new PatternSet().include("**/*.txt")
         def stashDir = null
 
@@ -86,8 +84,7 @@ class CompileTransactionTest extends Specification {
     }
 
     def "files are stashed but not restored on success"() {
-        def sourceDir = file("sourceDir")
-        sourceDir.mkdir()
+        def sourceDir = newDirectory(file("sourceDir"))
         new File(sourceDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
         def stashDir = null
@@ -107,8 +104,7 @@ class CompileTransactionTest extends Specification {
     }
 
     def "files are stashed but not restored if exception doesn't match"() {
-        def sourceDir = file("sourceDir")
-        sourceDir.mkdir()
+        def sourceDir = newDirectory(file("sourceDir"))
         new File(sourceDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
         def stashDir = null
@@ -131,8 +127,7 @@ class CompileTransactionTest extends Specification {
     }
 
     def "if something get stashed workResult passed to execution will mark 'did work'"() {
-        def sourceDir = file("sourceDir")
-        sourceDir.mkdir()
+        def sourceDir = newDirectory(file("sourceDir"))
         new File(sourceDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
         def stashDir = null
@@ -163,9 +158,8 @@ class CompileTransactionTest extends Specification {
     def "nothing is stashed and directory is not created if #description"() {
         File directory = null
         if (directoryPath) {
-            directory = file(directoryPath)
-            directory.mkdir()
-            new File(directory, "test-file.txt").createNewFile()
+            directory = newDirectory(file(directoryPath))
+            createNewFile(new File(directory, "test-file.txt"))
         }
         def stashDir = null
 
@@ -187,8 +181,7 @@ class CompileTransactionTest extends Specification {
     }
 
     def "on success all files in stash dir are moved to a specific directory"() {
-        def destinationDir = file("someDir")
-        destinationDir.mkdir()
+        def destinationDir = newDirectory(file("someDir"))
         def stashDir = null
 
         when:
@@ -208,8 +201,7 @@ class CompileTransactionTest extends Specification {
     }
 
     def "on failure files are not moved to a specific directory"() {
-        def destinationDir = file("someDir")
-        destinationDir.mkdir()
+        def destinationDir = newDirectory(file("someDir"))
         def stashDir = null
 
         when:
@@ -276,11 +268,11 @@ class CompileTransactionTest extends Specification {
     def "unique folder is generated for every transactional directory"() {
         when:
         def directories = transaction.newTransactionalDirectory {
-            it.createDirectoryBeforeExecution()
+            it.ensureEmptyBeforeExecution()
         }.newTransactionalDirectory {
-            it.withNamePrefix("test").createDirectoryBeforeExecution()
+            it.withNamePrefix("test").ensureEmptyBeforeExecution()
         }.newTransactionalDirectory {
-            it.withNamePrefix("test").createDirectoryBeforeExecution()
+            it.withNamePrefix("test").ensureEmptyBeforeExecution()
         }.execute {
             return transactionDir.list()
         }
@@ -289,12 +281,47 @@ class CompileTransactionTest extends Specification {
         directories as Set ==~ ["dir-uniqueId0", "test-dir-uniqueId1", "test-dir-uniqueId2"]
     }
 
+    def "folder is cleaned before execution and folder structure is kept for transactional directory"() {
+        createNewFile(fileInTransactionDir("dir-uniqueId0/dir1/dir1/file1.txt"))
+        newDirectory(fileInTransactionDir("dir-uniqueId0/dir1/dir2"))
+        newDirectory(fileInTransactionDir("dir-uniqueId0/dir3"))
+        createNewFile(fileInTransactionDir("dir-uniqueId0/dir2/file1.txt"))
+        newDirectory(fileInTransactionDir("dir-uniqueId1"))
+        newDirectory(file("other-dir/dir1/dir1"))
+        newDirectory(file("other-dir/dir2"))
+        // This is a file, so folder ./dir1/dir2 in transactional dir should be deleted
+        createNewFile(file("other-dir/dir1/dir2"))
+
+        expect:
+        transaction.newTransactionalDirectory {
+            it.ensureEmptyKeepingDirectoryStructureFrom(file("other-dir"))
+        }.execute {
+            assert transactionDir.list() as Set ==~ ["dir-uniqueId0"]
+            assert fileInTransactionDir("dir-uniqueId0").list() as Set ==~ ["dir1", "dir2"]
+            assert fileInTransactionDir("dir-uniqueId0/dir1").list() as Set ==~ ["dir1"]
+            assert hasOnlyDirectories(fileInTransactionDir("dir-uniqueId0"))
+            return DID_WORK
+        }
+    }
+
     private File fileInTransactionDir(String path) {
         return new File(checkNotNull(transactionDir), path)
     }
 
     private File file(String path) {
         return new File(checkNotNull(temporaryFolder) as File, path)
+    }
+
+    private File newDirectory(File file) {
+        file.parentFile.mkdirs()
+        file.mkdir()
+        return file
+    }
+
+    private File createNewFile(File file) {
+        file.parentFile.mkdirs()
+        file.createNewFile()
+        return file
     }
 
     private boolean isEmptyDirectory(File file) {
