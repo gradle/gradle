@@ -23,7 +23,6 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.io.IoSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 abstract class FallbackHandlingResourceHasher implements ResourceHasher {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultZipEntryContext.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FallbackHandlingResourceHasher.class);
     private static final int MAX_FALLBACK_CONTENT_SIZE = 1024*1024*10;
 
     private final ResourceHasher delegate;
@@ -61,23 +60,17 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        Optional<ZipEntryContext> safeContext = Optional.of(zipEntryContext)
+        // If we should hash this resource and can fallback safely, attempt to hash the resource.
+        // If we encounter an error, or the hasher elects not to handle the resource, hash with
+        // the delegate using the fallback safe context.
+        // If we should not handle this resource, or we cannot fallback safely, hash with the delegate
+        // using the original context.
+        return Optional.of(zipEntryContext)
             .filter(this::filter)
-            .flatMap(FallbackHandlingResourceHasher::withFallbackSafety);
-
-        // We can't just map() here because the delegate can return null, which means we can't
-        // distinguish between a context unsafe for fallback and a call to a delegate that
-        // legitimately returns null.  To avoid calling the delegate twice, we use a conditional instead.
-        if (safeContext.isPresent()) {
-            // If we can fallback safely, attempt to hash the resource.
-            // If we encounter an error, or the hasher elects not to handle the resource, hash with
-            // the delegate using the safe fallback.
-            return safeContext.flatMap(IoFunction.wrap(this::tryHash))
-                .orElseGet(IoSupplier.wrap(() -> delegate.hash(safeContext.get())));
-        } else {
-            // If we cannot fallback safely, hash with the delegate.
-            return delegate.hash(zipEntryContext);
-        }
+            .flatMap(FallbackHandlingResourceHasher::withFallbackSafety)
+            .map(context -> IoSupplier.wrap(() -> tryHash(context).orElse(delegate.hash(context))))
+            .orElse(IoSupplier.wrap(() -> delegate.hash(zipEntryContext)))
+            .get();
     }
 
     private static Optional<ZipEntryContext> withFallbackSafety(ZipEntryContext zipEntryContext) {
