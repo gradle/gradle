@@ -405,6 +405,33 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
         1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
+    def "hashes original context with delegate for files that are not manifest files (filename: #filename)"() {
+        def delegate = Mock(ResourceHasher)
+        hasher = new MetaInfAwareClasspathResourceHasher(delegate, ResourceEntryFilter.FILTER_NOTHING)
+        def notManifest = unsafeContextFor(filename)
+
+        when:
+        hasher.hash(notManifest)
+
+        then:
+        1 * delegate.hash(notManifest)
+
+        where:
+        filename << ["foo.txt", "some/path/to/MANIFEST.MF"]
+    }
+
+    def "always calls delegate for directories"() {
+        def delegate = Mock(ResourceHasher)
+        hasher = new MetaInfAwareClasspathResourceHasher(delegate, ResourceEntryFilter.FILTER_NOTHING)
+        def directory = directoryContextFor(MANIFEST_PATH)
+
+        when:
+        hasher.hash(directory)
+
+        then:
+        1 * delegate.hash(directory)
+    }
+
     void populateAttributes(Attributes attributes, Map<String, Object> attributesMap) {
         attributesMap.each { String name, Object value ->
             if (value instanceof String) {
@@ -413,12 +440,20 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
         }
     }
 
-    def zipEntry(String path, Map<String, Object> attributesMap = [:], Exception exception = null) {
+    def unsafeContextFor(String path) {
+        return zipEntry(path, [:], null, true)
+    }
+
+    def directoryContextFor(String path) {
+        return zipEntry(path, [:], null, true, true)
+    }
+
+    def zipEntry(String path, Map<String, Object> attributesMap = [:], Exception exception = null, boolean unsafe = false, boolean directory = false) {
         ByteArrayOutputStream bos = getManifestByteStream(attributesMap)
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
-                return false
+                return directory
             }
 
             @Override
@@ -446,7 +481,7 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
 
             @Override
             boolean canReopen() {
-                return true
+                return !unsafe
             }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")

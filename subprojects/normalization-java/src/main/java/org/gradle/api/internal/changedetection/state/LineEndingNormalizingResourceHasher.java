@@ -54,6 +54,16 @@ public class LineEndingNormalizingResourceHasher extends FallbackHandlingResourc
     }
 
     @Override
+    boolean filter(RegularFileSnapshotContext context) {
+        return true;
+    }
+
+    @Override
+    boolean filter(ZipEntryContext context) {
+        return !context.getEntry().isDirectory();
+    }
+
+    @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
@@ -68,7 +78,6 @@ public class LineEndingNormalizingResourceHasher extends FallbackHandlingResourc
     @Override
     Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
         return Optional.of(zipEntryContext)
-            .filter(context -> !context.getEntry().isDirectory())
             .flatMap(IoFunction.wrap(this::hashContent));
     }
 

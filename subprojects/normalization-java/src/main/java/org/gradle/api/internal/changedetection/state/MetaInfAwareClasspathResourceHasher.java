@@ -58,9 +58,18 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
     }
 
     @Override
+    boolean filter(RegularFileSnapshotContext context) {
+        return isManifestFile(join("/", context.getRelativePathSegments().get()));
+    }
+
+    @Override
+    boolean filter(ZipEntryContext context) {
+        return !context.getEntry().isDirectory() && isManifestFile(context.getEntry().getName());
+    }
+
+    @Override
     Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
         return Optional.of(snapshotContext)
-            .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
             .map(context -> {
                 try (FileInputStream manifestFileInputStream = new FileInputStream(context.getSnapshot().getAbsolutePath())) {
                     return hashManifest(manifestFileInputStream);
@@ -74,7 +83,6 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
     @Override
     Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
         return Optional.of(zipEntryContext)
-            .filter(MetaInfAwareClasspathResourceHasher::isManifestFile)
             .map(context -> {
                 try {
                     return zipEntryContext.getEntry().withInputStream(this::hashManifest);
@@ -83,14 +91,6 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
                     return null;
                 }
             });
-    }
-
-    private static boolean isManifestFile(RegularFileSnapshotContext snapshotContext) {
-        return isManifestFile(join("/", snapshotContext.getRelativePathSegments().get()));
-    }
-
-    private static boolean isManifestFile(ZipEntryContext zipEntryContext) {
-        return isManifestFile(zipEntryContext.getEntry().getName());
     }
 
     private static boolean isManifestFile(final String name) {

@@ -68,6 +68,16 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
     }
 
     @Override
+    boolean filter(RegularFileSnapshotContext context) {
+        return matchesAnyFilters(context.getRelativePathSegments());
+    }
+
+    @Override
+    boolean filter(ZipEntryContext context) {
+        return !context.getEntry().isDirectory() && matchesAnyFilters(context.getRelativePathSegments());
+    }
+
+    @Override
     public Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
         return Optional.ofNullable(matchingFiltersFor(snapshotContext.getRelativePathSegments()))
             .map(resourceEntryFilter -> {
@@ -91,6 +101,11 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
                     return null;
                 }
             });
+    }
+
+    private boolean matchesAnyFilters(Supplier<String[]> relativePathSegments) {
+        return propertiesFileFilters.entrySet().stream()
+            .anyMatch(entry -> entry.getKey().matches(relativePathSegments.get(), 0));
     }
 
     @Nullable
