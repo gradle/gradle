@@ -72,6 +72,7 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         zipInput?.close()
     }
 
+    @Requires(TestPrecondition.JDK11_OR_LATER)
     def "can read from zip input stream a second time"() {
         def file = makeZip("foo.zip")
         def zipInput = FileZipInput.create(file)
@@ -91,6 +92,7 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         content == ZIP_ENTRY_CONTENT.bytes
     }
 
+    @Requires(TestPrecondition.JDK11_OR_LATER)
     def "can read zip entry content a second time"() {
         def file = makeZip("foo.zip")
         def zipInput = FileZipInput.create(file)
