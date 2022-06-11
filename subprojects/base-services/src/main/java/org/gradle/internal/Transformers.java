@@ -18,6 +18,7 @@ package org.gradle.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.util.internal.TextUtil;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -98,11 +99,7 @@ public abstract class Transformers {
         }
 
         private String wrapWithSingleQuotes(String input) {
-            return String.format("'%1$s'", escapeSingleQuotes(input));
-        }
-
-        private String escapeSingleQuotes(String input) {
-            return A_SINGLE_QUOTE.matcher(input).replaceAll("\\\\'");
+            return String.format("'%1$s'", TextUtil.escapeSingleQuotes(input));
         }
     }
 
