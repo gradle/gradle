@@ -35,6 +35,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1962,7 +1963,7 @@ public class BuildScriptBuilder {
     private static final class KotlinSyntax implements Syntax {
         @Override
         public String string(String string) {
-            return '"' + string + '"';
+            return '"' + TextUtil.escapeDoubleQuotes(string) + '"';
         }
 
         @Override
@@ -2132,7 +2133,7 @@ public class BuildScriptBuilder {
     private static final class GroovySyntax implements Syntax {
         @Override
         public String string(String string) {
-            return "'" + string + "'";
+            return "'" + TextUtil.escapeSingleQuotes(string) + "'";
         }
 
         @Override
