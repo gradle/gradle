@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -76,7 +75,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
 
         // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
-        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1, 7))
+        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1,7))
 
         given:
         useSample("kotlin-js-sample")
@@ -247,6 +246,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     }
                 """
             }
+            alwaysPasses()
             if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
                 buildFile << """
                     kotlin { js { browser() } }
@@ -268,67 +268,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     }
                 }
             """
-            if (VersionNumber.parse(version).baseVersion < VersionNumber.version(1, 7)) {
-
-                alwaysPasses()
-
-            } else {
-                // Kotlin >= 1.7 triggers false positive validation errors
-                // See https://github.com/gradle/gradle/issues/20550
-
-                if (testedPluginId != "org.jetbrains.kotlin.kapt") { // discovered id is `kotlin-kapt`, see below
-                    onPlugin(testedPluginId) { failsWith(kotlin17ValidationProblems()) }
-                }
-
-                def scriptingExtraPlugins = ["org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin"]
-                def jvmExtraPlugins = ["org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin"]
-                def jsExtraPlugins = ["org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin", "org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin", "org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin"]
-                def kaptExtraPlugins = ["kotlin-kapt", "org.jetbrains.kotlin.jvm"]
-                def androidExtraPlugins = ["org.jetbrains.kotlin.android", "org.jetbrains.kotlin.gradle.internal.AndroidSubplugin"]
-                def agpPlugins = ["com.android.application", "com.android.build.gradle.api.AndroidBasePlugin", "com.android.internal.application", "com.android.internal.version-check"]
-                if (testedPluginId == "org.jetbrains.kotlin.jvm") {
-                    onPlugins(jvmExtraPlugins + scriptingExtraPlugins) { failsWith(kotlin17ValidationProblems()) }
-                }
-                if (testedPluginId == "org.jetbrains.kotlin.js") {
-                    onPlugins(jsExtraPlugins) { failsWith(kotlin17ValidationProblems()) }
-                }
-                if (testedPluginId == "org.jetbrains.kotlin.multiplatform") {
-                    onPlugins(jsExtraPlugins + jvmExtraPlugins + scriptingExtraPlugins) { failsWith(kotlin17ValidationProblems()) }
-                }
-                if (testedPluginId == "org.jetbrains.kotlin.android") {
-                    onPlugins(agpPlugins) { skip() }
-                }
-                if (testedPluginId == "org.jetbrains.kotlin.kapt") {
-                    onPlugins(kaptExtraPlugins + jvmExtraPlugins + scriptingExtraPlugins) { failsWith(kotlin17ValidationProblems()) }
-                }
-                if (testedPluginId == "org.jetbrains.kotlin.android.extensions") {
-                    onPlugins(androidExtraPlugins) { failsWith(kotlin17ValidationProblems()) }
-                    onPlugins(agpPlugins) { skip() }
-                }
-                if (testedPluginId == "org.jetbrains.kotlin.plugin.scripting") {
-                    onPlugins(scriptingExtraPlugins) { failsWith(kotlin17ValidationProblems()) }
-                }
-            }
-        }
-    }
-
-    private Map<String, Severity> kotlin17ValidationProblems() {
-        def tasks = [
-            "org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile",
-            "org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile",
-            "org.jetbrains.kotlin.gradle.tasks.KaptGenerateStubs",
-            "org.jetbrains.kotlin.gradle.tasks.KotlinCompileTool",
-            "org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile",
-        ]
-        def properties = ["excludes", "includes"]
-        return tasks.collectMany { task ->
-            properties.collect { property ->
-                missingAnnotationMessage { type(task).property(property).missingInputOrOutput().includeLink() }
-            }
-        }.collect {
-            it.readLines().findAll { !it.isBlank() }.join("\n")
-        }.collectEntries { message ->
-            [(message): Severity.ERROR]
         }
     }
 
