@@ -82,7 +82,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final Set<Node> finalizers = new LinkedHashSet<>();
-    private final OrdinalNodeAccess ordinalNodeAccess = new OrdinalNodeAccess();
+    private final OrdinalNodeAccess ordinalNodeAccess;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
 
@@ -99,6 +99,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     public DefaultExecutionPlan(
         String displayName,
         TaskNodeFactory taskNodeFactory,
+        OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
@@ -110,6 +111,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinator = lockCoordinator;
+        this.ordinalNodeAccess = new OrdinalNodeAccess(ordinalGroupFactory);
     }
 
     @Override
@@ -188,8 +190,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 // Make sure it has been configured
                 node.prepareForExecution(this::monitoredNodeReady);
                 node.resolveDependencies(dependencyResolver);
-                for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
+                for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup());
+                }
+                for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
                     if (!visiting.contains(successor)) {
                         queue.addFirst(successor);
                     }
@@ -299,9 +303,18 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     @Override
     public ScheduledNodes getScheduledNodes() {
-        // Take an immutable copy, as this can be mutated (eg if the result is used after execution has completed and clear() has been called).
-        ImmutableList<Node> nodes = ImmutableList.copyOf(nodeMapping.nodes);
-        return visitor -> lockCoordinator.withStateLock(() -> visitor.accept(nodes));
+        // Take an immutable copy of the nodes, as the set of nodes for this plan can be mutated (e.g. if the result is used after execution has completed and clear() has been called).
+        ImmutableList.Builder<Node> builder = ImmutableList.builderWithExpectedSize(nodeMapping.nodes.size());
+        for (Node node : nodeMapping.nodes) {
+            // Do not include a task from another build when that task has already executed
+            // Most nodes that have already executed are filtered in `doAddNodes()` but these particular nodes are node
+            // It would be better to also remove these nodes in `doAddNodes()`
+            if (node instanceof TaskInAnotherBuild && ((TaskInAnotherBuild) node).getTask().getState().getExecuted()) {
+                continue;
+            }
+            builder.add(node);
+        }
+        return visitor -> lockCoordinator.withStateLock(() -> visitor.accept(builder.build()));
     }
 
     @Override

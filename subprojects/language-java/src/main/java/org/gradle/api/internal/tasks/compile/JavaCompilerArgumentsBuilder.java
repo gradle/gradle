@@ -74,6 +74,12 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
+    /**
+     * Returns a list with all Java compiler arguments as configured in this builder.
+     * Returned arguments are guaranteed not to be null.
+     *
+     * @return a list containing all Java compiler arguments
+     */
     public List<String> build() {
         args = new ArrayList<>();
         // Take a deep copy of the compilerArgs because the following methods mutate it.
