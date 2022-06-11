@@ -33,11 +33,12 @@ import java.util.List;
 import java.util.Set;
 
 class SelectorStateResolverResults {
-    private static final VersionParser VERSION_PARSER = new VersionParser();
     private final Comparator<Version> versionComparator;
+    private final VersionParser versionParser;
     private final List<Registration> results;
 
-    public SelectorStateResolverResults(Comparator<Version> versionComparator, int size) {
+    public SelectorStateResolverResults(Comparator<Version> versionComparator, VersionParser versionParser, int size) {
+        this.versionParser = versionParser;
         results = Lists.newArrayListWithCapacity(size);
         this.versionComparator = versionComparator;
     }
@@ -161,8 +162,8 @@ class SelectorStateResolverResults {
 
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
-            Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
-            Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
+            Version existingVersion = versionParser.transform(existing.getModuleVersionId().getVersion());
+            Version candidateVersion = versionParser.transform(resolveResult.getModuleVersionId().getVersion());
 
             int comparison = versionComparator.compare(candidateVersion, existingVersion);
             return comparison < 0;

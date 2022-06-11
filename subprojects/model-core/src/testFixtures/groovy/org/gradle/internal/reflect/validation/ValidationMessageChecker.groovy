@@ -425,6 +425,16 @@ trait ValidationMessageChecker {
         }.render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_VALUE_TYPE
+    )
+    String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnsupportedValueType, "unsupported_value_type", spec)
+        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+        config.render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
                                                                    String docId = 'more_about_tasks',
@@ -922,6 +932,32 @@ trait ValidationMessageChecker {
         NotCacheableWithoutReason noReasonOnArtifactTransform() {
             workType = "transform action"
             cacheableAnnotation = "@CacheableTransform"
+            this
+        }
+    }
+
+    static class UnsupportedValueType extends ValidationMessageDisplayConfiguration<UnsupportedValueType> {
+
+        String annotationType
+        String propertyType
+        String unsupportedValueType
+
+        UnsupportedValueType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnsupportedValueType annotationType(String annotationType) {
+            this.annotationType = annotationType
+            this
+        }
+
+        UnsupportedValueType propertyType(String propertyType) {
+            this.propertyType = propertyType
+            this
+        }
+
+        UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
+            this.unsupportedValueType = unsupportedValueType
             this
         }
     }
