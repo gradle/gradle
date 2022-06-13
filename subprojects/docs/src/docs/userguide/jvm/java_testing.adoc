@@ -618,7 +618,11 @@ In this case, Gradle will mark the skipped tests as "SKIPPED" rather than exclud
 
 In well-defined builds, you can rely on Gradle to only run tests if the tests themselves or the production code change. However, you may encounter situations where the tests rely on a third-party service or something else that might change but can't be modeled in the build.
 
-You can force tests to run in this situation by cleaning the output of the relevant `Test` task — say `test` — and running the tests again, like so:
+You can always use the `--rerun` <<command_line_interface.adoc#sec:builtin_task_options,built-in task option>> to force a task to rerun.
+
+    gradle test --rerun
+
+Alternatively, if <<build_cache.adoc#sec:build_cache_enable,build caching>> is not enabled, you can also force tests to run by cleaning the output of the relevant `Test` task — say `test` — and running the tests again, like so:
 
     gradle cleanTest test
 
