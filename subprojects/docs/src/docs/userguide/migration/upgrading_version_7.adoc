@@ -97,7 +97,7 @@ signing.gnupg.executable=gpg2
 
 ==== Updates to bundled Gradle dependencies
 
-- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.10].
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.11].
 
 ==== Scala Zinc version updated to 1.6.1
 
