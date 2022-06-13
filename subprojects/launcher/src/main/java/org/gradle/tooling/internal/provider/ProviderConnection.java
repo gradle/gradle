@@ -421,6 +421,12 @@ public class ProviderConnection {
                         operationTypes.add(OperationType.FILE_DOWNLOAD);
                     }
                 }
+                if(consumerVersion.compareTo(GradleVersion.version("7.6")) < 0) {
+                    // Some types were split out of 'generic' type in 7.6, so include these when an older consumer requests 'generic'
+                    if (operationTypes.contains(OperationType.GENERIC)) {
+                        operationTypes.add(OperationType.BUILD_PHASE);
+                    }
+                }
                 return operationTypes;
             }
             return emptySet();
