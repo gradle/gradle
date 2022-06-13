@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(FallbackHandlingResourceHasher.class);
@@ -68,9 +69,17 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         return Optional.of(zipEntryContext)
             .filter(this::filter)
             .flatMap(FallbackHandlingResourceHasher::withFallbackSafety)
-            .map(context -> IoSupplier.wrap(() -> tryHash(context).orElse(delegate.hash(context))))
-            .orElse(IoSupplier.wrap(() -> delegate.hash(zipEntryContext)))
+            .map(this::hashSafely)
+            .orElse(hashWithDelegate(zipEntryContext))
             .get();
+    }
+
+    private Supplier<HashCode> hashSafely(ZipEntryContext safeContext) {
+        return IoSupplier.wrap(() -> tryHash(safeContext).orElseGet(hashWithDelegate(safeContext)));
+    }
+
+    private Supplier<HashCode> hashWithDelegate(ZipEntryContext context) {
+        return IoSupplier.wrap(() -> delegate.hash(context));
     }
 
     private static Optional<ZipEntryContext> withFallbackSafety(ZipEntryContext zipEntryContext) {
