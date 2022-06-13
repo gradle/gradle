@@ -682,4 +682,147 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
+
+    // region failure reporting
+    def "single suite failed"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        useJUnit()
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
+            }
+        """
+
+        and:
+        file("src/integTest/java/SomeTest.java") << """
+            import org.junit.*;
+
+            public class SomeTest {
+                @Test public void foo() {
+                    throw new RuntimeException("I fail");
+                }
+            }
+        """
+
+        expect:
+        fails("integTest")
+        result.assertHasErrorOutput("FAILURE: Build failed with an exception.")
+        result.assertHasErrorOutput("Execution failed for task ':integTest'.")
+        result.assertHasErrorOutput("> Test suite 'integTest' has failing tests.")
+        result.assertHasErrorOutput("> \t'integTest' target FAILED: 0/1. See report at:")
+    }
+
+    def "multiple suites failed"() {
+        given:
+        executer.withStackTraceChecksDisabled()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+
+                    integTest(JvmTestSuite) {
+                        useJUnit()
+                        dependencies {
+                            implementation project
+                        }
+                    }
+
+                    funcTest(JvmTestSuite) {
+                        useJUnit()
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
+            }
+        """
+
+        and:
+        file("src/test/java/SomeTest.java") << """
+            import org.junit.*;
+
+            public class SomeTest {
+                @Test public void foo() {
+                    throw new RuntimeException("I fail");
+                }
+
+                @Test public void bar() {
+                    // I pass
+                }
+
+                @Test public void bar2() {
+                    // I pass
+                }
+            }
+        """
+
+        and:
+        file("src/integTest/java/SomeTest.java") << """
+            import org.junit.*;
+
+            public class SomeTest {
+                @Test public void foo() {
+                    throw new RuntimeException("I fail, too");
+                }
+
+                @Test public void foo2() {
+                    throw new RuntimeException("I fail, too");
+                }
+
+                @Test public void bar() {
+                    // I pass
+                }
+
+                @Test public void bar2() {
+                    // I pass
+                }
+            }
+        """
+
+        and:
+        file("src/funcTest/java/SomeTest.java") << """
+            import org.junit.*;
+
+            public class SomeTest {
+                @Test public void foo() {
+                    // I pass
+                }
+
+                @Test public void bar() {
+                    // I pass
+                }
+            }
+        """
+
+        expect:
+        fails("test", "integTest", "funcTest", "--continue")
+        result.assertHasErrorOutput("FAILURE: Build failed with multiple exceptions.")
+        result.assertHasErrorOutput("Execution failed for tasks ':integTest', ':test'.")
+        result.assertHasErrorOutput("> Test suite 'test' has failing tests.")
+        result.assertHasErrorOutput("> \t'test' target FAILED: 2/3. See report at:")
+        result.assertHasErrorOutput("> Test suite 'integTest' has failing tests.")
+        result.assertHasErrorOutput("> \t'integTest' target FAILED: 2/4. See report at:")
+    }
+    // endregion failure reporting
 }

@@ -60,6 +60,7 @@ strictCompile {
 
 classycle {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
+    excludePatterns.add("org/gradle/testing/base/TestSuiteTarget.class")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)

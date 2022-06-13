@@ -1317,7 +1317,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
             // Axe everything after the expected exception
             private String removeExceptionStackTraceForFailedExecution(String text) {
-                int pos = text.indexOf("* Exception is:");
+                int pos = text.indexOf("* Exception ");
                 if (pos >= 0) {
                     text = text.substring(0, pos);
                 }

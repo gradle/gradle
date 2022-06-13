@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.internal.exceptions.ExceptionMerger;
+import org.gradle.internal.exceptions.MergeableException;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -27,6 +29,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
@@ -35,7 +38,13 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
@@ -78,41 +87,85 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     @Override
     public void execute(Throwable failure) {
-        if (failure instanceof MultipleBuildFailures) {
-            renderMultipleBuildExceptions((MultipleBuildFailures) failure);
-        } else {
-            renderSingleBuildException(failure);
-        }
-    }
-
-    private void renderMultipleBuildExceptions(MultipleBuildFailures failure) {
-        String message = failure.getMessage();
-        List<? extends Throwable> flattenedFailures = failure.getCauses();
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-        output.println();
-        output.withStyle(Failure).format("FAILURE: %s", message);
-        output.println();
-
-        for (int i = 0; i < flattenedFailures.size(); i++) {
-            Throwable cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
-
-            output.println();
-            output.withStyle(Failure).format("%s: ", i + 1);
-            details.summary.writeTo(output.withStyle(Failure));
-            output.println();
-            output.text("-----------");
-
-            writeFailureDetails(output, details);
-
-            output.println("==============================================================================");
+        if (failure instanceof MultipleBuildFailures) {
+            renderMultipleFailuresException(output, (MultipleBuildFailures) failure);
+        } else {
+            renderSingleBuildException(output, failure, 1);
         }
         writeGeneralTips(output);
     }
 
-    private void renderSingleBuildException(Throwable failure) {
-        StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-        FailureDetails details = constructFailureDetails("Build", failure);
+    private void renderMultipleFailuresException(StyledTextOutput output, MultipleBuildFailures failure) {
+        List<? extends Throwable> causes = failure.getCauses();
+        List<Throwable> mergedCauses = mergeMergeableExceptions(causes);
+
+        if (mergedCauses.size() == 1) {
+            renderSingleBuildException(output, mergedCauses.get(0), causes.size());
+        } else {
+            writeMultipleFailureDetails(output, mergedCauses, causes.size());
+        }
+    }
+
+    /**
+     * This method will look at any of the given exceptions to see if they were caused by
+     * any {@link MergeableException}s and will attempt to consolidate those exceptions into a
+     * single {@link MultiCauseException} per type, returning the results of this and any other
+     * given exceptions unchanged.
+     *
+     * Inheritance with exceptions implementing interfaces makes generics hard.  Isolate all the
+     * raw type nastiness here and suppress the compiler warnings.
+     *
+     * @param exceptions exceptions to investigate
+     * @return the given argument, with any exceptions caused by mergeable exceptions consolidated
+     * into a single exception per type
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private List<Throwable> mergeMergeableExceptions(List<? extends Throwable> exceptions) {
+        List<Throwable> results = new ArrayList<>();
+        Map<Class<? extends MergeableException>, ExceptionMerger> mergers = new HashMap<>();
+
+        for (Throwable exception : exceptions) {
+            MergeableException mergeableException = extractMergeableExceptionFromCauseChain(exception);
+
+            if (mergeableException == null) {
+                results.add(exception);
+            } else {
+                if (!mergers.containsKey(mergeableException.getClass())) {
+                    ExceptionMerger merger = mergeableException.getMerger();
+                    mergers.put(mergeableException.getClass(), merger);
+                }
+                ExceptionMerger merger = mergers.get(mergeableException.getClass());
+                merger.merge(mergeableException);
+            }
+        }
+
+        mergers.values().forEach(merger -> results.add(merger.getMergedException()));
+
+        return results;
+    }
+
+    /**
+     * If the given exception, or any of it's causes, is a {@link MergeableException}, return that
+     * mergeable exception; othersewise, return the argument.
+     *
+     * @param exception the exception to investigate
+     * @return the given argument, or the mergeable exception that caused it
+     */
+    private MergeableException extractMergeableExceptionFromCauseChain(Throwable exception) {
+        Throwable current = exception;
+        while (current != null) {
+            if (current instanceof MergeableException) {
+                return (MergeableException) current;
+            }
+            current = current.getCause();
+        }
+        return null;
+    }
+
+    private void renderSingleBuildException(StyledTextOutput output, Throwable failure, int originalExceptionCount) {
+        Throwable mergedFailure = mergeMergeableExceptions(Collections.singletonList(failure)).get(0);
+        FailureDetails details = constructFailureDetails("Build", mergedFailure, originalExceptionCount);
 
         output.println();
         output.withStyle(Failure).text("FAILURE: ");
@@ -120,10 +173,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         output.println();
 
         writeFailureDetails(output, details);
-
-        writeGeneralTips(output);
     }
-
     private ExceptionStyle getShowStackTraceOption() {
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS) {
             return ExceptionStyle.FULL;
@@ -132,9 +182,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
+    private FailureDetails constructFailureDetails(String granularity, Throwable failure, int originalExceptionCount) {
         FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
-        details.summary.format("%s failed with an exception.", granularity);
+        details.summary.format("%s failed with %s.", granularity, originalExceptionCount > 1 ? "multiple exceptions" : "an exception");
 
         fillInFailureResolution(details);
 
@@ -145,56 +195,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
         details.renderStackTrace();
         return details;
-    }
-
-    private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
-        private final FailureDetails failureDetails;
-
-        private int depth;
-
-        private ExceptionFormattingVisitor(FailureDetails failureDetails) {
-            this.failureDetails = failureDetails;
-        }
-
-        @Override
-        protected void visitCause(Throwable cause) {
-            failureDetails.failure = cause;
-            failureDetails.appendDetails();
-        }
-
-        @Override
-        protected void visitLocation(String location) {
-            failureDetails.location.text(location);
-        }
-
-        @Override
-        public void node(Throwable node) {
-            LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-            renderStyledError(node, output);
-        }
-
-        @Override
-        public void startChildren() {
-            depth++;
-        }
-
-        @Override
-        public void endChildren() {
-            depth--;
-        }
-
-        private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details) {
-            details.details.format("%n");
-            StringBuilder prefix = new StringBuilder();
-            for (int i = 1; i < depth; i++) {
-                prefix.append("   ");
-            }
-            details.details.text(prefix);
-            prefix.append("  ");
-            details.details.style(Info).text("> ").style(Normal);
-
-            return new LinePrefixingStyledTextOutput(details.details, prefix, false);
-        }
     }
 
     private void fillInFailureResolution(FailureDetails details) {
@@ -259,6 +259,13 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
+        List<? extends Throwable> multipleCauses;
+        if (details.failure instanceof MultiCauseException) {
+            multipleCauses = ((MultiCauseException) details.failure).getCauses();
+        } else {
+            multipleCauses = Collections.emptyList();
+        }
+
         if (details.location.getHasContent()) {
             output.println();
             output.println("* Where:");
@@ -280,11 +287,47 @@ public class BuildExceptionReporter implements Action<Throwable> {
             output.println();
         }
 
-        if (details.stackTrace.getHasContent()) {
+        if (multipleCauses.isEmpty()) {
+            if (details.stackTrace.getHasContent()) {
+                output.println();
+                output.println("* Exception is:");
+                details.stackTrace.writeTo(output);
+                output.println();
+            }
+        } else {
+            for (int i = 1; i <= multipleCauses.size(); i++) {
+                output.println();
+                output.println("* Exception " + i + " of " + multipleCauses.size() + " is:");
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                multipleCauses.get(i - 1).printStackTrace(pw);
+                output.append(sw.toString());
+            }
+        }
+    }
+
+    private void writeMultipleFailureDetails(StyledTextOutput output, List<? extends Throwable> causes, int originalExceptionCount) {
+        for (int i = 0; i < causes.size(); i++) {
+            Throwable cause = causes.get(i);
+            FailureDetails details = constructFailureDetails("Task", cause, originalExceptionCount);
+
             output.println();
-            output.println("* Exception is:");
-            details.stackTrace.writeTo(output);
+            output.withStyle(Failure).format("%s: ", i + 1);
+            details.summary.writeTo(output.withStyle(Failure));
             output.println();
+            output.text("-----------");
+
+            writeFailureDetails(output, details);
+
+            output.println("==============================================================================");
+        }
+    }
+
+    private static void renderStyledError(Throwable failure, StyledTextOutput details) {
+        if (failure instanceof StyledException) {
+            ((StyledException) failure).render(details);
+        } else {
+            details.text(getMessage(failure));
         }
     }
 
@@ -317,14 +360,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    static void renderStyledError(Throwable failure, StyledTextOutput details) {
-        if (failure instanceof StyledException) {
-            ((StyledException) failure).render(details);
-        } else {
-            details.text(getMessage(failure));
-        }
-    }
-
     private class ContextImpl implements FailureResolutionAware.Context {
         private final BufferingStyledTextOutput resolution;
         private boolean missingBuild;
@@ -350,6 +385,56 @@ public class BuildExceptionReporter implements Action<Throwable> {
             }
             resolution.style(Info).text("> ").style(Normal);
             resolutionProducer.accept(resolution);
+        }
+    }
+
+    private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
+        private final FailureDetails failureDetails;
+
+        private int depth;
+
+        private ExceptionFormattingVisitor(FailureDetails failureDetails) {
+            this.failureDetails = failureDetails;
+        }
+
+        @Override
+        protected void visitCause(Throwable cause) {
+            failureDetails.failure = cause;
+            failureDetails.appendDetails();
+        }
+
+        @Override
+        protected void visitLocation(String location) {
+            failureDetails.location.text(location);
+        }
+
+        @Override
+        public void node(Throwable node) {
+            LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+            renderStyledError(node, output);
+        }
+
+        @Override
+        public void startChildren() {
+            depth++;
+        }
+
+        @Override
+        public void endChildren() {
+            depth--;
+        }
+
+        private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details) {
+            details.details.format("%n");
+            StringBuilder prefix = new StringBuilder();
+            for (int i = 1; i < depth; i++) {
+                prefix.append("   ");
+            }
+            details.details.text(prefix);
+            prefix.append("  ");
+            details.details.style(Info).text("> ").style(Normal);
+
+            return new LinePrefixingStyledTextOutput(details.details, prefix, false);
         }
     }
 }

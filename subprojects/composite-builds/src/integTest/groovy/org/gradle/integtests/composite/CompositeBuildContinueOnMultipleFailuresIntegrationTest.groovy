@@ -105,7 +105,7 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
         failure.assertHasFailures(4)
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescription("Execution failed for test task ':test'.")
         failure.assertHasDescription("Execution failed for task ':buildC:sub1:test'.")
         failure.assertHasDescription("Execution failed for task ':buildC:sub2:test'.")
         failure.assertHasDescription("Execution failed for task ':buildC:sub3:test'.")

@@ -171,7 +171,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "test"
-            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasDescription("Execution failed for test task ':test'.")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }

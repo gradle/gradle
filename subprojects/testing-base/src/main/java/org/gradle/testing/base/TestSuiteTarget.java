@@ -18,6 +18,8 @@ package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 
 /**
  * Base test suite target.
@@ -28,4 +30,27 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface TestSuiteTarget extends Named {
+    /**
+     * Provider of {@link AbstractTestTask} test class that will run this target.
+     *
+     * @return test task instance
+     * @since 7.6
+     */
+    TaskProvider<? extends AbstractTestTask> getTestTask();
+
+    /**
+     * The {@link TestSuite} that created this target.
+     *
+     * @return test suite that created this target
+     * @since 7.6
+     */
+    TestSuite getTestSuite();
+
+    /**
+     * Gets a formatted summary of the result of running this target for display on the console.
+     *
+     * @return summary
+     * @since 7.6
+     */
+    String getFormattedSummary();
 }
