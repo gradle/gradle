@@ -95,6 +95,9 @@ import java.util.stream.StreamSupport;
 
 import static com.google.common.io.Files.getNameWithoutExtension;
 
+/**
+ * Class responsible for serializing GPG keys into binary, and textual files.
+ */
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private static final Logger LOGGER = Logging.getLogger(WriteDependencyVerificationFile.class);
     private static final Action<ArtifactView.ViewConfiguration> MODULE_COMPONENT_FILES = conf -> {
@@ -551,6 +554,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             ));
 
         // We sort all the key entries by their ID's.
+        // With a stable order of keys, we can minimize diffs caused by a new key
         return allKeys.entrySet()
             .stream()
             .sorted(Map.Entry.comparingByKey())
@@ -564,14 +568,16 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
         try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(keyFilePath))) {
             for (PGPPublicKey key : allKeys) {
-                // Custom header for better readibility
+                // Custom header for better readability
                 outputStream.write("=====KEY INFO=====\n".getBytes(StandardCharsets.US_ASCII));
 
                 // Print the fingerprint of the key
-                String pubLine = String.format("pub    %s\n", SecuritySupport.toLongIdHexString(key.getKeyID()).toUpperCase());
+                String keyType = key.isMasterKey() ? "pub" : "sub";
+                String keyFingerprint = SecuritySupport.toLongIdHexString(key.getKeyID()).toUpperCase();
+                String pubLine = String.format("%s    %s\n", keyType, keyFingerprint);
                 outputStream.write(pubLine.getBytes(StandardCharsets.US_ASCII));
 
-                // Print all the user IDs of a key
+                // Print all the user IDs of the key
                 for (String userId : PGPUtils.getUserIDs(key)) {
                     String uidLine = String.format("uid    %s\n", userId);
                     outputStream.write(uidLine.getBytes(StandardCharsets.US_ASCII));
@@ -581,7 +587,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 // Armored output streams should be opened per key (see close() on ArmoredOutputStream)
                 try (ArmoredOutputStream armoredOutputStream = new ArmoredOutputStream(outputStream)) {
                     // Create a new key without any sub-key information
-                    // We don't need sub-keys as we directly look up public keys by their fingerprints.
+                    // We don't need to serialize sub-keys; if a sub-key is needed for verification, it will be handled just like a normal key
                     PGPPublicKey trimmedKey = new PGPPublicKey(key.getPublicKeyPacket(), fingerprintCalculator);
                     trimmedKey.encode(armoredOutputStream, true);
                 }
