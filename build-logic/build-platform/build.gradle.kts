@@ -1,3 +1,5 @@
+import groovy.lang.GroovySystem
+
 plugins {
     `java-platform`
 }
@@ -6,7 +8,7 @@ description = "Provides a platform that constrains versions of external dependen
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
-val groovyVersion = "3.0.10"
+val groovyVersion = GroovySystem.getVersion()
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
