@@ -57,7 +57,7 @@ class GroovyCoverage {
         return groovyVersionsSupportedByJdk(javaVersion).contains(groovyVersion)
     }
 
-    private static List<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
+    private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = [*PREVIOUS]
 
         // Only test current Groovy version if it isn't a SNAPSHOT
