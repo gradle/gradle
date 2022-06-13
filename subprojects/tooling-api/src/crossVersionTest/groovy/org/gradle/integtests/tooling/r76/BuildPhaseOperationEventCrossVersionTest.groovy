@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r75
+package org.gradle.integtests.tooling.r76
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -29,8 +29,8 @@ import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent
 import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
-@ToolingApiVersion(">=7.5")
-@TargetGradleVersion(">=7.5")
+@ToolingApiVersion(">=7.6")
+@TargetGradleVersion(">=7.6")
 class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
 
     def "generates build phase events for task #taskName and expects #expectedReportedTasksCount run tasks"() {
