@@ -275,11 +275,13 @@ public class NativeComponentModelPlugin implements Plugin<Project> {
         }
 
         @Mutate
+        @SuppressWarnings("deprecation") // use of TaskContainer#create
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ComponentSpecContainer components) {
             for (final SourceComponentSpec nativeComponentSpec : components.withType(SourceComponentSpec.class).values()) {
                 for (final DependentSourceSetInternal dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSetInternal.class).values()) {
                     if (dependentSourceSet.getPrefixHeaderFile() != null) {
                         String taskName = "generate" + StringUtils.capitalize(nativeComponentSpec.getName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PrefixHeaderFile";
+
                         tasks.create(taskName, PrefixHeaderFileGenerateTask.class, new Action<PrefixHeaderFileGenerateTask>() {
                             @Override
                             public void execute(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
@@ -293,6 +295,7 @@ public class NativeComponentModelPlugin implements Plugin<Project> {
         }
 
         @Mutate
+        @SuppressWarnings("deprecation") // use of TaskContainer#create
         void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, BinaryContainer binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
             for (final NativeBinarySpecInternal nativeBinarySpec : binaries.withType(NativeBinarySpecInternal.class)) {
                 for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {

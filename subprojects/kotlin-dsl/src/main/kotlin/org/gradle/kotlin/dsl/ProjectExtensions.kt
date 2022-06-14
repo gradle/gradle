@@ -128,6 +128,8 @@ fun <T : Any> Project.the(extensionType: KClass<T>): T =
  * Creates a [Task] with the given [name] and [type], configures it with the given [configuration] action,
  * and adds it to this project tasks container.
  */
+@Deprecated("Use TaskContainer.register instead")
+@Suppress("DEPRECATION")
 inline fun <reified type : Task> Project.task(name: String, noinline configuration: type.() -> Unit) =
     task(name, type::class, configuration)
 
@@ -138,11 +140,14 @@ inline fun <reified type : Task> Project.task(name: String, noinline configurati
  * @see [Project.getTasks]
  * @see [TaskContainer.create]
  */
-@Suppress("extension_shadowed_by_member")
+@Deprecated("Use TaskContainer.register instead")
+@Suppress("extension_shadowed_by_member", "DEPRECATION")
 inline fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
 
+@Deprecated("Use TaskContainer.register instead")
+@Suppress("DEPRECATION")
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     tasks.create(name, type.java, configuration)
 

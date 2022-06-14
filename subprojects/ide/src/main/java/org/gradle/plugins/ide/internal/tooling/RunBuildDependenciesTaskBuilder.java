@@ -45,6 +45,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
         return EclipseRuntime.class;
     }
 
+    @SuppressWarnings("deprecation") // use of TaskContainer#create
     @Override
     public RunClosedProjectBuildDependencies buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
         this.projectOpenStatus = eclipseRuntime.getWorkspace().getProjects().stream()

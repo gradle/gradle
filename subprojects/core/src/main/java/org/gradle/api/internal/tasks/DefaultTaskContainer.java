@@ -108,6 +108,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
+    @Deprecated
     @Override
     public Task create(Map<String, ?> options) {
         assertMutable("create(Map<String, ?>)");
@@ -266,18 +267,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return create(name, type);
     }
 
+    @Deprecated
     @Override
     public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
         assertMutable("create(Map<String, ?>, Closure)");
         return doCreate(options, ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Deprecated
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
         assertMutable("create(String, Class)");
         return doCreate(name, type, NO_ARGS, Actions.doNothing());
     }
 
+    @Deprecated
     @Override
     public <T extends Task> T create(final String name, final Class<T> type, final Object... constructorArgs) throws InvalidUserDataException {
         assertMutable("create(String, Class, Object...)");
@@ -322,12 +326,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return taskFactory.create(identity, constructorArgs);
     }
 
+    @Deprecated
     @Override
     public Task create(String name) {
         assertMutable("create(String)");
         return doCreate(name, DefaultTask.class, NO_ARGS, Actions.doNothing());
     }
 
+    @Deprecated
     @Override
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
         assertMutable("create(String, Action)");
@@ -349,12 +355,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return replace(name, DefaultTask.class);
     }
 
+    @Deprecated
     @Override
     public Task create(String name, Closure configureClosure) {
         assertMutable("create(String, Closure)");
         return doCreate(name, DefaultTask.class, NO_ARGS, ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Deprecated
     @Override
     public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
         assertMutable("create(String, Class, Action)");

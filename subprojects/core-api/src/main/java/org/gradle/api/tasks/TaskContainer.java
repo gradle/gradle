@@ -104,7 +104,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @throws NullPointerException If any of the values in <code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Class, Action)}
      */
+    @Deprecated
     Task create(Map<String, ?> options) throws InvalidUserDataException;
 
     /**
@@ -120,7 +123,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String)}
      */
+    @Deprecated
     Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
 
     /**
@@ -135,7 +141,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String)}
      */
+    @Deprecated
     @Override
     Task create(String name, Closure configureClosure) throws InvalidUserDataException;
 
@@ -149,7 +158,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String)}
      */
+    @Deprecated
     @Override
     Task create(String name) throws InvalidUserDataException;
 
@@ -164,7 +176,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Class)}
      */
+    @Deprecated
     @Override
     <T extends Task> T create(String name, Class<T> type) throws InvalidUserDataException;
 
@@ -184,7 +199,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      * @since 4.7
+     *
+     * @deprecated Use {@link #register(String, Class, Object...)}
      */
+    @Deprecated
     <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
@@ -199,7 +217,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Class, Action)}
      */
+    @Deprecated
     @Override
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 

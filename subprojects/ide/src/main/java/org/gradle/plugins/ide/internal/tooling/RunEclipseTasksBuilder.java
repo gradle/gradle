@@ -33,6 +33,7 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // use of TaskContainer#create
     public Object buildAll(String modelName, Project project) {
         StartParameter startParameter = project.getGradle().getStartParameter();
         List<String> taskPaths = new ArrayList<String>();

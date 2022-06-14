@@ -412,6 +412,7 @@ public class SigningExtension {
     }
 
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
+        @SuppressWarnings("deprecation") // use of TaskContainer#create
         final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
             @Override
             public void execute(Sign task) {
@@ -443,6 +444,7 @@ public class SigningExtension {
     }
 
     private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
+        @SuppressWarnings("deprecation") // use of TaskContainer#create
         Sign signTask = project.getTasks().create("sign" + capitalize(name), Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;

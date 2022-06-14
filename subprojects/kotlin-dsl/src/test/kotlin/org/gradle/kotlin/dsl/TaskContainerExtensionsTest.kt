@@ -25,7 +25,7 @@ import org.junit.Test
 
 class TaskContainerExtensionsTest {
 
-    @Test
+    @Suppress("DEPRECATION") // usage of create()
     fun `can create tasks with injected constructor arguments`() {
 
         val task = mock<DefaultTask>()
