@@ -35,11 +35,14 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
@@ -47,24 +50,28 @@ public class OptionReader {
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
     @VisibleForTesting
-    static final BuiltInOptionElement[] BUILT_IN_OPTIONS = {
+    static final Map<String, BuiltInOptionElement> BUILT_IN_OPTIONS = Stream.of(
         new BuiltInOptionElement(
             "Causes the task to be re-run even if up-to-date.",
             "rerun",
             task -> task.getOutputs().upToDateWhen(taskSpec -> false)
         )
-    };
+    ).collect(Collectors.toMap(BuiltInOptionElement::getOptionName, Function.identity(), (a, b) -> a, LinkedHashMap::new));
 
     /**
      * Builds a list of implicit built-in options available for every task.
      */
-    private List<OptionDescriptor> buildBuiltInOptions(Object target) {
-        return Arrays.stream(BUILT_IN_OPTIONS).map(optionElement ->
-            new InstanceOptionDescriptor(target, optionElement)
+    private List<OptionDescriptor> buildBuiltInOptions(Object target, Collection<String> reserved) {
+        return BUILT_IN_OPTIONS.values().stream().map(optionElement ->
+            new InstanceOptionDescriptor(target, optionElement, null, reserved.contains(optionElement.getOptionName()))
         ).collect(Collectors.toList());
     }
 
     public List<OptionDescriptor> getOptions(Object target) {
+        return getOptions(target, true);
+    }
+
+    public List<OptionDescriptor> getOptions(Object target, boolean validOnly) {
         final Class<?> targetClass = target.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
         if (!cachedOptionElements.containsKey(targetClass)) {
@@ -75,9 +82,9 @@ public class OptionReader {
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
         List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
-        // add additional built-in options only if they do not clash with declared options
-        for (OptionDescriptor builtInOption : buildBuiltInOptions(target)) {
-            if (!options.containsKey(builtInOption.getName())) {
+        for (OptionDescriptor builtInOption : buildBuiltInOptions(target, options.keySet())) {
+            // built-in options only enabled if they do not clash with task-declared ones
+            if (!validOnly || !builtInOption.isClashing()) {
                 taskOptions.add(builtInOption);
             }
         }

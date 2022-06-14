@@ -100,7 +100,7 @@ class OptionReaderTest extends Specification {
         int ownOptions = 4
         then:
         options.size() == ownOptions + OptionReader.BUILT_IN_OPTIONS.size()
-        OptionReader.BUILT_IN_OPTIONS.eachWithIndex{ BuiltInOptionElement entry, int i ->
+        OptionReader.BUILT_IN_OPTIONS.values().eachWithIndex { BuiltInOptionElement entry, int i ->
             assert options[ownOptions + i].name == entry.optionName
             assert options[ownOptions + i].description == entry.description
             assert options[ownOptions + i].argumentType == Void.TYPE
