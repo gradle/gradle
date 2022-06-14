@@ -185,6 +185,26 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 `Test` tasks associated with a test suite target can also be configured directly, by name.  It is not necessary to configure via the test suite DSL.
 
+== Sharing configuration between multiple test suites
+
+There are several ways to share configuration between multiple test suites and avoid duplication in a build script.  These offer a tradeoff between flexibility and the use of a declarative vs. imperative configuration style.
+
+1. Use the `configureEach` method on the `suites` object to lazily configure every suite
+2. Use the `withType`, `matching` and `configureEach` methods and filter by suite name to lazily configure a subset of suites
+3. Extract a custom configuration block and apply it only to the desired suites directly
+
+=== Method 1: Use `withType` and `configureEach`
+
+====
+include::sample[dir="snippets/testing/test-suite-multi-configure-each/groovy",files="build.gradle[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+====
+
+<1> Lazily configure every JVM test suite with the same configuration
+<2> Configure the dependencies shared by all test suites
+<3> Define additional test suites
+<4> Configure dependencies specific to the `tertiaryTest` test suite
+
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
 Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].  However, there are important differences.

@@ -1,0 +1,18 @@
+> Task :compileSecondaryTestJava NO-SOURCE
+> Task :processSecondaryTestResources NO-SOURCE
+> Task :secondaryTestClasses UP-TO-DATE
+> Task :secondaryTest NO-SOURCE
+> Task :compileTertiaryTestJava NO-SOURCE
+> Task :processTertiaryTestResources NO-SOURCE
+> Task :tertiaryTestClasses UP-TO-DATE
+> Task :tertiaryTest NO-SOURCE
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :checkDependencies
+
+BUILD SUCCESSFUL in 0s
