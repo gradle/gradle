@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.execution.BuildPhaseBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultBuildPhaseDescriptor;
@@ -36,19 +35,19 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 import javax.annotation.Nullable;
 import java.util.Collections;
 
-public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhaseBuildOperationType.Details, DefaultBuildPhaseDescriptor> {
+public class BuildPhaseOperationMapper implements BuildOperationMapper<Void, DefaultBuildPhaseDescriptor> {
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.BUILD_PHASE);
     }
 
     @Override
-    public Class<BuildPhaseBuildOperationType.Details> getDetailsType() {
-        return BuildPhaseBuildOperationType.Details.class;
+    public Class<Void> getDetailsType() {
+        return Void.class;
     }
 
     @Override
-    public DefaultBuildPhaseDescriptor createDescriptor(BuildPhaseBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public DefaultBuildPhaseDescriptor createDescriptor(@Nullable Void details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
         if (!(buildOperation.getMetadata() instanceof BuildOperationCategory)) {
             throw new IllegalStateException("Build operation category: " + buildOperation.getMetadata() + " is not supported by " + this.getClass().getName() + ".");
         }
@@ -65,12 +64,12 @@ public class BuildPhaseOperationMapper implements BuildOperationMapper<BuildPhas
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultBuildPhaseDescriptor descriptor, BuildPhaseBuildOperationType.Details details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(DefaultBuildPhaseDescriptor descriptor, @Nullable Void details, OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultBuildPhaseDescriptor descriptor, BuildPhaseBuildOperationType.Details details, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultBuildPhaseDescriptor descriptor, @Nullable Void details, OperationFinishEvent finishEvent) {
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         AbstractOperationResult result;
