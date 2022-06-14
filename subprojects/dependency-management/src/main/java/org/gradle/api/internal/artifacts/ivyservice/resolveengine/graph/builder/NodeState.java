@@ -275,11 +275,12 @@ public class NodeState implements DependencyGraphNode {
         // Clear previous traversal state, if any
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
-            upcomingNoLongerPendingConstraints = null;
             edgesToRecompute = null;
             potentiallyActivatedConstraints = null;
             ownStrictVersionConstraints = null;
         }
+        // We are processing dependencies, anything in the previous state will be handled
+        upcomingNoLongerPendingConstraints = null;
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);

@@ -54,6 +54,10 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     Path getIdentityPath();
 
+    void setReturnAllVariants(boolean returnAllVariants);
+
+    boolean getReturnAllVariants();
+
     /**
      * Runs any registered dependency actions for this Configuration, and any parent Configuration.
      * Actions may mutate the dependency set for this configuration.

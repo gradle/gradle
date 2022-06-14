@@ -43,7 +43,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.WrappedComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
@@ -105,7 +104,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         return new ModuleDependencyMetadataWrapper(dependencyMetadata);
     }
 
-    private static class ClientModuleComponentResolveMetadata implements WrappedComponentResolveMetadata {
+    private static class ClientModuleComponentResolveMetadata implements ComponentResolveMetadata {
         private final ModuleComponentResolveMetadata delegate;
         private final ModuleComponentArtifactMetadata clientModuleArtifact;
         private final List<ModuleDependencyMetadata> clientModuleDependencies;
@@ -185,11 +184,6 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         @Override
         public ImmutableAttributes getAttributes() {
             return delegate.getAttributes();
-        }
-
-        @Override
-        public ComponentResolveMetadata unwrap() {
-            return delegate;
         }
     }
 

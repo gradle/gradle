@@ -258,6 +258,66 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains "\tEnsure you override both equals() and hashCode()"
     }
 
+    void "can configure number of threads on good code"() {
+        goodCode()
+        buildFile << """
+            pmd {
+                threads = 2
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/main.xml").exists()
+        file("build/reports/pmd/test.xml").exists()
+    }
+
+    def "can configure number of threads on bad code"() {
+        badCode()
+        buildFile << """
+            pmd {
+                threads = 2
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+    }
+
+    def "gets reasonable message when number of threads is negative from extension"() {
+        goodCode()
+        buildFile << """
+            pmd {
+                threads = -1
+            }
+        """
+
+        expect:
+        // Use --continue so that when executing in parallel mode a deterministic set of tests run
+        // without --continue, sometimes both pmd tasks are run and sometimes only the only one task is run
+        fails("check", "--continue")
+        failure.assertHasCause("Invalid number of threads '-1'.  Number should not be negative.")
+        // pmdMain and pmdTest
+        failure.assertHasFailures(2)
+    }
+
+    def "gets reasonable message when number of threads is negative from task"() {
+        goodCode()
+        buildFile << """
+            pmdMain {
+                threads = -1
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasCause("Invalid number of threads '-1'.  Number should not be negative.")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/2326")
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:

@@ -29,7 +29,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
@@ -175,7 +174,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
-        ProjectStateRegistry projectStateRegistry,
         ServiceRegistry gradleScopedServices
     ) {
         return new DefaultTaskExecutionGraph(
@@ -187,7 +185,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             graphListeners,
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
-            projectStateRegistry,
             gradleScopedServices
         );
     }

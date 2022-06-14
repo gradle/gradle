@@ -28,6 +28,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -120,10 +121,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private final Function<Class<?>, GeneratedClassImpl> generator = this::generateUnderLock;
     private final PropertyRoleAnnotationHandler roleHandler;
 
-    protected AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-                                     Collection<Class<? extends Annotation>> enabledAnnotations,
-                                     PropertyRoleAnnotationHandler roleHandler,
-                                     CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache) {
+    protected AbstractClassGenerator(
+        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+        Collection<Class<? extends Annotation>> enabledAnnotations,
+        PropertyRoleAnnotationHandler roleHandler,
+        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache
+    ) {
         this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
@@ -214,7 +217,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             ClassGenerationVisitor generationVisitor = inspectionVisitor.builder();
-
             for (ClassGenerationHandler handler : handlers) {
                 handler.applyTo(generationVisitor);
             }
@@ -328,11 +330,27 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private void visitFields(ClassDetails type, List<ClassGenerationHandler> generationHandlers) {
-        if (!type.getInstanceFields().isEmpty()) {
+        if (hasRelevantFields(type)) {
             for (ClassGenerationHandler handler : generationHandlers) {
                 handler.hasFields();
             }
         }
+    }
+
+    private boolean hasRelevantFields(ClassDetails type) {
+        List<Field> instanceFields = type.getInstanceFields();
+        if (instanceFields.isEmpty()) {
+            return false;
+        }
+        // Ignore irrelevant synthetic metaClass field injected by the Groovy compiler
+        if (instanceFields.size() == 1 && isSyntheticMetaClassField(instanceFields.get(0))) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isSyntheticMetaClassField(Field field) {
+        return field.isSynthetic() && field.getType() == MetaClass.class;
     }
 
     private void assembleProperties(ClassDetails classDetails, ClassMetadata classMetaData) {
@@ -1430,7 +1448,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
 
-        void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties);
+        void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties);
 
         void applyConventionMappingToProperty(PropertyMetadata property);
 
@@ -1438,7 +1456,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
 
-        void applyConventionMappingToSetMethod(PropertyMetadata property, Method metaMethod);
+        void applyConventionMappingToSetMethod(PropertyMetadata property, Method setter);
 
         void addSetMethod(PropertyMetadata propertyMetaData, Method setter);
 

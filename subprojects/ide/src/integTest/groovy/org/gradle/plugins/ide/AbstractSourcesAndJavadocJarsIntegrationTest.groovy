@@ -23,14 +23,17 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Rule
 import spock.lang.IgnoreIf
+
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule
     HttpServer server
 
-    String groovyVersion = "3.0.9"
+    String groovyVersion = GroovyCoverage.CURRENT_STABLE
 
     def setup() {
         server.start()
@@ -539,7 +542,7 @@ dependencies {
     }
 
     def publishGroovyModuleWithSources(MavenHttpRepository repo, String artifactId) {
-        def module = repo.module("org.codehaus.groovy", artifactId, groovyVersion)
+        def module = repo.module(groovyGroupName(groovyVersion), artifactId, groovyVersion)
         module.artifact(classifier: "sources")
         module.publish()
         module.allowAll()

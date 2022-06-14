@@ -27,9 +27,11 @@ class OptionReaderTest extends Specification {
 
     OptionReader reader
     Project project
+    int builtInOptionCount
 
     def setup() {
         reader = new OptionReader()
+        builtInOptionCount = OptionReader.BUILT_IN_OPTIONS.size();
     }
 
     def "can read options linked to setter methods of a task"() {
@@ -90,6 +92,33 @@ class OptionReaderTest extends Specification {
         options[3].description == "string value"
         options[3].argumentType == String
         options[3].availableValues == ["dynValue1", "dynValue2"] as Set
+    }
+
+    def "built-in options appear last"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithProperties())
+        int ownOptions = 4
+        then:
+        options.size() == ownOptions + OptionReader.BUILT_IN_OPTIONS.size()
+        OptionReader.BUILT_IN_OPTIONS.eachWithIndex{ BuiltInOptionElement entry, int i ->
+            assert options[ownOptions + i].name == entry.optionName
+            assert options[ownOptions + i].description == entry.description
+            assert options[ownOptions + i].argumentType == Void.TYPE
+            assert options[ownOptions + i].availableValues == [] as Set
+        }
+    }
+
+    def "task own options shadow built-in options"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithOptionNameClashing())
+        int ownOptions = 2
+        List<String> clashingOptions = ["rerun"]
+        then:
+        options.size() == ownOptions + OptionReader.BUILT_IN_OPTIONS.size() - clashingOptions.size()
+        options[0].name == "rerun"
+        options[0].description == "custom clashing option"
+        options[1].name == "unique"
+        options[1].description == "custom unique option"
     }
 
     def "fail when multiple methods define same option"() {
@@ -248,7 +277,7 @@ class OptionReaderTest extends Specification {
             }
         })
         then:
-        options.size() == 2
+        options.size() == 2 + builtInOptionCount
 
         options[0].name == "objectValue"
         options[0].description == "object value"
@@ -271,7 +300,7 @@ class OptionReaderTest extends Specification {
             }
         })
         then:
-        options.size() == 3
+        options.size() == 3 + builtInOptionCount
 
         options[0].name == "objectValue"
         options[0].description == "object value"
@@ -293,7 +322,7 @@ class OptionReaderTest extends Specification {
         when:
         List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassDefinesOption())
         then:
-        options.size() == 1
+        options.size() == 1 + builtInOptionCount
 
         options[0].name == "base"
         options[0].description == "from sub class"
@@ -303,7 +332,7 @@ class OptionReaderTest extends Specification {
         when:
         List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassSaysNothing())
         then:
-        options.size() == 1
+        options.size() == 1 + builtInOptionCount
 
         options[0].name == "base"
         options[0].description == "from base class"
@@ -313,7 +342,7 @@ class OptionReaderTest extends Specification {
         when:
         List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassImplInterfaceDefinesOption())
         then:
-        options.size() == 1
+        options.size() == 1 + builtInOptionCount
 
         options[0].name == "base"
         options[0].description == "from sub class"
@@ -323,7 +352,7 @@ class OptionReaderTest extends Specification {
         when:
         List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassImplInterfaceSaysNothing())
         then:
-        options.size() == 1
+        options.size() == 1 + builtInOptionCount
 
         options[0].name == "base"
         options[0].description == "from base class"
@@ -485,6 +514,13 @@ class OptionReaderTest extends Specification {
         @Option(option = 'fileValue', description = "file value")
         public void setStrings(File file) {
         }
+    }
+
+    public static class TestClassWithOptionNameClashing {
+        @Option(option = 'unique', description = "custom unique option")
+        String field1
+        @Option(option = 'rerun', description = "custom clashing option")
+        String field2
     }
 
     public static class TestClassWithFields {

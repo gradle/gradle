@@ -17,26 +17,23 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.base.Charsets;
-import org.cyberneko.html.parsers.SAXParser;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.UriTextResource;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ApacheDirectoryListingParser {
 
@@ -48,14 +45,11 @@ public class ApacheDirectoryListingParser {
             throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, Charsets.UTF_8);
-        final Reader htmlText = new InputStreamReader(content, contentEncoding);
-        final InputSource inputSource = new InputSource(htmlText);
-        final SAXParser htmlParser = new SAXParser();
-        final AnchorListerHandler anchorListerHandler = new AnchorListerHandler();
-        htmlParser.setContentHandler(anchorListerHandler);
-        htmlParser.parse(inputSource);
-
-        List<String> hrefs = anchorListerHandler.getHrefs();
+        Document document = Jsoup.parse(content, contentEncoding.name(), baseURI.toString());
+        Elements elements = document.select("a[href]");
+        List<String> hrefs = elements.stream()
+            .map(it -> it.attr("href"))
+            .collect(Collectors.toList());
         List<URI> uris = resolveURIs(baseURI, hrefs);
         return filterNonDirectChilds(baseURI, uris);
     }
@@ -117,7 +111,7 @@ public class ApacheDirectoryListingParser {
     }
 
     private List<URI> resolveURIs(URI baseURI, List<String> hrefs) {
-        List<URI> uris = new ArrayList<URI>();
+        List<URI> uris = new ArrayList<>();
         for (String href : hrefs) {
             try {
                 uris.add(baseURI.resolve(href));
@@ -126,23 +120,5 @@ public class ApacheDirectoryListingParser {
             }
         }
         return uris;
-    }
-
-    private static class AnchorListerHandler extends DefaultHandler {
-        List<String> hrefs = new ArrayList<String>();
-
-        public List<String> getHrefs() {
-            return hrefs;
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-            if (qName.equalsIgnoreCase("A")) {
-                final String href = atts.getValue("href");
-                if (href != null) {
-                    hrefs.add(href);
-                }
-            }
-        }
     }
 }

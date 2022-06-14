@@ -34,6 +34,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
@@ -72,6 +73,7 @@ public class ProviderMigrationArchitectureTest {
     private static final DescribedPredicate<JavaMethod> mutable_public_API_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
         .and(not(declaredIn(assignableTo(Task.class))))
         .and(not(declaredIn(StartParameter.class)))
+        .and(not(declaredIn(WelcomeMessageConfiguration.class))) // used in StartParameter
         .and(not(declaredIn(Configuration.class)))
         .and(not(declaredIn(FileCollection.class)))
         .and(not(declaredIn(ConfigurableFileCollection.class)))

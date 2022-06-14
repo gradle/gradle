@@ -31,18 +31,14 @@ import java.util.function.Supplier;
  * @param <T> the type of the lazy value
  */
 public interface Lazy<T> extends Supplier<T> {
-
-    /**
-     * @return the value this lazy wraps
-     */
-    T get();
-
     /**
      * Executes an operation on the lazily computed value
      *
      * @param consumer the consumer
      */
-    void use(Consumer<? super T> consumer);
+    default void use(Consumer<? super T> consumer) {
+        consumer.accept(get());
+    }
 
     /**
      * Applies a function to the lazily computed value and returns its value
@@ -51,7 +47,9 @@ public interface Lazy<T> extends Supplier<T> {
      * @param <V> the return type
      * @return the result of the function, applied on the lazily computed value
      */
-    <V> V apply(Function<? super T, V> function);
+    default <V> V apply(Function<? super T, V> function) {
+        return function.apply(get());
+    }
 
     /**
      * Creates another lazy wrapper which will eventually apply the supplied
@@ -71,10 +69,6 @@ public interface Lazy<T> extends Supplier<T> {
 
     static Factory locking() {
         return LockingLazy::new;
-    }
-
-    static Factory synchronizing() {
-        return SynchronizedLazy::new;
     }
 
     interface Factory {

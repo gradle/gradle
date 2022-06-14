@@ -29,10 +29,12 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -43,7 +45,6 @@ import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
@@ -135,9 +136,9 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
                                     if (artifactFile != null && artifactFile.exists()) {
-                                        // it's possible that the file is null if it has been removed from the cache
-                                        // for example
-                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, tmp.getMetaData().getSources(), artifact), getName(), getId());
+                                        // it's possible that the file is null if it has been removed from the cache for example
+                                        Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(tmp.getMetaData().getSources(), artifact);
+                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
                                     } else {
                                         ignore.set(true);
                                     }
@@ -154,12 +155,33 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             }
         }
 
-        private File maybeFetchSignatureFile(ModuleComponentIdentifier moduleComponentIdentifier, ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact) {
+        private File maybeFetchComponentMetadataSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact) {
+            ModuleComponentArtifactIdentifier signatureArtifactId;
+            if (artifact instanceof DefaultModuleComponentArtifactIdentifier) {
+                signatureArtifactId = createSignatureArtifactIdFromIvyArtifactName(artifact.getComponentIdentifier(), ((DefaultModuleComponentArtifactIdentifier) artifact).getName());
+            } else {
+                signatureArtifactId = new ModuleComponentFileArtifactIdentifier(artifact.getComponentIdentifier(), artifact.getFileName() + ".asc");
+            }
+            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(signatureArtifactId);
+            return maybeFetchSignatureFile(moduleSources, signatureArtifactMetadata);
+        }
+
+        private File maybeFetchArtifactSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact, IvyArtifactName ivyArtifactName) {
+            ModuleComponentArtifactIdentifier signatureArtifactId = createSignatureArtifactIdFromIvyArtifactName(artifact.getComponentIdentifier(), ivyArtifactName);
+            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(signatureArtifactId);
+            return maybeFetchSignatureFile(moduleSources, signatureArtifactMetadata);
+        }
+
+        private ModuleComponentArtifactIdentifier createSignatureArtifactIdFromIvyArtifactName(ModuleComponentIdentifier moduleComponentIdentifier, IvyArtifactName ivyArtifactName) {
+            String extension = ivyArtifactName.getExtension() != null ? ivyArtifactName.getExtension() : ivyArtifactName.getType();
+            return new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, ivyArtifactName.getName(), "asc", extension + ".asc", ivyArtifactName.getClassifier());
+        }
+
+        private File maybeFetchSignatureFile(ModuleSources moduleSources, SignatureArtifactMetadata signatureArtifactMetadata) {
             if (!verifySignatures) {
                 return null;
             }
             SignatureFileDefaultBuildableArtifactResolveResult signatureResult = new SignatureFileDefaultBuildableArtifactResolveResult();
-            SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(moduleComponentIdentifier, artifact);
             getLocalAccess().resolveArtifact(signatureArtifactMetadata, moduleSources, signatureResult);
             if (signatureResult.hasResult()) {
                 if (signatureResult.isSuccessful()) {
@@ -173,11 +195,6 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 return signatureResult.getResult();
             }
             return null;
-        }
-
-        @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            delegate.resolveArtifacts(component, result);
         }
 
         @Override
@@ -195,7 +212,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                     ArtifactVerificationOperation.ArtifactKind artifactKind = determineArtifactKind(artifact);
                     if (!(result instanceof SignatureFileDefaultBuildableArtifactResolveResult)) {
                         // signature files are fetched using resolveArtifact, but are checked alongside the main artifact
-                        operation.onArtifact(artifactKind, mcai, result.getResult(), () -> maybeFetchSignatureFile(((ModuleComponentArtifactIdentifier) id).getComponentIdentifier(), moduleSources, mcai), getName(), getId());
+                        Factory<File> signatureFileFactory = () -> maybeFetchArtifactSignatureFile(moduleSources, mcai, artifact.getName());
+                        operation.onArtifact(artifactKind, mcai, result.getResult(), signatureFileFactory, getName(), getId());
                     }
                 }
             }
@@ -228,11 +246,10 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             private final ModuleComponentIdentifier moduleComponentIdentifier;
             private final ModuleComponentArtifactIdentifier artifactIdentifier;
 
-            public SignatureArtifactMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleComponentArtifactIdentifier artifact) {
-                this.moduleComponentIdentifier = moduleComponentIdentifier;
-                this.artifactIdentifier = artifact.getSignatureArtifactId();
+            public SignatureArtifactMetadata(ModuleComponentArtifactIdentifier artifact) {
+                this.moduleComponentIdentifier = artifact.getComponentIdentifier();
+                this.artifactIdentifier = artifact;
             }
-
 
             @Override
             public ModuleComponentArtifactIdentifier getId() {
@@ -273,7 +290,6 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                     )
                 );
             }
-
         }
     }
 

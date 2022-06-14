@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
@@ -80,7 +82,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
             """
             configurations.codenarc {
-                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+                resolutionStrategy.force '${groovyModuleDependency("groovy", GroovySystem.version)}'
             }
             """ : ""}
 """

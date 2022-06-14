@@ -85,8 +85,23 @@ sealed class ConfigurationCacheFingerprint {
 
     class SystemPropertiesPrefixedBy(
         val prefix: String,
-        val snapshot: Map<String, String?>
-    ) : ConfigurationCacheFingerprint()
+        val snapshot: Map<String, Any?>
+    ) : ConfigurationCacheFingerprint() {
+        companion object {
+            /**
+             * The placeholder for system properties modified by the build logic at the time of
+             * reading. Such properties shouldn't be taken into account when comparing snapshots.
+             */
+            val IGNORED: Any = Ignored.INSTANCE
+
+            // Enum ensures that only one instance of INSTANCE exists and even deserialization
+            // doesn't create a new one. The `object` has no such guarantee.
+            private
+            enum class Ignored {
+                INSTANCE
+            }
+        }
+    }
 
     class EnvironmentVariablesPrefixedBy(
         val prefix: String,
@@ -96,4 +111,4 @@ sealed class ConfigurationCacheFingerprint {
 
 
 internal
-typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>
+typealias ObtainedValue = ValueSourceProviderFactory.ValueListener.ObtainedValue<Any, ValueSourceParameters>

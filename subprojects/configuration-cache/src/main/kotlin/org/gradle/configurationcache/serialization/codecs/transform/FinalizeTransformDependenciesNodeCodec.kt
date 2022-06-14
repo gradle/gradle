@@ -32,7 +32,7 @@ class FinalizeTransformDependenciesNodeCodec : Codec<DefaultTransformUpstreamDep
         write(value.selectedArtifacts())
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependencies? {
+    override suspend fun ReadContext.decode(): DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependencies {
         val artifacts = readNonNull<FileCollectionInternal>()
         return object : DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependencies() {
             override fun visitDependencies(context: TaskDependencyResolveContext) {

@@ -38,15 +38,15 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
-    private NamedObjectInstantiator instantiator;
+    private final NamedObjectInstantiator instantiator;
 
     public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
         this.isolatableFactory = isolatableFactory;
         this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
-        children.put(root, new ArrayList<DefaultImmutableAttributes>());
-        usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
+        this.children.put(root, new ArrayList<DefaultImmutableAttributes>());
+        this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
     }
 
     public int size() {

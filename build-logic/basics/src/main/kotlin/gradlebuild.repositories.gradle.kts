@@ -23,6 +23,7 @@ repositories {
             includeModule("classycle", "classycle")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
+            includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
             includeModuleByRegex("org.gradle", "docs-asciidoctor-extensions(-base)?")
         }
     }
@@ -37,13 +38,6 @@ repositories {
         url = uri("https://releases.usethesource.io/maven/")
         mavenContent {
             includeGroup("io.usethesource")
-        }
-    }
-    maven {
-        name = "Kotlin EAP repository"
-        url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap/")
-        content {
-            includeVersionByRegex("org.jetbrains.kotlin", "kotlin-.*", "1.7.0-dev-1904")
         }
     }
     mavenCentral()

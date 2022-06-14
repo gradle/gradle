@@ -448,8 +448,12 @@ public class TestFile extends File {
     public TestFile assertDoesNotExist() {
         if (exists()) {
             Set<String> descendants = new TreeSet<String>();
-            visit(descendants, "", this, false);
-            throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+            if (isFile()) {
+                throw new AssertionError(String.format("%s should not exist", this));
+            } else {
+                visit(descendants, "", this, false);
+                throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+            }
         }
         return this;
     }
@@ -624,6 +628,7 @@ public class TestFile extends File {
     }
 
     private void visit(Set<String> names, String prefix, File file, boolean ignoreDirs) {
+        assert file.isDirectory();
         for (File child : file.listFiles()) {
             if (child.isFile() || !ignoreDirs && child.isDirectory() && child.list().length == 0) {
                 names.add(prefix + child.getName());

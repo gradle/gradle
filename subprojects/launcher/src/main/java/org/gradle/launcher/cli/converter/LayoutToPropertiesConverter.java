@@ -54,7 +54,8 @@ public class LayoutToPropertiesConverter {
         this.buildLayoutFactory = buildLayoutFactory;
         allBuildOptions.addAll(new BuildLayoutParametersBuildOptions().getAllOptions());
         allBuildOptions.addAll(new StartParameterBuildOptions().getAllOptions());
-        allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions());
+        allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
+        allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }

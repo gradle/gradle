@@ -105,6 +105,7 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
+import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -226,6 +227,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(ProjectFactory.class);
             registration.add(DefaultSettingsLoaderFactory.class);
             registration.add(ResolvedBuildLayout.class);
+            registration.add(DefaultNodeValidator.class);
             registration.add(TaskNodeFactory.class);
             registration.add(TaskNodeDependencyResolver.class);
             registration.add(WorkNodeDependencyResolver.class);
@@ -239,9 +241,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         });
     }
 
+    OrdinalGroupFactory createOrdinalGroupFactory() {
+        return new OrdinalGroupFactory();
+    }
+
     ExecutionPlanFactory createExecutionPlanFactory(
         GradleInternal gradleInternal,
         TaskNodeFactory taskNodeFactory,
+        OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchies executionNodeAccessHierarchies,
         ResourceLockCoordinationService lockCoordinationService
@@ -249,8 +256,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ExecutionPlanFactory(
             gradleInternal.getIdentityPath().toString(),
             taskNodeFactory,
+            ordinalGroupFactory,
             dependencyResolver,
-            new DefaultNodeValidator(),
             executionNodeAccessHierarchies.getOutputHierarchy(),
             executionNodeAccessHierarchies.getDestroyableHierarchy(),
             lockCoordinationService

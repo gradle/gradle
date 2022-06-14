@@ -31,10 +31,8 @@ class JavadocCachingIntegrationTest extends AbstractIntegrationSpec implements D
             plugins {
                 id 'java'
             }
-            
-            repositories {
-                ${mavenCentralRepository()}
-            }
+
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'

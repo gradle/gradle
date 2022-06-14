@@ -1244,7 +1244,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        executer.expectDocumentedDeprecationWarning("Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/current/userguide/validation_problems.html#unresolvable_input for more details.")
         fails ":printConfigurations"
 
         then:

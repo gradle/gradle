@@ -107,7 +107,7 @@ If multiple dependencies match, they are all printed in the report.
 `--configuration <name>` (mandatory)::
 Indicates which configuration to resolve for showing the dependency information (_camelCase_ also supported like in `dependencies` task).
 Note that the <<java_plugin#java_plugin, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
-`--singlepath` (optional)::
+`--single-path` (optional)::
 Indicates to render only a single path to the dependency.
 This might be useful to trim down the output in large graphs.
 

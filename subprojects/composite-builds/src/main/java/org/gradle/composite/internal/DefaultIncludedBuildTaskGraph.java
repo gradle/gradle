@@ -15,7 +15,9 @@
  */
 package org.gradle.composite.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -32,8 +34,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import javax.inject.Inject;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -43,26 +47,48 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         NotPrepared, Preparing, ReadyToRun, Running, Finished
     }
 
+    private static final int MONITORING_POLL_TIME = 30;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildStateRegistry buildRegistry;
     private final WorkerLeaseService workerLeaseService;
+    private final PlanExecutor planExecutor;
+    private final int monitoringPollTime;
+    private final TimeUnit monitoringPollTimeUnit;
     private final ManagedExecutor executorService;
     private final ThreadLocal<DefaultBuildTreeWorkGraph> current = new ThreadLocal<>();
 
+    @Inject
     public DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
         BuildOperationExecutor buildOperationExecutor,
         BuildStateRegistry buildRegistry,
-        WorkerLeaseService workerLeaseService
+        WorkerLeaseService workerLeaseService,
+        PlanExecutor planExecutor
+    ) {
+        this(executorFactory, buildOperationExecutor, buildRegistry, workerLeaseService, planExecutor, MONITORING_POLL_TIME, TimeUnit.SECONDS);
+    }
+
+    @VisibleForTesting
+    DefaultIncludedBuildTaskGraph(
+        ExecutorFactory executorFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildStateRegistry buildRegistry,
+        WorkerLeaseService workerLeaseService,
+        PlanExecutor planExecutor,
+        int monitoringPollTime,
+        TimeUnit monitoringPollTimeUnit
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
         this.workerLeaseService = workerLeaseService;
+        this.planExecutor = planExecutor;
+        this.monitoringPollTime = monitoringPollTime;
+        this.monitoringPollTimeUnit = monitoringPollTimeUnit;
     }
 
     private DefaultBuildControllers createControllers() {
-        return new DefaultBuildControllers(executorService, workerLeaseService);
+        return new DefaultBuildControllers(executorService, workerLeaseService, planExecutor, monitoringPollTime, monitoringPollTimeUnit);
     }
 
     @Override
@@ -163,8 +189,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             expectInState(State.ReadyToRun);
             state = State.Running;
             try {
-                controllers.startExecution();
-                return controllers.awaitCompletion();
+                return controllers.execute();
             } finally {
                 state = State.Finished;
             }
@@ -226,6 +251,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public State getTaskState() {
             return taskNode.getTaskState();
+        }
+
+        @Override
+        public String healthDiagnostics() {
+            return taskNode.healthDiagnostics();
         }
     }
 }

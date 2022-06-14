@@ -26,6 +26,7 @@ import org.gradle.util.internal.VersionNumber
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import static org.junit.Assume.assumeFalse
+import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -42,6 +43,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinWorkerSubmitDeprecation(workers, version)
                 expectKotlinArtifactTransformDeprecation(version)
                 expectKotlinArchiveNameDeprecation(version)
+                expectKotlinIncrementalTaskInputsDeprecation(version)
             }.build()
 
         then:
@@ -54,6 +56,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 if (!GradleContextualExecuter.configCache) {
                     expectKotlinArtifactTransformDeprecation(version)
                 }
+                expectKotlinIncrementalTaskInputsDeprecation(version)
             }.build()
 
 
@@ -70,6 +73,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
+
+        // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
+        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1,7))
+
         given:
         useSample("kotlin-js-sample")
         withKotlinBuildFile()
@@ -84,6 +91,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinParallelTasksDeprecation(version)
                 expectKotlinCompileDestinationDirPropertyDeprecation(version)
                 expectKotlinArchiveNameDeprecation(version)
+                expectKotlinIncrementalTaskInputsDeprecation(version)
             }.build()
 
         then:
@@ -131,6 +139,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 expectKotlinArtifactTransformDeprecation(kotlinVersion)
                 expectKotlinArchiveNameDeprecation(kotlinVersion)
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -169,6 +178,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def result = runner(false, versionNumber, 'build')
             .deprecations(KotlinDeprecations) {
                 expectKotlinArtifactTransformDeprecation(kotlinVersion)
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -180,6 +190,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 if (!GradleContextualExecuter.configCache) {
                     expectKotlinArtifactTransformDeprecation(kotlinVersion)
                 }
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -209,12 +220,12 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     @Override
     Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        def androidVersion = TestedVersions.androidGradle.latest()
+        def androidVersion = TestedVersions.androidGradle.latestStable()
         if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
             return ['org.jetbrains.kotlin.jvm': version]
         }
         if (isAndroidKotlinPlugin(testedPluginId)) {
-            AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidVersion)
+            AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidVersion, version)
             def extraPlugins = ['com.android.application': androidVersion]
             if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
                 extraPlugins.put('org.jetbrains.kotlin.android', version)
@@ -311,7 +322,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         void expectKotlinParallelTasksDeprecation(String version) {
             VersionNumber versionNumber = VersionNumber.parse(version)
-            runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+            runner.expectLegacyDeprecationWarningIf(
+                versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.10'),
                 "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
             )
         }

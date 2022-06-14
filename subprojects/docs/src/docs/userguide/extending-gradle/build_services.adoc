@@ -10,12 +10,14 @@ Gradle can also optionally take care of coordinating access to the build service
 
 == Implementing a build service
 
-To implement a build service, create an abstract class that extends link:{javadocPath}/org/gradle/api/services/BuildService.html[BuildService] and define whichever methods on this type
+To implement a build service, create an abstract class that implements link:{javadocPath}/org/gradle/api/services/BuildService.html[BuildService].  Define methods on this type
 that you'd like tasks to use.
 A build service implementation is treated as a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>> and can use any of the features available to custom Gradle types.
 
-A build service can also optionally take parameters, which Gradle injects into the service instance when creating it. To provide parameters, you define an abstract class or an interface that
-holds the parameters. The parameters type must extend link:{javadocPath}/org/gradle/api/services/BuildServiceParameters.html[BuildServiceParameters].
+A build service can optionally take parameters, which Gradle injects into the service instance when creating it.
+To provide parameters, you define an abstract class (or interface) that
+holds the parameters.
+The parameters type must implement (or extend) link:{javadocPath}/org/gradle/api/services/BuildServiceParameters.html[BuildServiceParameters].
 The service implementation can access the parameters using `this.getParameters()`.
 The parameters type is also a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>>.
 
@@ -35,7 +37,7 @@ include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/WebSe
 ----
 ====
 
-Note that you should not implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
+Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
 
 A build service implementation must be thread-safe, as it will potentially be used by multiple tasks concurrently.
 

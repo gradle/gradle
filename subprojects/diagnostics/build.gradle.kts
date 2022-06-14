@@ -35,7 +35,9 @@ dependencies {
     integTestImplementation(libs.jetty)
 
     testFixturesApi(testFixtures(project(":platform-native")))
+    testFixturesApi(testFixtures(project(":logging")))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.guava)
 

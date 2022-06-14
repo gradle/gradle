@@ -571,6 +571,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         buildJvmOpts.add("-ea");
 
         if (isDebug()) {
+            if (System.getenv().containsKey("CI")) {
+                throw new IllegalArgumentException("Builds cannot be started with the debugger enabled on CI. This will cause tests to hang forever. Remove the call to startBuildProcessInDebugger().");
+            }
             buildJvmOpts.addAll(DEBUG_ARGS);
         }
         if (isProfile()) {

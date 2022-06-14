@@ -380,7 +380,8 @@ class GradleModuleMetadataParserTest extends Specification {
                         "group": "g3",
                         "module": "m3",
                         "version": { "requires": "v3" }
-                    }
+                    },
+                    { "group": "g4", "module": "m4" }
                 ],
                 "attributes": { "usage": "compile" }
             },
@@ -403,6 +404,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant1.addDependencyConstraint("g1", "m1", requires("v1"), null, ImmutableAttributes.EMPTY)
         1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"), null, ImmutableAttributes.EMPTY)
         1 * variant1.addDependencyConstraint("g3", "m3", requires("v3"), null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependencyConstraint("g4", "m4", emptyConstraint(), null, ImmutableAttributes.EMPTY)
         1 * variant1.setAvailableExternally(false)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"), null, ImmutableAttributes.EMPTY)
