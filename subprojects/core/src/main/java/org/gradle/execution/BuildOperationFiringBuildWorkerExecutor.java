@@ -64,8 +64,6 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
             if (gradle.isRootBuild()) {
                 long buildStartTime = gradle.getServices().get(BuildRequestMetaData.class).getStartTime();
                 builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));
-            } else {
-                builder.details(new BuildPhaseBuildOperationType.Details() {});
             }
             builder.metadata(BuildOperationCategory.RUN_WORK);
             builder.totalProgress(gradle.getTaskGraph().size());

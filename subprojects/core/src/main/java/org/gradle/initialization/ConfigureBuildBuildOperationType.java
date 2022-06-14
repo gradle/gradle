@@ -16,13 +16,12 @@
 
 package org.gradle.initialization;
 
-import org.gradle.execution.BuildPhaseBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 public class ConfigureBuildBuildOperationType implements BuildOperationType<ConfigureBuildBuildOperationType.Details, ConfigureBuildBuildOperationType.Result> {
     @UsedByScanPlugin
-    public interface Details extends BuildPhaseBuildOperationType.Details {
+    public interface Details {
         /**
          * @since 4.6
          */

@@ -62,6 +62,10 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
         }
 
+        if (subscriptions.isRequested(OperationType.BUILD_PHASE)) {
+            listeners.add(new BuildPhaseOperationListener(progressEventConsumer, idFactory));
+        }
+
         BuildOperationListener buildListener = NO_OP;
         if (subscriptions.isRequested(OperationType.GENERIC)) {
             buildListener = new ClientForwardingBuildOperationListener(progressEventConsumer);
@@ -91,8 +95,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             new ProjectConfigurationOperationMapper(projectConfigurationTracker),
             taskOperationMapper,
             transformOperationMapper,
-            new WorkItemOperationMapper(),
-            new BuildPhaseOperationMapper()
+            new WorkItemOperationMapper()
         );
         ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
         listeners.add(generator);
