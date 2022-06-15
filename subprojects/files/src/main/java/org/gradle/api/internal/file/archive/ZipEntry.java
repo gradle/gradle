@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file.archive;
 
+import org.gradle.internal.io.IoFunction;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -26,7 +28,7 @@ public interface ZipEntry {
     String getName();
 
     /**
-     * This method or {@link #withInputStream(InputStreamAction)} ()} may or may not support being called more than
+     * This method or {@link #withInputStream(IoFunction)} ()} may or may not support being called more than
      * once per entry.  Use {@link #canReopen()} to determine if more than one call is supported.
      */
     byte[] getContent() throws IOException;
@@ -39,7 +41,7 @@ public interface ZipEntry {
      * This method or {@link #getContent()} may or may not support being called more than once per entry.
      * Use {@link #canReopen()} to determine if more than one call is supported.
      */
-    <T> T withInputStream(InputStreamAction<T> action) throws IOException;
+    <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException;
 
     /**
      * The size of the content in bytes, or -1 if not known.

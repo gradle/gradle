@@ -17,10 +17,10 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.io.IoFunction;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -99,10 +99,10 @@ public class FileZipInput implements ZipInput {
         }
 
         @Override
-        public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
+        public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
             InputStream inputStream = getInputStream();
             try {
-                return action.run(inputStream);
+                return action.apply(inputStream);
             } finally {
                 inputStream.close();
             }
