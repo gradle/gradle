@@ -16,8 +16,10 @@
 
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * Contains a subset of the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/jpda/conninv.html">Java Debug Wire Protocol</a> properties.
@@ -30,6 +32,16 @@ public interface JavaDebugOptions {
      * Whether to attach a debug agent to the forked process.
      */
     @Input Property<Boolean> getEnabled();
+
+    /**
+     * The address of the debugger server.
+     * If the value is not set, then only the port will be passed in the debugger options.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    @Optional
+    @Input Property<String> getHost();
 
     /**
      * The debug port.

@@ -650,6 +650,7 @@ You can also enable debugging in the DSL, where you can also configure other pro
     test {
         debugOptions {
             enabled = true
+            host = 'localhost'
             port = 4455
             server = true
             suspend = true
@@ -657,6 +658,8 @@ You can also enable debugging in the DSL, where you can also configure other pro
     }
 
 With this configuration the test JVM will behave just like when passing the `--debug-jvm` argument but it will listen on port 4455.
+
+To debug the test process remotely via network,  the `host` needs to be set to the machine's IP address or `"*"` (listen on all interfaces).
 
 [[sec:java_test_fixtures]]
 == Using test fixtures
