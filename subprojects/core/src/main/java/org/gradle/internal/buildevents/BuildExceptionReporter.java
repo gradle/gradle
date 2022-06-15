@@ -89,14 +89,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
     public void execute(Throwable failure) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         if (failure instanceof MultipleBuildFailures) {
-            renderMultipleFailuresException(output, (MultipleBuildFailures) failure);
+            renderMultipleBuildFailuresException(output, (MultipleBuildFailures) failure);
         } else {
             renderSingleBuildException(output, failure, 1);
         }
         writeGeneralTips(output);
     }
 
-    private void renderMultipleFailuresException(StyledTextOutput output, MultipleBuildFailures failure) {
+    private void renderMultipleBuildFailuresException(StyledTextOutput output, MultipleBuildFailures failure) {
         List<? extends Throwable> causes = failure.getCauses();
         List<Throwable> mergedCauses = mergeMergeableExceptions(causes);
 

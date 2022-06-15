@@ -149,7 +149,8 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         fails "check"
 
         then:
-        failure.assertHasCause("There were failing tests. See the report at:")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
+        failure.assertHasErrorOutput("> \t'test' target FAILED: 2/3. See report at: ")
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")

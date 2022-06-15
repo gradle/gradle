@@ -159,7 +159,7 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         fails 'test'
 
         then:
-        failureCauseContains('There were failing tests')
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
         containsEvent(STARTED, DefaultTestClassDescriptor, 'Gradle suite > Gradle test > org.company.TestWithBrokenSetupMethod')
         containsEvent(STARTED, DefaultTestMethodDescriptor, 'Gradle suite > Gradle test > org.company.TestWithBrokenSetupMethod > broken')
         containsEvent(FINISHED, DefaultTestMethodDescriptor, 'Gradle suite > Gradle test > org.company.TestWithBrokenSetupMethod > broken')

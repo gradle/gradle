@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import static org.hamcrest.CoreMatchers.startsWith
-
 class DetailedExecutionFailure {
     ExecutionFailure failure
 
@@ -28,6 +26,6 @@ class DetailedExecutionFailure {
     public assertTestsFailed() {
         failure
             .assertHasDescription("Execution failed for task ':test'.")
-            .assertThatCause(startsWith("Test suite 'test' has failing tests."));
+            .assertCausedByFailingTestsInDefaultTestSuite()
     }
 }

@@ -96,7 +96,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         runAndFail "test"
 
         then:
-        failureHasCause "There were failing tests"
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
 
         and:
         def results = new DefaultTestExecutionResult(file("."))
@@ -141,7 +141,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         runAndFail "test"
 
         then:
-        failureHasCause "There were failing tests"
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
 
         and:
         def results = new DefaultTestExecutionResult(file("."))

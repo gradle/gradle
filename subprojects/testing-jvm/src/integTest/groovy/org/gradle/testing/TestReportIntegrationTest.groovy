@@ -360,7 +360,7 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         executedAndNotSkipped(":test")
-        failure.assertHasCause("Execution failed for test task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
 
         when:
         buildFile << "\ntest.reports.html.required = false\n"
@@ -368,7 +368,7 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         executedAndNotSkipped(":test")
-        failure.assertHasCause("Execution failed for test task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
 
         when:
         buildFile << "\ntest.reports.junitXml.required = false\n"
@@ -376,7 +376,7 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         executedAndNotSkipped(":test")
-        failure.assertHasCause("Execution failed for test task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
         failure.assertHasNoCause("See the")
     }
 

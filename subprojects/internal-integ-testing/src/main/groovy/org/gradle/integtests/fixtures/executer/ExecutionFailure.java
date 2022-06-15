@@ -19,6 +19,9 @@ import org.hamcrest.Matcher;
 
 import java.util.function.Consumer;
 
+import static org.hamcrest.CoreMatchers.either;
+import static org.hamcrest.CoreMatchers.startsWith;
+
 public interface ExecutionFailure extends ExecutionResult {
     /**
      * {@inheritDoc}
@@ -57,6 +60,14 @@ public interface ExecutionFailure extends ExecutionResult {
      * <p>Error messages are normalized to use new-line char as line separator.
      */
     ExecutionFailure assertThatCause(Matcher<? super String> matcher);
+
+    default ExecutionFailure assertCausedByFailingTestsInTestSuite(String testSuiteName, String testSuiteTargetName) {
+        return assertThatCause(either(startsWith("Test suite '"+ testSuiteName + "' has failing tests.")).or(startsWith("There were failing tests in the '" + testSuiteTargetName + "' target for the '" + testSuiteName + "' test suite.")));
+    }
+
+    default ExecutionFailure assertCausedByFailingTestsInDefaultTestSuite() {
+        return assertCausedByFailingTestsInTestSuite("test", "test");
+    }
 
     /**
      * Asserts that there is a failure present with the given description (ie the bit after '* What went wrong').

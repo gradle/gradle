@@ -476,7 +476,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails('test', '-x', 'compileTestJava')
 
         then:
-        failureCauseContains("There were failing tests")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         if (isVintage() || isJupiter()) {
             result.testClassStartsWith('Gradle Test Executor')

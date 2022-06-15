@@ -402,7 +402,7 @@ public class StaticInnerTest {
 
         expect:
         fails('test', *extraArgs)
-        failureCauseContains('There were failing tests.')
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
 
         where:
         scenario       | extraArgs

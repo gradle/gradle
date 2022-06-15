@@ -185,8 +185,8 @@ Root project 'webinar-parent'
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for test task ':test'.")
-        failure.assertHasCause("Test suite 'test' has failing tests.")
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
     }
 
     def "singleModule - with continue, when tests fail, jar should exist"() {
@@ -205,8 +205,8 @@ Root project 'webinar-parent'
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()
-        failure.assertHasDescription("Execution failed for test task ':test'.")
-        failure.assertHasCause("Test suite 'test' has failing tests.")
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
     }
 
     private static void assertContainsEncodingConfig(TestFile buildScript, BuildInitDsl dsl, String encoding) {
@@ -283,8 +283,8 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for test task ':test'.")
-        failure.assertHasCause("Test suite 'test' has failing tests.")
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
     }
 
     def "singleModule with explicit project dir - with continue, when tests fail, jar should exist"() {
@@ -308,8 +308,8 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()
-        failure.assertHasDescription("Execution failed for test task ':test'.")
-        failure.assertHasCause("Test suite 'test' has failing tests.")
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertCausedByFailingTestsInDefaultTestSuite()
     }
 
     def 'sourcesJar'() {
