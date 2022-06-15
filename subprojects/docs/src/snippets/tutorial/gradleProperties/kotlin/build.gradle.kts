@@ -2,7 +2,7 @@
 // Using the API, provides a lazy Provider<String>
 println(providers.gradleProperty("gradlePropertiesProp").get())
 
-// Using Kotlin property delegation on `project`
+// Using Kotlin delegated properties on `project`
 val gradlePropertiesProp: String by project
 println(gradlePropertiesProp)
 // end::gradle-properties[]

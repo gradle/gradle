@@ -4,7 +4,7 @@ rootProject.name = "properties"
 // Using the API, provides a lazy Provider<String>
 println(providers.gradleProperty("gradlePropertiesProp").get())
 
-// Using Kotlin property delegation on `settings`
+// Using Kotlin delegated properties on `settings`
 val gradlePropertiesProp: String by settings
 println(gradlePropertiesProp)
 // end::gradle-properties[]
