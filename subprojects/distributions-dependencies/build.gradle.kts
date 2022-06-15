@@ -19,7 +19,7 @@ val asmVersion = "9.2"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
 val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
-val jacksonVersion = "2.12.1"
+val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val mavenVersion = "3.6.3"
@@ -101,6 +101,7 @@ dependencies {
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.1.55") }}
+        api(libs.jsoup)                 { version { strictly("1.15.1") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
@@ -156,7 +157,6 @@ dependencies {
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
-        api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}

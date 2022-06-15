@@ -75,6 +75,7 @@
          <trusted-key id="1fa37fbe4453c1073e7ef61d6449005f96bc97a3" group="de.undercouch"/>
          <trusted-key id="1fa868a348719e88b6d0de24c03ef1d7d692bcff" group="org.scala-lang"/>
          <trusted-key id="21f0942275ea159a501d375328852008a47bb995" group="^com[.]google($|([.].*))" regex="true"/>
+         <trusted-key id="253e8e4c6fb28d11748115c1249dee8e2c07a0a2" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="2bcbdd0f23ea1cafcc11d4860374cf2e8dd1bdfd" group="org.sonatype.plexus"/>
          <trusted-key id="2be67ac00d699e04e840b7fe29967e804d85663f">
             <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
@@ -490,11 +491,6 @@
       <component group="com.github.ben-manes.caffeine" name="caffeine" version="2.8.5">
          <artifact name="caffeine-2.8.5.jar">
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
-         </artifact>
-      </component>
-      <component group="com.github.javaparser" name="javaparser-core" version="3.24.0">
-         <artifact name="javaparser-core-3.24.0.jar">
-            <pgp value="253e8e4c6fb28d11748115c1249dee8e2c07a0a2"/>
          </artifact>
       </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.14.3">

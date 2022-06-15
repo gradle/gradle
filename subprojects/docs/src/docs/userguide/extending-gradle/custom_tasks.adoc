@@ -394,6 +394,9 @@ Describes an option with the value `true` or `false`. Passing the option on the 
 `String`, `Property<String>`::
 Describes an option with an arbitrary String value. Passing the option on the command line also requires a value e.g. `--container-id=2x94held` or `--container-id 2x94held`.
 
+`Integer`, `Property<Integer>`::
+Describes an option with an integer value. Passing the option on the command line also requires a value e.g. `--network-timeout=5000` or `--network-timeout 5000`.
+
 `enum`, `Property<enum>`::
 Describes an option as an enumerated type. Passing the option on the command line also requires a value e.g. `--log-level=DEBUG` or `--log-level debug`. The value is not case sensitive.
 
