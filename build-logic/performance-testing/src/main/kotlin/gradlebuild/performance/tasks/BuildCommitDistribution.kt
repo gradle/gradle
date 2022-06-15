@@ -80,6 +80,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
         }
         execOps.exec {
             commandLine(*getBuildCommands())
+            environment(getBuildEnvs())
             workingDir = checkoutDir
         }
     }
@@ -96,18 +97,29 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
             "-PbuildCommitDistribution=true"
         )
-
         if (project.gradle.startParameter.isBuildCacheEnabled) {
             buildCommands.add("--build-cache")
-
-            val buildCacheConf = (project.gradle as GradleInternal).settings.buildCache
-            val remoteCache = buildCacheConf.remote as HttpBuildCache?
-            if (remoteCache?.url != null) {
-                buildCommands.add("-Dgradle.cache.remote.url=${remoteCache.url}")
-                buildCommands.add("-Dgradle.cache.remote.username=${remoteCache.credentials.username}")
-            }
         }
 
         return buildCommands.toTypedArray()
+    }
+
+    private
+    fun getBuildEnvs(): Map<String, String> {
+        val envs = mutableMapOf<String, String>()
+
+        if (project.gradle.startParameter.isBuildCacheEnabled) {
+            val buildCacheConf = (project.gradle as GradleInternal).settings.buildCache
+            val remoteCache = buildCacheConf.remote as HttpBuildCache?
+            if (remoteCache?.url != null) {
+                envs["GRADLE_CACHE_REMOTE_URL"] = remoteCache.url.toString()
+                envs["GRADLE_CACHE_REMOTE_USERNAME"] = remoteCache.credentials.username!!
+                envs["GRADLE_CACHE_REMOTE_PASSWORD"] = remoteCache.credentials.password!!
+            }
+        }
+        project.providers.environmentVariable("GRADLE_ENTERPRISE_ACCESS_KEY").orNull?.let {
+            envs["GRADLE_ENTERPRISE_ACCESS_KEY"] = it
+        }
+        return envs
     }
 }
