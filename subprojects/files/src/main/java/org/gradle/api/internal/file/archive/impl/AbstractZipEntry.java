@@ -16,24 +16,22 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.internal.io.IoFunction;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 
-class JdkZipEntry implements ZipEntry {
-
+abstract class AbstractZipEntry implements ZipEntry {
     private final java.util.zip.ZipEntry entry;
-    private final Supplier<InputStream> inputStreamSupplier;
-    private final Runnable closeAction;
 
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, @Nullable Runnable closeAction) {
+    public AbstractZipEntry(java.util.zip.ZipEntry entry) {
         this.entry = entry;
-        this.inputStreamSupplier = inputStreamSupplier;
-        this.closeAction = closeAction;
+    }
+
+    protected java.util.zip.ZipEntry getEntry() {
+        return entry;
     }
 
     @Override
@@ -47,10 +45,15 @@ class JdkZipEntry implements ZipEntry {
     }
 
     @Override
+    public int size() {
+        return (int) entry.getSize();
+    }
+
+    @Override
     public byte[] getContent() throws IOException {
-        return withInputStream(new InputStreamAction<byte[]>() {
+        return withInputStream(new IoFunction<InputStream, byte[]>() {
             @Override
-            public byte[] run(InputStream inputStream) throws IOException {
+            public byte[] apply(InputStream inputStream) throws IOException {
                 int size = size();
                 if (size >= 0) {
                     byte[] content = new byte[size];
@@ -61,24 +64,5 @@ class JdkZipEntry implements ZipEntry {
                 }
             }
         });
-    }
-
-    @Override
-    public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
-        InputStream is = inputStreamSupplier.get();
-        try {
-            return action.run(is);
-        } finally {
-            if (closeAction != null) {
-                closeAction.run();
-            } else {
-                is.close();
-            }
-        }
-    }
-
-    @Override
-    public int size() {
-        return (int) entry.getSize();
     }
 }
