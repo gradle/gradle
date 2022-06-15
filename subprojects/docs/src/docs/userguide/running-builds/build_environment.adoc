@@ -242,6 +242,21 @@ Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle`
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 
+The following examples demonstrate how to use environment variables.
+
+.Reading environment variables at configuration time
+====
+include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=configuration]"]
+include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="init.gradle.kts[];settings.gradle.kts[];build.gradle.kts[tags=configuration]"]
+====
+
+.Reading environment variables for consumption at execution time
+====
+include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build.gradle[tags=execution]"]
+include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build.gradle.kts[tags=execution]"]
+====
+
+
 [[sec:project_properties]]
 == Project properties
 
