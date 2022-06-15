@@ -52,7 +52,7 @@ Alternatively, if you want to serve the docs in a built-in webserver, you can us
 
     ./gradlew serveDocs -PquickDocs
 
-The flag -PquickDocs disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
+The flag `-PquickDocs` disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
 
 If you really want to generate just the user manual, you can run:
 
