@@ -153,6 +153,15 @@ include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="settings.
 include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="settings.gradle.kts[tags=gradle-properties];build.gradle.kts[tags=gradle-properties]"]
 ====
 
+[.multi-language-text.lang-groovy]
+Note that if a Gradle property has a dot in its name, using the dynamic Groovy names is not possible.
+You have to use the API or the dynamic array notation instead.
+
+[.multi-language-text.lang-kotlin]
+The link:https://kotlinlang.org/docs/delegated-properties.html[Kotlin delegated properties] are part of the Gradle Kotlin DSL.
+You need to explicitly specify the type as `String`.
+If you need to branch depending on the presence of the property, you can also use `String?` and check for `null`.
+
 .Reading Gradle properties for consumption at execution time
 ====
 include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gradle[tags=gradle-properties-task-inputs]"]
