@@ -260,9 +260,7 @@ include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build
 [[sec:project_properties]]
 == Project properties
 
-You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
-
-Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
+Gradle can set properties to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
 .Setting a project property via a system property
 ----
@@ -274,14 +272,23 @@ org.gradle.project.foo=bar
 ORG_GRADLE_PROJECT_foo=bar
 ----
 
-[NOTE]
+This feature is useful when you don't have admin rights to a continuous integration server, and you need to set property values that should not be easily visible. Since you cannot use the `-P` option in that scenario, nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.
+
+The following examples demonstrate how to use project properties.
+
+.Reading project properties at configuration time
 ====
-The properties file in the user's home directory has precedence over property files in the project directories.
+include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=configuration]"]
+include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=configuration]"]
 ====
 
-This feature is very useful when you don't have admin rights to a continuous integration server and you need to set property values that should not be easily visible. Since you cannot use the `-P` option in that scenario, nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.
+.Reading project properties for consumption at execution time
+====
+include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=execution]"]
+include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=execution]"]
+====
 
-You can access a project property in your build script simply by using its name as you would use a variable.
+Gradle properties and properties set via the `-P` command line option are also available in project properties.
 
 [NOTE]
 ====
