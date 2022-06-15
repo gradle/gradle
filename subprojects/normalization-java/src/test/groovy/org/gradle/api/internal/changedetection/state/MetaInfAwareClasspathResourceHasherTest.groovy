@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.internal.file.archive.InputStreamAction
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
@@ -25,6 +24,7 @@ import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.io.IoFunction
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -467,11 +467,11 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(InputStreamAction<T> action) throws IOException {
+            <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
                 if (exception) {
                     throw exception
                 }
-                return action.run(new ByteArrayInputStream(bos.toByteArray()))
+                return action.apply(new ByteArrayInputStream(bos.toByteArray()))
             }
 
             @Override

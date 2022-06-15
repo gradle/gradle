@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.io.IoSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -145,8 +146,8 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         }
 
         @Override
-        public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
-            return action.run(new ByteArrayInputStream(getContent()));
+        public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+            return action.apply(new ByteArrayInputStream(getContent()));
         }
 
         @Override

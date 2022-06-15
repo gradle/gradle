@@ -17,8 +17,8 @@
 package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.file.archive.InputStreamAction;
 import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.internal.io.IoFunction;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,9 +51,9 @@ abstract class AbstractZipEntry implements ZipEntry {
 
     @Override
     public byte[] getContent() throws IOException {
-        return withInputStream(new InputStreamAction<byte[]>() {
+        return withInputStream(new IoFunction<InputStream, byte[]>() {
             @Override
-            public byte[] run(InputStream inputStream) throws IOException {
+            public byte[] apply(InputStream inputStream) throws IOException {
                 int size = size();
                 if (size >= 0) {
                     byte[] content = new byte[size];
