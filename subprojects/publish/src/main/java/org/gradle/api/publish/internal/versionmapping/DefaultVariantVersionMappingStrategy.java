@@ -98,7 +98,14 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
                     if (selected != null) {
                         if (selected.getId() instanceof ProjectComponentIdentifier) {
                             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) selected.getId();
-                            return projectResolver.resolve(ModuleVersionIdentifier.class, projectRegistry.getProject(projectId.getProjectPath()));
+                            ProjectInternal project = projectRegistry.getProject(projectId.getProjectPath());
+                            if (project != null) {
+                                // project might not be in projectRegistry, if the project to be resolved is in another included build.
+                                // E.g. build A includes builds B, B includes build C. C has some dependencies from B.
+                                // In that case, the projectRegistry does not know about those projects and returns null. But OTOH
+                                // 'selected' does have a valid module version.
+                                return projectResolver.resolve(ModuleVersionIdentifier.class, project);
+                            }
                         }
                         return selected.getModuleVersion();
                     }
