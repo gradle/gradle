@@ -115,7 +115,7 @@ This report compliments the [`outgoingVariants` report](#outgoing-variants) and 
 - Attributes affected by Compatibility or Disambiguation rules during resolution listed
 - A `--configuration` option can limit this report to a single configuration
 - A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable; these will be hidden by default
--
+
 See the [ResolvableConfigurationsReportTask](dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask.html) DSL reference for more details.
 
 #### Dependency Insights
