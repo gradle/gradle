@@ -203,6 +203,32 @@ Specify the supported TLS versions in a comma separated format. For example: `TL
 
 In a multi project build, “`systemProp.`” properties set in any project except the root will be ignored. That is, only the root project's `gradle.properties` file will be checked for properties that begin with the “`systemProp.`” prefix.
 
+The following examples demonstrate how to use System properties.
+
+.Setting System properties with a `gradle.properties` file
+====
+include::sample[dir="snippets/tutorial/systemProperties/groovy",files="gradle.properties[]"]
+====
+
+.Reading System properties at configuration time
+====
+include::sample[dir="snippets/tutorial/systemProperties/groovy",files="init.gradle[];settings.gradle[];build.gradle[tags=system-properties]"]
+include::sample[dir="snippets/tutorial/systemProperties/kotlin",files="init.gradle.kts[];settings.gradle.kts[];build.gradle.kts[tags=system-properties]"]
+====
+
+.Reading System properties for consumption at execution time
+====
+include::sample[dir="snippets/tutorial/systemProperties/groovy",files="build.gradle[tags=system-properties-task-inputs]"]
+include::sample[dir="snippets/tutorial/systemProperties/kotlin",files="build.gradle.kts[tags=system-properties-task-inputs]"]
+====
+
+.Setting System properties from the command line
+====
+----
+$ gradle -Dsystem=commandLineValue
+----
+====
+
 [[sec:gradle_environment_variables]]
 == Environment variables
 
