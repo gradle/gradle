@@ -10,6 +10,10 @@ println(findProperty("myProjectProp"))
 
 // Accessing the Map<String, Any?> of project properties
 println(properties["myProjectProp"])
+
+// Using Kotlin delegated properties on `project`
+val myProjectProp: String by project
+println(myProjectProp)
 // end::configuration[]
 
 abstract class PrintValue : DefaultTask() {
