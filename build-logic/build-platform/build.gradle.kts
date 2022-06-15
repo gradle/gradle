@@ -1,3 +1,5 @@
+import groovy.lang.GroovySystem
+
 plugins {
     `java-platform`
 }
@@ -6,7 +8,7 @@ description = "Provides a platform that constrains versions of external dependen
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
-val groovyVersion = "3.0.10"
+val groovyVersion = GroovySystem.getVersion()
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
@@ -15,9 +17,8 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 
 dependencies {
     constraints {
-        // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.10.1")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3.2-milestone-1") // Sync with `settings.gradle.kts`
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.10.2")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3.4-milestone-1") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.20.1")
         api("com.gradle.publish:plugin-publish-plugin:1.0.0-rc-2")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
@@ -62,7 +63,7 @@ dependencies {
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1")
-        api("org.jsoup:jsoup:1.13.1")
+        api("org.jsoup:jsoup:1.15.1")
         api("org.junit.jupiter:junit-jupiter:5.8.2")
         api("org.junit.vintage:junit-vintage-engine:5.8.2")
         api("org.openmbee.junit:junit-xml-parser:1.0.0")

@@ -23,6 +23,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.attributes.AttributesSchema",
+            "member": "Method org.gradle.api.attributes.AttributesSchema.setAttributeDisambiguationPrecedence(java.util.List)",
+            "acceptation": "Changed argument type to List to better signify usage of the argument",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }
