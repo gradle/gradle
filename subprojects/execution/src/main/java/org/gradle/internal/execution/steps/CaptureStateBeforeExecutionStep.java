@@ -197,14 +197,12 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
             context.getInputFileProperties(),
             work::visitRegularInputs
         );
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), newInputs.getValueSnapshots());
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = union(context.getInputFileProperties(), newInputs.getFileFingerprints());
 
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
-            inputProperties,
-            inputFileFingerprints,
+            newInputs.getAllValueSnapshots(),
+            newInputs.getAllFileFingerprints(),
             unfilteredOutputSnapshots,
             overlappingOutputs
         );
@@ -257,22 +255,6 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         interface Result {
             Result INSTANCE = new Result() {
             };
-        }
-    }
-
-    private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
-        ImmutableSortedMap<K, V> a,
-        ImmutableSortedMap<K, V> b
-    ) {
-        if (a.isEmpty()) {
-            return b;
-        } else if (b.isEmpty()) {
-            return a;
-        } else {
-            return ImmutableSortedMap.<K, V>naturalOrder()
-                .putAll(a)
-                .putAll(b)
-                .build();
         }
     }
 }

@@ -107,7 +107,7 @@ If multiple dependencies match, they are all printed in the report.
 `--configuration <name>` (mandatory)::
 Indicates which configuration to resolve for showing the dependency information (_camelCase_ also supported like in `dependencies` task).
 Note that the <<java_plugin#java_plugin, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
-`--singlepath` (optional)::
+`--single-path` (optional)::
 Indicates to render only a single path to the dependency.
 This might be useful to trim down the output in large graphs.
 
@@ -201,7 +201,8 @@ Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated sect
 == Resolving unsafe configuration resolution errors
 
 Resolving a configuration can have side effects on Gradle's project model, so Gradle needs manage access to each project's configurations.
-There are a number of ways a configuration might be resolved unsafely. Gradle will produce a deprecation warning for each unsafe access.
+There are a number of ways a configuration might be resolved unsafely.
+Gradle will produce a deprecation warning for each unsafe access.
 Each of these are bad practices and can cause strange and indeterminate errors.
 
 If your build has an unsafe access deprecation warning, it needs to be fixed.

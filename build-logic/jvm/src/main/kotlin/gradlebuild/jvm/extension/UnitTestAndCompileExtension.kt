@@ -23,18 +23,30 @@ import org.gradle.kotlin.dsl.*
 
 abstract class UnitTestAndCompileExtension(private val tasks: TaskContainer) {
 
+    /**
+     * Enforces **Java 6** compatibility.
+     */
     fun usedInWorkers() {
         enforceJava6Compatibility()
     }
 
+    /**
+     * Enforces **Java 6** compatibility.
+     */
     fun usedForStartup() {
         enforceJava6Compatibility()
     }
 
+    /**
+     * Enforces **Java 6** compatibility.
+     */
     fun usedInToolingApi() {
         enforceJava6Compatibility()
     }
 
+    /**
+     * Enforces **Java 6** compatibility.
+     */
     fun enforceJava6Compatibility() {
         tasks.withType<JavaCompile>().configureEach {
             options.release.set(null)

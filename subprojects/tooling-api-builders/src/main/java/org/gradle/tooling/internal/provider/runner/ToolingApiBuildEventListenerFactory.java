@@ -57,7 +57,6 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
 
         List<Object> listeners = new ArrayList<>();
-        listeners.add(ancestryTracker);
 
         if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
             listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));

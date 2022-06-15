@@ -18,7 +18,7 @@ package org.gradle.normalization.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceEntryFilter;
@@ -29,6 +29,7 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.normalization.MetaInfNormalization;
 import org.gradle.normalization.PropertiesFileNormalization;
 
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -165,7 +166,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     }
 
     private static class DefaultPropertiesFileFilter implements PropertiesFileFilter {
-        private final Map<String, EvaluatableFilter<ResourceEntryFilter>> propertyFilters = Maps.newHashMap();
+        private final Map<String, EvaluatableFilter<ResourceEntryFilter>> propertyFilters = new HashMap<>();
         private Map<String, ResourceEntryFilter> finalPropertyFilters;
 
         DefaultPropertiesFileFilter() {
@@ -175,7 +176,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         @Override
         public Map<String, ResourceEntryFilter> getFilters() {
             if (finalPropertyFilters == null) {
-                ImmutableMap.Builder<String, ResourceEntryFilter> builder = ImmutableMap.builder();
+                ImmutableSortedMap.Builder<String, ResourceEntryFilter> builder = ImmutableSortedMap.naturalOrder();
                 propertyFilters.forEach((pattern, filter) -> builder.put(pattern, filter.evaluate()));
                 finalPropertyFilters = builder.build();
             }

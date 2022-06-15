@@ -185,3 +185,34 @@ The JaCoCo plugin adds the following dependency configurations:
 | The JaCoCo agent library used for instrumenting the code under test.
 
 |===
+
+[[sec:outgoing_variants]]
+== Outgoing Variants
+
+When a project producing JaCoCo coverage data is applied alongside the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>, additional outgoing variants will be created.  These variants are designed for consumption by the <<jacoco_report_aggregation_plugin#jacoco_report_aggregation_plugin, JaCoCo Report Aggregation Plugin>>.
+
+The attributes will resemble the following.  User-configurable attributes are highlighted below the sample.
+
+.outgoingVariants task output
+[source,text]
+----
+--------------------------------------------------
+Variant coverageDataElementsForTest (i)
+--------------------------------------------------
+Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
+
+Capabilities
+    - org.gradle.sample:application:1.0.2 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test           // <1>
+    - org.gradle.testsuite.target.name = test           // <2>
+    - org.gradle.testsuite.type        = unit-test      // <3>
+    - org.gradle.verificationtype      = jacoco-coverage
+
+Artifacts
+    - build/jacoco/test.exec (artifactType = binary)
+----
+<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getName--[JvmTestSuite#getName()].
+<2> TestSuiteTargetName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuiteTarget.html#getName--[JvmTestSuiteTarget#getName()].
+<3> TestSuiteType attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getTestType--[JvmTestSuite#getTestType()].

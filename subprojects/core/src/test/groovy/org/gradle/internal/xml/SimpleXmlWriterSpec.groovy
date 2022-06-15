@@ -105,11 +105,20 @@ class SimpleXmlWriterSpec extends Specification {
     def "surrogates in comment"() {
         when:
         writer.startElement("root")
-        writer.comment("丈, 😃, and नि")
+        writer.comment("丈, 😃, and नि, and > or &")
         writer.endElement()
 
         then:
-        xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><!-- 丈, &#x1f603;, and नि --></root>"
+        xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><!-- 丈, &#x1f603;, and नि, and > or & --></root>"
+    }
+
+    def 'detects invalid comment'() {
+        when:
+        writer.comment("Some comment that is -- invalid!")
+
+        then:
+        IllegalArgumentException exception = thrown()
+        exception.getMessage() == "'--' is invalid inside an XML comment: Some comment that is -- invalid!"
     }
 
     def "surrogates in CDATA"() {

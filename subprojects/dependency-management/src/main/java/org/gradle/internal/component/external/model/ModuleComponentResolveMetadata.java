@@ -60,6 +60,8 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
+    ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier);
+
     /**
      * Returns the variants of this component
      */

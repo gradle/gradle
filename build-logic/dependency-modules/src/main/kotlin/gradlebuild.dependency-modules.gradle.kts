@@ -70,9 +70,6 @@ dependencies {
             "org.gradle.profiler:gradle-profiler",
             setOf("gradle-tooling-api")
         )
-
-        // used by :internal-android-performance-testing > api("agp")
-        withModule<UnifyTrove4jVersionRule>("com.android.tools.external.com-intellij:intellij-core")
     }
 }
 

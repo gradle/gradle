@@ -18,14 +18,12 @@ package org.gradle.api.file
 
 import org.apache.commons.io.FileUtils
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
 
 /**
  * Created by Rene on 28/01/15.
  * Temporary tests for nailing down root cause of slow java 8 builds on windows
  */
 class MicroBenchmarkPerformanceTest extends AbstractProjectBuilderSpec {
-    @Unroll
     def "creating #number of files"() {
         expect:
         number.times {

@@ -56,9 +56,23 @@ public class FileNameDerivingClassNameConverter implements SourceFileClassNameCo
             return sourcePaths;
         }
 
+        Set<String> paths = fileExtensions.stream()
+            .map(fileExtension -> classNameToRelativePath(className, fileExtension))
+            .collect(Collectors.toSet());
+
+        // Classes with $ may be inner classes
         int innerClassIdx = className.indexOf("$");
-        String baseName = innerClassIdx > 0 ? className.substring(0, innerClassIdx) : className;
-        return fileExtensions.stream().map(fileExtension -> baseName.replace('.', '/') + fileExtension).collect(Collectors.toSet());
+        if (innerClassIdx > 0) {
+            String baseName = className.substring(0, innerClassIdx);
+            fileExtensions.stream()
+                .map(fileExtension -> classNameToRelativePath(baseName, fileExtension))
+                .forEach(paths::add);
+        }
+
+        return paths;
     }
 
+    private String classNameToRelativePath(String className, String fileExtension) {
+        return className.replace('.', '/') + fileExtension;
+    }
 }

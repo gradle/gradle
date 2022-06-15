@@ -48,7 +48,6 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.work.InputChanges
-import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -284,7 +283,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         taskInfo1.is(taskInfo2)
     }
 
-    @Unroll
     def "fails for #type.simpleName"() {
         when:
         expectTaskCreated(type)
@@ -306,7 +304,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithMixedMultipleIncrementalActions             | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
     }
 
-    @Unroll
     def "works for #type.simpleName"() {
         given:
         def action = Mock(Runnable)
@@ -327,7 +324,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithMultipleMethods  | 3
     }
 
-    @Unroll
     def "validation succeeds when #property #value on #type.simpleName"() {
         given:
         def task = expectTaskCreated(type, this[value])
@@ -344,7 +340,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithInput      | 'input'       | 'inputValue'
     }
 
-    @Unroll
     def "validation succeeds when list #property contains #value on #type.simpleName"() {
         given:
         def task = expectTaskCreated(type, [this[value]] as List)
@@ -359,7 +354,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithOutputDirs  | 'output-dirs'  | 'existingDir'
     }
 
-    @Unroll
     def "validation succeeds when optional #property is omitted on #type.simpleName"() {
         given:
         def task = expectTaskCreated(type, arguments as Object[])
@@ -424,7 +418,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         task.outputDirs.get(0).isDirectory()
     }
 
-    @Unroll
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
@@ -465,7 +458,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotWriteFileToDirectory {
             property('outputFile')
                 .file(task.outputFile)
                 .isNotFile()
@@ -485,7 +478,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotWriteFileToDirectory {
             property('outputFiles')
                 .file(task.outputFiles[0])
                 .isNotFile()
@@ -506,7 +499,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotCreateParentDirectories {
             property('outputFile')
                 .file(task.outputFile)
                 .ancestorIsNotDirectory(task.outputFile.parentFile)
@@ -527,7 +520,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, cannotWriteToFile {
+        validateException(task, e, cannotCreateParentDirectories {
             property('outputFiles')
                 .file(task.outputFiles[0])
                 .ancestorIsNotDirectory(task.outputFiles[0].parentFile)
@@ -771,7 +764,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
             missingValueMessage { property('b').includeLink() })
     }
 
-    @Unroll
     def "registers specified #target for #value on #type.simpleName"() {
         given:
         def task = expectTaskCreated(type, this[value])
@@ -795,7 +787,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         task.inputs.files.files == values as Set
     }
 
-    @Unroll
     def "registers specified list of outputs for #value on #type.simpleName"() {
         given:
         def values = value.collect({ this[it] })
@@ -819,7 +810,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         task.inputs.files.files == [file] as Set
     }
 
-    @Unroll
     def "registers input property for #prop on #type.simpleName"() {
         given:
         def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
@@ -848,7 +838,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         inputProperties(task).keySet() == ['bean.$0', 'bean.name$1', 'bean.name$1.value', 'bean.$2'] as Set
     }
 
-    @Unroll
     def "registers properties #allTaskProperties on #type.simpleName"() {
         given:
         def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
@@ -926,7 +915,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         taskProperties.localStateFiles.empty
     }
 
-    @Unroll
     def "does not register #target for #type when not specified"() {
         given:
         def task = expectTaskCreated(type, value)
@@ -964,7 +952,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         execute(task)
     }
 
-    @Unroll
     def "#description are not custom actions"() {
         given:
         def task = expectTaskCreated(type, [null] as Object[])

@@ -47,7 +47,7 @@ _Depends on_: All tasks which contribute to the compilation classpath, including
 +
 Compiles production Java source files using the JDK compiler.
 
-`processResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+`processResources` — link:{groovyDslPath}/org.gradle.language.jvm.tasks.ProcessResources.html[ProcessResources]::
 Copies production resources into the production resources directory.
 
 `classes`::
@@ -546,6 +546,8 @@ include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/sr
 
 Both categories have the following limitations:
 
+* They can only read `CLASS` or `RUNTIME` retention annotations.
+* They can only read parameter names if the user passes the `-parameters` compiler argument.
 * They must generate their files using the link:{javaApi}/javax/annotation/processing/Filer.html[Filer API].
     Writing files any other way will result in silent failures later on, as these files won't be cleaned up correctly.
     If your processor does this, it cannot be incremental.
@@ -569,7 +571,7 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/EntityProcessor.java[tag=isolating-annotation-processor]
 ----
 
-"Isolating" processors have the following limitations:
+"Isolating" processors have the following additional limitations:
 
 * They must make all decisions (code generation, validation messages) for an annotated type based on information reachable from its AST.
     This means you can analyze the types' super-class, method return types, annotations etc., even transitively.
@@ -595,11 +597,6 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 ----
 include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
 ----
-
-"Aggregating" processors have the following limitations:
-
-* They can only read `CLASS` or `RUNTIME` retention annotations
-* They can only read parameter names if the user passes the `-parameters` compiler argument.
 
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
 Gradle will always recompile any files the processor generates.

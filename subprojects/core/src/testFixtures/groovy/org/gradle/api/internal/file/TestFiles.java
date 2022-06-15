@@ -237,7 +237,12 @@ public class TestFiles {
     }
 
     public static ExecFactory execFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), fileCollectionFactory(baseDir), TestUtil.instantiatorFactory().inject(), objectFactory());
+        return execFactory().forContext()
+            .withFileResolver(resolver(baseDir))
+            .withFileCollectionFactory(fileCollectionFactory(baseDir))
+            .withInstantiator(TestUtil.instantiatorFactory().inject())
+            .withObjectFactory(objectFactory())
+            .build();
     }
 
     public static ExecActionFactory execActionFactory() {

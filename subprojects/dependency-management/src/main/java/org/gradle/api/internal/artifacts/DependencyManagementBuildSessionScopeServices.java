@@ -15,11 +15,35 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CachingComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 public class DependencyManagementBuildSessionScopeServices {
+
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);
+    }
+
+    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
+        return new CachingComponentSelectionDescriptorFactory();
+    }
+
+    ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ImmutableAttributesFactory immutableAttributesFactory,
+        NamedObjectInstantiator namedObjectInstantiator,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
+    ) {
+        return new DependencyManagementValueSnapshotterSerializerRegistry(
+            moduleIdentifierFactory,
+            immutableAttributesFactory,
+            namedObjectInstantiator,
+            componentSelectionDescriptorFactory
+        );
     }
 }

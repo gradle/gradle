@@ -46,7 +46,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
+import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -55,7 +55,6 @@ import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, ValidationMessageChecker {
 
-    @Unroll
     def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -117,7 +116,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
-    @Unroll
     def "transform can receive parameter of type #type"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -167,9 +165,58 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         where:
         type                          | value          | expected     | expectedNullValue
         "Property<String>"            | "'value'"      | 'value'      | null
+        "Property<Boolean>"           | "true"         | 'true'       | null
         "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"     | "[]"
         "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"     | "[] as Set"
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16982")
+    def "transform can set convention on parameter of type #type"() {
+        given:
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+
+                abstract static class Parameters extends TransformParameters {
+
+                    { prop.convention($value) }
+
+                    @Input
+                    abstract ${type} getProp()
+                }
+
+                void transform(TransformOutputs outputs) {
+                    println "processing using prop: \${parameters.prop.get()}"
+                }
+            }
+        """
+
+        when:
+        run("a:resolve")
+
+        then:
+        outputContains("processing using prop: ${expected}")
+
+        where:
+        type                          | value            | expected
+        "Property<Byte>"              | '42.byteValue()' | '42'
+        "Property<Boolean>"           | 'true'           | 'true'
+        "Property<String>"            | "'value'"        | 'value'
+        "ListProperty<String>"        | "['a', 'b']"     | "[a, b]"
+        "SetProperty<String>"         | "['a', 'b']"     | "[a, b]"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]"   | "[a:1, b:2]"
     }
 
     def "transform can receive a build service as a parameter"() {
@@ -226,7 +273,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [out-1.txt]")
     }
 
-    @Unroll
     def "transform can receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -269,7 +315,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @Unroll
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -502,7 +547,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -550,7 +594,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
-    @Unroll
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -712,7 +755,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -758,7 +800,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
-    @Unroll
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -803,7 +844,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    @Unroll
     def "old style transform cannot use @#annotation.name"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -891,7 +931,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         succeeds(":a:resolve")
     }
 
-    @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -928,7 +967,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
-    @Unroll
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -1054,7 +1092,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }))
     }
 
-    @Unroll
     def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
             class MyTask extends DefaultTask {

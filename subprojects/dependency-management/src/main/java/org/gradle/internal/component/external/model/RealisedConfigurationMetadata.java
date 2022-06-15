@@ -28,31 +28,33 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
 
     private final boolean addedByRule;
 
-    public RealisedConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                         ImmutableList<ExcludeMetadata> excludes,
-                                         ImmutableAttributes componentLevelAttributes,
-                                         ImmutableCapabilities capabilities,
-                                         boolean mavenArtifactDiscovery,
-                                         boolean addedByRule,
-                                         boolean externalVariant) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, mavenArtifactDiscovery, null, addedByRule, externalVariant);
+    public RealisedConfigurationMetadata(
+            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+            ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes componentLevelAttributes,
+            ImmutableCapabilities capabilities,
+            boolean addedByRule,
+            boolean externalVariant
+    ) {
+        this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, null, addedByRule, externalVariant);
     }
 
-    public RealisedConfigurationMetadata(ModuleComponentIdentifier componentId,
-                                         String name,
-                                         boolean transitive,
-                                         boolean visible,
-                                         ImmutableSet<String> hierarchy,
-                                         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                         ImmutableList<ExcludeMetadata> excludes,
-                                         ImmutableAttributes attributes,
-                                         ImmutableCapabilities capabilities,
-                                         boolean mavenArtifactDiscovery,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies,
-                                         boolean addedByRule,
-                                         boolean externalVariant) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities, mavenArtifactDiscovery, externalVariant);
+    public RealisedConfigurationMetadata(
+            ModuleComponentIdentifier componentId,
+            String name,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            ImmutableList<ModuleDependencyMetadata> configDependencies,
+            boolean addedByRule,
+            boolean externalVariant
+    ) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities, externalVariant);
         this.addedByRule = addedByRule;
     }
 
@@ -72,7 +74,6 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
             getExcludes(),
             getAttributes(),
             ImmutableCapabilities.of(getCapabilities().getCapabilities()),
-            requiresMavenArtifactDiscovery(),
             dependencies,
             addedByRule,
             isExternalVariant()

@@ -16,23 +16,24 @@
 
 package org.gradle.configurationcache.serialization
 
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.configurationcache.serialization.beans.BeanPropertyReader
-import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
+import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
+import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.Encoder
 
 
 internal
@@ -40,24 +41,25 @@ class DefaultWriteContext(
     codec: Codec<Any?>,
 
     private
-    val encoder: FlushableEncoder,
+    val encoder: Encoder,
 
     private
     val scopeLookup: ScopeLookup,
+
+    private
+    val beanStateWriterLookup: BeanStateWriterLookup,
 
     override val logger: Logger,
 
     override val tracer: Tracer?,
 
-    private
-    val problemsListener: ProblemsListener
+    problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, FlushableEncoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 
-    private
-    val beanPropertyWriters = hashMapOf<Class<*>, BeanStateWriter>()
+    override val circularReferences = CircularReferences()
 
     private
     val classes = WriteIdentities()
@@ -73,7 +75,7 @@ class DefaultWriteContext(
     }
 
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
-        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
+        beanStateWriterLookup.beanStateWriterFor(beanType)
 
     override val isolate: WriteIsolate
         get() = getIsolate()
@@ -140,10 +142,6 @@ class DefaultWriteContext(
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
-
-    override fun onProblem(problem: PropertyProblem) {
-        problemsListener.onProblem(problem)
-    }
 }
 
 
@@ -151,7 +149,8 @@ internal
 class LoggingTracer(
     private val profile: String,
     private val writePosition: () -> Long,
-    private val logger: Logger
+    private val logger: Logger,
+    private val level: LogLevel
 ) : Tracer {
 
     // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
@@ -168,7 +167,8 @@ class LoggingTracer(
 
     private
     fun log(frame: String, openOrClose: Char) {
-        logger.debug(
+        logger.log(
+            level,
             """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
         )
     }
@@ -203,22 +203,15 @@ class DefaultReadContext(
     val decoder: Decoder,
 
     private
-    val instantiatorFactory: InstantiatorFactory,
-
-    private
-    val constructors: BeanConstructors,
+    val beanStateReaderLookup: BeanStateReaderLookup,
 
     override val logger: Logger,
 
-    private
-    val problemsListener: ProblemsListener
+    problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder, AutoCloseable {
+) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
-
-    private
-    val beanStateReaders = hashMapOf<Class<*>, BeanStateReader>()
 
     private
     val classes = ReadIdentities()
@@ -230,6 +223,21 @@ class DefaultReadContext(
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
+
+    override fun onFinish(action: () -> Unit) {
+        pendingOperations.add(action)
+    }
+
+    internal
+    fun finish() {
+        for (op in pendingOperations) {
+            op()
+        }
+        pendingOperations.clear()
+    }
+
+    private
+    var pendingOperations = ReferenceArrayList<() -> Unit>()
 
     internal
     fun initClassLoader(classLoader: ClassLoader) {
@@ -255,7 +263,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
+        beanStateReaderLookup.beanStateReaderFor(beanType)
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()
@@ -320,10 +328,6 @@ class DefaultReadContext(
 
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
-
-    override fun onProblem(problem: PropertyProblem) {
-        problemsListener.onProblem(problem)
-    }
 }
 
 
@@ -337,7 +341,13 @@ typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
-abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateContext {
+abstract class AbstractIsolateContext<T>(
+    codec: Codec<Any?>,
+    problemsListener: ProblemsListener
+) : MutableIsolateContext {
+
+    private
+    var currentProblemsListener: ProblemsListener = problemsListener
 
     private
     var currentIsolate: T? = null
@@ -345,7 +355,7 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
     private
     var currentCodec = codec
 
-    var trace: PropertyTrace = PropertyTrace.Gradle
+    override var trace: PropertyTrace = PropertyTrace.Gradle
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T
@@ -379,6 +389,24 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
         val previousValues = contexts.removeAt(0)
         currentIsolate = previousValues.first
         currentCodec = previousValues.second
+    }
+
+    override fun onProblem(problem: PropertyProblem) {
+        currentProblemsListener.onProblem(problem)
+    }
+
+    override fun onError(error: Exception, message: StructuredMessageBuilder) {
+        currentProblemsListener.onError(trace, error, message)
+    }
+
+    override suspend fun forIncompatibleType(action: suspend () -> Unit) {
+        val previousListener = currentProblemsListener
+        currentProblemsListener = previousListener.forIncompatibleType()
+        try {
+            action()
+        } finally {
+            currentProblemsListener = previousListener
+        }
     }
 }
 

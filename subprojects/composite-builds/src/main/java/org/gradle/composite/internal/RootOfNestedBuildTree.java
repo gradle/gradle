@@ -41,7 +41,6 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -140,38 +139,34 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
-        try {
-            final GradleInternal gradle = getBuildController().getGradle();
-            ServiceRegistry services = gradle.getServices();
-            BuildOperationExecutor executor = services.get(BuildOperationExecutor.class);
-            return executor.call(new CallableBuildOperation<T>() {
-                @Override
-                public T call(BuildOperationContext context) {
-                    gradle.addBuildListener(new InternalBuildAdapter() {
+        final GradleInternal gradle = getBuildController().getGradle();
+        ServiceRegistry services = gradle.getServices();
+        BuildOperationExecutor executor = services.get(BuildOperationExecutor.class);
+        return executor.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                gradle.addBuildListener(new InternalBuildAdapter() {
+                    @Override
+                    public void settingsEvaluated(Settings settings) {
+                        buildName = settings.getRootProject().getName();
+                    }
+                });
+                T result = action.apply(buildTreeLifecycleController);
+                context.setResult(new RunNestedBuildBuildOperationType.Result() {
+                });
+                return result;
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Run nested build")
+                    .details(new RunNestedBuildBuildOperationType.Details() {
                         @Override
-                        public void settingsEvaluated(Settings settings) {
-                            buildName = settings.getRootProject().getName();
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().getPath();
                         }
                     });
-                    T result = action.apply(buildTreeLifecycleController);
-                    context.setResult(new RunNestedBuildBuildOperationType.Result() {
-                    });
-                    return result;
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Run nested build")
-                        .details(new RunNestedBuildBuildOperationType.Details() {
-                            @Override
-                            public String getBuildPath() {
-                                return gradle.getIdentityPath().getPath();
-                            }
-                        });
-                }
-            });
-        } finally {
-            CompositeStoppable.stoppable(getBuildController()).stop();
-        }
+            }
+        });
     }
 }

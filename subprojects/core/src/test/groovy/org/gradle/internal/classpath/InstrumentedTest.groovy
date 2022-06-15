@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class InstrumentedTest extends Specification {
     @Rule
-    SetSystemProperties systemProperties = new SetSystemProperties()
+    final SetSystemProperties systemProperties = new SetSystemProperties()
 
     def cleanup() {
         Instrumented.discardListener()
@@ -260,5 +260,21 @@ class InstrumentedTest extends Specification {
 
         then:
         1 * listener.systemPropertyQueried("prop", "value", "consumer")
+    }
+
+    def "notifies listener when file is opened with absolute file path"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        def userDir = System.getProperty('user.dir')
+
+        when:
+        Instrumented.fileOpened('foo.txt', 'consumer')
+        Instrumented.fileOpened(new File('bar.txt'), 'consumer')
+
+        then:
+        1 * listener.fileOpened(new File(userDir, 'foo.txt'), 'consumer')
+        1 * listener.fileOpened(new File(userDir, 'bar.txt'), 'consumer')
+        0 * listener._
     }
 }

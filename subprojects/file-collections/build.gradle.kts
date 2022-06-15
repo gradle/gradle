@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of types that represent containers of files"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))

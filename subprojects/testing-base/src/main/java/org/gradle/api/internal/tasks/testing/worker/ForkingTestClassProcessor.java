@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
@@ -49,7 +50,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
     private final Lock lock = new ReentrantLock();
-    private final WorkerLeaseRegistry workerLeaseRegistry;
+    private final WorkerThreadRegistry workerThreadRegistry;
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
@@ -58,11 +59,11 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private boolean stoppedNow;
 
     public ForkingTestClassProcessor(
-        WorkerLeaseRegistry workerLeaseRegistry, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
+        WorkerThreadRegistry workerThreadRegistry, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
         Iterable<File> classPath, Iterable<File> modulePath, List<String> testWorkerImplementationModules,
         Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry
     ) {
-        this.workerLeaseRegistry = workerLeaseRegistry;
+        this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -88,7 +89,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
 
             if (remoteProcessor == null) {
-                completion = workerLeaseRegistry.startWorker();
+                completion = workerThreadRegistry.startWorker();
                 try {
                     remoteProcessor = forkProcess();
                 } catch (RuntimeException e) {
@@ -133,11 +134,13 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-worker-processes").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-files").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-file-temp").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-hashing").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-enterprise-logging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-enterprise-workers").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),

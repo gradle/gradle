@@ -23,9 +23,9 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
-import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
+import org.gradle.api.publish.ivy.internal.publisher.IvyDuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.tasks.Internal;
@@ -144,7 +144,7 @@ public class PublishToIvyRepository extends DefaultTask {
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
-        getDuplicatePublicationTracker().checkCanPublish(getProject(), publicationInternal, repository.getUrl(), repository.getName());
+        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
 
         doPublish(publicationInternal, repository);
     }
@@ -166,7 +166,7 @@ public class PublishToIvyRepository extends DefaultTask {
     }
 
     @Inject
-    protected DuplicatePublicationTracker getDuplicatePublicationTracker() {
+    protected IvyDuplicatePublicationTracker getDuplicatePublicationTracker() {
         throw new UnsupportedOperationException();
     }
 

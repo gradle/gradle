@@ -36,7 +36,7 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -83,7 +83,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
-        classpathHasher.hash(_ as ClassPath) >> HashCode.fromInt(123)
+        classpathHasher.hash(_ as ClassPath) >> TestHashCodes.hashCodeFrom(123)
 
         1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> PluginRequests.EMPTY
     }

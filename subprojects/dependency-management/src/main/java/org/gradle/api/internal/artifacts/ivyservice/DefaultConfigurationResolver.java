@@ -70,6 +70,7 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collections;
 import java.util.List;
@@ -93,6 +94,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final AttributeDesugaring attributeDesugaring;
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
+    private final WorkerLeaseService workerLeaseService;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver,
                                         RepositoriesSupplier repositoriesSupplier,
@@ -108,7 +110,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                                         AttributeContainerSerializer attributeContainerSerializer,
                                         BuildIdentifier currentBuild, AttributeDesugaring attributeDesugaring,
                                         DependencyVerificationOverride dependencyVerificationOverride,
-                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                        WorkerLeaseService workerLeaseService) {
         this.resolver = resolver;
         this.repositoriesSupplier = repositoriesSupplier;
         this.metadataHandler = metadataHandler;
@@ -125,6 +128,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.attributeDesugaring = attributeDesugaring;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -132,10 +136,11 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
-        CompositeDependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(failureCollector, resolutionResultBuilder);
+        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
+        CompositeDependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(failureCollector, resolutionResultBuilder, localComponentsVisitor);
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
         resolver.resolve(configuration, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, false);
-        result.graphResolved(resolutionResultBuilder.getResolutionResult(), new ResolvedLocalComponentsResultGraphVisitor(currentBuild), new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getDependenciesResolver()));
+        result.graphResolved(resolutionResultBuilder.getResolutionResult(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getDependenciesResolver()));
     }
 
     @Override
@@ -151,7 +156,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, moduleIdentifierFactory, attributeContainerSerializer, attributeDesugaring, componentSelectionDescriptorFactory);
+        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, moduleIdentifierFactory, attributeContainerSerializer, attributeDesugaring, componentSelectionDescriptorFactory, configuration.getReturnAllVariants());
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
 
@@ -216,7 +221,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, dependencyVerificationOverride);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
         results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
     }
 

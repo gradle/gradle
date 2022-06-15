@@ -7,7 +7,7 @@ version = "1.1"
 
 // tag::copy-single-file-example[]
 tasks.register<Copy>("copyReport") {
-    from(layout.buildDirectory.dir("reports/my-report.pdf"))
+    from(layout.buildDirectory.file("reports/my-report.pdf"))
     into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-single-file-example[]
@@ -218,9 +218,9 @@ tasks.register<Copy>("filter") {
         "[$line]"
     }
     // Use a closure to remove lines
-    filter(nullableTransformer { line: String ->
+    filter { line: String ->
         if (line.startsWith('-')) null else line
-    })
+    }
     filteringCharset = "UTF-8"
 }
 // end::filter-files[]

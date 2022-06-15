@@ -17,14 +17,13 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.initialization.ConfigurableIncludedBuild
-import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -34,7 +33,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.vcs.SourceControl
-
 import java.io.File
 
 
@@ -119,8 +117,11 @@ abstract class SettingsDelegate : Settings {
         delegate.include(projectPaths)
 
     override fun includeFlat(vararg projectNames: String?) =
-        @Suppress("deprecation")
         delegate.includeFlat(*projectNames)
+
+    override fun includeFlat(projectNames: Iterable<String>) {
+        delegate.includeFlat(projectNames)
+    }
 
     override fun getStartParameter(): StartParameter =
         delegate.startParameter

@@ -21,6 +21,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
@@ -55,9 +56,16 @@ import java.util.stream.Stream;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
+import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
+    DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
+        .and(modifier(PUBLIC))
+        .as("public API methods");
+
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));
     }

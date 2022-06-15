@@ -55,15 +55,6 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
     }
 
     @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
-        if (snapshot.getType() == FileType.Directory) {
-            return "";
-        } else {
-            return snapshot.getName();
-        }
-    }
-
-    @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
@@ -73,7 +64,7 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
-                        fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
+                        return SnapshotVisitResult.CONTINUE;
                     } else {
                         fingerprint = fingerprint(snapshot.getName(), snapshot.getType(), snapshot);
                     }

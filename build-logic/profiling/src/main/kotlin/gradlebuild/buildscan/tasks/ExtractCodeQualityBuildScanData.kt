@@ -20,7 +20,6 @@ import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
@@ -45,7 +44,7 @@ abstract class AbstractExtractCodeQualityBuildScanData : DefaultTask() {
     var buildScanExt: BuildScanExtension? = null
 
     init {
-        outputs.upToDateWhen(Specs.SATISFIES_NONE)
+        doNotTrackState("Adds build scan values")
     }
 
     @TaskAction
@@ -102,7 +101,7 @@ abstract class ExtractCodeNarcBuildScanData : AbstractExtractCodeQualityBuildSca
                         getElementsByTag("Message").first()
                             ?: getElementsByTag("SourceLine").first()
                     }
-                    "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
+                    "$filePath:${violation.attr("lineNumber")} \u2192 ${message?.text() ?: "Message not found"}"
                 }
             }
         }

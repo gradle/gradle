@@ -53,6 +53,15 @@ interface MavenModule extends Module {
      */
     MavenModule withModuleMetadata()
 
+    /**
+     * Sets up this module and its variant to represent a publish Gradle platform.
+     * It implies the publication of the Gradle module metadata.
+     * This creates two platform variants named 'api' and 'runtime"
+     *
+     * @return this
+     */
+    MavenModule asGradlePlatform()
+
     MavenModule withoutGradleMetadataRedirection();
 
     MavenModule parent(String group, String artifactId, String version)

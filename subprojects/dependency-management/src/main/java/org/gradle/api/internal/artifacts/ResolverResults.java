@@ -84,6 +84,4 @@ public interface ResolverResults {
      */
     @Nullable
     Throwable getFailure();
-
-    boolean hasResolutionResult();
 }

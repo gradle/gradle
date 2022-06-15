@@ -53,6 +53,7 @@ class ConfigurationCacheReport(
         open fun commitReportTo(
             outputDirectory: File,
             cacheAction: String,
+            requestedTasks: String,
             totalProblemCount: Int
         ): Pair<State, File?> =
             illegalState()
@@ -75,6 +76,7 @@ class ConfigurationCacheReport(
             override fun commitReportTo(
                 outputDirectory: File,
                 cacheAction: String,
+                requestedTasks: String,
                 totalProblemCount: Int
             ): Pair<State, File?> =
                 this to null
@@ -130,10 +132,10 @@ class ConfigurationCacheReport(
                 return this
             }
 
-            override fun commitReportTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): Pair<State, File?> {
+            override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): Pair<State, File?> {
                 lateinit var reportFile: File
                 executor.submit {
-                    closeHtmlReport(cacheAction, totalProblemCount)
+                    closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
                     reportFile = moveSpoolFileTo(outputDirectory)
                 }
                 executor.shutdownAndAwaitTermination()
@@ -153,8 +155,8 @@ class ConfigurationCacheReport(
             }
 
             private
-            fun closeHtmlReport(cacheAction: String, totalProblemCount: Int) {
-                writer.endHtmlReport(cacheAction, totalProblemCount)
+            fun closeHtmlReport(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+                writer.endHtmlReport(cacheAction, requestedTasks, totalProblemCount)
                 writer.close()
             }
 
@@ -226,10 +228,10 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): File? {
+    fun writeReportFileTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): File? {
         var reportFile: File?
         modifyState {
-            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, totalProblemCount)
+            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, requestedTasks, totalProblemCount)
             reportFile = outputFile
             newState
         }

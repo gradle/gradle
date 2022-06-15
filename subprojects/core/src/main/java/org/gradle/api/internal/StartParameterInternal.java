@@ -21,9 +21,10 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
+import java.time.Duration;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -33,11 +34,13 @@ public class StartParameterInternal extends StartParameter {
     private BuildOption.Value<Boolean> configurationCache = BuildOption.Value.defaultValue(false);
     private BuildOption.Value<Boolean> isolatedProjects = BuildOption.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
+    private boolean configurationCacheDebug;
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
+    private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
 
     public StartParameterInternal() {
     }
@@ -66,6 +69,7 @@ public class StartParameterInternal extends StartParameter {
         p.isolatedProjects = isolatedProjects;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
+        p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.searchUpwards = searchUpwards;
@@ -158,6 +162,14 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheProblems = configurationCacheProblems;
     }
 
+    public boolean isConfigurationCacheDebug() {
+        return configurationCacheDebug;
+    }
+
+    public void setConfigurationCacheDebug(boolean configurationCacheDebug) {
+        this.configurationCacheDebug = configurationCacheDebug;
+    }
+
     public int getConfigurationCacheMaxProblems() {
         return configurationCacheMaxProblems;
     }
@@ -180,5 +192,13 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
+    }
+
+    public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
+        this.continuousBuildQuietPeriod = continuousBuildQuietPeriod;
+    }
+
+    public Duration getContinuousBuildQuietPeriod() {
+        return continuousBuildQuietPeriod;
     }
 }

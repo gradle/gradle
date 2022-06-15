@@ -18,7 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
@@ -35,14 +34,13 @@ import java.io.Closeable
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
-
-    private
-    val startParameter: ConfigurationCacheStartParameter,
-
     private
     val listenerManager: ClassLoaderScopeRegistryListenerManager
 
 ) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeLifecycleListener, Closeable {
+
+    private
+    val lock = Any()
 
     private
     val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
@@ -51,23 +49,23 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
     override fun afterStart() {
-        if (startParameter.isEnabled) {
-            listenerManager.add(this)
-        }
+        listenerManager.add(this)
     }
 
     /**
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
      */
     fun dispose() {
-        // TODO:configuration-cache find a way to make `dispose` unnecessary;
-        //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
-        //  from DefaultConfigurationCacheHost so a decision based on the configured
-        //  configuration cache strategy (none, store or load) can be taken early on.
-        //  The listener only needs to be attached in the `store` state.
-        scopeSpecs.clear()
-        loaders.clear()
-        listenerManager.remove(this)
+        synchronized(lock) {
+            // TODO:configuration-cache find a way to make `dispose` unnecessary;
+            //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
+            //  from DefaultConfigurationCacheHost so a decision based on the configured
+            //  configuration cache strategy (none, store or load) can be taken early on.
+            //  The listener only needs to be attached in the `store` state.
+            scopeSpecs.clear()
+            loaders.clear()
+            listenerManager.remove(this)
+        }
     }
 
     override fun close() {
@@ -75,43 +73,49 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
-        return loaders[classLoader]
+        synchronized(lock) {
+            return loaders[classLoader]
+        }
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
-        if (scopeSpecs.containsKey(childId)) {
-            // scope is being reused
-            return
-        }
-
-        val parentIsRoot = parentId.parent == null
-        val parent = if (parentIsRoot) {
-            null
-        } else {
-            val lookupParent = scopeSpecs[parentId]
-            require(lookupParent != null) {
-                "Cannot find parent $parentId for child scope $childId"
+        synchronized(lock) {
+            if (scopeSpecs.containsKey(childId)) {
+                // scope is being reused
+                return
             }
-            lookupParent
-        }
 
-        val child = ClassLoaderScopeSpec(parent, childId.name)
-        scopeSpecs[childId] = child
+            val parentIsRoot = parentId.parent == null
+            val parent = if (parentIsRoot) {
+                null
+            } else {
+                val lookupParent = scopeSpecs[parentId]
+                require(lookupParent != null) {
+                    "Cannot find parent $parentId for child scope $childId"
+                }
+                lookupParent
+            }
+
+            val child = ClassLoaderScopeSpec(parent, childId.name)
+            scopeSpecs[childId] = child
+        }
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
-        val spec = scopeSpecs[scopeId]
-        require(spec != null)
-        // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
-        //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
-        val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
-        if (local) {
-            spec.localClassPath = classPath
-            spec.localImplementationHash = implementationHash
-        } else {
-            spec.exportClassPath = classPath
+        synchronized(lock) {
+            val spec = scopeSpecs[scopeId]
+            require(spec != null)
+            // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
+            //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
+            val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
+            if (local) {
+                spec.localClassPath = classPath
+                spec.localImplementationHash = implementationHash
+            } else {
+                spec.exportClassPath = classPath
+            }
+            loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
         }
-        loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
     }
 }
 

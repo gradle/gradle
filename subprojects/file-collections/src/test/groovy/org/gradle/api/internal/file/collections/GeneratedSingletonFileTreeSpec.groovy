@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Action
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -52,6 +51,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert details.file == generatedFile
             assert generatedFile.text == "contents!"
         }
+        1 * generationListener.execute(generatedFile)
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }
@@ -80,7 +80,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
 
     def "visiting structure eagerly generates content when listener requests content but does not use it"() {
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def tmpDir = tmpDir.createDir("dir")
         def generatedFile = tmpDir.file("file.bin")
         def generationListener = Mock(Action)
@@ -92,33 +92,15 @@ class GeneratedSingletonFileTreeSpec extends Specification {
         fileTree.visitStructure(visitor, owner)
 
         then:
-        1 * visitor.prepareForVisit(fileTree) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * visitor.visitFileTree(generatedFile, _, owner) >> { d, p, t ->
             assert p.isEmpty()
             assert generatedFile.isFile()
             assert generatedFile.text == "contents!"
         }
+        1 * generationListener.execute(generatedFile)
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }
-        0 * _
-    }
-
-    def "visiting structure does not generate content when listener does not need it"() {
-        def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
-        def tmpDir = tmpDir.createDir("dir")
-        def contentWriter = Mock(Action)
-        def generationListener = Mock(Action)
-
-        def fileTree = new GeneratedSingletonFileTree({ tmpDir }, "file.bin", generationListener, contentWriter, fileSystem)
-
-        when:
-        fileTree.visitStructure(visitor, owner)
-
-        then:
-        1 * visitor.prepareForVisit(fileTree) >> FileCollectionStructureVisitor.VisitType.NoContents
-        1 * visitor.visitCollection(fileTree, [])
         0 * _
     }
 }

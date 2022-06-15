@@ -87,6 +87,7 @@ class TaskNodeCodec(
             writeClass(taskType)
             writeString(projectPath)
             writeString(taskName)
+            writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
 
             withDebugFrame({ taskType.name }) {
                 withTaskOf(taskType, task, userTypesCodec) {
@@ -114,8 +115,9 @@ class TaskNodeCodec(
         val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
+        val incompatibleReason = readNullableString()
 
-        val task = createTask(projectPath, taskName, taskType)
+        val task = createTask(projectPath, taskName, taskType, incompatibleReason)
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
@@ -153,7 +155,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeReasonNotToTrackState(task: TaskInternal) {
+    fun WriteContext.writeReasonNotToTrackState(task: TaskInternal) {
         writeNullableString(task.reasonNotToTrackState.orElse(null))
     }
 
@@ -216,15 +218,19 @@ class TaskNodeCodec(
 
 
 private
-inline fun <T> T.withTaskOf(
+suspend fun <T> T.withTaskOf(
     taskType: Class<*>,
-    task: Task,
+    task: TaskInternal,
     codec: Codec<Any?>,
-    action: () -> Unit
+    action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
-            action()
+            if (task.isCompatibleWithConfigurationCache) {
+                action()
+            } else {
+                forIncompatibleType(action)
+            }
         }
     }
 }
@@ -466,5 +472,10 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
-    getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal
+fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, incompatibleReason: String?): TaskInternal {
+    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal
+    if (incompatibleReason != null) {
+        task.notCompatibleWithConfigurationCache(incompatibleReason)
+    }
+    return task
+}

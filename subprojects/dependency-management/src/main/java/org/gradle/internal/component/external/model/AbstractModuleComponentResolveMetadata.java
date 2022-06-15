@@ -54,30 +54,30 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
         this.moduleVersionIdentifier = metadata.getModuleVersionId();
-        changing = metadata.isChanging();
-        missing = metadata.isMissing();
-        statusScheme = metadata.getStatusScheme();
-        moduleSources = ImmutableModuleSources.of(metadata.getSources());
-        attributesFactory = metadata.getAttributesFactory();
-        schema = metadata.getAttributesSchema();
-        attributes = extractAttributes(metadata);
-        variants = metadata.getVariants();
-        platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
-        variantDerivationStrategy = metadata.getVariantDerivationStrategy();
-        externalVariant = metadata.isExternalVariant();
-        isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
+        this.changing = metadata.isChanging();
+        this.missing = metadata.isMissing();
+        this.statusScheme = metadata.getStatusScheme();
+        this.moduleSources = ImmutableModuleSources.of(metadata.getSources());
+        this.attributesFactory = metadata.getAttributesFactory();
+        this.schema = metadata.getAttributesSchema();
+        this.attributes = extractAttributes(metadata);
+        this.variants = metadata.getVariants();
+        this.platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
+        this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
+        this.externalVariant = metadata.isExternalVariant();
+        this.isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
         this.componentIdentifier = metadata.getId();
         this.moduleVersionIdentifier = metadata.getModuleVersionId();
-        changing = metadata.isChanging();
-        missing = metadata.isMissing();
-        statusScheme = metadata.getStatusScheme();
-        moduleSources = ImmutableModuleSources.of(metadata.getSources());
-        attributesFactory = metadata.getAttributesFactory();
-        schema = metadata.getAttributesSchema();
-        attributes = metadata.getAttributes();
+        this.changing = metadata.isChanging();
+        this.missing = metadata.isMissing();
+        this.statusScheme = metadata.getStatusScheme();
+        this.moduleSources = ImmutableModuleSources.of(metadata.getSources());
+        this.attributesFactory = metadata.getAttributesFactory();
+        this.schema = metadata.getAttributesSchema();
+        this.attributes = metadata.getAttributes();
         this.variants = variants;
         this.platformOwners = metadata.getPlatformOwners();
         this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
@@ -85,38 +85,21 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         this.isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
-    public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata) {
-        this.componentIdentifier = metadata.componentIdentifier;
-        this.moduleVersionIdentifier = metadata.moduleVersionIdentifier;
-        changing = metadata.changing;
-        missing = metadata.missing;
-        statusScheme = metadata.statusScheme;
-        moduleSources = metadata.moduleSources;
-        attributesFactory = metadata.attributesFactory;
-        schema = metadata.schema;
-        attributes = metadata.attributes;
-        variants = metadata.variants;
-        platformOwners = metadata.platformOwners;
-        variantDerivationStrategy = metadata.getVariantDerivationStrategy();
-        externalVariant = metadata.isExternalVariant();
-        isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
-    }
-
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         this.componentIdentifier = metadata.componentIdentifier;
         this.moduleVersionIdentifier = metadata.moduleVersionIdentifier;
-        changing = metadata.changing;
-        missing = metadata.missing;
-        statusScheme = metadata.statusScheme;
-        attributesFactory = metadata.attributesFactory;
-        schema = metadata.schema;
-        attributes = metadata.attributes;
-        variants = metadata.variants;
-        platformOwners = metadata.platformOwners;
-        moduleSources = ImmutableModuleSources.of(sources);
-        variantDerivationStrategy = derivationStrategy;
-        externalVariant = metadata.externalVariant;
-        isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
+        this.changing = metadata.changing;
+        this.missing = metadata.missing;
+        this.statusScheme = metadata.statusScheme;
+        this.attributesFactory = metadata.attributesFactory;
+        this.schema = metadata.schema;
+        this.attributes = metadata.attributes;
+        this.variants = metadata.variants;
+        this.platformOwners = metadata.platformOwners;
+        this.moduleSources = ImmutableModuleSources.of(sources);
+        this.variantDerivationStrategy = derivationStrategy;
+        this.externalVariant = metadata.externalVariant;
+        this.isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -188,6 +171,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getId(), ivyArtifactName);
+    }
+
+    @Override
+    public ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
+        return new ModuleComponentOptionalArtifactMetadata(getId(), ivyArtifactName);
     }
 
     /**

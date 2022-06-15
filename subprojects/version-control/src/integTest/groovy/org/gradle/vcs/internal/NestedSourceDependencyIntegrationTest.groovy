@@ -18,12 +18,10 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.internal.TextUtil
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -145,8 +143,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    // assertTasksExecutedInOrder may fail with parallel executer
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
     @ToBeFixedForConfigurationCache
     def "can use source mappings defined in nested builds"() {
         given:
@@ -233,7 +229,6 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "prefers a source mapping defined in the root build to one defined in a nested build when they differ only by plugins"() {
         given:
         def pluginBuilder = new PluginBuilder(file("plugin"))

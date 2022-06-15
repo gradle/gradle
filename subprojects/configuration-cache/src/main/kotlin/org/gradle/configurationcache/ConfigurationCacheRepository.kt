@@ -56,6 +56,8 @@ class ConfigurationCacheRepository(
     }
 
     abstract class Layout {
+        abstract fun fileForRead(stateType: StateType): ConfigurationCacheStateFile
+
         abstract fun fileFor(stateType: StateType): ConfigurationCacheStateFile
     }
 
@@ -64,6 +66,8 @@ class ConfigurationCacheRepository(
         private val cacheDir: File,
         private val onFileAccess: (File) -> Unit
     ) : Layout() {
+        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+
         override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), onFileAccess)
     }
 
@@ -71,6 +75,8 @@ class ConfigurationCacheRepository(
     inner class ReadableLayout(
         private val cacheDir: File
     ) : Layout() {
+        override fun fileForRead(stateType: StateType) = fileFor(stateType)
+
         override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
     }
 
@@ -145,8 +151,8 @@ class ConfigurationCacheRepository(
             return Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp").toFile()
         }
 
-        override fun <T> createValueStore(stateType: StateType, writerFactory: (OutputStream) -> ValueStore.Writer<T>, readerFactory: (InputStream) -> ValueStore.Reader<T>): ValueStore<T> {
-            return DefaultValueStore(baseDir, stateType.fileBaseName, writerFactory, readerFactory)
+        override fun <T> createValueStore(stateType: StateType, writer: ValueStore.Writer<T>, reader: ValueStore.Reader<T>): ValueStore<T> {
+            return DefaultValueStore(baseDir, stateType.fileBaseName, writer, reader)
         }
 
         override fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {

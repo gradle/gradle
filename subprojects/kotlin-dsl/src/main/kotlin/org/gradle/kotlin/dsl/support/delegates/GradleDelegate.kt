@@ -110,9 +110,11 @@ abstract class GradleDelegate : Gradle {
     override fun projectsEvaluated(action: Action<in Gradle>) =
         delegate.projectsEvaluated(action)
 
+    @Suppress("DEPRECATION")
     override fun buildFinished(closure: Closure<Any>) =
         delegate.buildFinished(closure)
 
+    @Suppress("DEPRECATION")
     override fun buildFinished(action: Action<in BuildResult>) =
         delegate.buildFinished(action)
 

@@ -21,13 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sampleProject = new Sample(temporaryFolder)
 
-    @Unroll
     @UsesSample("ivy-publish/quickstart")
     @ToBeFixedForConfigurationCache
     def "quickstart sample with #dsl dsl"() {
@@ -49,7 +47,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("ivy-publish/java-multi-project")
     @ToBeFixedForConfigurationCache
     def "java-multi-project sample with #dsl dsl"() {
@@ -88,7 +85,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("ivy-publish/descriptor-customization")
     @ToBeFixedForConfigurationCache
     def "descriptor-customization sample with #dsl dsl"() {
@@ -197,7 +193,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         module.assertArtifactsPublished "${artifactId}-${version}.rpm", "ivy-${version}.xml"
     }
 
-    @Unroll
     @UsesSample("ivy-publish/distribution")
     @ToBeFixedForConfigurationCache
     def "publishes distribution archives with #dsl dsl"() {

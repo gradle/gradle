@@ -19,6 +19,8 @@ package org.gradle.caching.configuration.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 
+import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isConfigCache
+
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
     def localBuildCache = new TestBuildCache(new File(new URI(cacheDir).path))
@@ -146,11 +148,22 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 remote(AnotherBuildCache)
             }
 
-            assert buildCache.remote instanceof AnotherBuildCache
+            gradle.rootProject {
+                tasks.register('verifyBuildCache') {
+                    doLast {
+                        def buildCache = services.get(BuildCacheConfiguration)
+                        assert buildCache.remote instanceof AnotherBuildCache
+                        assert buildCache.registrations.size() == 4
+                    }
+                }
+            }
         """
 
         expect:
-        succeeds("help")
+        succeeds("verifyBuildCache")
+        if (isConfigCache()) {
+            succeeds("verifyBuildCache")
+        }
     }
 
     def "disables remote cache with --offline"() {

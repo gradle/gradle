@@ -22,10 +22,10 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -105,12 +105,12 @@ public class ArchUnitFixtureTest {
         public void invalidTypeParameterInParameterType(String arg1, List<File> arg2) { }
     }
 
-    @NotNull
+    @Nonnull
     private ConditionEvent checkThatHasOnlyAllowedTypes(String methodName) {
         return checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(methodName, String.class, String.class);
     }
 
-    @NotNull
+    @Nonnull
     private ConditionEvent checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(String methodName, Class<?>... arguments) {
         ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
         JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);

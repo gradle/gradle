@@ -34,6 +34,11 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     }
 
     @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + getDisplayName();
+    }
+
+    @Override
     public boolean tryLock() {
         if (!isLockedByCurrentThread()) {
             if (acquireLock()) {

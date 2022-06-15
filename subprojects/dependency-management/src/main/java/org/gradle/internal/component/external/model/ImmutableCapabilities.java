@@ -40,7 +40,7 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
             return EMPTY;
         }
         if (capabilities.size() == 1) {
-            Capability single = capabilities.stream().findAny().get();
+            Capability single = capabilities.iterator().next();
             return of(single);
         }
         return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));

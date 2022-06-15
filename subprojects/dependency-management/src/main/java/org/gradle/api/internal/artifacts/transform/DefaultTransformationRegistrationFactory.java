@@ -211,6 +211,11 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         public TransformationStep getTransformationStep() {
             return transformationStep;
         }
+
+        @Override
+        public String toString() {
+            return transformationStep + " transform from " + from + " to " + to;
+        }
     }
 
     private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
@@ -218,6 +223,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
+        @SuppressWarnings("deprecation")
         @Override
         public void visitInputFileProperty(
             String propertyName,
@@ -231,7 +237,9 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
-            this.directorySensitivity = directorySensitivity;
+            this.directorySensitivity = directorySensitivity == DirectorySensitivity.UNSPECIFIED
+                ? DirectorySensitivity.DEFAULT
+                : directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }

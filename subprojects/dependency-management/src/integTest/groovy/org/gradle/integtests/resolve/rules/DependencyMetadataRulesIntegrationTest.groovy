@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import spock.lang.Unroll
 
 import static org.gradle.util.internal.GUtil.toCamelCase
 
@@ -59,7 +58,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         """
     }
 
-    @Unroll
     def "#thing can be added using #notation notation"() {
         when:
         buildFile << """
@@ -115,7 +113,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
     }
 
-    @Unroll
     def "#thing can be added to a new variant"() {
         when:
         buildFile << """
@@ -177,7 +174,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependencies"           | _
     }
 
-    @Unroll
     def "#thing can be added and configured using #notation notation"() {
         when:
         buildFile << """
@@ -330,7 +326,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
-    @Unroll
     def "#thing modifications are visible in the next rule"() {
         when:
         buildFile << """
@@ -396,7 +391,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | _
     }
 
-    @Unroll
     def "can set version on dependency using #keyword"() {
         given:
         repository {
@@ -589,7 +583,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
-    @Unroll
     def "#thing of transitive dependencies can be changed"() {
         given:
         repository {
@@ -751,7 +744,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolving one configuration does not influence the result of resolving another configuration."() {
         given:
         repository {
@@ -800,8 +792,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         succeeds 'dependencies'
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can make #thing strict"() {
         given:
         repository {
@@ -865,8 +856,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | true
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can add rejections to #thing"() {
         given:
         repository {

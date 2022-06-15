@@ -56,6 +56,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -80,8 +81,8 @@ public class ScalaBasePlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    public static final String DEFAULT_ZINC_VERSION = "1.3.5";
-    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
+    public static final String DEFAULT_ZINC_VERSION = "1.6.1";
+    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
 
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
@@ -153,6 +154,11 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 });
             });
         });
+
+        zinc.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
+            version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
+            version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
+        })));
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
         incrementalAnalysisElements.setVisible(false);

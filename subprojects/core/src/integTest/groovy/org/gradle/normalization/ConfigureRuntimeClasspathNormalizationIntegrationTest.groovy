@@ -17,16 +17,16 @@
 package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
+import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
-@Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
     def "can ignore files on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
@@ -82,7 +82,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.ANNOTATION
     }
 
-    @Unroll
     def "can ignore manifest attributes in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestAttributesIgnored()
         def manifestResource = project[resourceName]
@@ -109,7 +108,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @Unroll
     def "can ignore entire manifest in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestIgnored()
         def manifestResource = project[resourceName]
@@ -136,7 +134,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @Unroll
     def "can ignore all meta-inf files in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withAllMetaInfIgnored()
         def manifestResource = project[resourceName]
@@ -355,6 +352,35 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    def "property ordering is consistent"() {
+        def differentJdk = AvailableJavaHomes.differentJdk
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        (1..100).each { index ->
+            buildFile << """
+                normalization {
+                    runtimeClasspath {
+                        properties('**/$index/foo.properties') {
+                            ignoreProperty '${IGNORE_ME}'
+                        }
+                    }
+                }
+            """
+        }
+
+        when:
+        withBuildCache().succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        run "clean"
+        executer.withJavaHome(differentJdk.javaHome)
+        withBuildCache().succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
     def "properties files are normalized against changes to whitespace, order and comments"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         project.propertiesFileInDir.setContent('''
@@ -470,7 +496,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         project.buildFile << """
             normalization {
                 runtimeClasspath {
-                    if (providers.gradleProperty('${enableFilterFlag}').forUseAtConfigurationTime().present) {
+                    if (providers.gradleProperty('${enableFilterFlag}').present) {
                         ${normalizationRule}
                     }
                 }

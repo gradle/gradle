@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -35,7 +34,6 @@ import java.util.Set;
  */
 public final class SnapshotTaskInputsBuildOperationType implements BuildOperationType<SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
     }
 
@@ -45,7 +43,6 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
      * If the inputs were not snapshotted, all fields are null.
      * This may occur if the task had no outputs.
      */
-    @UsedByScanPlugin
     public interface Result {
 
         /**

@@ -19,23 +19,26 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.List;
-
-public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMetadataAdapter<DependencyConstraintMetadata> implements DependencyConstraintsMetadata {
+public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMetadataAdapter<DependencyConstraintMetadata, DependencyConstraintMetadataAdapter> implements DependencyConstraintsMetadata {
 
     public DependencyConstraintsMetadataAdapter(ImmutableAttributesFactory attributesFactory,
-                                                List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata,
                                                 Instantiator instantiator,
                                                 NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintsNotationParser) {
-        super(attributesFactory, dependenciesMetadata, instantiator, dependencyConstraintsNotationParser);
+        super(attributesFactory, instantiator, dependencyConstraintsNotationParser);
     }
 
     @Override
-    protected Class<? extends DependencyConstraintMetadata> adapterImplementationType() {
+    protected Class<DependencyConstraintMetadataAdapter> adapterImplementationType() {
         return DependencyConstraintMetadataAdapter.class;
+    }
+
+    @Override
+    protected ModuleDependencyMetadata getAdapterMetadata(DependencyConstraintMetadataAdapter adapter) {
+        return adapter.getMetadata();
     }
 
     @Override

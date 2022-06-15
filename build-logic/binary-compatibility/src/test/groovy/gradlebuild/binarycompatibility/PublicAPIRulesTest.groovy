@@ -31,7 +31,6 @@ import me.champeau.gradle.japicmp.report.Severity
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
 import org.gradle.api.Incubating
 import spock.lang.Specification
-import spock.lang.Unroll
 import spock.lang.TempDir
 
 import javax.inject.Inject
@@ -79,7 +78,6 @@ class PublicAPIRulesTest extends Specification {
         repository?.close()
     }
 
-    @Unroll
     def "each new #apiElement requires a @Incubating annotation"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
@@ -107,7 +105,6 @@ class PublicAPIRulesTest extends Specification {
         'constructor' | 'jApiConstructor'
     }
 
-    @Unroll
     def "if a type is annotated with @Incubating a new #apiElement does not require it"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
@@ -127,7 +124,6 @@ class PublicAPIRulesTest extends Specification {
         'constructor' | 'jApiConstructor'
     }
 
-    @Unroll
     def "each new #apiElement requires a @since annotation"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
@@ -258,7 +254,6 @@ class PublicAPIRulesTest extends Specification {
         'annotation member' | 'jApiMethod'
     }
 
-    @Unroll
     def "if a type is annotated with @since a new #apiElement does not require it"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
@@ -305,7 +300,6 @@ class PublicAPIRulesTest extends Specification {
         'enum method'  | 'jApiMethod'
     }
 
-    @Unroll
     def "if a new #apiElement is annotated with @Deprecated it does require @Incubating or @since annotations"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
@@ -335,7 +329,6 @@ class PublicAPIRulesTest extends Specification {
         'field'     | 'jApiField'
     }
 
-    @Unroll
     def "if a new method is annotated with @Override it does not require @Incubating or @since annotations"() {
         given:
         JApiCompatibility jApiType = jApiMethod
@@ -373,7 +366,6 @@ class PublicAPIRulesTest extends Specification {
         violation.humanExplanation == 'New public API in 11.38 (@Incubating)'
     }
 
-    @Unroll
     def "constructors with @Inject annotation are not considered public API"() {
         given:
         def rule = withContext(ruleElem)

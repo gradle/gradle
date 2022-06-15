@@ -90,7 +90,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                             """
                             results/performance/build/test-results-*.zip!performance-tests/report/css/*.css => $performanceResultsDir/
                             $perfResultArtifactRule
-                        """.trimIndent()
+                            """.trimIndent()
                         } else {
                             perfResultArtifactRule
                         }

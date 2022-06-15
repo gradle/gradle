@@ -22,9 +22,12 @@ import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
+@ServiceScope(Scopes.Build.class)
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
 
     void configureProject(ProjectInternal project);

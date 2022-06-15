@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -276,7 +275,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param dependencyNotation
      *
      * The dependency notation, in one of the notations described above.
-     * @return The dependency.
+     * @return The dependency, or null if dependencyNotation is a provider.
      */
     @Nullable
     Dependency add(String configurationName, Object dependencyNotation);
@@ -287,7 +286,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
-     * @return The dependency.
+     * @return The dependency, or null if dependencyNotation is a provider.
      */
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 
@@ -300,7 +299,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     <T, U extends ExternalModuleDependency> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration);
 
     /**
@@ -311,7 +309,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 7.0
      */
-    @Incubating
     <T> void addProvider(String configurationName, Provider<T> dependencyNotation);
 
     /**
@@ -323,7 +320,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 7.4
      */
-    @Incubating
     <T, U extends ExternalModuleDependency> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration);
 
     /**
@@ -334,7 +330,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 7.4
      */
-    @Incubating
     <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation);
 
     /**
@@ -623,7 +618,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 6.8
      */
-    @Incubating
     Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec);
 
     /**
@@ -635,7 +629,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 7.3
      */
-    @Incubating
     default Provider<MinimalExternalModuleDependency> variantOf(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
                                                                 Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
         return variantOf(dependencyProviderConvertible.asProvider(), variantSpec);
@@ -647,7 +640,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the platform variant of the component
      * @since 6.8
      */
-    @Incubating
     default Provider<MinimalExternalModuleDependency> platform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::platform);
     }
@@ -658,7 +650,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the platform variant of the component
      * @since 7.3
      */
-    @Incubating
     default Provider<MinimalExternalModuleDependency> platform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return platform(dependencyProviderConvertible.asProvider());
     }
@@ -669,7 +660,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
      */
-    @Incubating
     Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider);
 
     /**
@@ -678,7 +668,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
      */
-    @Incubating
     default Provider<MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return enforcedPlatform(dependencyProviderConvertible.asProvider());
     }
@@ -689,7 +678,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 6.8
      */
-    @Incubating
     default Provider<MinimalExternalModuleDependency> testFixtures(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::testFixtures);
     }
@@ -700,7 +688,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 7.3
      */
-    @Incubating
     default Provider<MinimalExternalModuleDependency> testFixtures(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return testFixtures(dependencyProviderConvertible.asProvider());
     }

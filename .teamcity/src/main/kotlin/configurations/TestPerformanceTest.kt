@@ -52,6 +52,8 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
                 """--warmups 2 --runs 2 --checks none""",
                 "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
                 "-PtestJavaVendor=${os.perfTestJavaVendor}",
+                "-PautoDownloadAndroidStudio=true",
+                "-PrunAndroidStudioInHeadlessMode=true",
                 os.javaInstallationLocations()
             )
         )

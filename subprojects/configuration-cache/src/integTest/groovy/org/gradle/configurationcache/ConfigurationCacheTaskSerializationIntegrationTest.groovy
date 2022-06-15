@@ -16,9 +16,8 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Unroll
-
 import javax.inject.Inject
+import java.util.logging.Level
 
 class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -110,7 +109,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("this.value = value")
     }
 
-    @Unroll
     def "Directory value can resolve paths after being restored"() {
         buildFile << """
             import ${Inject.name}
@@ -203,6 +201,48 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("this.bean.value = 42")
         outputContains("this.bean.unused = null")
         outputContains("this.unusedBean.value = null")
+    }
+
+    def "restores nested task abstract properties of type #type"() {
+        given:
+        buildFile """
+            abstract class SomeTask extends DefaultTask {
+
+                abstract static class SomeTaskInputs {
+
+                    @Internal
+                    abstract $type getProperty()
+
+                    void run() {
+                        println('task.nested.property = ' + property.orNull)
+                    }
+                }
+
+                @Nested
+                abstract SomeTaskInputs getSomeTaskInputs()
+
+                @TaskAction
+                void run() {
+                    someTaskInputs.run()
+                }
+            }
+
+            tasks.register('ok', SomeTask) {
+                someTaskInputs.property = $reference
+            }
+        """
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("task.nested.property = $output")
+
+        where:
+        type                    | reference            | output
+        "Property<String>"      | "'value'"            | "value"
+        "Property<String>"      | "null"               | "null"
+        "Property<$Level.name>" | "${Level.name}.INFO" | "INFO"
     }
 
     def "task can reference itself"() {

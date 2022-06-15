@@ -18,18 +18,16 @@ package org.gradle.util.internal
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
-import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.util.AttributeTestUtil
@@ -38,18 +36,21 @@ import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 @Subject(NameValidator)
 class NameValidatorTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
     static invalidNames = forbiddenCharacters.collect { "a${it}b" } + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
+    @Shared
+    def rootComponentMetaDataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
+        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+    }
 
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
-        ["configurations", new DefaultConfigurationContainer(null, TestUtil.instantiatorFactory().decorateLenient(), domainObjectContext(), Mock(ListenerManager), null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, null, Stub(DocumentationRegistry), CollectionCallbackActionDecorator.NOOP, null, null, TestUtil.domainObjectCollectionFactory(), null, TestUtil.objectFactory())],
+        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, CollectionCallbackActionDecorator.NOOP, null, TestUtil.objectFactory(), rootComponentMetaDataBuilderFactory, null)],
         ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
@@ -58,7 +59,6 @@ class NameValidatorTest extends Specification {
         IncubationLogger.reset()
     }
 
-    @Unroll
     def "tasks are not allowed to be named '#name'"() {
         when:
         def project = Mock(ProjectInternal) {
@@ -78,7 +78,6 @@ class NameValidatorTest extends Specification {
         name << invalidNames
     }
 
-    @Unroll
     def "#objectType are not allowed to be named '#name'"() {
         when:
         domainObjectContainer.create(name)

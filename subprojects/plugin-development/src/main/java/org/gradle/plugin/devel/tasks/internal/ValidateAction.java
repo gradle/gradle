@@ -35,10 +35,12 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
@@ -135,19 +137,28 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             // Won't validate interfaces
             return;
         }
-        if (!cacheable && topLevelBean.getAnnotation(DisableCachingByDefault.class) == null) {
+        if (!cacheable
+            && topLevelBean.getAnnotation(DisableCachingByDefault.class) == null
+            && topLevelBean.getAnnotation(UntrackedTask.class) == null
+        ) {
             boolean isTask = Task.class.isAssignableFrom(topLevelBean);
             String cacheableAnnotation = "@" + cacheableAnnotationClass.getSimpleName();
             String disableCachingAnnotation = "@" + DisableCachingByDefault.class.getSimpleName();
+            String untrackedTaskAnnotation = "@" + UntrackedTask.class.getSimpleName();
             String workType = isTask ? "task" : "transform action";
-            validationContext.visitTypeProblem(problem ->
-                problem.reportAs(Severity.WARNING)
-                    .withId(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
-                    .forType(topLevelBean)
-                    .withDescription("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
-                    .happensBecause("The " + workType + " author should make clear why a " + workType + " is not cacheable")
-                    .documentedAt("validation_problems", "disable_caching_by_default")
-                    .addPossibleSolution("Add " + disableCachingAnnotation + "(because = ...) or " + cacheableAnnotation)
+            validationContext.visitTypeProblem(problem -> {
+                    TypeProblemBuilder builder = problem.reportAs(Severity.WARNING)
+                        .withId(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+                        .forType(topLevelBean)
+                        .withDescription("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                        .happensBecause("The " + workType + " author should make clear why a " + workType + " is not cacheable")
+                        .documentedAt("validation_problems", "disable_caching_by_default")
+                        .addPossibleSolution("Add " + disableCachingAnnotation + "(because = ...)")
+                        .addPossibleSolution("Add " + cacheableAnnotation);
+                    if (isTask) {
+                        builder.addPossibleSolution("Add " + untrackedTaskAnnotation + "(because = ...)");
+                    }
+                }
             );
         }
     }

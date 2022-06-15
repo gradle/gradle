@@ -21,16 +21,16 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class ModuleSelectorsTest extends Specification {
 
     Comparator<Version> versionComparator = new DefaultVersionComparator().asVersionComparator()
     @Subject
-    ModuleSelectors selectors = new ModuleSelectors(versionComparator)
+    ModuleSelectors selectors = new ModuleSelectors(versionComparator, new VersionParser())
     int dynCount = 1
 
     def 'empty by default'() {
@@ -132,7 +132,6 @@ class ModuleSelectorsTest extends Specification {
         !iterator.hasNext()
     }
 
-    @Unroll
     def 'can add and remove selectors in any order'() {
         given:
         def selector1 = dynamicSelector()

@@ -59,12 +59,12 @@ public class TestBuildScopeServices extends BuildScopeServices {
     private static class EmptyGradleProperties implements GradleProperties {
         @Nullable
         @Override
-        public String find(String propertyName) {
+        public Object find(String propertyName) {
             return null;
         }
 
         @Override
-        public Map<String, String> mergeProperties(Map<String, String> properties) {
+        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
             return properties;
         }
     }

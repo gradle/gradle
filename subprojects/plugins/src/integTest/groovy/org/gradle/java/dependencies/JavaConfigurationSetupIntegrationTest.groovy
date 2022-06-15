@@ -17,7 +17,6 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -41,7 +40,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         !(alternatives in [VALID, FORBIDDEN, DOES_NOT_EXIST])
     }
 
-    @Unroll
     def "the #configuration configuration is setup correctly for dependency declaration in the #plugin plugin"() {
         given:
         buildFile << """
@@ -92,7 +90,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | VALID
     }
 
-    @Unroll
     def "the #configuration configuration is setup correctly for consumption in the #plugin plugin"() {
         when:
         settingsFile.text = "include 'sub'"
@@ -149,7 +146,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | FORBIDDEN
     }
 
-    @Unroll
     def "the #configuration configuration is setup correctly for resolution in the #plugin plugin"() {
         given:
         buildFile << """
@@ -203,7 +199,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | FORBIDDEN
     }
 
-    @Unroll
     def "compileOnyApi dependency is part of #configuration"() {
         given:
         mavenRepo.module("org", "a").publish()

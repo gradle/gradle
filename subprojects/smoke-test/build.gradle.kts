@@ -56,7 +56,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
         // Pinned from branch main
-        ref.set("c26e2b8aa5c34758934009f1d5b0334f7fc2db5a")
+        ref.set("1513dc23b6026c000f80b872b4346b1ba0f6dfa1")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
@@ -69,7 +69,7 @@ tasks {
     if (BuildEnvironment.isCiServer) {
         remoteProjects.forEach { remoteProject ->
             remoteProject {
-                outputs.upToDateWhen { false }
+                doNotTrackState("Do a full checkout on CI")
             }
         }
     }
@@ -80,16 +80,24 @@ tasks {
         }
     }
 
-    fun SmokeTest.configureForSmokeTest(vararg remoteProjects: TaskProvider<RemoteProject>) {
+    fun SmokeTest.configureForSmokeTest(remoteProjectOutputFiles: Any? = null) {
         group = "Verification"
         testClassesDirs = smokeTestSourceSet.output.classesDirs
         classpath = smokeTestSourceSet.runtimeClasspath
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
         inputs.property("androidSdkRootIsSet", System.getenv("ANDROID_SDK_ROOT") != null)
-        inputs.files(remoteProjects.map { it.map { it.outputDirectory } })
-            .withPropertyName("remoteProjectsSource")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
+
+        if (remoteProjectOutputFiles != null) {
+            inputs.files(remoteProjectOutputFiles)
+                .withPropertyName("remoteProjectsSource")
+                .ignoreEmptyDirectories()
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+        }
+    }
+
+    fun SmokeTest.configureForSmokeTest(remoteProject: TaskProvider<RemoteProject>) {
+        configureForSmokeTest(remoteProject.map { it.outputDirectory })
     }
 
     val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
@@ -121,7 +129,14 @@ tasks {
 
     register<SmokeTest>("gradleBuildSmokeTest") {
         description = "Runs Smoke tests against the Gradle build"
-        configureForSmokeTest(gradleBuildCurrent)
+        configureForSmokeTest(gradleBuildCurrent.map {
+            project.fileTree(it.outputDirectory) {
+                exclude("subprojects/*/src/**")
+                exclude(".idea/**")
+                exclude(".github/**")
+                exclude(".teamcity/**")
+            }
+        })
         useJUnitPlatform {
             filter {
                 includeTestsMatching(gradleBuildTestPattern)

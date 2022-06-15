@@ -23,12 +23,13 @@ import org.gradle.api.Task
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot
 import spock.lang.Specification
 
 class ImplementationChangesTest extends Specification {
-    def taskLoaderHash = HashCode.fromInt(123)
+    def taskLoaderHash = TestHashCodes.hashCodeFrom(123)
     def executable = Stub(Describable) {
         getDisplayName() >> "task ':test'"
     }
@@ -50,7 +51,7 @@ class ImplementationChangesTest extends Specification {
     }
 
     def "not up-to-date when class-loader has changed"() {
-        def previousHash = HashCode.fromInt(987)
+        def previousHash = TestHashCodes.hashCodeFrom(987)
         expect:
         changesBetween(
             impl(SimpleTask, previousHash), [impl(TestAction)],
@@ -59,7 +60,7 @@ class ImplementationChangesTest extends Specification {
     }
 
     def "not up-to-date when action class-loader has changed"() {
-        def previousHash = HashCode.fromInt(987)
+        def previousHash = TestHashCodes.hashCodeFrom(987)
         expect:
         changesBetween(
             impl(SimpleTask), [impl(TestAction, previousHash)],

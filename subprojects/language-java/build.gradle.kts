@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Source for JavaCompile, JavaExec and Javadoc tasks. It also contains logic for incremental Java compilation."
+description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
 dependencies {
     implementation(project(":base-services"))
@@ -61,6 +61,8 @@ dependencies {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
+    // TODO: Make these available for all integration tests? Maybe all tests?
+    integTestImplementation(libs.jetbrainsAnnotations)
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

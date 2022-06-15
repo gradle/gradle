@@ -20,14 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import spock.lang.Unroll
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
     def version = GradleVersion.current().version
+    def builtInOptions = """
+     --rerun     Causes the task to be re-run even if up-to-date.
+""".readLines().tail().join("\n")
 
-    @Unroll
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         executer.requireOwnGradleUserHomeDir()
@@ -226,6 +227,8 @@ Type
 Options
      --configuration     The configuration to generate the report for.
 
+${builtInOptions}
+
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
 
@@ -249,6 +252,8 @@ Type
 
 Options
      --task     The task to show help for.
+
+${builtInOptions}
 
 Description
      Displays a help message.
@@ -285,6 +290,9 @@ Paths
 
 Type
      Task (org.gradle.api.Task)
+
+Options
+${builtInOptions}
 
 Descriptions
      (:hello) hello task from root
@@ -330,6 +338,9 @@ Paths
 Type
      Task (org.gradle.api.Task)
 
+Options
+${builtInOptions}
+
 Description
      -
 
@@ -356,6 +367,9 @@ Path
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
 
+Options
+${builtInOptions}
+
 Description
      Assembles a jar archive containing the main classes.
 
@@ -375,6 +389,9 @@ Paths
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      Assembles a jar archive containing the main classes.
@@ -410,6 +427,9 @@ Path
 Type
      Copy (org.gradle.api.tasks.Copy)
 
+Options
+${builtInOptions}
+
 Description
      a copy operation
 
@@ -423,6 +443,9 @@ Path
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      an archiving operation
@@ -460,6 +483,9 @@ Path
 
 Type
      Task (org.gradle.api.Task)
+
+Options
+${builtInOptions}
 
 Description
      a description
@@ -508,6 +534,8 @@ Options
                           DEF
                           GHIJKL
 
+${builtInOptions}
+
 Description
      -
 
@@ -536,6 +564,8 @@ Options
                             optionA
                             optionB
                             optionC
+
+${builtInOptions}
 
 Description
      -

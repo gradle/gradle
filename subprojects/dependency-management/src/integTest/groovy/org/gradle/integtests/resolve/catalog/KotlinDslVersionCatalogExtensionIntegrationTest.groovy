@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -35,7 +34,6 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         settingsKotlinFile << """
             rootProject.name = "test"
         """
-        FeaturePreviewsFixture.enableVersionCatalog(settingsKotlinFile)
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 repositories {
@@ -54,7 +52,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.0")
+                        library("my-lib", "org.gradle.test:lib:1.0")
                     }
                 }
             }
@@ -97,7 +95,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("lib").to("org:test:1.0")
+                        library("lib", "org:test:1.0")
                     }
                 }
             }
@@ -114,7 +112,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """
             pluginManager.withPlugin("java") {
                 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-                dependencies.addProvider("implementation", libs.findDependency("lib").get())
+                dependencies.addProvider("implementation", libs.findLibrary("lib").get())
             }
         """
 
@@ -151,8 +149,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
-                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                        library("my-lib2", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -197,8 +195,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
-                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                        library("my-lib2", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -244,9 +242,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
                         // Forces `my.lib` to be a ProviderConvertible, otherwise unused
-                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                        library("my-lib-two", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -288,9 +286,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
                         // Forces `my.lib` to be a ProviderConvertible, otherwise unused
-                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                        library("my-lib-two", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -335,8 +333,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("myLib").to("org.gradle.test:lib:1.1")
-                        alias("myLib-subgroup").to("org.gradle.test:lib2:1.1")
+                        library("myLib", "org.gradle.test:lib:1.1")
+                        library("myLib-subgroup", "org.gradle.test:lib2:1.1")
                     }
                 }
             }

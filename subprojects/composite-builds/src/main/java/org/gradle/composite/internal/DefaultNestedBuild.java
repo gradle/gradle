@@ -30,7 +30,6 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.util.Path;
 
@@ -39,7 +38,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 
-class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
+class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
     private final Path identityPath;
     private final BuildState owner;
     private final BuildIdentifier buildIdentifier;
@@ -90,11 +89,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public boolean isImplicitBuild() {
         return true;
-    }
-
-    @Override
-    public void stop() {
-        getBuildController().stop();
     }
 
     @Override

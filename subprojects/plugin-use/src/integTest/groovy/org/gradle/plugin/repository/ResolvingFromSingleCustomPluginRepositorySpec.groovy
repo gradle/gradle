@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
@@ -67,7 +66,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repo.uri
     }
 
-    @Unroll
     def "can resolve plugin from #pathType #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -94,7 +92,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         MAVEN    | PathType.RELATIVE
     }
 
-    @Unroll
     def "can access classes from plugin from #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -120,7 +117,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "can apply plugin from #repoType repo to subprojects"() {
         given:
         publishTestPlugin(repoType)
@@ -147,7 +143,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "custom #repoType repo is not mentioned in plugin resolution errors if none is defined"() {
         given:
         publishTestPlugin(repoType)
@@ -167,7 +162,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     @Requires(TestPrecondition.ONLINE)
     def "Fails gracefully if a plugin is not found in #repoType repo"() {
         given:
@@ -198,7 +192,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "Works with subprojects and relative #repoType repo specification."() {
         given:
         publishTestPlugin(repoType)
@@ -291,6 +284,50 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         and:
         useCustomRepository(PathType.ABSOLUTE)
+
+        expect:
+        fails("helloWorld")
+        failure.assertHasDescription("Plugin [id: 'org.gradle.hello-world', version: '0.2'] was not found in any of the following sources:")
+    }
+
+    def "verify plugin portal is not used when defining pluginManagement repos in settings plugin"() {
+        settingsFile << """
+            pluginManagement {
+                includeBuild("settings-script")
+            }
+
+            plugins {
+                id 'settings-script'
+            }
+
+            pluginManagement.repositories.each { println it.url }
+        """
+
+        buildFile << """
+            plugins {
+                id "org.gradle.hello-world" version "0.2" //this exists in the plugin portal
+            }
+        """
+
+        def pluginRoot = file("settings-script")
+
+        pluginRoot.file("settings.gradle") << """
+            rootProject.name = "settings-script"
+        """
+        pluginRoot.file("build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        pluginRoot.file("src/main/groovy/settings-script.settings.gradle") << """
+            pluginManagement {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
 
         expect:
         fails("helloWorld")

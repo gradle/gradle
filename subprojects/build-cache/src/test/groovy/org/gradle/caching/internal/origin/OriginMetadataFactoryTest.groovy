@@ -23,10 +23,8 @@ import java.time.Duration
 
 class OriginMetadataFactoryTest extends Specification {
     def entry = Mock(CacheableEntity)
-    def rootDir = Mock(File)
     def buildInvocationId = UUID.randomUUID().toString()
     def factory = new OriginMetadataFactory(
-        rootDir,
         "user",
         "os",
         buildInvocationId,
@@ -37,7 +35,6 @@ class OriginMetadataFactoryTest extends Specification {
     def "converts to origin metadata"() {
         entry.identity >> "identity"
         entry.type >> CacheableEntity
-        rootDir.absolutePath >> "root"
         def origin = new Properties()
         def writer = factory.createWriter(entry, Duration.ofMillis(10))
         def baos = new ByteArrayOutputStream()
@@ -54,7 +51,6 @@ class OriginMetadataFactoryTest extends Specification {
         origin.gradleVersion == "3.0"
         origin.creationTime != null
         origin.executionTime == "10"
-        origin.rootPath == "root"
         origin.operatingSystem == "os"
         origin.hostName == "my-host"
         origin.userName == "user"

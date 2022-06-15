@@ -30,12 +30,14 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
+import org.gradle.profiler.AndroidStudioSyncAction
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.GradleInvoker
 import org.gradle.profiler.GradleInvokerBuildAction
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ToolingApiGradleClient
+import org.gradle.profiler.studio.tools.StudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -66,6 +68,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     File workingDir
     boolean useDaemon = true
     boolean useToolingApi = false
+    boolean useAndroidStudio = false
+    List<String> studioJvmArgs = []
+    File studioInstallDir
 
     List<String> tasksToRun = []
     List<String> cleanTasks = []
@@ -161,12 +166,21 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private File perVersionWorkingDirectory(int runIndex) {
         def versionWorkingDirName = String.format('%03d', runIndex)
         def perVersion = new File(workingDir, versionWorkingDirName)
-        if (!perVersion.exists()) {
-            perVersion.mkdirs()
+        return cleanOrCreate(perVersion)
+    }
+
+    private File perVersionStudioSandboxDirectory(File workingDir) {
+        File studioSandboxDir = new File(workingDir, "studio-sandbox")
+        return cleanOrCreate(studioSandboxDir)
+    }
+
+    private static File cleanOrCreate(File directory) {
+        if (!directory.exists()) {
+            directory.mkdirs()
         } else {
-            FileUtils.cleanDirectory(perVersion)
+            FileUtils.cleanDirectory(directory)
         }
-        perVersion
+        directory
     }
 
     private static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
@@ -174,6 +188,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+        File studioSandboxDirAsFile = perVersionStudioSandboxDirectory(workingDir)
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
@@ -193,6 +208,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 jvmArgs(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)
+                useAndroidStudio(this.useAndroidStudio)
+                studioJvmArgs(this.studioJvmArgs)
+                studioInstallDir(this.studioInstallDir)
+                studioSandboxDir(studioSandboxDirAsFile)
                 buildAction(this.buildAction)
             }
         builder.workingDirectory = workingDir
@@ -209,6 +228,15 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def tapiAction = new ToolingApiAction<T>(displayName, initialAction)
         this.buildAction = tapiAction
         return tapiAction
+    }
+
+    def setupAndroidStudioSync() {
+        useAndroidStudio = true
+        buildAction = new AndroidStudioSyncAction()
+        studioInstallDir = StudioFinder.findStudioHome()
+        studioJvmArgs = System.getProperty("studioJvmArgs") != null
+            ? System.getProperty("studioJvmArgs").split(",").collect()
+            : []
     }
 }
 

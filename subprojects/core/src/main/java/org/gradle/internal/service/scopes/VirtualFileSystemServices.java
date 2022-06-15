@@ -88,6 +88,7 @@ import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
@@ -208,6 +209,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
+            FileChangeListeners fileChangeListeners,
             FileSystem fileSystem,
             GlobalCacheLocations globalCacheLocations,
             WatchableFileSystemDetector watchableFileSystemDetector
@@ -221,13 +223,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
                 OperatingSystem.current(),
                 nativeCapabilities,
-                watchableFileSystemDetector,
                 watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     rootReference,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
-                    locationsWrittenByCurrentBuild
+                    locationsWrittenByCurrentBuild,
+                    watchableFileSystemDetector,
+                    fileChangeListeners
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState -> {
@@ -286,17 +289,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
             OperatingSystem operatingSystem,
             NativeCapabilities nativeCapabilities,
-            WatchableFileSystemDetector watchableFileSystemDetector,
             Predicate<String> watchFilter
         ) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     LOGGER.debug("Native file system watching is not available for this operating system.", e);
@@ -328,6 +330,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
             return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
         }
+
+        FileChangeListeners createFileChangeListeners(ListenerManager listenerManager) {
+            return new DefaultFileChangeListeners(listenerManager);
+        }
+
     }
 
     @VisibleForTesting
@@ -408,10 +415,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         InputFingerprinter createInputFingerprinter(
+            FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter
         ) {
-            return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
+            return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
@@ -440,4 +448,5 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     interface WatchFilter extends Predicate<String> {
     }
+
 }

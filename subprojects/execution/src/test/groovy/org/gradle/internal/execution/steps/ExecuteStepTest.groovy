@@ -22,9 +22,8 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import spock.lang.Unroll
 
-class ExecuteStepTest extends StepSpec<InputChangesContext> {
+class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
     def workspace = Mock(File)
     def previousOutputs = ImmutableSortedMap.of()
     def previousExecutionState = Stub(PreviousExecutionState) {
@@ -35,8 +34,8 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
     def inputChanges = Mock(InputChangesInternal)
 
     @Override
-    protected InputChangesContext createContext() {
-        Stub(InputChangesContext)
+    protected ChangingOutputsContext createContext() {
+        Stub(ChangingOutputsContext)
     }
 
     def setup() {
@@ -44,7 +43,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         _ * context.getPreviousExecutionState() >> Optional.of(previousExecutionState)
     }
 
-    @Unroll
     def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
         when:
         def result = step.execute(work, context)
@@ -71,7 +69,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
 
-    @Unroll
     def "failure #failure.class.simpleName is handled"() {
         when:
         def result = step.execute(work, context)
@@ -94,7 +91,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         failure << [new RuntimeException(), new Error()]
     }
 
-    @Unroll
     def "incremental work with result #workResult yields outcome #expectedOutcome (executed incrementally: #incrementalExecution)"() {
         when:
         def result = step.execute(work, context)

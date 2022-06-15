@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
@@ -58,6 +59,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
@@ -66,9 +68,8 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
@@ -77,7 +78,6 @@ import org.gradle.util.TestUtil
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
@@ -760,7 +760,6 @@ class DefaultConfigurationSpec extends Specification {
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    @Unroll
     void "copies configuration role"() {
         def configuration = prepareConfigurationForCopyTest()
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -1765,11 +1764,31 @@ All Artifacts:
         _ * domainObjectContext.buildPath >> Path.path(buildPath)
         _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
-        def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
-        new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-            Factories.constant(resolutionStrategy), TestFiles.fileCollectionFactory(), new TestBuildOperationExecutor(), instantiator,
-            publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry),
-            userCodeApplicationContext, domainObjectContext, projectStateRegistry, Stub(WorkerThreadRegistry), TestUtil.domainObjectCollectionFactory(), calculatedValueContainerFactory)
+        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
+            instantiator,
+            metaDataProvider,
+            Mock(TaskResolver),
+            TestFiles.resolver(),
+        )
+        def defaultConfigurationFactory = new DefaultConfigurationFactory(
+            DirectInstantiator.INSTANCE,
+            resolver,
+            listenerManager,
+            metaDataProvider,
+            domainObjectContext,
+            TestFiles.fileCollectionFactory(),
+            new TestBuildOperationExecutor(),
+            publishArtifactNotationParser,
+            immutableAttributesFactory,
+            Stub(DocumentationRegistry),
+            userCodeApplicationContext
+            ,
+            projectStateRegistry,
+            Stub(WorkerThreadRegistry),
+            TestUtil.domainObjectCollectionFactory(),
+            calculatedValueContainerFactory
+        )
+        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder)
     }
 
     private DefaultPublishArtifact artifact(String name) {

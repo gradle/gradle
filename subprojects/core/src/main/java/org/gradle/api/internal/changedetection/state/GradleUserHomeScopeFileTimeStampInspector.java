@@ -38,6 +38,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     private final Object lock = new Object();
     private long currentTimestamp;
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
+    private boolean isCurrentTimestampHighPrecision;
 
     public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCache globalScopedCache) {
         super(globalScopedCache.baseDirForCache("file-changes"));
@@ -51,17 +52,20 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     public void afterStart() {
         updateOnStartBuild();
         currentTimestamp = currentTimestamp();
+        isCurrentTimestampHighPrecision = isHighTimestampPrecision(currentTimestamp);
     }
 
     @Override
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
-        synchronized (lock) {
-            if (timestamp == currentTimestamp) {
-                filesWithCurrentTimestamp.add(file);
-            } else if (timestamp > currentTimestamp) {
-                filesWithCurrentTimestamp.clear();
-                filesWithCurrentTimestamp.add(file);
-                currentTimestamp = timestamp;
+        if (!isReliableTimestampPrecision(timestamp)) {
+            synchronized (lock) {
+                if (timestamp == currentTimestamp) {
+                    filesWithCurrentTimestamp.add(file);
+                } else if (timestamp > currentTimestamp) {
+                    filesWithCurrentTimestamp.clear();
+                    filesWithCurrentTimestamp.add(file);
+                    currentTimestamp = timestamp;
+                }
             }
         }
 
@@ -83,5 +87,23 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
                 filesWithCurrentTimestamp.clear();
             }
         }
+    }
+
+    /**
+     * Detects whether the file system has a reliable high precision timestamp.
+     *
+     * If `isCurrentTimestampHighPrecision` is in `millisecond` precision, then all file timestamps will have `millisecond` precision
+     * since we check all Java APIs that can return a high or a low precision, and we choose the one with the lowest precision.
+     *
+     * In case `isCurrentTimestampHighPrecision` is in the `second` precision, then we check also the provided timestamp.
+     * And if the provided timestamp is in `millisecond` precision, then we will definitely detect changes for that file correctly.
+     * But if it's in `second` precision we might not detect changes, and we might need to discard the hash at the end of the build.
+     */
+    private boolean isReliableTimestampPrecision(long timestamp) {
+        return isCurrentTimestampHighPrecision || isHighTimestampPrecision(timestamp);
+    }
+
+    private static boolean isHighTimestampPrecision(long fileTimestamp) {
+        return fileTimestamp % 1000 != 0;
     }
 }

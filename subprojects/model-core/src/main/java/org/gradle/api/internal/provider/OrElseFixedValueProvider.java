@@ -29,6 +29,11 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
         this.fallbackValue = fallbackValue;
     }
 
+    @Override
+    public String toString() {
+        return String.format("or(%s, fixed(%s))", provider, fallbackValue);
+    }
+
     @Nullable
     @Override
     public Class<T> getType() {

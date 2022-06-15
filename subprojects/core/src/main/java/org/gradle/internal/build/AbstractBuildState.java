@@ -27,9 +27,11 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.function.Function;
 
-public abstract class AbstractBuildState implements BuildState {
+public abstract class AbstractBuildState implements BuildState, Closeable {
     private final BuildScopeServices buildServices;
     private final Lazy<BuildLifecycleController> buildLifecycleController;
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
@@ -51,6 +53,11 @@ public abstract class AbstractBuildState implements BuildState {
 
     protected BuildScopeServices getBuildServices() {
         return buildServices;
+    }
+
+    @Override
+    public void close() throws IOException {
+        buildServices.close();
     }
 
     @Override

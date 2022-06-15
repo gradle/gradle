@@ -79,7 +79,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
@@ -91,7 +90,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CachingComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
@@ -124,7 +122,6 @@ import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
@@ -139,7 +136,6 @@ import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
@@ -166,7 +162,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
@@ -261,8 +256,7 @@ class DependencyManagementBuildScopeServices {
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                                     ObjectFactory objects,
                                                                                     ProviderFactory providers,
-                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                                                                    FeaturePreviews featurePreviews) {
+                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
@@ -271,8 +265,7 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator,
-            featurePreviews
+            collectionCallbackActionDecorator
         );
     }
 
@@ -291,11 +284,9 @@ class DependencyManagementBuildScopeServices {
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
-        ProjectAccessListener projectAccessListener,
         ImmutableAttributesFactory attributesFactory) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
     }
 
     DependencyFactory createDependencyFactory(
@@ -582,10 +573,6 @@ class DependencyManagementBuildScopeServices {
             calculatedValueContainerFactory);
     }
 
-    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
-        return new CachingComponentSelectionDescriptorFactory();
-    }
-
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
@@ -600,7 +587,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                                                 InstantiatorFactory instantiatorFactory,
                                                                 ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                                FeaturePreviews featurePreviews,
                                                                 CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -617,7 +603,6 @@ class DependencyManagementBuildScopeServices {
             componentMetadataSupplierRuleExecutor,
             instantiatorFactory,
             componentSelectionDescriptorFactory,
-            featurePreviews,
             calculatedValueContainerFactory);
     }
 
@@ -625,24 +610,15 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry,
-                                                          LocalComponentMetadataBuilder metaDataBuilder,
-                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          BuildState currentBuild,
-                                                          CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return new DefaultProjectLocalComponentProvider(projectStateRegistry, metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier(), calculatedValueContainerFactory);
-    }
-
-    LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {
-        return new DefaultLocalComponentRegistry(providers);
+    LocalComponentProvider createProjectComponentProvider(
+        LocalComponentMetadataBuilder metaDataBuilder,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory);
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
         return new DefaultComponentSelectorConverter(componentIdentifierFactory, localComponentRegistry);
-    }
-
-    VersionParser createVersionParser() {
-        return new VersionParser();
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
@@ -756,15 +732,14 @@ class DependencyManagementBuildScopeServices {
             new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreExecutionStateStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
+            new ResolveInputChangesStep<>(
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter, outputChangeListener,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))));
+        ))))))))))))))))));
         // @formatter:on
     }
 

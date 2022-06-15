@@ -16,10 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Unroll
-
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    @Unroll
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -35,7 +32,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'")
             problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'")
@@ -47,7 +44,6 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #block block to access dynamically added elements"() {
         settingsFile << """
             include("a")
@@ -66,7 +62,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'", 3)
             problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'", 3)

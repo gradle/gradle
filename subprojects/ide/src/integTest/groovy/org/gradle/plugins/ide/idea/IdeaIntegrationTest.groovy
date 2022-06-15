@@ -98,8 +98,6 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void worksWithNonStandardLayout() {
-        executer.expectDocumentedDeprecationWarning("Subproject ':a_child' has location '${file("a child project").absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
-        executer.expectDocumentedDeprecationWarning("Subproject ':top-level' has location '${file().absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
         executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')
@@ -120,8 +118,8 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     void addsScalaSdkAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
-        hasProjectLibrary('root.ipr', 'scala-sdk-2.10.0', [], [], [], ['compiler-bridge_2.10', 'scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface', 'protobuf-java'])
-        hasProjectLibrary('root.ipr', 'scala-sdk-2.11.2', [], [], [], ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface', 'protobuf-java'])
+        hasProjectLibrary('root.ipr', 'scala-sdk-2.10.0', [], [], [], ['compiler-bridge_2.10', 'scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface'])
+        hasProjectLibrary('root.ipr', 'scala-sdk-2.11.2', [], [], [], ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface'])
         def scalaLibs = [
             'scala3-compiler_3-3.0.1.', 'scala3-sbt-bridge-3.0.1.', 'scala3-interfaces-3.0.1.', 'tasty-core_3-3.0.1.',
             'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.',
@@ -146,8 +144,8 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     void addsScalaFacetAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
-        hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['compiler-bridge_2.10', 'scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface', 'protobuf-java'], [], [], [])
-        hasProjectLibrary('root.ipr', 'scala-compiler-2.11.2', ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface', 'protobuf-java'], [], [], [])
+        hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['compiler-bridge_2.10', 'scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface'], [], [], [])
+        hasProjectLibrary('root.ipr', 'scala-compiler-2.11.2', ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface'], [], [], [])
         def scalaLibs = [
             'scala3-compiler_3-3.0.1.', 'scala3-sbt-bridge-3.0.1.', 'scala3-interfaces-3.0.1.', 'tasty-core_3-3.0.1.',
             'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.',

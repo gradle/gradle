@@ -22,7 +22,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import spock.lang.Unroll
 
 import javax.annotation.Nullable
 
@@ -166,7 +165,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
-    @Unroll
     def "cacheability for a task with no actions is UNKNOWN (cacheable: #cacheable)"() {
         buildFile << """
             class NoActions extends DefaultTask {}
@@ -184,7 +182,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         cacheable << [true, false]
     }
 
-    @Unroll
     def "cacheability for a task with @#annotation file tree outputs is NON_CACHEABLE_TREE_OUTPUT"() {
         buildFile << """
             @CacheableTask

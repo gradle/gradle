@@ -81,7 +81,7 @@ class TomlWriter {
     }
 
     private void writeLibraries(DefaultVersionCatalog model) {
-        List<String> aliases = model.getDependencyAliases();
+        List<String> aliases = model.getLibraryAliases();
         if (aliases.isEmpty()) {
             return;
         }

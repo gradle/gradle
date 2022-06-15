@@ -70,6 +70,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     def setup() {
         // Required for the lenient classpath mode
         toolingApi.requireDaemons()
+        // Only Kotlin settings scripts
+        settingsFile.delete()
+        file("settings.gradle.kts").touch()
     }
 
     private String defaultSettingsScript = ""

@@ -75,7 +75,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         model3.message == "this is the root project"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")

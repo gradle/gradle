@@ -87,13 +87,14 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     private
     fun getBuildCommands(): Array<String> {
         val buildCommands = mutableListOf(
-            "./gradlew" + (if (OperatingSystem.current().isWindows()) ".bat" else ""),
+            "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
             "--no-configuration-cache",
             "clean",
             ":distributions-full:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
             ":tooling-api:installToolingApiShadedJar",
-            "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath
+            "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
+            "-PbuildCommitDistribution=true"
         )
 
         if (project.gradle.startParameter.isBuildCacheEnabled) {

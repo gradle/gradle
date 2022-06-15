@@ -40,6 +40,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.String.format;
+import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+
 public class ZipFileTree extends AbstractArchiveFileTree {
     private final Provider<File> fileProvider;
     private final File tmpDir;
@@ -47,11 +50,13 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
 
-    public ZipFileTree(Provider<File> zipFile,
-                       File tmpDir,
-                       Chmod chmod,
-                       DirectoryFileTreeFactory directoryFileTreeFactory,
-                       FileHasher fileHasher) {
+    public ZipFileTree(
+        Provider<File> zipFile,
+        File tmpDir,
+        Chmod chmod,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        FileHasher fileHasher
+    ) {
         this.fileProvider = zipFile;
         this.tmpDir = tmpDir;
         this.chmod = chmod;
@@ -66,7 +71,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
     @Override
     public String getDisplayName() {
-        return String.format("ZIP '%s'", fileProvider.getOrNull());
+        return format("ZIP '%s'", fileProvider.getOrNull());
     }
 
     @Override
@@ -78,41 +83,40 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     public void visit(FileVisitor visitor) {
         File zipFile = fileProvider.get();
         if (!zipFile.exists()) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s as it does not exist.", getDisplayName()));
+            throw new InvalidUserDataException(format("Cannot expand %s as it does not exist.", getDisplayName()));
         }
         if (!zipFile.isFile()) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
+            throw new InvalidUserDataException(format("Cannot expand %s as it is not a file.", getDisplayName()));
         }
 
         AtomicBoolean stopFlag = new AtomicBoolean();
-
-        try {
-            ZipFile zip = new ZipFile(zipFile);
-            File expandedDir = getExpandedDir();
-            try {
-                // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
-                // to us. So, collect the entries in a map and iterate over them in alphabetical order.
-                Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
-                Enumeration entries = zip.getEntries();
-                while (entries.hasMoreElements()) {
-                    ZipEntry entry = (ZipEntry) entries.nextElement();
-                    entriesByName.put(entry.getName(), entry);
+        File expandedDir = getExpandedDir();
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
+            // to us. So, collect the entries in a map and iterate over them in alphabetical order.
+            Iterator<ZipEntry> sortedEntries = entriesSortedByName(zip);
+            while (!stopFlag.get() && sortedEntries.hasNext()) {
+                ZipEntry entry = sortedEntries.next();
+                DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod);
+                if (entry.isDirectory()) {
+                    visitor.visitDir(details);
+                } else {
+                    visitor.visitFile(details);
                 }
-                Iterator<ZipEntry> sortedEntries = entriesByName.values().iterator();
-                while (!stopFlag.get() && sortedEntries.hasNext()) {
-                    ZipEntry entry = sortedEntries.next();
-                    if (entry.isDirectory()) {
-                        visitor.visitDir(new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod));
-                    } else {
-                        visitor.visitFile(new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod));
-                    }
-                }
-            } finally {
-                zip.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
+            throw new GradleException(format("Could not expand %s.", getDisplayName()), e);
         }
+    }
+
+    private Iterator<ZipEntry> entriesSortedByName(ZipFile zip) {
+        Map<String, ZipEntry> entriesByName = new TreeMap<>();
+        Enumeration<ZipEntry> entries = zip.getEntries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            entriesByName.put(entry.getName(), entry);
+        }
+        return entriesByName.values().iterator();
     }
 
     @Override
@@ -145,7 +149,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public String getDisplayName() {
-            return String.format("zip entry %s!%s", originalFile, entry.getName());
+            return format("zip entry %s!%s", originalFile, entry.getName());
         }
 
         @Override
@@ -156,12 +160,16 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                file = new File(expandedDir, entry.getName());
+                file = new File(expandedDir, safeEntryName());
                 if (!file.exists()) {
                     copyTo(file);
                 }
             }
             return file;
+        }
+
+        private String safeEntryName() {
+            return safeZipEntryName(entry.getName());
         }
 
         @Override
@@ -190,21 +198,19 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public RelativePath getRelativePath() {
-            return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
+            return new RelativePath(!entry.isDirectory(), safeEntryName().split("/"));
         }
 
         @Override
         public int getMode() {
             int unixMode = entry.getUnixMode() & 0777;
-            if (unixMode == 0) {
-                //no mode infos available - fall back to defaults
-                if (isDirectory()) {
-                    unixMode = FileSystem.DEFAULT_DIR_MODE;
-                } else {
-                    unixMode = FileSystem.DEFAULT_FILE_MODE;
-                }
+            if (unixMode != 0) {
+                return unixMode;
             }
-            return unixMode;
+            //no mode infos available - fall back to defaults
+            return isDirectory()
+                ? FileSystem.DEFAULT_DIR_MODE
+                : FileSystem.DEFAULT_FILE_MODE;
         }
     }
 }

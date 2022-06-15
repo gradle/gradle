@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
@@ -39,7 +38,6 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
-import static org.gradle.api.specs.Specs.satisfyNone;
 import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
@@ -47,7 +45,6 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 6.9
  */
-@Incubating
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
@@ -66,14 +63,13 @@ public abstract class ConventionReportTask extends ConventionTask {
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
     }
 
     protected ConventionReportTask() {
         reportDir = getProject().getObjects().directoryProperty();
-        getOutputs().upToDateWhen(satisfyNone());
+        doNotTrackState("Uses the whole project state as an input");
     }
 
     @Internal

@@ -17,13 +17,15 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.vcs.fixtures.GitFileRepository
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Requires(TestPrecondition.JDK11_OR_LATER)
 class JGitPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def 'org.ajoberstar.grgit plugin'() {

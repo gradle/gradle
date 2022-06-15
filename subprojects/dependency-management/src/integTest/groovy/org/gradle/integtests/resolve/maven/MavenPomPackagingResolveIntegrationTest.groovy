@@ -104,7 +104,6 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
         file('libs').assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "for a snapshot module with packaging of type 'pom', will check for jar artifact that was previously missing on cache expiry"() {
         when:
         def snapshotA = repo1.module('group', 'projectA', '1.1-SNAPSHOT')
@@ -170,7 +169,7 @@ if (project.hasProperty('skipCache')) {
         skipped ':retrieve'
     }
 
-    def "will use jar artifact for pom with packaging that maps to jar"() {
+    def "will use jar artifact for pom with packaging (#packaging) that maps to jar"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
         projectARepo1.hasPackaging(packaging).publish()
