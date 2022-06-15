@@ -29,17 +29,18 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites.configureEach { // <1>
+    suites.withType(JvmTestSuite).matching { ['test', 'secondaryTest'].contains(it.name) }.configureEach { // <1>
         useJUnitJupiter()
-        dependencies { // <2>
+        dependencies {
             implementation('org.mockito:mockito-junit-jupiter:4.6.1')
         }
     }
 
-    suites { // <3>
+    suites {
         secondaryTest(JvmTestSuite)
         tertiaryTest(JvmTestSuite) {
-            dependencies { // <4>
+            useJUnit() // <2>
+            dependencies { // <3>
                 implementation('org.apache.commons:commons-lang3:3.11')
             }
         }
@@ -54,8 +55,8 @@ tasks.register('checkDependencies') {
         assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
         assert configurations.secondaryTestRuntimeClasspath.files.size() == 12
         assert configurations.secondaryTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.tertiaryTestRuntimeClasspath.files.size() == 13
-        assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert configurations.tertiaryTestRuntimeClasspath.files.size() == 3
+        assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
         assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
     }
 }
