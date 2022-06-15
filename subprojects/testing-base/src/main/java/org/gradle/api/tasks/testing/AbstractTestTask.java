@@ -685,7 +685,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (testSuiteTarget.isPresent()) {
                 throw new TestSuiteVerificationException(message, reportUrl, testSuiteTarget.get());
             } else {
-                throw new VerificationException(message.concat("See the report at: ".concat(reportUrl)));
+                throw new VerificationException(message.concat(" See the report at: ".concat(reportUrl)));
             }
         }
     }

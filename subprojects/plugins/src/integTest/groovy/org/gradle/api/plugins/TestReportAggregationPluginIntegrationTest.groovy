@@ -19,8 +19,6 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 
-import static org.hamcrest.CoreMatchers.startsWith
-
 class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -427,7 +425,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
-               .assertThatCause(startsWith("There were failing tests"))
+               .assertCausedByFailingTestsInDefaultTestSuite()
         result.assertTaskNotExecuted(':application:testAggregateTestReport')
 
         file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()

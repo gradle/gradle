@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import spock.lang.Issue
 
-import static org.hamcrest.CoreMatchers.startsWith
-
 class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
@@ -548,7 +546,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
-            .assertThatCause(startsWith("There were failing tests"))
+            .assertCausedByFailingTestsInDefaultTestSuite()
         result.assertTaskNotExecuted(':application:testCodeCoverageReport"')
 
         file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertDoesNotExist()
