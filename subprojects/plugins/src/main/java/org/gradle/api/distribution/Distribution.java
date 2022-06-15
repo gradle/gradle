@@ -44,6 +44,13 @@ public interface Distribution extends Named {
     Property<String> getDistributionBaseName();
 
     /**
+     * The archive classifier of the distribution.
+     * @since 7.6
+     */
+    @Incubating
+    Property<String> getArchiveClassifier();
+
+    /**
      * The contents of the distribution.
      */
     CopySpec getContents();
@@ -68,11 +75,4 @@ public interface Distribution extends Named {
      * The DSL inside the {@code contents\{} } block is the same DSL used for Copy tasks.
      */
     CopySpec contents(Action<? super CopySpec> action);
-
-    /**
-     * The archive classifier of the distribution.
-     * @since 7.4
-     */
-    @Incubating
-    Property<String> getArchiveClassifier();
 }
