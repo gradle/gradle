@@ -195,7 +195,7 @@ There are several ways to share configuration between multiple test suites and a
 
 === Method 1: Use `configureEach`
 
-This is the most straightforward way to share configuration across _every_ test suite.  The configurations is lazily run for each test suite as it is created.
+This is the most straightforward way to share configuration across _every_ test suite.  The configurations is lazily applied to each test suite as it is created.
 
 ====
 include::sample[dir="snippets/testing/test-suite-multi-configure-each/groovy",files="build.gradle[tags=multi-configure]"]
@@ -219,6 +219,20 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/k
 <1> Lazily configure every JVM test suite matching the given criteria
 <2> Use a different testing framework for the `tertiaryTest` test suite
 <3> Add dependencies specific to the `tertiaryTest` test suite
+
+
+=== Method 3: Extract a custom configuration block
+
+This method is the most flexible, but also the most imperative.
+
+====
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/groovy",files="build.gradle[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+====
+
+<1> Define a closure which takes a single `JvmTestSuite` parameter and configures it
+<2> Lazily apply the closure to a test suite, using the default (`test`) test suite
+<3> Alternate means of _eagerly_ applying a configuration closure to a test suite outside of its declaration, using the `secondaryTest` test suite
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
