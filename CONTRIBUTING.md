@@ -59,6 +59,8 @@ NOTE: Due to the project size, the very first import can take a while and Intell
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
+If you did not have a Java 11 SDK installed before importing the project into IntelliJ and after adding a Java 11 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
+
 ## Making your change
 
 ### Code change guidelines
