@@ -44,7 +44,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultArtifactResolutionQueryTest extends Specification {
     def configurationContainerInternal = Stub(ConfigurationContainerInternal)
@@ -84,7 +83,6 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         e.message == "Must specify component type and artifacts to query."
     }
 
-    @Unroll
     def "invalid component type #selectedComponentType and artifact type #selectedArtifactType is wrapped in UnresolvedComponentResult"() {
         withArtifactResolutionInteractions()
 

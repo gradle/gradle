@@ -157,8 +157,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
                 excludes,
                 attributes,
                 capabilities,
-                false,
-                false,
+                    false,
                 isExternalVariant);
 
             ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();

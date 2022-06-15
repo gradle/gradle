@@ -24,7 +24,6 @@ import org.gradle.configuration.internal.ExecuteListenerBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import spock.lang.Unroll
 
 class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,7 +32,6 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     private static Closure fooTaskRealizationOpsQuery = { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':foo' }) }
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
 
-    @Unroll
     def '#containerType container callbacks emit registrant when using #callbackName callback(before creation registered)'() {
         given:
         callbackScript(containerAccess, callbackName)
@@ -91,7 +89,6 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         'all'                                | 'distributions'            | ['distribution'] | 'distributions'                                              | createFooDistributions()            | addingPluginBuildOpQuery
     }
 
-    @Unroll
     def '#containerName container callbacks emit registrant with #callbackName callback(after creation registered)'() {
         given:
         callbackScript(containerAccess, callbackName)
@@ -246,7 +243,6 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         tasksContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
     }
 
-    @Unroll
     def "filtered #container container callbacks emit build operation with application id for matching items only"() {
         given:
         file('script.gradle') << """

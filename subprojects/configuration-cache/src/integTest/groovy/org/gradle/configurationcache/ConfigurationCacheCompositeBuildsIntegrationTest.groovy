@@ -97,8 +97,8 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         }
     }
 
-    private static List<BuildOperationRecord> parentsOf(BuildOperationRecord record, BuildOperationTreeQueries operations) {
-        operations.parentsOf(record).findAll {
+    private static List<BuildOperationRecord> parentsOf(BuildOperationRecord buildOperationRecord, BuildOperationTreeQueries operations) {
+        operations.parentsOf(buildOperationRecord).findAll {
             // remove intermediate configuration cache state operation from the tree
             it.displayName != 'Load configuration cache state'
         }
@@ -130,7 +130,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def confCacheDir = file("./app/.gradle/configuration-cache")
         confCacheDir.isDirectory()
         def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
-        confCacheFiles.size() == 4 // header, fingerprint, root build state file, included build state file
+        confCacheFiles.size() == 5 // header, 2 * fingerprint, root build state file, included build state file
         if (!OperatingSystem.current().isWindows()) {
             confCacheFiles.forEach {
                 assert confCacheDir.file(it).mode == 384

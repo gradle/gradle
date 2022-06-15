@@ -33,9 +33,9 @@ import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.ClosureBackedAction;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -65,7 +65,7 @@ import java.util.Set;
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Not worth caching")
+@UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
     private final DirectoryProperty reportDir;
@@ -75,7 +75,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
         reportDir = getObjectFactory().directoryProperty();
         reports.getHtml().getRequired().set(true);
-        getOutputs().upToDateWhen(element -> false);
     }
 
     /**

@@ -68,7 +68,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
 
         [buildA, buildB].each {
             it.buildFile << """
-    if (providers.systemProperty('passedProperty').forUseAtConfigurationTime().orNull != "foo") {
+    if (providers.systemProperty('passedProperty').orNull != "foo") {
         throw new RuntimeException("property not passed to build")
     }
 """

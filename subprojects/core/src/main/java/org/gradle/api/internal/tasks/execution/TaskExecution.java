@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
@@ -53,7 +51,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -96,6 +93,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
+@SuppressWarnings("deprecation")
 public class TaskExecution implements UnitOfWork {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
     private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
@@ -105,11 +103,10 @@ public class TaskExecution implements UnitOfWork {
     private final TaskExecutionContext context;
     private final boolean emitLegacySnapshottingOperations;
 
-    private final TaskActionListener actionListener;
+    private final org.gradle.api.execution.TaskActionListener actionListener;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final ExecutionHistoryStore executionHistoryStore;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileOperations fileOperations;
@@ -123,11 +120,10 @@ public class TaskExecution implements UnitOfWork {
         TaskExecutionContext context,
         boolean emitLegacySnapshottingOperations,
 
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations,
@@ -143,7 +139,6 @@ public class TaskExecution implements UnitOfWork {
         this.actionListener = actionListener;
         this.asyncWorkTracker = asyncWorkTracker;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
         this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -198,7 +193,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class) || listenerManager.hasListeners(TaskExecutionListener.class);
+        boolean hasTaskListener = listenerManager.hasListeners(org.gradle.api.execution.TaskActionListener.class) || listenerManager.hasListeners(org.gradle.api.execution.TaskExecutionListener.class);
         Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
         while (actions.hasNext()) {
             InputChangesAwareTaskAction action = actions.next();
@@ -474,15 +469,6 @@ public class TaskExecution implements UnitOfWork {
             typeValidationContext
         ));
         context.getValidationAction().validate(context.getTaskExecutionMode().isTaskHistoryMaintained(), typeValidationContext);
-    }
-
-    @Override
-    public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles) {
-        TaskProperties properties = context.getTaskProperties();
-        FileCollection inputFiles = properties.getInputFiles();
-        FileCollection sourceFiles = properties.getSourceFiles();
-        boolean hasSourceFiles = properties.hasSourceFiles();
-        return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, previousOutputFiles);
     }
 
     @Override

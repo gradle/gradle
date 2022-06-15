@@ -20,17 +20,8 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
-import spock.lang.Retry
-import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
-
-// Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
-@Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
@@ -52,7 +43,6 @@ apply plugin: 'java'
 task postCompile {
     doLast {
         if (!file('change-triggered').exists()) {
-            sleep(500) // attempt to workaround JDK-8145981
             println "Modifying 'Thing.java' after initial compile task"
             file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
             file('change-triggered').text = 'done'
@@ -84,9 +74,8 @@ jar.dependsOn postCompile
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3460")
     @UnsupportedWithConfigurationCache(because = "taskGraph.afterTask")
-    def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
+    def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed (changed: #changingInput)"() {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -94,27 +83,30 @@ jar.dependsOn postCompile
         buildFile << """
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast {}
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast {}
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast {}
             }
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast {}
             }
 
             gradle.taskGraph.afterTask { Task task ->
                 if(task.path == ':$changingInput' && !file('change-triggered').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
                    file('$changingInput/input.txt').text = 'New input file'
                    file('change-triggered').text = 'done'
                 }
@@ -133,8 +125,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3460")
-    def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
+    def "new build should be triggered when input files to tasks are changed during the task is executing (changed: #changingInput)"() {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -144,7 +135,6 @@ jar.dependsOn postCompile
             def inputFile = file('$changingInput/input.txt')
             def taskAction = { Task task ->
                 if (task.path == ':$changingInput' && !changeTriggerFile.exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
                    inputFile.text = 'New input file'
                    changeTriggerFile.text = 'done'
                 }
@@ -152,21 +142,25 @@ jar.dependsOn postCompile
 
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast taskAction
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast taskAction
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast taskAction
             }
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast taskAction
             }
         """
@@ -183,8 +177,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @Unroll
-    def "check build executing and failing in task :c - change in :#changingInput"(changingInput, shouldTrigger) {
+    def "#description for change in #changingInput and failure in task :c"() {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -192,16 +185,19 @@ jar.dependsOn postCompile
         buildFile << """
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast {}
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast {}
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast {
                 throw new Exception("Failure in :c")
               }
@@ -209,6 +205,7 @@ jar.dependsOn postCompile
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast {}
             }
         """
@@ -221,7 +218,7 @@ jar.dependsOn postCompile
 
         then:
         if (shouldTrigger) {
-            fails()
+            buildTriggeredAndFailed()
         } else {
             noBuildTriggered()
         }
@@ -233,5 +230,6 @@ jar.dependsOn postCompile
         'b'           | true
         'c'           | true
         'd'           | false
+        description = shouldTrigger ? "build should be triggered" : "build should not be triggered"
     }
 }

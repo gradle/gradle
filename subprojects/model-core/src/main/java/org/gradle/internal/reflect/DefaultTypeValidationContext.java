@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     private final boolean reportCacheabilityProblems;
@@ -37,7 +38,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     }
 
     private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
-        super(documentationRegistry, rootType, null);
+        super(documentationRegistry, rootType, Optional::empty);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
@@ -53,6 +54,4 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     public ImmutableMap<String, Severity> getProblems() {
         return problems.build();
     }
-
-
 }

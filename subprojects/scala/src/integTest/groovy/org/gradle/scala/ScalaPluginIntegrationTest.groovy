@@ -17,7 +17,6 @@ package org.gradle.scala
 
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
@@ -208,7 +207,7 @@ task someTask
 
         then:
         def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
         if (GradleContextualExecuter.isConfigCache()) {
             // Nested in the CC problems report
             failure.assertHasFailures(2)
@@ -220,7 +219,6 @@ task someTask
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "trying to use an old version of Zinc switches to Gradle-supported version"() {
         settingsFile << """
             rootProject.name = "scala"
@@ -241,5 +239,23 @@ task someTask
         expect:
         succeeds("assemble")
         succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
+    }
+
+    @Issue("gradle/gradle#19300")
+    def 'show that log4j-core, if present, is 2_17_1 at the minimum'() {
+        given:
+        file('build.gradle') << """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+        """
+
+        def versionPattern = ~/.*-> 2\.(\d+).*/
+        expect:
+        succeeds('dependencies', '--configuration', 'zinc')
+        def log4jOutput = result.getOutputLineThatContains("log4j-core:{require 2.17.1; reject [2.0, 2.17.1)}")
+        def matcher = log4jOutput =~ versionPattern
+        matcher.find()
+        Integer.valueOf(matcher.group(1)) >= 16
     }
 }

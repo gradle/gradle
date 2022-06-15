@@ -24,7 +24,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 
@@ -116,7 +115,14 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Deprecated
     @Override
     public final Provider<T> forUseAtConfigurationTime() {
-        // TODO:configuration-cache nag user
+        /*
+ TODO:configuration-cache start nagging in Gradle 8.x
+        DeprecationLogger.deprecateMethod(Provider.class, "forUseAtConfigurationTime")
+            .withAdvice("Simply remove the call.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "for_use_at_configuration_time_deprecation")
+            .nagUser();
+*/
         return this;
     }
 
@@ -155,7 +161,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public String toString() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("provider(%s)", GUtil.elvis(getType(), "?"));
+        Class<?> type = getType();
+        return String.format("provider(%s)", type == null ? "?" : type.getName());
     }
 
     @Override

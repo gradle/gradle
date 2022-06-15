@@ -1,1 +1,0 @@
-def enabled = providers.gradleProperty('some-property').forUseAtConfigurationTime().present

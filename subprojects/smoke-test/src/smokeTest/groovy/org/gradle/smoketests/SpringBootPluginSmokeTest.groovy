@@ -48,14 +48,16 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """.stripIndent()
 
         when:
-        def buildResult = runner('assembleBootDist', 'check').build()
+        def buildResult = runner('assembleBootDist', 'check')
+            .build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
         buildResult.task(':check').outcome == UP_TO_DATE // no tests
 
         when:
-        def runResult = runner('bootRun').build()
+        def runResult = runner('bootRun')
+            .build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS

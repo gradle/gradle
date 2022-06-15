@@ -40,8 +40,8 @@ class HtmlReportWriter(val writer: Writer) {
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(cacheAction: String, totalProblemCount: Int) {
-        jsonModelWriter.endModel(cacheAction, totalProblemCount)
+    fun endHtmlReport(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+        jsonModelWriter.endModel(cacheAction, requestedTasks, totalProblemCount)
         endReportData()
         writer.append(htmlTemplate.second)
     }

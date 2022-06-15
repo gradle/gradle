@@ -19,17 +19,16 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
-
 
 class IgnoringResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def resourceFilter = Mock(ResourceFilter)
     def hasher = new IgnoringResourceHasher(delegate, resourceFilter)
-    def snapshot = new RegularFileSnapshot("path", "path", HashCode.fromInt(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
+    def snapshot = new RegularFileSnapshot("path", "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
     def snapshotContext = new DefaultRegularFileSnapshotContext({path.split('/')}, snapshot)
 
     def "allows all resources when resource filter does not match"() {

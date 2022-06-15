@@ -32,7 +32,7 @@ import java.io.InputStream;
  */
 public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     private final Input input;
-    private final InputStream inputStream;
+    private InputStream inputStream;
     private long extraSkipped;
     private KryoBackedDecoder nested;
 
@@ -43,6 +43,12 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
     public KryoBackedDecoder(InputStream inputStream, int bufferSize) {
         this.inputStream = inputStream;
         input = new Input(this.inputStream, bufferSize);
+    }
+
+    public void restart(InputStream inputStream) {
+        this.inputStream = inputStream;
+        input.setInputStream(inputStream);
+        extraSkipped = 0;
     }
 
     @Override

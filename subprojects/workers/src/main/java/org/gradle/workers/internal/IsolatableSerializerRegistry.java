@@ -41,7 +41,7 @@ import org.gradle.internal.snapshot.impl.IsolatedList;
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
 import org.gradle.internal.snapshot.impl.IsolatedMap;
 import org.gradle.internal.snapshot.impl.IsolatedProperties;
-import org.gradle.internal.snapshot.impl.IsolatedSerializedValueSnapshot;
+import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedSet;
 import org.gradle.internal.snapshot.impl.LongValueSnapshot;
 import org.gradle.internal.snapshot.impl.MapEntrySnapshot;
@@ -101,7 +101,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         isolatableSerializers.put(MANAGED_VALUE, new IsolatedManagedValueSerializer());
         isolatableSerializers.put(IMMUTABLE_MANAGED_VALUE, new IsolatedImmutableManagedValueSerializer());
         isolatableSerializers.put(FILE_VALUE, new FileValueSnapshotSerializer());
-        isolatableSerializers.put(SERIALIZED_VALUE, new IsolatedSerializedValueSnapshotSerializer());
+        isolatableSerializers.put(SERIALIZED_VALUE, new IsolatedJavaSerializedValueSnapshotSerializer());
         isolatableSerializers.put(NULL_VALUE, new NullValueSnapshotSerializer());
         isolatableSerializers.put(ENUM_VALUE, new IsolatedEnumValueSnapshotSerializer());
         isolatableSerializers.put(ISOLATED_MAP, new IsolatedMapSerializer());
@@ -380,9 +380,9 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    private class IsolatedSerializedValueSnapshotSerializer implements IsolatableSerializer<IsolatedSerializedValueSnapshot> {
+    private class IsolatedJavaSerializedValueSnapshotSerializer implements IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
         @Override
-        public void write(Encoder encoder, IsolatedSerializedValueSnapshot value) throws Exception {
+        public void write(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
             encoder.writeByte(SERIALIZED_VALUE);
             encoder.writeString(value.getOriginalClass().getName());
             encoder.writeBinary(value.getImplementationHash().toByteArray());
@@ -390,17 +390,17 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        public IsolatedSerializedValueSnapshot read(Decoder decoder) throws Exception {
+        public IsolatedJavaSerializedValueSnapshot read(Decoder decoder) throws Exception {
             String originalClassName = decoder.readString();
             Class<?> originalClass = fromClassName(originalClassName);
             byte[] hashBytes = decoder.readBinary();
             byte[] serializedBytes = decoder.readBinary();
-            return new IsolatedSerializedValueSnapshot(HashCode.fromBytes(hashBytes), serializedBytes, originalClass);
+            return new IsolatedJavaSerializedValueSnapshot(HashCode.fromBytes(hashBytes), serializedBytes, originalClass);
         }
 
         @Override
-        public Class<IsolatedSerializedValueSnapshot> getIsolatableClass() {
-            return IsolatedSerializedValueSnapshot.class;
+        public Class<IsolatedJavaSerializedValueSnapshot> getIsolatableClass() {
+            return IsolatedJavaSerializedValueSnapshot.class;
         }
     }
 

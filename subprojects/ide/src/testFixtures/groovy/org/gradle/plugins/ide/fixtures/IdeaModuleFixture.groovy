@@ -41,7 +41,7 @@ class IdeaModuleFixture extends IdeProjectFixture {
     IdeaContentRoot getContent() {
         def contentRoot = iml.component.content
         def sourceFolders = contentRoot.sourceFolder.collect {
-            new SourceFolder(url: it.@url, isTestSource: "true" == it.@isTestSource)
+            new SourceFolder(url: it.@url, isTestSource: it.@isTestSource)
         }
         def excludeFolders = contentRoot.excludeFolder.collect {
             new ExcludeFolder(url: it.@url)

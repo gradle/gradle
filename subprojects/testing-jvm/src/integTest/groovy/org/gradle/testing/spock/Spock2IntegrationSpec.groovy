@@ -19,7 +19,7 @@ package org.gradle.testing.spock
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class Spock2IntegrationSpec extends AbstractIntegrationSpec {
-    private static final String SPOCK_VERSION = "2.0-groovy-3.0"
+    private static final String SPOCK_VERSION = "2.1-groovy-3.0"
 
     def setup() {
         buildScript("""
@@ -27,9 +27,7 @@ class Spock2IntegrationSpec extends AbstractIntegrationSpec {
                 id("groovy")
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation("org.spockframework:spock-core:$SPOCK_VERSION")
             }

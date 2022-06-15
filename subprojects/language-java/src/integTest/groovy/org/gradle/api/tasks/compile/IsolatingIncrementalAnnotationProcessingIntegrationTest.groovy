@@ -61,6 +61,25 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    @Issue("https://github.com/micronaut-projects/micronaut-core/issues/6536")
+    def "remembers generated files across multiple compilations"() {
+        given:
+        def a = java "@Helper class A {}"
+        def b = java "@Helper class B {}"
+        java "class Unrelated {}"
+        run "compileJava"
+        a.text = "@Helper class A { public void foo() {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        b.text = " class B { }"
+        run "compileJava"
+
+        then:
+        outputs.deletedFiles("BHelper", "BHelperResource")
+        outputs.recompiledFiles("B")
+    }
+
     def "generated files are recompiled when annotated file is affected by a change"() {
         given:
         def util = java "class Util {}"

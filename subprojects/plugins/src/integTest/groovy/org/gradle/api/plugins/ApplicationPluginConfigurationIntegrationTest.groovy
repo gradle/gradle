@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -63,7 +62,6 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
     def "can configure using project extension for main class and main module"() {
         settingsFile << """
             rootProject.name = 'test'

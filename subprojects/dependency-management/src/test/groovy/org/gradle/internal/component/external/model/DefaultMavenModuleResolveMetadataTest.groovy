@@ -34,7 +34,6 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyDescrip
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
@@ -120,7 +119,6 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         "maven-plugin" | false | true
     }
 
-    @Unroll
     def "recognises java library for packaging=#packaging"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
@@ -138,23 +136,29 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         assertHasOnlyStatusAttribute(compileConf.attributes)
         assertHasOnlyStatusAttribute(runtimeConf.attributes)
 
-        variantsForGraphTraversal.size() == 6
+        variantsForGraphTraversal.size() == 8
         variantsForGraphTraversal[0].name == "compile"
         variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"
         variantsForGraphTraversal[1].name == "runtime"
         variantsForGraphTraversal[1].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
-        variantsForGraphTraversal[2].name == "platform-compile"
-        variantsForGraphTraversal[2].attributes.getAttribute(stringUsageAttribute) == "java-api"
-        variantsForGraphTraversal[2].attributes.getAttribute(componentTypeAttribute) == "platform"
-        variantsForGraphTraversal[3].name == "platform-runtime"
+        variantsForGraphTraversal[2].name == "sources"
+        variantsForGraphTraversal[2].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        variantsForGraphTraversal[2].attributes.getAttribute(componentTypeAttribute) == "documentation"
+        variantsForGraphTraversal[3].name == "javadoc"
         variantsForGraphTraversal[3].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
-        variantsForGraphTraversal[3].attributes.getAttribute(componentTypeAttribute) == "platform"
-        variantsForGraphTraversal[4].name == "enforced-platform-compile"
+        variantsForGraphTraversal[3].attributes.getAttribute(componentTypeAttribute) == "documentation"
+        variantsForGraphTraversal[4].name == "platform-compile"
         variantsForGraphTraversal[4].attributes.getAttribute(stringUsageAttribute) == "java-api"
-        variantsForGraphTraversal[4].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
-        variantsForGraphTraversal[5].name == "enforced-platform-runtime"
+        variantsForGraphTraversal[4].attributes.getAttribute(componentTypeAttribute) == "platform"
+        variantsForGraphTraversal[5].name == "platform-runtime"
         variantsForGraphTraversal[5].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
-        variantsForGraphTraversal[5].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
+        variantsForGraphTraversal[5].attributes.getAttribute(componentTypeAttribute) == "platform"
+        variantsForGraphTraversal[6].name == "enforced-platform-compile"
+        variantsForGraphTraversal[6].attributes.getAttribute(stringUsageAttribute) == "java-api"
+        variantsForGraphTraversal[6].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
+        variantsForGraphTraversal[7].name == "enforced-platform-runtime"
+        variantsForGraphTraversal[7].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        variantsForGraphTraversal[7].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
 
         where:
         packaging << ["pom", "jar", "maven-plugin", "war", "aar"]

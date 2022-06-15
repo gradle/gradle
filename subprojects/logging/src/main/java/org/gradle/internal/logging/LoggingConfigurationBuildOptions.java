@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
@@ -130,7 +131,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         private LogLevel parseLogLevel(String value) {
             LogLevel logLevel = null;
             try {
-                logLevel = LogLevel.valueOf(value.toUpperCase());
+                logLevel = LogLevel.valueOf(value.toUpperCase(Locale.ENGLISH));
                 if (logLevel == LogLevel.ERROR) {
                     throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
                 }

@@ -41,7 +41,6 @@ import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.composite.IncludedRootBuild;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -50,7 +49,7 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.function.Function;
 
-class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
+class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState {
     private final ListenerManager listenerManager;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
     private boolean completed;
@@ -101,11 +100,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     @Override
     public IncludedBuildInternal getModel() {
         return new IncludedRootBuild(this);
-    }
-
-    @Override
-    public void stop() {
-        getBuildController().stop();
     }
 
     @Override

@@ -48,7 +48,14 @@ public class DuplicatePublicationTracker {
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
         for (PublicationWithProject previousPublicationWithProject : published.get(repositoryKey)) {
             if (previousPublicationWithProject.getPublication().getCoordinates().equals(projectIdentity)) {
-                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications " + previousPublicationWithProject + " and " + publicationWithProject + " will overwrite each other!");
+                String firstPublication = previousPublicationWithProject.toString();
+                String secondPublication = publicationWithProject.toString();
+                if (secondPublication.compareTo(firstPublication) < 0) {
+                    String temp = firstPublication;
+                    firstPublication = secondPublication;
+                    secondPublication = temp;
+                }
+                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications " + firstPublication + " and " + secondPublication + " will overwrite each other!");
             }
         }
 

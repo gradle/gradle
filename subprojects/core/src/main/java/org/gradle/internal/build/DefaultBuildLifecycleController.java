@@ -23,22 +23,22 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
-import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Describables;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State implements StateTransitionController.State {
         // Configuring the build, can access build model
@@ -52,11 +52,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
-    private final BuildCompletionListener buildCompletionListener;
     private final InternalBuildFinishedListener buildFinishedListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
-    private final BuildScopeServices buildServices;
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
     private final StateTransitionController<State> state;
@@ -68,11 +66,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
-        BuildCompletionListener buildCompletionListener,
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
-        BuildScopeServices buildServices,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
         StateTransitionControllerFactory controllerFactory
     ) {
@@ -82,9 +78,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildListener = buildListener;
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
-        this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
-        this.buildServices = buildServices;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
@@ -153,6 +147,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public void finalizeWorkGraph(BuildWorkPlan plan) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
         state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
+            for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
+                workPlan.plan.onComplete(handler);
+            }
             workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
@@ -212,22 +209,24 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         getGradle().addListener(listener);
     }
 
-    @Override
-    public void stop() {
-        try {
-            CompositeStoppable.stoppable(buildServices).stop();
-        } finally {
-            buildCompletionListener.completed();
-        }
-    }
-
     private static class DefaultBuildWorkPlan implements BuildWorkPlan {
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
+        private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
             this.owner = owner;
             this.plan = plan;
+        }
+
+        @Override
+        public void stop() {
+            plan.close();
+        }
+
+        @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            handlers.add(handler);
         }
     }
 

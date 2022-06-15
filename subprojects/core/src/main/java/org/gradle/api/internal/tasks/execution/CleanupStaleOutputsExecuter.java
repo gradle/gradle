@@ -89,7 +89,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             }
         }
         if (!filesToDelete.isEmpty()) {
-            outputChangeListener.beforeOutputChange(
+            outputChangeListener.invalidateCachesFor(
                 filesToDelete.stream()
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList())

@@ -26,7 +26,6 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 import spock.lang.TempDir
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
@@ -36,7 +35,6 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
     @TempDir
     File tempDir
 
-    @Unroll
     def "calculates hash for text file with #description"() {
         def file = file('foo') << contents
         def delegate = Mock(ResourceHasher)
@@ -62,7 +60,6 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         "utf8 content"            | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
     }
 
-    @Unroll
     def "calls delegate for binary files with #description"() {
         def file = file('foo') << contents
         def delegate = Mock(ResourceHasher)
@@ -140,7 +137,6 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         thrown(FileNotFoundException)
     }
 
-    @Unroll
     def "throws #exception.simpleName generated from delegate"() {
         def file = file('doesNotExist') << content.PNG_CONTENT
         def delegate = Mock(ResourceHasher)

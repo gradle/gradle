@@ -79,7 +79,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         for (String descLine : Splitter.on('\n').split(description)) {
             writeLn(" * " + descLine);
         }
-        List<String> libraries = config.getDependencyAliases();
+        List<String> libraries = config.getLibraryAliases();
         List<String> bundles = config.getBundleAliases();
         List<String> versions = config.getVersionAliases();
         List<String> plugins = config.getPluginAliases();
@@ -391,12 +391,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return "Version catalog " + config.getName();
     }
 
-    private void performValidation(List<String> dependencies, List<String> bundles, List<String> versions, List<String> plugins) {
-        assertUnique(dependencies, "dependency aliases", "");
+    private void performValidation(List<String> libraries, List<String> bundles, List<String> versions, List<String> plugins) {
+        assertUnique(libraries, "library aliases", "");
         assertUnique(bundles, "dependency bundles", "Bundle");
         assertUnique(versions, "dependency versions", "Version");
         assertUnique(plugins, "plugins", "Plugin");
-        int size = dependencies.size() + bundles.size() + versions.size() + plugins.size();
+        int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
             maybeThrowError(ERROR_HEADER, of(buildProblem(VersionCatalogProblemId.TOO_MANY_ENTRIES, spec ->
                 spec.inContext(this::standardErrorLocation)

@@ -78,14 +78,6 @@ class DefaultRootBuildStateTest extends Specification {
         build.buildIdentifier == DefaultBuildIdentifier.ROOT
     }
 
-    def "stops launcher on stop"() {
-        when:
-        build.stop()
-
-        then:
-        1 * controller.stop()
-    }
-
     def "runs action that does nothing"() {
         when:
         def result = build.run(action)

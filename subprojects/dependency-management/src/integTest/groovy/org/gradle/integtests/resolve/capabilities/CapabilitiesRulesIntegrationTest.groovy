@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -141,7 +140,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @Unroll
     def "can detect conflict with capability in different versions (#rule)"() {
         given:
         repository {
@@ -355,7 +353,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
     @Issue("gradle/gradle#12011")
     @ToBeFixedForConfigurationCache
-    @Unroll
     def "can detect capability conflict even when participants belong to a virtual platform (#first, #second)"() {
         given:
         repository {
@@ -418,5 +415,122 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         first   | second
         'aligned:foo:1.0'   | 'indirect:bar:1.0'
         'indirect:bar:1.0'  | 'aligned:foo:1.0'
+    }
+
+    @Issue('gradle/gradle#18494')
+    def 'two capabilities conflict when one is a transitive of the other resolve successfully'() {
+        given:
+        repository {
+            'jakarta:activation:1.0'()
+            'jakarta:xml:1.0' {
+                dependsOn 'jakarta:activation:1.0'
+            }
+            'javax:jaxb:1.0'()
+            'jakarta:xml:2.0'()
+            'sun:jaxb:1.0' {
+                dependsOn 'jakarta:xml:2.0'
+            }
+            'jersey:json:1.0' {
+                dependsOn 'sun:jaxb:1.0'
+            }
+            'hadoop:yarn:1.0' {
+                dependsOn 'javax:jaxb:1.0'
+                dependsOn 'jersey:json:1.0'
+            }
+            'javax:activation:1.0'()
+        }
+
+        buildFile << """
+project.dependencies.components.all { ComponentMetadataDetails details ->
+    def groupName = details.getId().getGroup() + ':' + details.getId().getName();
+
+    String capabilityGroup = null
+    String capabilityName = null
+    if (groupName == 'jakarta:xml' || groupName == 'javax:jaxb') {
+        capabilityGroup = 'capabilities'
+        capabilityName = 'xml'
+    }
+
+    if (groupName == 'javax:activation' || groupName == 'jakarta:activation') {
+        capabilityGroup = 'capabilities'
+        capabilityName = 'activation'
+    }
+
+    if (capabilityGroup != null) {
+        details.allVariants { v ->
+            v.withCapabilities { m ->
+                m.addCapability(capabilityGroup, capabilityName, '0')
+            }
+        }
+    }
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        capabilitiesResolution {
+            withCapability('capabilities', 'xml') {
+                select('jakarta:xml:1.0')
+            }
+            withCapability('capabilities', 'activation') {
+                select('jakarta:activation:1.0')
+            }
+        }
+        eachDependency { details ->
+            if (details.requested.name == 'xml' && details.requested.group == 'jakarta') {
+                details.useVersion('1.0')
+            }
+        }
+    }
+}
+
+dependencies {
+    conf 'jakarta:xml'
+    conf 'hadoop:yarn:1.0'
+    conf 'javax:activation:1.0'
+}
+"""
+        when:
+        repositoryInteractions {
+            'jakarta:activation:1.0' {
+                expectResolve()
+            }
+            'jakarta:xml:1.0' {
+                expectResolve()
+            }
+            'javax:jaxb:1.0' {
+                expectGetMetadata()
+            }
+            'sun:jaxb:1.0' {
+                expectResolve()
+            }
+            'jersey:json:1.0' {
+                expectResolve()
+            }
+            'hadoop:yarn:1.0' {
+                expectResolve()
+            }
+            'javax:activation:1.0' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('jakarta:xml', 'jakarta:xml:1.0') {
+                    module('jakarta:activation:1.0')
+                }
+                module('hadoop:yarn:1.0') {
+                    edge('javax:jaxb:1.0', 'jakarta:xml:1.0')
+                    module('jersey:json:1.0') {
+                        module('sun:jaxb:1.0') {
+                            edge('jakarta:xml:2.0', 'jakarta:xml:1.0')
+                        }
+                    }
+                }
+                edge('javax:activation:1.0', 'jakarta:activation:1.0')
+            }
+        }
     }
 }

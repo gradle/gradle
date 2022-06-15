@@ -18,8 +18,6 @@ package org.gradle.cache.internal.streams;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
@@ -41,13 +39,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     private final File dir;
     private final String baseName;
-    private final Function<OutputStream, Writer<T>> writerFactory;
-    private final Function<InputStream, Reader<T>> readerFactory;
+    private final Writer<T> writer;
+    private final Reader<T> reader;
     private final AtomicInteger counter = new AtomicInteger();
     private final List<Sink<T>> sinks = new CopyOnWriteArrayList<>();
     private final BlockingQueue<Sink<T>> availableSinks = new LinkedBlockingDeque<>();
@@ -56,15 +53,13 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     public DefaultValueStore(
         File dir,
         String baseName,
-        // stream is not buffered
-        Function<OutputStream, Writer<T>> writerFactory,
-        // stream is not buffered
-        Function<InputStream, Reader<T>> readerFactory
+        Writer<T> writer,
+        Reader<T> reader
     ) {
         this.dir = dir;
         this.baseName = baseName;
-        this.writerFactory = writerFactory;
-        this.readerFactory = readerFactory;
+        this.writer = writer;
+        this.reader = reader;
         try {
             Files.createDirectories(dir.toPath());
         } catch (IOException e) {
@@ -79,17 +74,9 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     ) {
         return new DefaultValueStore<>(dir,
             baseName,
-            outputStream -> {
-                FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
-                return value -> {
-                    serializer.write(encoder, value);
-                    encoder.flush();
-                };
-            },
-            inputStream -> {
-                Decoder decoder = new KryoBackedDecoder(inputStream);
-                return () -> serializer.read(decoder);
-            });
+            serializer::write,
+            serializer::read
+        );
     }
 
     @Override
@@ -107,11 +94,10 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         try {
             Source<T> source = availableSources.remove(blockAddress.fileId);
             if (source == null) {
-                source = new Source<>(blockAddress.fileId, file(blockAddress.fileId));
+                source = new Source<>(file(blockAddress.fileId), reader);
             }
             try {
-                InputStream stream = source.stream(blockAddress);
-                return readerFactory.apply(stream).read();
+                return source.read(blockAddress);
             } finally {
                 if (availableSources.putIfAbsent(blockAddress.fileId, source) != null) {
                     // Could not retain
@@ -141,15 +127,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         }
         int id = counter.incrementAndGet();
         File file = file(id);
-        long currentPos = file.length();
-        ByteCountingOutputStream outputStream;
-        try {
-            outputStream = new ByteCountingOutputStream(new FileOutputStream(file, true), currentPos);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(e);
-        }
-        Writer<T> writer = writerFactory.apply(outputStream);
-        sink = new Sink<>(id, writer, outputStream);
+        sink = new Sink<>(id, writer, file);
         sinks.add(sink);
         return sink;
     }
@@ -168,37 +146,6 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         return new File(dir, baseName + "-" + id + ".bin");
     }
 
-    private static class ByteCountingOutputStream extends OutputStream {
-        private final OutputStream delegate;
-        private long count;
-
-        public ByteCountingOutputStream(OutputStream delegate, long currentOffset) {
-            this.delegate = delegate;
-            this.count = currentOffset;
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            throw new UnsupportedOperationException("Should be using buffering.");
-        }
-
-        @Override
-        public void write(byte[] buffer) throws IOException {
-            delegate.write(buffer);
-            count += buffer.length;
-        }
-
-        @Override
-        public void write(byte[] buffer, int offset, int length) throws IOException {
-            delegate.write(buffer, offset, length);
-            count += length;
-        }
-
-        public void closeDelegate() throws IOException {
-            delegate.close();
-        }
-    }
-
     private static class BlockInputStream extends InputStream {
         private final RandomAccessFile file;
         private long remaining;
@@ -210,8 +157,12 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
 
         @Override
         public long skip(long count) throws IOException {
-            file.seek(file.getFilePointer() + count);
-            return count;
+            int toSkip = (int) Math.min(count, remaining);
+            if (toSkip > 0) {
+                file.seek(file.getFilePointer() + toSkip);
+                remaining -= toSkip;
+            }
+            return toSkip;
         }
 
         @Override
@@ -221,28 +172,37 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
 
         @Override
         public int read(byte[] buffer, int offset, int length) throws IOException {
-            int count = (int) Math.min(length, remaining);
-            if (count == 0) {
+            if (remaining == 0) {
                 return -1;
             }
-            int nread = file.read(buffer, offset, count);
-            remaining -= nread;
-            return nread;
+            int toRead = (int) Math.min(length, remaining);
+            if (toRead == 0) {
+                return 0;
+            }
+            int read = file.read(buffer, offset, toRead);
+            if (read < 0) {
+                throw new IllegalStateException("Unexpected file length.");
+            }
+            remaining -= read;
+            return read;
         }
     }
 
     private static class Source<T> implements Closeable {
-        private final int id;
         private final RandomAccessFile file;
+        private final Reader<T> reader;
+        private final KryoBackedDecoder decoder;
 
-        public Source(int id, File file) throws FileNotFoundException {
-            this.id = id;
+        public Source(File file, Reader<T> reader) throws FileNotFoundException {
             this.file = new RandomAccessFile(file, "r");
+            this.reader = reader;
+            this.decoder = new KryoBackedDecoder(new BlockInputStream(this.file, 0));
         }
 
-        public InputStream stream(BlockAddress blockAddress) throws IOException {
+        public T read(BlockAddress blockAddress) throws Exception {
             file.seek(blockAddress.pos);
-            return new BlockInputStream(file, blockAddress.length);
+            decoder.restart(new BlockInputStream(file, blockAddress.length));
+            return reader.read(decoder);
         }
 
         @Override
@@ -254,28 +214,39 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     private static class Sink<T> implements Closeable {
         final int id;
         final Writer<T> writer;
-        final ByteCountingOutputStream outputStream;
+        final long startOffset;
+        final OutputStream outputStream;
+        final KryoBackedEncoder encoder;
 
-        public Sink(int id, Writer<T> writer, ByteCountingOutputStream outputStream) {
+        public Sink(int id, Writer<T> writer, File file) {
             this.id = id;
             this.writer = writer;
-            this.outputStream = outputStream;
+            this.startOffset = file.length();
+            try {
+                outputStream = new FileOutputStream(file, true);
+            } catch (FileNotFoundException e) {
+                throw new UncheckedIOException(e);
+            }
+            this.encoder = new KryoBackedEncoder(outputStream);
         }
 
         BlockAddress write(T value) {
-            long pos = outputStream.count;
+            long startPos = encoder.getWritePosition();
             try {
-                writer.write(value);
+                writer.write(encoder, value);
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            long length = outputStream.count - pos;
-            return new BlockAddress(id, pos, length);
+            // Flush in case a read of this block needs to happen. Ideally, should either defer flush until the read or read directly from the write buffer
+            encoder.flush();
+            long length = encoder.getWritePosition() - startPos;
+            return new BlockAddress(id, startPos + startOffset, length);
         }
 
         @Override
         public void close() throws IOException {
-            outputStream.closeDelegate();
+            encoder.flush();
+            outputStream.close();
         }
     }
 }

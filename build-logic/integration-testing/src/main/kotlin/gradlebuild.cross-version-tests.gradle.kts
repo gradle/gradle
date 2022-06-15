@@ -51,9 +51,10 @@ fun createQuickFeedbackTasks() {
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
             this.systemProperties["org.gradle.integtest.versions"] = "latest"
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
-            this.useJUnitPlatform {
-                includeEngines("cross-version-test-engine")
-            }
+
+            // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
+            // discard existing options configuration and add a deprecation warning.  Just set the existing options.
+            (this.testFramework.options as JUnitPlatformOptions).includeEngines("cross-version-test-engine")
         }
         if (executer == defaultExecuter) {
             // The test task with the default executer runs with 'check'
@@ -73,7 +74,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = moduleIdentity.releasedVersions.forUseAtConfigurationTime().getOrNull()
+    val releasedVersions = moduleIdentity.releasedVersions.getOrNull()
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"

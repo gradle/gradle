@@ -18,17 +18,16 @@ package org.gradle.api.internal.artifacts.repositories
 
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class DefaultRepositoryContentDescriptorTest extends Specification {
 
     @Subject
-    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") })
+    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") }, new VersionParser())
 
-    @Unroll
     def "reasonable error message when input is incorrect (include string)"() {
         when:
         descriptor.includeGroup(null)
@@ -73,7 +72,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "reasonable error message when input is incorrect (include regex)"() {
         when:
         descriptor.includeGroupByRegex(null)
@@ -118,7 +116,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "reasonable error message when input is incorrect (exclude string)"() {
         when:
         descriptor.excludeGroup(null)
@@ -163,7 +160,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "reasonable error message when input is incorrect (exclude regex)"() {
         when:
         descriptor.excludeGroupByRegex(null)
@@ -208,11 +204,10 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "can exclude or include whole groups using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo" }, new VersionParser())
 
         given:
         descriptor."exclude$method"(expr)
@@ -232,7 +227,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo" }, new VersionParser())
         descriptor."include$method"(expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -257,11 +252,10 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         'GroupByRegex' | '[org]+' | 'other' | 'foo'  | '1.0'   | false
     }
 
-    @Unroll
     def "can exclude or include whole modules using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo" }, new VersionParser())
 
         given:
         descriptor."exclude$method"(group, expr)
@@ -281,7 +275,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo" }, new VersionParser())
         descriptor."include$method"(group, expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -306,11 +300,10 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         'ModuleByRegex' | 'f[o]+' | 'org' | 'bar'  | '1.0'   | false
     }
 
-    @Unroll
     def "can exclude or include specific versions using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo" }, new VersionParser())
 
         given:
         descriptor."exclude$method"(group, module, expr)
@@ -330,7 +323,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo" }, new VersionParser())
         descriptor."include$method"(group, module, expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -365,7 +358,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
     def "cannot update repository content filter after resolution happens"() {
         given:
-        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" })
+        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" }, new VersionParser())
         descriptor.toContentFilter()
 
         when:

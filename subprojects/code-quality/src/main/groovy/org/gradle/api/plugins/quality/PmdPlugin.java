@@ -141,6 +141,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
+        task.getThreads().convention(extension.getThreads());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -38,7 +37,6 @@ class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withRepositoryMirrors()
-        executer.withPluginRepositoryMirror()
         file("buildSrc/settings.gradle.kts") << """
             include("plugin")
         """
@@ -51,7 +49,7 @@ class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
 
     def cleanup() {
         // Let's copy the Kotlin compiler logs in case of failure
-        if (resultOrNull instanceof ExecutionFailure) {
+        if (failed) {
             def pattern = "kotlin-daemon.${new Date().format("yyyy-MM-dd")}.*.log"
             def kotlinCompilerLogFiles = new FileNameFinder().getFileNames(System.getenv("TMPDIR"), pattern)
             def target = buildContext.gradleUserHomeDir.createDir("kotlin-compiler-daemon").toPath()

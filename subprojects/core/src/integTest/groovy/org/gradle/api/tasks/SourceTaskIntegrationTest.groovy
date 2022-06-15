@@ -72,17 +72,17 @@ class SourceTaskIntegrationTest extends AbstractIntegrationSpec {
                 @OutputFile
                 File outputFile
 
+                TestTask() {
+                    inputs.files({ -> super.source })
+                        .ignoreEmptyDirectories(false)
+                        .withPathSensitivity(PathSensitivity.ABSOLUTE)
+                        .withPropertyName("sourcesWithEmptyDirectories")
+                }
+
                 @TaskAction
                 def list() {
                     source.visit { fte -> println("visit " + fte.relativePath) }
                     outputFile.text = 'executed'
-                }
-
-                @InputFiles
-                @SkipWhenEmpty
-                @PathSensitive(PathSensitivity.ABSOLUTE)
-                public FileTree getSourcesWithEmptyDirectories() {
-                    return super.getSource()
                 }
             }
 

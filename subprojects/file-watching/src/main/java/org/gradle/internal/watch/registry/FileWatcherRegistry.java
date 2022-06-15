@@ -19,7 +19,6 @@ package org.gradle.internal.watch.registry;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
-import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
@@ -27,9 +26,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface FileWatcherRegistry extends Closeable {
+
+    boolean isWatchingAnyLocations();
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);
@@ -67,7 +69,7 @@ public interface FileWatcherRegistry extends Closeable {
      * For example, this method checks if watched hierarchies are where we left them after the previous build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode);
+    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
      * Updates the VFS and the watchers when the build finished.
@@ -78,7 +80,7 @@ public interface FileWatcherRegistry extends Closeable {
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
+    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
      * Get statistics about the received changes.

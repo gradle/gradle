@@ -24,6 +24,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.concurrent.Callable;
 
+/**
+ * A provider whose value is computed by a {@link Callable}.
+ *
+ * <h3>Configuration Cache Behavior</h3>
+ * <b>Eager</b>. The value is computed at store time and loaded from the cache.
+ */
 public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     private final Callable<? extends T> value;
 

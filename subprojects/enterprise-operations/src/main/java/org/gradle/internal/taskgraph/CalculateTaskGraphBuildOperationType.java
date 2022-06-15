@@ -17,7 +17,6 @@
 package org.gradle.internal.taskgraph;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
@@ -33,7 +32,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
      * @since 6.2
      *
      * */
-    @UsedByScanPlugin
     public interface TaskIdentity {
 
         String getBuildPath();

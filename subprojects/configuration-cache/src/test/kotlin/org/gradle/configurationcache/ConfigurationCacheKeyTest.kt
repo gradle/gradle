@@ -19,7 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
@@ -101,7 +100,6 @@ class ConfigurationCacheKeyTest {
                     null,
                     null
                 ),
-                BuildModelParameters(false, true, false, false, false, false),
                 startParameter
             ),
             RunTasksRequirements(startParameter)

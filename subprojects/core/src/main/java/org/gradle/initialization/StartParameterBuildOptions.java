@@ -32,9 +32,10 @@ import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +55,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new RefreshDependenciesOption());
         options.add(new DryRunOption());
         options.add(new ContinuousOption());
+        options.add(new ContinuousBuildQuietPeriodOption());
         options.add(new NoProjectDependenciesRebuildOption());
         options.add(new BuildFileOption());
         options.add(new SettingsFileOption());
@@ -77,6 +79,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheOption());
         options.add(new IsolatedProjectsOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
+        options.add(new ConfigurationCacheDebugOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
@@ -175,6 +178,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setContinuous(true);
+        }
+    }
+
+    public static class ContinuousBuildQuietPeriodOption extends IntegerBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.continuous.quietperiod";
+
+        public ContinuousBuildQuietPeriodOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(int quietPeriodMillis, StartParameterInternal startParameter, Origin origin) {
+            startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(quietPeriodMillis));
         }
     }
 
@@ -479,7 +496,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(BuildOption.Value.value(value));
+            settings.setConfigurationCache(Value.value(value));
         }
     }
 
@@ -534,6 +551,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(int value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheMaxProblems(value);
+        }
+    }
+
+    public static class ConfigurationCacheDebugOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.debug";
+
+        public ConfigurationCacheDebugOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheDebug(value);
         }
     }
 

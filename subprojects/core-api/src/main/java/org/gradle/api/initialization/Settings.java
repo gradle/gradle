@@ -166,12 +166,26 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
-     * @deprecated Using a flat project structure is discouraged. For one thing it causes inefficiencies in file-system watching.
-     * Clients should always use a hierarchical project layout and define the structure with {@link #include(String...)}
-     * This method is scheduled for removal in Gradle 8.0.
      */
-    @Deprecated
-    void includeFlat(String... projectNames);
+    default void includeFlat(String... projectNames) {
+        includeFlat(Arrays.asList(projectNames));
+    }
+
+    /**
+     * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
+     * add to the build.</p>
+     *
+     * <p>The supplied name is converted to a project directory relative to the <em>parent</em> directory of the root
+     * project directory.</p>
+     *
+     * <p>As an example, the name {@code a} add a project with path {@code :a}, name {@code a} and project directory
+     * {@code $rootDir/../a}.</p>
+     *
+     * @param projectNames the projects to add.
+     *
+     * @since 7.4
+     */
+    void includeFlat(Iterable<String> projectNames);
 
     /**
      * <p>Returns this settings object.</p>

@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -135,6 +136,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
+    @Flaky
     def "disconnect stops multiple daemons"() {
         setup:
         buildFile.text = """

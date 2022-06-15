@@ -42,7 +42,7 @@ class ConfigurationCacheError internal constructor(
 
 
 @Contextual
-sealed class ConfigurationCacheException private constructor(
+sealed class ConfigurationCacheException protected constructor(
     message: () -> String,
     causes: Iterable<Throwable>
 ) : DefaultMultiCauseException(message, causes), ConfigurationCacheThrowable

@@ -66,8 +66,13 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal getParent();
 
+    @Nullable
+    ProjectInternal getParent(ProjectInternal referrer);
+
     @Override
     ProjectInternal getRootProject();
+
+    ProjectInternal getRootProject(ProjectInternal referrer);
 
     Project evaluate();
 
@@ -77,8 +82,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();
-
-    void addChildProject(ProjectInternal childProject);
 
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;

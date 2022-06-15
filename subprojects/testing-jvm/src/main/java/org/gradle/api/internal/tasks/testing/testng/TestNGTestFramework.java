@@ -90,8 +90,15 @@ public class TestNGTestFramework implements TestFramework {
 
     private void verifyConfigFailurePolicy() {
         if (!options.getConfigFailurePolicy().equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
-            verifyMethodExists("setConfigFailurePolicy", String.class,
-                String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy()));
+            String message = String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy());
+            try {
+                // for TestNG v6.9.12 and higher
+                Class<?> failurePolicyEnum = maybeLoadFailurePolicyEnum();
+                verifyMethodExists("setConfigFailurePolicy", failurePolicyEnum, message);
+            } catch (ClassNotFoundException cnfe) {
+                // fallback to legacy String argument
+                verifyMethodExists("setConfigFailurePolicy", String.class, message);
+            }
         }
     }
 
@@ -116,6 +123,29 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     private Class<?> createTestNg() {
+        maybeInitTestClassLoader();
+        try {
+            return loadClass("org.testng.TestNG");
+        } catch (ClassNotFoundException e) {
+            throw new GradleException("Could not load TestNG.", e);
+        }
+    }
+
+    /**
+     * Use reflection to load {@link org.testng.xml.XmlSuite.FailurePolicy}, added in TestNG 6.9.12
+     * @return reference to class, if exists.
+     * @throws ClassNotFoundException if using older TestNG version.
+     */
+    protected Class<?> maybeLoadFailurePolicyEnum() throws ClassNotFoundException {
+        return loadClass("org.testng.xml.XmlSuite$FailurePolicy");
+    }
+
+    private Class<?> loadClass(String clazz) throws ClassNotFoundException {
+        maybeInitTestClassLoader();
+        return testClassLoader.loadClass(clazz);
+    }
+
+    private void maybeInitTestClassLoader() {
         if (testClassLoader == null) {
             TestClassLoaderFactory factory = objects.newInstance(
                 TestClassLoaderFactory.class,
@@ -123,11 +153,6 @@ public class TestNGTestFramework implements TestFramework {
                 testTaskClasspath
             );
             testClassLoader = factory.create();
-        }
-        try {
-            return testClassLoader.loadClass("org.testng.TestNG");
-        } catch (ClassNotFoundException e) {
-            throw new GradleException("Could not load TestNG.", e);
         }
     }
 

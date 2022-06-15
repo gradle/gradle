@@ -21,7 +21,6 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -35,7 +34,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
-    @Unroll
     def "clean #gradleTask (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
@@ -60,7 +58,6 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         'test'     | 'test'
     }
 
-    @Unroll
     def "#gradleTask for non-abi change (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"

@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal.streams;
 
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+
 public interface ValueStore<T> {
     /**
      * Writes the given value and returns an address for the written block.
@@ -31,11 +34,10 @@ public interface ValueStore<T> {
     T read(BlockAddress blockAddress);
 
     interface Writer<T> {
-        // Should flush any buffered content to backing stream
-        void write(T value) throws Exception;
+        void write(Encoder encoder, T value) throws Exception;
     }
 
     interface Reader<T> {
-        T read() throws Exception;
+        T read(Decoder decoder) throws Exception;
     }
 }

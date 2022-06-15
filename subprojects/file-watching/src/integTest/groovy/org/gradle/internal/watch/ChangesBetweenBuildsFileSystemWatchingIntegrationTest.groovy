@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def "source file changes are recognized"() {
@@ -175,7 +173,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17865")
-    def "project directory moved is handled properly"() {
+    def "#description directory moved is handled properly"() {
         def buildCache = new TestBuildCache(temporaryFolder.file("cache-dir").deleteDir().createDir())
         def buildFileContents = """
             apply plugin: "base"
@@ -203,13 +201,14 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
 
         def originalDir = file("original")
         def renamedDir = file("renamed")
-        def settingsFile = originalDir.file("settings.gradle")
-        def buildFile = originalDir.file("build.gradle")
-        def sourceFile = originalDir.file("source.txt")
-        def targetFile = originalDir.file("build/target.txt")
+        def projectDir = originalDir.file(*projectDirPath)
+        def settingsFile = projectDir.file("settings.gradle")
+        def buildFile = projectDir.file("build.gradle")
+        def sourceFile = projectDir.file("source.txt")
+        def targetFile = projectDir.file("build/target.txt")
 
         executer.beforeExecute {
-            inDirectory(originalDir)
+            inDirectory(projectDir)
             enableVerboseVfsLogs()
             withBuildCache()
             withWatchFs()
@@ -238,6 +237,11 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         then:
         targetFile.text == "Hello New World!"
         executedAndNotSkipped ":run"
+
+        where:
+        description      | projectDirPath
+        'project'        | []
+        'parent project' | ['my/project/dir']
     }
 
     ExecutionResult runWithWatchingEnabled(String... tasks) {

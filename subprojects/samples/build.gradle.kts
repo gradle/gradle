@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Integration tests for our documentation snippets (aka samples)"
+
 dependencies {
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":core-api"))

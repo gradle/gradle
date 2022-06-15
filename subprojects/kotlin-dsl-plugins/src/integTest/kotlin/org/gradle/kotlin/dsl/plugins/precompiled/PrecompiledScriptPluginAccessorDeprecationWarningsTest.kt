@@ -16,15 +16,14 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorDeprecationWarningsTest : AbstractPrecompiledScriptPluginTest() {
+
     @Test
-    @ToBeFixedForConfigurationCache
     fun `generated type-safe accessors suppress deprecation warnings`() {
         // `java-gradle-plugin` adds deprecated task `ValidateTaskProperties`
         givenPrecompiledKotlinScript(

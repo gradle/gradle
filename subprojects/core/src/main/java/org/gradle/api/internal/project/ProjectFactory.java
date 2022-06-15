@@ -23,8 +23,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -61,37 +59,12 @@ public class ProjectFactory implements IProjectFactory {
             baseClassLoaderScope
         );
         project.beforeEvaluate(p -> {
-            nagUserAboutDeprecatedFlatProjectLayout(project);
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
             gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
         });
 
-        if (parent != null) {
-            parent.addChildProject(project);
-        }
         gradle.getProjectRegistry().addProject(project);
         return project;
-    }
-
-    private void nagUserAboutDeprecatedFlatProjectLayout(DefaultProject project) {
-        File rootDir = FileUtils.canonicalize(project.getRootProject().getProjectDir());
-        File projectDir = FileUtils.canonicalize(project.getProjectDir());
-        if (!isParentDir(rootDir, projectDir)) {
-            DeprecationLogger.deprecateBehaviour(String.format("Subproject '%s' has location '%s' which is outside of the project root.", project.getPath(), project.getProjectDir().getAbsolutePath()))
-                .willBeRemovedInGradle8()
-                .withUpgradeGuideSection(7, "deprecated_flat_project_structure")
-                .nagUser();
-        }
-    }
-
-    private static boolean isParentDir(File parent, @Nullable File f) {
-        if (f == null) {
-            return false;
-        } else if (f.equals(parent)) {
-            return true;
-        } else {
-            return isParentDir(parent, f.getParentFile());
-        }
     }
 }

@@ -54,6 +54,10 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     Path getIdentityPath();
 
+    void setReturnAllVariants(boolean returnAllVariants);
+
+    boolean getReturnAllVariants();
+
     /**
      * Runs any registered dependency actions for this Configuration, and any parent Configuration.
      * Actions may mutate the dependency set for this configuration.
@@ -82,7 +86,15 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
+    boolean isCanBeMutated();
+
     void preventFromFurtherMutation();
+
+    /**
+     * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.
+     * @return
+     */
+    boolean isIncubating();
 
     /**
      * Gets the complete set of exclude rules including those contributed by

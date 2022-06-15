@@ -51,7 +51,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     def testAttribute = Attribute.of("someAttribute", String)
     def attributes = AttributeTestUtil.attributesFactory().of(testAttribute, "someValue")
-    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 

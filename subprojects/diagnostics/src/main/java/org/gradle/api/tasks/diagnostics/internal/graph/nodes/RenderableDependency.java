@@ -33,6 +33,7 @@ public interface RenderableDependency {
     @Nullable
     String getDescription();
     List<ResolvedVariantResult> getResolvedVariants();
+    List<ResolvedVariantResult> getAllVariants();
     ResolutionState getResolutionState();
     Set<? extends RenderableDependency> getChildren();
     List<Section> getExtraDetails();

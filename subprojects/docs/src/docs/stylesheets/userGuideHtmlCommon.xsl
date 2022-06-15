@@ -128,7 +128,6 @@
                         <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                             <span class="site-header__navigation-link">
                                 Community
-                                <svg class="site-header__down-arrow site-header__icon-light" width="19" height="11" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><title>Open Community Menu</title><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </span>
                             <div class="site-header__navigation-submenu">
                                 <div class="site-header__navigation-submenu-item" itemprop="name">
@@ -154,7 +153,6 @@
                         <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                             <span class="site-header__navigation-link">
                                 News
-                                <svg class="site-header__down-arrow site-header__icon-light" width="19" height="11" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><title>Open Community Menu</title><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </span>
                             <div class="site-header__navigation-submenu">
                                 <div class="site-header__navigation-submenu-item" itemprop="name">
@@ -237,32 +235,6 @@
                     </div>
                 </section>
             </nav>
-            <div class="site-footer-secondary">
-                <div class="site-footer-secondary__contents">
-                    <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc.</a>
-                        <time>2018</time>
-                        All rights reserved.
-                    </div>
-                    <div class="site-footer__logo"><a href="/">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 66.06">
-                            <defs>
-                                <style>.cls-1 {
-                                    fill: #02303a;
-                                    }</style>
-                            </defs>
-                            <title>gradle</title>
-                            <path class="cls-1"
-                                  d="M85.11,4.18a14.27,14.27,0,0,0-19.83-.34,1.38,1.38,0,0,0,0,2L67,7.6a1.36,1.36,0,0,0,1.78.12A8.18,8.18,0,0,1,79.5,20.06C68.17,31.38,53.05-.36,18.73,16a4.65,4.65,0,0,0-2,6.54l5.89,10.17a4.64,4.64,0,0,0,6.3,1.73l.14-.08-.11.08L31.53,33a60.29,60.29,0,0,0,8.22-6.13,1.44,1.44,0,0,1,1.87-.06h0a1.34,1.34,0,0,1,.06,2A61.61,61.61,0,0,1,33,35.34l-.09,0-2.61,1.46a7.34,7.34,0,0,1-3.61.94,7.45,7.45,0,0,1-6.47-3.71l-5.57-9.61C4,32-2.54,46.56,1,65a1.36,1.36,0,0,0,1.33,1.11H8.61A1.36,1.36,0,0,0,10,64.87a9.29,9.29,0,0,1,18.42,0,1.35,1.35,0,0,0,1.34,1.19H35.9a1.36,1.36,0,0,0,1.34-1.19,9.29,9.29,0,0,1,18.42,0A1.36,1.36,0,0,0,57,66.06H63.1a1.36,1.36,0,0,0,1.36-1.34c.14-8.6,2.46-18.48,9.07-23.43C96.43,24.16,90.41,9.48,85.11,4.18ZM61.76,30.05l-4.37-2.19h0a2.74,2.74,0,1,1,4.37,2.2Z"/>
-                        </svg>
-                    </a></div>
-                    <div class="site-footer-secondary__links">
-                        <a href="https://gradle.com/careers">Careers</a> |
-                        <a href="https://gradle.org/privacy">Privacy</a> |
-                        <a href="https://gradle.org/terms">Terms of Service</a> |
-                        <a href="https://gradle.org/contact/">Contact</a>
-                    </div>
-                </div>
-            </div>
         </footer>
     </xsl:template>
 
@@ -270,7 +242,7 @@
 
     <!-- Customize the contents of the book titlepage -->
     <xsl:template name="book.titlepage">
-        <div class="titlepage">
+        <div class="titlepage" id="header">
             <div class="title">
                 <xsl:apply-templates mode="book.titlepage.recto.auto.mode" select="bookinfo/title"/>
                 <xsl:apply-templates mode="book.titlepage.recto.auto.mode" select="bookinfo/subtitle"/>

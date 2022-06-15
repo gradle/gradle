@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
@@ -45,6 +44,7 @@ import java.util.Optional;
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
+@SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public enum BuildCacheState {
         ENABLED, DISABLED
@@ -60,14 +60,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final TaskActionListener actionListener;
+    private final org.gradle.api.execution.TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionEngine executionEngine;
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
-    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileOperations fileOperations;
 
@@ -78,14 +77,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations
     ) {
@@ -102,7 +100,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
-        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileOperations = fileOperations;
     }
@@ -119,14 +116,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             asyncWorkTracker,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
-            emptySourceTaskSkipper,
             executionHistoryStore,
             fileCollectionFactory,
             fileOperations,
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            taskCacheabilityResolver);
+            taskCacheabilityResolver
+        );
         try {
             return executeIfValid(task, state, context, work);
         } catch (WorkValidationException ex) {

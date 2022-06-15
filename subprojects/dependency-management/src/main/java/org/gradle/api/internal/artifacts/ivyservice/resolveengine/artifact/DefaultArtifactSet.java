@@ -42,10 +42,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
@@ -53,6 +50,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -60,6 +58,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Contains zero or more variants of a particular component.
@@ -98,12 +97,6 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         return new MultipleVariantArtifactSet(componentIdentifier, schema, variants, selectionAttributes);
     }
 
-    public static ArtifactSet createForConfiguration(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ConfigurationMetadata configuration, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ModuleSources moduleSources, ExcludeSpec exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        VariantResolveMetadata variantMetadata = new DefaultVariantMetadata(configuration.getName(), new ComponentConfigurationIdentifier(componentIdentifier, configuration.getName()), configuration.asDescribable(), configuration.getAttributes(), artifacts, configuration.getCapabilities());
-        ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
-        return new SingleVariantArtifactSet(componentIdentifier, schema, resolvedVariant, selectionAttributes);
-    }
-
     public static ArtifactSet adHocVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSources moduleSources, ExcludeSpec exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes variantAttributes, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         VariantResolveMetadata.Identifier identifier = null;
         if (artifacts.size() == 1) {
@@ -122,31 +115,13 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     public static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ImmutableAttributes variantAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
-        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
 
-        boolean hasExcludedArtifact = false;
-        for (ComponentArtifactMetadata artifact : artifacts) {
-            IvyArtifactName artifactName = artifact.getName();
-            if (exclusions.excludesArtifact(ownerId.getModule(), artifactName)) {
-                hasExcludedArtifact = true;
-                continue;
-            }
+        // artifactsToResolve are those not excluded by their owning module
+        List<? extends ComponentArtifactMetadata> artifactsToResolve = CollectionUtils.filter(artifacts,
+            artifact -> !exclusions.excludesArtifact(ownerId.getModule(), artifact.getName())
+        );
 
-            ResolvableArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
-            if (resolvedArtifact == null) {
-                ValueCalculator<File> artifactCalculator;
-                if (artifactResolver instanceof ProjectArtifactResolver) {
-                    artifactCalculator = ((ProjectArtifactResolver) artifactResolver).resolveArtifactLater(artifact);
-                } else {
-                    // TODO - push this up to all ArtifactResolver implementations
-                    artifactCalculator = new LazyArtifactSupplier(artifact, moduleSources, artifactResolver);
-                }
-                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), artifactCalculator);
-                resolvedArtifact = new DefaultResolvableArtifact(ownerId, artifactName, artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
-                allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
-            }
-            resolvedArtifacts.add(resolvedArtifact);
-        }
+        boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
 
         VariantResolveMetadata.Identifier identifier = variant.getIdentifier();
         if (hasExcludedArtifact) {
@@ -154,7 +129,38 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             identifier = null;
         }
 
-        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), resolvedArtifacts.build());
+        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifactsToResolve, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory));
+    }
+
+    private static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        return () -> {
+            ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
+            for (ComponentArtifactMetadata artifact : artifacts) {
+                ResolvableArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
+                if (resolvedArtifact == null) {
+                    if (artifact.isOptionalArtifact()) {
+                        DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
+                        artifactResolver.resolveArtifact(artifact, moduleSources, result);
+                        if (!result.isSuccessful()) {
+                            // Optional artifact is not available
+                            continue;
+                        }
+                    }
+                    ValueCalculator<File> artifactCalculator;
+                    if (artifactResolver instanceof ProjectArtifactResolver) {
+                        artifactCalculator = ((ProjectArtifactResolver) artifactResolver).resolveArtifactLater(artifact);
+                    } else {
+                        // TODO - push this up to all ArtifactResolver implementations
+                        artifactCalculator = new LazyArtifactSupplier(artifact, moduleSources, artifactResolver);
+                    }
+                    CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), artifactCalculator);
+                    resolvedArtifact = new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                    allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
+                }
+                resolvedArtifacts.add(resolvedArtifact);
+            }
+            return resolvedArtifacts.build();
+        };
     }
 
     private static CapabilitiesMetadata withImplicitCapability(VariantResolveMetadata variant, ModuleVersionIdentifier identifier) {

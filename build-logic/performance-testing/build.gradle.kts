@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
 }
 
+description = "Provides a plugin for generating and defining performance test projects"
+
 dependencies {
     implementation(project(":basics"))
     implementation(project(":module-identity"))
@@ -17,6 +19,7 @@ dependencies {
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
     implementation("org.gradle:test-retry-gradle-plugin")
+    implementation("com.gradle.enterprise:test-distribution-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")

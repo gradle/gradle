@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -105,6 +106,39 @@ public interface MinimalJavadocOptions {
      * @since 6.4
      */
     MinimalJavadocOptions modulePath(List<File> classpath);
+
+    /**
+     * The --source-path.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    void setSourcePath(List<File> sourcePath);
+
+    /**
+     * The --source-path.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Internal
+    List<File> getSourcePath();
+
+    /**
+     * Adds additional paths to the --source-path option.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    MinimalJavadocOptions sourcePath(List<File> sourcePath);
+
+    /**
+     * Adds additional paths to the --source-path option.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    MinimalJavadocOptions sourcePath(File... sourcePath);
 
     MinimalJavadocOptions classpath(List<File> classpath);
 

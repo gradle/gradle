@@ -17,12 +17,14 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.accessors.groovy
-import gradlebuild.basics.kotlindsl.stringPropertyOrEmpty
 import gradlebuild.basics.repoRoot
+import gradlebuild.basics.testSplitExcludeTestClasses
+import gradlebuild.basics.testSplitIncludeTestClasses
+import gradlebuild.basics.testSplitOnlyTestGradleVersion
+import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
-import gradlebuild.basics.testing.TestType
 import gradlebuild.testing.services.BuildBucketProvider
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -124,9 +126,9 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 
 
 fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
-    parameters.includeTestClasses.set(project.stringPropertyOrEmpty("includeTestClasses"))
-    parameters.excludeTestClasses.set(project.stringPropertyOrEmpty("excludeTestClasses"))
-    parameters.onlyTestGradleVersion.set(project.stringPropertyOrEmpty("onlyTestGradleVersion"))
+    parameters.includeTestClasses.set(project.testSplitIncludeTestClasses)
+    parameters.excludeTestClasses.set(project.testSplitExcludeTestClasses)
+    parameters.onlyTestGradleVersion.set(project.testSplitOnlyTestGradleVersion)
     parameters.repoRoot.set(repoRoot())
 }
 

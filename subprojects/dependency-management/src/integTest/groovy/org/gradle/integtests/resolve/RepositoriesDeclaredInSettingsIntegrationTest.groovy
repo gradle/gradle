@@ -573,7 +573,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         pluginPortal.start()
         withSettingsPlugin()
         def plugin = new PluginBuilder(file("settings-plugin"))
-            .addPluginId("org.gradle.repo-conventions", "org.gradle.test.RepoConventionPlugin")
+            .addPluginId("org.gradle.repo-conventions", "RepoConventionPlugin")
             .publishAs("g", "a", "1.0", pluginPortal, createExecuter())
 
         // make sure we don't use the default fixture which already adds repositories
@@ -802,20 +802,6 @@ settingsEvaluated {
     }
 
     void withSettingsPlugin() {
-        file("settings-plugin/build.gradle") << """
-            plugins {
-                id 'java-gradle-plugin'
-            }
-
-            gradlePlugin {
-                plugins {
-                    settingsPlugin {
-                        id = 'org.gradle.repo-conventions'
-                        implementationClass = 'org.gradle.test.RepoConventionPlugin'
-                    }
-                }
-            }
-        """
         file("settings-plugin/src/main/java/org/gradle/test/RepoConventionPlugin.java") << """package org.gradle.test;
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;

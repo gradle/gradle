@@ -34,14 +34,14 @@ import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningServic
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
+
+import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
 
 class JavaToolchainQueryServiceTest extends Specification {
 
-    @Unroll
     def "can query for matching toolchain using version #versionToFind"() {
         given:
         def registry = createInstallationRegistry()
@@ -63,7 +63,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaLanguageVersion.of(12)  | "/path/12"
     }
 
-    @Unroll
     def "uses most recent version of multiple matches for version #versionToFind"() {
         given:
         def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.foo"])
@@ -193,9 +192,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
-                def vendor = vendors[Integer.parseInt(javaHome.name.substring(2))]
-                def metadata = newMetadata(new File("/path/8"), vendor)
+            @Override
+            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
+                def vendor = vendors[Integer.parseInt(javaHome.location.name.substring(2))]
+                def metadata = newMetadata(new InstallationLocation(new File("/path/8"), javaHome.source), vendor)
                 return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input))
             }
         }
@@ -285,14 +285,41 @@ class JavaToolchainQueryServiceTest extends Specification {
         installed == 1
     }
 
+    def "prefer version Gradle is running on as long as it is a match"() {
+        given:
+        def registry = createDeterministicInstallationRegistry(["1.8.1", "1.8.2", "1.8.3"])
+        def toolchainFactory = newToolchainFactory(javaHome -> javaHome.toString().endsWith("1.8.2"))
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+        def versionToFind = JavaLanguageVersion.of(8)
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(versionToFind)
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == versionToFind
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.2")
+    }
+
     private JavaToolchainFactory newToolchainFactory() {
+        newToolchainFactory(javaHome -> false)
+    }
+
+    private JavaToolchainFactory newToolchainFactory(Function<File, Boolean> currentJvmMapper) {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
+            @Override
+            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
-                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input)
+                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input) {
+                        @Override
+                        boolean isCurrentJvm() {
+                            return currentJvmMapper.apply(javaHome.location)
+                        }
+                    }
                     return Optional.of(toolchain)
                 }
                 return Optional.empty()
@@ -301,29 +328,26 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchainFactory
     }
 
-    def newMetadata(File javaHome, String vendor = "") {
-        if(javaHome.name.contains("broken")) {
-            return JvmInstallationMetadata.failure(javaHome, "errorMessage")
-        }
-        if(javaHome.name.contains("broken")) {
-            return JavaInstallationProbe.ProbeResult.failure(JavaInstallationProbe.InstallType.INVALID_JDK, "errorMessage")
+    def newMetadata(InstallationLocation javaHome, String vendor = "") {
+        if(javaHome.location.name.contains("broken")) {
+            return JvmInstallationMetadata.failure(javaHome.location, "errorMessage")
         }
         Mock(JvmInstallationMetadata) {
-            getLanguageVersion() >> JavaVersion.toVersion(javaHome.name)
-            getJavaHome() >> javaHome.absoluteFile.toPath()
-            getImplementationVersion() >> javaHome.name.replace("zzz", "999")
+            getLanguageVersion() >> JavaVersion.toVersion(javaHome.location.name)
+            getJavaHome() >> javaHome.location.absoluteFile.toPath()
+            getImplementationVersion() >> javaHome.location.name.replace("zzz", "999")
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
             hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
                 if(capability[0] == J9_VIRTUAL_MACHINE) {
-                    return javaHome.name.contains("j9")
+                    return javaHome.location.name.contains("j9")
                 }
                 return false
             }
         }
     }
 
-    def createInstallationRegistry(List<String> installations = ["8", "9", "10", "11", "12"]) {
+    static def createInstallationRegistry(List<String> installations = ["8", "9", "10", "11", "12"]) {
         def supplier = new InstallationSupplier() {
             @Override
             Set<InstallationLocation> get() {

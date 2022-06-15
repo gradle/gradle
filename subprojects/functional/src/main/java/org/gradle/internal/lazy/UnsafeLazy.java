@@ -16,8 +16,6 @@
 package org.gradle.internal.lazy;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 @NotThreadSafe
@@ -31,25 +29,10 @@ class UnsafeLazy<T> implements Lazy<T> {
 
     @Override
     public T get() {
-        return ensureValue();
-    }
-
-    private T ensureValue() {
         if (supplier != null) {
             value = supplier.get();
             supplier = null;
         }
         return value;
     }
-
-    @Override
-    public void use(Consumer<? super T> consumer) {
-        consumer.accept(ensureValue());
-    }
-
-    @Override
-    public <V> V apply(Function<? super T, V> function) {
-        return function.apply(ensureValue());
-    }
-
 }

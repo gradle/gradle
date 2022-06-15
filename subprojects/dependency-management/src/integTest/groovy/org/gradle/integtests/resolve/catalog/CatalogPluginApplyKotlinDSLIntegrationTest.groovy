@@ -27,10 +27,6 @@ class CatalogPluginApplyKotlinDSLIntegrationTest extends AbstractVersionCatalogI
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def setup() {
-        usePluginRepoMirror = false // otherwise the plugin portal fixture doesn't work!
-    }
-
     def "can apply a plugin declared in a catalog"() {
         String taskName = 'greet'
         String message = 'Hello from plugin!'
@@ -46,7 +42,7 @@ class CatalogPluginApplyKotlinDSLIntegrationTest extends AbstractVersionCatalogI
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+            plugin("$alias", "com.acme.greeter").version("1.5")
         }
     }
 }"""

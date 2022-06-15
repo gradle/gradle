@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -92,8 +91,6 @@ public class UnpackingVisitor {
         } else if (element instanceof Path) {
             // Path is-a Iterable, so check before checking for Iterable
             visitSingleFile(element);
-        } else if (element instanceof ResolvedArtifactResult) {
-            visitSingleFile(((ResolvedArtifactResult) element).getFile());
         } else if (element instanceof Iterable) {
             Iterable<?> iterable = (Iterable) element;
             for (Object item : iterable) {

@@ -46,13 +46,13 @@ import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.annotation.Nullable
 import java.nio.file.Files
+import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
-
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -156,6 +156,10 @@ class AbstractIntegrationSpec extends Specification {
         buildFile << script
     }
 
+    void settingsFile(@GroovyBuildScriptLanguage String script) {
+        settingsFile << script
+    }
+
     TestFile getBuildKotlinFile() {
         testDirectory.file(getDefaultBuildKotlinFileName())
     }
@@ -193,15 +197,15 @@ class AbstractIntegrationSpec extends Specification {
         return 'settings.gradle.kts'
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         buildTestFixture.singleProjectBuild(projectName, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         multiProjectBuild(projectName, subprojects, CompiledLanguage.JAVA, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         buildTestFixture.multiProjectBuild(projectName, subprojects, language, cl)
     }
 
@@ -386,11 +390,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return currentResult
     }
 
-    @Nullable
-    ExecutionResult getResultOrNull() {
-        return currentResult
-    }
-
     void setResult(ExecutionResult result) {
         currentFailure = null
         currentResult = result
@@ -403,9 +402,8 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return currentFailure
     }
 
-    @Nullable
-    ExecutionFailure getFailureOrNull() {
-        return currentFailure
+    boolean isFailed() {
+        return currentFailure != null
     }
 
     void setFailure(ExecutionFailure failure) {
@@ -462,6 +460,10 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
+    }
+
+    protected void failureHasCause(Pattern pattern) {
+        failure.assertThatCause(matchesRegexp(pattern))
     }
 
     protected void failureDescriptionStartsWith(String description) {

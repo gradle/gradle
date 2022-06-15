@@ -28,8 +28,8 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
@@ -86,7 +86,7 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         return parametersType;
     }
 
-    @NotNull
+    @Nonnull
     private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
         // Avoid using TypeToken for the common simple case, as TypeToken is quite slow
         for (Type superType : implementationType.getGenericInterfaces()) {

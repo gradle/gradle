@@ -20,12 +20,10 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
-import spock.lang.Unroll
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-@Unroll
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -56,8 +54,8 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         newScalaVersion | newZincVersion
-        '2.11.12'       | '1.2.0'
-        '2.12.6'        | '1.2.5'
+        '2.11.12'       | '1.6.0'
+        '2.12.6'        | '1.6.1'
         defaultScalaVersion = '2.11.12'
         defaultZincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'

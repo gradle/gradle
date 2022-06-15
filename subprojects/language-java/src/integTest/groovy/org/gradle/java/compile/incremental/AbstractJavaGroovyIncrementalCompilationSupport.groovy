@@ -29,7 +29,7 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
     File source(String... classBodies) {
         File out
         for (String body : classBodies) {
-            def className = (body =~ /(?s).*?(?:class|interface|enum) (\w+) .*/)[0][1]
+            def className = (body =~ /(?s).*?(?:class|interface|enum) ([\w$]+) .*/)[0][1]
             assert className: "unable to find class name"
             def f = file("src/main/${language.name}/${className}.${language.name}")
             f.createFile()

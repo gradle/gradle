@@ -58,7 +58,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final BuildAddedListener buildAddedBroadcaster;
     private final BuildStateFactory buildStateFactory;
 
-    // TODO: Locking around this state
+    // TODO: Locking around the following state
     private RootBuildState rootBuild;
     private final Map<BuildIdentifier, BuildState> buildsByIdentifier = new HashMap<>();
     private final Map<BuildState, StandAloneNestedBuild> buildSrcBuildsByOwner = new HashMap<>();
@@ -66,8 +66,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
     private boolean registerSubstitutionsForRootBuild = false;
-
-    private final Map<Path, IncludedBuildState> libraryBuilds = new LinkedHashMap<>();
     private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
@@ -119,11 +117,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState addIncludedBuildOf(IncludedBuildFactory includedBuildFactory, BuildDefinition buildDefinition) {
-        return registerBuildOf(includedBuildFactory, buildDefinition, false);
-    }
-
-    @Override
     public synchronized IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition) {
         // TODO: synchronization with other methods
         IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
@@ -157,11 +150,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void beforeConfigureRootBuild() {
-        registerSubstitutions();
-    }
-
-    @Override
     public void afterConfigureRootBuild() {
         if (registerSubstitutionsForRootBuild) {
             dependencySubstitutionsBuilder.build(rootBuild);
@@ -176,12 +164,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
-    private void registerSubstitutions() {
-        for (IncludedBuildState includedBuild : libraryBuilds.values()) {
-            currentlyConfiguring.add(includedBuild);
-            dependencySubstitutionsBuilder.build(includedBuild);
-            currentlyConfiguring.remove(includedBuild);
-        }
+    @Override
+    public void registerSubstitutionsFor(IncludedBuildState build) {
+        currentlyConfiguring.add(build);
+        dependencySubstitutionsBuilder.build(build);
+        currentlyConfiguring.remove(build);
     }
 
     @Override
@@ -254,14 +241,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit) {
-        return registerBuildOf(includedBuildFactory, buildDefinition, isImplicit);
-    }
-
-    private IncludedBuildState registerBuildOf(
-        IncludedBuildFactory includedBuildFactory,
-        BuildDefinition buildDefinition,
-        boolean isImplicit
-    ) {
         // TODO: synchronization
         File buildDir = buildDefinition.getBuildRootDir();
         if (buildDir == null) {
@@ -284,16 +263,12 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             includedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
-            includedBuildFactory.prepareBuild(includedBuild);
         } else {
             if (includedBuild.isImplicitBuild() != isImplicit) {
                 throw new IllegalStateException("Unexpected state for build.");
             }
+            // TODO: verify that the build definition is the same
         }
-        if (!buildDefinition.isPluginBuild()) {
-            libraryBuilds.put(includedBuild.getIdentityPath(), includedBuild);
-        }
-        // TODO: else, verify that the build definition is the same
         return includedBuild;
     }
 

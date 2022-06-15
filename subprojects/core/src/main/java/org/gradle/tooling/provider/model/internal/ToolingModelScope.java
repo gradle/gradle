@@ -29,5 +29,6 @@ public interface ToolingModelScope {
     /**
      * Creates the given model
      */
+    @Nullable
     Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) throws UnknownModelException;
 }

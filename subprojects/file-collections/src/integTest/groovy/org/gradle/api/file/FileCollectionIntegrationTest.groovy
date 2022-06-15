@@ -20,10 +20,10 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-import spock.lang.Unroll
+
+import static org.gradle.util.internal.TextUtil.escapeString
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
-    @Unroll
     def "can use 'as' operator with #type"() {
         buildFile << """
             def fileCollection = files("input.txt")
@@ -473,5 +473,25 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         methodName                         | useCase
         "dirsFromFilteredFcMappedElements" | "dirs from filtered FC elements mapped"
         "dirsFromFcElementsSetFiltered"    | "dirs from FC elements set filtered"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19817")
+    def "nag user when concatenation of files is used for path instead of single files"() {
+        def path = file("files/file0.txt${File.pathSeparator}files/dir1").path
+        buildFile """
+            def files = files('${escapeString(path)}')
+            tasks.register("getAsPath") {
+                doLast {
+                    println files.asPath
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '$path'." +
+            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
+        succeeds "getAsPath"
     }
 }

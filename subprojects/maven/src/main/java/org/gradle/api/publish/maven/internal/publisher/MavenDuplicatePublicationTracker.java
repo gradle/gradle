@@ -20,24 +20,29 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 
+@ServiceScope(Scopes.Project.class)
 public class MavenDuplicatePublicationTracker {
+    private final Project project;
     private final DuplicatePublicationTracker duplicatePublicationTracker;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenDuplicatePublicationTracker(DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public MavenDuplicatePublicationTracker(Project project, DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        this.project = project;
         this.duplicatePublicationTracker = duplicatePublicationTracker;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
-    public void checkCanPublish(Project project, PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
+    public void checkCanPublish(PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
         duplicatePublicationTracker.checkCanPublish(project, publication, repositoryLocation, repositoryName);
     }
 
-    public void checkCanPublishToMavenLocal(Project project, PublicationInternal publication) {
-        checkCanPublish(project, publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
+    public void checkCanPublishToMavenLocal(PublicationInternal publication) {
+        checkCanPublish(publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
     }
 }

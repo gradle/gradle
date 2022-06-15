@@ -25,7 +25,6 @@ import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.beans.Introspector
 
@@ -71,7 +70,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
         schema.getProperty("name") == null
     }
 
-    @Unroll
     def "primitive types are supported - #primitiveType"() {
         when:
         def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
@@ -417,7 +415,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
         schema.properties*.type == [ModelType.of(SpecialThing)]
     }
 
-    @Unroll
     def "type argument of a model set cannot be a wildcard - #type"() {
         when:
         extract(type)
@@ -554,7 +551,6 @@ $ModelSet.name<$ModelMap.name>
         extract(ModelType.of(clazz))
     }
 
-    @Unroll
     def "can extract a simple managed type with a property of #type"() {
         when:
         Class<?> generatedClass = managedClass(type)
@@ -909,7 +905,6 @@ interface Managed${typeName} {
         schema.properties*.name == ["value"]
     }
 
-    @Unroll
     def "supports read-only List<#type.simpleName> property"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
@@ -933,7 +928,6 @@ interface Managed${typeName} {
         type << JDK_SCALAR_TYPES
     }
 
-    @Unroll
     def "read-write List<#type.simpleName> property is allowed"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
@@ -958,7 +952,6 @@ interface Managed${typeName} {
         type << JDK_SCALAR_TYPES
     }
 
-    @Unroll
     def "should not throw an error if we use unsupported collection type #collectionType.simpleName on a non-managed type"() {
         given:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """

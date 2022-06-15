@@ -81,6 +81,18 @@ trait VersionCatalogErrorMessages {
         buildMessage(ParseError, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec)
     }
 
+    String noImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(NoImportFiles, VersionCatalogProblemId.NO_IMPORT_FILES, spec)
+    }
+
+    String tooManyImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(TooManyImportFiles, VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec)
+    }
+
+    String tooManyImportInvokation(@DelegatesTo(value=TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(TooManyFromInvokation, VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec)
+    }
+
     private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, Closure<?> spec) {
         def desc = clazz.newInstance()
         desc.section = id.name().toLowerCase()
@@ -144,7 +156,7 @@ trait VersionCatalogErrorMessages {
     static class NameClash extends InCatalog<NameClash> {
         private List<String> aliases = []
         private String getterName
-        private String kind = 'aliases'
+        private String kind = 'library aliases'
 
         NameClash inConflict(String... aliases) {
             Collections.addAll(this.aliases, aliases)
@@ -163,7 +175,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, dependency ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
+            """${intro}  - Problem: In version catalog ${catalog}, ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
 
     Reason: A name clash was detected.
 
@@ -365,7 +377,7 @@ ${solution}
 
     static class InvalidAliasNotation extends InCatalog<InvalidAliasNotation> {
         String alias
-        String kind = 'alias'
+        String kind = 'library'
         String notation
 
         InvalidAliasNotation() {
@@ -390,11 +402,11 @@ ${solution}
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} '${notation}' name.
+            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} alias '${notation}'.
 
-    Reason: ${kind.capitalize()} names must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
+    Reason: ${kind.capitalize()} aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
 
-    Possible solution: Make sure the name matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
+    Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
 
     ${documentation}"""
         }
@@ -481,6 +493,61 @@ ${solution}
     Reason: File '${missingFile.absolutePath}' doesn't exist.
 
     Possible solution: Make sure that the catalog file '${missingFile.name}' exists before importing it.
+
+    ${documentation}"""
+        }
+    }
+
+    static class NoImportFiles extends InCatalog<NoImportFiles> {
+        NoImportFiles() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, no files are resolved to be imported.
+
+    Reason: The imported dependency doesn't resolve into any file.
+
+    Possible solution: Check the import statement, it should resolve into a single file.
+
+    ${documentation}"""
+        }
+    }
+
+    static class TooManyImportFiles extends InCatalog<TooManyImportFiles> {
+        TooManyImportFiles() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, importing multiple files are not supported.
+
+    Reason: The import consists of multiple files.
+
+    Possible solution: Only import a single file.
+
+    ${documentation}"""
+        }
+    }
+
+    static class TooManyFromInvokation extends InCatalog<TooManyFromInvokation> {
+        TooManyFromInvokation() {
+            intro = """Invalid catalog definition:
+"""
+            section = "importing-catalog-from-file"
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, you can only call the 'from' method a single time.
+
+    Reason: The method was called more than once.
+
+    Possible solution: Remove further usages of the method call.
 
     ${documentation}"""
         }

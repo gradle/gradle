@@ -16,10 +16,7 @@
 
 package org.gradle.api
 
-import spock.lang.Unroll
-
 abstract class QueryAndMutateFromGetByNameDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Unroll
     def "can execute query and mutation methods #method.key from getByName"() {
         buildFile << """
             testContainer.getByName("realized") {
