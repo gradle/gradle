@@ -470,4 +470,40 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("distTar")
         new TarTestFixture(file("build/distributions/projectWithtarInName.tar")).assertContainsFile("projectWithtarInName/lib/projectWithtarInName.jar")
     }
+
+    def usesCustomClassifierInArchiveNames() {
+        when:
+        buildFile << """
+            plugins {
+                id("distribution")
+            }
+
+            distributions {
+                main {
+                    archiveClassifier.set("foo")
+                }
+                customOne {
+                    distributionBaseName.set("custom")
+                    archiveClassifier.set("bar")
+                }
+                customTwo {
+                    distributionBaseName.set("custom")
+                    archiveClassifier.set("baz")
+                }
+                all {
+                    contents.from("someFile")
+                }
+            }
+        """
+        file("someFile") << "some text"
+
+        then:
+        succeeds("assembleDist", "assembleCustomOneDist", "assembleCustomTwoDist")
+        file('build/distributions/TestProject-foo.zip').assertIsFile()
+        file('build/distributions/custom-bar.zip').assertIsFile()
+        file('build/distributions/custom-baz.zip').assertIsFile()
+        file('build/distributions/TestProject-foo.tar').assertIsFile()
+        file('build/distributions/custom-bar.tar').assertIsFile()
+        file('build/distributions/custom-baz.tar').assertIsFile()
+    }
 }
