@@ -8,7 +8,7 @@ plugins {
 distributions {
     main {
         distributionBaseName.set("someName")
-        archiveClassifier.set("classifier")
+        distributionClassifier.set("classifier")
         contents {
             from("src/readme")
         }

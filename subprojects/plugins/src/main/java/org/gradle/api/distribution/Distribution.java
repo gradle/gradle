@@ -44,11 +44,14 @@ public interface Distribution extends Named {
     Property<String> getDistributionBaseName();
 
     /**
-     * The archive classifier of the distribution.
+     * The classifier of the distribution, used as the archive classifier in the archives of this distribution.
+     * <p>
+     * By default, no classifier is added.
+     *
      * @since 7.6
      */
     @Incubating
-    Property<String> getArchiveClassifier();
+    Property<String> getDistributionClassifier();
 
     /**
      * The contents of the distribution.

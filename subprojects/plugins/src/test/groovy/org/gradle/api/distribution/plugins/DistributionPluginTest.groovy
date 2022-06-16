@@ -160,7 +160,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(DistributionPlugin)
         project.distributions.main.distributionBaseName = "app"
-        project.distributions.main.archiveClassifier = "classifier"
+        project.distributions.main.distributionClassifier = "classifier"
 
         then:
         def zip = project.tasks.distZip
