@@ -85,6 +85,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
         NONE, FULL
     }
 
+    private boolean suppressHelpOnFailure = false;
+
     private final StyledTextOutputFactory textOutputFactory;
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
@@ -118,6 +120,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
             null,
             failureFactory
         );
+    }
+
+    public void setSuppressHelpOnFailure(boolean suppressHelpOnFailure) {
+        this.suppressHelpOnFailure = suppressHelpOnFailure;
     }
 
     public void buildFinished(@Nullable Failure failure) {
@@ -157,12 +163,13 @@ public class BuildExceptionReporter implements Action<Throwable> {
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
             details.summary.writeTo(output.withStyle(Failure));
-            output.println();
-            output.text("-----------");
 
-            writeFailureDetails(output, details);
-
-            output.println("==============================================================================");
+            if (!suppressHelpOnFailure) {
+                output.println();
+                output.text("-----------");
+                writeFailureDetails(output, details);
+                output.println("==============================================================================");
+            }
         }
     }
 
@@ -189,7 +196,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         details.summary.writeTo(output.withStyle(Failure));
         output.println();
 
-        writeFailureDetails(output, details);
+        if (!suppressHelpOnFailure) {
+            writeFailureDetails(output, details);
+        }
     }
 
     private static boolean hasCauseAncestry(Failure failure, Class<?> type) {

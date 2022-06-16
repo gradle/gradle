@@ -101,6 +101,17 @@ $GET_HELP
 """
     }
 
+    def "suppresses help for single failure if suppressHelpOnFailure set to true"() {
+        reporter.setSuppressHelpOnFailure(true)
+        GradleException exception = new GradleException("<message>")
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+'''
+    }
+
     def "does not suggest to use --scan if option was on command line"() {
         GradleException exception = new GradleException(MESSAGE);
 
@@ -435,6 +446,23 @@ $TRY_SCAN
 $GET_HELP
 ==============================================================================
 """
+    }
+
+    def "suppresses help for multiple failures if suppressHelpOnFailure set to true"() {
+        reporter.setSuppressHelpOnFailure(true)
+        def failure1 = new LocationAwareException(new RuntimeException("<message>", new RuntimeException("<cause>")), "<location>", 42)
+        def failure2 = new GradleException("<failure>")
+        def failure3 = new RuntimeException("<error>")
+        Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value == '''
+{failure}FAILURE: Build completed with 3 failures.{normal}
+
+{failure}1: {normal}{failure}Task failed with an exception.{normal}
+{failure}2: {normal}{failure}Task failed with an exception.{normal}
+{failure}3: {normal}{failure}Task failed with an exception.{normal}''';
     }
 
     def reportsBuildFailureWhenShowStacktraceEnabled() {
