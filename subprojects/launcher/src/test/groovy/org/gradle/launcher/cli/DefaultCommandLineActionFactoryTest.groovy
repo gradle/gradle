@@ -293,4 +293,16 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         ['-V']             | true                | 1
         ['--show-version'] | true                | 1
     }
+
+    def "sets suppressHelpOnFailure flag help if suppress flag is set"() {
+        when:
+        def commandLineExecution = factory.convert([option])
+        commandLineExecution.execute(executionListener)
+
+        then:
+        commandLineExecution.reporter.suppressHelpOnFailure == true
+
+        where:
+        option << ['-S', '--suppress-help']
+    }
 }

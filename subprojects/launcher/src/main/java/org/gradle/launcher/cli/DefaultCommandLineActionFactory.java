@@ -62,6 +62,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static final String HELP = "h";
     private static final String VERSION = "v";
     private static final String VERSION_CONTINUE = "V";
+    private static final String SUPPRESS_HELP_ON_FAILURE = "S";
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -75,12 +76,13 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         ServiceRegistry loggingServices = createLoggingServices();
 
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
+        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData());
 
         return new WithLogging(loggingServices,
             args,
             loggingConfiguration,
-            new ParseAndBuildAction(loggingServices, args),
-            new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
+            new ParseAndBuildAction(loggingServices, args, exceptionReporter),
+            exceptionReporter);
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -120,11 +122,18 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class BuiltInActionCreator implements CommandLineActionCreator {
+        private final BuildExceptionReporter exceptionReporter;
+
+        private BuiltInActionCreator(BuildExceptionReporter exceptionReporter) {
+            this.exceptionReporter = exceptionReporter;
+        }
+
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
             parser.option(VERSION, "version").hasDescription("Print version info and exit.");
             parser.option(VERSION_CONTINUE, "show-version").hasDescription("Print version info and continue.");
+            parser.option(SUPPRESS_HELP_ON_FAILURE, "suppress-help").hasDescription("Suppress extra help messages upon failure.");
         }
 
         @Override
@@ -136,6 +145,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             if (commandLine.hasOption(VERSION)) {
                 return new ShowVersionAction();
             }
+            if (commandLine.hasOption(SUPPRESS_HELP_ON_FAILURE)) {
+                return new SuppressHelpAction(exceptionReporter);
+            }
             return null;
         }
     }
@@ -145,7 +157,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      */
     private static class ContinuingActionCreator extends NonParserConfiguringCommandLineActionCreator {
         @Override
-        @Nullable
         public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
                 return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction().execute(executionListener);
@@ -218,6 +229,23 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     /**
+     * This {@link Action} sets its associated {@link BuildExceptionReporter} to suppress any help messages that it
+     * might later print.
+     */
+    public static final class SuppressHelpAction implements Action<ExecutionListener> {
+        private final BuildExceptionReporter exceptionReporter;
+
+        public SuppressHelpAction(BuildExceptionReporter exceptionReporter) {
+            this.exceptionReporter = exceptionReporter;
+        }
+
+        @Override
+        public void execute(ExecutionListener executionListener) {
+            exceptionReporter.setSuppressHelpOnFailure(true);
+        }
+    }
+
+        /**
      * This {@link Action} is also a {@link CommandLineActionCreator} that, when run, will create new {@link Action}s that
      * will be immediately executed.
      *
@@ -230,15 +258,15 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private class ParseAndBuildAction extends NonParserConfiguringCommandLineActionCreator implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
-        private List<CommandLineActionCreator> actionCreators;
-        private CommandLineParser parser = new CommandLineParser();
+        private final List<CommandLineActionCreator> actionCreators;
+        private final CommandLineParser parser = new CommandLineParser();
 
-        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
+        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args, BuildExceptionReporter exceptionReporter) {
             this.loggingServices = loggingServices;
             this.args = args;
 
             actionCreators = new ArrayList<>();
-            actionCreators.add(new BuiltInActionCreator());
+            actionCreators.add(new BuiltInActionCreator(exceptionReporter));
             actionCreators.add(new ContinuingActionCreator());
         }
 
