@@ -24,7 +24,6 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.concurrent.ExecutionException
 import java.util.stream.Stream
 
 import static com.google.common.base.Preconditions.checkNotNull
@@ -36,12 +35,14 @@ class CompileTransactionTest extends Specification {
     @TempDir
     File temporaryFolder
     File transactionDir
-    CompileTransaction transaction
+    File stashDir
+    CompileTransaction.CompileTransactionBuilder transactionBuilder
 
     def setup() {
         transactionDir = new File(temporaryFolder, "transactionDir")
         transactionDir.mkdir()
-        transaction = CompileTransaction.newTransaction(transactionDir, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        stashDir = new File(transactionDir, "stash-dir")
+        transactionBuilder = CompileTransaction.builder(transactionDir, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     def "transaction base directory is cleared before execution"() {
@@ -49,33 +50,33 @@ class CompileTransactionTest extends Specification {
         fileInTransactionDir("sub-dir").mkdir()
 
         when:
-        assert !isEmptyDirectory(transactionDir)
-        def isTransactionDirEmpty = transaction.execute {
-            return isEmptyDirectory(transactionDir)
-        }
+        assert !hasOnlyDirectories(transactionDir)
+        def isTransactionDirEmpty = transactionBuilder
+            .build()
+            .execute {
+                return hasOnlyDirectories(transactionDir)
+            }
 
         then:
         isTransactionDirEmpty
     }
 
     def "files are stashed and restored on failure"() {
-        def sourceDir = newDirectory(file("sourceDir"))
+        def sourceDir = createNewDirectory(file("sourceDir"))
         createNewFile(new File(sourceDir, "file.txt"))
         createNewFile(new File(sourceDir, "subDir/another-file.txt"))
         def pattern = new PatternSet().include("**/*.txt")
-        def stashDir = null
 
         when:
-        transaction.newTransactionalDirectory {
-            it.stashFilesForRollbackOnFailure(pattern, sourceDir)
-            stashDir = it.getAsFile()
-        }.execute {
-            assert hasOnlyDirectories(sourceDir)
-            assert stashDir.list()
-                .collect { it.replaceAll(".uniqueId.*", "")}
-                .containsAll(["file.txt", "another-file.txt"])
-            throw new RuntimeException("Exception")
-        }
+        transactionBuilder.stashFiles(pattern, sourceDir)
+            .build()
+            .execute {
+                assert hasOnlyDirectories(sourceDir)
+                assert stashDir.list()
+                    .collect { it.replaceAll(".uniqueId.*", "") }
+                    .containsAll(["file.txt", "another-file.txt"])
+                throw new RuntimeException("Exception")
+            }
 
         then:
         thrown(RuntimeException)
@@ -84,72 +85,47 @@ class CompileTransactionTest extends Specification {
     }
 
     def "files are stashed but not restored on success"() {
-        def sourceDir = newDirectory(file("sourceDir"))
+        def sourceDir = createNewDirectory(file("sourceDir"))
         new File(sourceDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
-        def stashDir = null
 
         when:
-        transaction.newTransactionalDirectory {
-            it.stashFilesForRollbackOnFailure(pattern, sourceDir)
-            stashDir = it.getAsFile()
-        }.execute {
-            assert isEmptyDirectory(sourceDir)
-            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
-            return DID_WORK
-        }
+        transactionBuilder.stashFiles(pattern, sourceDir)
+            .build()
+            .execute {
+                assert isEmptyDirectory(sourceDir)
+                assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
+                return DID_WORK
+            }
 
         then:
-        isEmptyDirectory(sourceDir)
-    }
-
-    def "files are stashed but not restored if exception doesn't match"() {
-        def sourceDir = newDirectory(file("sourceDir"))
-        new File(sourceDir, "file.txt").createNewFile()
-        def pattern = new PatternSet().include("**/*.txt")
-        def stashDir = null
-
-        when:
-        transaction.newTransactionalDirectory {
-            it.stashFilesForRollbackOnFailure(pattern, sourceDir)
-            stashDir = it.getAsFile()
-        }.onFailureRollbackStashIfException {
-            it instanceof ExecutionException
-        }.execute {
-            assert isEmptyDirectory(sourceDir)
-            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
-            throw new RuntimeException("Exception")
-        }
-
-        then:
-        thrown(RuntimeException)
         isEmptyDirectory(sourceDir)
     }
 
     def "if something get stashed workResult passed to execution will mark 'did work'"() {
-        def sourceDir = newDirectory(file("sourceDir"))
+        def sourceDir = createNewDirectory(file("sourceDir"))
         new File(sourceDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
-        def stashDir = null
 
         when:
-        def workResult = transaction.newTransactionalDirectory {
-            it.stashFilesForRollbackOnFailure(pattern, sourceDir)
-            stashDir = it.getAsFile()
-        }.execute {
-            assert isEmptyDirectory(sourceDir)
-            assert !isEmptyDirectory(stashDir)
-            return it
-        }
+        def workResult = transactionBuilder.stashFiles(pattern, sourceDir)
+            .build()
+            .execute {
+                assert isEmptyDirectory(sourceDir)
+                assert !isEmptyDirectory(stashDir)
+                return it
+            }
 
         then:
         workResult == WorkResults.didWork(true)
     }
 
     def "if nothing get stashed workResult passed to execution will mark 'did no work'"() {
-        def workResult = transaction.execute {
-            return it
-        }
+        def workResult = transactionBuilder
+            .build()
+            .execute {
+                return it
+            }
 
         expect:
         workResult == WorkResults.didWork(false)
@@ -158,21 +134,19 @@ class CompileTransactionTest extends Specification {
     def "nothing is stashed and directory is not created if #description"() {
         File directory = null
         if (directoryPath) {
-            directory = newDirectory(file(directoryPath))
+            directory = createNewDirectory(file(directoryPath))
             createNewFile(new File(directory, "test-file.txt"))
         }
-        def stashDir = null
 
         when:
-        def stashDirExists = transaction.newTransactionalDirectory {
-            it.stashFilesForRollbackOnFailure(pattern, directory)
-            stashDir = it.getAsFile()
-        }.execute {
-            stashDir.exists()
-        }
+        def stashDirIsEmpty = transactionBuilder.stashFiles(pattern, directory)
+            .build()
+            .execute {
+                isEmptyDirectory(stashDir)
+            }
 
         then:
-        !stashDirExists
+        stashDirIsEmpty
 
         where:
         pattern                              | directoryPath | description
@@ -180,128 +154,79 @@ class CompileTransactionTest extends Specification {
         new PatternSet().include("**/*.txt") | null          | "null directory"
     }
 
-    def "on success all files in stash dir are moved to a specific directory"() {
-        def destinationDir = newDirectory(file("someDir"))
-        def stashDir = null
+    def "on success all files are moved from stage dir to an output directory"() {
+        def outputDir = createNewDirectory(file("someDir"))
+        def stageDir = null
 
         when:
-        transaction.newTransactionalDirectory {
-            it.onSuccessMoveFilesTo(destinationDir)
-            stashDir = it.getAsFile()
-        }.execute {
-            new File(stashDir, "file.txt").createNewFile()
-            new File(stashDir, "subDir").mkdir()
-            new File(stashDir, "subDir/another-file.txt").createNewFile()
-            return DID_WORK
-        }
+        transactionBuilder.stageOutputDirectory(outputDir) { stageDir = it }
+            .build()
+            .execute {
+                new File(stageDir, "file.txt").createNewFile()
+                new File(stageDir, "subDir").mkdir()
+                new File(stageDir, "subDir/another-file.txt").createNewFile()
+                return DID_WORK
+            }
 
         then:
-        destinationDir.list() as Set ==~ ["file.txt", "subDir"]
-        new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt"]
+        outputDir.list() as Set ==~ ["file.txt", "subDir"]
+        new File(outputDir,"subDir").list() as Set ==~ ["another-file.txt"]
     }
 
-    def "on failure files are not moved to a specific directory"() {
-        def destinationDir = newDirectory(file("someDir"))
-        def stashDir = null
+    def "on failure files are not moved to a output directory"() {
+        def outputDir = createNewDirectory(file("someDir"))
+        def stageDir = null
 
         when:
-        transaction.newTransactionalDirectory {
-            it.onSuccessMoveFilesTo(destinationDir)
-            stashDir = it.getAsFile()
-        }.execute {
-            new File(stashDir, "file.txt").createNewFile()
-            new File(stashDir, "subDir").mkdir()
-            new File(stashDir, "subDir/another-file.txt").createNewFile()
-            throw new RuntimeException("Exception")
-        }
+        transactionBuilder.stageOutputDirectory(outputDir) { stageDir = it }
+            .build()
+            .execute {
+                new File(stageDir, "file.txt").createNewFile()
+                new File(stageDir, "subDir").mkdir()
+                new File(stageDir, "subDir/another-file.txt").createNewFile()
+                throw new RuntimeException("Exception")
+            }
 
         then:
         thrown(RuntimeException)
-        isEmptyDirectory(destinationDir)
+        isEmptyDirectory(outputDir)
     }
 
-    def "before execution registered action is called"() {
-        boolean wasCalled = false
-
+    def "unique folder is generated for stash directory and every output stage directory that exists"() {
         when:
-        def wasCalledBeforeExecution = transaction.newTransactionalDirectory {
-            it.beforeExecutionDo(() -> wasCalled = true)
-        }.execute {
-            return wasCalled
-        }
+        def directories = transactionBuilder.stageOutputDirectory(createNewDirectory(file("dir"))) {}
+            .stageOutputDirectory(createNewDirectory(file("dir"))) {}
+            .stageOutputDirectory(createNewDirectory(file("dir1"))) {}
+            .build()
+            .execute {
+                return transactionDir.list()
+            }
 
         then:
-        wasCalledBeforeExecution
-        wasCalled
-    }
-
-    def "after execution 'always do' action is called on success"() {
-        boolean wasCalled = false
-
-        when:
-        def wasCalledBeforeExecution = transaction.newTransactionalDirectory {
-            it.afterExecutionAlwaysDo(() -> wasCalled = true)
-        }.execute {
-            return wasCalled
-        }
-
-        then:
-        !wasCalledBeforeExecution
-        wasCalled
-    }
-
-    def "after execution 'always do' action is called on failure"() {
-        boolean wasCalled = false
-
-        when:
-        transaction.newTransactionalDirectory {
-            it.afterExecutionAlwaysDo(() -> wasCalled = true)
-        }.execute {
-            throw new RuntimeException("Exception")
-        }
-
-        then:
-        thrown(RuntimeException)
-        wasCalled
-    }
-
-    def "unique folder is generated for every transactional directory"() {
-        when:
-        def directories = transaction.newTransactionalDirectory {
-            it.ensureEmptyBeforeExecution()
-        }.newTransactionalDirectory {
-            it.withNamePrefix("test").ensureEmptyBeforeExecution()
-        }.newTransactionalDirectory {
-            it.withNamePrefix("test").ensureEmptyBeforeExecution()
-        }.execute {
-            return transactionDir.list()
-        }
-
-        then:
-        directories as Set ==~ ["dir-uniqueId0", "test-dir-uniqueId1", "test-dir-uniqueId2"]
+        directories as Set ==~ ["stash-dir", "staging-dir-0", "staging-dir-1", "staging-dir-2"]
     }
 
     def "folder is cleaned before execution and folder structure is kept for transactional directory"() {
-        createNewFile(fileInTransactionDir("dir-uniqueId0/dir1/dir1/file1.txt"))
-        newDirectory(fileInTransactionDir("dir-uniqueId0/dir1/dir2"))
-        newDirectory(fileInTransactionDir("dir-uniqueId0/dir3"))
-        createNewFile(fileInTransactionDir("dir-uniqueId0/dir2/file1.txt"))
-        newDirectory(fileInTransactionDir("dir-uniqueId1"))
-        newDirectory(file("other-dir/dir1/dir1"))
-        newDirectory(file("other-dir/dir2"))
+        createNewFile(fileInTransactionDir("staging-dir-0/dir1/dir1/file1.txt"))
+        createNewDirectory(fileInTransactionDir("staging-dir-0/dir1/dir2"))
+        createNewDirectory(fileInTransactionDir("staging-dir-0/dir3"))
+        createNewFile(fileInTransactionDir("staging-dir-0/dir2/file1.txt"))
+        createNewDirectory(fileInTransactionDir("staging-dir-1"))
+        createNewDirectory(file("other-dir/dir1/dir1"))
+        createNewDirectory(file("other-dir/dir2"))
         // This is a file, so folder ./dir1/dir2 in transactional dir should be deleted
         createNewFile(file("other-dir/dir1/dir2"))
 
         expect:
-        transaction.newTransactionalDirectory {
-            it.ensureEmptyKeepingDirectoryStructureFrom(file("other-dir"))
-        }.execute {
-            assert transactionDir.list() as Set ==~ ["dir-uniqueId0"]
-            assert fileInTransactionDir("dir-uniqueId0").list() as Set ==~ ["dir1", "dir2"]
-            assert fileInTransactionDir("dir-uniqueId0/dir1").list() as Set ==~ ["dir1"]
-            assert hasOnlyDirectories(fileInTransactionDir("dir-uniqueId0"))
-            return DID_WORK
-        }
+        transactionBuilder.stageOutputDirectory(file("other-dir")) {}
+            .build()
+            .execute {
+                assert transactionDir.list() as Set ==~ ["stash-dir", "staging-dir-0"]
+                assert fileInTransactionDir("staging-dir-0").list() as Set ==~ ["dir1", "dir2"]
+                assert fileInTransactionDir("staging-dir-0/dir1").list() as Set ==~ ["dir1"]
+                assert hasOnlyDirectories(fileInTransactionDir("staging-dir-0"))
+                return DID_WORK
+            }
     }
 
     private File fileInTransactionDir(String path) {
@@ -312,7 +237,7 @@ class CompileTransactionTest extends Specification {
         return new File(checkNotNull(temporaryFolder) as File, path)
     }
 
-    private File newDirectory(File file) {
+    private File createNewDirectory(File file) {
         file.parentFile.mkdirs()
         file.mkdir()
         return file

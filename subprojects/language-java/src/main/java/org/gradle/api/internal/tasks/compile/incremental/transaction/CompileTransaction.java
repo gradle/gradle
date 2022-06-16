@@ -102,7 +102,7 @@ public class CompileTransaction {
             ensureEmptyDirectories.add(stashDirectory);
             for (StagedOutput output : stagedOutputs) {
                 ensureEmptyKeepingFolderStructure(output);
-                ensureEmptyDirectories.add(output.stageDirectory);
+                ensureEmptyDirectories.add(output.stagingDirectory);
             }
 
             // Delete any other file or directory
@@ -117,7 +117,11 @@ public class CompileTransaction {
     }
 
     private void ensureEmptyKeepingFolderStructure(StagedOutput output) throws IOException {
-        Path currentDir = output.stageDirectory.toPath();
+        Path currentDir = output.stagingDirectory.toPath();
+        if (!Files.exists(currentDir)) {
+            Files.createDirectory(currentDir);
+            return;
+        }
         try (Stream<Path> dirStream = Files.walk(currentDir)) {
             // Delete all files and delete all directories
             // that don't exist in sourceDirectory
@@ -174,7 +178,7 @@ public class CompileTransaction {
     }
 
     private void moveCompileOutputToOriginalFolders() {
-        stagedOutputs.forEach(output -> moveAllFilesFromDirectoryTo(output.stageDirectory, output.sourceDirectory));
+        stagedOutputs.forEach(output -> moveAllFilesFromDirectoryTo(output.stagingDirectory, output.sourceDirectory));
     }
 
     private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
@@ -205,7 +209,7 @@ public class CompileTransaction {
     }
 
     private void setupSpecOutputs() {
-        stagedOutputs.forEach(output -> output.setSpecOutput.accept(output.stageDirectory));
+        stagedOutputs.forEach(output -> output.setSpecOutput.accept(output.stagingDirectory));
     }
 
     private void restoreSpecOutputs() {
@@ -220,6 +224,7 @@ public class CompileTransaction {
         private final Deleter deleter;
         private final FileOperations fileOperations;
         private final File tempDir;
+        private final File stashDirectory;
         private final AtomicInteger uniqueStageId;
         private final List<StashSource> stashSources;
         private final List<StagedOutput> stagedOutputs;
@@ -227,6 +232,7 @@ public class CompileTransaction {
         private CompileTransactionBuilder(File tempDir, FileOperations fileOperations, Deleter deleter) {
             this.tempDir = tempDir;
             this.deleter = deleter;
+            this.stashDirectory = new File(tempDir, "stash-dir");
             this.fileOperations = fileOperations;
             this.uniqueStageId = new AtomicInteger();
             this.stashSources = new ArrayList<>();
@@ -242,16 +248,15 @@ public class CompileTransaction {
 
         public CompileTransactionBuilder stageOutputDirectory(File sourceDirectory, Consumer<File> setSpecOutputFunction) {
             // Generate unique id always, so directory mapping is somewhat stable
-            int uniqueId = uniqueStageId.incrementAndGet();
+            int uniqueId = uniqueStageId.getAndIncrement();
             if (sourceDirectory != null) {
-                File stageDirectory = new File(tempDir, "stage-dir-" + uniqueId);
+                File stageDirectory = new File(tempDir, "staging-dir-" + uniqueId);
                 stagedOutputs.add(new StagedOutput(sourceDirectory, stageDirectory, setSpecOutputFunction));
             }
             return this;
         }
 
         public CompileTransaction build() {
-            File stashDirectory = new File(tempDir, "stash-dir");
             return new CompileTransaction(tempDir, fileOperations, deleter, stashDirectory, stashSources, stagedOutputs);
         }
     }
@@ -273,12 +278,12 @@ public class CompileTransaction {
 
     private static class StagedOutput {
         private final File sourceDirectory;
-        private final File stageDirectory;
+        private final File stagingDirectory;
         private final Consumer<File> setSpecOutput;
 
-        private StagedOutput(File sourceDirectory, File stageDirectory, Consumer<File> setSpecOutput) {
+        private StagedOutput(File sourceDirectory, File stagingDirectory, Consumer<File> setSpecOutput) {
             this.sourceDirectory = sourceDirectory;
-            this.stageDirectory = stageDirectory;
+            this.stagingDirectory = stagingDirectory;
             this.setSpecOutput = setSpecOutput;
         }
     }
