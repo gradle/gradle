@@ -166,7 +166,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         if (!strict.get()) {
             DeprecationLogger.deprecateBuildInvocationFeature("Non-strict accessors generation for Kotlin DSL precompiled script plugins")
                 .withContext("Strict accessor generation will become the default.")
-                .withAdvice("To opt-in to the strict behavior, set the '$strictModeSystemPropertyName' system property to `true`.")
+                .withAdvice("To opt in to the strict behavior, set the '$strictModeSystemPropertyName' system property to `true`.")
                 .willChangeInGradle8()
                 .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors")
                 .nagUser()
