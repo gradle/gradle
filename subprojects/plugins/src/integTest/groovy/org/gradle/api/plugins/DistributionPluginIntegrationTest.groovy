@@ -480,15 +480,15 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
             distributions {
                 main {
-                    archiveClassifier.set("foo")
+                    distributionClassifier.set("foo")
                 }
                 customOne {
                     distributionBaseName.set("custom")
-                    archiveClassifier.set("bar")
+                    distributionClassifier.set("bar")
                 }
                 customTwo {
                     distributionBaseName.set("custom")
-                    archiveClassifier.set("baz")
+                    distributionClassifier.set("baz")
                 }
                 all {
                     contents.from("someFile")
