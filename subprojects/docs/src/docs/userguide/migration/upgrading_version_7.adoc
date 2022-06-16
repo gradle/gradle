@@ -46,6 +46,26 @@ Forward compatibility was retained, but the following exports might cause a larg
 
 The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
 
+[[strict-kotlin-dsl-precompiled-scripts-accessors]]
+=== Strict Kotlin DSL precompiled script plugins accessors generation
+
+Type safe Kotlin DSL accessors generation for precompiled script plugins does not fail the build by default if a plugin requested in such precompiled scripts fails to be applied.
+Because the cause could be environmental and for backwards compatibility reasons, this behaviour hasn't changed yet.
+
+Back in Gradle 7.1 the `:generatePrecompiledScriptPluginAccessors` task responsible for the accessors generation has been marked as non cacheable by default.
+The `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property was introduced in order to offer an opt-in to a stricter mode of operation that fails the build when a plugin application fails, and enable the build cache for that task.
+
+Starting with Gradle 7.6, non-strict accessors generation for Kotlin DSL precompiled script plugins has been deprecated.
+This will change in Gradle 8.0.
+Strict accessor generation will become the default.
+To opt in to the strict behavior, set the 'org.gradle.kotlin.dsl.precompiled.accessors.strict' system property to `true`.
+
+This can be achieved persistently in the `gradle.properties` file in your build root directory:
+
+```properties
+systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
+```
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
