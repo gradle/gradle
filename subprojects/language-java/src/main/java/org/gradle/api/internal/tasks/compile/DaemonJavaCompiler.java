@@ -71,7 +71,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(KeepAliveMode.DAEMON)
             .build();
     }
 
