@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
