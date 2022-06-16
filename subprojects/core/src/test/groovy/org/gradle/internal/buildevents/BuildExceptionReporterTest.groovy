@@ -59,7 +59,7 @@ class BuildExceptionReporterTest extends Specification {
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>
@@ -88,7 +88,7 @@ class BuildExceptionReporterTest extends Specification {
         expect:
         reporter.buildFinished(result)
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>
@@ -116,7 +116,7 @@ class BuildExceptionReporterTest extends Specification {
         expect:
         reporter.buildFinished(result)
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>
@@ -135,7 +135,7 @@ class BuildExceptionReporterTest extends Specification {
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 org.gradle.api.GradleException (no error message)
@@ -155,7 +155,7 @@ org.gradle.api.GradleException (no error message)
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * Where:
 <location> line: 42
@@ -179,7 +179,7 @@ org.gradle.api.GradleException (no error message)
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * Where:
 <location> line: 42
@@ -203,7 +203,7 @@ java.io.IOException
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * Where:
 <location> line: 42
@@ -230,7 +230,7 @@ java.io.IOException
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * Where:
 <location> line: 42
@@ -258,7 +258,7 @@ java.io.IOException
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * Where:
 <location> line: 42
@@ -284,7 +284,7 @@ java.io.IOException
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * Where:
 <location> line: 42
@@ -366,7 +366,7 @@ Caused by: org.gradle.api.GradleException: <failure>
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>
@@ -390,7 +390,7 @@ org.gradle.api.GradleException: <message>
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>
@@ -418,7 +418,7 @@ org.gradle.api.GradleException: <message>
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>
@@ -446,7 +446,7 @@ org.gradle.api.GradleException: <message>
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+{failure}FAILURE: Build failed with an exception.{normal}
 
 * What went wrong:
 <message>

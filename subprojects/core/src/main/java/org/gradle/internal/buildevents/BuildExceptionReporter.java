@@ -167,21 +167,25 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private void renderSingleBuildException(StyledTextOutput output, Throwable failure) {
         Throwable mergedFailure = mergeMergeableExceptions(Collections.singletonList(failure)).get(0);
-        String summary = summarizeFailure(mergedFailure);
+        String summary = summarizeFailure("Build", mergedFailure);
         FailureDetails details = constructFailureDetails(summary, mergedFailure);
 
         writeFailureBanner(output, summary);
         writeFailureDetails(output, details);
     }
 
-    private String summarizeFailure(Throwable failure) {
-        boolean multipleExceptions;
-        if (failure instanceof MergedException) {
-            multipleExceptions = ((MergedException) failure).getCauses().size() > 1;
+    private String summarizeFailure(String granularity, Throwable failure) {
+        if (failure instanceof MultipleBuildFailures) {
+            return failure.getMessage();
         } else {
-            multipleExceptions = false;
+            boolean multipleExceptions;
+            if (failure instanceof MergedException) {
+                multipleExceptions = ((MergedException) failure).getCauses().size() > 1;
+            } else {
+                multipleExceptions = false;
+            }
+            return String.format("%s failed with %s.", granularity, multipleExceptions ? "multiple exceptions" : "an exception");
         }
-        return String.format("%s failed with %s.", "Build", multipleExceptions ? "multiple exceptions" : "an exception");
     }
 
     private ExceptionStyle getShowStackTraceOption() {
@@ -312,16 +316,18 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private void writeFailureBanner(StyledTextOutput output, String summary) {
         output.println();
-        output.withStyle(Failure).text("FAILURE: ").text(summary);
+        output.withStyle(Failure).format("FAILURE: %s", summary);
         output.println();
     }
 
     private void writeMultipleFailureDetails(StyledTextOutput output, MultipleBuildFailures originalFailure, List<? extends Throwable> causes) {
-        writeFailureBanner(output, summarizeFailure(originalFailure));
+        String summary = summarizeFailure("Build", originalFailure);
+        writeFailureBanner(output, summary);
 
         for (int i = 0; i < causes.size(); i++) {
             Throwable cause = causes.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
+            String causeSummary = summarizeFailure("Task", cause);
+            FailureDetails details = constructFailureDetails(causeSummary, cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
