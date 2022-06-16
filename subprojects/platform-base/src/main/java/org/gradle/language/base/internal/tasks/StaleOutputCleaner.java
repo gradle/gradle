@@ -24,6 +24,7 @@ import org.gradle.internal.file.FileType;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,12 +82,12 @@ public abstract class StaleOutputCleaner {
     }
 
     @CheckReturnValue
-    public static boolean cleanEmptyOutputDirectories(Deleter deleter, Iterable<File> filesToDelete, File directoryToClean) {
-        return cleanEmptyOutputDirectories(deleter, filesToDelete, ImmutableSet.of(directoryToClean));
+    public static boolean cleanEmptyOutputDirectories(Deleter deleter, Iterable<File> directories, File directoryToClean) {
+        return cleanEmptyOutputDirectories(deleter, directories, ImmutableSet.of(directoryToClean));
     }
 
     @CheckReturnValue
-    public static boolean cleanEmptyOutputDirectories(Deleter deleter, Iterable<File> directories, ImmutableSet<File> directoriesToClean) {
+    public static boolean cleanEmptyOutputDirectories(Deleter deleter, Iterable<File> directories, Collection<File> directoriesToClean) {
         OutputsCleaner outputsCleaner = new OutputsCleaner(
             deleter,
             file -> false,
