@@ -29,6 +29,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.MergedException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -38,6 +39,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nonnull;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -86,12 +88,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(Throwable failure) {
+    public void execute(@Nonnull Throwable failure) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         if (failure instanceof MultipleBuildFailures) {
             renderMultipleBuildFailuresException(output, (MultipleBuildFailures) failure);
         } else {
-            renderSingleBuildException(output, failure, 1);
+            renderSingleBuildException(output, failure);
         }
         writeGeneralTips(output);
     }
@@ -101,9 +103,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         List<Throwable> mergedCauses = mergeMergeableExceptions(causes);
 
         if (mergedCauses.size() == 1) {
-            renderSingleBuildException(output, mergedCauses.get(0), causes.size());
+            renderSingleBuildException(output, mergedCauses.get(0));
         } else {
-            writeMultipleFailureDetails(output, mergedCauses, causes.size());
+            writeMultipleFailureDetails(output, failure, mergedCauses);
         }
     }
 
@@ -112,7 +114,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
      * any {@link MergeableException}s and will attempt to consolidate those exceptions into a
      * single {@link MultiCauseException} per type, returning the results of this and any other
      * given exceptions unchanged.
-     *
+     * <p />
      * Inheritance with exceptions implementing interfaces makes generics hard.  Isolate all the
      * raw type nastiness here and suppress the compiler warnings.
      *
@@ -163,17 +165,25 @@ public class BuildExceptionReporter implements Action<Throwable> {
         return null;
     }
 
-    private void renderSingleBuildException(StyledTextOutput output, Throwable failure, int originalExceptionCount) {
+    private void renderSingleBuildException(StyledTextOutput output, Throwable failure) {
         Throwable mergedFailure = mergeMergeableExceptions(Collections.singletonList(failure)).get(0);
-        FailureDetails details = constructFailureDetails("Build", mergedFailure, originalExceptionCount);
+        String summary = summarizeFailure(mergedFailure);
+        FailureDetails details = constructFailureDetails(summary, mergedFailure);
 
-        output.println();
-        output.withStyle(Failure).text("FAILURE: ");
-        details.summary.writeTo(output.withStyle(Failure));
-        output.println();
-
+        writeFailureBanner(output, summary);
         writeFailureDetails(output, details);
     }
+
+    private String summarizeFailure(Throwable failure) {
+        boolean multipleExceptions;
+        if (failure instanceof MergedException) {
+            multipleExceptions = ((MergedException) failure).getCauses().size() > 1;
+        } else {
+            multipleExceptions = false;
+        }
+        return String.format("%s failed with %s.", "Build", multipleExceptions ? "multiple exceptions" : "an exception");
+    }
+
     private ExceptionStyle getShowStackTraceOption() {
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS) {
             return ExceptionStyle.FULL;
@@ -182,9 +192,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private FailureDetails constructFailureDetails(String granularity, Throwable failure, int originalExceptionCount) {
+    private FailureDetails constructFailureDetails(String summaryMsg, Throwable failure) {
         FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
-        details.summary.format("%s failed with %s.", granularity, originalExceptionCount > 1 ? "multiple exceptions" : "an exception");
+        details.summary.format(summaryMsg);
 
         fillInFailureResolution(details);
 
@@ -259,13 +269,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
-        List<? extends Throwable> multipleCauses;
-        if (details.failure instanceof MultiCauseException) {
-            multipleCauses = ((MultiCauseException) details.failure).getCauses();
-        } else {
-            multipleCauses = Collections.emptyList();
-        }
-
         if (details.location.getHasContent()) {
             output.println();
             output.println("* Where:");
@@ -287,29 +290,38 @@ public class BuildExceptionReporter implements Action<Throwable> {
             output.println();
         }
 
-        if (multipleCauses.isEmpty()) {
+        if (details.failure instanceof MergedException) {
+            List<? extends Throwable> mergedCauses = ((MergedException) details.failure).getCauses();
+            for (int i = 1; i <= mergedCauses.size(); i++) {
+                output.println();
+                output.println("* Exception " + i + " of " + mergedCauses.size() + " is:");
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                mergedCauses.get(i - 1).printStackTrace(pw);
+                output.append(sw.toString());
+            }
+        } else {
             if (details.stackTrace.getHasContent()) {
                 output.println();
                 output.println("* Exception is:");
                 details.stackTrace.writeTo(output);
                 output.println();
             }
-        } else {
-            for (int i = 1; i <= multipleCauses.size(); i++) {
-                output.println();
-                output.println("* Exception " + i + " of " + multipleCauses.size() + " is:");
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                multipleCauses.get(i - 1).printStackTrace(pw);
-                output.append(sw.toString());
-            }
         }
     }
 
-    private void writeMultipleFailureDetails(StyledTextOutput output, List<? extends Throwable> causes, int originalExceptionCount) {
+    private void writeFailureBanner(StyledTextOutput output, String summary) {
+        output.println();
+        output.withStyle(Failure).text("FAILURE: ").text(summary);
+        output.println();
+    }
+
+    private void writeMultipleFailureDetails(StyledTextOutput output, MultipleBuildFailures originalFailure, List<? extends Throwable> causes) {
+        writeFailureBanner(output, summarizeFailure(originalFailure));
+
         for (int i = 0; i < causes.size(); i++) {
             Throwable cause = causes.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause, originalExceptionCount);
+            FailureDetails details = constructFailureDetails("Task", cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);

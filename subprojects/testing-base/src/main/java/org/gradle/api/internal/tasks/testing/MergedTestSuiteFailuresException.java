@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.exceptions.MergedException;
 import org.gradle.internal.exceptions.StyledException;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.List;
  * @since 7.6
  */
 @Incubating
-public final class MergedTestSuiteFailuresException extends StyledException implements MultiCauseException {
+public final class MergedTestSuiteFailuresException extends StyledException implements MergedException {
     private final List<TestSuiteVerificationException> exceptions;
 
     public MergedTestSuiteFailuresException(String message, List<TestSuiteVerificationException> exceptions) {

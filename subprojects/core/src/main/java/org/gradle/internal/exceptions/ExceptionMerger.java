@@ -23,7 +23,7 @@ package org.gradle.internal.exceptions;
  * @param <E> type which can be merged
  * @param <R> result type of merging
  */
-public interface ExceptionMerger<E extends MergeableException, R extends Throwable & MultiCauseException> {
+public interface ExceptionMerger<E extends MergeableException, R extends Throwable & MergedException> {
     /**
      * Adds an exception to the list of exceptions to be merged.
      *
