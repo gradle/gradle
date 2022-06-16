@@ -32,5 +32,5 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget {
     TaskProvider<Test> getTestTask();
 
     @Override
-    JvmTestSuite getTestSuite();
+    String getTestSuiteName();
 }

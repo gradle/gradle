@@ -34,21 +34,21 @@ import javax.inject.Inject;
 public class DefaultJvmTestSuiteTarget extends AbstractTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
     private final String name;
     private final TaskProvider<Test> testTask;
-    private final JvmTestSuite testSuite;
+    private final String testSuiteName; // Only store the name, not the entire test suite, to avoid configuration cache errors
 
     private CountingOnlyListener counter;
 
     @Inject
     public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, JvmTestSuite testSuite) {
         this.name = name;
-        this.testSuite = testSuite;
+        this.testSuiteName = testSuite.getName();
         this.counter = getTestCountLogger();
 
         // Might not always want Test type here?
         this.testTask = tasks.register(name, Test.class, t -> {
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-            t.getTestSuiteTarget().set(this);
+            t.getTestSuiteTarget().set(DefaultJvmTestSuiteTarget.this);
             t.addTestListener(counter);
         });
     }
@@ -73,8 +73,8 @@ public class DefaultJvmTestSuiteTarget extends AbstractTestSuiteTarget implement
     }
 
     @Override
-    public JvmTestSuite getTestSuite() {
-        return testSuite;
+    public String getTestSuiteName() {
+        return testSuiteName;
     }
 
     @Override

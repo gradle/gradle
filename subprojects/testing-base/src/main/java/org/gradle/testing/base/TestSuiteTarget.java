@@ -41,10 +41,10 @@ public interface TestSuiteTarget extends Named {
     /**
      * The {@link TestSuite} that created this target.
      *
-     * @return test suite that created this target
+     * @return name of the test suite that created this target
      * @since 7.6
      */
-    TestSuite getTestSuite();
+    String getTestSuiteName();
 
     /**
      * Gets a formatted summary of the result of running this target for display on the console.

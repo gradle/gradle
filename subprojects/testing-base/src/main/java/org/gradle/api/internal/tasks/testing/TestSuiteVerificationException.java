@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.Incubating;
 import org.gradle.internal.exceptions.MergeableException;
 import org.gradle.api.tasks.VerificationException;
+import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestSuiteTarget;
 
 import javax.annotation.Nullable;
@@ -34,12 +37,19 @@ import javax.annotation.Nullable;
 @Incubating
 public class TestSuiteVerificationException extends VerificationException implements MergeableException {
     private final TestSuiteTarget testSuiteTarget;
+    private final TestSuite testSuite;
     @Nullable private final String reportUrl;
 
-    public TestSuiteVerificationException(String message, @Nullable String reportUrl, TestSuiteTarget testSuiteTarget) {
+    public TestSuiteVerificationException(String message, @Nullable String reportUrl, TestSuiteTarget testSuiteTarget, TestSuite testSuite) {
         super(message);
         this.reportUrl = reportUrl;
         this.testSuiteTarget = testSuiteTarget;
+        this.testSuite = testSuite;
+        Preconditions.checkArgument(ObjectUtils.equals(testSuite.getName(), testSuiteTarget.getTestSuiteName()), "Suite: %s must suite associated with target: %s!", testSuite.getName(), testSuiteTarget.getTestSuiteName());
+    }
+
+    public TestSuite getTestSuite() {
+        return testSuite;
     }
 
     public TestSuiteTarget getTestSuiteTarget() {
@@ -57,7 +67,7 @@ public class TestSuiteVerificationException extends VerificationException implem
     }
 
     public String getSuiteName() {
-        return testSuiteTarget.getTestSuite().getName();
+        return testSuite.getName();
     }
 
     public String getTargetName() {

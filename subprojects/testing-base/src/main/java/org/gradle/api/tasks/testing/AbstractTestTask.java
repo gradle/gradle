@@ -81,7 +81,9 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestSuiteTarget;
+import org.gradle.testing.base.TestingExtension;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -661,7 +663,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         String message;
         if (testSuiteTarget.isPresent()) {
             TestSuiteTarget testSuiteTarget = this.testSuiteTarget.get();
-            message = "There were failing tests in the '" + testSuiteTarget.getName() + "' target for the '" + testSuiteTarget.getTestSuite().getName() + "' test suite.";
+            message = "There were failing tests in the '" + testSuiteTarget.getName() + "' target for the '" + testSuiteTarget.getTestSuiteName() + "' test suite.";
         } else {
             message = "There were failing tests.";
         }
@@ -683,7 +685,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             getLogger().warn(message);
         } else {
             if (testSuiteTarget.isPresent()) {
-                throw new TestSuiteVerificationException(message, reportUrl, testSuiteTarget.get());
+                TestingExtension testing = getProject().getExtensions().getByType(TestingExtension.class);
+                TestSuite testSuite = testing.getSuites().getByName(testSuiteTarget.get().getTestSuiteName());
+                throw new TestSuiteVerificationException(message, reportUrl, testSuiteTarget.get(), testSuite);
             } else {
                 throw new VerificationException(message.concat(" See the report at: ".concat(reportUrl)));
             }

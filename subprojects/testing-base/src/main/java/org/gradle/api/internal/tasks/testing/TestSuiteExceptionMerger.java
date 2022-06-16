@@ -63,19 +63,19 @@ public final class TestSuiteExceptionMerger implements ExceptionMerger<TestSuite
         return MergedTestSuiteFailuresException.class;
     }
 
-    private LinkedHashMap<TestSuite, Map<TestSuiteTarget, TestSuiteVerificationException>> assembleFailuresBySortedSuite() {
-        LinkedHashMap<TestSuite, Map<TestSuiteTarget, TestSuiteVerificationException>> result = new LinkedHashMap<TestSuite, Map<TestSuiteTarget, TestSuiteVerificationException>>();
+    private LinkedHashMap<String, Map<TestSuiteTarget, TestSuiteVerificationException>> assembleFailuresBySortedSuite() {
+        LinkedHashMap<String, Map<TestSuiteTarget, TestSuiteVerificationException>> result = new LinkedHashMap<String, Map<TestSuiteTarget, TestSuiteVerificationException>>();
         for (TestSuiteVerificationException exception: exceptions) {
             TestSuiteTarget target  = exception.getTestSuiteTarget();
-            if (!result.containsKey(target.getTestSuite())) {
-                result.put(target.getTestSuite(), new HashMap<TestSuiteTarget, TestSuiteVerificationException>());
+            if (!result.containsKey(target.getTestSuiteName())) {
+                result.put(target.getTestSuiteName(), new HashMap<TestSuiteTarget, TestSuiteVerificationException>());
             }
-            result.get(target.getTestSuite()).put(target, exception);
+            result.get(target.getTestSuiteName()).put(target, exception);
         }
         return result;
     }
 
-    private List<String> assembleSortedAllFailedTasks(LinkedHashMap<TestSuite, Map<TestSuiteTarget, TestSuiteVerificationException>> failuresBySortedSuite) {
+    private List<String> assembleSortedAllFailedTasks(LinkedHashMap<String, Map<TestSuiteTarget, TestSuiteVerificationException>> failuresBySortedSuite) {
         List<String> allFailedTasks = new ArrayList<String>();
         for (Map<TestSuiteTarget, TestSuiteVerificationException> failures: failuresBySortedSuite.values()) {
             for (TestSuiteVerificationException failure: failures.values()) {
@@ -87,19 +87,18 @@ public final class TestSuiteExceptionMerger implements ExceptionMerger<TestSuite
     }
 
     private String buildFailureOutput() {
-        LinkedHashMap<TestSuite, Map<TestSuiteTarget, TestSuiteVerificationException>> failuresBySortedSuite = assembleFailuresBySortedSuite();
+        LinkedHashMap<String, Map<TestSuiteTarget, TestSuiteVerificationException>> failuresBySortedSuite = assembleFailuresBySortedSuite();
         List<String> sortedAllFailedTasks = assembleSortedAllFailedTasks(failuresBySortedSuite);
 
-        final StringBuilder failureOutput = new StringBuilder(buildExecutionFailedHeader(failuresBySortedSuite, sortedAllFailedTasks));
-        for (TestSuite testSuite : failuresBySortedSuite.keySet()) {
-            failureOutput.append(buildSuiteFailureDetails(testSuite, failuresBySortedSuite.get(testSuite)));
+        final StringBuilder failureOutput = new StringBuilder(buildExecutionFailedHeader(sortedAllFailedTasks));
+        for (String testSuiteName : failuresBySortedSuite.keySet()) {
+            failureOutput.append(buildSuiteFailureDetails(testSuiteName, failuresBySortedSuite.get(testSuiteName)));
         }
 
         return failureOutput.toString();
     }
 
-    private String buildExecutionFailedHeader(LinkedHashMap<TestSuite, Map<TestSuiteTarget, TestSuiteVerificationException>> sortedFailuresBySuite,
-                                              List<String> sortedAllFailedTasks) {
+    private String buildExecutionFailedHeader(List<String> sortedAllFailedTasks) {
         StringBuilder failureOutput = new StringBuilder("Execution failed for task");
         failureOutput.append(sortedAllFailedTasks.size() > 1 ? "s '" : " '");
         Joiner.on("', '").appendTo(failureOutput, sortedAllFailedTasks);
@@ -107,11 +106,15 @@ public final class TestSuiteExceptionMerger implements ExceptionMerger<TestSuite
         return failureOutput.toString();
     }
 
-    private String buildSuiteFailureDetails(TestSuite testSuite, Map<TestSuiteTarget, TestSuiteVerificationException> failures) {
+    private String buildSuiteFailureDetails(String testSuiteName, Map<TestSuiteTarget, TestSuiteVerificationException> failures) {
         final StringBuilder failureOutput = new StringBuilder();
         failureOutput.append('\n');
         failureOutput.append(StyledException.style(StyledTextOutput.Style.Info, "> "));
-        failureOutput.append("Test suite '").append(testSuite.getName()).append("' has failing tests.");
+        failureOutput.append("Test suite '").append(testSuiteName).append("' has failing tests.");
+
+        // All targets in failures map to the same suite, and the map is guaranteed non-empty; we want to loop every target for the failing
+        // suite in order to also print the passing ones
+        TestSuite testSuite = failures.values().iterator().next().getTestSuite();
 
         for (TestSuiteTarget target: testSuite.getTargets()) {
             failureOutput.append('\n');
