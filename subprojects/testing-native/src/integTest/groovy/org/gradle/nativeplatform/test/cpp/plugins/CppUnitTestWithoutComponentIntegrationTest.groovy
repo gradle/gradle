@@ -75,7 +75,7 @@ int main() {
         then:
         result.assertTasksExecuted(tasksToBuildAndRunUnitTest)
         failure.assertHasDescription("Execution failed for task ':runTest'.")
-        failure.assertCausedByFailingTestsInDefaultTestSuite()
+        failure.assertHasCause("Test suite 'test' has failing tests.")
     }
 
     @Override

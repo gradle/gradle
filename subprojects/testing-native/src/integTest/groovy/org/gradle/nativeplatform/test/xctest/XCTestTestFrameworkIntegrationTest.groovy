@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -136,5 +137,18 @@ allprojects { p ->
     @Override
     String testSuite(String testSuite) {
         return "AppTest.$testSuite"
+    }
+
+    @Override
+    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
+    def "failing tests cause report url to be printed"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        fails "check"
+
+        then:
+        failure.assertHasCause("There were failing tests. See the report at:")
     }
 }

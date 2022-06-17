@@ -370,7 +370,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':runHelloTestGoogleTestExe'.")
-        failure.assertHasCause("Test suite 'test' has failing tests. ")
+        failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
@@ -398,7 +398,7 @@ tasks.withType(RunTestExecutable) {
 
         then:
         output.contains "[  FAILED  ] "
-        output.contains "Test suite 'test' has failing tests. "
+        output.contains "There were failing tests. See the results at: "
 
         and:
         file("build/test-results/helloTest/test_detail.xml").assertExists()

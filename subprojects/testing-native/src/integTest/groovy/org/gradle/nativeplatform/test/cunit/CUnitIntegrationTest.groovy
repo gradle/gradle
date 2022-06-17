@@ -410,7 +410,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe'.")
-        failure.assertHasCause("Test suite 'test' has failing tests. ")
+        failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
@@ -441,7 +441,7 @@ tasks.withType(RunTestExecutable) {
 
         then:
         contains "There were test failures:"
-        contains "Test suite 'test' has failing tests. "
+        contains "There were failing tests. See the results at: "
 
         and:
         file("build/test-results/helloTest/CUnitAutomated-Results.xml").assertExists()
