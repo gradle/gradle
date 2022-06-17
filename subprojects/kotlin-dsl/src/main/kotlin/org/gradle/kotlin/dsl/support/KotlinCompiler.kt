@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
 
@@ -344,6 +345,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVM_TARGET, JVM_1_8)
         put(JDK_HOME, File(System.getProperty("java.home")))
+        addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
@@ -505,6 +507,7 @@ class LoggingMessageCollector(
                 errors += ScriptCompilationError(message, location)
                 log.error { taggedMsg() }
             }
+
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
             CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
             CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
