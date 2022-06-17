@@ -35,7 +35,7 @@ public interface ZipEntry {
 
     /**
      * Declare an action to be run against this ZipEntry's content as a {@link InputStream}.
-     * The {@link InputStream} passed to the {@link InputStreamAction#run(InputStream)} will
+     * The {@link InputStream} passed to the {@link IoFunction#apply(Object)} will
      * be closed right after the action's return.
      *
      * This method or {@link #getContent()} may or may not support being called more than once per entry.
