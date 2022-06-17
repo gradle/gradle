@@ -16,11 +16,10 @@
 
 package org.gradle.plugin.devel.plugins
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -826,7 +825,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             }
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+                testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
             }
         """
 
@@ -901,7 +900,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('content changed')
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "a change in project sources invalidates build cache"() {
         given:
         def cacheDir = createDir("cache-dir")
@@ -955,6 +953,37 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds(SAMPLE_TASK)
+    }
+
+    def "should not allow precompiled plugin to conflict with core plugin"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        file("buildSrc/src/main/groovy/plugins/java.gradle") << ""
+
+        when:
+        def failure = fails "help"
+
+        then:
+        failure.assertHasCause("The precompiled plugin (${'src/main/groovy/plugins/java.gradle'.replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
+            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+    }
+
+    def "should not allow precompiled plugin to have org.gradle prefix"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        file("buildSrc/src/main/groovy/plugins/${pluginName}.gradle") << ""
+
+        when:
+        fails "help"
+
+        then:
+        failure.assertHasCause("The precompiled plugin (${"src/main/groovy/plugins/${pluginName}.gradle".replace("/", File.separator)}) cannot start with 'org.gradle'.\n\n"
+            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+
+        where:
+        pluginName << ["org.gradle.my-plugin", "org.gradle"]
     }
 
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {

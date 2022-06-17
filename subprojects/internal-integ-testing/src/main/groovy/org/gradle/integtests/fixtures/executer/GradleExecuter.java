@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.RichConsoleStyling;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
@@ -105,6 +106,14 @@ public interface GradleExecuter extends Stoppable {
      * <p>Note: does not affect the daemon base dir.</p>
      */
     GradleExecuter withGradleUserHomeDir(File userHomeDir);
+
+    /**
+     * Sets the Gradle version for executing Gradle.
+     *
+     * This does not actually use a different gradle version,
+     * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
+     */
+    GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
 
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
@@ -523,7 +532,7 @@ public interface GradleExecuter extends Stoppable {
      *
      * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
      */
-    GradleExecuter withPluginRepositoryMirror();
+    GradleExecuter withPluginRepositoryMirrorDisabled();
 
     GradleExecuter ignoreMissingSettingsFile();
 

@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import spock.lang.Unroll
 
 class BuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "can run tasks before building Eclipse model"() {
@@ -44,7 +43,6 @@ task setup {
         project.description == 'this is a project'
     }
 
-    @Unroll
     def "#description means do not run any tasks even when default tasks defined"() {
         file('build.gradle') << """
             defaultTasks = ["broken"]
@@ -73,7 +71,6 @@ task setup {
         "empty list of task names"  | { ModelBuilder b -> b.forTasks([]) }
     }
 
-    @Unroll
     def "#description means do not run any tasks even when build logic injects tasks to execute"() {
         file('build.gradle') << """
             gradle.startParameter.taskNames = ["broken2"]

@@ -72,6 +72,10 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
             import ${OperationFinishEvent.name}
             import ${Inject.name}
 
+            interface InternalServices {
+                @Inject LoggingOutputInternal getLoggingOutput()
+            }
+
             abstract class OutputProgressService
                 implements BuildService<Parameters>, OutputEventListener, AutoCloseable, BuildOperationListener {
 
@@ -80,15 +84,18 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                 }
 
                 @Inject
-                protected abstract LoggingOutput getLoggingOutput()
+                protected abstract ObjectFactory getObjects()
+
+                private LoggingOutput loggingOutput
 
                 OutputProgressService() {
-                    (loggingOutput as LoggingOutputInternal).addOutputEventListener(this)
+                    loggingOutput = objects.newInstance(InternalServices).loggingOutput
+                    loggingOutput.addOutputEventListener(this)
                 }
 
                 @Override
                 synchronized void close() {
-                    (loggingOutput as LoggingOutputInternal).removeOutputEventListener(this)
+                    loggingOutput.removeOutputEventListener(this)
                 }
 
                 @Override

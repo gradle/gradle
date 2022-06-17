@@ -31,7 +31,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     }
 
     @Override
-    public ReadOnlyFileSystemNode getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return SnapshotUtil.getChild(children, targetPath, caseSensitivity);
     }
 
@@ -146,7 +146,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     public Stream<FileSystemLocationSnapshot> rootSnapshots() {
         return children.stream()
             .map(ChildMap.Entry::getValue)
-            .flatMap(ReadOnlyFileSystemNode::rootSnapshots);
+            .flatMap(FileSystemNode::rootSnapshots);
     }
 
     @Override

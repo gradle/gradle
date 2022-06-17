@@ -16,13 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.build.BuildToolingModelAction;
-
 /**
  * Responsible for creating a model from the build tree model.
  */
 public interface BuildTreeModelCreator {
-    <T> void beforeTasks(BuildToolingModelAction<? extends T> action);
+    <T> void beforeTasks(BuildTreeModelAction<? extends T> action);
 
-    <T> T fromBuildModel(BuildToolingModelAction<? extends T> action);
+    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action);
 }

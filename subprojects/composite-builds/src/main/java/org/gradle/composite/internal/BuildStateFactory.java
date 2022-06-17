@@ -20,10 +20,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Actions;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.build.RootBuildState;
@@ -45,37 +43,31 @@ import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildStateFactory {
     private final BuildTreeState buildTreeState;
-    private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
     private final ListenerManager listenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final CrossBuildSessionState crossBuildSessionState;
     private final BuildCancellationToken buildCancellationToken;
-    private final ProjectStateRegistry projectStateRegistry;
 
     public BuildStateFactory(
         BuildTreeState buildTreeState,
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
         ListenerManager listenerManager,
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
         CrossBuildSessionState crossBuildSessionState,
-        BuildCancellationToken buildCancellationToken,
-        ProjectStateRegistry projectStateRegistry
+        BuildCancellationToken buildCancellationToken
     ) {
         this.buildTreeState = buildTreeState;
-        this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
         this.listenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
         this.crossBuildSessionState = crossBuildSessionState;
         this.buildCancellationToken = buildCancellationToken;
-        this.projectStateRegistry = projectStateRegistry;
     }
 
     public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
-        return new DefaultRootBuildState(buildDefinition, buildTreeState, buildLifecycleControllerFactory, listenerManager, projectStateRegistry);
+        return new DefaultRootBuildState(buildDefinition, buildTreeState, listenerManager);
     }
 
     public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
-        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeState, buildLifecycleControllerFactory, projectStateRegistry);
+        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeState);
         // Expose any contributions from the parent's settings
         build.getMutableModel().setClassLoaderScope(() -> owner.getMutableModel().getSettings().getClassLoaderScope());
         return build;

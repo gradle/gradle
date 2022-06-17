@@ -95,8 +95,8 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
             if (seenNonClasspathStatement) {
                 failMessage = String.format(
-                    pluginBlockMetadataCompiler.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
-                    scriptTarget.getClasspathBlockName(), PLUGINS, PLUGINS
+                    pluginBlockMetadataCompiler.formatErrorMessage("only %s {}, %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
+                    scriptTarget.getClasspathBlockName(), PLUGIN_MANAGEMENT, PLUGINS, PLUGINS
                 );
             } else {
                 pluginBlockMetadataCompiler.compile(sourceUnit, scriptBlock);

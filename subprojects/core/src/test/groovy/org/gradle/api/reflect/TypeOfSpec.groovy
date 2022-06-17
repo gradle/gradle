@@ -91,4 +91,22 @@ class TypeOfSpec extends Specification {
         new TypeOf<List<String>>() {}.componentType == null
         new TypeOf<List<?>>() {}.actualTypeArguments[0].with { wildcard && componentType == null }
     }
+
+    def "getFullyQualifiedName returns FQN"() {
+        given:
+        def stringType = typeOf(String)
+
+        expect:
+        stringType.simpleName == 'String'
+        stringType.fullyQualifiedName == 'java.lang.String'
+    }
+
+    def "getFullyQualifiedName returns FQN striping generic arguments"() {
+        given:
+        def listType = typeOf(List<Integer>)
+
+        expect:
+        listType.simpleName == 'List'
+        listType.fullyQualifiedName == 'java.util.List'
+    }
 }

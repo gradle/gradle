@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
@@ -45,7 +44,7 @@ import org.gradle.api.provider.ProviderConvertible;
  * This implies the following constraints:
  * </p>
  * <ul>
- * <li>Only {@link #id(String)} method calls may be top level statements</li>
+ * <li>Only {@link #id(String)}, {@link #alias(Provider)}, and {@link #alias(ProviderConvertible)} method calls may be top level statements</li>
  * <li>{@link #id(String)} calls may only be followed by a {@link PluginDependencySpec#version(String)} and/or {@link PluginDependencySpec#apply(boolean)} method call on the returned object</li>
  * <li>{@link #id(String)}, {@link PluginDependencySpec#version(String)} and {@link PluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
  * <li>The <code>plugins {}</code> script block must follow any <code>buildscript {}</code> script block, but must precede all other logic in the script</li>
@@ -137,8 +136,14 @@ public interface PluginDependenciesSpec {
      *
      * @since 7.2
      */
-    @Incubating
-    PluginDependencySpec alias(Provider<PluginDependency> notation);
+    default PluginDependencySpec alias(Provider<PluginDependency> notation) {
+        PluginDependency pluginDependency = notation.get();
+        if (pluginDependency.getVersion().getRequiredVersion().isEmpty()) {
+            return id(pluginDependency.getPluginId());
+        } else {
+            return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
+        }
+    }
 
     /**
      * Adds a plugin dependency using a notation coming from a version catalog.
@@ -149,7 +154,8 @@ public interface PluginDependenciesSpec {
      *
      * @since 7.3
      */
-    @Incubating
-    PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation);
+    default PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
+        return alias(notation.asProvider());
+    }
 
 }

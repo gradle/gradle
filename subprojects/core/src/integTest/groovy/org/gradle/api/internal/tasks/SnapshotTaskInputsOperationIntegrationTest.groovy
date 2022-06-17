@@ -27,15 +27,14 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
-import spock.lang.Unroll
 
-@Unroll
-class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -151,16 +150,14 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        }
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
+        }
         succeeds('customTask', '--build-cache')
 
         then:
@@ -190,11 +187,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             additionalTaskAction(':customTask')
             unknownClassloader('A')
-            includeLink()
-        })
+        }
         succeeds('customTask', '--build-cache')
 
         then:
@@ -493,11 +489,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        expectImplementationUnknownDeprecation {
             nestedProperty('bean')
             unknownClassloader('A')
-            includeLink()
-        })
+        }
         succeeds('customTask', '--build-cache')
 
         then:

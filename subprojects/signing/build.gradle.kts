@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugin for cryptographic signing of publications, artifacts or files."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

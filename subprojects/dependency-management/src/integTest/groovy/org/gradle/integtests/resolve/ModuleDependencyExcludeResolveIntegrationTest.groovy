@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
@@ -112,7 +111,6 @@ task check(type: Sync) {
      *
      * Exclude is applied to dependency a->b
      */
-    @Unroll
     def "dependency exclude for group or module applies to child module of dependency (#excluded)"() {
         given:
         def expectResolved = ['a', 'b', 'c', 'd', 'e'] - expectExcluded
@@ -206,7 +204,6 @@ task check(type: Sync) {
      *
      * Selective exclusions are applied to dependency a->b
      */
-    @Unroll
     def "can exclude transitive dependencies (#condition)"() {
         repository {
             'a:a:1.0' {

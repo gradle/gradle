@@ -298,7 +298,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 
 [WARNING]
 ====
-Type-safe dependency accessors are an incubating feature which must be enabled explicitly.
+Type-safe project accessors are an incubating feature which must be enabled explicitly.
 Implementation may change at any time.
 To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file:
 ```

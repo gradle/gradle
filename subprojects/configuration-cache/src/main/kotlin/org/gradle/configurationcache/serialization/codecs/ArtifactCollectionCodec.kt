@@ -34,6 +34,8 @@ import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.Provider
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -153,6 +155,9 @@ class FixedArtifactCollection(
         artifactResults ?: resolve().also {
             artifactResults = it
         }
+
+    override fun getResolvedArtifacts(): Provider<Set<ResolvedArtifactResult>> =
+        Providers.of(artifacts)
 
     private
     fun resolve(): MutableSet<ResolvedArtifactResult> {

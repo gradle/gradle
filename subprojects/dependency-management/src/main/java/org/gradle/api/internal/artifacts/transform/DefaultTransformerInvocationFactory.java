@@ -32,14 +32,13 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -62,8 +61,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.INCREMENTAL;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.PRIMARY;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
 
@@ -211,11 +210,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
             // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity
             FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
-            visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () -> {
-                FileCollectionFingerprinter inputArtifactFingerprinter = inputFingerprinter.getFingerprinterRegistry().getFingerprinter(
-                    DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity(), transformer.getInputArtifactLineEndingNormalization()));
-                return inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
-            });
             visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
         }
 
@@ -363,6 +357,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public void visitIdentityInputs(InputVisitor visitor) {
             // Emulate secondary inputs as a single property for now
             visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer::getSecondaryInputHash);
+            visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () ->
+                // We always need the name as an input to the artifact transform,
+                // since it is part of the ComponentArtifactIdentifier returned by the transform.
+                // For absolute paths, the name is already part of the normalized path,
+                // and for all the other normalization strategies we use the name directly.
+                transformer.getInputArtifactNormalizer().equals(AbsolutePathInputNormalizer.class)
+                    ? inputArtifact.getAbsolutePath()
+                    : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
                 new FileValueSupplier(
                     dependencies,
@@ -376,7 +378,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         @OverridingMethodsMustInvokeSuper
         public void visitRegularInputs(InputVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY,
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
                 new FileValueSupplier(
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),

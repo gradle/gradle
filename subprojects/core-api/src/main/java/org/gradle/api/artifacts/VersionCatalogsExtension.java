@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 
 import java.util.Optional;
@@ -26,7 +25,6 @@ import java.util.Set;
  *
  * @since 7.0
  */
-@Incubating
 public interface VersionCatalogsExtension extends Iterable<VersionCatalog> {
 
     /**

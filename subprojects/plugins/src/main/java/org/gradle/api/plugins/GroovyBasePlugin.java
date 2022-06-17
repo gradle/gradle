@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.LibraryElements;
@@ -37,6 +38,7 @@ import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.api.tasks.javadoc.GroovydocAccess;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -119,6 +121,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
                 compile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+                compile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
             });
 
             String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
@@ -160,6 +163,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension().getDocsDir().dir("groovydoc").get().getAsFile());
             groovydoc.getConventionMapping().map("docTitle", () -> projectExtension(ReportingExtension.class).getApiDocTitle());
             groovydoc.getConventionMapping().map("windowTitle", () -> projectExtension(ReportingExtension.class).getApiDocTitle());
+            groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
+            groovydoc.getIncludeAuthor().convention(false);
+            groovydoc.getProcessScripts().convention(true);
+            groovydoc.getIncludeMainForScripts().convention(true);
         });
     }
 

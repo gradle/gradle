@@ -16,11 +16,14 @@
 
 package configurations
 
+import common.VersionedSettingsBranch
 import common.applyDefaultSettings
+import common.toCapitalized
 import model.CIBuildModel
 
 class PartialTrigger<T : BaseGradleBuildType>(triggerName: String, triggerId: String, model: CIBuildModel, dependencies: Iterable<T>) : BaseGradleBuildType(init = {
     id("${model.projectId}_${triggerId}_Trigger")
+    uuid = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_${model.projectId}_${triggerId}_Trigger"
     name = "$triggerName (Trigger)"
     type = Type.COMPOSITE
 

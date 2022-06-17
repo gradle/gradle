@@ -22,6 +22,7 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.AbstractIncompleteFileSystemNode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -38,7 +39,6 @@ import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.stream.Collectors
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
@@ -484,7 +484,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
         Assume.assumeTrue("Root is only defined for the file separator '/'", File.separator == '/')
 
         when:
-        def set = EMPTY.store("/", new DirectorySnapshot("/", "", AccessType.DIRECT, HashCode.fromInt(1111), [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))]), diffListener)
+        def set = EMPTY.store("/", new DirectorySnapshot("/", "", AccessType.DIRECT, TestHashCodes.hashCodeFrom(1111), [new RegularFileSnapshot("/root.txt", "root.txt", TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))]), diffListener)
         then:
         set.findMetadata("/root.txt").get().type == FileType.RegularFile
         set.hasDescendantsUnder("/root.txt")
@@ -493,7 +493,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
         collectSnapshots(set, "/")[0].type == FileType.Directory
 
         when:
-        set = set.invalidate("/root.txt", diffListener).store("/", new DirectorySnapshot("/", "", AccessType.DIRECT, HashCode.fromInt(2222), [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))]), diffListener)
+        set = set.invalidate("/root.txt", diffListener).store("/", new DirectorySnapshot("/", "", AccessType.DIRECT, TestHashCodes.hashCodeFrom(2222), [new RegularFileSnapshot("/base.txt", "base.txt", TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))]), diffListener)
         then:
         set.findMetadata("/base.txt").get().type == FileType.RegularFile
     }
@@ -728,20 +728,20 @@ class DefaultSnapshotHierarchyTest extends Specification {
     }
 
     private static DirectorySnapshot rootDirectorySnapshot() {
-        new DirectorySnapshot("/", "", AccessType.DIRECT, HashCode.fromInt(1111), [
-            new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT)),
-            new RegularFileSnapshot("/other.txt", "other.txt", HashCode.fromInt(4321), DefaultFileMetadata.file(5, 28, AccessType.DIRECT))
+        new DirectorySnapshot("/", "", AccessType.DIRECT, TestHashCodes.hashCodeFrom(1111), [
+            new RegularFileSnapshot("/root.txt", "root.txt", TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT)),
+            new RegularFileSnapshot("/other.txt", "other.txt", TestHashCodes.hashCodeFrom(4321), DefaultFileMetadata.file(5, 28, AccessType.DIRECT))
         ])
     }
 
     private static DirectorySnapshot directorySnapshotForPath(String absolutePath) {
-        new DirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), AccessType.DIRECT, HashCode.fromInt(1111), [
-            new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))
+        new DirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), AccessType.DIRECT, TestHashCodes.hashCodeFrom(1111), [
+            new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))
         ])
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
-        directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
+        directorySnapshotter.snapshot(dir.absolutePath, null) {}
     }
 
     private static FileSystemLocationSnapshot snapshotFile(File file) {

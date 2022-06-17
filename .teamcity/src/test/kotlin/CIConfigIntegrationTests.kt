@@ -5,7 +5,6 @@ import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.ALL_CROSS_VERSION_BUCKETS
@@ -47,9 +46,6 @@ class CIConfigIntegrationTests {
     private val gradleBuildBucketProvider = DefaultFunctionalTestBucketProvider(model, File("./test-buckets.json").absoluteFile)
     private val rootProject = CheckProject(model, gradleBuildBucketProvider)
 
-    private
-    fun Project.searchSubproject(id: String): StageProject = (subProjects.find { it.id!!.value == id } as StageProject)
-
     @Test
     fun configurationTreeCanBeGenerated() {
         assertEquals(rootProject.subProjects.size, model.stages.size)
@@ -62,9 +58,11 @@ class CIConfigIntegrationTests {
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
-            assertFalse(Os.MACOS.ignoredSubprojects.any { subProject ->
-                buildType.name.endsWith("($subProject)")
-            })
+            assertFalse(
+                Os.MACOS.ignoredSubprojects.any { subProject ->
+                    buildType.name.endsWith("($subProject)")
+                }
+            )
         }
     }
 
@@ -153,9 +151,11 @@ class CIConfigIntegrationTests {
             buckets.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
                 assertEquals("clean ${testType}Test", functionalTests[index].getGradleTasks())
-                assertTrue(functionalTests[index].getGradleParams().apply {
-                    println(this)
-                }.contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}"))
+                assertTrue(
+                    functionalTests[index].getGradleParams().apply {
+                        println(this)
+                    }.contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}")
+                )
             }
         }
 
@@ -186,7 +186,6 @@ class CIConfigIntegrationTests {
         }
     }
 
-    private fun toTriggerId(id: String) = "Gradle_Master_Check_Stage_${id}_Trigger"
     private fun subProjectFolderList(): List<File> {
         val subProjectFolders = File("../subprojects").listFiles()!!.filter { it.isDirectory }
         assertFalse(subProjectFolders.isEmpty())
@@ -304,16 +303,6 @@ class CIConfigIntegrationTests {
 
         (1 until ALL_CROSS_VERSION_BUCKETS.size).forEach {
             assertEquals(ALL_CROSS_VERSION_BUCKETS[it - 1][1], ALL_CROSS_VERSION_BUCKETS[it][0])
-        }
-    }
-
-    private fun printTree(project: Project, indent: String = "") {
-        println(indent + project.id + " (Project)")
-        project.buildTypes.forEach { bt ->
-            println("$indent+- ${bt.id} (Config)")
-        }
-        project.subProjects.forEach { subProject ->
-            printTree(subProject, "$indent   ")
         }
     }
 }

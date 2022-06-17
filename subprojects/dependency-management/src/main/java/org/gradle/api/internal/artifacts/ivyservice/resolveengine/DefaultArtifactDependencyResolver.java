@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -93,7 +92,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
     private final Instantiator instantiator;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
-    private final FeaturePreviews featurePreviews;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
@@ -110,7 +108,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                              InstantiatorFactory instantiatorFactory,
                                              ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                             FeaturePreviews featurePreviews,
                                              CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -126,7 +123,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
         this.instantiator = instantiatorFactory.decorateScheme().instantiator();
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
-        this.featurePreviews = featurePreviews;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 

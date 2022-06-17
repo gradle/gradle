@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 
 trait KotlinPluginImplementation {
-    void kotlinPlugin(TestFile sourceFile, SystemPropertyRead read) {
+    void kotlinPlugin(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
@@ -50,7 +50,7 @@ trait KotlinPluginImplementation {
         """
     }
 
-    void kotlinDsl(TestFile sourceFile, SystemPropertyRead read) {
+    void kotlinDsl(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             println("apply = " + ${read.kotlinExpression})
 

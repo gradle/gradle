@@ -65,4 +65,4 @@ link:https://scans.gradle.com/[Gradle Build Scan™] help you understand build r
 
 [.legalnotice]
 Gradle build tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
-Gradle user manual and DSL references are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
+Gradle user manual and DSL reference manual are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].

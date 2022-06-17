@@ -18,12 +18,10 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Probes a JVM installation to determine the Java version it provides.
  */
-@UsedByScanPlugin("test-distribution")
 public interface JvmVersionDetector {
     /**
      * Probes the Java version for the given JVM installation.
@@ -33,6 +31,5 @@ public interface JvmVersionDetector {
     /**
      * Probes the Java version for the given `java` command.
      */
-    @UsedByScanPlugin("test-distribution")
     JavaVersion getJavaVersion(String javaCommand);
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Ignore
-
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -26,6 +24,111 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     }
 
     def "caches execution of BuildAction that queries custom tooling model"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+        // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 2
+        model[0].message == "It works from project :"
+        model[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
+        outputContains("creating model for root project 'root'")
+        outputContains("creating model for project ':a'")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2.size() == 2
+        model2[0].message == "It works from project :"
+        model2[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
+        outputDoesNotContain("creating model")
+
+        when:
+        buildFile << """
+            myExtension.message = 'this is the root project'
+        """
+
+        executer.withArguments(ENABLE_CLI)
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model3.size() == 2
+        model3[0].message == "this is the root project"
+        model3[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateUpdated {
+            fileChanged("build.gradle")
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+            modelsReused(":a", ":b")
+        }
+        outputContains("creating model for root project 'root'")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "this is the root project"
+        model4[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        file("a/build.gradle") << """
+            myExtension.message = 'this is project a'
+        """
+
+        executer.withArguments(ENABLE_CLI)
+        def model5 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model5.size() == 2
+        model5[0].message == "this is the root project"
+        model5[1].message == "this is project a"
+
+        and:
+        fixture.assertStateUpdated {
+            fileChanged("a/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            modelsCreated(":a")
+            modelsReused(":", ":b")
+        }
+        outputContains("creating model for project ':a'")
+    }
+
+    def "invalidates all cached models when build scoped input changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
@@ -49,10 +152,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
-        outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -64,13 +169,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        outputContains("Reusing configuration cache.")
-        outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
+        fixture.assertStateLoaded()
 
         when:
-        buildFile << """
-            // some change
+        settingsFile << """
+            println("some new stuff")
         """
 
         executer.withArguments(ENABLE_CLI)
@@ -82,13 +185,155 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as configuration cache cannot be reused because file 'build.gradle' has changed.")
-        outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+        fixture.assertStateRecreated {
+            fileChanged("settings.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "It works from project :"
+        model4[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
     }
 
-    def "caches execution of phased BuildAction that queries custom tooling model"() {
+    def "invalidates cached model when model builder input changes"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc("""
+            project.providers.gradleProperty("shared-input").getOrNull()
+            project.providers.systemProperty("\${project.name}-input").getOrNull()
+        """)
+        settingsFile << """
+            include("a")
+            include("b")
+            include("c")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 2
+        model[0].message == "It works from project :a"
+        model[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectsConfigured(":", ":c")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2.size() == 2
+        model2[0].message == "It works from project :a"
+        model2[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model3.size() == 2
+        model3[0].message == "It works from project :a"
+        model3[1].message == "It works from project :b"
+
+        and:
+        // TODO - should not invalidate all cached state
+        fixture.assertStateRecreated {
+            gradlePropertyChanged()
+            buildModelQueries = 1 // TODO:configuration-cache ???
+            projectConfigured(":buildSrc")
+            projectsConfigured(":", ":a", ":b", ":c")
+            modelsCreated(":a", ":b")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "It works from project :a"
+        model4[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        def model5 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model5.size() == 2
+        model5[0].message == "It works from project :a"
+        model5[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateUpdated {
+            systemPropertyChanged("a-input")
+            projectConfigured(":buildSrc")
+            projectsConfigured(":")
+            modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        def model6 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model6.size() == 2
+        model6[0].message == "It works from project :a"
+        model6[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2", "-Db-input=new")
+        def model7 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model7.size() == 2
+        model7[0].message == "It works from project :a"
+        model7[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateUpdated {
+            systemPropertyChanged("b-input")
+            projectConfigured(":buildSrc")
+            projectsConfigured(":")
+            modelsCreated(":b")
+            modelsReused(":", ":a", ":c")
+        }
+    }
+
+    def "caches execution of BuildAction that queries each model multiple times"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
@@ -104,71 +349,74 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
+        def model = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages = models.left
-        messages.size() == 2
-        messages[0] == "It works from project :"
-        messages[1] == "It works from project :a"
-        def model = models.right
-        model.size() == 2
+        model.size() == 4
         model[0].message == "It works from project :"
         model[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
+        def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages2 = models2.left
-        messages2.size() == 2
-        messages2[0] == "It works from project :"
-        messages2[1] == "It works from project :a"
-        def model2 = models2.right
-        model2.size() == 2
+        model2.size() == 4
         model2[0].message == "It works from project :"
         model2[1].message == "It works from project :a"
 
         and:
-        outputContains("Reusing configuration cache.")
+        fixture.assertStateLoaded()
         outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
 
         when:
         buildFile << """
-            // some change
+            myExtension.message = 'this is the root project'
         """
 
         executer.withArguments(ENABLE_CLI)
-        def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
+        def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages3 = models3.left
-        messages3.size() == 2
-        messages3[0] == "It works from project :"
-        messages3[1] == "It works from project :a"
-        def model3 = models3.right
-        model3.size() == 2
-        model3[0].message == "It works from project :"
+        model3.size() == 4
+        model3[0].message == "this is the root project"
         model3[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as configuration cache cannot be reused because file 'build.gradle' has changed.")
+        fixture.assertStateUpdated {
+            fileChanged("build.gradle")
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+            modelsReused(":a", ":b")
+        }
         outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
+
+        then:
+        model4.size() == 4
+        model4[0].message == "this is the root project"
+        model4[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
     }
 
-    def "caches execution of phased BuildAction that queries custom tooling model and that may, but does not actually, run tasks"() {
+    def "caches execution of BuildAction that queries nullable custom tooling model"() {
         given:
-        withSomeToolingModelBuilderPluginInBuildSrc()
+        withSomeNullableToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
             include("a")
             include("b")
@@ -182,108 +430,61 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            // Empty list means "run tasks defined by build logic or default task"
-            forTasks([])
-        }
+        def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        def messages = models.left
-        messages.size() == 2
-        messages[0] == "It works from project :"
-        messages[1] == "It works from project :a"
-        def model = models.right
-        model.size() == 2
-        model[0].message == "It works from project :"
-        model[1].message == "It works from project :a"
+        model.empty
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            forTasks([])
-        }
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        def messages2 = models2.left
-        messages2.size() == 2
-        messages2[0] == "It works from project :"
-        messages2[1] == "It works from project :a"
-        def model2 = models2.right
-        model2.size() == 2
-        model2[0].message == "It works from project :"
-        model2[1].message == "It works from project :a"
+        model2.empty
 
         and:
-        outputContains("Reusing configuration cache.")
+        fixture.assertStateLoaded()
         outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
-    }
 
-    @Ignore("https://github.com/gradle/gradle/pull/18858 - Those phased build actions no longer have 'isRunsTasks' set to true")
-    def "caches execution of phased BuildAction that queries custom tooling model and that runs tasks"() {
-        given:
-        withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        when:
         buildFile << """
-            plugins.apply(my.MyPlugin)
-        """
-        file("a/build.gradle") << """
-            plugins.apply(my.MyPlugin)
-            task thing { }
+            println("changed")
         """
 
-        when:
         executer.withArguments(ENABLE_CLI)
-        def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            forTasks(["thing"])
-        }
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        def messages = models.left
-        messages.size() == 2
-        messages[0] == "It works from project :"
-        messages[1] == "It works from project :a"
-        def model = models.right
-        model.size() == 2
-        model[0].message == "It works from project :"
-        model[1].message == "It works from project :a"
+        model3.empty
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateUpdated {
+            fileChanged("build.gradle")
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+            modelsReused(":a", ":b")
+        }
         outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
-        result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            forTasks(["thing"])
-        }
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        def messages2 = models2.left
-        messages2.size() == 2
-        messages2[0] == "It works from project :"
-        messages2[1] == "It works from project :a"
-        def model2 = models2.right
-        model2.size() == 2
-        model2[0].message == "It works from project :"
-        model2[1].message == "It works from project :a"
+        model4.empty
 
         and:
-        outputContains("Reusing configuration cache.")
-        outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
-        result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
+        fixture.assertStateLoaded()
     }
+
 }

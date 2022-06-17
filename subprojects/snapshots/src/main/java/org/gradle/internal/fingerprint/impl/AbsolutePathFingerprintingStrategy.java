@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Fingerprint files without path or content normalization.
  */
-public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
+public class AbsolutePathFingerprintingStrategy extends AbstractDirectorySensitiveFingerprintingStrategy {
     public static final FingerprintingStrategy DEFAULT = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT);
     public static final FingerprintingStrategy IGNORE_DIRECTORIES = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
 
@@ -49,11 +49,6 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     private AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
         this(directorySensitivity, FileSystemLocationSnapshotHasher.DEFAULT);
-    }
-
-    @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
-        return snapshot.getAbsolutePath();
     }
 
     @Override

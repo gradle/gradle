@@ -27,10 +27,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
-import spock.lang.Unroll
 
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'app', 'cppGreeter'"
@@ -103,7 +101,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can compile and link against a library with a dependency on a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter'"
@@ -161,7 +158,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library with a dependency on another c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"

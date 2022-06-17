@@ -42,12 +42,14 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     private final Configuration implementation;
     private final Configuration compileOnly;
     private final Configuration runtimeOnly;
+    private final Configuration annotationProcessor;
 
     @Inject
-    public DefaultJvmComponentDependencies(Configuration implementation, Configuration compileOnly, Configuration runtimeOnly) {
+    public DefaultJvmComponentDependencies(Configuration implementation, Configuration compileOnly, Configuration runtimeOnly, Configuration annotationProcessor) {
         this.implementation = implementation;
         this.compileOnly = compileOnly;
         this.runtimeOnly = runtimeOnly;
+        this.annotationProcessor = annotationProcessor;
     }
 
     @Inject
@@ -88,6 +90,16 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     @Override
     public void compileOnly(Object dependency, @Nullable Action<? super Dependency> configuration) {
         doAdd(compileOnly, dependency, configuration);
+    }
+
+    @Override
+    public void annotationProcessor(Object dependency) {
+        annotationProcessor(dependency, null);
+    }
+
+    @Override
+    public void annotationProcessor(Object dependency, @Nullable Action<? super Dependency> configuration) {
+        doAdd(annotationProcessor, dependency, configuration);
     }
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {

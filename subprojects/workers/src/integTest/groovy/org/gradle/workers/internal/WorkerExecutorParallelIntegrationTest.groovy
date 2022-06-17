@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
@@ -79,7 +78,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         withMultipleActionTaskTypeInBuildScript()
     }
 
-    @Unroll
     def "multiple work items can be executed in parallel in #isolationMode (wait for results: #waitForResults)"() {
         given:
         buildFile << """
@@ -112,7 +110,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         'classLoaderIsolation'  | false
     }
 
-    @Unroll
     def "multiple work items with different requirements can be executed in parallel in #isolationMode"() {
         given:
         buildFile << """
@@ -135,7 +132,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << [ 'processIsolation', 'classLoaderIsolation' ]
     }
 
-    @Unroll
     def "multiple work items with different actions can be executed in parallel in #isolationMode"() {
         given:
         buildFile << """
@@ -182,7 +178,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
     }
 
-    @Unroll
     def "a second task action does not start if work submitted in #isolationMode by a previous task action fails"() {
         failingWorkAction.writeToBuildFile()
 
@@ -208,7 +203,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "all other submitted work executes when a work item fails in #isolationMode"() {
         failingWorkAction.writeToBuildFile()
 
@@ -236,7 +230,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "all errors are reported when submitting failing work in #isolationModeDescription"() {
         failingWorkAction.writeToBuildFile()
 
@@ -274,7 +267,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         'noIsolation'          | 'classLoaderIsolation' | 'both noIsolation and classLoaderIsolation'
     }
 
-    @Unroll
     def "both errors in work items in #isolationMode and errors in the task action are reported"() {
         failingWorkAction.writeToBuildFile()
 
@@ -307,7 +299,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "user can take responsibility for failing work items in #isolationMode"() {
         failingWorkAction.writeToBuildFile()
 

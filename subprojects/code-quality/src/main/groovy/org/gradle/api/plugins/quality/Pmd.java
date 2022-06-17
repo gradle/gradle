@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -72,6 +73,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> threads;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
@@ -79,6 +81,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         this.rulesMinimumPriority = objects.property(Integer.class);
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
+        this.threads = objects.property(Integer.class);
     }
 
     @Inject
@@ -94,6 +97,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @TaskAction
     public void run() {
         validate(rulesMinimumPriority.get());
+        validateThreads(threads.get());
         PmdInvoker.invoke(this);
     }
 
@@ -139,6 +143,17 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
+     * Validates the number of threads used by PMD.
+     *
+     * @param value the number of threads used by PMD
+     */
+    private void validateThreads(int value) {
+        if (value < 0) {
+            throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
+        }
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -163,7 +178,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.36.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["basic", "braces"]
@@ -175,7 +190,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.36.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["basic", "braces"]
@@ -203,7 +218,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.36.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
@@ -221,7 +236,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.36.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
@@ -234,7 +249,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.36.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
      * <pre>
@@ -248,7 +263,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.36.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * This adds to the default rule sets defined by {@link #getRuleSets()}.
      *
      * <pre>
@@ -369,7 +384,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * Controls whether to use incremental analysis or not.
      *
-     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.36.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.39.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
      *
      * @since 5.6
      */
@@ -386,5 +401,17 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @LocalState
     public File getIncrementalCacheFile() {
         return new File(getTemporaryDir(), "incremental.cache");
+    }
+
+    /**
+     * Specifies the number of threads used by PMD.
+     *
+     * @see PmdExtension#getThreads()
+     * @since 7.5
+     */
+    @Input
+    @Incubating
+    public Property<Integer> getThreads() {
+        return threads;
     }
 }

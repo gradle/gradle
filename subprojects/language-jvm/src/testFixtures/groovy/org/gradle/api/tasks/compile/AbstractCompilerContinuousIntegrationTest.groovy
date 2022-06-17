@@ -24,10 +24,6 @@ abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinu
         executer.withWorkerDaemonsExpirationDisabled()
     }
 
-    def cleanup() {
-        gradle.cancel()
-    }
-
     abstract String getCompileTaskName()
     abstract String getCompileTaskType()
     abstract String getSourceFileName()
@@ -77,7 +73,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinu
         inputFile.text = changedSourceContent
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         and:
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()

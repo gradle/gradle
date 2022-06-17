@@ -45,6 +45,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -59,6 +60,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -71,6 +73,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
+
+    private final static ResolveArtifactsBuildOperationType.Result RESULT = new ResolveArtifactsBuildOperationType.Result() {
+    };
+
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactResults;
@@ -80,11 +86,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final AttributeContainerInternal implicitAttributes;
     private final BuildOperationExecutor buildOperationExecutor;
     private final DependencyVerificationOverride dependencyVerificationOverride;
+    private final WorkerLeaseService workerLeaseService;
 
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
+    private DependencyVerificationException dependencyVerificationException;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService) {
         this.configuration = configuration;
         this.implicitAttributes = configuration.getAttributes().asImmutable();
         this.unresolvedDependencies = unresolvedDependencies;
@@ -94,11 +102,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.artifactTransforms = artifactTransforms;
         this.buildOperationExecutor = buildOperationExecutor;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
+        this.workerLeaseService = workerLeaseService;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(Specs.satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false,  configuration.getDependenciesResolver()));
+            artifactsForThisConfiguration = artifactResults.select(Specs.satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false, configuration.getDependenciesResolver()));
         }
         return artifactsForThisConfiguration;
     }
@@ -135,7 +144,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                         return;
                     }
                 }
-                DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, DefaultLenientConfiguration.this.fileDependencyResults, visitor);
+                // This may be called from an unmanaged thread, so temporarily enlist the current thread as a worker if it is not already so that it can visit the results
+                // It would be better to instead to memoize the results on the first visit so that this is not required
+                workerLeaseService.runAsUnmanagedWorkerThread(() -> visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor));
             }
         };
     }
@@ -236,8 +247,19 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             @Override
             public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
-                dependencyVerificationOverride.artifactsAccessed(configuration.getDisplayName());
-                context.setResult(ResolveArtifactsBuildOperationType.RESULT);
+                // With input validation, we sometimes may suppress this exception and not see it on second time
+                // Caching it takes care of this
+                if (dependencyVerificationException != null) {
+                    throw dependencyVerificationException;
+                } else {
+                    try {
+                        dependencyVerificationOverride.artifactsAccessed(configuration.getDisplayName());
+                    } catch (DependencyVerificationException e) {
+                        dependencyVerificationException = e;
+                        throw e;
+                    }
+                }
+                context.setResult(RESULT);
             }
 
             @Override
@@ -246,9 +268,24 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 return BuildOperationDescriptor
                     .displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new ResolveArtifactsBuildOperationType.DetailsImpl(configuration.getPath()));
+                    .details(new ResolveArtifactsDetails(configuration.getPath()));
             }
         });
+    }
+
+    private static class ResolveArtifactsDetails implements ResolveArtifactsBuildOperationType.Details {
+
+        private final String configuration;
+
+        public ResolveArtifactsDetails(String configuration) {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public String getConfigurationPath() {
+            return configuration;
+        }
+
     }
 
     /**

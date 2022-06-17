@@ -54,7 +54,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.36.0";
+    public static final String DEFAULT_PMD_VERSION = "6.39.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;
@@ -141,6 +141,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
+        task.getThreads().convention(extension.getThreads());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {

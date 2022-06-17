@@ -23,12 +23,12 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -43,11 +43,13 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        Interner<String> stringInterner
+        Interner<String> stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
             new FileCollectionFingerprintSerializer(stringInterner),
-            new FileSystemSnapshotSerializer(stringInterner)
+            new FileSystemSnapshotSerializer(stringInterner),
+            classLoaderHasher
         );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
@@ -63,9 +65,9 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(String key, OriginMetadata originMetadata, boolean successful, AfterExecutionState executionState) {
+    public void store(String key, boolean successful, AfterExecutionState executionState) {
         store.put(key, new DefaultPreviousExecutionState(
-            originMetadata,
+            executionState.getOriginMetadata(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

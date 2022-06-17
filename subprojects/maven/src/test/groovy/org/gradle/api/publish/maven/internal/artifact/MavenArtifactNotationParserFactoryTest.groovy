@@ -35,6 +35,9 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import spock.lang.Issue
+
+import java.nio.file.Paths
 
 class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
@@ -54,6 +57,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
     def "setup"() {
         def fileResolver = Stub(FileResolver) {
             asNotationParser() >> fileNotationParser
+            resolve(_) >> { Object path -> fileNotationParser.parseNotation(path) }
         }
         parser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create()
     }
@@ -254,7 +258,28 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         when:
         1 * provider.get() >> regularFile
         1 * regularFile.getAsFile() >> file
-        artifact.file
+        artifact.file == file
+
+        then:
+        0 * _
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15711")
+    def "creates lazy MavenArtifact for Provider<Path> notation"() {
+        def provider = Mock(ProviderInternal)
+        def file = Paths.get("picard.txt")
+        def regularFile = Mock(RegularFile)
+
+        when:
+        def artifact = parser.parseNotation(provider)
+
+        then:
+        0 * provider._
+
+        when:
+        1 * provider.get() >> regularFile
+        1 * regularFile.getAsFile() >> file.toFile()
+        artifact.file == file.toFile()
 
         then:
         0 * _

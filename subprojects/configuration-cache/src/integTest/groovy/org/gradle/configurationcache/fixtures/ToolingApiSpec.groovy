@@ -20,12 +20,15 @@ import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
@@ -37,18 +40,76 @@ trait ToolingApiSpec {
         return (ToolingApiBackedGradleExecuter) getExecuter()
     }
 
-    void withSomeToolingModelBuilderPluginInBuildSrc(String content = "") {
-        file("buildSrc/src/main/groovy/my/MyModel.groovy") << """
+    void withSomeToolingModelBuilderPluginInBuildSrc(String builderContent = "") {
+        withSomeToolingModelBuilderPluginInChildBuild("buildSrc", builderContent)
+    }
+
+    void withSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String builderContent = "") {
+        addPluginBuildScript(childBuildName)
+        addModelImplementation(childBuildName)
+
+        addModelBuilderImplementation(childBuildName, """
+            $builderContent
+            def message = project.myExtension.message.get()
+            return new MyModel(message)
+        """)
+
+        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getMessage()
+            }
+        """
+
+        addPluginImplementation(childBuildName, """
+            def model = project.extensions.create("myExtension", MyExtension)
+            model.message = "It works from project \${project.identityPath}"
+        """)
+    }
+
+    void withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc() {
+        addPluginBuildScript("buildSrc")
+        addModelImplementation("buildSrc")
+
+        addModelBuilderImplementation("buildSrc", """
+            def message = "project \${project.path} classpath = \${project.configurations.implementation.files.size()}"
+            return new MyModel(message)
+        """)
+
+        addPluginImplementation("buildSrc", """
+            def implementation = project.configurations.create("implementation")
+            implementation.attributes.attribute(${Attribute.name}.of("thing", String), "custom")
+            def artifact = project.layout.buildDirectory.file("out.txt")
+            implementation.outgoing.artifact(artifact)
+        """)
+    }
+
+    void withSomeNullableToolingModelBuilderPluginInBuildSrc() {
+        addPluginBuildScript("buildSrc")
+
+        addModelBuilderImplementation("buildSrc", """
+            return null
+        """)
+
+        addPluginImplementation("buildSrc")
+    }
+
+    private void addModelImplementation(String targetBuildName) {
+        file("$targetBuildName/src/main/groovy/my/MyModel.groovy") << """
             package my
 
             class MyModel implements java.io.Serializable {
                 private final String message
                 MyModel(String message) { this.message = message }
                 String getMessage() { message }
+                String toString() { message }
             }
         """.stripIndent()
+    }
 
-        file("buildSrc/src/main/groovy/my/MyModelBuilder.groovy") << """
+    private void addModelBuilderImplementation(String targetBuildName, String content) {
+        file("$targetBuildName/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
             import ${ToolingModelBuilder.name}
@@ -61,12 +122,13 @@ trait ToolingApiSpec {
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
                     $content
-                    return new MyModel("It works from project \${project.path}")
                 }
             }
         """.stripIndent()
+    }
 
-        file("buildSrc/src/main/groovy/my/MyPlugin.groovy") << """
+    private void addPluginImplementation(String targetBuildName, String content = "") {
+        file("$targetBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
 
             import ${Project.name}
@@ -76,6 +138,7 @@ trait ToolingApiSpec {
 
             abstract class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
+                    $content
                     registry.register(new my.MyModelBuilder())
                 }
 
@@ -85,75 +148,89 @@ trait ToolingApiSpec {
         """.stripIndent()
     }
 
-    def <T> T fetchModel(Class<T> type = SomeToolingModel.class) {
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
-        def args = executer.allArgs
-        args.remove("--no-daemon")
+    private void addPluginBuildScript(String targetBuildName) {
+        file("$targetBuildName/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    test {
+                        id = "my.plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """
+    }
 
+    def <T> T fetchModel(Class<T> type = SomeToolingModel.class) {
         def model = null
-        toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
+        result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def args = executer.allArgs
+            args.remove("--no-daemon")
+
             model = connection.model(type)
-                .addJvmArguments(executer.jvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .get()
+            OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
-        result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return model
     }
 
     void fetchModelFails() {
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
-        def args = executer.allArgs
-        args.remove("--no-daemon")
+        failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def failure
+            try {
+                def args = executer.allArgs
+                args.remove("--no-daemon")
 
-        try {
-            toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
                 connection.model(SomeToolingModel)
-                    .addJvmArguments(executer.jvmArgs)
                     .withArguments(args)
                     .setStandardOutput(new TeeOutputStream(output, System.out))
                     .setStandardError(new TeeOutputStream(error, System.err))
                     .get()
+                throw new IllegalStateException("Expected build to fail but it did not.")
+            } catch (BuildException t) {
+                failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
             }
-        } catch (Throwable t) {
-            failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
-            return
+            failure
         }
-        throw new IllegalStateException("Expected build to fail but it did not.")
     }
 
     def <T> T runBuildAction(BuildAction<T> buildAction) {
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
-        def args = executer.allArgs
-        args.remove("--no-daemon")
-
         def model = null
-        toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
+        result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def args = executer.allArgs
+            args.remove("--no-daemon")
+
             model = connection.action(buildAction)
-                .addJvmArguments(executer.jvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
+            OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
-        result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return model
     }
 
     def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
-        def args = executer.allArgs
-        args.remove("--no-daemon")
-
         T projectsLoadedModel = null
         S buildModel = null
-        toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
+        result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def args = executer.allArgs
+            args.remove("--no-daemon")
+
             def builder = connection.action()
                 .projectsLoaded(projectsLoadedAction, { Object model ->
                     projectsLoadedModel = model
@@ -165,23 +242,22 @@ trait ToolingApiSpec {
             config.delegate = builder
             config.call()
             builder
-                .addJvmArguments(executer.jvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
+            OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
-        result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return Pair.of(projectsLoadedModel, buildModel)
     }
 
     def runTestClasses(String... testClasses) {
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
-        def args = executer.allArgs
-        args.remove("--no-daemon")
+        result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
+            def output = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            def args = executer.allArgs
+            args.remove("--no-daemon")
 
-        toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses(testClasses)
                 .addJvmArguments(executer.jvmArgs)
@@ -189,8 +265,7 @@ trait ToolingApiSpec {
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
+            OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
-
-        result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
     }
 }

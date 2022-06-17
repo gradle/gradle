@@ -24,7 +24,6 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
@@ -101,7 +100,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         classFormat(classFile('java', 'test', 'MyTest.class')) == 53
     }
 
-    @Unroll
     def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
         def maxParallelForks = maxWorkers + 1
@@ -238,7 +236,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("help")
     }
 
-    @Unroll
     def "reports failure of TestExecuter regardless of filters"() {
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
@@ -314,7 +311,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """.stripIndent()
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")
@@ -351,7 +348,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """.stripIndent()
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         when:
         succeeds("test", "verifyTestOptions", "--warn")
@@ -389,7 +386,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """.stripIndent()
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")

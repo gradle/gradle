@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -23,14 +24,39 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 
 class AttributeTestUtil {
     static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.valueSnapshotter(), TestUtil.objectInstantiator())
+        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
     }
 
-    static ImmutableAttributes attributes(Map<String, ?> values) {
+    /**
+     * Creates an attribute set that can contain only JDK-typed {@link Attribute} values.
+     *
+     * The type of the attribute is derived by the class of the value.
+     *
+     * Use {@link #attributesTyped(Map)} to create an attribute set with more specific attribute values.
+     */
+    static ImmutableAttributes attributes(Map<String, Object> values) {
         def attrs = ImmutableAttributes.EMPTY
         if (values) {
             values.each { String key, Object value ->
-                attrs = attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
+                assert value.class.package.name.startsWith("java.lang")
+                def attribute = Attribute.of(key, value.class)
+                attrs = attributesFactory().concat(attrs, attribute, value)
+            }
+        }
+        return attrs
+    }
+
+    /**
+     * Creates an attribute set with the provided attributes and values.
+     *
+     * The type of the attribute must be assignable from the value of the attribute.
+     */
+    static ImmutableAttributes attributesTyped(Map<Attribute, ?> values) {
+        def attrs = ImmutableAttributes.EMPTY
+        if (values) {
+            values.each { Attribute key, Object value ->
+                assert key.type.isAssignableFrom(value.class)
+                attrs = attributesFactory().concat(attrs, key, value)
             }
         }
         return attrs

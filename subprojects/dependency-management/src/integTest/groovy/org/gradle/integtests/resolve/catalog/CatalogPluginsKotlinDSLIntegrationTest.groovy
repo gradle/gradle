@@ -35,49 +35,6 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def setup() {
-        usePluginRepoMirror = false // otherwise the plugin portal fixture doesn't work!
-    }
-
-    def "can apply a plugin declared in a catalog"() {
-        String taskName = 'greet'
-        String message = 'Hello from plugin!'
-        String pluginId = 'com.acme.greeter'
-        String pluginVersion = '1.5'
-        def plugin = new PluginBuilder(file("greeter"))
-            .addPluginWithPrintlnTask(taskName, message, pluginId)
-            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
-
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
-        settingsFile << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
-        }
-    }
-}"""
-        buildFile.renameTo(file('fixture.gradle'))
-        buildKotlinFile << """
-            plugins {
-                alias(libs.plugins.${alias.replace('-', '.')})
-            }
-
-            apply(from="fixture.gradle")
-        """
-
-        when:
-        plugin.allowAll()
-        succeeds taskName
-
-        then:
-        outputContains message
-
-        where:
-        alias << ['greeter', 'some.greeter', 'some-greeter']
-    }
-
     def "can declare multiple catalogs"() {
         String taskName = 'greet'
         String message = 'Hello from plugin!'
@@ -93,17 +50,17 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+            plugin("$alias", "com.acme.greeter").version("1.5")
         }
-        create("other") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+        create("otherLibs") {
+            plugin("$alias", "com.acme.greeter").version("1.5")
         }
     }
 }"""
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
-                alias(other.plugins.${alias.replace('-', '.')})
+                alias(otherLibs.plugins.${alias.replace('-', '.')})
             }
 
             apply(from="fixture.gradle")
@@ -135,7 +92,7 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias('greeter').toPluginId('com.acme.greeter').version('1.4')
+            plugin('greeter', 'com.acme.greeter').version('1.4')
         }
     }
 }"""
@@ -210,8 +167,8 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias("greeter").toPluginId("$firstLevelPluginId").version("$pluginVersion")
-            alias("greeter-second").toPluginId("$secondLevelPluginId").version("$pluginVersion")
+            plugin("greeter", "$firstLevelPluginId").version("$pluginVersion")
+            plugin("greeter-second", "$secondLevelPluginId").version("$pluginVersion")
         }
     }
 }"""
@@ -250,8 +207,8 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias('greeter').to('some', 'artifact').version('1.5')
-            alias('greeter-second').to('some', 'artifact2').version('1.5')
+            library('greeter', 'some', 'artifact').version('1.5')
+            library('greeter-second', 'some', 'artifact2').version('1.5')
         }
     }
 }"""

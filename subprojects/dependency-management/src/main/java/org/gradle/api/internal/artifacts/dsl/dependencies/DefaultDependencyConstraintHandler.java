@@ -37,6 +37,7 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -189,6 +190,9 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private DependencyConstraint doAdd(Configuration configuration, Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
+        if(dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureAction);
+        }
         if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureAction);
         }
@@ -197,7 +201,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return dependency;
     }
 
-    private DependencyConstraint doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+    private DependencyConstraint doAddProvider(Configuration configuration, Provider<?> dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
         if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
             Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
             if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
@@ -210,19 +214,19 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return DUMMY_CONSTRAINT;
     }
 
-    private DependencyConstraint doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Action<? super DependencyConstraint>  configureAction) {
+    private DependencyConstraint doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, @Nullable Action<? super DependencyConstraint>  configureAction) {
         // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
         ListProperty<DependencyConstraint> constraints = objects.listProperty(DependencyConstraint.class);
         constraints.set(dependencyNotation.map(notation -> {
             List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
-            return deps.stream().map(d -> create(d, configureAction)).collect(Collectors.toList());
+            return deps.stream().map(d -> doCreate(d, configureAction)).collect(Collectors.toList());
         }));
         configuration.getDependencyConstraints().addAllLater(constraints);
         return DUMMY_CONSTRAINT;
     }
 
-    private <T> Transformer<DependencyConstraint, T> mapDependencyConstraintProvider(Action<? super DependencyConstraint> configurationAction) {
-        return lazyNotation -> create(lazyNotation, configurationAction);
+    private <T> Transformer<DependencyConstraint, T> mapDependencyConstraintProvider(@Nullable Action<? super DependencyConstraint> configurationAction) {
+        return lazyNotation -> doCreate(lazyNotation, configurationAction);
     }
 
     @Override
@@ -238,6 +242,9 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         @Override
         @SuppressWarnings("rawtypes")
         public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+            if(dependencyNotation instanceof ProviderConvertible<?>) {
+                return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), ConfigureUtil.configureUsing(configureClosure));
+            }
             if (dependencyNotation instanceof Provider<?>) {
                 return doAddProvider(configuration, (Provider<?>) dependencyNotation, ConfigureUtil.configureUsing(configureClosure));
             }

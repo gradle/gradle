@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import spock.lang.Unroll
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
@@ -166,7 +165,7 @@ dependencies {
 
         eclipseProject.classpath.size() == 2
         eclipseProject.classpath.every { it instanceof ExternalDependency }
-        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar' ] as Set
+        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar'] as Set
         eclipseProject.classpath.collect { it.source?.name } as Set == ['commons-lang-2.5-sources.jar', 'commons-io-1.4-sources.jar'] as Set
         eclipseProject.classpath.collect { it.javadoc?.name } as Set == [null, null] as Set
     }
@@ -189,7 +188,6 @@ dependencies {
         minimalProject != null
     }
 
-    @Unroll
     def "can build the eclipse project dependencies for a java project"() {
         projectDir.file("gradle.properties") << """
             org.gradle.parallel=$parallel
@@ -264,14 +262,14 @@ project(':c') {
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        def projectC = rootProject.children.find { it.name == 'c'}
-        def projectA = rootProject.children.find { it.name == 'a'}
+        def projectC = rootProject.children.find { it.name == 'c' }
+        def projectA = rootProject.children.find { it.name == 'a' }
 
-        projectC.projectDependencies.any {it.path == 'b'}
+        projectC.projectDependencies.any { it.path == 'b' }
 
-        projectA.projectDependencies.any {it.path == 'b'}
-        projectA.projectDependencies.any {it.path == 'c'}
-        projectA.projectDependencies.any {it.path == 'root'}
+        projectA.projectDependencies.any { it.path == 'b' }
+        projectA.projectDependencies.any { it.path == 'c' }
+        projectA.projectDependencies.any { it.path == 'root' }
     }
 
     def "can build the eclipse project hierarchy for a multi-project build"() {
@@ -350,7 +348,7 @@ configure(project(':bar')) {
         when:
         HierarchicalEclipseProject rootProject = loadToolingModel(HierarchicalEclipseProject)
         then:
-        rootProject.children.any { it.name == 'foo'}
-        rootProject.children.any { it.name == 'customized-bar'}
+        rootProject.children.any { it.name == 'foo' }
+        rootProject.children.any { it.name == 'customized-bar' }
     }
 }

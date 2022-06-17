@@ -22,7 +22,7 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
-abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
+abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)

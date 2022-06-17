@@ -18,26 +18,27 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-import java.util.Collection;
-
 /**
- * A {@link org.gradle.execution.BuildExecutionAction} that disables all selected tasks before they are executed.
+ * A {@link BuildWorkExecutor} that disables all selected tasks before they are executed.
  */
-public class DryRunBuildExecutionAction implements BuildExecutionAction {
+public class DryRunBuildExecutionAction implements BuildWorkExecutor {
     private final StyledTextOutputFactory textOutputFactory;
+    private final BuildWorkExecutor delegate;
 
-    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory) {
+    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory, BuildWorkExecutor delegate) {
         this.textOutputFactory = textOutputFactory;
+        this.delegate = delegate;
     }
 
     @Override
-    public void execute(BuildExecutionContext context, Collection<? super Throwable> taskFailures) {
-        GradleInternal gradle = context.getGradle();
+    public ExecutionResult<Void> execute(GradleInternal gradle, ExecutionPlan plan) {
         if (gradle.getStartParameter().isDryRun()) {
-            for (Task task : gradle.getTaskGraph().getAllTasks()) {
+            for (Task task : plan.getTasks()) {
                 textOutputFactory.create(DryRunBuildExecutionAction.class)
                     .append(((TaskInternal) task).getIdentityPath().getPath())
                     .append(" ")
@@ -45,8 +46,9 @@ public class DryRunBuildExecutionAction implements BuildExecutionAction {
                     .append("SKIPPED")
                     .println();
             }
+            return ExecutionResult.succeeded();
         } else {
-            context.proceed();
+            return delegate.execute(gradle, plan);
         }
     }
 }

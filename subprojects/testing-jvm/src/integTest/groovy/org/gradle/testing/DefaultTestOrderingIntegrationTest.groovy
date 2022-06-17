@@ -15,9 +15,12 @@
  */
 package org.gradle.testing
 
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
@@ -42,6 +45,7 @@ public class ${testName} {
 """
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "test classes are scanned and run in deterministic order by default"() {
         addEmptyTestClass("AdTest")
         addEmptyTestClass("AATest")

@@ -16,30 +16,19 @@
 
 package org.gradle.internal.watch.registry.impl
 
-import net.rubygrapefruit.platform.file.FileSystemInfo
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
-import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.test.fixtures.file.TestFile
-
-import java.util.stream.Stream
+import org.gradle.internal.watch.registry.WatchMode
 
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
-    List<File> movedPaths = []
-
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, { SnapshotHierarchy root ->
-            movedPaths.forEach { movedPath ->
-                root = root.invalidate(movedPath.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP)
-            }
-            return root
-        })
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, movedWatchedDirectoriesSupplier)
     }
 
     @Override
@@ -357,11 +346,6 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchableContent = watchableHierarchy.file("some/dir/file.txt").createFile()
         def unsupportedFileSystemMountPoint = watchableHierarchy.file("unsupported")
         def unwatchableContent = unsupportedFileSystemMountPoint.file("some/file.txt").createFile()
-        def unsupportedFileSystem = Stub(FileSystemInfo) {
-            getMountPoint() >> unsupportedFileSystemMountPoint
-            getFileSystemType() >> "unsupported"
-        }
-        watchableFileSystemDetector.detectUnsupportedFileSystems() >> Stream.of(unsupportedFileSystem)
 
         when:
         registerWatchableHierarchies([watchableHierarchy])
@@ -378,54 +362,14 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        buildFinished()
+        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
         then:
         vfsHasSnapshotsAt(watchableContent)
         !vfsHasSnapshotsAt(unwatchableContent)
         0 * _
     }
 
-    def "watchers are stopped when watched hierarchy is moved"() {
-        def sourceDir = file("to-be-moved").createDir()
-        def targetDir = file("target").createDir()
-        def notMovedDir = file("normal").createDir()
-
-        def watchableHierarchies = [sourceDir, notMovedDir]
-        when:
-        registerWatchableHierarchies(watchableHierarchies)
-        addSnapshotInWatchableHierarchy(sourceDir)
-        addSnapshotInWatchableHierarchy(notMovedDir)
-        then:
-        watchableHierarchies.each { watchableHierarchy ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
-        }
-        vfsHasSnapshotsAt(sourceDir)
-        !vfsHasSnapshotsAt(targetDir)
-        vfsHasSnapshotsAt(notMovedDir)
-        0 * _
-
-        updater.triggerWatchProbe(watchProbeFor(sourceDir).absolutePath)
-        updater.triggerWatchProbe(watchProbeFor(notMovedDir).absolutePath)
-
-        when:
-        sourceDir.renameTo(targetDir)
-        movedPaths << sourceDir
-        buildStarted()
-        then:
-        !vfsHasSnapshotsAt(sourceDir)
-        !vfsHasSnapshotsAt(targetDir)
-        vfsHasSnapshotsAt(notMovedDir)
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [sourceDir]) })
-        0 * _
-    }
-
     private static MissingFileSnapshot missingFileSnapshot(File location) {
         new MissingFileSnapshot(location.getAbsolutePath(), AccessType.DIRECT)
-    }
-
-    private TestFile addSnapshotInWatchableHierarchy(TestFile projectRootDirectory) {
-        def fileInside = projectRootDirectory.file("some/subdir/file.txt").createFile()
-        addSnapshot(snapshotRegularFile(fileInside))
-        return fileInside.parentFile
     }
 }

@@ -17,10 +17,8 @@
 package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
@@ -36,9 +34,6 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -46,8 +41,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 
@@ -72,7 +68,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
-    private final long ignoreV17Before;
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
@@ -81,15 +76,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     public CrossVersionResultsStore(String databaseName) {
         super(new PerformanceDatabase(databaseName));
-
-        // Ignore some broken samples before the given date
-        DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        timeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        try {
-            ignoreV17Before = timeStampFormat.parse("2013-07-03 00:00:00").getTime();
-        } catch (ParseException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     @Override
@@ -225,103 +211,121 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
     }
 
     @Override
-    public CrossVersionPerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
-        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel, ImmutableList.of());
+    public CrossVersionPerformanceTestHistory getTestResults(
+        PerformanceExperiment experiment,
+        int mostRecentN,
+        int maxDaysOld,
+        List<String> channelPatterns,
+        List<String> teamcityBuildIds
+    ) {
+        return withConnection("load results", connection -> {
+            String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
+            String channelPatternQuery = channelPatternQueryFor(channelPatterns);
+            try (
+                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?");
+                PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
+                    + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?) as t)")
+            ) {
+                Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
+                Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
+                Set<String> allBranches = new TreeSet<>();
+
+                int idx = 0;
+                executionsForName.setFetchSize(mostRecentN);
+                executionsForName.setString(++idx, experiment.getScenario().getClassName());
+                executionsForName.setString(++idx, experiment.getScenario().getTestName());
+                executionsForName.setString(++idx, experiment.getTestProject());
+                Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+                executionsForName.setTimestamp(++idx, minDate);
+                for (String channelPattern : channelPatterns) {
+                    executionsForName.setString(++idx, channelPattern);
+                }
+                for (String teamcityBuildId : teamcityBuildIds) {
+                    executionsForName.setString(++idx, teamcityBuildId);
+                }
+                executionsForName.setInt(++idx, mostRecentN);
+
+                try (ResultSet testExecutions = executionsForName.executeQuery()) {
+                    while (testExecutions.next()) {
+                        long id = testExecutions.getLong(1);
+                        CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
+                        performanceResults.setTestClass(experiment.getScenario().getClassName());
+                        performanceResults.setTestId(experiment.getScenario().getTestName());
+                        performanceResults.setTestProject(experiment.getTestProject());
+                        performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+                        performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+                        performanceResults.setVersionUnderTest(testExecutions.getString(4));
+                        performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
+                        performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+                        performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
+                        performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
+                        performanceResults.setOperatingSystem(testExecutions.getString(9));
+                        performanceResults.setJvm(testExecutions.getString(10));
+                        performanceResults.setVcsBranch(mapVcsBranch(channelPatterns.get(0), testExecutions.getString(11).trim()));
+                        performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(12)));
+                        performanceResults.setChannel(testExecutions.getString(13));
+                        performanceResults.setHost(testExecutions.getString(14));
+                        performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(15)));
+                        performanceResults.setTeamCityBuildId(testExecutions.getString(16));
+
+                        results.put(id, performanceResults);
+                        allBranches.add(performanceResults.getVcsBranch());
+                    }
+                }
+
+                operationsForExecution.setFetchSize(10 * results.size());
+                idx = 0;
+                operationsForExecution.setString(++idx, experiment.getScenario().getClassName());
+                operationsForExecution.setString(++idx, experiment.getScenario().getTestName());
+                operationsForExecution.setString(++idx, experiment.getTestProject());
+                operationsForExecution.setTimestamp(++idx, minDate);
+                for (String channelPattern : channelPatterns) {
+                    operationsForExecution.setString(++idx, channelPattern);
+                }
+                for (String teamcityBuildId : teamcityBuildIds) {
+                    operationsForExecution.setString(++idx, teamcityBuildId);
+                }
+                operationsForExecution.setInt(++idx, mostRecentN);
+
+                try (ResultSet operations = operationsForExecution.executeQuery()) {
+                    while (operations.next()) {
+                        CrossVersionPerformanceResults result = results.get(operations.getLong(2));
+                        if (result == null) {
+                            continue;
+                        }
+                        String version = operations.getString(1);
+                        MeasuredOperation operation = new MeasuredOperation();
+                        operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
+
+                        if (version == null) {
+                            result.getCurrent().add(operation);
+                        } else {
+                            BaselineVersion baselineVersion = result.baseline(version);
+                            baselineVersion.getResults().add(operation);
+                            allVersions.add(version);
+                        }
+                    }
+                }
+                return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
+            }
+        });
     }
 
-
-    @Override
-    public CrossVersionPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel, List<String> teamcityBuildIds) {
-            return withConnection("load results", connection -> {
-                String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
-                try (
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (channel = ?" + buildIdQuery + ") order by startTime desc limit ?");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                        + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (channel = ?" + buildIdQuery + ") order by startTime desc limit ?) as t)")
-                ) {
-                    Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
-                    Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
-                    Set<String> allBranches = new TreeSet<>();
-
-                    int idx = 0;
-                    executionsForName.setFetchSize(mostRecentN);
-                    executionsForName.setString(++idx, experiment.getScenario().getClassName());
-                    executionsForName.setString(++idx, experiment.getScenario().getTestName());
-                    executionsForName.setString(++idx, experiment.getTestProject());
-                    Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                    executionsForName.setTimestamp(++idx, minDate);
-                    executionsForName.setString(++idx, channel);
-                    for (String teamcityBuildId : teamcityBuildIds) {
-                        executionsForName.setString(++idx, teamcityBuildId);
-                    }
-                    executionsForName.setInt(++idx, mostRecentN);
-
-                    try (ResultSet testExecutions = executionsForName.executeQuery()) {
-                        while (testExecutions.next()) {
-                            long id = testExecutions.getLong(1);
-                            CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
-                            performanceResults.setTestClass(experiment.getScenario().getClassName());
-                            performanceResults.setTestId(experiment.getScenario().getTestName());
-                            performanceResults.setTestProject(experiment.getTestProject());
-                            performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
-                            performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
-                            performanceResults.setVersionUnderTest(testExecutions.getString(4));
-                            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
-                            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
-                            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                            performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
-                            performanceResults.setOperatingSystem(testExecutions.getString(9));
-                            performanceResults.setJvm(testExecutions.getString(10));
-                            performanceResults.setVcsBranch(testExecutions.getString(11).trim());
-                            performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(12)));
-                            performanceResults.setChannel(testExecutions.getString(13));
-                            performanceResults.setHost(testExecutions.getString(14));
-                            performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(15)));
-                            performanceResults.setTeamCityBuildId(testExecutions.getString(16));
-
-                            results.put(id, performanceResults);
-                            allBranches.add(performanceResults.getVcsBranch());
-                        }
-                    }
-
-                    operationsForExecution.setFetchSize(10 * results.size());
-                    idx = 0;
-                    operationsForExecution.setString(++idx, experiment.getScenario().getClassName());
-                    operationsForExecution.setString(++idx, experiment.getScenario().getTestName());
-                    operationsForExecution.setString(++idx, experiment.getTestProject());
-                    operationsForExecution.setTimestamp(++idx, minDate);
-                    operationsForExecution.setString(++idx, channel);
-                    for (String teamcityBuildId : teamcityBuildIds) {
-                        operationsForExecution.setString(++idx, teamcityBuildId);
-                    }
-                    operationsForExecution.setInt(++idx, mostRecentN);
-
-                    try (ResultSet operations = operationsForExecution.executeQuery()){
-                        while (operations.next()) {
-                            CrossVersionPerformanceResults result = results.get(operations.getLong(2));
-                            if (result == null) {
-                                continue;
-                            }
-                            String version = operations.getString(1);
-                            if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
-                                // Ignore some broken samples
-                                continue;
-                            }
-                            MeasuredOperation operation = new MeasuredOperation();
-                            operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
-
-                            if (version == null) {
-                                result.getCurrent().add(operation);
-                            } else {
-                                BaselineVersion baselineVersion = result.baseline(version);
-                                baselineVersion.getResults().add(operation);
-                                allVersions.add(version);
-                            }
-                        }
-                    }
-                    return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
-                }
-            });
+    private String mapVcsBranch(String channelPattern, String vcsBranch) {
+        if (!channelPattern.startsWith("commits-")) {
+            return vcsBranch;
+        }
+        String currentBranch = channelPattern.substring("commits-".length());
+        if (currentBranch.equals(vcsBranch)) {
+            return currentBranch;
+        }
+        if (vcsBranch.startsWith("pre-test/")) {
+            Matcher matcher = Pattern.compile("pre-test/([^/]*)/.*").matcher(vcsBranch);
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
+        }
+        return vcsBranch;
     }
 
     protected GradleVersion resolveGradleVersion(String version) {

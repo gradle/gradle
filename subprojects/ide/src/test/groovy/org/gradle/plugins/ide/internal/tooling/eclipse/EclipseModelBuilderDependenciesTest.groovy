@@ -42,6 +42,8 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child4
 
     def setup() {
+        // Without this file, the build layout finds the one from Gradle itself and causes dependency verification to be enabled
+        temporaryFolder.testDirectory.createFile("settings.gradle")
         project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()

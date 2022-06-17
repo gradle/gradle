@@ -70,6 +70,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     def setup() {
         // Required for the lenient classpath mode
         toolingApi.requireDaemons()
+        // Only Kotlin settings scripts
+        settingsFile.delete()
+        file("settings.gradle.kts").touch()
     }
 
     private String defaultSettingsScript = ""
@@ -292,7 +295,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return new ProjectSourceRoots(file(projectDir), ["main"], ["java", "kotlin"])
     }
 
-    protected static Matcher<Iterable<File>> matchesProjectsSourceRoots(ProjectSourceRoots... projectSourceRoots) {
+    protected static Matcher<Iterable<? super File>> matchesProjectsSourceRoots(ProjectSourceRoots... projectSourceRoots) {
         return allOf(projectSourceRoots.findAll { !it.languages.isEmpty() }.collectMany { sourceRoots ->
 
             def languageDirs =
@@ -304,13 +307,13 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
                         } else {
                             not(hasLanguageDir)
                         }
-                    } as Collection
-                }
+                    } as Collection<Matcher<Iterable<? super File>>>
+                } as Collection<Matcher<Iterable<? super File>>>
 
             def resourceDirs =
                 sourceRoots.sourceSets.collect { sourceSet ->
                     hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
-                } as Collection
+                } as Collection<Matcher<Iterable<? super File>>>
 
             languageDirs + resourceDirs
         })

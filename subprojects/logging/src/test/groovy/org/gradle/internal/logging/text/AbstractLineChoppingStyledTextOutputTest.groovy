@@ -20,7 +20,6 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class AbstractLineChoppingStyledTextOutputTest extends Specification {
     private static final String NIX_EOL = "\n"
@@ -44,7 +43,6 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "[some text]"
     }
 
-    @Unroll
     def "append empty lines [#type]"() {
         def output = output()
 
@@ -60,7 +58,6 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    @Unroll
     def "appends eol to current line [#type]"() {
         def output = output()
 
@@ -75,7 +72,6 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    @Unroll
     def "append text that contains multiple lines [#type]"() {
         def output = output()
 
@@ -89,7 +85,6 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    @Unroll
     def "append text that ends with eol [#type]"() {
         def output = output()
 
@@ -220,7 +215,6 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{eol}"
     }
 
-    @Unroll
     def "Carriage return isn't detected as new line [#type]"() {
         System.setProperty("line.separator", eol)
         def output = output()

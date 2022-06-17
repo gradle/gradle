@@ -25,5 +25,5 @@ public interface BuildTreeWorkExecutor {
     /**
      * Runs the scheduled work and returns a result object containing any failures.
      */
-    ExecutionResult<Void> execute();
+    ExecutionResult<Void> execute(BuildTreeWorkGraph graph);
 }

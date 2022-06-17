@@ -37,6 +37,8 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
+import static org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification.getWaitingMessage
+
 abstract class TestLauncherSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     ProgressEvents events = ProgressEvents.create()
 
@@ -87,7 +89,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
     void waitingForBuild() {
         ConcurrentTestUtil.poll(30) {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
+            assert stdout.toString().contains(getWaitingMessage(targetVersion))
         }
         stdout.reset()
         stderr.reset()
@@ -162,7 +164,12 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         try {
             withConnection {
                 ProjectConnection connection ->
-                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(events).run()
+                    connection.newBuild().forTasks('build')
+                        .withArguments("--continue")
+                        .addProgressListener(events)
+                        .setStandardOutput(System.out)
+                        .setStandardError(System.err)
+                        .run()
             }
         } catch (BuildException e) {
         }

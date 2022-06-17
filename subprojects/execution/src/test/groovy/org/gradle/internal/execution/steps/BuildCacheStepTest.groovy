@@ -17,10 +17,9 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory
+import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.BuildCacheLoadCommand
-import org.gradle.caching.internal.controller.BuildCacheStoreCommand
+import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionOutcome
@@ -36,25 +35,26 @@ import org.gradle.internal.file.Deleter
 
 import java.time.Duration
 
-class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnasphotterFixture {
+class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
-    def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 
     def beforeExecutionState = Stub(BeforeExecutionState)
-    def cacheKey = Stub(BuildCacheKey)
-    def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
+
+    def cacheKeyHashCode = "30a042b90a"
+    def cacheKey = Stub(BuildCacheKey) {
+        hashCode >> cacheKeyHashCode
+    }
+    def loadMetadata = Mock(BuildCacheLoadResult)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener, delegate)
-    def delegateResult = Mock(CurrentSnapshotResult)
+    def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
+    def delegateResult = Mock(AfterExecutionResult)
 
     @Override
     protected IncrementalChangesContext createContext() {
         Stub(IncrementalChangesContext)
     }
-
-    def loadCommand = Mock(BuildCacheLoadCommand)
 
     def "loads from cache"() {
         def cachedOriginMetadata = Mock(OriginMetadata)
@@ -66,22 +66,21 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
-        result.reused
-        result.originMetadata == cachedOriginMetadata
+        result.afterExecutionState.get().reused
+        result.afterExecutionState.get().originMetadata == cachedOriginMetadata
         result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
+        1 * buildCacheController.load(cacheKey, _) >> Optional.of(loadMetadata)
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitLocalState(localStateFile)
         }
-        1 * outputChangeListener.beforeOutputChange([localStateFile.getAbsolutePath()])
+        1 * outputChangeListener.invalidateCachesFor([localStateFile.getAbsolutePath()])
         1 * deleter.deleteRecursively(_) >> { File root ->
             assert root == localStateFile
             return true
@@ -105,8 +104,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> Optional.empty()
+        1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
@@ -117,25 +115,24 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         0 * _
     }
 
-    def "fails after unpack failure"() {
-        def failure = new RuntimeException("unpack failure")
+    def "fails after #exceptionName unpack failure with descriptive error"() {
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
+        def failure = new RuntimeException("unpack failure")
 
         when:
         step.execute(work, context)
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to load cache entry for job ':test'"
+        ex.message == "Failed to load cache entry $cacheKeyHashCode for job ':test': unpack failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> { BuildCacheLoadCommand command ->
+        1 * buildCacheController.load(cacheKey, _) >> { BuildCacheKey key, CacheableEntity entity ->
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
             loadedOutputDir.file("output.txt") << "output"
@@ -152,14 +149,12 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
-        !result.reused
 
         interaction { withValidCacheKey() }
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> Optional.empty()
+        1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
@@ -177,14 +172,12 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
-        !result.reused
 
         interaction { withValidCacheKey() }
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> Optional.empty()
+        1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
@@ -224,7 +217,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to store cache entry for job ':test'"
+        ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
@@ -247,7 +240,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
-        !result.reused
 
         _ * context.cachingState >> CachingState.disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(work, context) >> delegateResult
@@ -261,14 +253,12 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     private void outputStored(Closure storeResult) {
         def originMetadata = Mock(OriginMetadata)
         def outputFilesProducedByWork = snapshotsOf("test": [])
-        def storeCommand = Mock(BuildCacheStoreCommand)
 
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
+            1 * getOriginMetadata() >> originMetadata
         })
-        1 * delegateResult.originMetadata >> originMetadata
         1 * originMetadata.executionTime >> Duration.ofMillis(123L)
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> storeCommand
-        1 * buildCacheController.store(storeCommand) >> { storeResult() }
+        1 * buildCacheController.store(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> { storeResult() }
     }
 }

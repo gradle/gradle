@@ -237,6 +237,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private class ListenerCleanup extends BuildAdapter {
+        @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {
             // TODO - maybe make the registry a build scoped service

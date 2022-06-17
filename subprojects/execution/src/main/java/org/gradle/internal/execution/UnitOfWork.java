@@ -177,15 +177,6 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
-     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
-     * returned depending on whether cleanup of existing outputs had to be performed.
-     */
-    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles) {
-        return Optional.empty();
-    }
-
-    /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
      */
     // TODO Make this part of CachingState instead

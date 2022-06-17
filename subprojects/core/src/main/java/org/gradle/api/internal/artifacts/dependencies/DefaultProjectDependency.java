@@ -29,7 +29,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
@@ -42,17 +41,14 @@ import java.util.Set;
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
-    private final ProjectAccessListener projectAccessListener;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
-        this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
+    public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies) {
+        this(dependencyProject, null, buildProjectDependencies);
     }
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration,
-                                    ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
+    public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration, boolean buildProjectDependencies) {
         super(configuration);
         this.dependencyProject = dependencyProject;
-        this.projectAccessListener = projectAccessListener;
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
@@ -97,8 +93,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public ProjectDependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-            getTargetConfiguration(), projectAccessListener, buildProjectDependencies);
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getTargetConfiguration(), buildProjectDependencies);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -110,14 +105,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public Set<File> resolve(boolean transitive) {
-        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, Collections.<String, String>emptyMap());
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, Collections.emptyMap());
         context.add(this);
         return context.resolve().getFiles();
-    }
-
-    @Override
-    public void beforeResolved() {
-        projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
     }
 
     @Override
@@ -202,7 +192,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             if (!buildProjectDependencies) {
                 return;
             }
-            projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
 
             Configuration configuration = findProjectConfiguration();
             context.add(configuration);

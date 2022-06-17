@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.provider.Provider;
@@ -27,40 +26,51 @@ import java.util.Optional;
 /**
  * Provides access to a version catalog. Unlike generated extension
  * classes for catalogs, there is no guarantee that the requested
- * aliases exist so you must check existence on the returned optional
+ * aliases exist, so you must check existence on the returned optional
  * values.
  *
  * @since 7.0
  */
-@Incubating
 @NonNullApi
 public interface VersionCatalog extends Named {
     /**
-     * Returns the dependency provider for the corresponding alias.
+     * Returns the dependency provider for the corresponding library alias.
      * <p>
      * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
      * @param alias the alias of the dependency
+     * @deprecated For consistency, this has been renamed to {@link #findLibrary(String)}.
      */
+    @Deprecated
     Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias);
 
     /**
-     * Returns the dependency provider for the corresponding bundle.
+     * Returns the dependency provider for the corresponding library alias.
+     * <p>
+     * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
+     * </p>
+     * @param alias the alias of the library
+     * @since 7.4
+     */
+    Optional<Provider<MinimalExternalModuleDependency>> findLibrary(String alias);
+
+    /**
+     * Returns the provider for the corresponding bundle alias.
      * <p>
      * Note: Bundle will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
-     * @param bundle the alias of the bundle
+     * @param alias the alias of the bundle
      */
-    Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle);
+    Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String alias);
 
     /**
-     * Returns the version constraint with the corresponding name in the catalog.
+     * Returns the version constraint with the corresponding alias in the catalog.
      * <p>
-     * Note: Name will be automatically normalized: '-', '_' and '.' will be replaced with '.'
+     * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
-     * @param name the name of the version
+     * @param alias the alias of the version
      */
-    Optional<VersionConstraint> findVersion(String name);
+    Optional<VersionConstraint> findVersion(String alias);
 
     /**
      * Returns the plugin dependency provider for the requested alias.
@@ -75,14 +85,33 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of dependency aliases
      *
      * @since 7.1
+     * @deprecated For consistency, this has been renamed to {@link #getLibraryAliases()}.
      */
+    @Deprecated
     List<String> getDependencyAliases();
 
     /**
+     * Returns the list of aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
+     * @return the list of library aliases
+     *
+     * @since 7.4
+     */
+    List<String> getLibraryAliases();
+
+    /**
      * Returns the list of bundles defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of bundle aliases
      *
      * @since 7.1
@@ -91,6 +120,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of version aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of version aliases
      *
      * @since 7.1
@@ -99,6 +131,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of plugin aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of plugin aliases
      *
      * @since 7.2

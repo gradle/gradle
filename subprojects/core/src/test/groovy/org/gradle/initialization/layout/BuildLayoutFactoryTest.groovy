@@ -20,7 +20,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class BuildLayoutFactoryTest extends Specification {
 
@@ -32,7 +31,6 @@ class BuildLayoutFactoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    @Unroll
     def "returns current directory when it contains a #settingsFilename file"() {
         given:
         def locator = buildLayoutFactoryFor()
@@ -73,7 +71,6 @@ class BuildLayoutFactoryTest extends Specification {
         tmpDir.deleteDir()
     }
 
-    @Unroll
     def "returns closest ancestor directory that contains a #settingsFilename file"() {
         given:
         def locator = buildLayoutFactoryFor()
@@ -95,7 +92,6 @@ class BuildLayoutFactoryTest extends Specification {
         settingsFilename << TEST_CASES
     }
 
-    @Unroll
     def "prefers the current directory as root directory with a #settingsFilename file"() {
         given:
         def locator = buildLayoutFactoryFor()
@@ -117,7 +113,6 @@ class BuildLayoutFactoryTest extends Specification {
         settingsFilename << TEST_CASES
     }
 
-    @Unroll
     def "returns start directory when search upwards is disabled with a #settingsFilename file"() {
         given:
         def locator = buildLayoutFactoryFor()
@@ -153,7 +148,6 @@ class BuildLayoutFactoryTest extends Specification {
         layout.buildDefinitionMissing
     }
 
-    @Unroll
     def "can override build layout by specifying the settings file to #overrideSettingsFilename with existing #settingsFilename"() {
         given:
         def locator = buildLayoutFactoryFor()
@@ -180,7 +174,6 @@ class BuildLayoutFactoryTest extends Specification {
         overrideSettingsFilename = "some-$settingsFilename"
     }
 
-    @Unroll
     def "can override build layout by specifying an empty settings script with existing #settingsFilename"() {
         given:
         def locator = buildLayoutFactoryFor()

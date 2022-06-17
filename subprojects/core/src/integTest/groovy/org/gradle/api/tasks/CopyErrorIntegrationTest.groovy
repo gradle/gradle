@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -99,10 +98,7 @@ The following types/formats are supported:
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
             failure.assertHasDescription("Execution failed for task ':copy'.")
-            failure.assertThatCause(CoreMatchers.anyOf(
-                CoreMatchers.startsWith("Could not list contents of directory '${dir}' as it is not readable."),
-                CoreMatchers.startsWith("Could not read path '${dir}'.")
-            ))
+            failure.assertHasCause("Cannot fingerprint input file property 'rootSpec\$1': java.nio.file.AccessDeniedException: ${dir}")
         } finally {
             dir.permissions = oldPermissions
         }

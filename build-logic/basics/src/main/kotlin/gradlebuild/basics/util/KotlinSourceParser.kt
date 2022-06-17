@@ -125,7 +125,6 @@ class KotlinSourceParser {
         )
 
         put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
-        put(JVMConfigurationKeys.SKIP_RUNTIME_VERSION_CHECK, true)
         put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
@@ -33,9 +34,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
+
             testing {
                 suites {
                     eagerTest(JvmTestSuite)
@@ -54,9 +54,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             task checkConfiguration {
                 dependsOn test
@@ -76,9 +74,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -107,14 +103,43 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
                     test {
                         useJUnit("4.12")
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn test
+                doLast {
+                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert configurations.testRuntimeClasspath.files.size() == 2
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-4.12.jar" }
+                }
+            }
+        """
+        expect:
+        succeeds("checkConfiguration")
+    }
+
+    def "configuring test framework on built-in test suite using a Provider is honored in task and dependencies with JUnit and explicit version"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            Provider<String> junitVersion = project.provider(() -> '4.12')
+
+            testing {
+                suites {
+                    test {
+                        useJUnit(junitVersion)
                     }
                 }
             }
@@ -138,9 +163,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -154,7 +177,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.size() == 7
                     assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -169,14 +192,43 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
                     test {
                         useJUnitJupiter("5.7.2")
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn test
+                doLast {
+                    assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.2.jar" }
+                }
+            }
+        """
+        expect:
+        succeeds("checkConfiguration")
+    }
+
+    def "configuring test framework on built-in test suite using a Provider is honored in task and dependencies with JUnit Jupiter with explicit version"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            Provider<String> junitVersion = project.provider(() -> '5.7.2')
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter(junitVersion)
                     }
                 }
             }
@@ -200,9 +252,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -214,7 +264,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -229,9 +279,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -259,11 +307,49 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         'useJUnitJupiter()'          | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar"
         'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
         'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.Frameworks.SPOCK.getDefaultVersion()}.jar"
-        'useSpock("2.0-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.0-groovy-3.0.jar" // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
-        'useKotlinTest()'            | JUnitTestFramework         | "kotlin-test-junit-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
-        'useKotlinTest("1.5.30")'    | JUnitTestFramework         | "kotlin-test-junit-1.5.30.jar"
+        'useSpock("2.1-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.1-groovy-3.0.jar" // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
+        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
         'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.Frameworks.TESTNG.getDefaultVersion()}.jar"
         'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
+    }
+
+    def "configuring test framework on custom test suite using a Provider is honored in task and dependencies with #testingFrameworkMethod version #testingFrameworkVersion"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            Provider<String> frameworkVersion = project.provider(() -> '$testingFrameworkVersion')
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        $testingFrameworkMethod(frameworkVersion)
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn integTest
+                doLast {
+                    assert integTest.testFramework instanceof ${testingFrameworkType.canonicalName}
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "$testingFrameworkDep" }
+                }
+            }
+        """
+        expect:
+        succeeds("checkConfiguration")
+
+        where: // When testing a custom version, this should be a different version that the default
+        testingFrameworkMethod       | testingFrameworkVersion      | testingFrameworkType       | testingFrameworkDep
+        'useJUnit'                   | '4.12'                       | JUnitTestFramework         | "junit-4.12.jar"
+        'useJUnitJupiter'            | '5.7.1'                      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
+        'useSpock'                   | '2.1-groovy-3.0'             | JUnitPlatformTestFramework | "spock-core-2.1-groovy-3.0.jar" // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
+        'useKotlinTest'              | '1.5.30'                     | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
+        'useTestNG'                  | '7.3.0'                      | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "can override previously configured test framework on a test suite"() {
@@ -272,9 +358,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -289,7 +373,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -298,7 +382,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
                     assert configurations.integTestRuntimeClasspath.files.size() == 2
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
                 }
             }
         """
@@ -324,9 +408,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -350,7 +432,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert integTest.testFramework instanceof ${JUnitTestFramework.canonicalName}
 
                     // but test suite still adds JUnit Jupiter
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -365,9 +447,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -392,7 +472,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
                     // but test suite still adds JUnit4
                     assert configurations.integTestRuntimeClasspath.files.size() == 2
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
                 }
             }
         """
@@ -407,9 +487,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -433,7 +511,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             check.dependsOn testing.suites
         """
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
 
         expect:
         succeeds("check")
@@ -472,11 +550,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
 
         when:
-        succeeds( "test")
+        succeeds("test")
 
         then:
         executedAndNotSkipped(":test")
@@ -495,9 +573,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -532,7 +608,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
-    def "custom Test tasks do not fail to be configured when combined with test suites"() {
+    def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
         buildFile << """
             tasks.withType(Test) {
                 // realize all test tasks
@@ -540,17 +616,33 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("mytest", Test)
             apply plugin: 'java'
 
-            task assertHasClasses {
-                inputs.files mytest.testClassesDirs
+            ${mavenCentralRepository()}
 
-                doLast {
-                    assert mytest.testClassesDirs // This is setup by the jvm-test-suite plugin, applied by the java plugin
-                    assert !mytest.testClassesDirs.empty
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
                 }
             }
-        """
+"""
+        file('src/test/java/example/UnitTest.java') << '''
+            package example;
+
+            import org.junit.Assert;
+            import org.junit.Test;
+
+            public class UnitTest {
+                @Test
+                public void unitTest() {
+                    Assert.assertTrue(true);
+                }
+            }
+        '''
         expect:
-        succeeds("mytest", "assertHasClasses")
+        succeeds("mytest")
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/mytest')
+        unitTestResults.assertTestClassesExecuted('example.UnitTest')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
@@ -560,16 +652,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 // realize all test tasks
             }
 
+            def customClassesDir = file('src/custom/java')
             tasks.register("mytest", Test) {
-                // Must ensure a base dir is set here, even if it doesn't exist
-                testClassesDirs = fileTree('src/custom/java')
+                // Must ensure a base dir is set here
+                testClassesDirs = files(customClassesDir)
             }
 
             task assertNoTestClasses {
                 inputs.files mytest.testClassesDirs
 
                 doLast {
-                    assert mytest.testClassesDirs.getDir() == file('src/custom/java')
+                    assert inputs.files.contains(customClassesDir)
                 }
             }
         """
@@ -649,5 +742,44 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("assertSameFrameworkInstance")
+    }
+
+    def "the default test suite does NOT use JUnit 4 by default"() {
+        given: "a build which uses the default test suite and doesn't specify a testing framework"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        // Empty
+                    }
+                }
+            }
+        """
+
+        and: "containing a test which uses Junit 4"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.Test;
+            import org.junit.Assert;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assert.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+
+        expect: "does NOT compile due to a missing dependency"
+        fails("test")
+        failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
+        failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
 }

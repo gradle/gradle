@@ -51,21 +51,6 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     }
 
     @Override
-    public ModuleComponentArtifactIdentifier getSignatureArtifactId() {
-        String extension = name.getExtension();
-        if (extension == null) {
-            extension = name.getType();
-        }
-        return new DefaultModuleComponentArtifactIdentifier(
-            componentIdentifier,
-            name.getName(),
-            "asc",
-            extension + ".asc",
-            name.getClassifier()
-        );
-    }
-
-    @Override
     public String getDisplayName() {
         String name = this.getFileName();
         String componentIdentifier = this.componentIdentifier.toString();

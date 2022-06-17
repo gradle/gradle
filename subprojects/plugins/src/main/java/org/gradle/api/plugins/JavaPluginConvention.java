@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -125,7 +126,7 @@ public abstract class JavaPluginConvention {
      *
      * @param closure The closure to use to configure the manifest.
      */
-    public abstract Manifest manifest(Closure closure);
+    public abstract Manifest manifest(@DelegatesTo(Manifest.class) Closure closure);
 
     /**
      * Creates and configures a new instance of a {@link Manifest}.

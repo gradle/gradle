@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -48,6 +49,11 @@ public final class FileTreeAdapter extends AbstractFileTree {
     @Override
     public String getDisplayName() {
         return tree.getDisplayName();
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("tree: " + tree);
     }
 
     @Override
@@ -98,6 +104,21 @@ public final class FileTreeAdapter extends AbstractFileTree {
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        tree.visitStructure(visitor, this);
+        tree.visitStructure(new MinimalFileTree.MinimalFileTreeStructureVisitor() {
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                visitor.visitGenericFileTree(fileTree, sourceTree);
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                visitor.visitFileTree(root, patterns, fileTree);
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                visitor.visitFileTreeBackedByFile(file, fileTree, sourceTree);
+            }
+        }, this);
     }
 }

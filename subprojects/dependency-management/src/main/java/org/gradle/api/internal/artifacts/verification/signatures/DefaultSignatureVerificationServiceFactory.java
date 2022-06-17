@@ -27,6 +27,8 @@ import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.service.scopes.Scopes;
@@ -52,6 +54,9 @@ import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
 @ServiceScope(Scopes.Build.class)
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
+
+    private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
+
     private final RepositoryTransportFactory transportFactory;
     private final GlobalScopedCache cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
@@ -91,6 +96,10 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
             keyService = EmptyPublicKeyService.getInstance();
         }
         keyService = keyrings.applyTo(keyService);
+        File effectiveKeyringsFile = keyrings.getEffectiveKeyringsFile();
+        HashCode keyringFileHash = effectiveKeyringsFile != null && effectiveKeyringsFile.exists()
+            ? fileHasher.hash(effectiveKeyringsFile)
+            : NO_KEYRING_FILE_HASH;
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
         return new CrossBuildSignatureVerificationService(
             delegate,
@@ -98,7 +107,9 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
             buildScopedCache,
             decoratorFactory,
             timeProvider,
-            refreshKeys
+            refreshKeys,
+            useKeyServers,
+            keyringFileHash
         );
     }
 

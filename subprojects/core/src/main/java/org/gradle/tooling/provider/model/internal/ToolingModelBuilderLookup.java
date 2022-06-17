@@ -36,6 +36,9 @@ public interface ToolingModelBuilderLookup {
      */
     Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target) throws UnknownModelException;
 
+    /**
+     * Locates a builder for a build-scoped model.
+     */
     @Nullable
     Builder maybeLocateForBuildScope(String modelName, boolean parameter, BuildState target);
 

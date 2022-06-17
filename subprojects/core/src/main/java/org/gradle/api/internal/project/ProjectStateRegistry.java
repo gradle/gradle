@@ -27,7 +27,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.function.Consumer;
 
 /**
  * A registry of all projects present in a build tree.
@@ -66,28 +65,9 @@ public interface ProjectStateRegistry {
     ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
 
     /**
-     * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
-     *
-     * <p>Any attempt to lock a project by some other thread will fail while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
-     */
-    void withMutableStateOfAllProjects(Runnable runnable);
-
-    /**
-     * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
-     *
-     * <p>Any attempt to lock a project by some other thread will fail while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
-     */
-    <T> T withMutableStateOfAllProjects(Factory<T> factory);
-
-    /**
-     * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.
+     * Allows the given code to access the mutable state of any project in the tree, regardless of which other threads may be accessing the project.
      *
      * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
      */
     <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
-
-    /**
-     * Runs some action that may block waiting for work that requires access to the mutable state of one or more projects.
-     */
-    void blocking(Runnable runnable);
 }

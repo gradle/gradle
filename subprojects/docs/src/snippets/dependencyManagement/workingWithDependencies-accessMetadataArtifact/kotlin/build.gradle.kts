@@ -1,5 +1,5 @@
 // tag::accessing-metadata-artifact[]
-import groovy.util.XmlSlurper
+import groovy.xml.XmlSlurper
 
 plugins {
     `java-library`

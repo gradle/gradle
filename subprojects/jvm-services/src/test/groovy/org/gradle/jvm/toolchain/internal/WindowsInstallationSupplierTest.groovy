@@ -22,7 +22,6 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class WindowsInstallationSupplierTest extends Specification {
 
@@ -70,7 +69,6 @@ class WindowsInstallationSupplierTest extends Specification {
         locations.isEmpty()
     }
 
-    @Unroll
     def "finds java homes #home via #key"() {
         given:
         registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, key) >> [

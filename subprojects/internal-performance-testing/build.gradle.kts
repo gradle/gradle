@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Collection of test fixtures for performance tests, internal use only"
+
 val reports by configurations.creating
 val flamegraph by configurations.creating
 configurations.compileOnly { extendsFrom(flamegraph) }
@@ -37,7 +39,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":persistent-cache"))
     implementation(project(":jvm-services"))
-    implementation(project(":wrapper"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":internal-integ-testing"))
 
     implementation(libs.junit)

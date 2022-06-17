@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
@@ -55,6 +56,14 @@ public abstract class JavaEcosystemSupport {
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
+        attributesSchema.attributeDisambiguationPrecedence(
+                Category.CATEGORY_ATTRIBUTE,
+                Usage.USAGE_ATTRIBUTE,
+                TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                Bundling.BUNDLING_ATTRIBUTE,
+                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
+        );
     }
 
     private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {
@@ -152,17 +161,19 @@ public abstract class JavaEcosystemSupport {
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
-                } else if (candidateValues.contains(consumerValue)) {
-                    details.closestMatch(consumerValue);
                 } else if (javaApi.equals(consumerValue)) {
                     // we're asking for an API variant, prefer -jars first for runtime
                     if (candidateValues.contains(javaApiJars)) {
                         details.closestMatch(javaApiJars);
+                    } else if (candidateValues.contains(javaApi)) {
+                        details.closestMatch(javaApi);
                     } else if (candidateValues.contains(javaRuntimeJars)) {
                         details.closestMatch(javaRuntimeJars);
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
+                } else if (candidateValues.contains(consumerValue)) {
+                    details.closestMatch(consumerValue);
                 }
             }
         }

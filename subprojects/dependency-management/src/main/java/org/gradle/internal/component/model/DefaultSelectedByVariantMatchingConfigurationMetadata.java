@@ -110,11 +110,6 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
-    public boolean requiresMavenArtifactDiscovery() {
-        return delegate.requiresMavenArtifactDiscovery();
-    }
-
-    @Override
     public boolean isExternalVariant() {
         return delegate.isExternalVariant();
     }

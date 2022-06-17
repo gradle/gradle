@@ -29,6 +29,7 @@ import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 import java.io.File;
@@ -49,13 +50,15 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         return withBuiltInHistory(
             cacheBuilder,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
+            classLoaderHasher,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP
         );
     }
@@ -65,12 +68,13 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher,
         int treeDepthToTrackAndCleanup
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
-            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner),
+            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
             treeDepthToTrackAndCleanup
         );
     }

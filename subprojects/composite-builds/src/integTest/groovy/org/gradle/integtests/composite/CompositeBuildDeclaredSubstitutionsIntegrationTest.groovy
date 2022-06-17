@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
@@ -263,7 +261,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     }
 
-    @Unroll
     def "preserves the requested attributes when performing a composite substitution using mapping"() {
         platformDependency 'org.test:platform:1.0'
 
@@ -372,7 +369,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15659")
-    @ToBeFixedForConfigurationCache(because = "uses dependencies task")
     def "resolves dependencies of included build with dependency substitution when substitution build contains buildSrc"() {
         given:
         includeBuild(buildB, """
@@ -414,7 +410,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         execute(buildA, ":buildC:build")
     }
 
-    @ToBeFixedForConfigurationCache(because = "uses dependencies tasks")
     @Issue("https://github.com/gradle/gradle/issues/15659")
     def "resolves dependencies of included build with dependency substitution when substitution build uses a plugin from its build-logic build"() {
         given:

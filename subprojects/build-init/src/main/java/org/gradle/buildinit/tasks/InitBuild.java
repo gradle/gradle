@@ -42,7 +42,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.lang.model.SourceVersion;
 import java.util.List;
+import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
@@ -282,10 +284,16 @@ public class InitBuild extends DefaultTask {
         String packageName = this.packageName;
         if (initDescriptor.supportsPackage()) {
             if (isNullOrEmpty(packageName)) {
-                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName));
+                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName).toLowerCase(Locale.US));
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
+        }
+
+        if (!isNullOrEmpty(packageName)) {
+            if (!SourceVersion.isName(packageName)) {
+                throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+            }
         }
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();

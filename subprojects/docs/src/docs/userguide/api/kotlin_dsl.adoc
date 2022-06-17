@@ -200,6 +200,7 @@ The Kotlin DSL currently supports type-safe model accessors for any of the follo
 
 * Dependency and artifact configurations (such as `implementation` and `runtimeOnly` contributed by the Java Plugin)
 * Project extensions and conventions (such as `sourceSets`)
+* Extensions on the `dependencies` and `repositories` containers
 * Elements in the `tasks` and `configurations` containers
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
 * Extensions on each of the above
@@ -734,7 +735,7 @@ Gradle embeds Kotlin in order to provide support for Kotlin-based scripts.
 
 === Kotlin versions
 
-Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries. For example, Gradle 4.3 ships with the Kotlin DSL v0.12.1 that includes Kotlin 1.1.51 versions of these modules. The `kotlin` package from those modules is visible through the Gradle classpath.
+Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries. For details see the Kotlin section of Gradle's <<compatibility#kotlin,compatibility matrix>>. The `kotlin` package from those modules is visible through the Gradle classpath.
 
 The link:https://kotlinlang.org/docs/reference/compatibility.html[compatibility guarantees] provided by Kotlin apply for both backward and forward compatibility.
 

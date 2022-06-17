@@ -285,6 +285,13 @@ fun providerOfStar(): KmTypeBuilder = {
 }
 
 
+internal
+fun providerConvertibleOfStar(): KmTypeBuilder = {
+    visitClass("org/gradle/api/provider/ProviderConvertible")
+    visitStarProjection()
+}
+
+
 /**
  * [receiverType].() -> [returnType]
  */

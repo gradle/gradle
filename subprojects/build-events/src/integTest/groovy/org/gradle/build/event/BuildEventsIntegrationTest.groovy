@@ -16,6 +16,7 @@
 
 package org.gradle.build.event
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -29,6 +30,7 @@ import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
+import spock.lang.Issue
 
 @ConfigurationCacheTest
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
@@ -288,6 +290,44 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         output.count("EVENT:") == 2
         outputContains("EVENT: finish :a")
         outputContains("EVENT: finish :b")
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/16774")
+    def "can use plugin that registers build event listener with ProjectBuilder"() {
+        given:
+        file("build.gradle") << """
+            plugins { id 'groovy-gradle-plugin' }
+            repositories { mavenCentral() }
+            dependencies { testImplementation("junit:junit:4.13") }
+            test.testLogging {
+                showStandardStreams = true
+                showExceptions = true
+            }
+        """
+        def plugin = file('src/main/groovy/my-plugin.gradle')
+        loggingListener(plugin)
+        plugin << """
+            def listener = project.gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
+            gradle.services.get(${BuildEventsListenerRegistry.name}).onTaskCompletion(listener)
+        """
+        file("src/test/groovy/my/MyTest.groovy") << """
+            package my
+            import org.gradle.testfixtures.*
+            import org.junit.Test
+            class MyTest {
+                @Test void test() {
+                    def project = ProjectBuilder.builder().withProjectDir(new File("${testDirectory}")).build()
+                    project.plugins.apply("my-plugin")
+                }
+            }
+        """
+
+        when:
+        run 'test'
+
+        then:
+        executedAndNotSkipped(':test')
     }
 
     void loggingListener(TestFile file = buildFile) {

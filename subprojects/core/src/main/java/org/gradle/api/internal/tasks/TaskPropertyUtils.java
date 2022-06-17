@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -29,7 +28,6 @@ public class TaskPropertyUtils {
      * Visits both properties declared via annotations on the properties of the task type as well as
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
-    @UsedByScanPlugin("test-distribution")
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
         visitProperties(propertyWalker, task, TypeValidationContext.NOOP, visitor);
     }

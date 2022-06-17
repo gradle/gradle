@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
 import org.gradle.security.internal.SecuritySupport
+import spock.lang.IgnoreRest
+import spock.lang.Issue
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 
@@ -376,6 +378,72 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    <components/>
 </verification-metadata>
 """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18394")
+    def "doesn't fail exporting keys if any has invalid utf-8 char in user id"() {
+        String publicKeyResource = "/org/gradle/integtests/resolve/verification/DependencyVerificationSignatureWriteIntegTest/invalid-utf8-public-key.asc"
+        String secretKeyResource = "/org/gradle/integtests/resolve/verification/DependencyVerificationSignatureWriteIntegTest/invalid-utf8-secret-key.asc"
+        def keyring = newKeyRingFromResource(publicKeyResource, secretKeyResource)
+        keyServerFixture.registerPublicKey(keyring.getPublicKey())
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        outputContains("Exported 1 keys to")
+    }
+
+    @IgnoreRest
+    @Issue("https://github.com/gradle/gradle/issues/20140")
+    def "export deduplicated PGP keys"() {
+        given:
+        testDirectory.file("gradle").mkdir()
+        testDirectory.file("gradle/verification-keyring.gpg").newOutputStream().withCloseable {
+            for (int i in 1..10) {
+                SigningFixtures.validPublicKey.encode(it, true)
+            }
+        }
+
+        def exportedKeyRing = file("gradle/verification-keyring.gpg")
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        // Check if pre-conditions are alright
+        def keyrings = SecuritySupport.loadKeyRingFile(exportedKeyRing)
+        assert keyrings.size() == 10
+
+        when:
+        // Export the keys...
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+        keyrings = SecuritySupport.loadKeyRingFile(exportedKeyRing)
+
+        then:
+        // Only one key should exists, as keys are deduplicated
+        keyrings.size() == 1
+        // The expected public key should be the only entry
+        keyrings.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+
+        // Check the same as above
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 1
+        keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
     }
 
 }
