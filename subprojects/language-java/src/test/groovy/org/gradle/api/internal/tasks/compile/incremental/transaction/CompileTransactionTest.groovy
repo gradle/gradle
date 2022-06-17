@@ -17,8 +17,13 @@
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
 import org.gradle.api.tasks.WorkResults
+import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -36,13 +41,28 @@ class CompileTransactionTest extends Specification {
     File temporaryFolder
     File transactionDir
     File stashDir
-    CompileTransaction.CompileTransactionBuilder transactionBuilder
+    JavaCompileSpec spec
 
     def setup() {
-        transactionDir = new File(temporaryFolder, "transactionDir")
+        transactionDir = new File(temporaryFolder, "compileTransaction")
         transactionDir.mkdir()
         stashDir = new File(transactionDir, "stash-dir")
-        transactionBuilder = CompileTransaction.builder(transactionDir, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        spec = new DefaultJavaCompileSpec()
+        spec.setTempDir(temporaryFolder)
+        spec.setCompileOptions(new CompileOptions(TestUtil.objectFactory()))
+        spec.setDestinationDir(createNewDirectory(file("classes")))
+    }
+
+    CompileTransaction newCompileTransaction() {
+        return new CompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+    }
+
+    CompileTransaction newCompileTransaction(PatternSet classesToDelete) {
+        return new CompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+    }
+
+    CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
+        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     def "transaction base directory is cleared before execution"() {
@@ -51,99 +71,107 @@ class CompileTransactionTest extends Specification {
 
         when:
         assert !hasOnlyDirectories(transactionDir)
-        def isTransactionDirEmpty = transactionBuilder
-            .build()
-            .execute {
-                return hasOnlyDirectories(transactionDir)
-            }
+        def isTransactionDirEmpty = newCompileTransaction().execute {
+            return hasOnlyDirectories(transactionDir)
+        }
 
         then:
         isTransactionDirEmpty
     }
 
     def "files are stashed and restored on failure"() {
-        def sourceDir = createNewDirectory(file("sourceDir"))
-        createNewFile(new File(sourceDir, "file.txt"))
-        createNewFile(new File(sourceDir, "subDir/another-file.txt"))
-        def pattern = new PatternSet().include("**/*.txt")
+        def destinationDir = spec.getDestinationDir()
+        createNewFile(new File(destinationDir, "file.txt"))
+        createNewFile(new File(destinationDir, "subDir/another-file.txt"))
+        createNewFile(new File(destinationDir, "subDir/some-dest-file.class"))
+        def annotationOutput = createNewDirectory(file("annotationOut"))
+        createNewFile(new File(annotationOutput, "some-ann-file.ann"))
+        createNewFile(new File(annotationOutput, "some-ann-file.class"))
+        createNewFile(new File(annotationOutput, "some-duplicated-file.class"))
+        def headerOutput = createNewDirectory(file("headerOut"))
+        createNewFile(new File(headerOutput, "some-header-file.h"))
+        createNewFile(new File(headerOutput, "some-header-file.class"))
+        createNewFile(new File(headerOutput, "some-duplicated-file.class"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
+        spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
+        def classesToDelete = new PatternSet().include("**/*.class")
+        Map<GeneratedResource.Location, PatternSet> sourcesToDelete = [:]
+        sourcesToDelete[GeneratedResource.Location.CLASS_OUTPUT] = new PatternSet().include("**/*.txt")
+        sourcesToDelete[GeneratedResource.Location.SOURCE_OUTPUT] = new PatternSet().include("**/*.ann")
+        sourcesToDelete[GeneratedResource.Location.NATIVE_HEADER_OUTPUT] = new PatternSet().include("**/*.h")
 
         when:
-        transactionBuilder.stashFiles(pattern, sourceDir)
-            .build()
-            .execute {
-                assert hasOnlyDirectories(sourceDir)
-                assert stashDir.list()
-                    .collect { it.replaceAll(".uniqueId.*", "") }
-                    .containsAll(["file.txt", "another-file.txt"])
-                throw new RuntimeException("Exception")
-            }
+        newCompileTransaction(classesToDelete, sourcesToDelete).execute {
+            assert hasOnlyDirectories(destinationDir)
+            assert stashDir.list()
+                .collect { it.replaceAll(".uniqueId.*", "") }
+                .sort() == ["another-file.txt", "file.txt", "some-ann-file.ann",
+                            "some-ann-file.class", "some-dest-file.class",
+                            "some-duplicated-file.class", "some-duplicated-file.class",
+                            "some-header-file.class", "some-header-file.h"]
+            throw new RuntimeException("Exception")
+        }
 
         then:
         thrown(RuntimeException)
-        sourceDir.list() as Set ==~ ["file.txt", "subDir"]
-        new File(sourceDir,"subDir").list() as Set ==~ ["another-file.txt"]
+        destinationDir.list() as Set ==~ ["file.txt", "subDir"]
+        new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt", "some-dest-file.class"]
+        annotationOutput.list() as Set ==~ ["some-duplicated-file.class", "some-ann-file.class", "some-ann-file.ann"]
+        headerOutput.list() as Set ==~ ["some-duplicated-file.class", "some-header-file.h", "some-header-file.class"]
     }
 
     def "files are stashed but not restored on success"() {
-        def sourceDir = createNewDirectory(file("sourceDir"))
-        new File(sourceDir, "file.txt").createNewFile()
+        def destinationDir = spec.getDestinationDir()
+        new File(destinationDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
 
         when:
-        transactionBuilder.stashFiles(pattern, sourceDir)
-            .build()
-            .execute {
-                assert isEmptyDirectory(sourceDir)
-                assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
-                return DID_WORK
-            }
+        newCompileTransaction(pattern).execute {
+            assert isEmptyDirectory(destinationDir)
+            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
+            return DID_WORK
+        }
 
         then:
-        isEmptyDirectory(sourceDir)
+        isEmptyDirectory(destinationDir)
     }
 
     def "if something get stashed workResult passed to execution will mark 'did work'"() {
-        def sourceDir = createNewDirectory(file("sourceDir"))
-        new File(sourceDir, "file.txt").createNewFile()
+        def destinationDir = spec.getDestinationDir()
+        new File(destinationDir, "file.txt").createNewFile()
         def pattern = new PatternSet().include("**/*.txt")
 
         when:
-        def workResult = transactionBuilder.stashFiles(pattern, sourceDir)
-            .build()
-            .execute {
-                assert isEmptyDirectory(sourceDir)
-                assert !isEmptyDirectory(stashDir)
-                return it
-            }
+        def workResult = newCompileTransaction(pattern).execute {
+            assert isEmptyDirectory(destinationDir)
+            assert !isEmptyDirectory(stashDir)
+            return it
+        }
 
         then:
         workResult == WorkResults.didWork(true)
     }
 
     def "if nothing get stashed workResult passed to execution will mark 'did no work'"() {
-        def workResult = transactionBuilder
-            .build()
-            .execute {
-                return it
-            }
+        def workResult = newCompileTransaction().execute {
+            return it
+        }
 
         expect:
         workResult == WorkResults.didWork(false)
     }
 
     def "nothing is stashed and directory is not created if #description"() {
-        File directory = null
         if (directoryPath) {
-            directory = createNewDirectory(file(directoryPath))
+            File directory = createNewDirectory(file(directoryPath))
             createNewFile(new File(directory, "test-file.txt"))
+            spec.setDestinationDir(directory)
         }
 
         when:
-        def stashDirIsEmpty = transactionBuilder.stashFiles(pattern, directory)
-            .build()
-            .execute {
-                isEmptyDirectory(stashDir)
-            }
+        def stashDirIsEmpty = newCompileTransaction(pattern).execute {
+            isEmptyDirectory(stashDir)
+        }
 
         then:
         stashDirIsEmpty
@@ -151,82 +179,117 @@ class CompileTransactionTest extends Specification {
         where:
         pattern                              | directoryPath | description
         new PatternSet()                     | "sourceDir"   | "empty pattern"
-        new PatternSet().include("**/*.txt") | null          | "null directory"
+        new PatternSet().include("**/*.txt") | null          | "empty directory"
     }
 
-    def "on success all files are moved from stage dir to an output directory"() {
-        def outputDir = createNewDirectory(file("someDir"))
-        def stageDir = null
+    def "on success all files are moved from staging dir to an output directory"() {
+        def destinationDir = spec.getDestinationDir()
+        def annotationOutput = createNewDirectory(file("annotationOut"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
+        def headerOutput = createNewDirectory(file("headerOut"))
+        spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
+        def compileStagingDir = fileInTransactionDir("compile-output")
+        def annotationsStagingDir = fileInTransactionDir("annotation-output")
+        def headerStagingDir = fileInTransactionDir("header-output")
 
         when:
-        transactionBuilder.stageOutputDirectory(outputDir) { stageDir = it }
-            .build()
-            .execute {
-                new File(stageDir, "file.txt").createNewFile()
-                new File(stageDir, "subDir").mkdir()
-                new File(stageDir, "subDir/another-file.txt").createNewFile()
-                return DID_WORK
-            }
+        newCompileTransaction().execute {
+            new File(compileStagingDir, "file.txt").createNewFile()
+            new File(compileStagingDir, "subDir").mkdir()
+            new File(compileStagingDir, "subDir/another-file.txt").createNewFile()
+            new File(annotationsStagingDir, "annotation-file.txt").createNewFile()
+            new File(headerStagingDir, "header-file.txt").createNewFile()
+            return DID_WORK
+        }
 
         then:
-        outputDir.list() as Set ==~ ["file.txt", "subDir"]
-        new File(outputDir,"subDir").list() as Set ==~ ["another-file.txt"]
+        destinationDir.list() as Set ==~ ["file.txt", "subDir"]
+        new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt"]
+        annotationOutput.list() as Set ==~ ["annotation-file.txt"]
+        headerOutput.list() as Set ==~ ["header-file.txt"]
     }
 
-    def "on failure files are not moved to a output directory"() {
-        def outputDir = createNewDirectory(file("someDir"))
-        def stageDir = null
+    def "on failure files are not moved to an output directory"() {
+        def destinationDir = createNewDirectory(file("someDir"))
+        def stagingDir = fileInTransactionDir("compile-output")
+        spec.setDestinationDir(destinationDir)
 
         when:
-        transactionBuilder.stageOutputDirectory(outputDir) { stageDir = it }
-            .build()
-            .execute {
-                new File(stageDir, "file.txt").createNewFile()
-                new File(stageDir, "subDir").mkdir()
-                new File(stageDir, "subDir/another-file.txt").createNewFile()
+        newCompileTransaction().execute {
+                new File(stagingDir, "file.txt").createNewFile()
+                new File(stagingDir, "subDir").mkdir()
+                new File(stagingDir, "subDir/another-file.txt").createNewFile()
                 throw new RuntimeException("Exception")
             }
 
         then:
         thrown(RuntimeException)
-        isEmptyDirectory(outputDir)
+        isEmptyDirectory(destinationDir)
     }
 
-    def "unique folder is generated for stash directory and every output stage directory that exists"() {
+    def "unique directory is generated for stash directory and every staging directory that exists"() {
+        given:
+        spec.setDestinationDir(createNewFile(file("compile")))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(createNewFile(file("annotation")))
+        spec.getCompileOptions().setHeaderOutputDirectory(createNewFile(file("header")))
+
         when:
-        def directories = transactionBuilder.stageOutputDirectory(createNewDirectory(file("dir"))) {}
-            .stageOutputDirectory(createNewDirectory(file("dir"))) {}
-            .stageOutputDirectory(createNewDirectory(file("dir1"))) {}
-            .build()
-            .execute {
-                return transactionDir.list()
-            }
+        def directories = newCompileTransaction().execute {
+            return transactionDir.list()
+        }
 
         then:
-        directories as Set ==~ ["stash-dir", "staging-dir-0", "staging-dir-1", "staging-dir-2"]
+        directories as Set ==~ ["stash-dir", "compile-output", "annotation-output", "header-output"]
     }
 
-    def "folder is cleaned before execution and folder structure is kept for transactional directory"() {
-        createNewFile(fileInTransactionDir("staging-dir-0/dir1/dir1/file1.txt"))
-        createNewDirectory(fileInTransactionDir("staging-dir-0/dir1/dir2"))
-        createNewDirectory(fileInTransactionDir("staging-dir-0/dir3"))
-        createNewFile(fileInTransactionDir("staging-dir-0/dir2/file1.txt"))
-        createNewDirectory(fileInTransactionDir("staging-dir-1"))
-        createNewDirectory(file("other-dir/dir1/dir1"))
-        createNewDirectory(file("other-dir/dir2"))
+    def "#stagingDir directory is cleaned before the execution and folder structure is the same as in #originalDir"() {
+        createNewDirectory(file("$originalDir/dir1/dir1"))
+        createNewDirectory(file("$originalDir/dir2"))
         // This is a file, so folder ./dir1/dir2 in transactional dir should be deleted
-        createNewFile(file("other-dir/dir1/dir2"))
+        createNewFile(file("$originalDir/dir1/dir2"))
+        createNewFile(fileInTransactionDir("$stagingDir/dir1/dir1/file1.txt")) // only file should be deleted
+        createNewDirectory(fileInTransactionDir("$stagingDir/dir1/dir2")) // dir2 directory should be deleted
+        createNewDirectory(fileInTransactionDir("$stagingDir/dir3")) // dir3 directory should be deleted
+        createNewFile(fileInTransactionDir("$stagingDir/dir2/file1.txt")) // only file should be deleted
+        createNewDirectory(fileInTransactionDir("some-other-dir")) // some-other-dir directory should be deleted
+        spec.setDestinationDir(file("classes"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(file("annotation-generated-sources"))
+        spec.getCompileOptions().setHeaderOutputDirectory(file("header-sources"))
 
         expect:
-        transactionBuilder.stageOutputDirectory(file("other-dir")) {}
-            .build()
-            .execute {
-                assert transactionDir.list() as Set ==~ ["stash-dir", "staging-dir-0"]
-                assert fileInTransactionDir("staging-dir-0").list() as Set ==~ ["dir1", "dir2"]
-                assert fileInTransactionDir("staging-dir-0/dir1").list() as Set ==~ ["dir1"]
-                assert hasOnlyDirectories(fileInTransactionDir("staging-dir-0"))
-                return DID_WORK
-            }
+        newCompileTransaction().execute {
+            assert transactionDir.list() as Set ==~ ["stash-dir", "compile-output", "annotation-output", "header-output"]
+            assert fileInTransactionDir(stagingDir).list() as Set ==~ ["dir1", "dir2"]
+            assert fileInTransactionDir("$stagingDir/dir1").list() as Set ==~ ["dir1"]
+            assert hasOnlyDirectories(fileInTransactionDir(stagingDir))
+            return DID_WORK
+        }
+
+        where:
+        originalDir | stagingDir
+        "classes"                      | "compile-output"
+        "annotation-generated-sources" | "annotation-output"
+        "header-sources"               | "header-output"
+    }
+
+    def "modifies spec output directories before execution and restores them after execution"() {
+        spec.setDestinationDir(file("classes"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(file("annotation-generated-sources"))
+        spec.getCompileOptions().setHeaderOutputDirectory(file("header-sources"))
+
+        expect:
+        // Modify output folders before
+        newCompileTransaction().execute {
+            assert spec.getDestinationDir() == fileInTransactionDir("compile-output")
+            assert spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == fileInTransactionDir("annotation-output")
+            assert spec.getCompileOptions().getHeaderOutputDirectory() == fileInTransactionDir("header-output")
+            return DID_WORK
+        }
+
+        // And restore output folders after
+        spec.getDestinationDir() == file("classes")
+        spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == file("annotation-generated-sources")
+        spec.getCompileOptions().getHeaderOutputDirectory() == file("header-sources")
     }
 
     private File fileInTransactionDir(String path) {
@@ -250,7 +313,7 @@ class CompileTransactionTest extends Specification {
     }
 
     private boolean isEmptyDirectory(File file) {
-        file.listFiles().length == 0
+        file.listFiles() == null || file.listFiles().length == 0
     }
 
     private boolean hasOnlyDirectories(File file) {

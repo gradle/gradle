@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
@@ -39,10 +39,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.CLASS_OUTPUT;
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.NATIVE_HEADER_OUTPUT;
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.SOURCE_OUTPUT;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
     private final Deleter deleter;
@@ -79,10 +75,9 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     @Override
     public CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
-            File tempDir = newCompileTransactionTempDir(spec);
             spec.setSourceFiles(ImmutableSet.of());
             spec.setClasses(Collections.emptySet());
-            return CompileTransaction.builder(tempDir, fileOperations, deleter).build();
+            return new CompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
         }
 
         PatternSet classesToDelete = fileOperations.patternSet();
@@ -94,30 +89,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-
-        File tempDir = newCompileTransactionTempDir(spec);
-        File compileDestinationDir = spec.getDestinationDir();
-        File annProcessorGeneratedSourcesDir = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
-        File headerOutputDir = spec.getCompileOptions().getHeaderOutputDirectory();
-        return CompileTransaction.builder(tempDir, fileOperations, deleter)
-            // Move files that should be deleted to new folders that will be reverted in case of a failure
-            .stashFiles(classesToDelete, compileDestinationDir)
-            .stashFiles(classesToDelete, annProcessorGeneratedSourcesDir)
-            .stashFiles(classesToDelete, headerOutputDir)
-            .stashFiles(resourcesToDelete.get(CLASS_OUTPUT), compileDestinationDir)
-            // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so delete that instead.
-            .stashFiles(resourcesToDelete.get(SOURCE_OUTPUT), MoreObjects.firstNonNull(annProcessorGeneratedSourcesDir, compileDestinationDir))
-            // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
-            .stashFiles(resourcesToDelete.get(NATIVE_HEADER_OUTPUT), headerOutputDir)
-            // Set compile outputs to new folders and in case of a success move content to original folders
-            .stageOutputDirectory(compileDestinationDir, spec::setDestinationDir)
-            .stageOutputDirectory(annProcessorGeneratedSourcesDir, output -> spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(output))
-            .stageOutputDirectory(headerOutputDir, output -> spec.getCompileOptions().setHeaderOutputDirectory(output))
-            .build();
-    }
-
-    private File newCompileTransactionTempDir(JavaCompileSpec spec) {
-        return new File(spec.getTempDir(), "compileTransaction");
+        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
