@@ -27,6 +27,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,6 +38,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -176,26 +178,31 @@ public class CompileTransaction {
 
     private StashResult stashFilesBeforeExecution() {
         int uniqueId = 0;
-        List<File> sourceDirectories = new ArrayList<>();
+        File compileOutput = spec.getDestinationDir();
+        File annotationProcessorOutput = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
+        File headerOutput = spec.getCompileOptions().getHeaderOutputDirectory();
         List<StashedFile> stashedFiles = new ArrayList<>();
-        for (File sourceFile : collectFilesToStash()) {
+        for (File sourceFile : collectFilesToStash(compileOutput, annotationProcessorOutput, headerOutput)) {
             File stashedFile = new File(stashDirectory, sourceFile.getName() + ".uniqueId" + uniqueId++);
             moveFile(sourceFile, stashedFile);
             stashedFiles.add(new StashedFile(sourceFile, stashedFile));
         }
+        List<File> sourceDirectories = Stream.of(compileOutput, annotationProcessorOutput, headerOutput)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
         return new StashResult(sourceDirectories, stashedFiles);
     }
 
-    private Set<File> collectFilesToStash() {
+    private Set<File> collectFilesToStash(File compileOutput, @Nullable File annotationProcessorOutput, @Nullable File headerOutput) {
         Set<File> filesToStash = new HashSet<>();
-        filesToStash.addAll(collectFilesToStash(classesToDelete, spec.getDestinationDir()));
-        filesToStash.addAll(collectFilesToStash(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory()));
-        filesToStash.addAll(collectFilesToStash(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory()));
-        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(CLASS_OUTPUT), spec.getDestinationDir()));
+        filesToStash.addAll(collectFilesToStash(classesToDelete, compileOutput));
+        filesToStash.addAll(collectFilesToStash(classesToDelete, annotationProcessorOutput));
+        filesToStash.addAll(collectFilesToStash(classesToDelete, headerOutput));
+        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(CLASS_OUTPUT), compileOutput));
         // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so delete that instead.
-        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir())));
+        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(SOURCE_OUTPUT), MoreObjects.firstNonNull(annotationProcessorOutput, compileOutput)));
         // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
-        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory()));
+        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(NATIVE_HEADER_OUTPUT), headerOutput));
         return filesToStash;
     }
 
