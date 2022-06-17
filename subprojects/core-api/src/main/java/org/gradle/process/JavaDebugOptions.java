@@ -34,8 +34,9 @@ public interface JavaDebugOptions {
     @Input Property<Boolean> getEnabled();
 
     /**
-     * The address of the debugger server.
-     * If the value is not set, then only the port will be passed in the debugger options.
+     * Host address to listen on or connect to when debug is enabled.
+     * In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
+     * By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
      *
      * @since 7.6
      */
