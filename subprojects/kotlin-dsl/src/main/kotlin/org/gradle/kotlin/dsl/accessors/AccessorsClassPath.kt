@@ -94,13 +94,12 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
 
 
     private
-    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
-        if (enabledJitAccessors(project)) {
-            require(classLoaderScopeOf(project).isLocked) {
-                "project.classLoaderScope must be locked before querying the project schema"
-            }
-            projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
-        } else null
+    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? {
+        require(classLoaderScopeOf(project).isLocked) {
+            "project.classLoaderScope must be locked before querying the project schema"
+        }
+        return projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
+    }
 }
 
 
@@ -572,13 +571,6 @@ fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
 }
 
 
-private
-fun enabledJitAccessors(project: Project) =
-    project.findProperty("org.gradle.kotlin.dsl.accessors")?.let {
-        it != "false" && it != "off"
-    } ?: true
-
-
 internal
 fun IO.writeAccessorsTo(
     outputFile: File,
@@ -623,6 +615,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 

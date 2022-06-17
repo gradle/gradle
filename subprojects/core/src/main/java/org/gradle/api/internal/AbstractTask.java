@@ -77,12 +77,10 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -99,7 +97,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.lambdas.SerializableLambdas.factory;
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
 /**
@@ -121,6 +118,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final DefaultTaskDependency dependencies;
 
+    /**
+     * "lifecycle dependencies" are dependencies declared via an explicit {@link Task#dependsOn(Object...)}
+     */
+    private final DefaultTaskDependency lifecycleDependencies;
+
     private final DefaultTaskDependency mustRunAfter;
 
     private final DefaultTaskDependency finalizedBy;
@@ -138,6 +140,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
     private String reasonNotToTrackState;
+
+    private String reasonIncompatibleWithConfigurationCache;
 
     private final ServiceRegistry services;
 
@@ -180,6 +184,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.mustRunAfter = new DefaultTaskDependency(tasks);
         this.finalizedBy = new DefaultTaskDependency(tasks);
         this.shouldRunAfter = new DefaultTaskDependency(tasks);
+        this.lifecycleDependencies = new DefaultTaskDependency(tasks);
+
         this.services = project.getServices();
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
@@ -190,7 +196,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
 
-        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs));
+        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs, lifecycleDependencies));
 
         this.timeout = project.getObjects().property(Duration.class);
     }
@@ -290,9 +296,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    public TaskDependencyInternal getLifecycleDependencies() {
+        return lifecycleDependencies;
+    }
+
+    @Internal
+    @Override
     public Set<Object> getDependsOn() {
         notifyTaskDependenciesAccess("Task.dependsOn");
-        return dependencies.getMutableValues();
+        return lifecycleDependencies.getMutableValues();
     }
 
     @Override
@@ -300,7 +312,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setDependsOn(Iterable)", new Runnable() {
             @Override
             public void run() {
-                dependencies.setValues(dependsOn);
+                lifecycleDependencies.setValues(dependsOn);
             }
         });
     }
@@ -394,6 +406,23 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return Optional.ofNullable(reasonNotToTrackState);
     }
 
+    @Override
+    public void notCompatibleWithConfigurationCache(String reason) {
+        taskMutator.mutate("Task.notCompatibleWithConfigurationCache(String)", () -> {
+            reasonIncompatibleWithConfigurationCache = reason;
+        });
+    }
+
+    @Override
+    public boolean isCompatibleWithConfigurationCache() {
+        return reasonIncompatibleWithConfigurationCache == null;
+    }
+
+    @Override
+    public Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache() {
+        return Optional.ofNullable(reasonIncompatibleWithConfigurationCache);
+    }
+
     @Internal
     @Override
     public boolean getDidWork() {
@@ -452,7 +481,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.dependsOn(Object...)", new Runnable() {
             @Override
             public void run() {
-                dependencies.add(paths);
+                lifecycleDependencies.add(paths);
             }
         });
         return this;
@@ -660,17 +689,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public File getTemporaryDir() {
-        File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
-        GFileUtils.mkdirs(dir);
-        return dir;
+        return getServices().get(TemporaryFileProvider.class).newTemporaryDirectory(getName());
     }
 
     // note: this method is on TaskInternal
     @Override
     public Factory<File> getTemporaryDirFactory() {
-        // Cached during serialization so it can be isolated from this task
-        final Cached<File> temporaryDir = Cached.of(this::getTemporaryDir);
-        return factory(temporaryDir::get);
+        return getServices().get(TemporaryFileProvider.class).temporaryDirectoryFactory(getName());
     }
 
     private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
@@ -1008,6 +1033,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (requiredServices == null) {
                 requiredServices = new HashSet<>();
             }
+            // TODO:configuration-cache assert build service is from the same build as the task
             requiredServices.add(service);
         });
     }
@@ -1029,7 +1055,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         for (Provider<? extends BuildService<?>> service : requiredServices) {
             SharedResource resource = serviceRegistry.forService(service);
             if (resource.getMaxUsages() > 0) {
-                locks.add(resource.getResourceLock(1));
+                locks.add(resource.getResourceLock());
             }
         }
         return locks.build();

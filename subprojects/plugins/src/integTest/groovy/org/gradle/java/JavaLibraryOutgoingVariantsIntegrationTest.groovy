@@ -18,7 +18,6 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class JavaLibraryOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -146,7 +145,6 @@ project(':consumer') {
         outputContains("compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}")
     }
 
-    @Unroll
     def "provides runtime variant - format: #format"() {
         buildFile << """
             project(':consumer') {

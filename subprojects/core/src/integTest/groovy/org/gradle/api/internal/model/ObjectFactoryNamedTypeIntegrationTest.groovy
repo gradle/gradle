@@ -120,7 +120,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task a(type: ThingTask) {
-                thing = objects.named(Thing, providers.systemProperty('name').forUseAtConfigurationTime().getOrElse('a'))
+                thing = objects.named(Thing, providers.systemProperty('name').getOrElse('a'))
                 outputFile = layout.projectDirectory.file("out.txt")
             }
 """

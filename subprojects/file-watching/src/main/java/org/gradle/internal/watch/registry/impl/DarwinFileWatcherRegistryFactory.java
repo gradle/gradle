@@ -24,18 +24,18 @@ import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions.OsxFileWat
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
 
-    public DarwinFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(OsxFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
+    public DarwinFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(OsxFileEventFunctions.class), watchFilter);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> root);
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> Collections.emptyList());
     }
 
     /**

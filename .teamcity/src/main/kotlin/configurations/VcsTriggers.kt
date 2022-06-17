@@ -22,9 +22,8 @@ val triggerExcludes = """
         -:.idea
         -:.github
         -:.teamcity
-        -:.teamcityTest
         -:subprojects/docs/src/docs/release
-    """.trimIndent()
+""".trimIndent()
 
 fun VersionedSettingsBranch.branchFilter() = """
     +:$branchName
@@ -32,6 +31,5 @@ fun VersionedSettingsBranch.branchFilter() = """
 
 fun branchesFilterExcluding(vararg excludedBranch: String) = """
 +:*
--:<default>
 ${excludedBranch.joinToString("\n") { "-:$it" }}
 """

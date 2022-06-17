@@ -48,14 +48,15 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     private final VariantMetadataRules variantMetadataRules;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
 
-    private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
     // Configurations are built on-demand, but only once.
     private final Map<String, ConfigurationMetadata> configurations = Maps.newHashMap();
 
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
+
     protected AbstractLazyModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         super(metadata);
-        configurationDefinitions = metadata.getConfigurationDefinitions();
-        variantMetadataRules = metadata.getVariantMetadataRules();
+        this.configurationDefinitions = metadata.getConfigurationDefinitions();
+        this.variantMetadataRules = metadata.getVariantMetadataRules();
     }
 
     /**
@@ -64,7 +65,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy variantDerivationStrategy) {
         super(metadata, sources, variantDerivationStrategy);
         this.configurationDefinitions = metadata.configurationDefinitions;
-        variantMetadataRules = metadata.variantMetadataRules;
+        this.variantMetadataRules = metadata.variantMetadataRules;
     }
 
     /**
@@ -221,7 +222,6 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(),
-            configurationDefinitions);
+        return Objects.hashCode(super.hashCode(), configurationDefinitions);
     }
 }

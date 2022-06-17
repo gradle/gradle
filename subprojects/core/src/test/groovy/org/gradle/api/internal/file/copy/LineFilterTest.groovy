@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.junit.Test
 import org.gradle.internal.SystemProperties
+import org.junit.Test
 
-import static org.hamcrest.CoreMatchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.MatcherAssert.assertThat
 
 class LineFilterTest {
     @Test void testEmptyInput() {
@@ -37,7 +37,7 @@ class LineFilterTest {
 
         assertThat(filter.text, equalTo(lines("1 - ", "2 - ", "")))
     }
-    
+
     @Test void testSingleLine() {
         def input = new StringReader("one")
         def lineCount = 1
@@ -52,7 +52,7 @@ class LineFilterTest {
 
         assertThat(filter.text, equalTo(""))
     }
-    
+
     @Test void testCRLFWithTrailingEOL() {
         def input = new StringReader("one\r\ntwo\r\nthree\r\n")
         def lineCount = 1
@@ -68,7 +68,7 @@ class LineFilterTest {
 
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
-    
+
     @Test void testCRWithNoTrailingEOL() {
         def input = new StringReader("one\rtwo\rthree")
         def lineCount = 1

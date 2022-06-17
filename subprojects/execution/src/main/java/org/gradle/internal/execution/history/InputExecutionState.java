@@ -22,6 +22,9 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+/**
+ * Captures the state of the inputs of a {@link org.gradle.internal.execution.UnitOfWork}.
+ */
 public interface InputExecutionState extends ExecutionState {
     /**
      * The main implementation snapshots.

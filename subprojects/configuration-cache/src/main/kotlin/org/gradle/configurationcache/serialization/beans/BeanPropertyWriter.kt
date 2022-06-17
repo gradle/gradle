@@ -19,14 +19,10 @@ package org.gradle.configurationcache.serialization.beans
 import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
-import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.propertyDescriptionFor
 import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.withDebugFrame
 import java.io.IOException
@@ -103,22 +99,17 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
         } catch (passThrough: ConfigurationCacheProblemsException) {
             throw passThrough
         } catch (error: Exception) {
-            throw ConfigurationCacheError(
-                propertyErrorMessage(value),
-                error.maybeUnwrapInvocationTargetException()
-            )
+            onError(error) {
+                when {
+                    value != null -> {
+                        text("error writing value of type ")
+                        reference(GeneratedSubclasses.unpackType(value))
+                    }
+                    else -> {
+                        text("error writing null value")
+                    }
+                }
+            }
         }
     }
 }
-
-
-private
-fun IsolateContext.propertyErrorMessage(value: Any?) =
-    "${propertyDescriptionFor(trace)}: error writing value of type '${
-    value?.let { unpackedTypeNameOf(it) } ?: "null"
-    }'"
-
-
-private
-fun unpackedTypeNameOf(value: Any) =
-    GeneratedSubclasses.unpackType(value).name

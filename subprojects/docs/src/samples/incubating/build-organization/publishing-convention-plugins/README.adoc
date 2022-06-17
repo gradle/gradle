@@ -5,7 +5,7 @@ for multi-repo setups.
 
 NOTE: This sample shows how to adopt an link:sample_publishing_convention_plugins.html[existing sample] for use with Test Suites.
 
-IMPORTANT: Test Suites are an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
+IMPORTANT: Test Suites are an link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating] feature, and the details described here may change.
 
 == Use case
 

@@ -36,7 +36,7 @@ import java.util.Map;
  *
  * File names for root directories are ignored.
  */
-public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrategy {
+public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFingerprintingStrategy {
     public static final NameOnlyFingerprintingStrategy DEFAULT = new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
     public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
@@ -49,11 +49,6 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
 
     private NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
         this(directorySensitivity, FileSystemLocationSnapshotHasher.DEFAULT);
-    }
-
-    @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
-        return snapshot.getName();
     }
 
     @Override

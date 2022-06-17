@@ -18,7 +18,6 @@ package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
@@ -35,9 +34,6 @@ import java.time.Duration;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
-import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
-import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -48,13 +44,10 @@ import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
+import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiAccessTest {
-
-    private static final DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
-        .and(modifier(PUBLIC))
-        .as("public API methods");
 
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.file.archive
 
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -32,7 +32,7 @@ class AbstractArchiveFileTreeTest extends Specification {
 
     def "visits structure when backing file is known"() {
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def backingFile = tmpDir.createFile("thing.bin")
 
         def fileTree = new TestArchiveFileTree(backingFile: backingFile)
@@ -47,7 +47,7 @@ class AbstractArchiveFileTreeTest extends Specification {
 
     def "visits structure when backing file is not known"() {
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
 
         def fileTree = new TestArchiveFileTree()
 

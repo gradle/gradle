@@ -3,17 +3,22 @@ plugins {
     id("gradlebuild.binary-compatibility")
 }
 
+description = """Verifies that Gradle code complies with architectural rules.
+    | For example that nullable annotations are used consistently or that or that public api classes do not extend internal types.
+""".trimMargin()
+
 dependencies {
     currentClasspath(project(":distributions-full"))
     testImplementation(project(":base-services"))
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
+    testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.16.1")
+    testImplementation(libs.assertj)
 
     testRuntimeOnly(project(":distributions-full"))
 }

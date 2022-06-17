@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.internal.build.BuildToolingModelAction
-import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeModelAction
+import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
@@ -42,7 +42,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
     def buildController = Mock(BuildTreeLifecycleController) {
         getGradle() >> this.gradle
     }
-    def toolingModelController = Stub(BuildToolingModelController)
+    def modelController = Stub(BuildTreeModelController)
     def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action, false /* isRunTasks */, clientSubscriptions)
     def runner = new ClientProvidedBuildActionRunner(Stub(BuildControllerFactory), payloadSerializer)
 
@@ -62,7 +62,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
         and:
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * buildController.fromBuildModel(false, _) >> { Boolean b, BuildToolingModelAction modelAction -> modelAction.fromBuildModel(toolingModelController) }
+        1 * buildController.fromBuildModel(false, _) >> { Boolean b, BuildTreeModelAction modelAction -> modelAction.fromBuildModel(modelController) }
         1 * internalAction.execute(_) >> model
         1 * payloadSerializer.serialize(model) >> serialized
     }
@@ -83,7 +83,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
         and:
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * buildController.fromBuildModel(false, _) >> { Boolean b, BuildToolingModelAction modelAction -> modelAction.fromBuildModel(toolingModelController) }
+        1 * buildController.fromBuildModel(false, _) >> { Boolean b, BuildTreeModelAction modelAction -> modelAction.fromBuildModel(modelController) }
         1 * internalAction.execute(_) >> { throw failure }
     }
 
@@ -134,7 +134,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
         and:
         1 * payloadSerializer.deserialize(action) >> internalAction
-        1 * buildController.fromBuildModel(false, _) >> { Boolean b, BuildToolingModelAction modelAction -> modelAction.fromBuildModel(toolingModelController) }
+        1 * buildController.fromBuildModel(false, _) >> { Boolean b, BuildTreeModelAction modelAction -> modelAction.fromBuildModel(modelController) }
         1 * internalAction.execute(_) >> model
         1 * payloadSerializer.serialize(model) >> serializedResult
     }

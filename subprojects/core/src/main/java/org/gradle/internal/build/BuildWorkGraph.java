@@ -16,37 +16,29 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
-public interface BuildWorkGraph {
+public interface BuildWorkGraph extends Stoppable {
     /**
-     * Locates a future task node in this build's work graph, for use from some other build's work graph.
-     *
-     * <p>This method does not schedule the task for execution, use {@link #schedule(Collection)} to schedule the task.
+     * Schedules the given tasks and all of their dependencies in this work graph.
      */
-    ExportedTaskNode locateTask(TaskInternal task);
-
-    /**
-     * Locates a future task node in this build's work graph, for use from some other build's work graph.
-     *
-     * <p>This method does not schedule the task for execution, use {@link #schedule(Collection)} to schedule the task.
-     */
-    ExportedTaskNode locateTask(String taskPath);
+    boolean schedule(Collection<ExportedTaskNode> taskNodes);
 
     /**
-     * Schedules the given tasks and all of their dependencies in this build's work graph.
+     * Adds tasks and other nodes to this work graph.
      */
-    void schedule(Collection<ExportedTaskNode> taskNodes);
+    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
      */
-    void prepareForExecution(boolean alwaysPopulateWorkGraph);
+    void finalizeGraph();
 
     /**
-     * Runs all currently scheduled tasks.
+     * Runs all work in this graph.
      */
-    ExecutionResult<Void> execute();
+    ExecutionResult<Void> runWork();
 }

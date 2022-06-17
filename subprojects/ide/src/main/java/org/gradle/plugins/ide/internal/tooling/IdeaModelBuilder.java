@@ -87,7 +87,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
+                target.ensureProjectsConfigured();
+                GradleInternal build = target.getMutableModel();
                 if (!alreadyProcessed.contains(build)) {
                     alreadyProcessed.add(build);
                     applyIdeaPlugin(build.getRootProject(), alreadyProcessed);
@@ -158,9 +159,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
-            .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs(), ideaModule.getGeneratedSourceDirs()))
+            .setTestDirectories(srcDirs(ideaModule.getTestSources().getFiles(), ideaModule.getGeneratedSourceDirs()))
             .setResourceDirectories(srcDirs(ideaModule.getResourceDirs(), ideaModule.getGeneratedSourceDirs()))
-            .setTestResourceDirectories(srcDirs(ideaModule.getTestResourceDirs(), ideaModule.getGeneratedSourceDirs()))
+            .setTestResourceDirectories(srcDirs(ideaModule.getTestResources().getFiles(), ideaModule.getGeneratedSourceDirs()))
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
         Project project = ideaModule.getProject();

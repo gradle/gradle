@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -63,7 +62,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5(runtime)]""")
     }
 
-    @Unroll
     def "can detect conflict with capability in different versions and upgrade to latest version (#rule)"() {
         given:
         repository {
@@ -310,7 +308,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
     }
 
-    @Unroll
     def "can select a particular module participating do a capability conflict independently of the version (select #expected)"() {
         given:
         repository {

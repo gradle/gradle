@@ -49,12 +49,14 @@ public class DependencyVerificationReportWriter {
     private AbstractTextDependencyVerificationReportRenderer summaryRenderer;
     private HtmlDependencyVerificationReportRenderer htmlRenderer;
 
-    public DependencyVerificationReportWriter(Path gradleUserHome,
-                                              DocumentationRegistry documentationRegistry,
-                                              File verificationFile,
-                                              List<String> writeFlags,
-                                              File htmlReportOutputDirectory,
-                                              Factory<GradleProperties> gradlePropertiesProvider) {
+    public DependencyVerificationReportWriter(
+        Path gradleUserHome,
+        DocumentationRegistry documentationRegistry,
+        File verificationFile,
+        List<String> writeFlags,
+        File htmlReportOutputDirectory,
+        Factory<GradleProperties> gradlePropertiesProvider
+    ) {
         this.gradleUserHome = gradleUserHome;
         this.rendererInitializer = () -> {
             this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, gradlePropertiesProvider.create());
@@ -64,7 +66,7 @@ public class DependencyVerificationReportWriter {
 
     private static boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
         try {
-            String param = gradleProperties.find(VERBOSE_CONSOLE);
+            String param = (String) gradleProperties.find(VERBOSE_CONSOLE);
             return VERBOSE_VALUE.equals(param);
         } catch (IllegalStateException e) {
             // Gradle properties are not loaded yet, which can happen in init scripts
@@ -82,9 +84,11 @@ public class DependencyVerificationReportWriter {
         return new SimpleTextDependencyVerificationReportRenderer(gradleUserHome, documentationRegistry);
     }
 
-    public VerificationReport generateReport(String displayName,
-                                             Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
-                                             boolean useKeyServers) {
+    public VerificationReport generateReport(
+        String displayName,
+        Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
+        boolean useKeyServers
+    ) {
         assertInitialized();
         // We need at least one fatal failure: if it's only "warnings" we don't care
         // but of there's a fatal failure AND a warning we want to show both
@@ -101,10 +105,12 @@ public class DependencyVerificationReportWriter {
         }
     }
 
-    public void doRender(String displayName,
-                         Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
-                         DependencyVerificationReportRenderer renderer,
-                         boolean useKeyServers) {
+    public void doRender(
+        String displayName,
+        Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
+        DependencyVerificationReportRenderer renderer,
+        boolean useKeyServers
+    ) {
         ReportState reportState = new ReportState();
         if (!useKeyServers) {
             reportState.keyServersAreDisabled();

@@ -23,6 +23,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
@@ -53,11 +54,17 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private final StyledTextOutputFactory textOutputFactory;
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
+    private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
+        this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
+    }
+
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
+        this(textOutputFactory, loggingConfiguration, clientMetaData, null);
     }
 
     public void buildFinished(BuildResult result) {
@@ -72,15 +79,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
     @Override
     public void execute(Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
-            List<? extends Throwable> flattenedFailures = ((MultipleBuildFailures) failure).getCauses();
-            renderMultipleBuildExceptions(failure.getMessage(), flattenedFailures);
-            return;
+            renderMultipleBuildExceptions((MultipleBuildFailures) failure);
+        } else {
+            renderSingleBuildException(failure);
         }
-
-        renderSingleBuildException(failure);
     }
 
-    private void renderMultipleBuildExceptions(String message, List<? extends Throwable> flattenedFailures) {
+    private void renderMultipleBuildExceptions(MultipleBuildFailures failure) {
+        String message = failure.getMessage();
+        List<? extends Throwable> flattenedFailures = failure.getCauses();
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
         output.withStyle(Failure).format("FAILURE: %s", message);
@@ -215,7 +222,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             });
         }
 
-        if (!context.missingBuild) {
+        if (!context.missingBuild && !isGradleEnterprisePluginApplied()) {
             addBuildScanMessage(context);
         }
     }
@@ -226,6 +233,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
             output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
             output.text(" to get full insights.");
         });
+    }
+
+    private boolean isGradleEnterprisePluginApplied() {
+        return gradleEnterprisePluginManager != null && gradleEnterprisePluginManager.isPresent();
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {

@@ -17,14 +17,13 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ImplementationSnapshotTest extends Specification {
 
-    @Unroll
     def "class name #className is lambda: #lambda"() {
-        HashCode classloaderHash = HashCode.fromInt(1234)
+        HashCode classloaderHash = TestHashCodes.hashCodeFrom(1234)
 
         expect:
         ImplementationSnapshot.of(className, classloaderHash).unknown == lambda
@@ -39,7 +38,7 @@ class ImplementationSnapshotTest extends Specification {
     }
 
     def "implementation snapshots are not equal when unknown"() {
-        HashCode classloaderHash = HashCode.fromInt(1234)
+        HashCode classloaderHash = TestHashCodes.hashCodeFrom(1234)
         String lambdaClassName = 'SomeClass$$Lambda$3/23501234324'
         def className = "SomeClass"
 

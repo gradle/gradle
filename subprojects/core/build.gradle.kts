@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Public and internal 'core' Gradle APIs with implementation"
+
 configurations {
     register("reports")
 }
@@ -17,6 +19,7 @@ tasks.classpathManifest {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -40,6 +43,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -55,6 +59,7 @@ dependencies {
     implementation(libs.groovyTest)
     implementation(libs.groovyXml)
     implementation(libs.ant)
+    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
@@ -111,6 +116,9 @@ dependencies {
     }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
+    }
+    testFixturesApi(testFixtures(project(":hashing"))) {
+        because("test fixtures expose test hash codes")
     }
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))

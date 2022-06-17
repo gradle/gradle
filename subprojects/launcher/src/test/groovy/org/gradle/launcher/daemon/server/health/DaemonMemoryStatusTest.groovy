@@ -20,7 +20,6 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 
 class DaemonMemoryStatusTest extends Specification {
@@ -32,7 +31,6 @@ class DaemonMemoryStatusTest extends Specification {
         return new DaemonMemoryStatus(stats, heapUsageThreshold, heapRateThreshold, nonHeapUsageThreshold, thrashingThreshold)
     }
 
-    @Unroll
     def "knows when heap space is exhausted (#rateThreshold <= #rate, #usageThreshold <= #usage)"(double rateThreshold, int usageThreshold, double rate, int usage, boolean unhealthy) {
         when:
         def status = create(usageThreshold, rateThreshold, 100, 100)
@@ -58,7 +56,6 @@ class DaemonMemoryStatusTest extends Specification {
         1.0           | 75             | 1.0  | 100   | true
     }
 
-    @Unroll
     def "knows when metaspace is exhausted (#usageThreshold <= #usage, #usageThreshold <= #usage)"() {
         when:
         def status = create(100, 100, usageThreshold, 100)
@@ -80,7 +77,6 @@ class DaemonMemoryStatusTest extends Specification {
         100            | 100   | true
     }
 
-    @Unroll
     def "knows when gc is thrashing (#rateThreshold <= #rate) #usageThreshold #usage #thrashing"(double rateThreshold, int usageThreshold, double rate, int usage, boolean thrashing) {
         when:
         def status = create(usageThreshold, 100, 100, rateThreshold)

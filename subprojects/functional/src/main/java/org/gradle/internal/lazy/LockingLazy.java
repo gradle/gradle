@@ -31,17 +31,20 @@ package org.gradle.internal.lazy;
  * limitations under the License.
  */
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * This is basically the same thing as Guava's NonSerializableMemoizingSupplier
+ */
 @ThreadSafe
 class LockingLazy<T> implements Lazy<T> {
-    private final Lock lock = new ReentrantLock();
-    private Supplier<T> supplier;
+    private volatile Supplier<T> supplier;
+    private volatile boolean initialized;
+    // "value" does not need to be volatile; visibility piggy-backs
+    // on volatile read of "initialized".
+    @Nullable
     private T value;
 
     public LockingLazy(Supplier<T> supplier) {
@@ -50,35 +53,19 @@ class LockingLazy<T> implements Lazy<T> {
 
     @Override
     public T get() {
-        return ensureValue();
-    }
-
-    private T ensureValue() {
-        if (supplier != null) {
-            lock.lock();
-            try {
-                maybeInitialize();
-            } finally {
-                lock.unlock();
+        // A 2-field variant of Double Checked Locking.
+        if (!initialized) {
+            synchronized (this) {
+                if (!initialized) {
+                    T t = supplier.get();
+                    value = t;
+                    initialized = true;
+                    // Release the delegate to GC.
+                    supplier = null;
+                    return t;
+                }
             }
         }
         return value;
-    }
-
-    private void maybeInitialize() {
-        if (supplier != null) {
-            value = supplier.get();
-            supplier = null;
-        }
-    }
-
-    @Override
-    public void use(Consumer<? super T> consumer) {
-
-    }
-
-    @Override
-    public <V> V apply(Function<? super T, V> function) {
-        return function.apply(ensureValue());
     }
 }

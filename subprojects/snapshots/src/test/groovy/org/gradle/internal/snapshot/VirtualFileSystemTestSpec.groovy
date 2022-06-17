@@ -27,7 +27,7 @@ class VirtualFileSystemTestSpec {
 
     VirtualFileSystemTestSpec(List<String> childPaths, String relativeSearchedPath, @Nullable String selectedChildPath) {
         this.childPaths = childPaths
-        this.searchedPath = VfsRelativePath.of("${ABSOLUTE_PATH_PREFIX}/${relativeSearchedPath}").suffixStartingFrom(ABSOLUTE_PATH_PREFIX.length())
+        this.searchedPath = VfsRelativePath.of("${ABSOLUTE_PATH_PREFIX}/${relativeSearchedPath}").pathFromChild(VfsRelativePath.of(ABSOLUTE_PATH_PREFIX).asString)
         this.selectedChildPath = selectedChildPath
     }
 

@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "project1", "1.0"))
@@ -36,7 +35,6 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
         projectsCorrectlyPublished()
     }
 
-    @Unroll
     def "project dependencies reference publication identity of dependent project (version mapping: #mapping)"() {
         def project3 = javaLibrary(mavenRepo.module("changed.group", "changed-artifact-id", "changed"))
 
@@ -283,7 +281,6 @@ project(":project2") {
         }
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:

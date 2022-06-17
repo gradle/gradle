@@ -122,6 +122,9 @@
             <tr>
                 <td>setProperty</td>
             </tr>
+            <tr>
+                <td>usesService</td>
+            </tr>
         </table>
     </section>
 </section>

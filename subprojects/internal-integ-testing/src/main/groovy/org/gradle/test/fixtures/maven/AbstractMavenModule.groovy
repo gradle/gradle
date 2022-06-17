@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
+import groovy.xml.XmlParser
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
@@ -728,9 +729,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
         variants.each {
             it.artifacts.findAll { it.name }.each {
-                def variantArtifact = moduleDir.file(it.name)
+                def variantArtifact = moduleDir.file(it.publishUrl)
                 publish(variantArtifact) { Writer writer ->
-                    writer << "${it.name} : Variant artifact $it.name"
+                    writer << "${it.name} : Variant artifact $it.publishUrl"
                 }
             }
         }
@@ -759,6 +760,19 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         gradleMetadataRedirect = true
         super.withModuleMetadata()
         this
+    }
+
+    @Override
+    MavenModule asGradlePlatform() {
+        variants.clear()
+        variant('api',  [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
+        variant('runtime', [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
+        hasType('pom')
+        withModuleMetadata()
     }
 
     @Override

@@ -41,6 +41,9 @@ public class ApiMemberWriter {
             classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(),
             classMember.getSuperName(), classMember.getInterfaces());
         writeClassAnnotations(classMember.getAnnotations());
+        for (String permittedSubclass : classMember.getPermittedSubclasses()) {
+            apiMemberAdapter.visitPermittedSubclass(permittedSubclass);
+        }
         for (MethodMember method : methods) {
             writeMethod(method);
         }

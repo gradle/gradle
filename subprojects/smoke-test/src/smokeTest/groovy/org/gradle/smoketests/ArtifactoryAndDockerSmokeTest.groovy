@@ -24,7 +24,7 @@ import static org.gradle.util.TestPrecondition.HAS_DOCKER
 @Requires(HAS_DOCKER)
 class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "both docker and artifactory plugins are incompatible")
     def 'artifactory with docker and plugin upload'() {
         when:
         buildFile << """

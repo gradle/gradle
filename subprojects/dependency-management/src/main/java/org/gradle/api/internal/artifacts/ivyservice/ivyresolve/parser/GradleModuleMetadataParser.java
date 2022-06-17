@@ -439,7 +439,7 @@ public class GradleModuleMetadataParser {
             String group = null;
             String module = null;
             String reason = null;
-            VersionConstraint version = null;
+            VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
 
             reader.beginObject();

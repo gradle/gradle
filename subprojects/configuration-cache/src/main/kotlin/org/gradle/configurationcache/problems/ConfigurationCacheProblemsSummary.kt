@@ -18,7 +18,9 @@ package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Ordering
 import io.usethesource.capsule.Set
+import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 import java.util.Comparator.comparing
@@ -38,6 +40,18 @@ const val maxCauses = 5
 
 
 internal
+enum class ProblemSeverity {
+    Warn,
+    Failure,
+
+    /**
+     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
+     */
+    Suppressed
+}
+
+
+internal
 class ConfigurationCacheProblemsSummary {
 
     private
@@ -46,16 +60,29 @@ class ConfigurationCacheProblemsSummary {
     fun get(): Summary =
         summary.get()
 
-    fun onProblem(problem: PropertyProblem): Boolean =
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean =
         summary
-            .updateAndGet { it.insert(problem) }
+            .updateAndGet { it.insert(problem, severity) }
             .overflowed.not()
 }
 
 
 internal
 class Summary private constructor(
+    /**
+     * Total of all problems, regardless of severity.
+     */
     val problemCount: Int,
+
+    /**
+     * Total number of problems that are failures.
+     */
+    val failureCount: Int,
+
+    /**
+     * Total number of [suppressed][ProblemSeverity.Suppressed] problems.
+     */
+    val suppressedCount: Int,
 
     private
     val uniqueProblems: Set.Immutable<UniquePropertyProblem>,
@@ -66,18 +93,27 @@ class Summary private constructor(
 ) {
     companion object {
         val empty = Summary(
-            0,
-            Set.Immutable.of(),
-            emptyList(),
-            false
+            problemCount = 0,
+            failureCount = 0,
+            suppressedCount = 0,
+            uniqueProblems = Set.Immutable.of(),
+            causes = emptyList(),
+            overflowed = false
         )
     }
 
-    fun insert(problem: PropertyProblem): Summary {
+    val nonSuppressedProblemCount: Int
+        get() = problemCount - suppressedCount
+
+    fun insert(problem: PropertyProblem, severity: ProblemSeverity): Summary {
         val newProblemCount = problemCount + 1
+        val newFailureCount = if (severity == ProblemSeverity.Failure) failureCount + 1 else failureCount
+        val newSuppressedCount = if (severity == ProblemSeverity.Suppressed) suppressedCount + 1 else suppressedCount
         if (overflowed || newProblemCount > maxReportedProblems) {
             return Summary(
                 newProblemCount,
+                newFailureCount,
+                newSuppressedCount,
                 uniqueProblems,
                 causes,
                 true
@@ -91,6 +127,8 @@ class Summary private constructor(
             ?: causes
         return Summary(
             newProblemCount,
+            newFailureCount,
+            newSuppressedCount,
             newUniqueProblems,
             newCauses,
             false
@@ -106,7 +144,7 @@ class Summary private constructor(
             appendLine()
             Ordering.from(consoleComparator()).leastOf(uniqueProblems, maxConsoleProblems).forEach { problem ->
                 append("- ")
-                append(problem.userCodeLocation.capitalize())
+                append(problem.userCodeLocation.capitalized())
                 append(": ")
                 appendLine(problem.message)
                 problem.documentationSection?.let<String, Unit> {

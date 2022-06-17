@@ -16,25 +16,24 @@
 
 package org.gradle.internal.work;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.api.Describable;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
-import org.gradle.internal.resources.AbstractTrackedResourceLock;
+import org.gradle.internal.resources.DefaultLease;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.LeaseHolder;
 import org.gradle.internal.resources.ProjectLock;
+import org.gradle.internal.resources.ProjectLockRegistry;
 import org.gradle.internal.resources.ProjectLockStatistics;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockContainer;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.resources.TaskExecutionLockRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.Path;
@@ -42,7 +41,9 @@ import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,17 +51,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 
     private final int maxWorkerCount;
-    private int counter = 1;
-    private final Root root = new Root();
-
     private final ResourceLockCoordinationService coordinationService;
+    private final TaskExecutionLockRegistry taskLockRegistry;
     private final ProjectLockRegistry projectLockRegistry;
     private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
     private final ProjectLockStatisticsImpl projectLockStatistics = new ProjectLockStatisticsImpl();
@@ -69,6 +67,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         this.maxWorkerCount = parallelismConfiguration.getMaxWorkerCount();
         this.coordinationService = coordinationService;
         this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelismConfiguration.isParallelProjectExecutionEnabled());
+        this.taskLockRegistry = new TaskExecutionLockRegistry(coordinationService, projectLockRegistry);
         this.workerLeaseLockRegistry = new WorkerLeaseLockRegistry(coordinationService);
         LOGGER.info("Using {} worker leases.", maxWorkerCount);
     }
@@ -80,49 +79,70 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
 
     @Override
     public WorkerLease getCurrentWorkerLease() {
-        Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        List<? extends WorkerLease> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         if (operations.isEmpty()) {
             throw new NoAvailableWorkerLeaseException("No worker lease associated with the current thread");
         }
-        return (DefaultWorkerLease) operations.toArray()[operations.size() - 1];
-    }
-
-    private synchronized DefaultWorkerLease getWorkerLease(LeaseHolder parent) {
-        int workerId = counter++;
-        Thread ownerThread = Thread.currentThread();
-        return workerLeaseLockRegistry.getResourceLock(parent, workerId, ownerThread);
-    }
-
-    @Override
-    public DefaultWorkerLease getWorkerLease() {
-        Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
-        LeaseHolder parent = operations.isEmpty() ? root : (DefaultWorkerLease) operations.toArray()[operations.size() - 1];
-        return getWorkerLease(parent);
-    }
-
-    @Override
-    public void withSharedLease(WorkerLease sharedLease, Runnable action) {
-        workerLeaseLockRegistry.associateResourceLock(sharedLease);
-        try {
-            action.run();
-        } finally {
-            workerLeaseLockRegistry.unassociateResourceLock(sharedLease);
-            coordinationService.notifyStateChange();
+        if (operations.size() != 1) {
+            throw new IllegalStateException("Expected the current thread to hold a single worker lease");
         }
+        return operations.get(0);
+    }
+
+    @Override
+    public DefaultWorkerLease newWorkerLease() {
+        return workerLeaseLockRegistry.newResourceLock();
+    }
+
+    @Override
+    public boolean isWorkerThread() {
+        return workerLeaseLockRegistry.holdsLock();
+    }
+
+    @Override
+    public <T> T runAsWorkerThread(Factory<T> action) {
+        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (!locks.isEmpty()) {
+            // Already a worker
+            return action.create();
+        }
+        return withLocks(Collections.singletonList(newWorkerLease()), action);
+    }
+
+    @Override
+    public void runAsWorkerThread(Runnable action) {
+        runAsWorkerThread(Factories.<Void>toFactory(action));
+    }
+
+    @Override
+    public void runAsUnmanagedWorkerThread(Runnable action) {
+        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (!locks.isEmpty()) {
+            action.run();
+        } else {
+            withLocks(Collections.singletonList(workerLeaseLockRegistry.newUnmanagedLease()), action);
+        }
+    }
+
+    @Override
+    public Synchronizer newResource() {
+        return new DefaultSynchronizer(this);
     }
 
     @Override
     public void stop() {
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new Runnable() {
             @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            public void run() {
                 if (workerLeaseLockRegistry.hasOpenLocks()) {
                     throw new IllegalStateException("Some worker leases have not been marked as completed.");
                 }
                 if (projectLockRegistry.hasOpenLocks()) {
                     throw new IllegalStateException("Some project locks have not been unlocked.");
                 }
-                return FINISHED;
+                if (taskLockRegistry.hasOpenLocks()) {
+                    throw new IllegalStateException("Some task execution locks have not been unlocked.");
+                }
             }
         });
 
@@ -137,8 +157,18 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
+    public ResourceLock getAllProjectsLock(Path buildIdentityPath) {
+        return projectLockRegistry.getAllProjectsLock(buildIdentityPath);
+    }
+
+    @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
-        return projectLockRegistry.getResourceLock(buildIdentityPath, projectIdentityPath);
+        return projectLockRegistry.getProjectLock(buildIdentityPath, projectIdentityPath);
+    }
+
+    @Override
+    public ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath) {
+        return taskLockRegistry.getTaskExecutionLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override
@@ -147,35 +177,43 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
-    public void releaseCurrentProjectLocks() {
-        final Iterable<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
+    public void runAsIsolatedTask() {
+        Collection<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
         releaseLocks(projectLocks);
-    }
-
-    public void releaseCurrentResourceLocks() {
-        releaseLocks(workerLeaseLockRegistry.getResourceLocksByCurrentThread());
+        releaseLocks(taskLockRegistry.getResourceLocksByCurrentThread());
     }
 
     @Override
-    public void withoutProjectLock(Runnable runnable) {
-        withoutProjectLock(Factories.toFactory(runnable));
+    public void runAsIsolatedTask(Runnable runnable) {
+        runAsIsolatedTask(Factories.toFactory(runnable));
     }
 
     @Override
-    public <T> T withoutProjectLock(Factory<T> factory) {
-        final Iterable<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
-        return withoutLocks(projectLocks, factory);
+    public <T> T runAsIsolatedTask(Factory<T> factory) {
+        Collection<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
+        Collection<? extends ResourceLock> taskLocks = taskLockRegistry.getResourceLocksByCurrentThread();
+        List<ResourceLock> locks = new ArrayList<ResourceLock>(projectLocks.size() + taskLocks.size());
+        locks.addAll(projectLocks);
+        locks.addAll(taskLocks);
+        return withoutLocks(locks, factory);
     }
 
     @Override
     public void blocking(Runnable action) {
         if (projectLockRegistry.mayAttemptToChangeLocks()) {
-            // Need to run the action without the project locks
-            withoutProjectLock(action);
-        } else {
-            // Can just run the action, as it is safe to retain the project locks or the current thread is allowed to do whatever it likes
-            action.run();
+            final Collection<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
+            if (!projectLocks.isEmpty()) {
+                // Need to run the action without the project locks and the worker lease
+                List<ResourceLock> locks = new ArrayList<ResourceLock>(projectLocks.size() + 1);
+                locks.addAll(projectLocks);
+                locks.addAll(workerLeaseLockRegistry.getResourceLocksByCurrentThread());
+                withoutLocks(locks, action);
+                return;
+            }
         }
+        // Else, release only the worker lease
+        List<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        withoutLocks(locks, action);
     }
 
     @Override
@@ -194,19 +232,19 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
-    public void withLocks(Iterable<? extends ResourceLock> locks, Runnable runnable) {
+    public void withLocks(Collection<? extends ResourceLock> locks, Runnable runnable) {
         withLocks(locks, Factories.toFactory(runnable));
     }
 
     @Override
-    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
-        Iterable<? extends ResourceLock> locksToAcquire = locksNotHeld(locks);
+    public <T> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
+        Collection<? extends ResourceLock> locksToAcquire = locksNotHeld(locks);
 
-        if (Iterables.isEmpty(locksToAcquire)) {
+        if (locksToAcquire.isEmpty()) {
             return factory.create();
         }
 
-        acquireLocks(locksToAcquire);
+        acquireLocksWithoutWorkerLeaseWhileBlocked(locksToAcquire);
         try {
             return factory.create();
         } finally {
@@ -240,15 +278,15 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         return false;
     }
 
-    private Iterable<? extends ResourceLock> locksNotHeld(final Iterable<? extends ResourceLock> locks) {
-        if (Iterables.isEmpty(locks)) {
+    private Collection<? extends ResourceLock> locksNotHeld(final Collection<? extends ResourceLock> locks) {
+        if (locks.isEmpty()) {
             return locks;
         }
 
         final List<ResourceLock> locksNotHeld = Lists.newArrayList(locks);
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new Runnable() {
             @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            public void run() {
                 Iterator<ResourceLock> iterator = locksNotHeld.iterator();
                 while (iterator.hasNext()) {
                     ResourceLock lock = iterator.next();
@@ -256,219 +294,130 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
                         iterator.remove();
                     }
                 }
-                return FINISHED;
             }
         });
         return locksNotHeld;
     }
 
     @Override
-    public void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable runnable) {
+    public void withoutLocks(Collection<? extends ResourceLock> locks, Runnable runnable) {
         withoutLocks(locks, Factories.toFactory(runnable));
     }
 
     @Override
-    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
-        if (Iterables.isEmpty(locks)) {
+    public void withoutLock(ResourceLock lock, Runnable runnable) {
+        withoutLocks(Collections.singletonList(lock), runnable);
+    }
+
+    @Override
+    public <T> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
+        if (locks.isEmpty()) {
             return factory.create();
         }
 
-        if (!allLockedByCurrentThread(locks)) {
-            throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
-        }
-
+        assertAllLocked(locks);
         releaseLocks(locks);
         try {
             return factory.create();
         } finally {
-            if (!coordinationService.withStateLock(tryLock(locks))) {
-                releaseWorkerLeaseAndWaitFor(locks);
-            }
+            acquireLocksWithoutWorkerLeaseWhileBlocked(locks);
         }
     }
 
-    private void releaseWorkerLeaseAndWaitFor(Iterable<? extends ResourceLock> locks) {
-        WorkerLease workerLease = getCurrentWorkerLease();
-        List<ResourceLock> allLocks = Lists.newArrayList();
-        allLocks.add(workerLease);
-        Iterables.addAll(allLocks, locks);
+    private void assertAllLocked(Collection<? extends ResourceLock> locks) {
+        if (!allLockedByCurrentThread(locks)) {
+            throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
+        }
+    }
+
+    @Override
+    public <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+        if (currentLocks.contains(newLock)) {
+            // Already holds the lock
+            return factory.create();
+        }
+
+        List<ResourceLock> newLocks = Collections.singletonList(newLock);
+        assertAllLocked(currentLocks);
+        releaseLocks(currentLocks);
+        acquireLocksWithoutWorkerLeaseWhileBlocked(newLocks);
+        try {
+            return factory.create();
+        } finally {
+            releaseLocks(newLocks);
+            acquireLocksWithoutWorkerLeaseWhileBlocked(currentLocks);
+        }
+    }
+
+    @Override
+    public WorkerLeaseCompletion startWorker() {
+        if (!workerLeaseLockRegistry.getResourceLocksByCurrentThread().isEmpty()) {
+            throw new IllegalStateException("Current thread is already a worker thread");
+        }
+        DefaultWorkerLease lease = newWorkerLease();
+        coordinationService.withStateLock(lock(lease));
+        return lease;
+    }
+
+    @Override
+    public WorkerLeaseCompletion maybeStartWorker() {
+        List<DefaultWorkerLease> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (operations.isEmpty()) {
+            return startWorker();
+        }
+        return operations.get(0);
+    }
+
+    private void acquireLocksWithoutWorkerLeaseWhileBlocked(Collection<? extends ResourceLock> locks) {
+        if (!coordinationService.withStateLock(tryLock(locks))) {
+            releaseWorkerLeaseAndWaitFor(locks);
+        }
+    }
+
+    private void releaseWorkerLeaseAndWaitFor(Collection<? extends ResourceLock> locks) {
+        Collection<? extends ResourceLock> workerLeases = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        List<ResourceLock> allLocks = new ArrayList<ResourceLock>(locks.size() + workerLeases.size());
+        allLocks.addAll(workerLeases);
+        allLocks.addAll(locks);
         // We free the worker lease but keep shared resource leases. We don't want to free shared resources until a task completes,
         // regardless of whether it is actually doing work just to make behavior more predictable. This might change in the future.
-        coordinationService.withStateLock(unlock(workerLease));
+        coordinationService.withStateLock(unlock(workerLeases));
         acquireLocks(allLocks);
     }
 
     private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
-        final MutableBoolean allLocked = new MutableBoolean();
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        return coordinationService.withStateLock(new Supplier<Boolean>() {
             @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                allLocked.set(CollectionUtils.every(locks, new Spec<ResourceLock>() {
+            public Boolean get() {
+                return CollectionUtils.every(locks, new Spec<ResourceLock>() {
                     @Override
                     public boolean isSatisfiedBy(ResourceLock lock) {
                         return lock.isLockedByCurrentThread();
                     }
-                }));
-                return FINISHED;
+                });
             }
         });
-        return allLocked.get();
-    }
-
-    private static class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
-        private final boolean parallelEnabled;
-
-        public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
-            super(coordinationService);
-            this.parallelEnabled = parallelEnabled;
-        }
-
-        public boolean getAllowsParallelExecution() {
-            return parallelEnabled;
-        }
-
-        ResourceLock getResourceLock(Path buildIdentityPath, Path projectIdentityPath) {
-            return getResourceLock(parallelEnabled ? projectIdentityPath : buildIdentityPath);
-        }
-
-        ResourceLock getResourceLock(final Path lockPath) {
-            return getOrRegisterResourceLock(lockPath, new ResourceLockProducer<Path, ProjectLock>() {
-                @Override
-                public ProjectLock create(Path projectPath, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new ProjectLock(lockPath.getPath(), coordinationService, lockAction, unlockAction);
-                }
-            });
-        }
     }
 
     private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {
+        private final LeaseHolder root = new LeaseHolder(maxWorkerCount);
+
         WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
             super(coordinationService);
         }
 
-        DefaultWorkerLease getResourceLock(final LeaseHolder parent, int workerId, final Thread ownerThread) {
-            String displayName = parent.getDisplayName() + '.' + workerId;
-            return getOrRegisterResourceLock(displayName, new ResourceLockProducer<String, DefaultWorkerLease>() {
-                @Override
-                public DefaultWorkerLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new DefaultWorkerLease(displayName, coordinationService, lockAction, unlockAction, parent, ownerThread);
-                }
-            });
+        DefaultWorkerLease newResourceLock() {
+            return new DefaultWorkerLease("worker lease", coordinationService, this, root);
+        }
+
+        DefaultWorkerLease newUnmanagedLease() {
+            return new DefaultWorkerLease("unmanaged lease", coordinationService, this, new LeaseHolder(1));
         }
     }
 
-    private interface LeaseHolder extends Describable {
-        boolean grantLease();
-
-        void releaseLease();
-    }
-
-    private class Root implements LeaseHolder {
-        int leasesInUse;
-
-        @Override
-        public String getDisplayName() {
-            return "root";
-        }
-
-        @Override
-        public boolean grantLease() {
-            if (leasesInUse >= maxWorkerCount) {
-                return false;
-            }
-            leasesInUse++;
-            return true;
-        }
-
-        @Override
-        public void releaseLease() {
-            leasesInUse--;
-        }
-    }
-
-    private class DefaultWorkerLease extends AbstractTrackedResourceLock implements LeaseHolder, WorkerLeaseCompletion, WorkerLease {
-        private final LeaseHolder parent;
-        private final Thread ownerThread;
-        int children;
-        boolean active;
-
-        public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, LeaseHolder parent, Thread ownerThread) {
-            super(displayName, coordinationService, lockAction, unlockAction);
-            this.parent = parent;
-            this.ownerThread = ownerThread;
-        }
-
-        @Override
-        protected boolean doIsLocked() {
-            return active;
-        }
-
-        @Override
-        protected boolean doIsLockedByCurrentThread() {
-            return active && Thread.currentThread() == ownerThread;
-        }
-
-        @Override
-        protected boolean acquireLock() {
-            if (parent.grantLease()) {
-                active = true;
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker lease {} started ({} worker(s) in use).", getDisplayName(), root.leasesInUse);
-                }
-            } else {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Build operation {} could not be started yet ({} worker(s) in use).", getDisplayName(), root.leasesInUse);
-                }
-            }
-            return active;
-        }
-
-        @Override
-        protected void releaseLock() {
-            if (Thread.currentThread() != ownerThread) {
-                // Not implemented - not yet required. Please implement if required
-                throw new UnsupportedOperationException("Must complete operation from owner thread.");
-            }
-            parent.releaseLease();
-            active = false;
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Worker lease {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
-            }
-            if (children != 0) {
-                throw new IllegalStateException("Some child operations have not yet completed.");
-            }
-        }
-
-        @Override
-        public boolean grantLease() {
-            if (children == 0 || root.grantLease()) {
-                children++;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public void releaseLease() {
-            children--;
-            if (children > 0) {
-                root.releaseLease();
-            }
-        }
-
-        WorkerLeaseCompletion start() {
-            coordinationService.withStateLock(lock(this));
-            return this;
-        }
-
-        @Override
-        public WorkerLease createChild() {
-            return getWorkerLease(this);
-        }
-
-        @Override
-        public WorkerLeaseCompletion startChild() {
-            return getWorkerLease(this).start();
+    private class DefaultWorkerLease extends DefaultLease implements WorkerLeaseCompletion, WorkerLease {
+        public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
+            super(displayName, coordinationService, owner, parent);
         }
 
         @Override

@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.verification.serializer;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
@@ -33,7 +33,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.ext.DefaultHandler2;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -79,10 +79,11 @@ public class DependencyVerificationsXmlReader {
             SAXParser saxParser = createSecureParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             VerifiersHandler handler = new VerifiersHandler(builder);
+            xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
             xmlReader.setContentHandler(handler);
             xmlReader.parse(new InputSource(in));
         } catch (Exception e) {
-            throw new InvalidUserDataException("Unable to read dependency verification metadata", e);
+            throw new DependencyVerificationException("Unable to read dependency verification metadata", e);
         } finally {
             try {
                 in.close();
@@ -106,7 +107,7 @@ public class DependencyVerificationsXmlReader {
         return spf.newSAXParser();
     }
 
-    private static class VerifiersHandler extends DefaultHandler {
+    private static class VerifiersHandler extends DefaultHandler2 {
         private final Interner<String> stringInterner = Interners.newStrongInterner();
         private final DependencyVerifierBuilder builder;
         private boolean inMetadata;
@@ -192,7 +193,7 @@ public class DependencyVerificationsXmlReader {
                     try {
                         builder.addKeyServer(new URI(server));
                     } catch (URISyntaxException e) {
-                        throw new InvalidUserDataException("Unsupported URI for key server: " + server);
+                        throw new DependencyVerificationException("Unsupported URI for key server: " + server);
                     }
                     break;
                 case IGNORED_KEYS:
@@ -316,7 +317,7 @@ public class DependencyVerificationsXmlReader {
 
         private static void assertContext(boolean test, String message) {
             if (!test) {
-                throw new InvalidUserDataException("Invalid dependency verification metadata file: " + message);
+                throw new DependencyVerificationException("Invalid dependency verification metadata file: " + message);
             }
         }
 
@@ -396,5 +397,11 @@ public class DependencyVerificationsXmlReader {
             return stringInterner.intern(value);
         }
 
+        @Override
+        public void comment(char[] ch, int start, int length) throws SAXException {
+            if (!inMetadata) {
+                builder.addTopLevelComment(new String(ch, start, length));
+            }
+        }
     }
 }

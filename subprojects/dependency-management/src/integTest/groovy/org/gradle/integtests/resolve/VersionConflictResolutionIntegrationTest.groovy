@@ -16,10 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -32,7 +30,6 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @ToBeFixedForConfigurationCache
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -74,7 +71,6 @@ project(':tool') {
         failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
-    @ToBeFixedForConfigurationCache
     void "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
@@ -641,7 +637,6 @@ task checkDeps {
     }
 
     @Issue("GRADLE-2555")
-    @ToBeFixedForConfigurationCache
     void "batched up conflicts with conflicted parent and child"() {
         /*
         Dependency tree:
@@ -930,6 +925,42 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    def "chooses highest version that is included in both ranges, with the highest version in the intersection missing"() {
+        given:
+        (1..10).findAll {
+            // We skip v6, as we test what happens when the top version of the intersection is missing
+            it != 6
+        }.each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-5.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
     def "chooses highest version that is included in both ranges when fail on conflict is set"() {
         given:
         (1..10).each {
@@ -1074,6 +1105,38 @@ task checkDeps(dependsOn: configurations.compile) {
 
         then:
         noExceptionThrown()
+    }
+
+    def "fail when when ranges are disjoint and no top range artifact is present"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[1,5]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[11,15]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                }
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertThatCause(containsString("Could not find any version that matches org:leaf:[11,15]."))
     }
 
     def "upgrades version when ranges are disjoint unless failOnVersionConflict is set"() {
@@ -1550,8 +1613,8 @@ task checkDeps(dependsOn: configurations.compile) {
 
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
-        4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
-        4.times { mavenRepo.module("org", "a", "${it+1}").dependsOn('org', 'e', "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "e", "${it + 1}").publish() }
+        4.times { mavenRepo.module("org", "a", "${it + 1}").dependsOn('org', 'e', "${it + 1}").publish() }
         mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
         mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
         mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
@@ -1649,8 +1712,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache
     def 'order of dependency declaration does not effect transitive dependency versions'() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
@@ -1701,7 +1762,6 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle-private#1268")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "shouldn't fail if root component is also added through cycle, and that failOnVersionConflict() is used"() {
         settingsFile << """
             include "testlib", "common"
@@ -1736,7 +1796,6 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle#6403")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
 
         given:
@@ -1770,8 +1829,6 @@ task checkDeps(dependsOn: configurations.compile) {
 
     }
 
-    @Unroll('optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)')
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
@@ -1822,7 +1879,6 @@ dependencies {
     }
 
     @Issue("gradle/gradle#8944")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
         given:
         // Direct dependency with transitive to be substituted by project
@@ -1885,7 +1941,6 @@ project(':sub') {
     }
 
     @Issue("gradle/gradle#11844")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'does not fail serialization in recursive error case'() {
         // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
         //
@@ -1916,13 +1971,12 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal'() {
         given:
         def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
         def lib3 = mavenRepo.module('org', 'lib', '3.0').publish()
         def lib1 = mavenRepo.module('org', 'lib', '1.0')
-            // recursive dependencies between different versions of 'lib'
+        // recursive dependencies between different versions of 'lib'
             .dependencyConstraint(lib3).dependencyConstraint(lib2).withModuleMetadata().publish()
 
         mavenRepo.module('org', 'direct', '1.0').dependsOn(lib1).publish()
@@ -1950,7 +2004,6 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
         given:
         def direct11 = mavenRepo.module('org', 'direct', '1.1')
@@ -1984,7 +2037,6 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with multiple strict version endorsements'() {
         given:
         def foo2 = mavenRepo.module('org', 'foo', '2.0').publish()
@@ -2024,7 +2076,6 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "can resolve a graph with an obvious version cycle by breaking the cycle"() {
         given:
         def direct2 = mavenRepo.module('org', 'direct', '2.0').publish()
@@ -2051,7 +2102,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "can resolve a graph with a local cycle caused by module replacement"() {
         given:
         def child1 = mavenRepo.module('org', 'child1', '1.0').publish()
@@ -2084,7 +2134,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'does not cache node dependencies when node is deselected then reselected with different exclude filter'() {
         given:
         // Excluded module

@@ -42,17 +42,24 @@ abstract class UpdateAgpVersions : DefaultTask() {
     abstract val minimumSupportedMinor: Property<String>
 
     @get:Internal
+    abstract val fetchNightly: Property<Boolean>
+
+    @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
     @TaskAction
     fun fetch() {
 
         val dbf = DocumentBuilderFactory.newInstance()
-        val latests = dbf.fetchLatests(minimumSupportedMinor.get())
-        val nightly = dbf.fetchNightly()
         val properties = Properties().apply {
+
+            val latests = dbf.fetchLatests(minimumSupportedMinor.get())
             setProperty("latests", latests.joinToString(","))
-            setProperty("nightly", nightly)
+
+            if (fetchNightly.get()) {
+                val nightly = dbf.fetchNightly()
+                setProperty("nightly", nightly)
+            }
         }
         properties.store(
             propertiesFile.get().asFile,

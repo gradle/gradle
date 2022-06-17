@@ -25,7 +25,6 @@ import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.CoreMatchers.equalTo
@@ -182,7 +181,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
-    @Unroll
     def "can clean test after extracting class file with #framework"() {
         when:
         ignoreWhenJUnitPlatform()

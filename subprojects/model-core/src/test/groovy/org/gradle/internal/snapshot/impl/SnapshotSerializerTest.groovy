@@ -18,7 +18,9 @@ package org.gradle.internal.snapshot.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -31,7 +33,7 @@ class SnapshotSerializerTest extends Specification {
     def encoder = new OutputStreamBackedEncoder(output)
 
     @Subject
-            serializer = new SnapshotSerializer()
+        serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
 
     def "serializes serialized properties"() {
         def original = snapshot("x".bytes)
@@ -72,7 +74,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes hash properties"() {
-        def value = new HashCodeSnapshot(HashCode.fromInt(123))
+        def value = new HashCodeSnapshot(TestHashCodes.hashCodeFrom(123))
 
         when:
         write(value)
@@ -162,7 +164,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes map properties"() {
-        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>>builder()
+        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>> builder()
         builder.add(new MapEntrySnapshot<ValueSnapshot>(string("123"), integer(123)))
         builder.add(new MapEntrySnapshot<ValueSnapshot>(string("456"), list(integer(-12), integer(12))))
         def original = new MapValueSnapshot(builder.build())
@@ -209,7 +211,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with lambda"() {
-        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', HashCode.fromInt(1234))
+        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
@@ -240,8 +242,8 @@ class SnapshotSerializerTest extends Specification {
         return new StringValueSnapshot(value)
     }
 
-    private SerializedValueSnapshot snapshot(byte[] value) {
-        return new SerializedValueSnapshot(HashCode.fromInt(123), value)
+    private JavaSerializedValueSnapshot snapshot(byte[] value) {
+        return new JavaSerializedValueSnapshot(TestHashCodes.hashCodeFrom(123), value)
     }
 
     private ValueSnapshot getWritten() {

@@ -19,9 +19,9 @@ package org.gradle.launcher.exec;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildLogger;
+import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -29,31 +29,27 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.time.Clock;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final ListenerManager listenerManager;
     private final BuildActionRunner delegate;
     private final BuildStartedTime buildStartedTime;
     private final BuildRequestMetaData buildRequestMetaData;
-    private final Clock clock;
     private final StyledTextOutputFactory styledTextOutputFactory;
-    private final WorkValidationWarningReporter workValidationWarningReporter;
+    private final BuildLoggerFactory buildLoggerFactory;
 
     public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory,
-                                                  WorkValidationWarningReporter workValidationWarningReporter,
                                                   ListenerManager listenerManager,
                                                   BuildActionRunner delegate,
                                                   BuildStartedTime buildStartedTime,
                                                   BuildRequestMetaData buildRequestMetaData,
-                                                  Clock clock) {
+                                                  BuildLoggerFactory buildLoggerFactory) {
         this.styledTextOutputFactory = styledTextOutputFactory;
-        this.workValidationWarningReporter = workValidationWarningReporter;
         this.listenerManager = listenerManager;
         this.delegate = delegate;
         this.buildStartedTime = buildStartedTime;
         this.buildRequestMetaData = buildRequestMetaData;
-        this.clock = clock;
+        this.buildLoggerFactory = buildLoggerFactory;
     }
 
     @Override
@@ -62,7 +58,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         TaskExecutionStatisticsEventAdapter taskStatisticsCollector = new TaskExecutionStatisticsEventAdapter();
         listenerManager.addListener(taskStatisticsCollector);
 
-        BuildLogger buildLogger = new BuildLogger(Logging.getLogger(BuildLogger.class), styledTextOutputFactory, startParameter, buildRequestMetaData, buildStartedTime, clock, workValidationWarningReporter);
+        BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(BuildLogger.class), startParameter, buildStartedTime, buildRequestMetaData);
         // Register as a 'logger' to support this being replaced by build logic.
         buildController.beforeBuild(gradle -> gradle.useLogger(buildLogger));
 

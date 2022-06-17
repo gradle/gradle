@@ -42,6 +42,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCache;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
+import org.gradle.deployment.internal.PendingChangesManager;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
@@ -59,7 +60,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -67,10 +67,10 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
@@ -78,8 +78,8 @@ import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.ExecFactory;
@@ -91,7 +91,7 @@ import java.util.List;
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
-public class BuildSessionScopeServices {
+public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices {
 
     private final StartParameterInternal startParameter;
     private final BuildRequestMetaData buildRequestMetaData;
@@ -120,7 +120,9 @@ public class BuildSessionScopeServices {
         registration.add(BuildClientMetaData.class, buildClientMetaData);
         registration.add(BuildEventConsumer.class, buildEventConsumer);
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
+        registration.add(DefaultAsyncWorkTracker.class);
 
         // Must be no higher than this scope as needs cache repository services.
         registration.addProvider(new ScopeIdsServices());
@@ -178,10 +180,6 @@ public class BuildSessionScopeServices {
         return new DefaultImmutableAttributesFactory(isolatableFactory, instantiator);
     }
 
-    AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
-        return new DefaultAsyncWorkTracker(projectLeaseRegistry);
-    }
-
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
         return persistentScopeIdLoader.getUser();
     }
@@ -204,7 +202,14 @@ public class BuildSessionScopeServices {
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory, javaModuleDetector);
+        return execFactory.forContext()
+            .withFileResolver(fileResolver)
+            .withFileCollectionFactory(fileCollectionFactory)
+            .withInstantiator(instantiator)
+            .withBuildCancellationToken(buildCancellationToken)
+            .withObjectFactory(objectFactory)
+            .withJavaModuleDetector(javaModuleDetector)
+            .build();
     }
 
     CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {

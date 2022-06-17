@@ -25,6 +25,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 public class StartScriptGenerator {
@@ -108,12 +109,12 @@ public class StartScriptGenerator {
     }
 
     public void generateUnixScript(final File unixScript) {
-        IoActions.writeTextFile(unixScript, new Generate(createStartScriptGenerationDetails(), unixStartScriptGenerator));
+        IoActions.writeTextFile(unixScript, StandardCharsets.UTF_8.name(), new Generate(createStartScriptGenerationDetails(), unixStartScriptGenerator));
         unixFileOperation.createExecutablePermission(unixScript);
     }
 
     public void generateWindowsScript(File windowsScript) {
-        IoActions.writeTextFile(windowsScript, new Generate(createStartScriptGenerationDetails(), windowsStartScriptGenerator));
+        IoActions.writeTextFile(windowsScript, StandardCharsets.UTF_8.name(), new Generate(createStartScriptGenerationDetails(), windowsStartScriptGenerator));
     }
 
     interface UnixFileOperation {

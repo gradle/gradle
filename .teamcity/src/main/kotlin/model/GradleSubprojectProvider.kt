@@ -32,6 +32,7 @@ interface GradleSubprojectProvider {
 }
 
 data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : GradleSubprojectProvider {
+    @Suppress("UNCHECKED_CAST")
     override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 

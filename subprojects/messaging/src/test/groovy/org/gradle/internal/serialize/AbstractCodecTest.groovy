@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.nio.CharBuffer
 
@@ -232,7 +231,6 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
-    @Unroll
     def "can encode and decode long #value"() {
         expect:
         def bytes = encode { Encoder encoder ->
@@ -325,7 +323,6 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
-    @Unroll
     def "can encode and decode int #value"() {
         expect:
         def bytes = encode { Encoder encoder ->

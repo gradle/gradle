@@ -1119,7 +1119,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @Issue("gradle/gradle#7916")
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shouldn't fail when a referenced component is a virtual platform"() {
         repository {
             'org:foo:1.0'()
@@ -1160,7 +1159,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "should manage to realign through two conflicts"() {
         repository {
             path 'start:start:1.0 -> foo:1.0'

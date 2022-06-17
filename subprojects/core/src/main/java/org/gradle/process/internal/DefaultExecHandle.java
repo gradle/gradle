@@ -263,6 +263,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
+            broadcast.getSource().beforeExecutionStarted(this);
             execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
             executor.execute(new CurrentBuildOperationPreservingRunnable(execHandleRunner));
 

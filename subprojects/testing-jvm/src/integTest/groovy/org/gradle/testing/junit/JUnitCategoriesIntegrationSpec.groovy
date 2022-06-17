@@ -23,7 +23,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -31,7 +30,6 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    @Unroll
     def 'reports unloadable #type'() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")

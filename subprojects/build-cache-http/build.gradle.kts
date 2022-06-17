@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation for interacting with HTTP build caches"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":build-cache"))
@@ -19,6 +21,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.servletApi)
 
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))

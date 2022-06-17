@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,19 +60,17 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private final FileWatcher fileWatcher;
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
-    private final MovedHierarchyHandler movedHierarchyHandler;
     private ImmutableSet<File> watchedHierarchies = ImmutableSet.of();
 
     public HierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
         FileSystemLocationToWatchValidator locationToWatchValidator,
         FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies,
-        MovedHierarchyHandler movedHierarchyHandler
+        MovedDirectoryHandler movedDirectoryHandler
     ) {
-        super(probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies, movedDirectoryHandler);
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
-        this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
     @Override
@@ -90,8 +88,8 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        SnapshotHierarchy newRoot = super.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies);
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        SnapshotHierarchy newRoot = super.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
         return newRoot;
     }
@@ -103,35 +101,28 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         newWatchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));
         watchedHierarchies = watchedHierarchiesBuilder.build();
 
-        if (!oldWatchedHierarchies.equals(watchedHierarchies)) {
-            if (watchedHierarchies.isEmpty()) {
-                LOGGER.info("Not watching anything anymore");
-            }
-
-            List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
-                .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
-                .collect(ImmutableList.toImmutableList());
-            if (!hierarchiesToStopWatching.isEmpty()) {
-                if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
-                    LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
-                }
-            }
-
-            List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
-                .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
-                .collect(ImmutableList.toImmutableList());
-            if (!hierarchiesToStartWatching.isEmpty()) {
-                hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
-                fileWatcher.startWatching(hierarchiesToStartWatching);
-            }
-
-            LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+        if (watchedHierarchies.isEmpty()) {
+            LOGGER.info("Not watching anything anymore");
         }
-    }
 
-    @Override
-    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
-        return movedHierarchyHandler.handleMovedHierarchies(root);
+        List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
+            .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
+            .collect(ImmutableList.toImmutableList());
+        if (!hierarchiesToStopWatching.isEmpty()) {
+            if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
+                LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
+            }
+        }
+
+        List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
+            .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
+            .collect(ImmutableList.toImmutableList());
+        if (!hierarchiesToStartWatching.isEmpty()) {
+            hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
+            fileWatcher.startWatching(hierarchiesToStartWatching);
+        }
+
+        LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 
     @Override
@@ -147,15 +138,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     @Override
     protected WatchableHierarchies.Invalidator createInvalidator() {
         return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
-    }
-
-    public interface MovedHierarchyHandler {
-        /**
-         * On Windows when watched hierarchies are moved, the OS does not send a notification,
-         * even though the VFS should be updated. Our best bet here is to cull any moved watch
-         * roots from the VFS at the start of every build.
-         */
-        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root);
     }
 
     public interface FileSystemLocationToWatchValidator {

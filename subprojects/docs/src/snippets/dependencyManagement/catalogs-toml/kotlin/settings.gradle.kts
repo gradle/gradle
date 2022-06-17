@@ -16,8 +16,6 @@
 
 rootProject.name = "toml-catalog"
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
@@ -26,7 +24,7 @@ dependencyResolutionManagement {
 
 // tag::change_default_extension_name[]
 dependencyResolutionManagement {
-    defaultLibrariesExtensionName.set("deps")
+    defaultLibrariesExtensionName.set("projectLibs")
 }
 // end::change_default_extension_name[]
 

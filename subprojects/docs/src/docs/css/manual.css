@@ -811,7 +811,7 @@ html {
 
 body {
     color: #02303A;
-    background-color: #f7f7f8;
+    background-color: #fff;
     font-family: "Lato", "Helvetica Neue", Arial, sans-serif;
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
@@ -1107,6 +1107,8 @@ body.book #header > h1 {
     border: 0 none;
     box-shadow: none;
     padding: 0;
+    padding-bottom: 0.7rem;
+    margin-bottom: 0;
 }
 
 .exampleblock > .content .title {
@@ -1243,10 +1245,6 @@ div.screenshot {
     margin-top: 0;
 }
 
-#header #toctitle {
-    margin-bottom: 0.425rem;
-}
-
 #toc,
 #content #toc {
     border: 0 none;
@@ -1280,30 +1278,6 @@ div.screenshot {
 
 #toc a:active {
     text-decoration: none;
-}
-
-@media screen and (min-width: 75rem) and (min-height: 48rem) {
-    #header #toc {
-        font-size: 1rem;
-        background: #f7f7f8;
-        border-radius: 0;
-        margin-bottom: 0;
-        padding: 15px 0 0;
-    }
-
-    #header #toctitle {
-        font-size: 1rem;
-        font-weight: 700;
-        margin: 0.4rem 0 0.5rem 0;
-    }
-
-    #toc a {
-        color: #02303A;
-    }
-
-    #toc a.active {
-        color: #1BA8C4;
-    }
 }
 
 /* Site header specific styles */
@@ -1349,10 +1323,11 @@ div.screenshot {
 }
 
 .site-header .site-header-version {
-    align-self: flex-end;
+    align-self: center;
     color: #1da2bd;
     font-size: 20px;
     padding-left: 1px;
+    margin-top: 22px;
 }
 
 .site-header__navigation {
@@ -1427,10 +1402,6 @@ div.screenshot {
     margin-top: 0;
 }
 
-.site-header__navigation-submenu-section .site-header__navigation-link:hover {
-    color: #02303A;
-}
-
 .site-header__navigation-submenu-section .site-header__navigation-link:hover path {
     fill: none;
 }
@@ -1444,7 +1415,7 @@ div.screenshot {
     width: 170px;
     background-color: white;
     top: 40px;
-    left: 21px; /* NOTE: This must match the padding of .site-header__navigation-link */
+    left: 7px; /* NOTE: This must match the padding of .site-header__navigation-link */
     padding: 3px 10px 6px 10px;
     z-index: 100;
 }
@@ -1514,10 +1485,6 @@ div.screenshot {
 /* Top navigation desktop styles */
 @media (min-width: 1024px) {
     .site-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
         -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
         -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
         box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
@@ -1607,6 +1574,10 @@ div.screenshot {
 .docs-navigation {
     display: none;
     padding-left: 5px;
+    padding: 20px 20px 20px 26px;
+    background: #f8f8f7;
+    border-right: 1px solid #e7e7e9;
+    overflow: scroll;
 }
 
 .docs-navigation .search-container {
@@ -1618,7 +1589,6 @@ div.screenshot {
     height: 30px;
     line-height: 30px;
     box-sizing: border-box;
-    padding: 0 20px 0 30px;
     border: 1px solid #e3e3e3;
     border-radius: 3px;
     color: #666;
@@ -1628,7 +1598,8 @@ div.screenshot {
     background: white url('data:image/svg+xml;utf8,<svg height="20px" version="1.1" viewBox="0 0 32 32" width="20px" xmlns="http://www.w3.org/2000/svg"><g fill="#cccccc" fill-rule="evenodd" stroke="none" stroke-width="1"><path d="M19.4271164,21.4271164 C18.0372495,22.4174803 16.3366522,23 14.5,23 C9.80557939,23 6,19.1944206 6,14.5 C6,9.80557939 9.80557939,6 14.5,6 C19.1944206,6 23,9.80557939 23,14.5 C23,16.3366522 22.4174803,18.0372495 21.4271164,19.4271164 L27.0119176,25.0119176 C27.5621186,25.5621186 27.5575313,26.4424687 27.0117185,26.9882815 L26.9882815,27.0117185 C26.4438648,27.5561352 25.5576204,27.5576204 25.0119176,27.0119176 L19.4271164,21.4271164 L19.4271164,21.4271164 Z M14.5,21 C18.0898511,21 21,18.0898511 21,14.5 C21,10.9101489 18.0898511,8 14.5,8 C10.9101489,8 8,10.9101489 8,14.5 C8,18.0898511 10.9101489,21 14.5,21 L14.5,21 Z"/></g></svg>') no-repeat 8px 5px;
     background-size: 20px;
     vertical-align: middle !important;
-    max-width: 100%;
+    width: 100%;
+    padding-left: 10px;
 }
 
 .docs-navigation .search-input:focus {
@@ -1646,7 +1617,7 @@ div.screenshot {
 }
 
 .docs-navigation .algolia-autocomplete .ds-dropdown-menu {
-    width: 100%;
+    width: 100px;
     min-width: 0 !important;
     max-width: none !important;
     padding: .75rem 0 !important;
@@ -1654,12 +1625,9 @@ div.screenshot {
     background-clip: padding-box;
     border: 1px solid #e3e3e3 !important;
     box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
-}
-
-@media (min-width: 768px) {
-    .docs-navigation .algolia-autocomplete .ds-dropdown-menu {
-        width: 300%;
-    }
+    position: fixed !important;
+    top: 103px;
+    left: 25px;
 }
 
 .docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
@@ -1667,6 +1635,9 @@ div.screenshot {
     overflow: visible !important;
     background-color: transparent !important;
     border: 0 !important;
+    position: inherit !important;
+    top: 112px;
+    left: 25px;
 }
 
 .docs-navigation .algolia-autocomplete .ds-dropdown-menu .ds-suggestions {
@@ -1742,8 +1713,17 @@ div.screenshot {
 .docs-navigation a {
     color: #02303A;
     display: block;
-    font-size: 1rem;
-    line-height: 1.25;
+    font-size: .95rem;
+    position: relative;
+}
+
+.docs-navigation a:focus {
+    outline: none;
+}
+
+.docs-navigation a:hover {
+    color: #35c1e4;
+    text-decoration: none;
 }
 
 .docs-navigation a code {
@@ -1754,33 +1734,51 @@ div.screenshot {
 }
 
 .docs-navigation a.active {
-    color: #1BA8C4;
+    text-decoration: underline;
+    outline: 0;
+    border: none;
+    -moz-outline-style: none;
+}
+
+.docs-navigation a.active:hover {
+    color: #35c1e4;
+    text-decoration: underline;
 }
 
 .docs-navigation ul {
     list-style-type: none;
-    margin: 0.5em 0;
+    margin: 0;
     padding: 0;
+}
+
+.docs-navigation li > ul > li a {
+    font-size: 14px;
+    color: #7d7d7d;
 }
 
 .docs-navigation ul:last-of-type {
     margin-bottom: 0;
 }
 
-.docs-navigation li:first-of-type {
-    margin-top: 0;
-}
-
 .docs-navigation li {
-    margin-bottom: 0.5em;
+    margin-top: 0.3334em;
+    line-height: 1.3334;
 }
 
 .docs-navigation li:last-of-type {
     margin-bottom: 0;
 }
 
-.docs-navigation .nav-dropdown {
-    background: transparent url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDE5IDExIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIHRyYW5zZm9ybT0icm90YXRlKC0xODAgOS4zNzQgNS40OTQpIiBkPSJNMTcuOTk5MSAxMC40MjI4MjVMOS4zNzQxIDAuNTY1NTc1IDAuNzQ5MSAxMC40MjI4MjUiIHN0cm9rZT0iIzAyMzAzQSIgb3BhY2l0eT0iMC43IiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+') no-repeat center right;
+.docs-navigation .nav-dropdown:before {
+    content: '\2023';
+    font-size: 28px;
+    position: absolute;
+    margin-left: -14px;
+    margin-top: -8px;
+}
+
+.docs-navigation .nav-dropdown.expanded:before {
+    transform: rotate(90deg);
 }
 
 .docs-navigation > ul ul,
@@ -1798,8 +1796,8 @@ div.screenshot {
 }
 
 .docs-navigation h3 {
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: .95rem;
+    font-weight: 600;
     line-height: 1.5;
     margin: 1.5em 0 0;
 }
@@ -1808,37 +1806,14 @@ div.screenshot {
     position: relative;
 }
 
-.docs-navigation .pdf-link-container {
-    display: inline-block;
-    position: absolute;
-    top: -1.25em;
-    right: 0;
-}
-
-.docs-navigation .pdf-link-container a {
-    color: #999;
-    font-size: 12px;
-}
-
-.docs-navigation .pdf-link-container svg {
-    fill: #999;
-    height: 12px;
-    vertical-align: bottom;
-}
-
 @media screen and (min-width: 45rem) {
     .main-content {
         display: flex;
-        justify-content: center;
     }
 }
 
 /* User guide navigation appears for desktops */
 @media screen and (min-width: 64rem) {
-    .main-content {
-        padding-top: 75px;
-    }
-
     .docs-navigation {
         display: block;
         flex: 0 0 auto;
@@ -1848,61 +1823,8 @@ div.screenshot {
     .main-content > .appendix,
     .main-content > .book,
     .main-content > .chapter {
-        flex: 0 0 45rem;
-        margin: 0 20px;
-    }
-}
-
-/* Fixed intra-chapter navigation for desktops */
-@media screen and (min-width: 75rem) and (min-height: 48rem) {
-    .appendix #header #toc,
-    .book #header #toc,
-    .chapter #header #toc {
-        position: fixed;
-        left: calc(50% + 380px);
-        top: 50px;
-        width: 13.75rem;
-        padding-top: 15px;
-        font-size: 1rem;
-        background-color: #F7F7F8;
-    }
-
-    .appendix #toc a,
-    .book #toc a,
-    .chapter #toc a {
-        color: #02303A;
-        display: inline-block;
-    }
-
-    .appendix #toc a.active,
-    .book #toc a.active,
-    .chapter #toc a.active {
-        color: #1BA8C4;
-    }
-
-    .docs-navigation {
-        flex-basis: 14.75rem;
-    }
-
-    /* Sneaky way to make room for TOC */
-    .secondary-navigation {
-        flex: 0 0 13.75rem;
-    }
-}
-
-@media screen and (min-width: 84.375rem) and (min-height: 48rem) {
-    .appendix #header #toc,
-    .book #header #toc,
-    .chapter #header #toc {
-        left: calc(50% + 26.25rem);
-    }
-}
-
-@media screen and (min-width: 93.75rem) and (min-height: 48rem) {
-    .appendix #header #toc,
-    .book #header #toc,
-    .chapter #header #toc {
-        left: calc(50% + 31.25rem);
+        flex: 0 0 auto;
+        margin: 0 auto;
     }
 }
 
@@ -1946,9 +1868,10 @@ div.screenshot {
 
 .site-footer__navigation {
     display: flex;
-    max-width: 75rem;
-    margin: 3rem auto 0 auto;
-    padding: 0.5rem 0.75rem;
+    padding: 30px 12px;
+    max-width: 62.5rem;
+    margin: 0 auto;
+    padding-left: 5rem
 }
 
 .site-footer__links {
@@ -1962,7 +1885,7 @@ div.screenshot {
 }
 
 .site-footer__links .site-footer__links-list a {
-    color: #666;
+    color: #ddd;
 }
 
 .site-footer__link-group {
@@ -1971,15 +1894,11 @@ div.screenshot {
 }
 
 .site-footer__link-group header {
-    color: #555;
-}
-
-.site-footer__subscribe-newsletter {
-    flex: 0 0 350px;
+    color: #fff;
 }
 
 .site-footer__subscribe-newsletter .newsletter-form__header h5 {
-    color: #555;
+    color: #fff;
     margin-top: 0;
 }
 
@@ -1990,6 +1909,7 @@ div.screenshot {
 }
 
 .site-footer__subscribe-newsletter .disclaimer {
+    color: #ddd;
     font-size: 0.75rem;
     opacity: 0.55;
 }
@@ -2034,6 +1954,9 @@ div.screenshot {
 /* Secondary footer (below) */
 .site-footer-secondary {
     background-color: white;
+    border-top: 1px solid #e7e7e9;
+    width: 100%;
+    z-index: 1;
 }
 
 .site-footer-secondary__contents {
@@ -2130,22 +2053,6 @@ div.screenshot {
     .ui-logos .ui-logo {
         box-shadow: 0 6px 15px 1px rgba(0, 0, 0, 0.56);
     }
-
-    .main-content > .appendix,
-    .main-content > .book,
-    .main-content > .chapter {
-        flex-basis: 50rem;
-        max-width: 50rem;
-    }
-}
-
-@media screen and (min-width: 93.75rem) {
-    .main-content > .appendix,
-    .main-content > .book,
-    .main-content > .chapter {
-        flex-basis: 60rem;
-        max-width: 60rem;
-    }
 }
 
 /* User Manual Home */
@@ -2190,4 +2097,237 @@ div.screenshot {
 
 .download li {
   float: right;
+}
+
+.docs-navigation {
+    width: 18rem;
+    padding: 20px 20px 20px 26px;
+    background: #f8f8f7;
+    border-right: 1px solid #e7e7e9;
+    overflow-y: scroll;
+    overflow-x: auto;
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.main-content {
+    overflow-y: auto;
+    overflow-x: auto;
+    display: flex;
+}
+
+.content {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.content .chapter {
+    padding: 2rem 2.4rem;
+}
+
+#toc a:active {
+    font-weight: 500;
+}
+
+.site-header  {
+    margin-bottom: 1rem;
+}
+
+.site-header__navigation-submenu-item {
+    padding: 2px 0;
+}
+
+.site-footer {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px 0 40px 0;
+}
+
+#header {
+    margin-left: 0;
+}
+
+#header > h1:first-child {
+    margin-bottom: 40px;
+}
+
+@media screen and (min-width: 64rem) {
+    #header {
+        margin-bottom: 20px;
+    }
+
+    .site-header  {
+        margin-bottom: 0;
+        z-index: 2;
+    }
+
+    .site-header__navigation-header {
+        margin-top: -7px;
+    }
+
+    .site-header__navigation-submenu-section:after {
+        content: '\2023';
+        font-size: 28px;
+        position: absolute;
+        transform: rotate(90deg);
+        margin-right: 10px;
+        top: 5px;
+        right: -7px;
+    }
+
+    .site-footer__navigation {
+        flex-wrap: wrap;
+    }
+
+    .site-footer__link-group {
+        flex: 1 1 auto;
+    }
+
+    .site-footer__links {
+        margin-bottom: 1rem;
+
+    }
+}
+
+@media screen and (min-width: 75rem) {
+    .content .chapter {
+        box-sizing: content-box;
+    }
+
+    #content {
+        padding-right: 260px;
+        margin: 0;
+    }
+    /* #toc here must be referenced as #header #toc
+            since we don't want to change single page #toc */
+    #header #toc {
+        position: fixed;
+        margin: 0 auto;
+        padding-bottom: 0;
+        right: 0;
+        top: 65px;
+        width: 260px;
+        z-index: 1;
+        overflow: auto;
+        border-radius: 0 0 5px 0;
+        max-height: calc(100% - 118px);
+        margin-right: 15px;
+    }
+
+    #header #toctitle {
+        margin-top: 1.3em;
+    }
+
+    #header #toc > ul {
+        /* margin-left have to increase if you change border thickness of active toc item */
+        margin-left: 1px;
+        border-left: 1px solid #666;
+        margin-bottom: 0;
+        padding-right: 10px;
+        padding-bottom: 0.5rem;
+        background-color: #fff;
+    }
+
+    #header #toc > ul > li, #toc > ul > li:last-of-type {
+        padding: 0.5rem 0;
+        margin: 0;
+    }
+
+    #header #toc a {
+        padding-left: 10px;
+        font-weight: 400;
+        color: #02303A;
+        font-size: .95rem;
+        display: inline-block;
+    }
+
+    #header #toc a.active {
+        font-weight: 500;
+        border-left: 3px solid #01303a;
+        margin-left: -2px;
+        padding-left: 9px;
+    }
+
+    .site-footer__navigation {
+        flex-wrap: wrap;
+        margin-left: auto;
+        padding-left: 3rem;
+    }
+
+    .site-footer__link-group {
+        flex: 0.15 1 auto;
+    }
+
+    .site-footer__subscribe-newsletter {
+        /* A fix so subscribe disclaimer does not go under long ToC */
+        max-width: calc(100% - 17rem);
+    }
+}
+
+@media screen and (min-width: 80rem) {
+    .site-footer__subscribe-newsletter {
+        max-height: none;
+    }
+}
+
+@media screen and (min-width: 100rem) {
+    .content .chapter {
+        max-width: 60.5rem;
+    }
+
+    #header {
+        margin: 0 auto;
+    }
+
+    #content {
+        padding-right: 0;
+        margin: 0 auto;
+    }
+
+    #header #toc {
+        right: initial;
+        margin-left: 62.5rem;
+    }
+
+    .site-footer__navigation {
+        padding-left: 0;
+    }
+
+    .site-footer__link-group {
+        flex: 0.2 1 auto;
+    }
+}
+
+@media screen and (min-width: 112rem) {
+    .content .chapter {
+        max-width: 62.5rem;
+        margin: 0 auto;
+        padding-right: 3.5rem;
+        position: relative;
+        left: -130px;
+    }
+
+    #header #toc {
+        right: initial;
+        margin-left: 64.5rem;
+    }
+
+    .site-footer__link-group {
+        flex: 0.2 1 auto;
+    }
+}
+
+
+@supports (-moz-appearance:meterbar) and (background-blend-mode:difference,normal) {
+    /* Firefox only */
+    .site-header__navigation-submenu-section:after {
+        top: 2px;
+        right: -4px;
+    }
 }

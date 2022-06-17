@@ -26,11 +26,9 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.equalTo
 
-@Unroll
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
@@ -240,6 +238,12 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
 '''
         when:
+        executer.expectDocumentedDeprecationWarning(
+            "Using tarTree() on a resource without a backing file has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#tar_tree_no_backing_file"
+        )
         run 'copy'
         then:
         file('dest').assertHasDescendants('someDir/1.txt')

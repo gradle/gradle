@@ -17,6 +17,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -25,9 +26,9 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
@@ -91,7 +92,7 @@ import java.util.Set;
  * <ul>
  *
  * <li>A {@code String}, {@code CharSequence} or {@code groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
- * allows you to refer to tasks in other projects.</li>
+ * allows you to refer to tasks in other projects. These task references will not cause task creation.</li>
  *
  * <li>A {@link Task}.</li>
  *
@@ -199,6 +200,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Returns the {@link Project} which this task belongs to.</p>
      *
+     * <p>Calling this method from a task action is not supported when configuration caching is enabled.</p>
+     *
      * @return The project this task belongs to. Never returns null.
      */
     @Internal
@@ -222,6 +225,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     /**
      * <p>Returns a {@link TaskDependency} which contains all the tasks that this task depends on.</p>
+     *
+     * <p>Calling this method from a task action is not supported when configuration caching is enabled.</p>
      *
      * @return The dependencies of this task. Never returns null.
      */
@@ -276,8 +281,30 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 7.3
      */
     @Incubating
-    @Internal
     void doNotTrackState(String reasonNotToTrackState);
+
+    /**
+     * Specifies that this task is not compatible with the configuration cache.
+     *
+     * <p>
+     * Configuration cache problems found in the task will be reported but won't cause the build to fail.
+     * </p>
+     *
+     * <p>
+     * The presence of incompatible tasks in the task graph will cause the configuration state to be discarded
+     * at the end of the build unless the global {@code configuration-cache-problems} option is set to {@code warn},
+     * in which case the configuration state would still be cached in a best-effort manner as usual for the option.
+     * </p>
+     *
+     * <p>
+     * <b>IMPORTANT:</b> This setting doesn't affect how Gradle treats problems found in other tasks also present in the task graph and those
+     * could still cause the build to fail.
+     * </p>
+     *
+     * @since 7.4
+     */
+    @Incubating
+    void notCompatibleWithConfigurationCache(String reason);
 
     /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
@@ -404,7 +431,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(Closure action);
+    Task doFirst(@DelegatesTo(Task.class) Closure action);
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -443,7 +470,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(Closure action);
+    Task doLast(@DelegatesTo(Task.class) Closure action);
 
     /**
      * <p>Returns if this task is enabled or not.</p>
@@ -797,11 +824,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 5.0
      */
     @Internal
-    @Optional
     Property<Duration> getTimeout();
 
     /**
-     * Registers a {@link BuildService} that is used by this task.
+     * Registers a {@link BuildService} that is used by this task so
+     * {@link BuildServiceRegistration#getMaxParallelUsages() its constraint on parallel execution} can be honored.
      *
      * @param service The service provider.
      * @since 6.1

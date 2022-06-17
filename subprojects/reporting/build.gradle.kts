@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Report type classes and plugins for reporting (build dashboard, report container)"
+
 val implementationResources: Configuration by configurations.creating
 
 repositories {

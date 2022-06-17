@@ -20,7 +20,6 @@ import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
@@ -309,7 +308,6 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
         '1'       | '-2'      | 'OnMethod,OnParameter'
     }
 
-    @Unroll
     def "recompiles outermost class when #visibility inner class contains constant reference"() {
         source api: [
             "class A { public static final int EVIL = 666; }",

@@ -53,15 +53,15 @@ publishing {
     configurePublishingTasks()
 }
 
-val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime()
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
 val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime().orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").forUseAtConfigurationTime().orNull
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {

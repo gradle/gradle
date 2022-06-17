@@ -4,16 +4,17 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -45,9 +46,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
         withPrecompiledKotlinScript(
-            "org/gradle/plugins/plugin-with-package.gradle.kts",
+            "test/gradle/plugins/plugin-with-package.gradle.kts",
             """
-            package org.gradle.plugins
+            package test.gradle.plugins
 
             plugins {
                 org.gradle.base
@@ -62,7 +63,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `precompiled script plugins tasks are cached and relocatable`() {
 
         val firstLocation = "first-location"
@@ -125,7 +125,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "generateScriptPluginAdapters")
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
         withBuildScript(
@@ -243,7 +242,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after registering plugin`() {
         withSettings(
             """
@@ -356,7 +354,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     inline fun <reified T> nameOf() = T::class.qualifiedName
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
 
         withSettings(
@@ -637,7 +634,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     // https://github.com/gradle/gradle/issues/15416
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can apply a plugin from a repository in precompiled settings plugin`() {
         withFolders {
             "external-plugin" {
@@ -720,5 +716,98 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertThat(output, containsString("base-plugin settings plugin applied"))
             assertThat(output, containsString("my-plugin settings plugin applied"))
         }
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to conflict with core plugin`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/java.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+        withFile(
+            "build.gradle",
+            """
+            plugins {
+                java
+            }
+            """
+        )
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause(
+            "The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
+                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
+        )
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to have org-dot-gradle prefix`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/org.gradle.my-plugin.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause(
+            "The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
+                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
+        )
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to be in org-dot-gradle package`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/org/gradle/my-plugin.gradle.kts",
+            """
+            package org.gradle
+
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause(
+            "The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
+                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
+        )
+    }
+
+    @Test
+    fun `should compile correctly with Kotlin explicit api mode`() {
+        assumeNonEmbeddedGradleExecuter()
+        withBuildScript(
+            """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+
+            kotlin {
+                explicitApi()
+            }
+            """
+        )
+        withPrecompiledKotlinScript(
+            "my-plugin.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+
+        compileKotlin()
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
@@ -122,7 +123,7 @@ class Interpreter(val host: Host) {
             pluginRequests: PluginRequests
         )
 
-        fun applyBasePluginsTo(project: Project)
+        fun applyBasePluginsTo(project: ProjectInternal)
 
         fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>)
 
@@ -398,7 +399,7 @@ class Interpreter(val host: Host) {
         }
 
         override fun applyBasePluginsTo(project: Project) {
-            host.applyBasePluginsTo(project)
+            host.applyBasePluginsTo(project as ProjectInternal)
         }
 
         override fun handleScriptException(

@@ -25,8 +25,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +55,7 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
         return doCreate(type, null, parameters);
     }
 
-    @NotNull
+    @Nonnull
     private <T> T doCreate(Class<? extends T> type, @Nullable Describable displayName, Object[] parameters) {
         try {
             ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);

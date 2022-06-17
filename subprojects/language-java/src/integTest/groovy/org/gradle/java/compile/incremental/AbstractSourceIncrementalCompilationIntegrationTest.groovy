@@ -316,7 +316,7 @@ sourceSets {
 
         buildFile << """
             ${mavenCentralRepository()}
-            if (providers.gradleProperty("withIcu").forUseAtConfigurationTime().isPresent()) {
+            if (providers.gradleProperty("withIcu").isPresent()) {
                 dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
             }
 

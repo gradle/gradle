@@ -16,20 +16,17 @@
 
 package org.gradle.launcher
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import spock.lang.Issue
+import spock.lang.Timeout
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule
-    JDWPUtil jdwpClient = new JDWPUtil(5005)
-
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @Unroll
     def "reasonable failure message when --max-workers=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
@@ -47,7 +44,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @Unroll
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
@@ -67,6 +63,10 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() || GradleContextualExecuter.embedded })
     def "can debug with org.gradle.debug=true"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        JDWPUtil jdwpClient = new JDWPUtil(5005)
+
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
@@ -78,9 +78,98 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         gradle.waitForFinish()
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    def "can debug on selected port with org.gradle.debug.port"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        JDWPUtil jdwpClient = new JDWPUtil()
+
+        when:
+        def gradle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+
+        then:
+        ConcurrentTestUtil.poll() {
+            // Connect, resume threads, and disconnect from VM
+            jdwpClient.connect().dispose()
+        }
+        gradle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @Timeout(30)
+    def "reasonable failure message when org.gradle.debug.port=#value"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
+
+        when:
+        args("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.port=$value")
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertHasDescription "Value '$value' given for org.gradle.debug.port Gradle property is invalid (must be a number between 1 and 65535)"
+
+        where:
+        value << ["-1", "0", "1.1", "foo", " 1", "65536"]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Timeout(30)
+    def "can debug with org.gradle.debug.server=false"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        JDWPUtil jdwpClient = new JDWPUtil()
+        jdwpClient.listen(false)
+
+        when:
+        def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+
+        and:
+        jdwpClient.accept()
+        jdwpClient.resume()
+        jdwpClient.asyncResumeWhile { handle.running }
+
+        then:
+        handle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Timeout(30)
+    def "can debug with org.gradle.debug.suspend=false"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        JDWPUtil jdwpClient = new JDWPUtil()
+        jdwpClient.listen(false)
+
+        when:
+        def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.suspend=false", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+
+        and:
+        jdwpClient.accept()
+        if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+            // Only on Java 8, we must actually resume the VM on events, or it won't finish.
+            jdwpClient.asyncResumeWhile { handle.running }
+        }
+
+        then:
+        handle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
     static boolean debugPortIsFree() {
         boolean free = true
-
         ConcurrentTestUtil.poll(30) {
             Socket probe
             try {
@@ -93,7 +182,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
                 probe?.close()
             }
         }
-
         free
     }
+
 }

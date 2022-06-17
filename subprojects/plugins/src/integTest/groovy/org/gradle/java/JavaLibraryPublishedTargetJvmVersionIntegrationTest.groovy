@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Unroll
 
 class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -88,7 +87,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
 
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can fail resolution if producer doesn't have appropriate target version"() {
         buildFile << """
             configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 5)
@@ -128,7 +127,6 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)''')
     }
 
-    @Unroll
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
         buildFile << """
             configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $requested)

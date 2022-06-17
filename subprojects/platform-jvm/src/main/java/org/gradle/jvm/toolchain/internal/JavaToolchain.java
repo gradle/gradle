@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
@@ -102,6 +103,11 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Internal
     public boolean isJdk() {
         return metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER);
+    }
+
+    @Internal
+    public boolean isCurrentJvm() {
+        return javaHome.getAsFile().equals(Jvm.current().getJavaHome());
     }
 
     @Internal

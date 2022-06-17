@@ -18,8 +18,10 @@ package org.gradle.internal.resource;
 
 import com.google.common.base.Objects;
 import org.gradle.api.Describable;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -30,65 +32,153 @@ import static java.lang.String.format;
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
  */
+@NonNullApi
 public class ExternalResourceName implements Describable {
+    @Nullable
     private final String encodedRoot;
     private final String path;
     private final String encodedQuery;
 
     public ExternalResourceName(URI uri) {
-        if (uri.getPath() == null) {
-            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", uri.toString()));
-        }
-        this.encodedRoot = encodeRoot(uri);
-        this.path = extractPath(uri);
-        this.encodedQuery = extractQuery(uri);
+        this(encodeRoot(uri), extractPath(uri), extractQuery(uri));
     }
 
     public ExternalResourceName(String path) {
-        encodedRoot = null;
-        this.path = path;
-        this.encodedQuery = "";
+        this(null, path, "");
     }
 
-    private ExternalResourceName(String encodedRoot, String path) {
-        this.encodedRoot = encodedRoot;
-        this.path = path;
-        this.encodedQuery = "";
+    private ExternalResourceName(@Nullable String encodedRoot, String path) {
+        this(encodedRoot, path, "");
     }
 
     public ExternalResourceName(URI parent, String path) {
-        if (parent.getPath() == null) {
-            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", parent.toString()));
-        }
-        String newPath;
-        String parentPath = extractPath(parent);
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        if (path.length() == 0) {
-            newPath = parentPath;
-        } else if (parentPath.endsWith("/")) {
-            newPath = parentPath + path;
-        } else {
-            newPath = parentPath + "/" + path;
-        }
-        this.encodedRoot = encodeRoot(parent);
-        this.path = newPath;
-        this.encodedQuery = "";
+        this(encodeRoot(parent), combine(parent, path), "");
     }
 
-    private boolean isFileOnHost(URI uri) {
+    private ExternalResourceName(@Nullable String encodedRoot, String path, String encodedQuery) {
+        this.encodedRoot = encodedRoot;
+        this.path = path;
+        this.encodedQuery = encodedQuery;
+    }
+
+    public String getDisplayName() {
+        return getDecoded();
+    }
+
+    public String getShortDisplayName() {
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash == -1 ? getDecoded() : path.substring(lastSlash + 1);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    /**
+     * Returns a URI that represents this resource.
+     */
+    public URI getUri() {
+        try {
+            if (encodedRoot == null) {
+                return new URI(encode(path, false) + encodedQuery);
+            }
+            return new URI(encodedRoot + encode(path, true) + encodedQuery);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Returns the 'decoded' name, which is the opaque root + the path of the name.
+     */
+    public String getDecoded() {
+        if (encodedRoot == null) {
+            return path;
+        }
+        return encodedRoot + path;
+    }
+
+    /**
+     * Returns the root name for this name.
+     */
+    public ExternalResourceName getRoot() {
+        return new ExternalResourceName(encodedRoot, path.startsWith("/") ? "/" : "");
+    }
+
+    /**
+     * Returns the path for this resource. The '/' character is used to separate the elements of the path.
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Resolves the given path relative to this name. The path can be a relative path or an absolute path. The '/' character is used to separate the elements of the path.
+     */
+    public ExternalResourceName resolve(String path) {
+        List<String> parts = new ArrayList<>();
+        boolean leadingSlash;
+        boolean trailingSlash = path.endsWith("/");
+        if (path.startsWith("/")) {
+            leadingSlash = true;
+        } else {
+            leadingSlash = this.path.startsWith("/");
+            append(this.path, parts);
+        }
+        append(path, parts);
+        String newPath = join(leadingSlash, trailingSlash, parts);
+        return new ExternalResourceName(encodedRoot, newPath);
+    }
+
+    /**
+     * Appends the given text to the end of this path.
+     */
+    public ExternalResourceName append(String path) {
+        return new ExternalResourceName(encodedRoot, this.path + path);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || !obj.getClass().equals(getClass())) {
+            return false;
+        }
+        ExternalResourceName other = (ExternalResourceName) obj;
+        return Objects.equal(encodedRoot, other.encodedRoot) && path.equals(other.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return (encodedRoot == null ? 0 : encodedRoot.hashCode()) ^ path.hashCode();
+    }
+
+    private static String combine(URI parent, String path) {
+        String parentPath = extractPath(parent);
+        String childPath = path.startsWith("/") ? path.substring(1) : path;
+        if (childPath.length() == 0) {
+            return parentPath;
+        } else if (parentPath.endsWith("/")) {
+            return parentPath + childPath;
+        } else {
+            return parentPath + "/" + childPath;
+        }
+    }
+
+    private static boolean isFileOnHost(URI uri) {
         return "file".equals(uri.getScheme()) && uri.getPath().startsWith("//");
     }
 
-    private String extractPath(URI parent) {
+    private static String extractPath(URI parent) {
         if (isFileOnHost(parent)) {
             return URI.create(parent.getPath()).getPath();
         }
         return parent.getPath();
     }
 
-    private String extractQuery(URI uri) {
+    private static String extractQuery(URI uri) {
         String rawQuery = uri.getRawQuery();
         if (rawQuery == null) {
             return "";
@@ -96,8 +186,11 @@ public class ExternalResourceName implements Describable {
         return "?" + rawQuery;
     }
 
-    private String encodeRoot(URI uri) {
+    private static String encodeRoot(URI uri) {
         //based on reversing the operations performed by URI.toString()
+        if (uri.getPath() == null) {
+            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", uri));
+        }
 
         StringBuilder builder = new StringBuilder(uri.toString());
 
@@ -138,35 +231,7 @@ public class ExternalResourceName implements Describable {
         return encode(builder.toString(), true);
     }
 
-    public String getDisplayName() {
-        return getDecoded();
-    }
-
-    public String getShortDisplayName() {
-        int lastSlash = path.lastIndexOf('/');
-        return lastSlash == -1 ? getDecoded() : path.substring(lastSlash + 1);
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    /**
-     * Returns a URI that represents this resource.
-     */
-    public URI getUri() {
-        try {
-            if (encodedRoot == null) {
-                return new URI(encode(path, false) + encodedQuery);
-            }
-            return new URI(encodedRoot + encode(path, true) + encodedQuery);
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private String encode(String path, boolean isPathSeg) {
+    private static String encode(String path, boolean isPathSeg) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < path.length(); i++) {
             char ch = path.charAt(i);
@@ -192,53 +257,10 @@ public class ExternalResourceName implements Describable {
         return builder.toString();
     }
 
-    private void escapeByte(int ch, StringBuilder builder) {
+    private static void escapeByte(int ch, StringBuilder builder) {
         builder.append('%');
         builder.append(Character.toUpperCase(Character.forDigit(ch >> 4 & 0xFF, 16)));
         builder.append(Character.toUpperCase(Character.forDigit(ch & 0xF, 16)));
-    }
-
-    /**
-     * Returns the 'decoded' name, which is the opaque root + the path of the name.
-     */
-    public String getDecoded() {
-        if (encodedRoot == null) {
-            return path;
-        }
-        return encodedRoot + path;
-    }
-
-    /**
-     * Returns the root name for this name.
-     */
-    public ExternalResourceName getRoot() {
-        return new ExternalResourceName(encodedRoot, path.startsWith("/") ? "/" : "");
-    }
-
-    /**
-     * Returns the path for this resource. The '/' character is used to separate the elements of the path.
-     */
-    public String getPath() {
-        return path;
-    }
-
-    /**
-     * Resolves the given path relative to this name. The path can be a relative path or an absolute path. The '/' character is used to separate the elements of the path.
-     */
-    public ExternalResourceName resolve(String path) {
-        List<String> parts = new ArrayList<String>();
-        boolean leadingSlash;
-        boolean trailingSlash = path.endsWith("/");
-        if (path.startsWith("/")) {
-            leadingSlash = true;
-            append(path, parts);
-        } else {
-            leadingSlash = this.path.startsWith("/");
-            append(this.path, parts);
-            append(path, parts);
-        }
-        String newPath = join(leadingSlash, trailingSlash, parts);
-        return new ExternalResourceName(encodedRoot, newPath);
     }
 
     private String join(boolean leadingSlash, boolean trailingSlash, List<String> parts) {
@@ -259,7 +281,8 @@ public class ExternalResourceName implements Describable {
     }
 
     private void append(String path, List<String> parts) {
-        for (int pos = 0; pos < path.length();) {
+        int pos = 0;
+        while (pos < path.length()) {
             int end = path.indexOf('/', pos);
             String part;
             if (end < 0) {
@@ -278,29 +301,5 @@ public class ExternalResourceName implements Describable {
             }
             parts.add(part);
         }
-    }
-
-    /**
-     * Appends the given text to the end of this path.
-     */
-    public ExternalResourceName append(String path) {
-        return new ExternalResourceName(encodedRoot, this.path + path);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || !obj.getClass().equals(getClass())) {
-            return false;
-        }
-        ExternalResourceName other = (ExternalResourceName) obj;
-        return Objects.equal(encodedRoot, other.encodedRoot) && path.equals(other.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return (encodedRoot == null ? 0 : encodedRoot.hashCode()) ^ path.hashCode();
     }
 }

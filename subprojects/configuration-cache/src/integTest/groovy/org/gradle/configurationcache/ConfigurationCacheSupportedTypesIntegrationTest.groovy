@@ -27,13 +27,12 @@ import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
-import spock.lang.Unroll
 
 import javax.inject.Inject
+import java.util.logging.Level
 
 class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
             import java.util.concurrent.*
@@ -74,56 +73,76 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains("bean.value = ${output}")
 
         where:
-        type                                 | reference                                                              | output
-        String.name                          | "'value'"                                                              | "value"
-        String.name                          | "null"                                                                 | "null"
-        Boolean.name                         | "true"                                                                 | "true"
-        boolean.name                         | "true"                                                                 | "true"
-        Character.name                       | "'a'"                                                                  | "a"
-        char.name                            | "'a'"                                                                  | "a"
-        Byte.name                            | "12"                                                                   | "12"
-        byte.name                            | "12"                                                                   | "12"
-        Short.name                           | "12"                                                                   | "12"
-        short.name                           | "12"                                                                   | "12"
-        Integer.name                         | "12"                                                                   | "12"
-        int.name                             | "12"                                                                   | "12"
-        Long.name                            | "12"                                                                   | "12"
-        long.name                            | "12"                                                                   | "12"
-        Float.name                           | "12.1"                                                                 | "12.1"
-        float.name                           | "12.1"                                                                 | "12.1"
-        Double.name                          | "12.1"                                                                 | "12.1"
-        double.name                          | "12.1"                                                                 | "12.1"
-        Class.name                           | "SomeBean"                                                             | "class SomeBean"
-        URL.name                             | "new URL('https://gradle.org/')"                                       | "https://gradle.org/"
-        URI.name                             | "URI.create('https://gradle.org/')"                                    | "https://gradle.org/"
-        "SomeEnum"                           | "SomeEnum.Two"                                                         | "Two"
-        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                         | "[Two]"
-        "List<String>"                       | "['a', 'b', 'c']"                                                      | "[a, b, c]"
-        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"                                         | "[a, b, c]"
-        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"                                        | "[a, b, c]"
-        "Set<String>"                        | "['a', 'b', 'c'] as Set"                                               | "[a, b, c]"
-        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"                                           | "[a, b, c]"
-        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"                                     | "[a, b, c]"
-        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"                                           | "[a, b, c]"
-        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"                                             | "[Two]"
-        "Map<String, Integer>"               | "[a: 1, b: 2]"                                                         | "[a:1, b:2]"
-        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                            | "[a:1, b:2]"
-        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                                      | "[a:1, b:2]"
-        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                            | "[a:1, b:2]"
-        "TreeMap<String, Integer>"           | "new TreeMap({ x, y -> y.compareTo(x) }).tap { putAll([a: 1, b: 2]) }" | "[b:2, a:1]"
-        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                                  | "[a:1, b:2]"
-        "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])"          | "[One:one, Two:two]"
-        "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"                                     | "[-128, 127]"
-        "short[]"                            | "[Short.MIN_VALUE, Short.MAX_VALUE]"                                   | "[-32768, 32767]"
-        "int[]"                              | "[Integer.MIN_VALUE, Integer.MAX_VALUE]"                               | "[-2147483648, 2147483647]"
-        "long[]"                             | "[Long.MIN_VALUE, Long.MAX_VALUE]"                                     | "[-9223372036854775808, 9223372036854775807]"
-        "float[]"                            | "[Float.MIN_VALUE, Float.NaN, Float.MAX_VALUE]"                        | "[1.4E-45, NaN, 3.4028235E38]"
-        "double[]"                           | "[Double.MIN_VALUE, Double.NaN, Double.MAX_VALUE]"                     | "[4.9E-324, NaN, 1.7976931348623157E308]"
-        "boolean[]"                          | "[true, false]"                                                        | "[true, false]"
-        "char[]"                             | "['a', 'b', 'c']"                                                      | "abc"
+        type                                 | reference                             | output
+        String.name                          | "'value'"                             | "value"
+        String.name                          | "null"                                | "null"
+        Boolean.name                         | "true"                                | "true"
+        boolean.name                         | "true"                                | "true"
+        Character.name                       | "'a'"                                 | "a"
+        char.name                            | "'a'"                                 | "a"
+        Byte.name                            | "12"                                  | "12"
+        byte.name                            | "12"                                  | "12"
+        Short.name                           | "12"                                  | "12"
+        short.name                           | "12"                                  | "12"
+        Integer.name                         | "12"                                  | "12"
+        int.name                             | "12"                                  | "12"
+        Long.name                            | "12"                                  | "12"
+        long.name                            | "12"                                  | "12"
+        Float.name                           | "12.1"                                | "12.1"
+        float.name                           | "12.1"                                | "12.1"
+        Double.name                          | "12.1"                                | "12.1"
+        double.name                          | "12.1"                                | "12.1"
+        Class.name                           | "SomeBean"                            | "class SomeBean"
+        URL.name                             | "new URL('https://gradle.org/')"      | "https://gradle.org/"
+        URI.name                             | "URI.create('https://gradle.org/')"   | "https://gradle.org/"
+        Level.name                           | "${Level.name}.INFO"                  | "INFO"
+        "SomeEnum"                           | "SomeEnum.Two"                        | "Two"
+        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"        | "[Two]"
+        "List<String>"                       | "['a', 'b', 'c']"                     | "[a, b, c]"
+        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"        | "[a, b, c]"
+        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"       | "[a, b, c]"
+        "Set<String>"                        | "['a', 'b', 'c'] as Set"              | "[a, b, c]"
+        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"          | "[a, b, c]"
+        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"    | "[a, b, c]"
+        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"          | "[a, b, c]"
+        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"            | "[Two]"
+        "Map<String, Integer>"               | "[a: 1, b: 2]"                        | "[a:1, b:2]"
+        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"           | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"     | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"           | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | treeMapWithComparator()               | "[b:2, a:1]"
+        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])" | "[a:1, b:2]"
+        "EnumMap<SomeEnum, String>"          | enumMapToString()                     | "[One:one, Two:two]"
+        "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"    | "[-128, 127]"
+        "short[]"                            | "[Short.MIN_VALUE, Short.MAX_VALUE]"  | "[-32768, 32767]"
+        "int[]"                              | integerArray()                        | "[-2147483648, 2147483647]"
+        "long[]"                             | "[Long.MIN_VALUE, Long.MAX_VALUE]"    | "[-9223372036854775808, 9223372036854775807]"
+        "float[]"                            | floatArray()                          | "[1.4E-45, NaN, 3.4028235E38]"
+        "double[]"                           | doubleArray()                         | "[4.9E-324, NaN, 1.7976931348623157E308]"
+        "boolean[]"                          | "[true, false]"                       | "[true, false]"
+        "char[]"                             | "['a', 'b', 'c']"                     | "abc"
     }
 
-    @Unroll
+    private String integerArray() {
+        "[Integer.MIN_VALUE, Integer.MAX_VALUE]"
+    }
+
+    private String floatArray() {
+        "[Float.MIN_VALUE, Float.NaN, Float.MAX_VALUE]"
+    }
+
+    private String doubleArray() {
+        "[Double.MIN_VALUE, Double.NaN, Double.MAX_VALUE]"
+    }
+
+    private String enumMapToString() {
+        "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])"
+    }
+
+    private String treeMapWithComparator() {
+        "new TreeMap({ x, y -> y.compareTo(x) }).tap { putAll([a: 1, b: 2]) }"
+    }
+
     def "keeps iteration order of #type instances"() {
         given:
         buildFile << """
@@ -152,7 +171,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         'HashMap' | "['first': 1, 'second': 2, 'third': 3] as HashMap" | 'underTest.collect { k,v -> "$k=$v" }.join(", ")'
     }
 
-    @Unroll
     def "restores task fields whose value is instance of plugin specific version of Guava #type"() {
         buildFile << """
             import ${type.name}
@@ -202,7 +220,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
     }
 
-    @Unroll
     def "restores task fields whose value is service of type #type"() {
         buildFile << """
             class SomeBean {
@@ -247,7 +264,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
     }
 
-    @Unroll
     def "restores task fields whose value is provider of type #type"() {
         buildFile << """
             import ${Inject.name}
@@ -291,7 +307,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "Provider<String>" | "objects.property(String)"                | "null"
     }
 
-    @Unroll
     def "restores task fields whose value is broken #type"() {
         def configurationCache = newConfigurationCacheFixture()
 
@@ -336,7 +351,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
-    @Unroll
     def "restores task fields whose value is property of type #type"() {
         buildFile << """
             import ${Inject.name}
@@ -385,25 +399,25 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains("bean.value = ${expected}")
 
         where:
-        type                          | factory                               | reference        | output
-        "Property<String>"            | "objects.property(String)"            | "'value'"        | "value"
-        "Property<String>"            | "objects.property(String)"            | "null"           | "null"
-        "DirectoryProperty"           | "objects.directoryProperty()"         | "file('abc')"    | new File('abc')
-        "DirectoryProperty"           | "objects.directoryProperty()"         | "null"           | "null"
-        "RegularFileProperty"         | "objects.fileProperty()"              | "file('abc')"    | new File('abc')
-        "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
-        "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
-        "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
-        "ListProperty<String>"        | "objects.listProperty(String)"        | "null"           | "null"
-        "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
-        "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
-        "SetProperty<String>"         | "objects.setProperty(String)"         | "null"           | "null"
-        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
-        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
-        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
+        type                          | factory                               | reference            | output
+        "Property<String>"            | "objects.property(String)"            | "'value'"            | "value"
+        "Property<String>"            | "objects.property(String)"            | "null"               | "null"
+        "DirectoryProperty"           | "objects.directoryProperty()"         | "file('abc')"        | new File('abc')
+        "DirectoryProperty"           | "objects.directoryProperty()"         | "null"               | "null"
+        "RegularFileProperty"         | "objects.fileProperty()"              | "file('abc')"        | new File('abc')
+        "RegularFileProperty"         | "objects.fileProperty()"              | "null"               | "null"
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"                 | "[]"
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"            | ['abc']
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "null"               | "null"
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"                 | "[]"
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"            | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "null"               | "null"
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"                | [:]
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']"     | ['abc': 'def']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"               | "null"
+        "Property<$Level.name>"       | "objects.property($Level.name)"       | "${Level.name}.INFO" | "INFO"
     }
 
-    @Unroll
     def "restores task fields whose value is FileCollection"() {
         buildFile << """
             import ${Inject.name}
@@ -455,7 +469,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "layout.files('a', 'b')" | ['a', 'b']
     }
 
-    @Unroll
     def "restores task fields whose value is #kind TextResource"() {
 
         given:

@@ -47,20 +47,20 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep extends BuildOperationStep<PreviousExecutionContext, CachingResult> {
+public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
-    private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
+    private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
+        Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -70,7 +70,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, PreviousExecutionContext context) {
+    public R execute(UnitOfWork work, C context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .flatMap(history -> captureExecutionState(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
@@ -197,14 +197,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
             context.getInputFileProperties(),
             work::visitRegularInputs
         );
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), newInputs.getValueSnapshots());
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = union(context.getInputFileProperties(), newInputs.getFileFingerprints());
 
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
-            inputProperties,
-            inputFileFingerprints,
+            newInputs.getAllValueSnapshots(),
+            newInputs.getAllFileFingerprints(),
             unfilteredOutputSnapshots,
             overlappingOutputs
         );
@@ -257,22 +255,6 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
         interface Result {
             Result INSTANCE = new Result() {
             };
-        }
-    }
-
-    private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
-        ImmutableSortedMap<K, V> a,
-        ImmutableSortedMap<K, V> b
-    ) {
-        if (a.isEmpty()) {
-            return b;
-        } else if (b.isEmpty()) {
-            return a;
-        } else {
-            return ImmutableSortedMap.<K, V>naturalOrder()
-                .putAll(a)
-                .putAll(b)
-                .build();
         }
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.provider.ValueSourceParameters;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractPropertyValueSource implements ValueSource<String, GradlePropertyValueSource.Parameters>, Describable {
+public abstract class AbstractPropertyValueSource<P extends AbstractPropertyValueSource.Parameters> implements ValueSource<String, P>, Describable {
 
     public interface Parameters extends ValueSourceParameters {
         Property<String> getPropertyName();

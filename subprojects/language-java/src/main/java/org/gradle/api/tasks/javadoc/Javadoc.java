@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -60,6 +61,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.GUtil.isTrue;
 
@@ -145,6 +147,23 @@ public class Javadoc extends SourceTask {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
+        if (options.getBootClasspath() != null && !options.getBootClasspath().isEmpty()) {
+            // Added so JavaDoc has the same behavior as JavaCompile regarding the bootClasspath
+            getProjectLayout().files(options.getBootClasspath()).getAsPath();
+        }
+
+        // If modularized JavaDoc is needed, we need to add the source paths - the file listing is not enough alone
+        // See #19726 for more
+        if (isModule) {
+            List<File> sourceDirectories = getSource()
+                .getFiles()
+                .stream()
+                .map(File::getParentFile)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+            options.setSourcePath(sourceDirectories);
+        }
 
         if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());
@@ -365,7 +384,7 @@ public class Javadoc extends SourceTask {
      *
      * @param block The configuration block for Javadoc generation options.
      */
-    public void options(Closure<?> block) {
+    public void options(@DelegatesTo(MinimalJavadocOptions.class) Closure<?> block) {
         ConfigureUtil.configure(block, getOptions());
     }
 

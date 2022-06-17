@@ -153,7 +153,7 @@ public class FileCollectionFingerprinterRegistrations {
     }
 
     private static <T> Stream<T> withAllDirectorySensitivities(Function<DirectorySensitivity, Stream<T>> f) {
-        return stream(DirectorySensitivity.values()).flatMap(f);
+        return Stream.of(DirectorySensitivity.DEFAULT, DirectorySensitivity.IGNORE_DIRECTORIES).flatMap(f);
     }
 
     public Set<FingerprinterRegistration> getRegistrants() {

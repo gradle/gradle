@@ -27,7 +27,6 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -39,10 +38,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
     )
-    @Unroll("#notation is an invalid notation")
-    def "reasonable error message if notation is invalid"() {
+    def "#notation is an invalid notation"() {
         when:
-        builder.alias("foo").to(notation)
+        builder.library("foo", notation)
 
         then:
         InvalidUserDataException ex = thrown()
@@ -59,10 +57,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_ALIAS_NOTATION
     )
-    @Unroll("#notation is an invalid alias")
-    def "reasonable error message if alias is invalid"() {
+    def "#notation is an invalid alias"() {
         when:
-        builder.alias(notation).to("org:foo:1.0")
+        builder.library(notation, "org:foo:1.0")
 
         then:
         InvalidUserDataException ex = thrown()
@@ -78,10 +75,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "forbids using #name as a dependency alias"() {
         when:
-        builder.alias(name).to("org:foo:1.0")
+        builder.library(name, "org:foo:1.0")
 
         then:
         InvalidUserDataException ex = thrown()
@@ -104,10 +100,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "allows using #name as a dependency alias"() {
         when:
-        builder.alias(name).to("org:foo:1.0")
+        builder.library(name, "org:foo:1.0")
 
         then:
         noExceptionThrown()
@@ -135,10 +130,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "allows using #name for versions and plugins"() {
         when:
-        builder.alias(name).toPluginId("org.foo").version("1.0")
+        builder.plugin(name, "org.foo").version("1.0")
         builder.version(name, "1.0")
 
         then:
@@ -158,8 +152,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_ALIAS_NOTATION
     )
-    @Unroll("#notation is an invalid bundle name")
-    def "reasonable error message if bundle name is invalid"() {
+    def "#notation is an invalid bundle alias"() {
         when:
         builder.bundle(notation, [])
 
@@ -183,10 +176,10 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         loggingManager.addStandardOutputListener(listener)
         loggingManager.start()
 
-        builder.alias("foo").to("a:b:1.0")
+        builder.library("foo", "a:b:1.0")
 
         when:
-        builder.alias("foo").to("e:f:1.1")
+        builder.library("foo", "e:f:1.1")
 
         then:
         1 * listener.onOutput("Duplicate entry for alias 'foo': dependency {group='a', name='b', version='1.0'} is replaced with dependency {group='e', name='f', version='1.1'}")
@@ -219,7 +212,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE
     )
     def "fails building the model if a bundle references a non-existing alias"() {
-        builder.alias("guava").to("com.google.guava:guava:17.0")
+        builder.library("guava", "com.google.guava:guava:17.0")
         builder.bundle("toto", ["foo"])
 
         when:
@@ -235,11 +228,11 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     }
 
     def "normalizes alias separators to dot"() {
-        builder.alias("guava").to("com.google.guava:guava:17.0")
-        builder.alias("groovy").to("org.codehaus.groovy", "groovy").version {
+        builder.library("guava", "com.google.guava:guava:17.0")
+        builder.library("groovy", "org.codehaus.groovy", "groovy").version {
             it.strictly("3.0.5")
         }
-        builder.alias("groovy-json").to("org.codehaus.groovy", "groovy-json").version {
+        builder.library("groovy-json", "org.codehaus.groovy", "groovy-json").version {
             it.prefer("3.0.5")
         }
         builder.bundle("groovy", ["groovy", "groovy-json"])
@@ -251,7 +244,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         model.bundleAliases == ["groovy"]
         model.getBundle("groovy").components == ["groovy", "groovy.json"]
 
-        model.dependencyAliases == ["groovy", "groovy.json", "guava"]
+        model.libraryAliases == ["groovy", "groovy.json", "guava"]
         model.getDependencyData("guava").version.requiredVersion == '17.0'
         model.getDependencyData("groovy").version.strictVersion == '3.0.5'
         model.getDependencyData("groovy-json").version.strictVersion == ''
@@ -262,9 +255,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     }
 
     def "can use arbitrary separators when building bundles"() {
-        builder.alias("foo.bar").to("foo:bar:1.0")
-        builder.alias("foo-baz").to("foo:baz:1.0")
-        builder.alias("foo_qux").to("foo:qux:1.0")
+        builder.library("foo.bar", "foo:bar:1.0")
+        builder.library("foo-baz", "foo:baz:1.0")
+        builder.library("foo_qux", "foo:qux:1.0")
 
         builder.bundle("my", ["foo-bar", "foo_baz", "foo.qux"])
         builder.bundle("a.b", ["foo.bar"])
@@ -275,7 +268,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         def model = builder.build()
 
         then:
-        model.dependencyAliases == ["foo.bar", "foo.baz", "foo.qux"]
+        model.libraryAliases == ["foo.bar", "foo.baz", "foo.qux"]
         model.bundleAliases == ["a.b", "a.c", "a.d", "my"]
         model.getBundle("my").components == ["foo.bar", "foo.baz", "foo.qux"]
 
@@ -289,9 +282,9 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         builder.version("my.v3") {
             it.prefer("1.0")
         }
-        builder.alias("foo").to("org", "foo").versionRef("my.v1")
-        builder.alias("bar").to("org", "foo").versionRef("my-v2")
-        builder.alias("baz").to("org", "foo").versionRef("my_v3")
+        builder.library("foo", "org", "foo").versionRef("my.v1")
+        builder.library("bar", "org", "foo").versionRef("my-v2")
+        builder.library("baz", "org", "foo").versionRef("my_v3")
 
         when:
         def model = builder.build()
@@ -304,31 +297,31 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     }
 
     def "can use rich versions in short-hand notation"() {
-        builder.alias("dummy").to("g:a:1.5!!")
-        builder.alias("alias").to("g:a:[1.0,2.0[!!1.7")
+        builder.library("dummy", "g:a:1.5!!")
+        builder.library("alias", "g:a:[1.0,2.0[!!1.7")
 
         when:
         def model = builder.build()
 
         then:
-        model.dependencyAliases == ["alias", "dummy"]
+        model.libraryAliases == ["alias", "dummy"]
         model.getDependencyData("dummy").version.strictVersion == '1.5'
         model.getDependencyData("alias").version.strictVersion == '[1.0,2.0['
         model.getDependencyData("alias").version.preferredVersion == '1.7'
     }
 
     def "strings are interned"() {
-        builder.alias("foo").to("bar", "baz").version {
+        builder.library("foo", "bar", "baz").version {
             it.require "1.0"
         }
-        builder.alias("baz").to("foo", "bar").version {
+        builder.library("baz", "foo", "bar").version {
             it.prefer "1.0"
         }
         when:
         def model = builder.build()
 
         then:
-        def bazKey = model.dependencyAliases.find { it == 'baz' }
+        def bazKey = model.libraryAliases.find { it == 'baz' }
         model.getDependencyData("foo").group.is(model.getDependencyData("baz").name)
         model.getDependencyData("foo").name.is(bazKey)
         model.getDependencyData("foo").version.requiredVersion.is(model.getDependencyData("baz").version.preferredVersion)
@@ -336,7 +329,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
 
     def "can create an alias to a referenced version"() {
         builder.version("ver", "1.7!!")
-        builder.alias("foo").to("org", "foo").versionRef("ver")
+        builder.library("foo", "org", "foo").versionRef("ver")
 
         when:
         def model = builder.build()
@@ -346,7 +339,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     }
 
     def "can declare a plugin with a version"() {
-        builder.alias("my").toPluginId("org.plugin").version("1.3")
+        builder.plugin("my", "org.plugin").version("1.3")
 
         when:
         def model = builder.build()
@@ -357,7 +350,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
 
     def "can declare a plugin referencing a version"() {
         builder.version("ver", "1.5")
-        builder.alias("my").toPluginId("org.plugin").versionRef("ver")
+        builder.plugin("my", "org.plugin").versionRef("ver")
 
         when:
         def model = builder.build()
@@ -367,7 +360,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     }
 
     def "can create an alias with an empty version"() {
-        builder.alias("foo").to("org", "foo").withoutVersion()
+        builder.library("foo", "org", "foo").withoutVersion()
 
         when:
         def model = builder.build()
@@ -380,7 +373,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE
     )
     def "reasonable error message if referenced version doesn't exist"() {
-        builder.alias("foo").to("org", "foo").versionRef("nope")
+        builder.library("foo", "org", "foo").versionRef("nope")
         builder.version('v1', '1.0')
         builder.version('v2', '1.2')
         when:

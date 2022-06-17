@@ -20,6 +20,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport
@@ -35,10 +36,6 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     TestFile tomlFile = testDirectory.file("gradle/libs.versions.toml")
-
-    def setup() {
-        usePluginRepoMirror = false // otherwise the plugin portal fixture doesn't work!
-    }
 
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
@@ -88,7 +85,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
     }
 
     def "can use the generated extension to declare a dependency"() {
@@ -438,7 +435,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias('other').to('org.gradle.test:other:1.0')
+                        library('other', 'org.gradle.test:other:1.0')
                     }
                 }
             }
@@ -478,7 +475,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias('my-lib').to('org.gradle.test:lib:1.0')
+                        library('my-lib', 'org.gradle.test:lib:1.0')
                     }
                 }
             }
@@ -502,7 +499,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
     @IgnoreIf({ GradleContextualExecuter.configCache })
     // This test explicitly checks the configuration cache behavior
     def "changing the TOML file invalidates the configuration cache"() {
-        def cc = newConfigurationCacheFixture()
+        def cc = new ConfigurationCacheFixture(this)
         tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
@@ -557,8 +554,9 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
         succeeds ':checkDeps'
 
         then:
-        cc.assertStateStored()
-        outputContains "Calculating task graph as configuration cache cannot be reused because file 'gradle${File.separatorChar}libs.versions.toml' has changed."
+        cc.assertStateRecreated {
+            fileChanged("gradle/libs.versions.toml")
+        }
     }
 
     def "can change the default extension name"() {
@@ -568,14 +566,14 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         settingsFile << """
             dependencyResolutionManagement {
-                defaultLibrariesExtensionName = 'libraries'
+                defaultLibrariesExtensionName = 'myLibs'
             }
         """
         buildFile << """
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.my.lib
+                implementation myLibs.my.lib
             }
         """
 
@@ -731,4 +729,99 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with file collection containing more than one file"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files("gradle/a.versions.toml", "gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, tooManyImportFiles {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with an empty file collection"() {
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files())
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, noImportFiles {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called multiple times"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(file("gradle/a.versions.toml"))
+            from(file("gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, tooManyImportInvokation {
+            inCatalog("testLibs")
+        })
+    }
+
 }
