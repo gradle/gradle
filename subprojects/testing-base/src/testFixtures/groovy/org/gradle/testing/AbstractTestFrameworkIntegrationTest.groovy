@@ -149,6 +149,10 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         fails "check"
 
         then:
+        assertSimpleTestFailureWithResult()
+    }
+
+    protected void assertSimpleTestFailureWithResult() {
         failure.assertCausedByFailingTestsInDefaultTestSuite()
         failure.assertHasErrorOutput("> \t'test' target FAILED: 2/3. See report at: ")
     }
