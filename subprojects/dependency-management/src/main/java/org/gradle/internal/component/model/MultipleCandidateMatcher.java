@@ -254,7 +254,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested);
 
         for (int a : precedenceResult.getSortedOrder()) {
-            disambiguateWithAttribute(a);
+            disambiguateWithAttribute(a, true);
             if (remaining.cardinality() == 0) {
                 return;
             } else if (remaining.cardinality() == 1) {
@@ -266,19 +266,24 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         // If the attribute does not have a known precedence, then we cannot stop
         // until we've disambiguated all of the attributes.
         for (int a : precedenceResult.getUnsortedOrder()) {
-            disambiguateWithAttribute(a);
+            disambiguateWithAttribute(a, true);
             if (remaining.cardinality() == 0) {
                 return;
             }
         }
     }
 
-    private void disambiguateWithAttribute(int a) {
+    private void disambiguateWithAttribute(int a, boolean requestedAttribute) {
         Set<Object> candidateValues = getCandidateValues(a);
-        if (candidateValues.size() <= 1) {
+        if (candidateValues.isEmpty()) {
             return;
         }
-
+        if (candidateValues.size() == 1) {
+            if (requestedAttribute) {
+                removeCandidatesWithValueNotIn(a, candidateValues);
+            }
+            return;
+        }
         Set<Object> matches = schema.disambiguate(getAttribute(a), getRequestedValue(a), candidateValues);
         if (matches.size() < candidateValues.size()) {
             removeCandidatesWithValueNotIn(a, matches);
@@ -332,7 +337,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         collectExtraAttributes();
         int allAttributes = requestedAttributes.size() + extraAttributes.length;
         for (int a = requestedAttributes.size(); a < allAttributes; a++) {
-            disambiguateWithAttribute(a);
+            disambiguateWithAttribute(a, false);
             if (remaining.cardinality() == 0) {
                 return;
             }

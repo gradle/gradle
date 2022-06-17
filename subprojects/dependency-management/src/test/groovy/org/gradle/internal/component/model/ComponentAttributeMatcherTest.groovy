@@ -236,8 +236,30 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate5]
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.match(schema, [candidate1, candidate2, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate4, candidate6]
+        matcher.match(schema, [candidate1, candidate2, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate6]
         matcher.match(schema, [candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate3]
+    }
+
+    def "matches absence of requested attribute if only one match"() {
+        given:
+        def matcher = new ComponentAttributeMatcher()
+
+        def usage = Attribute.of('usage', String)
+        schema.attribute(usage)
+        def other = Attribute.of('other', String)
+        schema.attribute(other)
+
+        def candidate1 = attributes(usage: "match")
+        def candidate2 = attributes(usage: "no match")
+        def candidate3 = attributes(other: "match")
+        def candidate4 = attributes()
+        def candidate5 = attributes(usage: "match", other: "match")
+        def candidate6 = attributes(usage: "match")
+        def requested = attributes(usage: "match")
+
+        expect:
+        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate1, candidate6]
+        matcher.match(schema, [candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate4]
     }
 
     def "disambiguates multiple matches using extra attributes from producer"() {
@@ -564,18 +586,22 @@ class ComponentAttributeMatcherTest extends Specification {
         result == [candidate1]
 
         where:
-        type                | value1        | value2
-        String              | "embedded"    | "embedded"
-        EnumTestAttribute   | "NAME1"       | "NAME2"
-        NamedTestAttribute  | "foo"         | "bar"
+        type               | value1     | value2
+        String             | "embedded" | "embedded"
+        EnumTestAttribute  | "NAME1"    | "NAME2"
+        NamedTestAttribute | "foo"      | "bar"
     }
 
     private AttributeContainerInternal attributes() {
         factory.mutable()
     }
 
-    interface NamedTestAttribute extends Named { }
-    enum EnumTestAttribute { NAME1, NAME2 }
+    interface NamedTestAttribute extends Named {}
+
+    enum EnumTestAttribute {
+        NAME1, NAME2
+    }
+
     static class NotSerializableInGradleMetadataAttribute implements Serializable {
         String name
 
