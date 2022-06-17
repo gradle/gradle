@@ -48,7 +48,6 @@ public class DefaultJvmTestSuiteTarget extends AbstractTestSuiteTarget implement
         this.testTask = tasks.register(name, Test.class, t -> {
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-            t.getTestSuiteTarget().set(DefaultJvmTestSuiteTarget.this);
             t.addTestListener(counter);
         });
     }

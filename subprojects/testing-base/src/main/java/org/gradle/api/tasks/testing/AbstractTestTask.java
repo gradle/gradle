@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteTargetLocator;
 import org.gradle.api.internal.tasks.testing.TestSuiteVerificationException;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
@@ -56,7 +56,6 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
@@ -121,25 +120,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private boolean ignoreFailures;
     private boolean failFast;
 
-    /**
-     * If this task was created via the a {@link org.gradle.testing.base.TestSuite TestSuite}, this will contain the {@link TestSuiteTarget}
-     * responsible for creating this task.
-     */
-    @Internal
-    private final Property<TestSuiteTarget> testSuiteTarget;
-
-    /**
-     * Getter to link a test task to the target of the test suite that created it.
-     *
-     * @return test suite target that created this task, or null if this task was not created via test suites
-     * @since 7.6
-     */
-    @Incubating
-    @Nullable
-    public Property<TestSuiteTarget> getTestSuiteTarget() {
-        return testSuiteTarget;
-    }
-
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
@@ -154,8 +134,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getHtml().getRequired().set(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
-
-        testSuiteTarget = getProject().getObjects().property(TestSuiteTarget.class);
     }
 
     @Inject
@@ -659,10 +637,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return reports;
     }
 
+    @Nullable
+    private TestSuiteTarget findTestSuiteTarget() {
+        TestSuiteTargetLocator locator = new TestSuiteTargetLocator(getProject());
+        return locator.getTargetForTest(this);
+    }
+
     private void handleTestFailures() {
+        TestSuiteTarget testSuiteTarget = findTestSuiteTarget();
+
         String message;
-        if (testSuiteTarget.isPresent()) {
-            TestSuiteTarget testSuiteTarget = this.testSuiteTarget.get();
+        if (testSuiteTarget != null) {
             message = "There were failing tests in the '" + testSuiteTarget.getName() + "' target for the '" + testSuiteTarget.getTestSuiteName() + "' test suite.";
         } else {
             message = "There were failing tests.";
@@ -684,10 +669,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (getIgnoreFailures()) {
             getLogger().warn(message);
         } else {
-            if (testSuiteTarget.isPresent()) {
+            if (testSuiteTarget != null) {
                 TestingExtension testing = getProject().getExtensions().getByType(TestingExtension.class);
-                TestSuite testSuite = testing.getSuites().getByName(testSuiteTarget.get().getTestSuiteName());
-                throw new TestSuiteVerificationException(message, reportUrl, testSuiteTarget.get(), testSuite);
+                TestSuite testSuite = testing.getSuites().getByName(testSuiteTarget.getTestSuiteName());
+                throw new TestSuiteVerificationException(message, reportUrl, testSuiteTarget, testSuite);
             } else {
                 throw new VerificationException(message.concat(" See the report at: ".concat(reportUrl)));
             }
