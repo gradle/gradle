@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction;
 
+import com.google.common.base.MoreObjects;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
@@ -29,17 +32,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.CLASS_OUTPUT;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.NATIVE_HEADER_OUTPUT;
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.SOURCE_OUTPUT;
 
 /**
  * A helper class to handle incremental compilation after a failure: it makes moving files around easier and reverting state easier.
@@ -48,25 +55,26 @@ public class CompileTransaction {
 
     private final Deleter deleter;
     private final FileOperations fileOperations;
-    private final File tempDir;
+    private final PatternSet classesToDelete;
+    private final JavaCompileSpec spec;
+    private final Map<GeneratedResource.Location, PatternSet> resourcesToDelete;
     private final File stashDirectory;
-    private final List<StashSource> stashSources;
-    private final List<StagedOutput> stagedOutputs;
+    private final File tempDir;
 
-    private CompileTransaction(
-        File tempDir,
+    public CompileTransaction(
+        JavaCompileSpec spec,
+        PatternSet classesToDelete,
+        Map<GeneratedResource.Location, PatternSet> resourcesToDelete,
         FileOperations fileOperations,
-        Deleter deleter,
-        File stashDirectory,
-        List<StashSource> stashSources,
-        List<StagedOutput> stagedOutputs
+        Deleter deleter
     ) {
-        this.tempDir = tempDir;
+        this.spec = spec;
+        this.tempDir = new File(spec.getTempDir(), "compileTransaction");
+        this.stashDirectory = new File(tempDir, "stash-dir");
+        this.classesToDelete = classesToDelete;
+        this.resourcesToDelete = resourcesToDelete;
         this.fileOperations = fileOperations;
         this.deleter = deleter;
-        this.stashDirectory = stashDirectory;
-        this.stashSources = stashSources;
-        this.stagedOutputs = stagedOutputs;
     }
 
     /**
@@ -76,23 +84,24 @@ public class CompileTransaction {
      * Execute will always clean temp directory, so it is empty before execution.
      */
     public <T> T execute(Function<WorkResult, T> function) {
-        ensureEmptyDirectories();
+        List<StagedOutput> stagedOutputs = collectOutputsToStage();
+        ensureEmptyDirectoriesBeforeExecution(stagedOutputs);
         StashResult stashResult = stashFilesBeforeExecution();
         try {
-            setupSpecOutputs();
+            setupSpecOutputs(stagedOutputs);
             T result = function.apply(stashResult.mapToWorkResult());
-            deletePotentiallyEmptyDirectories(stashResult.stashedFiles, stashResult.sourceDirectories);
-            moveCompileOutputToOriginalFolders();
+            deletePotentiallyEmptyDirectories(stashResult);
+            moveCompileOutputToOriginalFolders(stagedOutputs);
             return result;
         } catch (Exception t) {
             rollbackStash(stashResult.stashedFiles);
             throw t;
         } finally {
-            restoreSpecOutputs();
+            restoreSpecOutputs(stagedOutputs);
         }
     }
 
-    private void ensureEmptyDirectories() {
+    private void ensureEmptyDirectoriesBeforeExecution(List<StagedOutput> stagedOutputs) {
         try {
             tempDir.mkdirs();
 
@@ -147,37 +156,64 @@ public class CompileTransaction {
         }
     }
 
+    private List<StagedOutput> collectOutputsToStage() {
+        List<StagedOutput> stagedOutputs = new ArrayList<>();
+        stagedOutputs.add(new StagedOutput(spec.getDestinationDir(), new File(tempDir, "compile-output"), spec::setDestinationDir));
+
+        File annotationOutputDir = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
+        if (annotationOutputDir != null) {
+            StagedOutput stagedOutput = new StagedOutput(annotationOutputDir, new File(tempDir, "annotation-output"), file -> spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(file));
+            stagedOutputs.add(stagedOutput);
+        }
+
+        File headerOutputDir = spec.getCompileOptions().getHeaderOutputDirectory();
+        if (spec.getCompileOptions().getHeaderOutputDirectory() != null) {
+            StagedOutput stagedOutput = new StagedOutput(headerOutputDir, new File(tempDir, "header-output"), file -> spec.getCompileOptions().setHeaderOutputDirectory(file));
+            stagedOutputs.add(stagedOutput);
+        }
+        return stagedOutputs;
+    }
+
     private StashResult stashFilesBeforeExecution() {
-        AtomicInteger uniqueId = new AtomicInteger();
-        Function<File, String> uniqueNameGenerator = file -> file.getName() + ".uniqueId" + uniqueId.getAndIncrement();
+        int uniqueId = 0;
         List<File> sourceDirectories = new ArrayList<>();
         List<StashedFile> stashedFiles = new ArrayList<>();
-        for (StashSource source : stashSources) {
-            sourceDirectories.add(source.sourceDirectory);
-            stashedFiles.addAll(stashFilesFor(source.sourceDirectory, source.filePattern, uniqueNameGenerator));
+        for (File sourceFile : collectFilesToStash()) {
+            File stashedFile = new File(stashDirectory, sourceFile.getName() + ".uniqueId" + uniqueId++);
+            moveFile(sourceFile, stashedFile);
+            stashedFiles.add(new StashedFile(sourceFile, stashedFile));
         }
         return new StashResult(sourceDirectories, stashedFiles);
     }
 
-    private List<StashedFile> stashFilesFor(File sourceDirectory, PatternSet patternSet, Function<File, String> uniqueNameGenerator) {
-        List<StashedFile> stashedFiles = new ArrayList<>();
-        Set<File> sourceFiles = fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
-        for (File sourceFile : sourceFiles) {
-            File stashedFile = new File(stashDirectory, uniqueNameGenerator.apply(sourceFile));
-            moveFile(sourceFile, stashedFile);
-            stashedFiles.add(new StashedFile(sourceFile, stashedFile));
-        }
-        return stashedFiles;
+    private Set<File> collectFilesToStash() {
+        Set<File> filesToStash = new HashSet<>();
+        filesToStash.addAll(collectFilesToStash(classesToDelete, spec.getDestinationDir()));
+        filesToStash.addAll(collectFilesToStash(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory()));
+        filesToStash.addAll(collectFilesToStash(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory()));
+        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(CLASS_OUTPUT), spec.getDestinationDir()));
+        // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so delete that instead.
+        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir())));
+        // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
+        filesToStash.addAll(collectFilesToStash(resourcesToDelete.get(NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory()));
+        return filesToStash;
     }
 
-    private void deletePotentiallyEmptyDirectories(List<StashedFile> stashedFiles, List<File> sourceDirectories) {
-        Set<File> potentiallyEmptyFolders = stashedFiles.stream()
+    private Set<File> collectFilesToStash(PatternSet patternSet, File sourceDirectory) {
+        if (patternSet != null && !patternSet.isEmpty() && sourceDirectory != null && sourceDirectory.exists()) {
+            return fileOperations.fileTree(sourceDirectory).matching(patternSet).getFiles();
+        }
+        return Collections.emptySet();
+    }
+
+    private void deletePotentiallyEmptyDirectories(StashResult stashResult) {
+        Set<File> potentiallyEmptyFolders = stashResult.stashedFiles.stream()
             .map(file -> file.sourceFile.getParentFile())
             .collect(Collectors.toSet());
-        StaleOutputCleaner.cleanEmptyOutputDirectories(deleter, potentiallyEmptyFolders, sourceDirectories);
+        StaleOutputCleaner.cleanEmptyOutputDirectories(deleter, potentiallyEmptyFolders, stashResult.sourceDirectories);
     }
 
-    private void moveCompileOutputToOriginalFolders() {
+    private void moveCompileOutputToOriginalFolders(List<StagedOutput> stagedOutputs) {
         stagedOutputs.forEach(output -> moveAllFilesFromDirectoryTo(output.stagingDirectory, output.sourceDirectory));
     }
 
@@ -198,67 +234,21 @@ public class CompileTransaction {
         stashedFiles.forEach(stashedFile -> moveFile(stashedFile.stashFile, stashedFile.sourceFile));
     }
 
-    private boolean moveFile(File sourceFile, File destinationFile) {
+    private void moveFile(File sourceFile, File destinationFile) {
         try {
             destinationFile.getParentFile().mkdirs();
             Files.move(sourceFile.toPath(), destinationFile.toPath(), REPLACE_EXISTING);
-            return true;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void setupSpecOutputs() {
+    private void setupSpecOutputs(List<StagedOutput> stagedOutputs) {
         stagedOutputs.forEach(output -> output.setSpecOutput.accept(output.stagingDirectory));
     }
 
-    private void restoreSpecOutputs() {
+    private void restoreSpecOutputs(List<StagedOutput> stagedOutputs) {
         stagedOutputs.forEach(output -> output.setSpecOutput.accept(output.sourceDirectory));
-    }
-
-    public static CompileTransactionBuilder builder(File tempDir, FileOperations fileOperations, Deleter deleter) {
-        return new CompileTransactionBuilder(tempDir, fileOperations, deleter);
-    }
-
-    public static class CompileTransactionBuilder {
-        private final Deleter deleter;
-        private final FileOperations fileOperations;
-        private final File tempDir;
-        private final File stashDirectory;
-        private final AtomicInteger uniqueStageId;
-        private final List<StashSource> stashSources;
-        private final List<StagedOutput> stagedOutputs;
-
-        private CompileTransactionBuilder(File tempDir, FileOperations fileOperations, Deleter deleter) {
-            this.tempDir = tempDir;
-            this.deleter = deleter;
-            this.stashDirectory = new File(tempDir, "stash-dir");
-            this.fileOperations = fileOperations;
-            this.uniqueStageId = new AtomicInteger();
-            this.stashSources = new ArrayList<>();
-            this.stagedOutputs = new ArrayList<>();
-        }
-
-        public CompileTransactionBuilder stashFiles(PatternSet filesPattern, File sourceDirectory) {
-            if (filesPattern != null && !filesPattern.isEmpty() && sourceDirectory != null && sourceDirectory.exists()) {
-                stashSources.add(new StashSource(filesPattern, sourceDirectory));
-            }
-            return this;
-        }
-
-        public CompileTransactionBuilder stageOutputDirectory(File sourceDirectory, Consumer<File> setSpecOutputFunction) {
-            // Generate unique id always, so directory mapping is somewhat stable
-            int uniqueId = uniqueStageId.getAndIncrement();
-            if (sourceDirectory != null) {
-                File stageDirectory = new File(tempDir, "staging-dir-" + uniqueId);
-                stagedOutputs.add(new StagedOutput(sourceDirectory, stageDirectory, setSpecOutputFunction));
-            }
-            return this;
-        }
-
-        public CompileTransaction build() {
-            return new CompileTransaction(tempDir, fileOperations, deleter, stashDirectory, stashSources, stagedOutputs);
-        }
     }
 
     private static class StashResult {
@@ -285,16 +275,6 @@ public class CompileTransaction {
             this.sourceDirectory = sourceDirectory;
             this.stagingDirectory = stagingDirectory;
             this.setSpecOutput = setSpecOutput;
-        }
-    }
-
-    private static class StashSource {
-        private final PatternSet filePattern;
-        private final File sourceDirectory;
-
-        private StashSource(PatternSet filePattern, File sourceDirectory) {
-            this.filePattern = filePattern;
-            this.sourceDirectory = sourceDirectory;
         }
     }
 
