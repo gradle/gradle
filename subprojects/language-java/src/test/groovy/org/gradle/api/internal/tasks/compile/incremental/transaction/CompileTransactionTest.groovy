@@ -152,6 +152,30 @@ class CompileTransactionTest extends Specification {
         workResult == WorkResults.didWork(true)
     }
 
+    def "empty parent folders of stashed files are deleted recursively"() {
+        def compileOutput = createNewDirectory(file("destination"))
+        def annotationOutput = createNewDirectory(file("annotation"))
+        def headerOutput = createNewDirectory(file("header"))
+        createNewFile(new File(compileOutput, "dir/dir/another-file.txt"))
+        createNewFile(new File(annotationOutput, "dir/dir/another-file.txt"))
+        createNewFile(new File(headerOutput, "dir/dir/another-file.txt"))
+        def pattern = new PatternSet().include("**/*.txt")
+        spec.setDestinationDir(compileOutput)
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
+        spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
+
+        when:
+        newCompileTransaction(pattern).execute {
+            return it
+        }
+
+        then:
+        // We delete empty directories, but we keep the root folder
+        compileOutput.exists() && isEmptyDirectory(compileOutput)
+        annotationOutput.exists() && isEmptyDirectory(annotationOutput)
+        headerOutput.exists() && isEmptyDirectory(headerOutput)
+    }
+
     def "if nothing get stashed workResult passed to execution will mark 'did no work'"() {
         def workResult = newCompileTransaction().execute {
             return it
@@ -313,7 +337,7 @@ class CompileTransactionTest extends Specification {
     }
 
     private boolean isEmptyDirectory(File file) {
-        file.listFiles() == null || file.listFiles().length == 0
+        file.listFiles().length == 0
     }
 
     private boolean hasOnlyDirectories(File file) {
