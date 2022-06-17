@@ -83,12 +83,17 @@ public class CompileTransaction {
      * Executes the function that is wrapped in the transaction. Function accepts a work result,
      * that has a result of a stash operation. If some files were stashed, then work will be marked as "did work".
      *
-     * Execute will always clean temp directory, so it is empty before execution.
+     * Execution steps: <br>
+     * 1. At start create empty temporary directories or make sure they are empty <br>
+     * 2. Stash all files that should be deleted from compiler destination directories to a temporary directories <br>
+     * 3. Change the compiler destination directories to a temporary directories (different from the stash step) <br>
+     * 4. a. In case of a success copy compiler outputs to original destination directories <br>
+     *    b. In case of a failure restore stashed files back to original destination directories <br>
      */
     public <T> T execute(Function<WorkResult, T> function) {
         List<StagedOutput> stagedOutputs = collectOutputsToStage();
         ensureEmptyDirectoriesBeforeExecution(stagedOutputs);
-        StashResult stashResult = stashFilesBeforeExecution();
+        StashResult stashResult = stashFilesThatShouldBeDeleted();
         try {
             setupSpecOutputs(stagedOutputs);
             T result = function.apply(stashResult.mapToWorkResult());
@@ -176,7 +181,7 @@ public class CompileTransaction {
         return stagedOutputs;
     }
 
-    private StashResult stashFilesBeforeExecution() {
+    private StashResult stashFilesThatShouldBeDeleted() {
         int uniqueId = 0;
         File compileOutput = spec.getDestinationDir();
         File annotationProcessorOutput = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
