@@ -31,11 +31,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
 )
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
-
-    def setup() {
-        runner.targetVersions = ["7.6-20220513002340+0000"]
-    }
-
     def "first use"() {
         given:
         runner.tasksToRun = ['tasks']

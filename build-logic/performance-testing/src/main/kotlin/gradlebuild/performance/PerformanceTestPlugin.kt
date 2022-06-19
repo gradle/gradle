@@ -44,7 +44,6 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
-import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -87,12 +86,12 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 
 object Config {
-    const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
     const val androidStudioVersion = "2021.1.1.19"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
+    const val defaultBaseline = "7.6-commit-0778ab5"
 }
 
 
@@ -107,7 +106,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         createAndWireCommitDistributionTask(performanceTestExtension)
         createAdditionalTasks(performanceTestSourceSet)
-        createRebaselineTask(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
         configureAndroidStudioInstallation()
     }
@@ -118,13 +116,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest", this, performanceTestSourceSet, cleanTestProjectsTask, buildService)
         performanceTestExtension.baselines.set(project.performanceBaselines)
         return performanceTestExtension
-    }
-
-    private
-    fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
-        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class) {
-            source(performanceTestSourceSet.allSource)
-        }
     }
 
     private
@@ -341,6 +332,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         buildCommitDistribution.configure {
             dependsOn(determineBaselines)
+            releasedVersionsFile.set(project.rootProject.layout.projectDirectory.file("released-versions.json"))
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
         }
 

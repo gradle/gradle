@@ -18,6 +18,7 @@ package configurations
 
 import common.Os
 import common.applyPerformanceTestSettings
+import common.buildCommitBaselineDistributionDependency
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
@@ -55,7 +56,6 @@ class PerformanceTest(
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
-            param("performance.baselines", type.defaultBaselines)
             param("performance.channel", performanceTestBuildSpec.channel())
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             when (os) {
@@ -77,7 +77,6 @@ class PerformanceTest(
                         gradleParams = (
                             performanceTestCommandLine(
                                 "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
-                                "%performance.baselines%",
                                 extraParameters,
                                 os
                             ) + "-DenableTestDistribution=%enableTestDistribution%" +
@@ -92,6 +91,7 @@ class PerformanceTest(
         }
 
         applyDefaultDependencies(model, this, !performanceTestBuildSpec.withoutDependencies)
+        dependencies.buildCommitBaselineDistributionDependency(BuildCommitBaselineDistribution.buildTypeId(model))
     }
 )
 

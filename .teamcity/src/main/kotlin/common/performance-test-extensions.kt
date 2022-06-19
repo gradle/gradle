@@ -41,7 +41,6 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.
 
 fun performanceTestCommandLine(
     task: String,
-    baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -49,7 +48,6 @@ fun performanceTestCommandLine(
     testJavaVendor: String = os.perfTestJavaVendor,
 ) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
-    "-PperformanceBaselines=$baselines",
     "-PtestJavaVersion=$testJavaVersion",
     "-PtestJavaVendor=$testJavaVendor",
     "-PautoDownloadAndroidStudio=true",

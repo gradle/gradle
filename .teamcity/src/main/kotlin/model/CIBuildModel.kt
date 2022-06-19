@@ -11,6 +11,7 @@ import common.Os
 import common.VersionedSettingsBranch
 import common.toCapitalized
 import configurations.BaseGradleBuildType
+import configurations.BuildCommitBaselineDistribution
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAllProduction
@@ -90,7 +91,7 @@ data class CIBuildModel(
             StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
             specificBuilds = listOf(
-                SpecificBuild.SmokeTestsMinJavaVersion
+                SpecificBuild.SmokeTestsMinJavaVersion, SpecificBuild.BuildCommitBaselineDistribution
             ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, QUICK_CROSS_VERSION_BUCKETS.size),
@@ -296,48 +297,41 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
 enum class PerformanceTestType(
     val displayName: String,
     val timeout: Int,
-    val defaultBaselines: String = "",
     val channel: String,
     val extraParameters: String = ""
 ) {
     per_commit(
         displayName = "Performance Regression Test",
         timeout = 420,
-        defaultBaselines = "defaults",
         channel = "commits"
     ),
     per_day(
         displayName = "Slow Performance Regression Test",
         timeout = 420,
-        defaultBaselines = "defaults",
         channel = "commits"
     ),
     per_week(
         displayName = "Performance Experiment",
         timeout = 420,
-        defaultBaselines = "defaults",
         channel = "experiments"
     ),
     flakinessDetection(
         displayName = "Performance Test Flakiness Detection",
         timeout = 600,
-        defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
-        extraParameters = "--checks none --rerun"
+        extraParameters = "-PperformanceBaselines=flakiness-detection-commit --checks none --rerun"
     ),
     historical(
         displayName = "Historical Performance Test",
         timeout = 2280,
-        defaultBaselines = "3.5.1,4.10.3,5.6.4,6.9.1,last",
         channel = "historical",
-        extraParameters = "--checks none"
+        extraParameters = "-PperformanceBaselines='3.5.1,4.10.3,5.6.4,6.9.1,last' --checks none"
     ),
     adHoc(
         displayName = "AdHoc Performance Test",
         timeout = 30,
-        defaultBaselines = "none",
         channel = "adhoc",
-        extraParameters = "--checks none"
+        extraParameters = "-PperformanceBaselines=none --checks none"
     );
 }
 
@@ -356,6 +350,11 @@ enum class SpecificBuild {
     SanityCheck {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SanityCheck(model, stage)
+        }
+    },
+    BuildCommitBaselineDistribution {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return BuildCommitBaselineDistribution(model, stage)
         }
     },
     BuildDistributions {

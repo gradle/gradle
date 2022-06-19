@@ -194,6 +194,23 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
+fun Dependencies.buildCommitBaselineDistributionDependency(buildCommitBaselineDistributionId: String) {
+    dependency(RelativeId(buildCommitBaselineDistributionId)) {
+        snapshot {
+            onDependencyFailure = FailureAction.FAIL_TO_START
+            onDependencyCancel = FailureAction.FAIL_TO_START
+        }
+    }
+    artifacts(RelativeId(buildCommitBaselineDistributionId)) {
+        id = "ARTIFACT_DEPENDENCY_$buildCommitBaselineDistributionId"
+        cleanDestination = true
+        artifactRules = """
+            |intTestHomeDir/commit-distributions/gradle-*.zip => intTestHomeDir/commit-distributions
+            |intTestHomeDir/commit-distributions/gradle-tooling-api-*.jar => intTestHomeDir/commit-distributions
+            |""".trimMargin()
+    }
+}
+
 fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
     val buildScanValues = mapOf(
         "coverageOs" to os.name.lowercase(),

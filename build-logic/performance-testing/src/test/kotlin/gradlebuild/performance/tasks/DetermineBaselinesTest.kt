@@ -18,6 +18,7 @@ package gradlebuild.performance.tasks
 
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.performance.Config.defaultBaseline
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -49,11 +50,6 @@ class DetermineBaselinesTest {
     }
 
     @Test
-    fun `determines defaults when configured as force-defaults`() {
-        verifyBaselineDetermination(false, forceDefaultBaseline, defaultBaseline)
-    }
-
-    @Test
     fun `keeps flakiness-detection-commit as it is in coordinator build`() {
         verifyBaselineDetermination(true, flakinessDetectionCommitBaseline, flakinessDetectionCommitBaseline)
     }
@@ -71,8 +67,6 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and default configuration`() {
-        // Windows git complains "long path" so we don't build commit distribution on Windows
-        Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
         mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
@@ -82,7 +76,7 @@ class DetermineBaselinesTest {
         mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
 
         // then
-        verifyBaselineDetermination(false, defaultBaseline, "5.1-commit-master-fork-point")
+        verifyBaselineDetermination(false, null, "5.1-commit-master-fork-point")
     }
 
     @Test
