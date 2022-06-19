@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.Action;
 import org.gradle.internal.IoActions;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
-import org.gradle.util.internal.AntUtil;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Collections;
+import java.util.HashSet;
 
 public class StartScriptGenerator {
 
@@ -124,11 +126,19 @@ public class StartScriptGenerator {
     static class AntUnixFileOperation implements UnixFileOperation {
         @Override
         public void createExecutablePermission(File file) {
-            Chmod chmod = new Chmod();
-            chmod.setFile(file);
-            chmod.setPerm("ugo+rx");
-            chmod.setProject(AntUtil.createProject());
-            chmod.execute();
+            try {
+                HashSet<PosixFilePermission> permissions = new HashSet<>();
+                permissions.add(PosixFilePermission.GROUP_EXECUTE);
+                permissions.add(PosixFilePermission.GROUP_READ);
+                permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+                permissions.add(PosixFilePermission.OTHERS_READ);
+                permissions.add(PosixFilePermission.OWNER_EXECUTE);
+                permissions.add(PosixFilePermission.OWNER_READ);
+
+                Files.setPosixFilePermissions(file.toPath(), permissions);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
