@@ -8,8 +8,7 @@
 
 Publishing a plugin is the main way to make it available for others to use.
 One approach is to publish the plugin to a private repository, which is common when you want to restrict who can use it.
-But if you want the plugin to be available to anyone in the world, i.e.
-public, then you should publish it to the https://plugins.gradle.org[{portal}], a centralized, searchable repository dedicated to Gradle plugins.
+But if you want the plugin to be available to anyone in the world, i.e. public, then you should publish it to the https://plugins.gradle.org[{portal}], a centralized, searchable repository dedicated to Gradle plugins.
 
 This section will show you how to use the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{publishplugin}] to publish plugins to the {portal} using a convenient DSL.
 Taking this approach eliminates a large number of configuration steps and provides a number of checks to validate that your plugin meets the criteria enforced by the {portal}.
@@ -66,12 +65,12 @@ NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
 <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> (generates plugin publication metadata).
 If using older versions of the Plugin Publish Plugin, these helper plugins need to be applied explicitly.
 
-[[sec:configuring-publish-plugin]]
+[[configure_the_plugin_publishing_plugin]]
 == Configure the {publishplugin}
 
 The first thing to do when configuring the publication of your plugins is to specify the common properties that apply to all of them.
-This includes their identity plus the sources and documentation related to them. This will help people browsing the portal find more
-information about your plugins and learn how to contribute to their development.
+This includes their identity plus the sources and documentation related to them.
+This will help people browsing the portal find more information about your plugins and learn how to contribute to their development.
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
@@ -86,12 +85,11 @@ to configure further options of your plugin publication.
 <5> Provide the source repository URI so that others can find it, if they want to contribute.
 <6> Set specific properties for each of the plugins you want to publish; see next section.
 
-Next you need to define the specific plugins you intend to publish. Their most important property is their `id`, as that both uniquely
-identifies plugins on the {portal} and prevents namespace clashes between different plugin authors.
+Next you need to define the specific plugins you intend to publish.
+Their most important property is their `id`, as that both uniquely identifies plugins on the {portal} and prevents namespace clashes between different plugin authors.
 
-NOTE: If you would like to associate your plugin with a particular organization, you also set the ID based on that organization’s domain using the
-reverse-domain pattern used for Java packages, for example `org.example.greeting`. If the plugin doesn't belong to any specific organization,
-then the plugin ID should be associated with the author, for example by using the author's GitHub ID in a reverse domain pattern, like `io.github.johndoe`.
+NOTE: If you would like to associate your plugin with a particular organization, you also set the ID based on that organization’s domain using the reverse-domain pattern used for Java packages, for example `org.example.greeting`.
+If the plugin doesn't belong to any specific organization, then the plugin ID should be associated with the author, for example by using the author's GitHub ID in a reverse domain pattern, like `io.github.johndoe`.
 Remember that the plugin id and project group should match, i.e. have the same top level namespace.
 
 ====
@@ -156,11 +154,13 @@ The Plugin Publish Plugin automatically generates and publishes the <<building_j
 
 === Sign artifacts ===
 
-Starting from version 1.0.0 of Plugin Publish Plugin, signing of published plugin artifacts has been made automatic. To enable it, all that's needed is to apply the <<signing_plugin.adoc,`signing`>> plugin in your build.
+Starting from version 1.0.0 of Plugin Publish Plugin, signing of published plugin artifacts has been made automatic.
+To enable it, all that's needed is to apply the <<signing_plugin.adoc,`signing`>> plugin in your build.
 
 === Shadow dependencies ===
 
-Starting from version 1.0.0 of Plugin Publish Plugin, shadowing the dependencies of your plugin (ie. publishing it as a fat jar) has been made automatic. To enable it, all that's needed is to apply the https://github.com/johnrengelman/shadow[`com.github.johnrengelman.shadow`] plugin in your build.
+Starting from version 1.0.0 of Plugin Publish Plugin, shadowing the dependencies of your plugin (ie. publishing it as a fat jar) has been made automatic.
+To enable it, all that's needed is to apply the https://github.com/johnrengelman/shadow[`com.github.johnrengelman.shadow`] plugin in your build.
 
 [[custom-plugin-repositories]]
 == Publish your plugin to a local repository
@@ -199,5 +199,9 @@ That's expected and ensures that the portal won't be overrun with multiple exper
 [[consume]]
 == Consume the published plugin
 
-If your plugin is successfully published, you'll be able to find instructions for its use at a URL of the form *+https://plugins.gradle.org/plugin/<your-plugin-id>+*.
+Once you successfully publish a plugin it won't immediately appear on the Portal.
+It also needs to pass an approval process, which is manual and relatively slow for the initial version of your plugin, but is fully automatic for subsequent versions.
+For further details see https://plugins.gradle.org/docs/publish-plugin-new#approval[here].
+
+Once your plugin is approved, you'll be able to find instructions for its use at a URL of the form *+https://plugins.gradle.org/plugin/<your-plugin-id>+*.
 For example, the Greeting Plugin example is already on the portal at https://plugins.gradle.org/plugin/org.example.greeting.
