@@ -123,7 +123,7 @@ public abstract class TaskNode extends Node {
         return Iterables.concat(
             super.getAllSuccessorsInReverseOrder(),
             mustSuccessors.descendingSet(),
-            getGroup().getSuccessorsInReverseOrder(),
+            getGroup().getSuccessorsInReverseOrder(this),
             shouldSuccessors.descendingSet()
         );
     }

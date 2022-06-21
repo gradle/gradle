@@ -65,7 +65,7 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     public Collection<Node> getFinalizedNodes() {
-        return node.getFinalizingSuccessors();
+        return getSuccessors();
     }
 
     @Nullable
@@ -87,12 +87,20 @@ public class FinalizerGroup extends HasFinalizers {
 
     @Override
     public Collection<Node> getSuccessors() {
-        return node.getFinalizingSuccessors();
+        LinkedHashSet<Node> nodes = new LinkedHashSet<>(node.getFinalizingSuccessors());
+        nodes.removeAll(members);
+        return nodes;
     }
 
     @Override
-    public Collection<Node> getSuccessorsInReverseOrder() {
-        return node.getFinalizingSuccessorsInReverseOrder();
+    public Collection<Node> getSuccessorsInReverseOrder(Node node) {
+        if (node == this.node) {
+            return this.node.getFinalizingSuccessorsInReverseOrder();
+        }
+        // it should exclude all nodes that are member of the group
+        LinkedHashSet<Node> nodes = new LinkedHashSet<>(this.node.getFinalizingSuccessorsInReverseOrder());
+        nodes.removeAll(members);
+        return nodes;
     }
 
     @Override

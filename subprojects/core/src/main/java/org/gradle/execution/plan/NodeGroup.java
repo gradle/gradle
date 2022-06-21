@@ -75,7 +75,7 @@ public abstract class NodeGroup {
         return Collections.emptyList();
     }
 
-    public Iterable<? extends Node> getSuccessorsInReverseOrder() {
+    public Iterable<? extends Node> getSuccessorsInReverseOrder(Node node) {
         return Collections.emptyList();
     }
 
