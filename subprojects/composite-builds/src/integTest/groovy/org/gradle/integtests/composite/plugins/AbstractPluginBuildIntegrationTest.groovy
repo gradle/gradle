@@ -137,7 +137,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
     }
 
     void publishSettingsPlugin(String pluginId, String repoDeclaration) {
-        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.initialization.Settings", null)
+        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.initialization.Settings")
     }
 
     void publishProjectPlugin(String pluginId, String repoDeclaration) {
@@ -148,7 +148,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
         publishPlugin(pluginId, repoDeclaration, "org.gradle.api.Project", expectedDeprecationWarning)
     }
 
-    private void publishPlugin(String pluginId, String repoDeclaration, String pluginTarget, String expectedDeprecationWarning) {
+    private void publishPlugin(String pluginId, String repoDeclaration, String pluginTarget, String expectedDeprecationWarning = null) {
         file("plugin/src/main/java/PublishedPlugin.java") << """
             import org.gradle.api.Plugin;
 
