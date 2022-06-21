@@ -22,7 +22,11 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
@@ -68,25 +72,63 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
     public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
         String className = type.getName();
-        return of(className, classLoaderHasher.getClassLoaderHash(type.getClassLoader()), type.isSynthetic() && isLambdaClassName(className));
+        HashCode classLoaderHash = classLoaderHasher.getClassLoaderHash(type.getClassLoader());
+        return of(className, classLoaderHash, isLambdaClass(type), null);
     }
 
     public static ImplementationSnapshot of(String className, @Nullable HashCode classLoaderHash) {
-        return of(className, classLoaderHash, isLambdaClassName(className));
+        return of(className, classLoaderHash, isLambdaClassName(className), null);
     }
 
-    public static ImplementationSnapshot of(SerializedLambda lambda, HashCode classLoaderHash) {
-        return new SerializableLambdaImplementationSnapshot(classLoaderHash, lambda);
+    public static ImplementationSnapshot of(String className, Object value, @Nullable HashCode classLoaderHash) {
+        return of(className, classLoaderHash, isLambdaClass(value.getClass()), value);
     }
 
-    private static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
+    private static boolean isLambdaClass(Class<?> type) {
+        return type.isSynthetic() && isLambdaClassName(type.getName());
+    }
+
+    private static ImplementationSnapshot of(
+        String typeName,
+        @Nullable HashCode classLoaderHash,
+        boolean isLambda,
+        @Nullable Object value
+    ) {
         if (classLoaderHash == null) {
             return new UnknownClassloaderImplementationSnapshot(typeName);
         }
-        if (lambda) {
-            return new LambdaImplementationSnapshot(typeName);
+
+        if (isLambda) {
+            return Optional.ofNullable(value)
+                .flatMap(ImplementationSnapshot::serializedLambdaFor)
+                .<ImplementationSnapshot>map(it -> new SerializableLambdaImplementationSnapshot(classLoaderHash, it))
+                .orElseGet(() -> new LambdaImplementationSnapshot(typeName));
         }
+
         return new KnownImplementationSnapshot(typeName, classLoaderHash);
+    }
+
+    private static Optional<SerializedLambda> serializedLambdaFor(Object lambda) {
+        if (!(lambda instanceof Serializable)) {
+            return Optional.empty();
+        }
+        for (Class<?> lambdaClass = lambda.getClass(); lambdaClass != null; lambdaClass = lambdaClass.getSuperclass()) {
+            try {
+                Method replaceMethod = lambdaClass.getDeclaredMethod("writeReplace");
+                replaceMethod.setAccessible(true);
+                Object serializedForm = replaceMethod.invoke(lambda);
+                if (serializedForm instanceof SerializedLambda) {
+                    return Optional.of((SerializedLambda) serializedForm);
+                } else {
+                    return Optional.empty();
+                }
+            } catch (NoSuchMethodException e) {
+                // continue
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
     }
 
     private static boolean isLambdaClassName(String className) {
