@@ -61,7 +61,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
     @Override
     public void appendToHasher(Hasher hasher) {
         hasher.putString(ImplementationSnapshot.class.getName());
-        hasher.putString(getTypeName());
+        hasher.putString(typeName);
         hasher.putHash(classLoaderHash);
         hasher.putString(implClass);
         hasher.putString(implMethodName);
@@ -92,17 +92,6 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
     }
 
     @Override
-    public boolean isUnknown() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public UnknownReason getUnknownReason() {
-        return null;
-    }
-
-    @Override
     protected boolean isSameSnapshot(@Nullable Object o) {
         return equals(o);
     }
@@ -115,16 +104,23 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
-        return implMethodKind == that.implMethodKind &&
+        return typeName.equals(that.typeName) &&
             classLoaderHash.equals(that.classLoaderHash) &&
             implClass.equals(that.implClass) &&
             implMethodName.equals(that.implMethodName) &&
-            implMethodSignature.equals(that.implMethodSignature);
+            implMethodSignature.equals(that.implMethodSignature) &&
+            implMethodKind == that.implMethodKind;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(classLoaderHash, implClass, implMethodName, implMethodSignature, implMethodKind);
+        return Objects.hash(typeName, classLoaderHash, implClass, implMethodName, implMethodSignature, implMethodKind);
+    }
+
+    @Override
+    public String toString() {
+        return typeName + "::" + implMethodName + "@" + classLoaderHash;
     }
 }
