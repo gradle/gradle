@@ -341,6 +341,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         buildCommitDistribution.configure {
             dependsOn(determineBaselines)
+            releasedVersionsFile.set(project.rootProject.layout.projectDirectory.file("released-versions.json"))
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
         }
 

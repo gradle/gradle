@@ -10,11 +10,13 @@ dependencies {
     implementation(project(":module-identity"))
     implementation(project(":integration-testing"))
     implementation(project(":cleanup"))
+    implementation(project(":build-update-utils"))
 
     implementation("org.openmbee.junit:junit-xml-parser") {
         exclude(module = "lombok") // don't need it at runtime
     }
     implementation("com.google.guava:guava")
+    implementation("com.google.code.gson:gson")
     implementation("commons-io:commons-io")
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
