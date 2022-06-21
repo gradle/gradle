@@ -95,17 +95,17 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         @Nullable Object value
     ) {
         if (classLoaderHash == null) {
-            return new UnknownClassloaderImplementationSnapshot(typeName);
+            return new UnknownImplementationSnapshot(typeName, UnknownReason.UNKNOWN_CLASSLOADER);
         }
 
         if (isLambda) {
             return Optional.ofNullable(value)
                 .flatMap(ImplementationSnapshot::serializedLambdaFor)
-                .<ImplementationSnapshot>map(it -> new SerializableLambdaImplementationSnapshot(classLoaderHash, it))
-                .orElseGet(() -> new LambdaImplementationSnapshot(typeName));
+                .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
+                .orElseGet(() -> new UnknownImplementationSnapshot(typeName, UnknownReason.LAMBDA));
         }
 
-        return new KnownImplementationSnapshot(typeName, classLoaderHash);
+        return new ClassImplementationSnapshot(typeName, classLoaderHash);
     }
 
     private static Optional<SerializedLambda> serializedLambdaFor(Object lambda) {

@@ -18,21 +18,21 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
+import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot;
 
 public class ImplementationChanges implements ChangeContainer {
     private final ImplementationSnapshot previousImplementation;
     private final ImmutableList<ImplementationSnapshot> previousAdditionalImplementations;
-    private final KnownImplementationSnapshot currentImplementation;
-    private final ImmutableList<KnownImplementationSnapshot> currentAdditionalImplementations;
+    private final ClassImplementationSnapshot currentImplementation;
+    private final ImmutableList<ClassImplementationSnapshot> currentAdditionalImplementations;
     private final Describable executable;
 
     public ImplementationChanges(
         ImplementationSnapshot previousImplementation,
         ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
-        KnownImplementationSnapshot currentImplementation,
-        ImmutableList<KnownImplementationSnapshot> currentAdditionalImplementations,
+        ClassImplementationSnapshot currentImplementation,
+        ImmutableList<ClassImplementationSnapshot> currentAdditionalImplementations,
         Describable executable
     ) {
         this.previousImplementation = previousImplementation;
