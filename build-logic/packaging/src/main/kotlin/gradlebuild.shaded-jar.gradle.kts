@@ -85,6 +85,7 @@ fun registerTransforms() {
 fun createConfigurationToShade() = configurations.create("jarsToShade") {
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
     attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
     isCanBeResolved = true
     isCanBeConsumed = false
     withDependencies {
