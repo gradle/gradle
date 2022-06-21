@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
@@ -26,41 +25,6 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
-
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/20800")
-    void 'combination of finalizedBy and mustRunAfter has no misdetected cycle'() {
-        given:
-        buildKotlinFile << '''
-            tasks {
-                register("dockerTest") {
-                    dependsOn("dockerUp")     // dependsOn createContainer mustRunAfter removeContainer
-                    finalizedBy("dockerStop") // dependsOn removeContainer
-                }
-
-                register("dockerUp") {
-                    dependsOn("createContainer")
-                }
-
-                register("dockerStop") {
-                    dependsOn("removeContainer")
-                }
-
-                register("createContainer") {
-                    mustRunAfter("removeContainer")
-                }
-
-                register("removeContainer") {
-                }
-            }
-        '''
-
-        expect:
-        succeeds 'dockerTest'
-
-        and:
-        result.assertTasksExecutedInOrder ':createContainer', ':dockerUp', ':dockerTest', ':removeContainer', ':dockerStop'
-    }
 
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
@@ -316,6 +280,37 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20800")
+    void 'finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints'() {
+        given:
+        buildFile '''
+            task dockerTest {
+                dependsOn 'dockerUp'     // dependsOn createContainer mustRunAfter removeContainer
+                finalizedBy 'dockerStop' // dependsOn removeContainer
+            }
+
+            task dockerUp {
+                dependsOn 'createContainer'
+            }
+
+            task dockerStop {
+                dependsOn 'removeContainer'
+            }
+
+            task createContainer {
+                mustRunAfter 'removeContainer'
+            }
+
+            task removeContainer {
+            }
+        '''
+
+        expect:
+        succeeds 'dockerTest'
+
+        and:
+        result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+    }
 
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile """

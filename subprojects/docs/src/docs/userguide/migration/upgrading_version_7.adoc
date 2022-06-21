@@ -42,6 +42,30 @@ Some plugins will break with this new version of Gradle, for example because the
 link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
 Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
 
+=== Updates to Attribute Disambiguation Rules related methods
+
+The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+
+[[strict-kotlin-dsl-precompiled-scripts-accessors]]
+=== Strict Kotlin DSL precompiled script plugins accessors generation
+
+Type safe Kotlin DSL accessors generation for precompiled script plugins does not fail the build by default if a plugin requested in such precompiled scripts fails to be applied.
+Because the cause could be environmental and for backwards compatibility reasons, this behaviour hasn't changed yet.
+
+Back in Gradle 7.1 the `:generatePrecompiledScriptPluginAccessors` task responsible for the accessors generation has been marked as non-cacheable by default.
+The `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property was introduced in order to offer an opt-in to a stricter mode of operation that fails the build when a plugin application fails, and enable the build cache for that task.
+
+Starting with Gradle 7.6, non-strict accessors generation for Kotlin DSL precompiled script plugins has been deprecated.
+This will change in Gradle 8.0.
+Strict accessor generation will become the default.
+To opt in to the strict behavior, set the 'org.gradle.kotlin.dsl.precompiled.accessors.strict' system property to `true`.
+
+This can be achieved persistently in the `gradle.properties` file in your build root directory:
+
+```properties
+systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
+```
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
@@ -94,10 +118,66 @@ In order to set the old default, the executable can be manually defined in `grad
 ----
 signing.gnupg.executable=gpg2
 ----
+==== `mustRunAfter` constraints no longer violated by `finalizedBy` dependencies
+
+In previous Gradle versions, `mustRunAfter` constraints between regular tasks and finalizer task dependencies would not be honored.
+
+For a concrete example, consider the following task graph definition:
+
+[source,kotlin]
+----
+tasks {
+    register("dockerTest") {
+        dependsOn("dockerUp")     // dependsOn createContainer mustRunAfter removeContainer
+        finalizedBy("dockerStop") // dependsOn removeContainer
+    }
+
+    register("dockerUp") {
+        dependsOn("createContainer")
+    }
+
+    register("dockerStop") {
+        dependsOn("removeContainer")
+    }
+
+    register("createContainer") {
+        mustRunAfter("removeContainer")
+    }
+
+    register("removeContainer") {
+    }
+}
+----
+
+The relevant constraints are:
+
+- `dockerStop` is a finalizer of `dockerTest` so it  must be run after `dockerTest`;
+- `removeContainer` is a dependency of `dockerStop` so it must be run before `dockerStop`;
+- `createContainer` must run after `removeContainer`;
+
+Prior to Gradle 7.5, `gradle dockerTest` would yield the following order of execution, in violation of the `mustRunAfter` constraint between `:createContainer` and `:removeContainer`:
+
+```
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :removeContainer UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
+
+Starting with Gradle 7.5, `mustRunAfter` constraints are fully honored yielding the following order of execution:
+
+```
+> Task :removeContainer UP-TO-DATE
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
 
 ==== Updates to bundled Gradle dependencies
 
-- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.10].
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.11].
 
 ==== Scala Zinc version updated to 1.6.1
 
