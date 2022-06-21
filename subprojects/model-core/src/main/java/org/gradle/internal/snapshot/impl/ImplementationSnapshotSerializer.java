@@ -43,6 +43,34 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
                 return new UnknownClassloaderImplementationSnapshot(typeName);
             }
         },
+        SERIALIZABLE_LAMBDA {
+            @Override
+            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
+                HashCode classLoaderHash = hashCodeSerializer.read(decoder);
+                String implClass = decoder.readString();
+                String implMethodName = decoder.readString();
+                String implMethodSignature = decoder.readString();
+                int implMethodKind = decoder.readSmallInt();
+                return new SerializableLambdaImplementationSnapshot(
+                    typeName,
+                    classLoaderHash,
+                    implClass,
+                    implMethodName,
+                    implMethodSignature,
+                    implMethodKind
+                );
+            }
+
+            @Override
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                SerializableLambdaImplementationSnapshot serLambda = (SerializableLambdaImplementationSnapshot) implementationSnapshot;
+                hashCodeSerializer.write(encoder, serLambda.getClassLoaderHash());
+                encoder.writeString(serLambda.getImplClass());
+                encoder.writeString(serLambda.getImplMethodName());
+                encoder.writeString(serLambda.getImplMethodSignature());
+                encoder.writeSmallInt(serLambda.getImplMethodKind());
+            }
+        },
         LAMBDA {
             @Override
             protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
@@ -92,6 +120,9 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
         }
         if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
             return Impl.LAMBDA;
+        }
+        if (implementationSnapshot instanceof SerializableLambdaImplementationSnapshot) {
+            return Impl.SERIALIZABLE_LAMBDA;
         }
         throw new IllegalArgumentException("Unknown implementation snapshot type: " + implementationSnapshot.getClass().getName());
     }

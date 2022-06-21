@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.SerializedLambda;
 
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
@@ -72,6 +73,10 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
     public static ImplementationSnapshot of(String className, @Nullable HashCode classLoaderHash) {
         return of(className, classLoaderHash, isLambdaClassName(className));
+    }
+
+    public static ImplementationSnapshot of(SerializedLambda lambda, HashCode classLoaderHash) {
+        return new SerializableLambdaImplementationSnapshot(classLoaderHash, lambda);
     }
 
     private static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {

@@ -68,6 +68,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -79,6 +80,7 @@ import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.LambdaImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -87,6 +89,10 @@ import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.Serializable;
+import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -800,7 +806,37 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
+            HashCode classLoaderHash = hasher.getClassLoaderHash(action.getClass().getClassLoader());
+            ImplementationSnapshot snapshot = ImplementationSnapshot.of(AbstractTask.getActionClassName(action), classLoaderHash);
+            if (snapshot instanceof LambdaImplementationSnapshot) {
+                Optional<SerializedLambda> serializedLambda = serializedLambdaFor(action);
+                return serializedLambda.map(it -> ImplementationSnapshot.of(it, classLoaderHash))
+                    .orElse(snapshot);
+            }
+            return snapshot;
+        }
+
+        private static Optional<SerializedLambda> serializedLambdaFor(Object lambda) {
+            if (!(lambda instanceof Serializable)) {
+                return Optional.empty();
+            }
+            for (Class<?> lambdaClass = lambda.getClass(); lambdaClass != null; lambdaClass = lambdaClass.getSuperclass()) {
+                try {
+                    Method replaceMethod = lambdaClass.getDeclaredMethod("writeReplace");
+                    replaceMethod.setAccessible(true);
+                    Object serializedForm = replaceMethod.invoke(lambda);
+                    if (serializedForm instanceof SerializedLambda) {
+                        return Optional.of((SerializedLambda) serializedForm);
+                    } else {
+                        return Optional.empty();
+                    }
+                } catch (NoSuchMethodException e) {
+                    // continue
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    return Optional.empty();
+                }
+            }
+            return Optional.empty();
         }
 
         @Override
