@@ -22,7 +22,9 @@ import org.gradle.tooling.events.OperationDescriptor;
 /**
  * A descriptor of a build phase operation.
  *
- * @since 7.5
+ * A build phase operation describes a phase build is in and number of build items (project to configure, task to execute) that this build phase will execute.
+ *
+ * @since 7.6
  */
 @Incubating
 public interface BuildPhaseOperationDescriptor extends OperationDescriptor {
