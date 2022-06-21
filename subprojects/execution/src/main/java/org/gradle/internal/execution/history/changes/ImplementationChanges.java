@@ -25,14 +25,14 @@ public class ImplementationChanges implements ChangeContainer {
     private final ImplementationSnapshot previousImplementation;
     private final ImmutableList<ImplementationSnapshot> previousAdditionalImplementations;
     private final ClassImplementationSnapshot currentImplementation;
-    private final ImmutableList<ClassImplementationSnapshot> currentAdditionalImplementations;
+    private final ImmutableList<ImplementationSnapshot> currentAdditionalImplementations;
     private final Describable executable;
 
     public ImplementationChanges(
         ImplementationSnapshot previousImplementation,
         ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
         ClassImplementationSnapshot currentImplementation,
-        ImmutableList<ClassImplementationSnapshot> currentAdditionalImplementations,
+        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations,
         Describable executable
     ) {
         this.previousImplementation = previousImplementation;
