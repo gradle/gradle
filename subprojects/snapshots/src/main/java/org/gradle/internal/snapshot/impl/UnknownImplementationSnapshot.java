@@ -19,22 +19,25 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class KnownImplementationSnapshot extends ImplementationSnapshot {
-    private final HashCode classLoaderHash;
+public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
-    public KnownImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+    private final UnknownReason unknownReason;
+
+    public UnknownImplementationSnapshot(String typeName, UnknownReason unknownReason) {
         super(typeName);
-        this.classLoaderHash = classLoaderHash;
+        this.unknownReason = unknownReason;
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(ImplementationSnapshot.class.getName());
-        hasher.putString(getTypeName());
-        hasher.putHash(classLoaderHash);
+        switch (unknownReason) {
+            case LAMBDA:
+                throw new RuntimeException("Cannot hash implementation of lambda " + getTypeName());
+            case UNKNOWN_CLASSLOADER:
+                throw new RuntimeException("Cannot hash implementation of class " + getTypeName() + " loaded by an unknown classloader");
+        }
     }
 
     @Override
@@ -46,57 +49,39 @@ public class KnownImplementationSnapshot extends ImplementationSnapshot {
             return false;
         }
 
-        KnownImplementationSnapshot that = (KnownImplementationSnapshot) o;
+        UnknownImplementationSnapshot that = (UnknownImplementationSnapshot) o;
 
-        if (!getTypeName().equals(that.getTypeName())) {
-            return false;
-        }
-        return classLoaderHash.equals(that.classLoaderHash);
+        return getTypeName().equals(that.getTypeName()) && unknownReason.equals(that.unknownReason);
     }
 
-    @Nonnull
     @Override
     public HashCode getClassLoaderHash() {
-        return classLoaderHash;
+        return null;
     }
 
     @Override
     public boolean isUnknown() {
-        return false;
+        return true;
     }
 
     @Override
     @Nullable
     public UnknownReason getUnknownReason() {
-        return null;
+        return unknownReason;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        KnownImplementationSnapshot that = (KnownImplementationSnapshot) o;
-        if (this == o) {
-            return true;
-        }
-
-
-        if (!getTypeName().equals(that.getTypeName())) {
-            return false;
-        }
-        return classLoaderHash.equals(that.classLoaderHash);
+        return false;
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + classLoaderHash.hashCode();
-        return result;
+        return getTypeName().hashCode();
     }
 
     @Override
     public String toString() {
-        return getTypeName() + "@" + classLoaderHash;
+        return getTypeName() + "@<unknown>";
     }
 }

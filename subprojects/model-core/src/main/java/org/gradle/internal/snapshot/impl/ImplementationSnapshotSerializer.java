@@ -25,11 +25,11 @@ import org.gradle.internal.serialize.Serializer;
 public class ImplementationSnapshotSerializer implements Serializer<ImplementationSnapshot> {
 
     private enum Impl implements Serializer<ImplementationSnapshot> {
-        DEFAULT {
+        CLASS {
             @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
+            protected ImplementationSnapshot readAdditionalData(String typeName, Decoder decoder) throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
-                return new KnownImplementationSnapshot(typeName, classLoaderHash);
+                return new ClassImplementationSnapshot(typeName, classLoaderHash);
             }
 
             @Override
@@ -37,21 +37,15 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
                 hashCodeSerializer.write(encoder, implementationSnapshot.getClassLoaderHash());
             }
         },
-        UNKNOWN_CLASSLOADER {
+        LAMBDA {
             @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
-                return new UnknownClassloaderImplementationSnapshot(typeName);
-            }
-        },
-        SERIALIZABLE_LAMBDA {
-            @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
+            protected ImplementationSnapshot readAdditionalData(String typeName, Decoder decoder) throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
                 String implClass = decoder.readString();
                 String implMethodName = decoder.readString();
                 String implMethodSignature = decoder.readString();
                 int implMethodKind = decoder.readSmallInt();
-                return new SerializableLambdaImplementationSnapshot(
+                return new LambdaImplementationSnapshot(
                     typeName,
                     classLoaderHash,
                     implClass,
@@ -63,7 +57,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
 
             @Override
             protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-                SerializableLambdaImplementationSnapshot serLambda = (SerializableLambdaImplementationSnapshot) implementationSnapshot;
+                LambdaImplementationSnapshot serLambda = (LambdaImplementationSnapshot) implementationSnapshot;
                 hashCodeSerializer.write(encoder, serLambda.getClassLoaderHash());
                 encoder.writeString(serLambda.getImplClass());
                 encoder.writeString(serLambda.getImplMethodName());
@@ -71,10 +65,16 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
                 encoder.writeSmallInt(serLambda.getImplMethodKind());
             }
         },
-        LAMBDA {
+        UNKNOWN {
             @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
-                return new LambdaImplementationSnapshot(typeName);
+            protected ImplementationSnapshot readAdditionalData(String typeName, Decoder decoder) throws Exception {
+                ImplementationSnapshot.UnknownReason unknownReason = ImplementationSnapshot.UnknownReason.values()[decoder.readSmallInt()];
+                return new UnknownImplementationSnapshot(typeName, unknownReason);
+            }
+
+            @Override
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                encoder.writeSmallInt(implementationSnapshot.getUnknownReason().ordinal());
             }
         };
 
@@ -87,15 +87,14 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
         @Override
         public ImplementationSnapshot read(Decoder decoder) throws Exception {
             String typeName = decoder.readString();
-            return doRead(typeName, decoder);
+            return readAdditionalData(typeName, decoder);
         }
 
         protected final Serializer<HashCode> hashCodeSerializer = new HashCodeSerializer();
 
-        protected abstract ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception;
+        protected abstract ImplementationSnapshot readAdditionalData(String typeName, Decoder decoder) throws Exception;
 
-        protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-        }
+        protected abstract void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception;
     }
 
     @Override
@@ -112,18 +111,15 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
     }
 
     private static Impl determineSerializer(ImplementationSnapshot implementationSnapshot) {
-        if (implementationSnapshot instanceof KnownImplementationSnapshot) {
-            return Impl.DEFAULT;
-        }
-        if (implementationSnapshot instanceof UnknownClassloaderImplementationSnapshot) {
-            return Impl.UNKNOWN_CLASSLOADER;
+        if (implementationSnapshot instanceof ClassImplementationSnapshot) {
+            return Impl.CLASS;
         }
         if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
             return Impl.LAMBDA;
         }
-        if (implementationSnapshot instanceof SerializableLambdaImplementationSnapshot) {
-            return Impl.SERIALIZABLE_LAMBDA;
+        if (implementationSnapshot instanceof UnknownImplementationSnapshot) {
+            return Impl.UNKNOWN;
         }
-        throw new IllegalArgumentException("Unknown implementation snapshot type: " + implementationSnapshot.getClass().getName());
+        throw new IllegalArgumentException("Unexpected implementation snapshot type: " + implementationSnapshot.getClass().getName());
     }
 }
