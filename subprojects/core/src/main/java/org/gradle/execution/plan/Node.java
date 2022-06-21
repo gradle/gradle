@@ -142,7 +142,10 @@ public abstract class Node implements Comparable<Node> {
         NodeGroup newGroup = group;
         for (Node predecessor : getDependencyPredecessors()) {
             if (predecessor.getGroup() instanceof HasFinalizers) {
-                newGroup = maybeInheritGroupAsFinalizerDependency((HasFinalizers) predecessor.getGroup(), newGroup);
+                HasFinalizers newGroupWithFinalizers = maybeInheritGroupAsFinalizerDependency((HasFinalizers) predecessor.getGroup(), newGroup);
+                // The first finalizer group to reach here would "own" this node if it isn't part of some ordinal group already.
+                newGroupWithFinalizers.maybeAddToOwnedMembers(this);
+                newGroup = newGroupWithFinalizers;
             }
         }
         if (newGroup != group) {
@@ -150,7 +153,7 @@ public abstract class Node implements Comparable<Node> {
         }
     }
 
-    private static NodeGroup maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
+    private static HasFinalizers maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
         if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
             return finalizers;
         }
@@ -161,7 +164,7 @@ public abstract class Node implements Comparable<Node> {
 
         HasFinalizers currentFinalizers = (HasFinalizers) current;
         if (currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
-            return current;
+            return currentFinalizers;
         }
 
         ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();

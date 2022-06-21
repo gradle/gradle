@@ -1125,15 +1125,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return task
     }
 
-    private void relationships(Map options, TaskInternal task) {
-        dependsOn(task, options.dependsOn ?: [])
-        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
-        mustRunAfter(task, options.mustRunAfter ?: [])
-        shouldRunAfter(task, options.shouldRunAfter ?: [])
-        finalizedBy(task, options.finalizedBy ?: [])
-        task.getSharedResources() >> (options.resources ?: [])
-    }
-
     private TaskInternal filteredTask(final String name) {
         def task = createTask(name)
         task.getTaskDependencies() >> brokenDependencies()
