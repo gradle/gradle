@@ -116,4 +116,28 @@ public interface JvmComponentDependencies {
      * @since 7.5
      */
     void annotationProcessor(Object dependencyNotation, Action<? super Dependency> configuration);
+
+    /**
+     * Creates a dependency on the API of the current version of Gradle.
+     *
+     * @return The dependency.
+     * @since 7.6
+     */
+    Dependency gradleApi();
+
+    /**
+     * Creates a dependency on the <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">Gradle test-kit</a> API.
+     *
+     * @return The dependency.
+     * @since 7.6
+     */
+    Dependency gradleTestKit();
+
+    /**
+     * Creates a dependency on the Groovy that is distributed with the current version of Gradle.
+     *
+     * @return The dependency.
+     * @since 7.6
+     */
+    Dependency localGroovy();
 }
