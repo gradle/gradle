@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -52,11 +53,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     @Override
-    public JvmInstallationMetadata getMetadata(File javaHome) {
+    public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
+        File javaHome = javaInstallationLocation.getLocation();
         if (javaHome == null || !javaHome.exists()) {
             return failure(javaHome, "No such directory: " + javaHome);
         }
-        EnumMap<ProbedSystemProperty, String> metadata;
         if (Jvm.current().getJavaHome().equals(javaHome)) {
             return getMetadataFromCurrentJvm(javaHome);
         }
@@ -70,6 +71,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, System.getProperty(type.getSystemPropertyKey()));
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", javaHome.getAbsolutePath(), result);
         return asMetadata(javaHome, result);
     }
 
@@ -139,6 +141,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, split[type.ordinal()].trim());
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", jdkPath.getAbsolutePath(), result);
         return asMetadata(jdkPath, result);
     }
 

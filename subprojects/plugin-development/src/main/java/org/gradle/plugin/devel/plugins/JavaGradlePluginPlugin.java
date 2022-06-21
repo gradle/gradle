@@ -46,6 +46,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
@@ -142,6 +143,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
         configurePluginValidations(project, extension);
+        configureDependencyGradlePluginsResolution(project);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -258,6 +260,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+    }
+
+    private void configureDependencyGradlePluginsResolution(Project project) {
+        new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
     }
 
     /**

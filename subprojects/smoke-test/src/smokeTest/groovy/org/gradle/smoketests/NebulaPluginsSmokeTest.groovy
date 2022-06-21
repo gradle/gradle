@@ -130,16 +130,19 @@ testImplementation('junit:junit:4.7')""")
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished, TaskExecutionGraph.addTaskExecutionListener and Task.project at execution time")
-    def 'nebula dependency lock plugin'() {
+    def 'nebula dependency lock plugin #nebulaDepLockVersion'() {
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "${TestedVersions.nebulaDependencyLock.latest()}"
+                id "nebula.dependency-lock" version "$nebulaDepLockVersion"
             }
         """.stripIndent()
 
         then:
         runner('buildEnvironment', 'generateLock').build()
+
+        where:
+        nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
     }
 
     @Issue("gradle/gradle#3798")

@@ -21,7 +21,6 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Optional;
 
 public class JavaToolchainFactory {
@@ -39,7 +38,7 @@ public class JavaToolchainFactory {
         this.fileFactory = fileFactory;
     }
 
-    public Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
+    public Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
         if(metadata.isValidInstallation()) {
             final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input);

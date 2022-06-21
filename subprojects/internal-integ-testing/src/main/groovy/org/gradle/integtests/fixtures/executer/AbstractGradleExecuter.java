@@ -1145,6 +1145,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
+        // Setting this to false is now deprecated, true will be the default in 8.0
+        // TODO Remove this once the property itself is deprecated
+        properties.put("org.gradle.kotlin.dsl.precompiled.accessors.strict", "true");
+
         return properties;
     }
 

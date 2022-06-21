@@ -327,7 +327,7 @@ include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kt
 
 You probably want to use external libraries, like OSS libraries from Maven Central, in your modular Java project.
 Some libraries, in their newer versions, are already full modules with a module descriptor.
-For example, `com.google.code.gson:gson:2.8.6` that has the module name `com.google.gson`.
+For example, `com.google.code.gson:gson:2.8.9` that has the module name `com.google.gson`.
 
 Others, like `org.apache.commons:commons-lang3:3.10`, may not offer a full module descriptor but will at least contain an `Automatic-Module-Name` entry in their manifest file to define the module's name (`org.apache.commons.lang3` in the example).
 Such modules, that only have a name as module description, are called _automatic module_ that export **all** their packages and can read **all** modules on the module path.
