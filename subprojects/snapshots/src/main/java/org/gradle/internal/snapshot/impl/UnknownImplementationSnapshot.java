@@ -20,8 +20,32 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class UnknownImplementationSnapshot extends ImplementationSnapshot {
+
+    public enum UnknownReason {
+        UNKNOWN_CLASSLOADER(
+            "was loaded with an unknown classloader (class '%s').",
+            "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
+            "Load your class by using one of Gradle's built-in ways."
+        ),
+        NON_SERIALIZABLE_LAMBDA(
+            "was implemented by the Java lambda '%s'.",
+            "Using Java lambdas is not supported as task inputs.",
+            "Use an (anonymous inner) class instead."
+        );
+
+        private final String descriptionTemplate;
+        private final String reason;
+        private final String solution;
+
+        UnknownReason(String descriptionTemplate, String reason, String solution) {
+            this.descriptionTemplate = descriptionTemplate;
+            this.reason = reason;
+            this.solution = solution;
+        }
+    }
 
     private final UnknownReason unknownReason;
 
@@ -33,10 +57,12 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
     @Override
     public void appendToHasher(Hasher hasher) {
         switch (unknownReason) {
-            case LAMBDA:
-                throw new RuntimeException("Cannot hash implementation of lambda " + getTypeName());
+            case NON_SERIALIZABLE_LAMBDA:
+                throw new RuntimeException("Cannot hash implementation of non-serializable lambda " + typeName);
             case UNKNOWN_CLASSLOADER:
-                throw new RuntimeException("Cannot hash implementation of class " + getTypeName() + " loaded by an unknown classloader");
+                throw new RuntimeException("Cannot hash implementation of class " + typeName + " loaded by an unknown classloader");
+            default:
+                throw new RuntimeException("Unexpected unknown reason: " + unknownReason);
         }
     }
 
@@ -51,7 +77,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
         UnknownImplementationSnapshot that = (UnknownImplementationSnapshot) o;
 
-        return getTypeName().equals(that.getTypeName()) && unknownReason.equals(that.unknownReason);
+        return typeName.equals(that.typeName) && unknownReason.equals(that.unknownReason);
     }
 
     @Override
@@ -59,15 +85,20 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
         return null;
     }
 
-    @Override
-    public boolean isUnknown() {
-        return true;
-    }
-
-    @Override
-    @Nullable
     public UnknownReason getUnknownReason() {
         return unknownReason;
+    }
+
+    public String getProblemDescription() {
+        return String.format(unknownReason.descriptionTemplate, typeName);
+    }
+
+    public String getReasonDescription() {
+        return unknownReason.reason;
+    }
+
+    public String getSolutionDescription() {
+        return unknownReason.solution;
     }
 
     @Override
@@ -77,11 +108,11 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public int hashCode() {
-        return getTypeName().hashCode();
+        return Objects.hash(typeName, unknownReason);
     }
 
     @Override
     public String toString() {
-        return getTypeName() + "@<unknown>";
+        return typeName + "@<" + unknownReason.name() + ">";
     }
 }

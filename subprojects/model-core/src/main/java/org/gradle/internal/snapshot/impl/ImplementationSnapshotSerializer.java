@@ -68,13 +68,14 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
         UNKNOWN {
             @Override
             protected ImplementationSnapshot readAdditionalData(String typeName, Decoder decoder) throws Exception {
-                ImplementationSnapshot.UnknownReason unknownReason = ImplementationSnapshot.UnknownReason.values()[decoder.readSmallInt()];
+                UnknownImplementationSnapshot.UnknownReason unknownReason = UnknownImplementationSnapshot.UnknownReason.values()[decoder.readSmallInt()];
                 return new UnknownImplementationSnapshot(typeName, unknownReason);
             }
 
             @Override
             protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-                encoder.writeSmallInt(implementationSnapshot.getUnknownReason().ordinal());
+                UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementationSnapshot;
+                encoder.writeSmallInt(unknownImplSnapshot.getUnknownReason().ordinal());
             }
         };
 
