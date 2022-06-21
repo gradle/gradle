@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.findOutputsStillPresentSincePreviousExecution;
 
@@ -46,7 +47,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         // Previous implementations can still be unknown, since we store the inputs in the task history even if validation fails.
         // When we fail the build for unknown implementations, then the previous implementations also can't be unknown.
         ClassImplementationSnapshot currentImplementation = Cast.uncheckedNonnullCast(thisExecution.getImplementation());
-        ImmutableList<ClassImplementationSnapshot> currentAdditionalImplementations = Cast.uncheckedNonnullCast(thisExecution.getAdditionalImplementations());
+        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations = Cast.uncheckedNonnullCast(thisExecution.getAdditionalImplementations());
         ChangeContainer implementationChanges = new ImplementationChanges(
             lastExecution.getImplementation(), lastExecution.getAdditionalImplementations(),
             currentImplementation, currentAdditionalImplementations,
