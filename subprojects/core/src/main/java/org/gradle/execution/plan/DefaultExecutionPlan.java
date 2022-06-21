@@ -1238,5 +1238,21 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 pos++;
             }
         }
+
+        @Override
+        public String toString() {
+            StringBuilder str = new StringBuilder("ExecutionQueue[");
+            for (int i = 0; i < nodes.size(); ++i) {
+                if (i > 0) {
+                    str.append(", ");
+                }
+                if (i == pos) {
+                    str.append('*');
+                }
+                str.append(nodes.get(i));
+            }
+            str.append("]");
+            return str.toString();
+        }
     }
 }

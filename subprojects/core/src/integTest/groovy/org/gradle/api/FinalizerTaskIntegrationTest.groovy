@@ -26,7 +26,29 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer can indirectly depend on the entry point finalized by it"() {
+        given:
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalized'
+            }
+            task finalized {
+                dependsOn 'entryPoint'
+                finalizedBy 'finalizer'
+            }
+            task entryPoint {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalized', ':finalizer'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
     def "finalizer task can depend on finalized task"() {
         given:
         buildFile '''
@@ -42,17 +64,36 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
-        fails 'entryPoint'
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalized', ':finalizer'
+        }
 
-        and:
-        failureDescriptionContains 'Misdetected cycle between :finalized and :finalized.'
+    }
 
-        // TODO: should be
-//        expect:
-//        succeeds 'entryPoint'
-//
-//        and:
-//        result.assertTaskOrder ':entryPoint', ':finalized', ':finalizer'
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer task can depend on multiple finalized tasks"() {
+        given:
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalized1', 'finalized2'
+            }
+            task finalized1 {
+                finalizedBy 'finalizer'
+            }
+            task finalized2 {
+                finalizedBy 'finalizer'
+            }
+            task entryPoint {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', any(':finalized1', ':finalized2'), ':finalizer'
+        }
     }
 
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
