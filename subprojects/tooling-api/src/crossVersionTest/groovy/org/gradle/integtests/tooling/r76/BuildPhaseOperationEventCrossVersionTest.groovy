@@ -29,8 +29,8 @@ import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent
 import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
-@ToolingApiVersion(">=7.6")
-@TargetGradleVersion(">=7.6")
+@ToolingApiVersion('>=7.6')
+@TargetGradleVersion('>=7.6')
 class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
 
     def "generates build phase events for task #taskName and expects #expectedReportedTasksCount run tasks"() {

@@ -63,7 +63,7 @@ public interface InternalBuildProgressListener {
     String FILE_DOWNLOAD = "FILE_DOWNLOAD";
 
     /**
-     * The constant for file download operations.
+     * The constant for build phase operations.
      */
     String BUILD_PHASE = "BUILD_PHASE";
 
