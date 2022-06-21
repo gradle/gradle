@@ -200,6 +200,59 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    def "can build plugin against kotlin-gradle-plugin #kotlinVersion"() {
+
+        given:
+        file('buildSrc/settings.gradle') << ''
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id "java-gradle-plugin"
+            }
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+            }
+            gradlePlugin {
+                plugins {
+                    my {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+        """
+        file('buildSrc/src/main/java/MyPlugin.java') << """
+            import org.gradle.api.*;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    System.out.println("It works!");
+                }
+            }
+        """
+        def versionNumber = VersionNumber.parse(kotlinVersion)
+
+        and:
+        settingsFile << ''
+        buildFile << """
+            plugins {
+                id "my-plugin"
+            }
+        """
+
+        when:
+        def result = runner(false, versionNumber, 'help').build()
+
+        then:
+        result.output.contains("It works!")
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
         return runnerFor(this, workers, kotlinVersion, tasks)
     }
