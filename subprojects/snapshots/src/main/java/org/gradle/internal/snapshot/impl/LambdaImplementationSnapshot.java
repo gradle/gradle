@@ -68,6 +68,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         hasher.putString(ImplementationSnapshot.class.getName());
         hasher.putString(typeName);
         hasher.putHash(classLoaderHash);
+        hasher.putString(functionalInterfaceClass);
         hasher.putString(implClass);
         hasher.putString(implMethodName);
         hasher.putString(implMethodSignature);
