@@ -48,7 +48,7 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         def progressEvents = events.getAll()
         progressEvents.size() == 6
 
-        // We have 4 projects
+        // We have 4 projects (root, a, b, c)
         assertStartEventHas(progressEvents[0], "CONFIGURE_ROOT_BUILD", 4)
         assertSuccessfulFinishEventHas(progressEvents[1], "CONFIGURE_ROOT_BUILD")
 
@@ -124,6 +124,80 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         assertFailedFinishEventHas(progressEvents[4], "RUN_WORK")
     }
 
+    def "generates build phase events for task composite build for task #taskName and expects #expectedReportedTasksCount run tasks"() {
+        setupCompositeBuildProject()
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection {
+            it.newBuild().forTasks(taskName)
+                .addProgressListener(events, OperationType.BUILD_PHASE)
+                .run()
+        }
+
+        then:
+        def progressEvents = events.getAll()
+        progressEvents.size() == 8
+
+        // Root project configuration, we have 3 projects in root (root, a, b)
+        assertStartEventHas(progressEvents[0], "CONFIGURE_ROOT_BUILD", 3)
+        // We then configure included build c
+        assertStartEventHas(progressEvents[1], "CONFIGURE_BUILD", 1)
+        // End of included build
+        assertSuccessfulFinishEventHas(progressEvents[2], "CONFIGURE_BUILD")
+        // End of root build
+        assertSuccessfulFinishEventHas(progressEvents[3], "CONFIGURE_ROOT_BUILD")
+
+        assertStartEventHas(progressEvents[4], "RUN_MAIN_TASKS", 0)
+        assertSuccessfulFinishEventHas(progressEvents[7], "RUN_MAIN_TASKS")
+
+        assertStartEventHas(progressEvents[5], "RUN_WORK", expectedReportedTasksCount)
+        assertSuccessfulFinishEventHas(progressEvents[6], "RUN_WORK")
+
+        where:
+        taskName   | expectedReportedTasksCount
+        ":a:taskA" | 1
+        ":a:taskB" | 2
+        ":a:taskC" | 3
+        ":a:taskD" | 1
+    }
+
+    def "generates build phase events for task composite build when task from included build is run"() {
+        setupCompositeBuildProject()
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection {
+            it.newBuild().forTasks(":c:taskA")
+                .addProgressListener(events, OperationType.BUILD_PHASE)
+                .run()
+        }
+
+        then:
+        def progressEvents = events.getAll()
+        progressEvents.size() == 10
+
+        // Root project configuration, we have 3 projects in root (root, a, b)
+        assertStartEventHas(progressEvents[0], "CONFIGURE_ROOT_BUILD", 3)
+        // We then configure included build c
+        assertStartEventHas(progressEvents[1], "CONFIGURE_BUILD", 1)
+        // End of included build
+        assertSuccessfulFinishEventHas(progressEvents[2], "CONFIGURE_BUILD")
+        // End of root build
+        assertSuccessfulFinishEventHas(progressEvents[3], "CONFIGURE_ROOT_BUILD")
+
+        assertStartEventHas(progressEvents[4], "RUN_MAIN_TASKS", 0)
+        // Run included build task
+        assertStartEventHas(progressEvents[5], "RUN_WORK", 1)
+        // Run root build tasks
+        assertStartEventHas(progressEvents[6], "RUN_WORK", 0)
+        // End included build tasks
+        assertSuccessfulFinishEventHas(progressEvents[7], "RUN_WORK")
+        // End root build tasks
+        assertSuccessfulFinishEventHas(progressEvents[8], "RUN_WORK")
+        assertSuccessfulFinishEventHas(progressEvents[9], "RUN_MAIN_TASKS")
+    }
+
     boolean assertStartEventHas(ProgressEvent event, String buildPhase, int buildItemsCount) {
         assert buildPhase && event instanceof BuildPhaseStartEvent
         assert buildPhase && (event.descriptor as BuildPhaseOperationDescriptor).buildPhase == buildPhase
@@ -165,6 +239,33 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         """
         file("c/build.gradle") << """
             tasks.register("taskA")
+        """
+    }
+
+    def setupCompositeBuildProject() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a', 'b'
+            includeBuild 'c'
+        """
+        file("a/build.gradle") << """
+            tasks.register("taskA")
+            tasks.register("taskB") {
+                dependsOn 'taskA'
+            }
+            tasks.register("taskC") {
+                dependsOn 'taskB'
+            }
+            tasks.register("taskD")
+        """
+        file("b/build.gradle") << """
+            tasks.register("taskA")
+        """
+        file("c/build.gradle") << """
+            tasks.register("taskA")
+        """
+        file("c/settings.gradle") << """
+            rootProject.name = 'c'
         """
     }
 }
