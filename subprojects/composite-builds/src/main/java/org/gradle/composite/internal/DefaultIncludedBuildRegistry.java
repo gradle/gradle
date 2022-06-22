@@ -178,7 +178,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private void maybeAddBuildSrcBuild(BuildState owner) {
         File buildSrcDir = new File(owner.getBuildRootDir(), SettingsInternal.BUILD_SRC);
-        if (!BuildSrcDetector.isValidBuildSrcBuild(buildSrcDir)) {
+        if (!BuildSrcDetector.isValidBuildSrcBuild(buildSrcDir) || buildsByIdentifier.values().stream().filter(bs -> bs.getBuildRootDir().equals(buildSrcDir)).findFirst().isPresent()) {
             return;
         }
 
