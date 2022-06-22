@@ -21,7 +21,8 @@ We would like to thank the following community members for their contributions t
 [Sam Snyder](https://github.com/sambsnyd),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [John](https://github.com/goughy000),
-[sll552](https://github.com/sll552)
+[sll552](https://github.com/sll552),
+[Leonardo Brondani Schenkel](https://github.com/lbschenkel)
 
 ## Upgrade instructions
 
