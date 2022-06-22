@@ -33,7 +33,7 @@ class SnapshotSerializerTest extends Specification {
     def encoder = new OutputStreamBackedEncoder(output)
 
     @Subject
-        serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
+    def serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
 
     def "serializes serialized properties"() {
         def original = snapshot("x".bytes)

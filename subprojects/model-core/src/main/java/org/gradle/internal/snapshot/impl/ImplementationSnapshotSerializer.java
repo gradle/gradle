@@ -41,6 +41,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
             @Override
             protected ImplementationSnapshot readAdditionalData(String typeName, Decoder decoder) throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
+                String functionalInterfaceClass = decoder.readString();
                 String implClass = decoder.readString();
                 String implMethodName = decoder.readString();
                 String implMethodSignature = decoder.readString();
@@ -48,6 +49,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
                 return new LambdaImplementationSnapshot(
                     typeName,
                     classLoaderHash,
+                    functionalInterfaceClass,
                     implClass,
                     implMethodName,
                     implMethodSignature,
@@ -59,6 +61,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
             protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
                 LambdaImplementationSnapshot serLambda = (LambdaImplementationSnapshot) implementationSnapshot;
                 hashCodeSerializer.write(encoder, serLambda.getClassLoaderHash());
+                encoder.writeString(serLambda.getFunctionalInterfaceClass());
                 encoder.writeString(serLambda.getImplClass());
                 encoder.writeString(serLambda.getImplMethodName());
                 encoder.writeString(serLambda.getImplMethodSignature());

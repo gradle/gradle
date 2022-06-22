@@ -26,6 +26,8 @@ import java.util.Objects;
 public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     private final HashCode classLoaderHash;
+
+    private final String functionalInterfaceClass;
     private final String implClass;
     private final String implMethodName;
     private final String implMethodSignature;
@@ -35,6 +37,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         this(
             lambda.getCapturingClass(),
             classLoaderHash,
+            lambda.getFunctionalInterfaceClass(),
             lambda.getImplClass(),
             lambda.getImplMethodName(),
             lambda.getImplMethodSignature(),
@@ -45,6 +48,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
     public LambdaImplementationSnapshot(
         String capturingClass,
         HashCode classLoaderHash,
+        String functionalInterfaceClass,
         String implClass,
         String implMethodName,
         String implMethodSignature,
@@ -52,6 +56,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
     ) {
         super(capturingClass);
         this.classLoaderHash = classLoaderHash;
+        this.functionalInterfaceClass = functionalInterfaceClass;
         this.implClass = implClass;
         this.implMethodName = implMethodName;
         this.implMethodSignature = implMethodSignature;
@@ -73,6 +78,10 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
     @Override
     public HashCode getClassLoaderHash() {
         return classLoaderHash;
+    }
+
+    public String getFunctionalInterfaceClass() {
+        return functionalInterfaceClass;
     }
 
     public String getImplClass() {
@@ -108,6 +117,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
         return typeName.equals(that.typeName) &&
             classLoaderHash.equals(that.classLoaderHash) &&
+            functionalInterfaceClass.equals(that.functionalInterfaceClass) &&
             implClass.equals(that.implClass) &&
             implMethodName.equals(that.implMethodName) &&
             implMethodSignature.equals(that.implMethodSignature) &&
@@ -116,7 +126,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public int hashCode() {
-        return Objects.hash(typeName, classLoaderHash, implClass, implMethodName, implMethodSignature, implMethodKind);
+        return Objects.hash(typeName, classLoaderHash, functionalInterfaceClass, implClass, implMethodName, implMethodSignature, implMethodKind);
     }
 
     @Override
