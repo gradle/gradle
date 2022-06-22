@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.file.Stat
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,5 +36,14 @@ class DefaultFileTreeElementTest extends Specification {
 
         expect:
         e.mode == 0644
+    }
+
+    def "display name does not contains backslash"() {
+        def fileSystem = Mock(FileSystem)
+        def f = tmpDir.createFile("foo", "user", "bar")
+        FileTreeElement e = DefaultFileTreeElement.of(f, fileSystem)
+
+        expect:
+        !e.toString().contains('\\')
     }
 }

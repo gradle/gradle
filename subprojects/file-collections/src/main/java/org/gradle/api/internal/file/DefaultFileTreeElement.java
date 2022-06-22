@@ -48,7 +48,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
 
     @Override
     public String getDisplayName() {
-        return "file '" + file + "'";
+        return "file '" + file.toString().replace('\\', '/') + "'";
     }
 
     @Override
