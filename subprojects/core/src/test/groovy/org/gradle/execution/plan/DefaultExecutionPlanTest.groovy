@@ -18,6 +18,7 @@ package org.gradle.execution.plan
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
+import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -28,6 +29,7 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import java.util.function.Consumer
@@ -452,6 +454,28 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         where:
         orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
+    }
+
+    @ToBeImplemented
+    def "finalizer dependencies can schedule across groups to break cycles"() {
+        given:
+        TaskInternal finalizerA = createTask("finalizerA")
+        TaskInternal finalizerB = createTask("finalizerB")
+        TaskInternal finalizerDepA = task("finalizerDepA", finalizedBy: [finalizerB])
+        TaskInternal finalizerDepB = task("finalizerDepB", finalizedBy: [finalizerA])
+        relationships(finalizerA, dependsOn: [finalizerDepA])
+        relationships(finalizerB, dependsOn: [finalizerDepB])
+        TaskInternal entryPoint = task("entryPoint", finalizedBy: [finalizerA])
+
+        when:
+        addToGraphAndPopulate([entryPoint])
+
+        then:
+        // TODO(mlopatkin): Should be
+        //      executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
+        // but now an exception happens
+        GradleException exception = thrown()
+        exception.message.startsWith("Misdetected cycle between :finalizerDepA and :finalizerDepB.")
     }
 
     def "cannot add task with circular reference"() {
@@ -1134,4 +1158,3 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return task
     }
 }
-
