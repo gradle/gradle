@@ -187,6 +187,54 @@ It takes into account which methods are being used and which have changed, which
 Zinc version has been updated to the newest available one in order to benefit from all the recent bugfixes.
 Due to that, if you use `zincVersion` setting it's advised to remove it and only use the default version, because Gradle will only be able to compile Scala code with Zinc versions set to 1.6.x or higher.
 
+==== Removes implicit `--add-opens` for test workers
+
+Prior to Gradle 7.5, JDK modules `java.base/java.util` and `java.base/java.lang` were automatically opened in test workers on JDK9+ by passing `--add-opens` CLI arguments. This meant any tests were able to perform deep reflection on JDK internals without warning or failing. This caused tests to be unreliable by allowing code to pass when it would otherwise fail in a production environment.
+
+These implicit arguments have been removed and are no longer added by default. If your code or any of your dependencies are performing deep refection into JDK internals during test execution, you may see the following behavior changes:
+
+Before Java 16, new build warnings are shown. These new warnings are printed to stderr and will not fail the build:
+```
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by com.google.inject.internal.cglib.core.ReflectUtils$2 (file:/.../testng-5.12.1.jar) to <method>
+WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.core.ReflectUtils$2
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+```
+
+With Java 16 or higher, exceptions are thrown that fail the build:
+```
+// Thrown by TestNG
+java.lang.reflect.InaccessibleObjectException: Unable to make <method> accessible: module java.base does not "opens java.lang" to unnamed module @1e92bd61
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:354)
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:297)
+	at java.base/java.lang.reflect.Method.checkCanSetAccessible(Method.java:199)
+	at java.base/java.lang.reflect.Method.setAccessible(Method.java:193)
+    ...
+
+// Thrown by ProjectBuilder
+org.gradle.api.GradleException: Could not inject synthetic classes.
+	at org.gradle.initialization.DefaultLegacyTypesSupport.injectEmptyInterfacesIntoClassLoader(DefaultLegacyTypesSupport.java:91)
+	at org.gradle.testfixtures.internal.ProjectBuilderImpl.getGlobalServices(ProjectBuilderImpl.java:182)
+	at org.gradle.testfixtures.internal.ProjectBuilderImpl.createProject(ProjectBuilderImpl.java:111)
+	at org.gradle.testfixtures.ProjectBuilder.build(ProjectBuilder.java:120)
+	...
+Caused by: java.lang.RuntimeException: java.lang.IllegalAccessException: module java.base does not open java.lang to unnamed module @1e92bd61
+```
+
+In most cases, these errors can be resolved by updating the code or dependency performing the illegal access. If the code-under-test or the newest version of the dependency in question performs illegal access by design, the old behavior can be restored by opening the `java.base/java.lang` and `java.base/java.util` modules manually with `--add-opens`:
+
+```
+tasks.withType(Test).configureEach {
+    jvmArgs(["--add-opens=java.base/java.lang=ALL-UNNAMED",
+             "--add-opens=java.base/java.util=ALL-UNNAMED"]
+}
+```
+
+If you are developing Gradle plugins, `ProjectBuilder` relies on reflection in the `java.base/java.lang` module. Gradle will automatically add the appropriate `--add-opens` flag to tests when the `java-gradle-plugin` plugin is applied.
+
+If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. Updating to at least `5.14.6` should fix the incompatibility.
+
 === Deprecations
 
 [[file_collection_to_classpath]]
