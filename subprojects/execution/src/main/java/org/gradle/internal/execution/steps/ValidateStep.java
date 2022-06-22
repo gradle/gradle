@@ -183,8 +183,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
         Class<?> workType = workClass.get();
         TypeValidationContext workValidationContext = validationContext.forType(workType, true);
-        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work
-        );
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work);
         beforeExecutionState.getAdditionalImplementations()
             .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
