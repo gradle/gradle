@@ -65,6 +65,7 @@ class ImplementationSnapshotTest extends Specification {
 
         then:
         thrown(UnsupportedOperationException)
+        0 * _
     }
 
     def "implementation snapshots are equal for classes created #description"() {
@@ -97,12 +98,12 @@ class ImplementationSnapshotTest extends Specification {
     }
 
     def "implementation snapshots are not equal for lambdas of different functional interfaces"() {
-        def actionLambdaSnap = createLambdaSnapshot(TestLambdas.createMethodRefLambda())
-        def consumerLambdaSnap = createLambdaSnapshot(TestLambdas.createSerializableConsumerLambda())
+        def actionLambdaSnapshot = createLambdaSnapshot(TestLambdas.createMethodRefLambda())
+        def consumerLambdaSnapshot = createLambdaSnapshot(TestLambdas.createSerializableConsumerLambda())
 
         expect:
-        actionLambdaSnap != consumerLambdaSnap
-        hash(actionLambdaSnap) != hash(consumerLambdaSnap)
+        actionLambdaSnapshot != consumerLambdaSnapshot
+        hash(actionLambdaSnapshot) != hash(consumerLambdaSnapshot)
     }
 
     private HashCode hash(Hashable hashable) {
