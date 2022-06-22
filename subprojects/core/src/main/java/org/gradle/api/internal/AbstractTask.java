@@ -757,7 +757,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(closure), hasher.getClassLoaderHash(closure.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(closure, hasher);
         }
 
         @Override
@@ -801,9 +801,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            HashCode classLoaderHash = hasher.getClassLoaderHash(action.getClass().getClassLoader());
-            String actionClassName = AbstractTask.getActionClassName(action);
-            return ImplementationSnapshot.of(actionClassName, action, classLoaderHash);
+            return AbstractTask.getActionImplementation(action, hasher);
         }
 
         @Override
@@ -831,6 +829,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
             return "Execute " + maybeActionName;
         }
+    }
+
+    private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
+        HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
+        String actionClassName = AbstractTask.getActionClassName(value);
+        return ImplementationSnapshot.of(actionClassName, value, classLoaderHash);
     }
 
     private static String getActionClassName(Object action) {
