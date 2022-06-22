@@ -68,7 +68,7 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
         }
         OperationIdentifier operationId = new OperationIdentifier(idFactory.nextId());
         OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
-        BuildOperationDescriptor newBuildOperation = BuildOperationDescriptor.displayName("Build phase: " + buildOperation.getDisplayName())
+        BuildOperationDescriptor newBuildOperation = BuildOperationDescriptor.displayName("[BUILD PHASE] " + buildOperation.getDisplayName())
             .metadata(buildOperation.getMetadata())
             .name(buildOperation.getName())
             .totalProgress(buildOperation.getTotalProgress())
