@@ -131,15 +131,17 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             val outputString = output.toByteArray().decodeToString()
             if (failedBecauseOldWrapperMissing(outputString)) {
                 val expectedWrapperVersion = oldWrapperMissingErrorRegex.find(outputString)!!.groups[1]!!.value
-                val closestReleasedVersion = determineClosestReleasedVersion(GradleVersion.version(expectedWrapperVersion)).version
+                val closestReleasedVersion = determineClosestReleasedVersion(GradleVersion.version(expectedWrapperVersion))
+                val repository = if (closestReleasedVersion.isSnapshot) "distributions-snapshots" else "distributions"
                 val wrapperPropertiesFile = checkoutDir.resolve("gradle/wrapper/gradle-wrapper.properties")
                 val wrapperProperties = Properties().apply {
                     load(wrapperPropertiesFile.inputStream())
-                    this["distributionUrl"] = "https://services.gradle.org/distributions/gradle-$closestReleasedVersion-bin.zip"
+                    this["distributionUrl"] = "https://services.gradle.org/$repository/gradle-${closestReleasedVersion.version}-bin.zip"
                 }
                 wrapperProperties.store(wrapperPropertiesFile.outputStream(), "Modified by `BuildCommitDistribution` task")
                 runDistributionBuild(checkoutDir, System.out)
             } else {
+                println(output.toByteArray().decodeToString())
                 throw e
             }
         }
