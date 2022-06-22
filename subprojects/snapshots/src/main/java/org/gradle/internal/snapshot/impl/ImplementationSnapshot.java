@@ -71,7 +71,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             return Optional.ofNullable(value)
                 .flatMap(ImplementationSnapshot::serializedLambdaFor)
                 .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
-                .orElseGet(() -> new UnknownImplementationSnapshot(typeName, UnknownReason.NON_SERIALIZABLE_LAMBDA));
+                .orElseGet(() -> new UnknownImplementationSnapshot(typeName, UnknownReason.UNTRACKED_LAMBDA));
         }
 
         return new ClassImplementationSnapshot(typeName, classLoaderHash);

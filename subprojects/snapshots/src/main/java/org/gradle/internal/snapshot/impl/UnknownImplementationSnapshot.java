@@ -30,7 +30,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
             "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
             "Load your class by using one of Gradle's built-in ways."
         ),
-        NON_SERIALIZABLE_LAMBDA(
+        UNTRACKED_LAMBDA(
             "was implemented by the Java lambda '%s'.",
             "Using Java lambdas is not supported as task inputs.",
             "Use an (anonymous inner) class instead."
@@ -57,8 +57,8 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
     @Override
     public void appendToHasher(Hasher hasher) {
         switch (unknownReason) {
-            case NON_SERIALIZABLE_LAMBDA:
-                throw new RuntimeException("Cannot hash implementation of non-serializable lambda " + typeName);
+            case UNTRACKED_LAMBDA:
+                throw new RuntimeException("Cannot hash implementation of lambda " + typeName);
             case UNKNOWN_CLASSLOADER:
                 throw new RuntimeException("Cannot hash implementation of class " + typeName + " loaded by an unknown classloader");
             default:
