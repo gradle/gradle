@@ -22,11 +22,16 @@ import spock.lang.Specification
 
 class ImplementationSnapshotTest extends Specification {
 
+    static final SHARED_UNTRACKABLE_LAMBDA = TestLambdas.createUntrackableLambda()
+    static final SHARED_SERIALIZABLE_LAMBDA = TestLambdas.createSerializableLambda()
+    static final SHARED_CLASSLOADER_HASH = TestHashCodes.hashCodeFrom(1234)
+
     def "class name #className is lambda: #lambda"() {
         HashCode classloaderHash = TestHashCodes.hashCodeFrom(1234)
 
         expect:
-        ImplementationSnapshot.of(className, classloaderHash).unknown == lambda
+        def snapshot = ImplementationSnapshot.of(className, classloaderHash)
+        (snapshot instanceof UnknownImplementationSnapshot) == lambda
 
         where:
         className                                    | lambda
@@ -37,15 +42,46 @@ class ImplementationSnapshotTest extends Specification {
         'SomeClassName$$Lambda$267/19410584'         | true
     }
 
-    def "implementation snapshots are not equal when unknown"() {
-        HashCode classloaderHash = TestHashCodes.hashCodeFrom(1234)
-        String lambdaClassName = 'SomeClass$$Lambda$3/23501234324'
-        def className = "SomeClass"
-
+    def "implementation snapshots are not equal for #description"() {
         expect:
-        ImplementationSnapshot.of(className, classloaderHash) == ImplementationSnapshot.of(className, classloaderHash)
-        ImplementationSnapshot.of(className, null) != ImplementationSnapshot.of(className, null)
-        ImplementationSnapshot.of(lambdaClassName, classloaderHash) != ImplementationSnapshot.of(lambdaClassName, classloaderHash)
-        ImplementationSnapshot.of(lambdaClassName, null) != ImplementationSnapshot.of(lambdaClassName, null)
+        implementationFactory() != implementationFactory()
+
+        where:
+        description                                  | implementationFactory
+        'unknown classloader for class'              | { -> ImplementationSnapshot.of("SomeClass", null) }
+        'unknown classloader for lambda'             | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', null) }
+        'unknown lambda'                             | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_CLASSLOADER_HASH) }
+        'untrackable lambda'                         | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_UNTRACKABLE_LAMBDA, SHARED_CLASSLOADER_HASH) }
+        'unknown classloader for untrackable lambda' | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_UNTRACKABLE_LAMBDA, null) }
+    }
+
+    def "implementation snapshots are equal for classes"() {
+        def className = "SomeClass"
+        def nonLambdaValue = "some string value"
+        expect:
+        ImplementationSnapshot.of(className, SHARED_CLASSLOADER_HASH) == ImplementationSnapshot.of(className, SHARED_CLASSLOADER_HASH)
+        ImplementationSnapshot.of(className, nonLambdaValue, SHARED_CLASSLOADER_HASH) == ImplementationSnapshot.of(className, nonLambdaValue, SHARED_CLASSLOADER_HASH)
+    }
+
+    def "implementation snapshots are equal for #description lambdas"() {
+        expect:
+        implementationFactory() == implementationFactory()
+
+        where:
+        description              | implementationFactory
+        'same serializable'      | { -> createLambdaSnapshot(SHARED_SERIALIZABLE_LAMBDA) }
+        'serializable'           | { -> createLambdaSnapshot(TestLambdas.createSerializableLambda()) }
+        'method reference'       | { -> createLambdaSnapshot(TestLambdas.createMethodRefLambda()) }
+        'static field capturing' | { -> createLambdaSnapshot(TestLambdas.createClassCapturingLambda()) }
+        'instance capturing'     | { -> createLambdaSnapshot(TestLambdas.createInstanceCapturingLambda()) }
+    }
+
+    def "implementation snapshots are not equal for lambdas of different functional interfaces"() {
+        expect:
+        createLambdaSnapshot(TestLambdas.createMethodRefLambda()) != createLambdaSnapshot(TestLambdas.createSerializableConsumerLambda())
+    }
+
+    private ImplementationSnapshot createLambdaSnapshot(lambda) {
+        ImplementationSnapshot.of(lambda.getClass().name, lambda, SHARED_CLASSLOADER_HASH)
     }
 }
