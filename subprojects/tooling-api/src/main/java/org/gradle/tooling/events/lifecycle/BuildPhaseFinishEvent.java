@@ -22,7 +22,7 @@ import org.gradle.tooling.events.FinishEvent;
 /**
  * An event that marks the finish of a build phase.
  *
- * @since 7.5
+ * @since 7.6
  */
 @Incubating
 public interface BuildPhaseFinishEvent extends BuildPhaseProgressEvent, FinishEvent {
