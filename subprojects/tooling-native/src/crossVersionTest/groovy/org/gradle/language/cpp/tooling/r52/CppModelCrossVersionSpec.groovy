@@ -25,9 +25,12 @@ import org.gradle.tooling.model.cpp.CppExecutable
 import org.gradle.tooling.model.cpp.CppLibrary
 import org.gradle.tooling.model.cpp.CppProject
 import org.gradle.tooling.model.cpp.CppSharedLibrary
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(">=5.2")
 @TargetGradleVersion(">=5.2")
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
 class CppModelCrossVersionSpec extends ToolingApiSpecification {
     def toolchain = AvailableToolChains.defaultToolChain
 

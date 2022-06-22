@@ -64,9 +64,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
             implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
 
         if (!settings.isUseTestSuites()) {
-            buildScriptBuilder
-                .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
-                .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+            buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.", "org.jetbrains.kotlin:kotlin-test-junit5");
         }
     }
 

@@ -73,8 +73,9 @@ class SelectorStateResolverTest extends Specification {
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
-    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
-    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
+    private final VersionParser versionParser = new VersionParser()
+    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
+    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
     def "resolve selector #permutation"() {
         given:
@@ -177,7 +178,7 @@ class SelectorStateResolverTest extends Specification {
         def nine = new TestProjectSelectorState(projectId)
         def otherNine = new TestProjectSelectorState(projectId)
         ModuleConflictResolver mockResolver = Mock()
-        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
         when:
         def selected = resolverWithMock.selectBest(moduleId, moduleSelectors([nine, otherNine]))
@@ -237,7 +238,7 @@ class SelectorStateResolverTest extends Specification {
     }
 
     ModuleSelectors moduleSelectors(List<? extends ResolvableSelectorState> selectors) {
-        def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator())
+        def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator(), versionParser)
         selectors.forEach { moduleSelectors.add(it, false) }
         return moduleSelectors
     }

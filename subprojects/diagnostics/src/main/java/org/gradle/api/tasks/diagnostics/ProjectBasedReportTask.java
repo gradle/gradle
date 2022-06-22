@@ -27,7 +27,9 @@ import java.util.TreeSet;
  * The base class for all Project based project report tasks.
  *
  * @since 6.8
+ * @deprecated Use {@link AbstractProjectBasedReportTask} instead.
  */
+@Deprecated
 @Incubating
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ProjectBasedReportTask extends ConventionReportTask {

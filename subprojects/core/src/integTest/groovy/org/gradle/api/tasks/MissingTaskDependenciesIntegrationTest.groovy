@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
@@ -30,7 +30,7 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 @ValidationTestFor(
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
-class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
+class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ExecutionOptimizationDeprecationFixture {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -571,11 +571,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         def expectedWarning = unresolvableInput({
             property('invalidInputFileCollection')
             conversionProblem(rootCause.stripIndent())
-            includeLink()
         }, false)
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, expectedWarning)
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, expectedWarning, 'validation_problems', 'unresolvable_input')
 
         run "broken"
 

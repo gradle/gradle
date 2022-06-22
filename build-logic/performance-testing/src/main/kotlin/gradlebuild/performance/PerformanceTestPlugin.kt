@@ -228,6 +228,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             outputs.cacheIf { false }
             outputs.file(outputJson)
+
+            predictiveSelection.enabled.set(false)
         }
 
     private

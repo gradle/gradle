@@ -84,14 +84,14 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
             throw new NoAvailableWorkerLeaseException("No worker lease associated with the current thread");
         }
         if (operations.size() != 1) {
-            throw new IllegalStateException("Expected the current thread of hold a single worker lease");
+            throw new IllegalStateException("Expected the current thread to hold a single worker lease");
         }
         return operations.get(0);
     }
 
     @Override
-    public DefaultWorkerLease getWorkerLease() {
-        return workerLeaseLockRegistry.getResourceLock();
+    public DefaultWorkerLease newWorkerLease() {
+        return workerLeaseLockRegistry.newResourceLock();
     }
 
     @Override
@@ -106,12 +106,22 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
             // Already a worker
             return action.create();
         }
-        return withLocks(Collections.singletonList(getWorkerLease()), action);
+        return withLocks(Collections.singletonList(newWorkerLease()), action);
     }
 
     @Override
     public void runAsWorkerThread(Runnable action) {
         runAsWorkerThread(Factories.<Void>toFactory(action));
+    }
+
+    @Override
+    public void runAsUnmanagedWorkerThread(Runnable action) {
+        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (!locks.isEmpty()) {
+            action.run();
+        } else {
+            withLocks(Collections.singletonList(workerLeaseLockRegistry.newUnmanagedLease()), action);
+        }
     }
 
     @Override
@@ -344,7 +354,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         if (!workerLeaseLockRegistry.getResourceLocksByCurrentThread().isEmpty()) {
             throw new IllegalStateException("Current thread is already a worker thread");
         }
-        DefaultWorkerLease lease = getWorkerLease();
+        DefaultWorkerLease lease = newWorkerLease();
         coordinationService.withStateLock(lock(lease));
         return lease;
     }
@@ -396,8 +406,12 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
             super(coordinationService);
         }
 
-        DefaultWorkerLease getResourceLock() {
+        DefaultWorkerLease newResourceLock() {
             return new DefaultWorkerLease("worker lease", coordinationService, this, root);
+        }
+
+        DefaultWorkerLease newUnmanagedLease() {
+            return new DefaultWorkerLease("unmanaged lease", coordinationService, this, new LeaseHolder(1));
         }
     }
 

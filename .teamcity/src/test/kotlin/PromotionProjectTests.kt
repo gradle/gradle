@@ -18,13 +18,11 @@ import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import promotion.PromotionProject
-
 
 class PromotionProjectTests {
     @Test
@@ -217,7 +215,7 @@ class PromotionProjectTests {
 
     private fun setupModelFor(branchName: String): PromotionProject {
         // Set the project id here, so we can use methods on the DslContext
-        DslContext.projectId = AbsoluteId("Gradle_${branchName}")
+        DslContext.projectId = AbsoluteId("Gradle_$branchName")
         DslContext.addParameters("Branch" to branchName)
         val model = PromotionProject(VersionedSettingsBranch(branchName, true))
         return model

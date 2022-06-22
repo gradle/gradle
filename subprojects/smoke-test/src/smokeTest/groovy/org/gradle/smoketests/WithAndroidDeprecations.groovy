@@ -45,4 +45,15 @@ trait WithAndroidDeprecations {
             }
         }
     }
+
+    void expectAndroidIncrementalTaskInputsDeprecation(String agpVersion) {
+        def agpVersionNumber = VersionNumber.parse(agpVersion)
+        def method = agpVersionNumber < VersionNumber.parse("4.2")
+            ? 'taskAction$gradle'
+            : 'taskAction$gradle_core'
+        // https://issuetracker.google.com/218478028
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersionNumber < VersionNumber.parse("7.3.0-alpha08"),
+            getIncrementalTaskInputsDeprecationWarning("IncrementalTask.${method}"))
+    }
 }

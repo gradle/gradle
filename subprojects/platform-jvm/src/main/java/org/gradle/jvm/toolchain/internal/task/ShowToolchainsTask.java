@@ -101,7 +101,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location.getLocation());
+        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location);
         return new ReportableToolchain(metadata, location);
     }
 

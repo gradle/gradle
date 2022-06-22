@@ -33,10 +33,58 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.6]]
+== Upgrading from 7.5 and earlier
+
+[[exported_key_deduplication]]
+=== Exported keys are now deduplicated
+
+link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
+Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
+
+=== Updates to Attribute Disambiguation Rules related methods
+
+The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+
+[[strict-kotlin-dsl-precompiled-scripts-accessors]]
+=== Strict Kotlin DSL precompiled script plugins accessors generation
+
+Type safe Kotlin DSL accessors generation for precompiled script plugins does not fail the build by default if a plugin requested in such precompiled scripts fails to be applied.
+Because the cause could be environmental and for backwards compatibility reasons, this behaviour hasn't changed yet.
+
+Back in Gradle 7.1 the `:generatePrecompiledScriptPluginAccessors` task responsible for the accessors generation has been marked as non-cacheable by default.
+The `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property was introduced in order to offer an opt-in to a stricter mode of operation that fails the build when a plugin application fails, and enable the build cache for that task.
+
+Starting with Gradle 7.6, non-strict accessors generation for Kotlin DSL precompiled script plugins has been deprecated.
+This will change in Gradle 8.0.
+Strict accessor generation will become the default.
+To opt in to the strict behavior, set the 'org.gradle.kotlin.dsl.precompiled.accessors.strict' system property to `true`.
+
+This can be achieved persistently in the `gradle.properties` file in your build root directory:
+
+```properties
+systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
+```
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
+[[incremental_task_inputs_deprecation]]
+=== IncrementalTaskInputs type is deprecated
+
+The `IncrementalTaskInputs` type was used to implement _incremental tasks,_ that is to say tasks that can be optimized to run on a subset of changed inputs instead of the whole input.
+This type had a number of drawbacks.
+In particular using this type it was not possible to determine what input a change was associated with.
+
+You should now use the `InputChanges` type instead.
+Please refer to the <<custom_tasks.adoc#sec:implementing_an_incremental_task, userguide section about implementing incremental tasks for more details>>.
+
 === Potential breaking changes
+
+==== Version catalog only accepts a single TOML import file
+
+Only a single file will be accepted when using a `from` import method.
+This means that notations, which resolve to multiple files (e.g. the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] method, when more then one file is passed) will result in a build failure.
 
 ==== Updates to default tool integration versions
 
@@ -70,11 +118,74 @@ In order to set the old default, the executable can be manually defined in `grad
 ----
 signing.gnupg.executable=gpg2
 ----
+==== `mustRunAfter` constraints no longer violated by `finalizedBy` dependencies
+
+In previous Gradle versions, `mustRunAfter` constraints between regular tasks and finalizer task dependencies would not be honored.
+
+For a concrete example, consider the following task graph definition:
+
+[source,kotlin]
+----
+tasks {
+    register("dockerTest") {
+        dependsOn("dockerUp")     // dependsOn createContainer mustRunAfter removeContainer
+        finalizedBy("dockerStop") // dependsOn removeContainer
+    }
+
+    register("dockerUp") {
+        dependsOn("createContainer")
+    }
+
+    register("dockerStop") {
+        dependsOn("removeContainer")
+    }
+
+    register("createContainer") {
+        mustRunAfter("removeContainer")
+    }
+
+    register("removeContainer") {
+    }
+}
+----
+
+The relevant constraints are:
+
+- `dockerStop` is a finalizer of `dockerTest` so it  must be run after `dockerTest`;
+- `removeContainer` is a dependency of `dockerStop` so it must be run before `dockerStop`;
+- `createContainer` must run after `removeContainer`;
+
+Prior to Gradle 7.5, `gradle dockerTest` would yield the following order of execution, in violation of the `mustRunAfter` constraint between `:createContainer` and `:removeContainer`:
+
+```
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :removeContainer UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
+
+Starting with Gradle 7.5, `mustRunAfter` constraints are fully honored yielding the following order of execution:
+
+```
+> Task :removeContainer UP-TO-DATE
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
 
 ==== Updates to bundled Gradle dependencies
 
-- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.10].
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.11].
 
+==== Scala Zinc version updated to 1.6.1
+
+Zinc is the Scala incremental compiler that allows Gradle to always compile the minimal set of files needed by the current file changes.
+It takes into account which methods are being used and which have changed, which means it's much more granular than just interfile dependencies.
+
+Zinc version has been updated to the newest available one in order to benefit from all the recent bugfixes.
+Due to that, if you use `zincVersion` setting it's advised to remove it and only use the default version, because Gradle will only be able to compile Scala code with Zinc versions set to 1.6.x or higher.
 
 === Deprecations
 
@@ -95,6 +206,14 @@ method has remained the same, this only affects the CLI.
 [[groovydoc_option_improvements]]
 ==== Groovydoc `includePrivate` property is deprecated
 There is a new `link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html#org.gradle.api.tasks.javadoc.Groovydoc:access[access]` property that allows finer control over what is included in the Groovydoc.
+
+[[use_providers_to_run_external_processes]]
+==== Provider-based API must be used to run external processes at the configuration time
+
+Using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at the configuration time is now deprecated when the configuration cache is enabled.
+It will be an error in Gradle 8.0 and later.
+Gradle 7.5 introduces configuration cache-compatible ways to execute and obtain output of an external process with the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[provider-based APIs] or a custom implementation of the link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] interface.
+The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new APIs.
 
 [[changes_7.4]]
 == Upgrading from 7.3 and earlier

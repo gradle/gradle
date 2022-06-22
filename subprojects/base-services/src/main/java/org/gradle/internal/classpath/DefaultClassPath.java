@@ -142,7 +142,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     @Override
     public ClassPath plus(ClassPath other) {
-        if (files.isEmpty()) {
+        if (isEmpty()) {
             return other;
         }
         if (other.isEmpty()) {

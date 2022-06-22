@@ -16,7 +16,6 @@
 
 package promotion
 
-import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
@@ -38,10 +37,12 @@ abstract class BasePublishGradleDistribution(
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests
         **/smoke-tests/build/reports/tests/** => post-smoke-tests
+        **/build/version-info.properties => version-info.properties
         """.trimIndent()
 
         dependencies {
             snapshot(RelativeId("Check_Stage_${this@BasePublishGradleDistribution.triggerName}_Trigger")) {
+                synchronizeRevisions = false
             }
         }
     }
