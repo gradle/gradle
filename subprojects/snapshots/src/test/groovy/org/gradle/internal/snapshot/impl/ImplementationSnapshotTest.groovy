@@ -17,6 +17,9 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashable
+import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
@@ -55,17 +58,34 @@ class ImplementationSnapshotTest extends Specification {
         'unknown classloader for untrackable lambda' | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_UNTRACKABLE_LAMBDA, null) }
     }
 
-    def "implementation snapshots are equal for classes"() {
-        def className = "SomeClass"
-        def nonLambdaValue = "some string value"
+    def "cannot hash unknown implementation snapshot"() {
+        def snapshot = ImplementationSnapshot.of("SomeClass", null)
+        when:
+        snapshot.appendToHasher(Mock(Hasher))
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
+    def "implementation snapshots are equal for classes created #description"() {
         expect:
-        ImplementationSnapshot.of(className, SHARED_CLASSLOADER_HASH) == ImplementationSnapshot.of(className, SHARED_CLASSLOADER_HASH)
-        ImplementationSnapshot.of(className, nonLambdaValue, SHARED_CLASSLOADER_HASH) == ImplementationSnapshot.of(className, nonLambdaValue, SHARED_CLASSLOADER_HASH)
+        def snapshot1 = implementationFactory() as ImplementationSnapshot
+        def snapshot2 = implementationFactory() as ImplementationSnapshot
+        snapshot1 == snapshot2
+        hash(snapshot1) == hash(snapshot2)
+
+        where:
+        description     | implementationFactory
+        'without value' | { -> ImplementationSnapshot.of("SomeClass", SHARED_CLASSLOADER_HASH) }
+        'with value'    | { -> ImplementationSnapshot.of("SomeClass", "non lambda value", SHARED_CLASSLOADER_HASH) }
     }
 
     def "implementation snapshots are equal for #description lambdas"() {
         expect:
-        implementationFactory() == implementationFactory()
+        def snapshot1 = implementationFactory() as ImplementationSnapshot
+        def snapshot2 = implementationFactory() as ImplementationSnapshot
+        snapshot1 == snapshot2
+        hash(snapshot1) == hash(snapshot2)
 
         where:
         description              | implementationFactory
@@ -77,8 +97,18 @@ class ImplementationSnapshotTest extends Specification {
     }
 
     def "implementation snapshots are not equal for lambdas of different functional interfaces"() {
+        def actionLambdaSnap = createLambdaSnapshot(TestLambdas.createMethodRefLambda())
+        def consumerLambdaSnap = createLambdaSnapshot(TestLambdas.createSerializableConsumerLambda())
+
         expect:
-        createLambdaSnapshot(TestLambdas.createMethodRefLambda()) != createLambdaSnapshot(TestLambdas.createSerializableConsumerLambda())
+        actionLambdaSnap != consumerLambdaSnap
+        hash(actionLambdaSnap) != hash(consumerLambdaSnap)
+    }
+
+    private HashCode hash(Hashable hashable) {
+        def hasher = Hashing.newHasher()
+        hasher.put(hashable)
+        return hasher.hash()
     }
 
     private ImplementationSnapshot createLambdaSnapshot(lambda) {
