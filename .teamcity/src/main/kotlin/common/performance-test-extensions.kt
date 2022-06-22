@@ -22,10 +22,12 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
-fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30) {
-    applyDefaultSettings(os = os, timeout = timeout)
+fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, timeout: Int = 30) {
+    applyDefaultSettings(os = os, arch = arch, timeout = timeout)
     artifactRules = """
         build/report-*-performance-tests.zip => .
+        build/report-*-performance.zip => $hiddenArtifactDestination
+        build/report-*PerformanceTest.zip => $hiddenArtifactDestination
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
@@ -42,6 +44,7 @@ fun performanceTestCommandLine(
     baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
     testJavaVendor: String = os.perfTestJavaVendor,
 ) = listOf(

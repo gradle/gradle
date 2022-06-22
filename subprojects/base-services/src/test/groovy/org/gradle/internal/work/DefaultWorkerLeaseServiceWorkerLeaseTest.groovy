@@ -207,7 +207,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
         def registry = workerLeaseService(1)
 
         when:
-        def workerLease = registry.getWorkerLease()
+        def workerLease = registry.newWorkerLease()
         coordinationService.withStateLock(lock(workerLease))
 
         then:
@@ -228,7 +228,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
             }
             start {
                 thread.blockUntil.worker1
-                registry.withLocks([registry.workerLease]) {
+                registry.withLocks([registry.newWorkerLease()]) {
                     instant.worker2
                 }
             }
@@ -444,5 +444,32 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
 
         then:
         instant.worker1Finished > instant.unlocked
+    }
+
+    def "registering an unmanaged worker does not block other workers"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        async {
+            start {
+                assert !registry.workerThread
+                registry.runAsUnmanagedWorkerThread {
+                    instant.unmanaged
+                    assert registry.workerThread
+                    assert registry.currentWorkerLease != null
+                    thread.blockUntil.workerFinished
+                }
+                assert !registry.workerThread
+            }
+            start {
+                thread.blockUntil.unmanaged
+                registry.runAsWorkerThread {
+                }
+                instant.workerFinished
+            }
+        }
+
+        then:
+        noExceptionThrown()
     }
 }

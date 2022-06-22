@@ -46,6 +46,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -73,6 +74,10 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
 import javax.inject.Inject
+
+
+internal
+val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
 
 
 @CacheableTask
@@ -144,6 +149,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     @TaskAction
     fun generate() {
 
+        handleNonStrictModeDeprecation()
+
         recreateTaskDirectories()
 
         val projectPlugins = selectProjectPlugins()
@@ -151,6 +158,18 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             asyncIOScopeFactory.newScope().useToRun {
                 generateTypeSafeAccessorsFor(projectPlugins)
             }
+        }
+    }
+
+    private
+    fun handleNonStrictModeDeprecation() {
+        if (!strict.get()) {
+            DeprecationLogger.deprecateBuildInvocationFeature("Non-strict accessors generation for Kotlin DSL precompiled script plugins")
+                .withContext("Strict accessor generation will become the default.")
+                .withAdvice("To opt in to the strict behavior, set the '$strictModeSystemPropertyName' system property to `true`.")
+                .willChangeInGradle8()
+                .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors")
+                .nagUser()
         }
     }
 

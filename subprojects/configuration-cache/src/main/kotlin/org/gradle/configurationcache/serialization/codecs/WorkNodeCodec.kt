@@ -31,6 +31,7 @@ import org.gradle.execution.plan.FinalizerGroup
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.OrdinalGroup
+import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.execution.plan.TaskNode
 
@@ -38,7 +39,8 @@ import org.gradle.execution.plan.TaskNode
 internal
 class WorkNodeCodec(
     private val owner: GradleInternal,
-    private val internalTypesCodec: Codec<Any?>
+    private val internalTypesCodec: Codec<Any?>,
+    private val ordinalGroups: OrdinalGroupFactory
 ) {
 
     suspend fun WriteContext.writeWork(nodes: List<Node>) {
@@ -138,7 +140,7 @@ class WorkNodeCodec(
             when (readSmallInt()) {
                 0 -> {
                     val ordinal = readSmallInt()
-                    OrdinalGroup(ordinal)
+                    ordinalGroups.group(ordinal)
                 }
                 1 -> {
                     val finalizerNode = nodesById.getValue(readSmallInt()) as TaskNode
@@ -147,7 +149,7 @@ class WorkNodeCodec(
                 }
                 2 -> {
                     val ordinalGroup = readNodeGroup(nodesById)
-                    val groups = readCollectionInto({ c -> HashSet() }) { readNodeGroup(nodesById) as FinalizerGroup }
+                    val groups = readCollectionInto(::HashSet) { readNodeGroup(nodesById) as FinalizerGroup }
                     CompositeNodeGroup(ordinalGroup, groups)
                 }
                 3 -> NodeGroup.DEFAULT_GROUP

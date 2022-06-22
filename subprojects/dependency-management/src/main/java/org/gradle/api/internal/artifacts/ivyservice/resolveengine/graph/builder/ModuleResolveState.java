@@ -109,7 +109,7 @@ class ModuleResolveState implements CandidateModule {
         this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
-        this.selectors = new ModuleSelectors<>(versionComparator);
+        this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
         this.attributeDesugaring = attributeDesugaring;
     }

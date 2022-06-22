@@ -53,6 +53,13 @@ wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
 wmic Path win32_process Where "name='java.exe'"
 """
 
+enum class Arch(val suffix: String, val nameOnLinuxWindows: String, val nameOnMac: String) {
+    AMD64("64bit", "amd64", "x86_64"),
+    AARCH64("aarch64", "aarch64", "aarch64");
+
+    fun asName() = name.lowercase().toCapitalized()
+}
+
 enum class Os(
     val agentRequirement: String,
     val ignoredSubprojects: List<String> = emptyList(),
@@ -75,7 +82,8 @@ enum class Os(
         androidHome = """C:\Program Files\android\sdk""",
         jprofilerHome = """C:\Program Files\jprofiler\jprofiler11.1.4""",
         killAllGradleProcesses = killAllGradleProcessesWindows,
-        perfTestWorkingDir = "P:/"
+        perfTestWorkingDir = "P:/",
+        perfTestJavaVendor = "openjdk"
     ),
     MACOS(
         "Mac",
@@ -96,7 +104,7 @@ enum class Os(
                 else -> JvmVendor.oracle
             }
             javaHome(DefaultJvm(version, vendor), this)
-        }
+        } + ",${javaHome(DefaultJvm(JvmVersion.java8, JvmVendor.openjdk), this)}"
         return """"-Porg.gradle.java.installations.paths=$paths""""
     }
 }

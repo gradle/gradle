@@ -133,6 +133,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             .deprecations(KotlinMultiPlatformDeprecations) {
                 expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             }.build()
     }
 

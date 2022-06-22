@@ -16,6 +16,7 @@
 
 package util
 
+import common.Arch
 import common.BuildToolBuildJvm
 import common.JvmVendor
 import common.JvmVersion
@@ -33,9 +34,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
-class RerunFlakyTest(os: Os) : BuildType({
-    val id = "Util_RerunFlakyTest${os.asName()}"
-    name = "Rerun Flaky Test - ${os.asName()}"
+class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
+    val id = "Util_RerunFlakyTest${os.asName()}${arch.asName()}"
+    name = "Rerun Flaky Test - ${os.asName()} ${arch.asName()}"
     description = "Allows you to rerun a selected flaky test 10 times"
     id(id)
     val testJvmVendorParameter = "testJavaVendor"
@@ -44,8 +45,8 @@ class RerunFlakyTest(os: Os) : BuildType({
     val testNameParameterName = "testName"
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
-    applyDefaultSettings(os, BuildToolBuildJvm, 0)
-    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
+    applyDefaultSettings(os, arch, buildJvm = BuildToolBuildJvm, timeout = 0)
+    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
             listOf(extraParameters) +
@@ -57,7 +58,7 @@ class RerunFlakyTest(os: Os) : BuildType({
         steps {
             gradleWrapper {
                 name = "GRADLE_RUNNER_$idx"
-                tasks = "%$testTaskParameterName% --rerun --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
+                tasks = "%$testTaskParameterName% -PrerunAllTests --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
@@ -102,7 +103,7 @@ class RerunFlakyTest(os: Os) : BuildType({
             "",
             display = ParameterDisplay.PROMPT,
             allowEmpty = true,
-            description = "Additional options for the test task to run"
+            description = "Additional options for the test task to run (`-PrerunAllTests` is already added implicitly)"
         )
     }
 

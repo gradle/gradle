@@ -67,6 +67,42 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
         'current'      | Jvm.current()
     }
 
+    def "can set java launcher via #type toolchain on manually created java exec task to #jdk with #plugin"() {
+        buildFile << """
+            plugins {
+                id '${plugin}'
+            }
+
+            tasks.register("run", JavaExec) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+                setJvmArgs(['-version'])
+                mainClass = 'None'
+            }
+        """
+
+        when:
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
+            .withArgument("--info")
+            .withTasks("run")
+            .run()
+
+        then:
+        outputContains("Command: ${jdk.javaHome.absolutePath}")
+        noExceptionThrown()
+
+        where:
+        type           | jdk                             | plugin
+
+        'differentJdk' | AvailableJavaHomes.differentJdk | 'java-base'
+        'current'      | Jvm.current()                   | 'java-base'
+
+        'differentJdk' | AvailableJavaHomes.differentJdk | 'jvm-toolchains'
+        'current'      | Jvm.current()                   | 'jvm-toolchains'
+    }
+
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "JavaExec task is configured using default toolchain"() {
         def someJdk = AvailableJavaHomes.differentJdk
