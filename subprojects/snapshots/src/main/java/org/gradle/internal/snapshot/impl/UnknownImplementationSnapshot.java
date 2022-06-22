@@ -56,14 +56,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        switch (unknownReason) {
-            case UNTRACKED_LAMBDA:
-                throw new RuntimeException("Cannot hash implementation of lambda " + typeName);
-            case UNKNOWN_CLASSLOADER:
-                throw new RuntimeException("Cannot hash implementation of class " + typeName + " loaded by an unknown classloader");
-            default:
-                throw new RuntimeException("Unexpected unknown reason: " + unknownReason);
-        }
+        throw new UnsupportedOperationException("Cannot hash an unknown implementation " + this);
     }
 
     @Override
