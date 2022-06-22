@@ -22,7 +22,7 @@ import org.gradle.tooling.events.ProgressEvent;
 /**
  * Event describing the build phase.
  *
- * @since 7.5
+ * @since 7.6
  */
 @Incubating
 public interface BuildPhaseProgressEvent extends ProgressEvent {

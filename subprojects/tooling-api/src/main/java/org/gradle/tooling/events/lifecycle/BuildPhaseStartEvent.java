@@ -22,7 +22,7 @@ import org.gradle.tooling.events.StartEvent;
 /**
  * An event that marks the start of a build phase.
  *
- * @since 7.5
+ * @since 7.6
  */
 @Incubating
 public interface BuildPhaseStartEvent extends BuildPhaseProgressEvent, StartEvent {

@@ -149,7 +149,7 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent}</li>
      * </ul>
      *
-     * @since 7.5
+     * @since 7.6
      */
     @Incubating
     BUILD_PHASE
