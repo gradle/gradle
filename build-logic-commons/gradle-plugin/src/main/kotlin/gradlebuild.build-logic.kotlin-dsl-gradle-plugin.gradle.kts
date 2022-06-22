@@ -39,7 +39,7 @@ ktlint {
 
 tasks.runKtlintCheckOverKotlinScripts {
     // Only check the build files, not all *.kts files in the project
-    setIncludes(listOf("*.gradle.kts"))
+    includes += listOf("*.gradle.kts")
 }
 
 tasks.named("codeQuality") {
