@@ -47,6 +47,7 @@ dependencies {
     testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(testFixtures(project(":language-groovy")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

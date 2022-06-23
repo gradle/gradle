@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.internal.Actions;
 
 import java.util.function.Supplier;
@@ -27,8 +28,8 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     private boolean snapshots = true;
     private boolean releases = true;
 
-    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
-        super(repositoryNameSupplier);
+    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, VersionParser versionParser) {
+        super(repositoryNameSupplier, versionParser);
     }
 
     @Override
@@ -69,7 +70,7 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
 
     @Override
     public RepositoryContentDescriptorInternal asMutableCopy() {
-        DefaultMavenRepositoryContentDescriptor copy = new DefaultMavenRepositoryContentDescriptor(getRepositoryNameSupplier());
+        DefaultMavenRepositoryContentDescriptor copy = new DefaultMavenRepositoryContentDescriptor(getRepositoryNameSupplier(), getVersionParser());
         if (getIncludedConfigurations() != null) {
             copy.setIncludedConfigurations(Sets.newHashSet(getIncludedConfigurations()));
         }

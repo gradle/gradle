@@ -30,19 +30,21 @@ import org.gradle.internal.service.scopes.ServiceScope
 class RelevantProjectsRegistry(
     private val build: BuildState
 ) : ProjectDependencyObservedListener {
+
     private
     val targetProjects = mutableSetOf<ProjectState>()
 
     fun relevantProjects(nodes: List<Node>): Set<ProjectState> =
         targetProjects +
-            nodes.mapNotNullTo(mutableListOf()) { node ->
-                val project = node.owningProject
-                if (project != null && project.owner.owner != build) {
-                    null
-                } else {
-                    node.owningProject?.owner
-                }
+            nodes.mapNotNull { node ->
+                projectStateOf(node)?.takeIf(::isLocalProject)
             }
+
+    private
+    fun projectStateOf(node: Node) = node.owningProject?.owner
+
+    private
+    fun isLocalProject(projectState: ProjectState) = projectState.owner === build
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
         targetProjects.add(targetProject)

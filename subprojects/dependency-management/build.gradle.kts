@@ -61,6 +61,7 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
+    testImplementation(testFixtures(project(":security")))
 
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)

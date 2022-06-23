@@ -38,7 +38,8 @@ class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
         TestUtil.createChildProject(project, "child2")
 
         when:
-        task.generate(project)
+        def model = task.calculateReportModelFor(project)
+        task.generateReportFor(model.project, model)
 
         then:
         output.value == '''Root project 'test' - this is the root project
@@ -55,7 +56,8 @@ For example, try running gradle :child1:tasks
         project.description = 'this is the root project'
 
         when:
-        task.generate(project)
+        def model = task.calculateReportModelFor(project)
+        task.generateReportFor(model.project, model)
 
         then:
         output.value == '''Root project 'test' - this is the root project
@@ -70,7 +72,8 @@ For example, try running gradle :tasks
         Project child1 = TestUtil.createChildProject(project, "child1")
 
         when:
-        task.generate(child1)
+        def model = task.calculateReportModelFor(child1)
+        task.generateReportFor(model.project, model)
 
         then:
         output.value == '''Project ':child1'

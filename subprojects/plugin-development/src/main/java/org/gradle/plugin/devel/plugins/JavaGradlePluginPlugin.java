@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -46,6 +47,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
@@ -57,6 +59,7 @@ import org.gradle.plugin.devel.tasks.ValidatePlugins;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -65,6 +68,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -142,6 +146,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
         configurePluginValidations(project, extension);
+        configureDependencyGradlePluginsResolution(project);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -260,6 +265,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
     }
 
+    private void configureDependencyGradlePluginsResolution(Project project) {
+        new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    }
+
     /**
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */
@@ -373,10 +382,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
 
-            project.getTasks().withType(Test.class).configureEach(test -> test.getInputs()
-                .files(pluginClasspathTask.get().getPluginClasspath())
-                .withPropertyName("pluginClasspath")
-                .withNormalizer(ClasspathNormalizer.class));
+            project.getTasks().withType(Test.class).configureEach(test -> {
+                test.getInputs()
+                    .files(pluginClasspathTask.get().getPluginClasspath())
+                    .withPropertyName("pluginClasspath")
+                    .withNormalizer(ClasspathNormalizer.class);
+
+                test.getJvmArgumentProviders().add(new AddOpensCommandLineArgumentProvider(test));
+            });
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
@@ -384,6 +397,26 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 String runtimeOnlyConfigurationName = testSourceSet.getRuntimeOnlyConfigurationName();
                 dependencies.add(runtimeOnlyConfigurationName, project.getLayout().files(pluginClasspathTask));
             }
+        }
+    }
+
+    /**
+     * Provides an {@code --add-opens} flag for {@code java.base/java.lang} if the JVM version
+     * a given test task is running does not allow reflection of JDK internals by default.
+     * Needed when using ProjectBuilder in tests.
+     */
+    private static class AddOpensCommandLineArgumentProvider implements CommandLineArgumentProvider {
+        private final Test test;
+
+        private AddOpensCommandLineArgumentProvider(Test test) {
+            this.test = test;
+        }
+
+        @Override
+        public Iterable<String> asArguments() {
+            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_16)
+                ? Collections.singletonList("--add-opens=java.base/java.lang=ALL-UNNAMED")
+                : Collections.emptyList();
         }
     }
 

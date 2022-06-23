@@ -33,6 +33,17 @@ dependencies {
 }
 // end::add-plugin-variant[]
 
+// tag::consume-plugin-variant[]
+configurations.configureEach {
+    if (isCanBeResolved && name.startsWith(gradle7.name))  {
+        attributes {
+            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                objects.named("7.0"))
+        }
+    }
+}
+// end::consume-plugin-variant[]
+
 gradlePlugin {
     plugins.create("greeting") {
         id = "org.example.greeting"
