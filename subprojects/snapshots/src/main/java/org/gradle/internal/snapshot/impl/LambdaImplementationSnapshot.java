@@ -65,7 +65,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(ImplementationSnapshot.class.getName());
+        hasher.putString(LambdaImplementationSnapshot.class.getName());
         hasher.putString(typeName);
         hasher.putHash(classLoaderHash);
         hasher.putString(functionalInterfaceClass);
