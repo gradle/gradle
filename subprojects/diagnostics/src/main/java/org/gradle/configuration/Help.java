@@ -136,6 +136,7 @@ public class Help extends DefaultTask {
 
     @Option(option = "task", description = "The task to show help for.")
     public void setTaskPath(String taskPath) {
+        notCompatibleWithConfigurationCache("Task requires access to Gradle model");
         this.taskPath = taskPath;
     }
 }

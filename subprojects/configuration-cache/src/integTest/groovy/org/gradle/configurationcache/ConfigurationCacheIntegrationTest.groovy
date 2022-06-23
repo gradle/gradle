@@ -21,26 +21,34 @@ import org.gradle.api.Project
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "configuration cache for help on empty project"() {
+    def "configuration cache for '#task' on empty project"() {
         given:
         settingsFile.createFile()
-        configurationCacheRun "help"
+        configurationCacheRun(task, *options)
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: ${task}\n/, '')
             .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(task, *options)
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing configuration cache.\n/, '')
             .replaceAll(/Configuration cache entry reused.\n/, '')
 
         then:
         firstRunOutput == secondRunOutput
+
+        where:
+        task           | options
+        "help"         | []
+        "properties"   | []
+        "dependencies" | []
+        "help"         | ["--task", "help"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18064")
@@ -354,5 +362,18 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         outputContains("value = value")
+    }
+
+    def "configuration cache is not supported yet for giving detailed information about a specific task"() {
+        ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
+
+        when:
+        run 'help', "--task", "wrapper", argument
+
+        then:
+        fixture.assertStateStoredAndDiscarded {}
+
+        where:
+        argument << [ENABLE_CLI_OPT, ENABLE_SYS_PROP]
     }
 }
