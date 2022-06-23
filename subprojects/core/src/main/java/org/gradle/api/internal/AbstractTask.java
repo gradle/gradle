@@ -691,6 +691,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action instanceof InputChangesAwareTaskAction) {
             return (InputChangesAwareTaskAction) action;
         }
+        if (action instanceof ConfigureUtil.WrappedConfigureAction) {
+            Closure<?> configureClosure = ((ConfigureUtil.WrappedConfigureAction<?>) action).getConfigureClosure();
+            return convertClosureToAction(configureClosure, actionName);
+        }
         return new TaskActionWrapper(action, actionName);
     }
 
