@@ -122,7 +122,8 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
                         'org.gradle.category': 'library',
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.status': 'release',
-                        'org.gradle.usage': 'java-runtime'
+                        'org.gradle.usage': 'java-runtime',
+                        'org.gradle.dependency.bundling': 'external',
                     ])
                     selectedByRule()
                 }
@@ -251,7 +252,8 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
                         'org.gradle.category': 'library',
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.status': 'release',
-                        'org.gradle.usage': 'java-runtime'
+                        'org.gradle.usage': 'java-runtime',
+                        'org.gradle.dependency.bundling': 'external',
                     ])
                     selectedByRule()
                 }

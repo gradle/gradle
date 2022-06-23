@@ -439,12 +439,13 @@ org:middle:1.0 FAILED
         output.contains """
 org:leaf:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0
 \\--- org:top:1.0
@@ -482,13 +483,14 @@ org:leaf:1.0
         then:
         output.contains """org:leaf:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-    | usage                      |              | dummy     |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
+    | usage                          |              | dummy     |
 
 org:leaf:1.0
 \\--- org:top:1.0
@@ -545,26 +547,28 @@ org:leaf:1.0
         outputContains """
 org:testA:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-    | custom                     | dep_value    | dep_value |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
+    | custom                         | dep_value    | dep_value |
 
 org:testA:1.0
 \\--- conf
 
 org:testB:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-    | custom                     | dep_value    | dep_value |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
+    | custom                         | dep_value    | dep_value |
 
 org:testB:+ -> 1.0
 \\--- conf

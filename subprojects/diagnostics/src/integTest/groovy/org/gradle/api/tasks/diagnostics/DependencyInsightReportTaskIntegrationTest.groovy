@@ -148,12 +148,13 @@ No dependencies matching given input were found in configuration ':conf'
         outputContains """
 org:leaf2:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf2:1.0
 +--- org:middle:1.0
@@ -204,12 +205,13 @@ org:leaf2:1.0
 Task :dependencyInsight
 org:leaf2:2.5
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - By conflict resolution: between versions 2.5, 1.5 and 1.0
 
@@ -262,12 +264,13 @@ org:leaf2:1.5 -> 2.5
         outputContains """
 org:leaf:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0
 +--- org:a:1.0
@@ -286,12 +289,13 @@ org:leaf:1.0
         outputContains """
 org:leaf:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0
 \\--- org:a:1.0
@@ -344,12 +348,13 @@ org:leaf:1.0
 
 org:leaf2:2.5
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - By conflict resolution: between versions 2.5, 1.5 and 1.0
 
@@ -419,12 +424,13 @@ org:leaf2:1.5 -> 2.5
 
 org:leaf2:2.5
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - By conflict resolution: between versions 2.5, 1.5 and 1.0
 
@@ -593,12 +599,13 @@ org:foo:1.+ FAILED
         outputContains """
 org:leaf:1.0 (forced)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0
 \\--- org:foo:1.0
@@ -616,12 +623,13 @@ org:leaf:2.0 -> 1.0
         outputContains """
 org:leaf:1.0 (selected by rule)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0
 \\--- org:foo:1.0
@@ -662,12 +670,13 @@ org:leaf:2.0 -> 1.0
         outputContains """
 org:leaf:2
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Was requested: didn't match version 3 because testing stuff
       - Forced
@@ -779,12 +788,13 @@ org:leaf:latest.integration -> 1.0
         outputContains """
 org:bar:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Forced
       - Selected by rule
@@ -845,12 +855,13 @@ org:foo:1.0 -> org:bar:2.0
         outputContains """
 org.test:bar:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Selected by rule: why not?
 
@@ -859,24 +870,26 @@ org:bar:1.0 -> org.test:bar:2.0
 
 org:baz:1.0 (selected by rule)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:baz:1.0
 \\--- conf
 
 org:foo:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Selected by rule: because I am in control
 
@@ -922,24 +935,26 @@ org:foo:1.0 -> 2.0
         outputContains """
 org:baz:2.0 (selected by rule)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:baz:1.1 -> 2.0
 \\--- conf
 
 org:bar:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Selected by rule: foo superseded by bar
 
@@ -984,12 +999,13 @@ org:foo:1.0 -> org:bar:1.0
         outputContains """
 org:new-leaf:77 (selected by rule)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0 -> org:new-leaf:77
 \\--- org:foo:2.0
@@ -1036,12 +1052,13 @@ org:leaf:2.0 -> org:new-leaf:77
         then:
         outputContains """org:bar:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Selected by rule: I am not sure I want to explain
 
@@ -1050,12 +1067,13 @@ org:bar:1.0 -> 2.0
 
 org:foo:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Selected by rule: I want to
 
@@ -1148,12 +1166,13 @@ org:leaf:latest.integration -> 1.6
         outputContains """
 org:leaf:2.0 (forced)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:2.0
 \\--- org:bar:1.0
@@ -1199,12 +1218,13 @@ org:leaf:1.0 -> 2.0
         outputContains """
 org:leaf:1.5 (forced)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0 -> 1.5
 \\--- org:foo:1.0
@@ -1252,12 +1272,13 @@ org:leaf:2.0 -> 1.5
         outputContains """
 org:leaf:1.0 (forced)
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf:1.0
 +--- conf
@@ -1303,12 +1324,13 @@ org:leaf:2.0 -> 1.0
         outputContains """
 org:leaf:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
    Selection reasons:
       - Forced
       - By constraint
@@ -1680,12 +1702,13 @@ project :C FAILED
         outputContains """
 org:leaf2:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf2:1.0
 \\--- org:leaf1:1.0
@@ -1796,9 +1819,9 @@ org:leaf2:1.0
     |--------------------------------|--------------|--------------|
     | org.gradle.status              | release      |              |
     | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
     | org.gradle.libraryelements     | jar          | jar          |
     | org.gradle.usage               | java-runtime | java-runtime |
-    | org.gradle.dependency.bundling |              | external     |
     | org.gradle.jvm.environment     |              | standard-jvm |
     | org.gradle.jvm.version         |              | ${jvmVersion.padRight("java-runtime".length())} |
 
@@ -1907,9 +1930,9 @@ org:leaf4:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
@@ -1946,9 +1969,9 @@ org:leaf1:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
@@ -1967,9 +1990,9 @@ org:leaf2:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
@@ -2124,9 +2147,9 @@ org:leaf3:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
@@ -2175,24 +2198,26 @@ org:leaf3:1.0
         then:
         result.groupedOutput.task(":dependencyInsight").output.contains("""foo:bar:2.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 foo:bar:2.0
 \\--- compile
 
 foo:foo:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 foo:foo:1.0
 \\--- compile""")
@@ -2235,9 +2260,9 @@ foo:foo:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2291,9 +2316,9 @@ org:foo -> $selected
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2344,9 +2369,9 @@ org:foo -> $selected
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2395,9 +2420,9 @@ org:foo:${displayVersion} -> $selected
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2452,9 +2477,9 @@ org:foo:[1.1,1.3] -> 1.3
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2469,9 +2494,9 @@ org:foo:1.1
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2530,9 +2555,9 @@ org:bar:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2548,9 +2573,9 @@ org:foo:1.1
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2593,9 +2618,9 @@ org:leaf:1.0 (by constraint)
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
@@ -2646,9 +2671,9 @@ org.test:leaf:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2693,12 +2718,13 @@ org.test:leaf:1.0
         outputContains """
 org:leaf2:1.0
   Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
+    | Attribute Name                 | Provided     | Requested |
+    |--------------------------------|--------------|-----------|
+    | org.gradle.category            | library      |           |
+    | org.gradle.dependency.bundling | external     |           |
+    | org.gradle.libraryelements     | jar          |           |
+    | org.gradle.status              | release      |           |
+    | org.gradle.usage               | java-runtime |           |
 
 org:leaf2:1.0
 +--- org:middle:1.0
@@ -2832,9 +2858,9 @@ org:foo:1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2888,9 +2914,9 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -2954,9 +2980,9 @@ org:foo:1.0
     | org.gradle.status              | release  |              |
     | color                          | blue     | blue         |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -3036,9 +3062,9 @@ planet:mercury:1.0.2
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -3068,9 +3094,9 @@ planet:venus:2.0.1
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
@@ -3100,9 +3126,9 @@ planet:pluto:1.0.0
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
@@ -3150,9 +3176,9 @@ org:foo:1.5
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
     | org.gradle.category            | library  | library      |
+    | org.gradle.dependency.bundling | external | external     |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
-    | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:

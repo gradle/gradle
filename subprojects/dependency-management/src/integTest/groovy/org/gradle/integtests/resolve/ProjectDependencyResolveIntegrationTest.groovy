@@ -186,7 +186,13 @@ project(":b") {
                     variant('runtime')
                     module('org.other:externalA:1.2') {
                         byReason('also check dependency reasons')
-                        variant('runtime', ['org.gradle.status': 'release', 'org.gradle.category': 'library', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
+                        variant('runtime', [
+                            'org.gradle.status': 'release',
+                            'org.gradle.category': 'library',
+                            'org.gradle.dependency.bundling': 'external',
+                            'org.gradle.usage': 'java-runtime',
+                            'org.gradle.libraryelements': 'jar'
+                        ])
                     }
                 }
             }
