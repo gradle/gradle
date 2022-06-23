@@ -68,6 +68,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -756,7 +757,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(closure), hasher.getClassLoaderHash(closure.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(closure, hasher);
         }
 
         @Override
@@ -800,7 +801,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(action, hasher);
         }
 
         @Override
@@ -828,6 +829,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
             return "Execute " + maybeActionName;
         }
+    }
+
+    private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
+        HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
+        String actionClassName = AbstractTask.getActionClassName(value);
+        return ImplementationSnapshot.of(actionClassName, value, classLoaderHash);
     }
 
     private static String getActionClassName(Object action) {
