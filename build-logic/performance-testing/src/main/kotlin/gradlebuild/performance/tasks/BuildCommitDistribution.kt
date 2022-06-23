@@ -140,9 +140,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
                     this["distributionUrl"] = "https://services.gradle.org/$repository/gradle-${closestReleasedVersion.version}-bin.zip"
                 }
                 wrapperProperties.store(wrapperPropertiesFile.outputStream(), "Modified by `BuildCommitDistribution` task")
+                println("First attempt to build commit distribution failed: \n\n$outputString\n\nTrying again with ${closestReleasedVersion.version}")
                 runDistributionBuild(checkoutDir, System.out)
             } else {
-                println(output.toByteArray().decodeToString())
+                println("Failed to build commit distribution:\n\n${output.toByteArray().decodeToString()}")
                 throw e
             }
         }
@@ -160,6 +161,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "--no-configuration-cache",
             "clean",
             ":distributions-full:install",
+            "-Dscan.tag.BuildCommitDistribution",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
             ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
