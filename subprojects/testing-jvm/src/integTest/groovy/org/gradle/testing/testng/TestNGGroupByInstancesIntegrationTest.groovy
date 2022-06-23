@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 
-@TargetCoverage({TestNGCoverage.GROUP_BY_INSTANCES})
+@TargetCoverage({ TestNGCoverage.SUPPORTS_GROUP_BY_INSTANCES })
 public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "run tests using groupByInstances"() {

@@ -50,6 +50,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompi
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
@@ -242,7 +243,7 @@ fun Project.enableScriptCompilationOf(
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
                 strict.set(
                     providers
-                        .systemProperty("org.gradle.kotlin.dsl.precompiled.accessors.strict")
+                        .systemProperty(strictModeSystemPropertyName)
                         .map(java.lang.Boolean::parseBoolean)
                         .orElse(false)
                 )
@@ -277,7 +278,7 @@ fun Project.enableScriptCompilationOf(
                 metadataDir.set(accessorsMetadata)
                 classPathFiles.from(compileClasspath)
                 onConfigure { resolverEnvironment ->
-                    objects.withInstance<TaskContainerScope>() {
+                    objects.withInstance<TaskContainerScope> {
                         configureScriptResolverEnvironment(resolverEnvironment)
                     }
                 }
@@ -299,7 +300,7 @@ fun Task.configureScriptResolverEnvironmentOnDoFirst(
     accessorsMetadata: Provider<Directory>
 ) {
     doFirst {
-        objects.withInstance<ResolverEnvironmentScope>() {
+        objects.withInstance<ResolverEnvironmentScope> {
             configureScriptResolverEnvironment(
                 resolverEnvironmentStringFor(
                     implicitImports,

@@ -17,6 +17,7 @@
 package gradlebuild.buildutils.tasks
 
 import org.gradle.api.tasks.TaskAction
+import org.gradle.util.internal.TextUtil
 import org.gradle.work.DisableCachingByDefault
 
 
@@ -30,10 +31,10 @@ abstract class UpdateContributorsInReleaseNotes : AbstractCheckOrUpdateContribut
         val unrecognizedContributors = contributorsFromPullRequests.keys - contributorsInReleaseNotes.keys
         if (unrecognizedContributors.isNotEmpty()) {
             val contributorsToUpdate = contributorsInReleaseNotes + unrecognizedContributors.map { it to contributorsFromPullRequests[it]!! }
-            val textBeforeContributorsSection = contributorSectionRegex.find(releaseNotes.asFile.get().readText())!!.groupValues[1]
-            val textAfterContributorsSection = contributorSectionRegex.find(releaseNotes.asFile.get().readText())!!.groupValues[3]
+            val sortedContributors = contributorsToUpdate.entries.sortedBy { TextUtil.toLowerCaseLocaleSafe(it.value.name ?: it.key) }
+            val (linesBeforeContributors, _, linesAfterContributors) = parseReleaseNotes()
             releaseNotes.asFile.get().writeText(
-                "$textBeforeContributorsSection${contributorsToUpdate.entries.joinToString(",\n") { "[${it.value.name ?: it.key}](https://github.com/${it.key})" }}\n$textAfterContributorsSection"
+                "${linesBeforeContributors.joinToString("\n")}\n${sortedContributors.joinToString(",\n") { "[${it.value.name ?: it.key}](https://github.com/${it.key})" }}\n\n${linesAfterContributors.joinToString("\n")}\n"
             )
         } else {
             println("Contributors in the release notes are up to date.")

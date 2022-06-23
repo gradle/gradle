@@ -26,13 +26,17 @@ dependencies {
 
 // tag::java-basic-test-config[]
 dependencies {
-    testImplementation("junit:junit:4.13")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
 tasks.test {
-    useJUnit()
+    useJUnitPlatform()
 
     maxHeapSize = "1G"
+
+    testLogging {
+        events("passed")
+    }
 }
 // end::java-basic-test-config[]
 
@@ -51,7 +55,7 @@ val intTestImplementation by configurations.getting {
 configurations["intTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 dependencies {
-    intTestImplementation("junit:junit:4.13")
+    intTestImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 // end::practical-integ-test-source-set[]
 
@@ -103,6 +107,12 @@ val integrationTest = task<Test>("integrationTest") {
     testClassesDirs = sourceSets["intTest"].output.classesDirs
     classpath = sourceSets["intTest"].runtimeClasspath
     shouldRunAfter("test")
+
+    useJUnitPlatform()
+
+    testLogging {
+        events("passed")
+    }
 }
 
 tasks.check { dependsOn(integrationTest) }

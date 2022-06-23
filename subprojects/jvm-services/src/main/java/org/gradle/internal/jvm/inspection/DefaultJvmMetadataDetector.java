@@ -21,11 +21,14 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.util.internal.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -38,6 +41,8 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     private final ExecHandleFactory execHandleFactory;
     private final TemporaryFileProvider temporaryFileProvider;
 
+    private final Logger logger = LoggerFactory.getLogger(DefaultJvmMetadataDetector.class);
+
     @Inject
     public DefaultJvmMetadataDetector(
         final ExecHandleFactory execHandleFactory,
@@ -48,11 +53,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     @Override
-    public JvmInstallationMetadata getMetadata(File javaHome) {
+    public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
+        File javaHome = javaInstallationLocation.getLocation();
         if (javaHome == null || !javaHome.exists()) {
             return failure(javaHome, "No such directory: " + javaHome);
         }
-        EnumMap<ProbedSystemProperty, String> metadata;
         if (Jvm.current().getJavaHome().equals(javaHome)) {
             return getMetadataFromCurrentJvm(javaHome);
         }
@@ -66,6 +71,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, System.getProperty(type.getSystemPropertyKey()));
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", javaHome.getAbsolutePath(), result);
         return asMetadata(javaHome, result);
     }
 
@@ -106,8 +112,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             if (exitValue == 0) {
                 return parseExecOutput(jdkPath, out.toString());
             }
-            return failure(jdkPath, "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
+            String errorMessage = "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput;
+            logger.info("Failed to get metadata from JVM installation at '" + jdkPath + "'. " + errorMessage);
+            return failure(jdkPath, errorMessage);
         } catch (ExecException ex) {
+            logger.info("Failed to get metadata from JVM installation at '" + jdkPath + "'.", ex);
             return failure(jdkPath, ex);
         } finally {
             GFileUtils.deleteQuietly(tmpDir);
@@ -123,6 +132,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         String[] split = probeResult.split(System.getProperty("line.separator"));
         if (split.length != ProbedSystemProperty.values().length - 1) { // -1 because of Z_ERROR
             final String errorMessage = "Unexpected command output: \n" + probeResult;
+            logger.info("Failed to parse JVM installation metadata output at '" + jdkPath + "'. " + errorMessage);
             return failure(jdkPath, errorMessage);
         }
         EnumMap<ProbedSystemProperty, String> result = new EnumMap<>(ProbedSystemProperty.class);
@@ -131,6 +141,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, split[type.ordinal()].trim());
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", jdkPath.getAbsolutePath(), result);
         return asMetadata(jdkPath, result);
     }
 
@@ -139,7 +150,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata failure(File jdkPath, Exception cause) {
-        return JvmInstallationMetadata.failure(jdkPath, cause.getMessage());
+        return JvmInstallationMetadata.failure(jdkPath, cause);
     }
 
     private File writeProbeClass(File tmpDir) {

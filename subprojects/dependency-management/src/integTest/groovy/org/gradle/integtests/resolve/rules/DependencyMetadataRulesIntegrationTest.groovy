@@ -744,7 +744,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolving one configuration does not influence the result of resolving another configuration."() {
         given:
         repository {
@@ -793,7 +792,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         succeeds 'dependencies'
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can make #thing strict"() {
         given:
         repository {
@@ -857,7 +856,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | true
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can add rejections to #thing"() {
         given:
         repository {

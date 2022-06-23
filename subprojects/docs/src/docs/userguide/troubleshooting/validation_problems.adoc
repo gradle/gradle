@@ -282,7 +282,7 @@ The symptoms are similar to <<implicit_dependency>> except that in this case the
 
 Please refer to the <<implicit_dependency>> section for possible solutions.
 If the file isn't produced by another task, you may want to make sure that it exists before the task is called.
-If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use an `@Optional` input to allow Gradle to capture the input's state:
+If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use `@InputFiles` that won't fail for non-existing inputs:
 
 ====
 include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
@@ -414,3 +414,14 @@ This warning indicates that the task or artifact transform action has not been m
 Task or artifact transform authors should always provide a reason why something is not cacheable by using the link:{javadocPath}/org/gradle/work/DisableCachingByDefault.html[`@DisableCachingByDefault`] annotation.
 
 To fix the problem either annotate the work type with `@CacheableTask`/`@CacheableTransform` or `@DisableCachingByDefault(because = "...")`.
+
+[[unsupported_value_type]]
+== Unsupported value type
+
+This error indicates that a task declares an input property with values of an unsupported type.
+
+To fix this, look at the error message which indicates the list of possible solutions.
+
+Please find below the list of unsupported value type and links to respective sections of the user manual:
+
+`ResolvedArtifactResult`:: <<more_about_tasks#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>

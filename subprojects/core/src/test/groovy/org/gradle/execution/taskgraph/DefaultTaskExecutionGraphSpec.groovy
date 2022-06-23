@@ -46,6 +46,7 @@ import org.gradle.execution.plan.ExecutionNodeAccessHierarchy
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeExecutor
+import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
@@ -123,9 +124,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def a = brokenTask("a", failure)
 
         given:
-        executionPlan.addEntryTasks([a])
-        executionPlan.determineExecutionPlan()
-        taskGraph.populate(executionPlan)
+        populate([a])
 
         when:
         def result = taskGraph.execute(executionPlan)
@@ -257,9 +256,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task d = task("d", c)
 
         when:
-        executionPlan.addEntryTasks([d])
-        executionPlan.determineExecutionPlan()
-        taskGraph.populate(executionPlan)
+        populate([d])
 
         then:
         taskGraph.hasTask(":a")
@@ -280,9 +277,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task a = task("a", b)
 
         when:
-        executionPlan.addEntryTasks([a])
-        executionPlan.determineExecutionPlan()
-        taskGraph.populate(executionPlan)
+        populate([a])
 
         then:
         taskGraph.allTasks == [c, d, b, a]
@@ -300,9 +295,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task c = task("c")
 
         when:
-        executionPlan.addEntryTasks([b])
-        executionPlan.determineExecutionPlan()
-        taskGraph.populate(executionPlan)
+        populate([b])
         taskGraph.allTasks
         taskGraph.execute(executionPlan)
 
@@ -316,6 +309,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def plan2 = newExecutionPlan()
         plan2.addEntryTasks([c])
         plan2.determineExecutionPlan()
+        plan2.finalizePlan()
         taskGraph.populate(plan2)
 
         then:
@@ -340,6 +334,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def plan2 = newExecutionPlan()
         plan2.addEntryTasks([c])
         plan2.determineExecutionPlan()
+        plan2.finalizePlan()
         taskGraph.populate(plan2)
 
         then:
@@ -532,9 +527,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         executionPlan.useFilter(spec)
-        executionPlan.addEntryTasks([a, b])
-        executionPlan.determineExecutionPlan()
-        taskGraph.populate(executionPlan)
+        populate([a, b])
 
         then:
         taskGraph.allTasks == [b]
@@ -559,9 +552,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         executionPlan.useFilter(spec)
-        executionPlan.addEntryTasks([c])
-        executionPlan.determineExecutionPlan()
-        taskGraph.populate(executionPlan)
+        populate([c])
 
         then:
         taskGraph.allTasks == [b, c]
@@ -594,10 +585,15 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         failures == [failure]
     }
 
-    void populateAndExecute(List<Task> tasks) {
+    private void populate(List<Task> tasks) {
         executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
+        executionPlan.finalizePlan()
         taskGraph.populate(executionPlan)
+    }
+
+    void populateAndExecute(List<Task> tasks) {
+        populate(tasks)
         executedTasks.clear()
         failures.clear()
         def result = taskGraph.execute(executionPlan)
@@ -606,6 +602,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
     void execute() {
         executionPlan.determineExecutionPlan()
+        executionPlan.finalizePlan()
         taskGraph.populate(executionPlan)
         executedTasks.clear()
         failures.clear()
@@ -614,7 +611,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
-        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def task(String name, Task... dependsOn = []) {

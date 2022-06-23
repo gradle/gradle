@@ -25,6 +25,24 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "configuration cache for help on empty project"() {
+        given:
+        settingsFile.createFile()
+        configurationCacheRun "help"
+        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
+            .replaceAll(/Configuration cache entry stored.\n/, '')
+
+        when:
+        configurationCacheRun "help"
+        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Reusing configuration cache.\n/, '')
+            .replaceAll(/Configuration cache entry reused.\n/, '')
+
+        then:
+        firstRunOutput == secondRunOutput
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/18064")
     def "can build plugin with project dependencies"() {
         given:
@@ -115,24 +133,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         configurationCache.assertStateLoaded()
-    }
-
-    def "configuration cache for help on empty project"() {
-        given:
-        settingsFile.createFile()
-        configurationCacheRun "help"
-        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
-            .replaceAll(/Configuration cache entry stored.\n/, '')
-
-        when:
-        configurationCacheRun "help"
-        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Reusing configuration cache.\n/, '')
-            .replaceAll(/Configuration cache entry reused.\n/, '')
-
-        then:
-        firstRunOutput == secondRunOutput
     }
 
     private static String removeVfsLogOutput(String normalizedOutput) {

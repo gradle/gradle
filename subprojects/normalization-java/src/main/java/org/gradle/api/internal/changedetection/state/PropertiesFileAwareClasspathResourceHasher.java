@@ -37,18 +37,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class PropertiesFileAwareClasspathResourceHasher implements ResourceHasher {
+public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandlingResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesFileAwareClasspathResourceHasher.class);
-    private final ResourceHasher delegate;
     private final Map<PathMatcher, ResourceEntryFilter> propertiesFileFilters;
     private final List<String> propertiesFilePatterns;
 
     public PropertiesFileAwareClasspathResourceHasher(ResourceHasher delegate, Map<String, ResourceEntryFilter> propertiesFileFilters) {
-        this.delegate = delegate;
+        super(delegate);
         ImmutableList.Builder<String> patterns = ImmutableList.builder();
         ImmutableMap.Builder<PathMatcher, ResourceEntryFilter> filters = ImmutableMap.builder();
         propertiesFileFilters.forEach((pattern, resourceEntryFilter) -> {
@@ -61,42 +61,51 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        delegate.appendConfigurationToHasher(hasher);
+        super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
         propertiesFilePatterns.forEach(hasher::putString);
         propertiesFileFilters.values().forEach(resourceEntryFilter -> resourceEntryFilter.appendConfigurationToHasher(hasher));
     }
 
-    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        ResourceEntryFilter resourceEntryFilter = matchingFiltersFor(snapshotContext.getRelativePathSegments());
-        if (resourceEntryFilter == null) {
-            return delegate.hash(snapshotContext);
-        } else {
-            try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
-                return hashProperties(propertiesFileInputStream, resourceEntryFilter);
-            } catch (Exception e) {
-                LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
-                return delegate.hash(snapshotContext);
-            }
-        }
+    boolean filter(RegularFileSnapshotContext context) {
+        return matchesAnyFilters(context.getRelativePathSegments());
     }
 
-    @Nullable
     @Override
-    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        ResourceEntryFilter resourceEntryFilter = matchingFiltersFor(zipEntryContext.getRelativePathSegments());
-        if (resourceEntryFilter == null) {
-            return delegate.hash(zipEntryContext);
-        } else {
-            try {
-                return zipEntryContext.getEntry().withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter));
-            } catch (Exception e) {
-                LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
-                return delegate.hash(zipEntryContext);
-            }
-        }
+    boolean filter(ZipEntryContext context) {
+        return !context.getEntry().isDirectory() && matchesAnyFilters(context.getRelativePathSegments());
+    }
+
+    @Override
+    public Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
+        return Optional.ofNullable(matchingFiltersFor(snapshotContext.getRelativePathSegments()))
+            .map(resourceEntryFilter -> {
+                try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
+                    return hashProperties(propertiesFileInputStream, resourceEntryFilter);
+                } catch (Exception e) {
+                    LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
+                    return null;
+                }
+            });
+    }
+
+    @Override
+    public Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
+        return Optional.ofNullable(matchingFiltersFor(zipEntryContext.getRelativePathSegments()))
+            .map(resourceEntryFilter -> {
+                try {
+                    return zipEntryContext.getEntry().withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter));
+                } catch (Exception e) {
+                    LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
+                    return null;
+                }
+            });
+    }
+
+    private boolean matchesAnyFilters(Supplier<String[]> relativePathSegments) {
+        return propertiesFileFilters.entrySet().stream()
+            .anyMatch(entry -> entry.getKey().matches(relativePathSegments.get(), 0));
     }
 
     @Nullable
