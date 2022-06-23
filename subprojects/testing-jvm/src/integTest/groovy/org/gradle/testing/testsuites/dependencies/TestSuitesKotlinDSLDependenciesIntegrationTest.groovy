@@ -1877,4 +1877,123 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
     }
     // endregion dependencies - self-resolving dependencies
+
+    // region dependencies - testFixtures
+    def "can add testFixture dependency to #suiteDesc"() {
+        given: "a multi-project build with a consumer project that depends on the fixtures in a util project"
+        settingsKotlinFile << """
+            rootProject.name = "Test"
+
+            include("util", "consumer")
+        """
+
+        file("consumer/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation(testFixtures(project(":util")))
+                        }
+                    }
+                }
+            }
+        """
+        file("util/build.gradle.kts") << """
+            plugins {
+                `java-library`
+                `java-test-fixtures`
+            }
+        """
+
+        and: "containing a test which uses a fixture method"
+        file("consumer/src/$suiteName/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.jupiter.api.Assertions;
+            import org.junit.jupiter.api.Test;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assertions.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+        file("util/src/testFixtures/java/org/test/MyFixture.java") << """
+            package org.test;
+
+            public class MyFixture {
+                public static int calculateSomething() { return 1; }
+            }
+        """
+
+        expect: "test runs successfully"
+        succeeds( ":consumer:$suiteName")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+
+    def "can add testFixture dependency to the same project to #suiteDesc"() {
+        given: "a single-project build where a custom test suite depends on the fixtures in that project for its integration tests"
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+                `java-test-fixtures`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation(testFixtures(project))
+                        }
+                    }
+                }
+            }
+        """
+
+        and: "containing a test which uses a fixture method"
+        file("src/$suiteName/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.jupiter.api.Assertions;
+            import org.junit.jupiter.api.Test;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assertions.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+        file("src/testFixtures/java/org/test/MyFixture.java") << """
+            package org.test;
+
+            public class MyFixture {
+                public static int calculateSomething() { return 1; }
+            }
+        """
+
+        expect: "test runs successfully"
+        succeeds( suiteName)
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+    // endregion dependencies - testFixtures
 }
