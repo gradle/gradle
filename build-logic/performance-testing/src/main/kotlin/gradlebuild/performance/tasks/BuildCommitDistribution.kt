@@ -16,6 +16,7 @@
 
 package gradlebuild.performance.tasks
 
+import com.google.gson.Gson
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.model.ReleasedVersions
 import gradlebuild.performance.generator.tasks.RemoteProject
@@ -32,7 +33,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
-import org.gradle.internal.impldep.com.google.gson.Gson
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import org.gradle.util.GradleVersion
@@ -50,9 +50,10 @@ val commitVersionRegex = """(\d+(\.\d+)+)-commit-[a-f0-9]+""".toRegex()
 
 
 /*
-Downloading https://services.gradle.org/distributions-snapshots/gradle-7.5-20220202183149+0000-bin.zip
-Exception in thread "main" java.io.FileNotFoundException:
-https://downloads.gradle-dn.com/distributions-snapshots/gradle-7.5-20220202183149+0000-bin.zip
+The error output looks like this:
+
+    Downloading https://services.gradle.org/distributions-snapshots/gradle-7.5-20220202183149+0000-bin.zip
+    Exception in thread "main" java.io.FileNotFoundException: https://downloads.gradle-dn.com/distributions-snapshots/gradle-7.5-20220202183149+0000-bin.zip
  */
 private
 val oldWrapperMissingErrorRegex = """\Qjava.io.FileNotFoundException:\E.*/distributions-snapshots/gradle-([\d.]+)""".toRegex()
