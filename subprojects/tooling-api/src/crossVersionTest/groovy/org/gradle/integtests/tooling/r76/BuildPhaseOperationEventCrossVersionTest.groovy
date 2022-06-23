@@ -187,10 +187,18 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         assertSuccessfulFinishEventHas(progressEvents[3], "CONFIGURE_ROOT_BUILD")
 
         assertStartEventHas(progressEvents[4], "RUN_MAIN_TASKS", 0)
-        // Run included build task
-        assertStartEventHas(progressEvents[5], "RUN_WORK", 1)
-        // Run root build tasks
-        assertStartEventHas(progressEvents[6], "RUN_WORK", 0)
+        // With included builds RUN_WORK event is not deterministic
+        if (progressEvents[5].toString() == "Build phase: Run tasks started") {
+            // Run root build tasks
+            assertStartEventHas(progressEvents[5], "RUN_WORK", 0)
+            // Run included build task
+            assertStartEventHas(progressEvents[6], "RUN_WORK", 1)
+        } else {
+            // Run included build task
+            assertStartEventHas(progressEvents[5], "RUN_WORK", 1)
+            // Run root build tasks
+            assertStartEventHas(progressEvents[6], "RUN_WORK", 0)
+        }
         // End included build tasks
         assertSuccessfulFinishEventHas(progressEvents[7], "RUN_WORK")
         // End root build tasks
