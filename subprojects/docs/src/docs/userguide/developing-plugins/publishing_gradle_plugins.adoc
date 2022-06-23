@@ -155,7 +155,7 @@ The Plugin Publish Plugin automatically generates and publishes the <<building_j
 === Sign artifacts ===
 
 Starting from version 1.0.0 of Plugin Publish Plugin, signing of published plugin artifacts has been made automatic.
-To enable it, all that's needed is to apply the <<signing_plugin.adoc,`signing`>> plugin in your build.
+To enable it, all that's needed is to apply the <<signing_plugin.adoc#signing_plugin,`signing`>> plugin in your build.
 
 === Shadow dependencies ===
 
