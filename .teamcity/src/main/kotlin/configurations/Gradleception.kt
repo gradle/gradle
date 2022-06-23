@@ -3,6 +3,7 @@ package configurations
 import common.buildToolGradleParameters
 import common.customGradle
 import common.gradleWrapper
+import common.requiresNoEc2Agent
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
@@ -17,6 +18,11 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     id("${model.projectId}_Gradleception")
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
+
+    requirements {
+        // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
+        requiresNoEc2Agent()
+    }
 
     features {
         publishBuildStatusToGithub(model)
