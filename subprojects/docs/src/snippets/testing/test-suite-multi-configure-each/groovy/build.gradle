@@ -37,8 +37,8 @@ testing {
     }
 
     suites { // <3>
-        secondaryTest(JvmTestSuite)
-        tertiaryTest(JvmTestSuite) {
+        integrationTest(JvmTestSuite)
+        functionalTest(JvmTestSuite) {
             dependencies { // <4>
                 implementation('org.apache.commons:commons-lang3:3.11')
             }
@@ -48,14 +48,14 @@ testing {
 // end::multi-configure[]
 
 tasks.register('checkDependencies') {
-    dependsOn test, secondaryTest, tertiaryTest
+    dependsOn test, integrationTest, functionalTest
     doLast {
         assert configurations.testRuntimeClasspath.files.size() == 12
         assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.secondaryTestRuntimeClasspath.files.size() == 12
-        assert configurations.secondaryTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.tertiaryTestRuntimeClasspath.files.size() == 13
-        assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
+        assert configurations.integrationTestRuntimeClasspath.files.size() == 12
+        assert configurations.integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert configurations.functionalTestRuntimeClasspath.files.size() == 13
+        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
     }
 }
