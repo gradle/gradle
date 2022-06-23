@@ -1549,7 +1549,6 @@ task b(dependsOn: a)
     def "task is not up-to-date when the implementation of a named #actionMethodName action changes"() {
         buildScript """
             tasks.register('myTask') {
-                inputs.property('myProp', 1)
                 outputs.dir(layout.buildDirectory.dir('myDir'))
                 ${actionMethodName}('myAction') { println("printing from action") }
             }
