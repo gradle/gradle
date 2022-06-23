@@ -29,7 +29,7 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites.withType(JvmTestSuite::class).matching { listOf("test", "secondaryTest").contains(it.name) }.configureEach { // <1>
+    suites.withType(JvmTestSuite::class).matching { listOf("test", "integrationTest").contains(it.name) }.configureEach { // <1>
         useJUnitJupiter()
         dependencies {
             implementation("org.mockito:mockito-junit-jupiter:4.6.1")
@@ -37,8 +37,8 @@ testing {
     }
 
     suites {
-        val secondaryTest by registering(JvmTestSuite::class)
-        val tertiaryTest by registering(JvmTestSuite::class) {
+        val integrationTest by registering(JvmTestSuite::class)
+        val functionalTest by registering(JvmTestSuite::class) {
             useJUnit() // <2>
             dependencies { // <3>
                 implementation("org.apache.commons:commons-lang3:3.11")
@@ -49,14 +49,14 @@ testing {
 // end::multi-configure[]
 
 val checkDependencies by tasks.registering {
-    dependsOn(testing.suites.getByName("test"), testing.suites.getByName("secondaryTest"), testing.suites.getByName("tertiaryTest"))
+    dependsOn(testing.suites.getByName("test"), testing.suites.getByName("integrationTest"), testing.suites.getByName("functionalTest"))
     doLast {
         assert(configurations.getByName("testRuntimeClasspath").files.size == 12)
         assert(configurations.getByName("testRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(configurations.getByName("secondaryTestRuntimeClasspath").files.size == 12)
-        assert(configurations.getByName("secondaryTestRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(configurations.getByName("tertiaryTestRuntimeClasspath").files.size == 3)
-        assert(configurations.getByName("tertiaryTestRuntimeClasspath").files.any { it.name == "junit-4.13.2.jar" })
-        assert(configurations.getByName("tertiaryTestRuntimeClasspath").files.any { it.name == "commons-lang3-3.11.jar" })
+        assert(configurations.getByName("integrationTestRuntimeClasspath").files.size == 12)
+        assert(configurations.getByName("integrationTestRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(configurations.getByName("functionalTestRuntimeClasspath").files.size == 3)
+        assert(configurations.getByName("functionalTestRuntimeClasspath").files.any { it.name == "junit-4.13.2.jar" })
+        assert(configurations.getByName("functionalTestRuntimeClasspath").files.any { it.name == "commons-lang3-3.11.jar" })
     }
 }

@@ -37,14 +37,20 @@ testing {
             }
         }
 
-        test {
-            applyMockito(it) // <2>
-        }
+        /* This is the equivalent of:
+            test {
+                applyMockito(this)
+            }
+         */
+        test(applyMockito) // <2>
 
-        secondaryTest(JvmTestSuite)
-        applyMockito(secondaryTest) // <3>
+        /* This is the equivalent of:
+            integrationTest(JvmTestSuite)
+            applyMockito(integrationTest)
+         */
+        integrationTest(JvmTestSuite, applyMockito) // <3>
 
-        tertiaryTest(JvmTestSuite) {
+        functionalTest(JvmTestSuite) {
             useJUnit()
             dependencies {
                 implementation('org.apache.commons:commons-lang3:3.11')
@@ -55,14 +61,14 @@ testing {
 // end::multi-configure[]
 
 tasks.register('checkDependencies') {
-    dependsOn test, secondaryTest, tertiaryTest
+    dependsOn test, integrationTest, functionalTest
     doLast {
         assert configurations.testRuntimeClasspath.files.size() == 12
         assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.secondaryTestRuntimeClasspath.files.size() == 12
-        assert configurations.secondaryTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.tertiaryTestRuntimeClasspath.files.size() == 3
-        assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
-        assert configurations.tertiaryTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
+        assert configurations.integrationTestRuntimeClasspath.files.size() == 12
+        assert configurations.integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert configurations.functionalTestRuntimeClasspath.files.size() == 3
+        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
+        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
     }
 }
