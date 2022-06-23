@@ -17,14 +17,11 @@
 package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
@@ -69,22 +66,25 @@ import java.util.stream.Collectors;
  *     (ActionExecutionWorker + worker action implementation)
  * </pre>
  */
-public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory implements WorkerImplementationFactory {
+public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final JvmVersionDetector jvmVersionDetector;
     private final File gradleUserHomeDir;
 
-    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider,
-                                                                            JvmVersionDetector jvmVersionDetector, File gradleUserHomeDir) {
+    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(
+        ClassPathRegistry classPathRegistry,
+        TemporaryFileProvider temporaryFileProvider,
+        File gradleUserHomeDir
+    ) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
-        this.jvmVersionDetector = jvmVersionDetector;
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
-    @Override
-    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
+    /**
+     * Configures the Java command that will be used to launch the child process.
+     */
+    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo, boolean useOptionsFile) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         Set<File> applicationModulePath = processBuilder.getApplicationModulePath();
         LogLevel logLevel = processBuilder.getLogLevel();
@@ -98,8 +98,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             execSpec.getMainModule().set("gradle.worker");
         }
         execSpec.getMainClass().set("worker." + GradleWorkerMain.class.getName());
-
-        boolean useOptionsFile = shouldUseOptionsFile(execSpec);
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
@@ -170,11 +168,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         execSpec.setStandardInput(buffer.getInputStream());
     }
 
-    private boolean shouldUseOptionsFile(JavaExecHandleBuilder execSpec) {
-        JavaVersion executableVersion = jvmVersionDetector.getJavaVersion(execSpec.getExecutable());
-        return executableVersion != null && executableVersion.isJava9Compatible();
-    }
-
     private List<String> writeOptionsFile(boolean runAsModule, Collection<File> workerMainClassPath, Collection<URL> implementationModulePath, Collection<File> applicationClasspath, Set<File> applicationModulePath, File optionsFile) {
         List<File> classpath = new ArrayList<>();
         List<File> modulePath = new ArrayList<>();
@@ -205,7 +198,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         if (!classpath.isEmpty()) {
             argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
         }
-        argumentList.addAll(JpmsConfiguration.GRADLE_WORKER_JPMS_ARGS);
         return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
     }
 }
