@@ -274,7 +274,7 @@ This flag may be useful in CI environments to record Gradle version information 
 
 #### Checkstyle tasks use toolchains and execute in parallel by default
 
-The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project. This can greatly increase overall build performance when several of these tasks exist within a single project. In case of memory issues, you can adjust the memory used by the Checkstyle process via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle task. By default the process will start with `maxHeapSize` of 512MB. We also recommend to use Checkstyle 9.3 or later.
+The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project. This can greatly increase overall build performance when several of these tasks exist within a single project. You can adjust the memory used by the Checkstyle process via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle task. In case of out of memory errors please see the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#checkstyle_worker_api).
 
 Checkstyle now uses [JVM toolchains](userguide/toolchains.html) in order to minimize JDK installation requirements. In Java projects, Checkstyle will use the same version of Java required by the project. In other types of projects, Checkstyle will use the version of Java that is used by the Gradle daemon.
 
@@ -308,9 +308,6 @@ The following are the features that have been promoted in this Gradle release.
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-Projects with large source sets might experience out of memory errors due to changes to the [Checkstyle plugin](userguide/checkstyle_plugin.html):
-Solution is to increase the max memory used by the Checkstyle process via the `maxHeapSize` property on the Checkstyle task. By default the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
 
 ## External contributions
 
