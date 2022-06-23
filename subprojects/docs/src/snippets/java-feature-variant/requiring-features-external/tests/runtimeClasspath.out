@@ -6,9 +6,9 @@ org.mongodb:bson:3.9.1
     |--------------------------------|--------------|--------------|
     | org.gradle.status              | release      |              |
     | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
     | org.gradle.libraryelements     | jar          | jar          |
     | org.gradle.usage               | java-runtime | java-runtime |
-    | org.gradle.dependency.bundling |              | external     |
     | org.gradle.jvm.environment     |              | standard-jvm |
     | org.gradle.jvm.version         |              | 11           |
 
@@ -25,9 +25,9 @@ org.mongodb:mongodb-driver-core:3.9.1
     |--------------------------------|--------------|--------------|
     | org.gradle.status              | release      |              |
     | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
     | org.gradle.libraryelements     | jar          | jar          |
     | org.gradle.usage               | java-runtime | java-runtime |
-    | org.gradle.dependency.bundling |              | external     |
     | org.gradle.jvm.environment     |              | standard-jvm |
     | org.gradle.jvm.version         |              | 11           |
 
@@ -42,9 +42,9 @@ org.mongodb:mongodb-driver-sync:3.9.1
     |--------------------------------|--------------|--------------|
     | org.gradle.status              | release      |              |
     | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
     | org.gradle.libraryelements     | jar          | jar          |
     | org.gradle.usage               | java-runtime | java-runtime |
-    | org.gradle.dependency.bundling |              | external     |
     | org.gradle.jvm.environment     |              | standard-jvm |
     | org.gradle.jvm.version         |              | 11           |
 

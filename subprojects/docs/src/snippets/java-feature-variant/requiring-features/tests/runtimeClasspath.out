@@ -6,9 +6,9 @@ mysql:mysql-connector-java:8.0.14
     |--------------------------------|--------------|--------------|
     | org.gradle.status              | release      |              |
     | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
     | org.gradle.libraryelements     | jar          | jar          |
     | org.gradle.usage               | java-runtime | java-runtime |
-    | org.gradle.dependency.bundling |              | external     |
     | org.gradle.jvm.environment     |              | standard-jvm |
     | org.gradle.jvm.version         |              | 11           |
 
