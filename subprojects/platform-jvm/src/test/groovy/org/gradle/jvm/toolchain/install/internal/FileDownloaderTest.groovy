@@ -30,16 +30,32 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 
-class AdoptOpenJdkDownloaderTest extends Specification {
+class FileDownloaderTest extends Specification {
 
     @TempDir
     public File temporaryFolder
 
-    def "cancelled download does not leave destination file behind"() {
-        RepositoryTransportFactory transportFactory = newFailingTransportFactory()
+    def "successful download creates destination file with the right content"() {
+        RepositoryTransportFactory transportFactory = newTransportFactory()
 
         given:
-        def downloader = new AdoptOpenJdkDownloader(transportFactory)
+        def downloader = new FileDownloader(transportFactory)
+        def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
+
+        when:
+        downloader.download(URI.create("https://foo"), destinationFile)
+
+        then:
+        noExceptionThrown()
+        destinationFile.exists()
+        destinationFile.text == "foo"
+    }
+
+    def "cancelled download does not leave destination file behind"() {
+        RepositoryTransportFactory transportFactory = newTransportFactory({ throw new BuildCancelledException() })
+
+        given:
+        def downloader = new FileDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
@@ -50,7 +66,7 @@ class AdoptOpenJdkDownloaderTest extends Specification {
         !destinationFile.exists()
     }
 
-    private RepositoryTransportFactory newFailingTransportFactory() {
+    private RepositoryTransportFactory newTransportFactory(Closure doAfterRead = {}) {
         Mock(RepositoryTransportFactory) {
             createTransport(_ as String, _ as String, _ as Collection<Authentication>, _ as HttpRedirectVerifier) >> Mock(RepositoryTransport) {
                 getRepository() >> Mock(ExternalResourceRepository) {
@@ -58,7 +74,7 @@ class AdoptOpenJdkDownloaderTest extends Specification {
                         resource(_ as ExternalResourceName) >> Mock(ExternalResource) {
                             withContent(_ as Action<? super InputStream>) >> { Action<? super InputStream> readAction ->
                                 readAction.execute(new ByteArrayInputStream("foo".bytes))
-                                throw new BuildCancelledException()
+                                doAfterRead()
                             }
                         }
                     }

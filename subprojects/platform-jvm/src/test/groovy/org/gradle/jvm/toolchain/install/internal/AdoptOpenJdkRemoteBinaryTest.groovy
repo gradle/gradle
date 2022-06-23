@@ -27,12 +27,8 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.TempDir
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
-
-    @TempDir
-    public File temporaryFolder
 
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
@@ -40,10 +36,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def uri = binary.toDownloadUri(spec)
+        def uri = binary.toUri(spec)
 
         then:
         uri.toString() == expectedPath
@@ -68,10 +64,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def filename = binary.toFilename(spec)
+        def filename = binary.toArchiveFileName(spec)
 
         then:
         filename == expectedFilename
@@ -97,10 +93,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
         def providerFactory = providerFactory(Providers.of(customBaseUrl))
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory)
 
         when:
-        def uri = binary.toDownloadUri(spec)
+        def uri = binary.toUri(spec)
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
@@ -109,97 +105,80 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         customBaseUrl << ["http://foobar", "http://foobar/"]
     }
 
-    def "downloads from url"() {
+    def "can't provide java version #javaVersion"() {
         given:
-        def spec = newSpec(12)
+        def spec = newSpec(javaVersion as int)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def downloader = Mock(AdoptOpenJdkDownloader)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def targetFile = new File(temporaryFolder, "jdk")
-        binary.download(spec, targetFile)
+        def canProvide = binary.canProvide(spec)
 
         then:
-        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
-    }
-
-    def "skips downloading unsupported java version #javaVersion"() {
-        given:
-        def spec = newSpec(javaVersion)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
-
-        when:
-        def file = binary.download(spec, Mock(File))
-
-        then:
-        !file.present
+        !canProvide
 
         where:
-        javaVersion << [5, 6, 7]
+        javaVersion << ([5, 6, 7])
     }
 
-    def "skips downloading unsupported vendor #vendor"() {
+    def "can't provide vendor #vendor"() {
         given:
         def spec = newSpec(8)
         spec.vendor.set(vendor)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def file = binary.download(spec, Mock(File))
+        def canProvide = binary.canProvide(spec)
 
         then:
-        !file.present
+        !canProvide
 
         where:
         vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
     }
 
-    def "downloads with matching vendor spec using #vendor"() {
+    def "can provide matching vendor spec using #vendor"() {
         given:
         def spec = newSpec(12)
         spec.vendor.set(vendor)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def downloader = Mock(AdoptOpenJdkDownloader)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def targetFile = new File(temporaryFolder, "jdk")
-        binary.download(spec, targetFile)
+        boolean canProvide = binary.canProvide(spec)
+        URI uri = binary.toUri(spec)
 
         then:
-        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
+        canProvide
+        uri == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
 
         where:
         vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
     }
 
-    def "downloads j9 impl if requested"() {
+    def "can provide j9 impl if requested"() {
         given:
         def spec = newSpec()
         spec.implementation.set(JvmImplementation.J9)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def downloader = Mock(AdoptOpenJdkDownloader)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def targetFile = new File(temporaryFolder, "jdk")
-        binary.download(spec, targetFile)
+        boolean canProvide = binary.canProvide(spec)
+        URI uri = binary.toUri(spec)
 
         then:
-        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
+        canProvide
+        uri == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
     }
 
     def newSpec(int jdkVersion = 11, JvmImplementation implementation = null, JvmVendorSpec vendor = null) {
