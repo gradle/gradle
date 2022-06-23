@@ -35,6 +35,12 @@ public class DefaultBuildPhaseDescriptor extends DefaultOperationDescriptor impl
         this.workItemCount = workItemCount;
     }
 
+    public DefaultBuildPhaseDescriptor(OperationIdentifier id, String name, String displayName, OperationIdentifier parentId, String buildPhase, int workItemCount) {
+        super(id, name, displayName, parentId);
+        this.buildPhase = buildPhase;
+        this.workItemCount = workItemCount;
+    }
+
     @Override
     public String getBuildPhase() {
         return buildPhase;

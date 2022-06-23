@@ -16,7 +16,13 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultBuildPhaseDescriptor;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultFailureResult;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultSuccessResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
@@ -25,8 +31,6 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -50,14 +54,11 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
 
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
-
     private final Map<OperationIdentifier, DefaultBuildPhaseDescriptor> descriptors;
-    private final BuildPhaseOperationMapper operationMapper;
 
     public BuildPhaseOperationListener(ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
         this.eventConsumer = eventConsumer;
         this.idFactory = idFactory;
-        this.operationMapper = new BuildPhaseOperationMapper();
         this.descriptors = new ConcurrentHashMap<>();
     }
 
@@ -66,17 +67,18 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
         if (!isSupportedBuildOperation(buildOperation)) {
             return;
         }
-        OperationIdentifier operationId = new OperationIdentifier(idFactory.nextId());
-        OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
-        BuildOperationDescriptor newBuildOperation = BuildOperationDescriptor.displayName("[BUILD PHASE] " + buildOperation.getDisplayName())
-            .metadata(buildOperation.getMetadata())
-            .name(buildOperation.getName())
-            .totalProgress(buildOperation.getTotalProgress())
-            .build(operationId, parentId);
-        DefaultBuildPhaseDescriptor descriptor = operationMapper.createDescriptor(null, newBuildOperation, parentId);
+        DefaultBuildPhaseDescriptor descriptor = toBuildOperationDescriptor(buildOperation);
         descriptors.put(buildOperation.getId(), descriptor);
-        InternalOperationStartedProgressEvent startedEvent = operationMapper.createStartedEvent(descriptor, null, startEvent);
-        eventConsumer.started(startedEvent);
+        eventConsumer.started(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor));
+    }
+
+    private DefaultBuildPhaseDescriptor toBuildOperationDescriptor(BuildOperationDescriptor buildOperation) {
+        OperationIdentifier operationId = new OperationIdentifier(idFactory.nextId());
+        OperationIdentifier parent = eventConsumer.findStartedParentId(buildOperation);
+        String name = buildOperation.getName();
+        String displayName = "Build phase: " + buildOperation.getDisplayName();
+        String buildPhase = buildOperation.getMetadata().toString();
+        return new DefaultBuildPhaseDescriptor(operationId, name, displayName, parent, buildPhase, buildOperation.getTotalProgress());
     }
 
     @Override
@@ -90,8 +92,19 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
         }
         DefaultBuildPhaseDescriptor descriptor = descriptors.remove(buildOperation.getId());
         if (descriptor != null) {
-            InternalOperationFinishedProgressEvent finishedEvent = operationMapper.createFinishedEvent(descriptor, null, finishEvent);
-            eventConsumer.finished(finishedEvent);
+            long endTime = finishEvent.getEndTime();
+            AbstractOperationResult result = toOperationResult(finishEvent);
+            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(endTime, descriptor, result));
+        }
+    }
+
+    private AbstractOperationResult toOperationResult(OperationFinishEvent finishEvent) {
+        long startTime = finishEvent.getStartTime();
+        long endTime = finishEvent.getEndTime();
+        if (finishEvent.getFailure() != null) {
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())));
+        } else {
+            return new DefaultSuccessResult(startTime, endTime);
         }
     }
 
