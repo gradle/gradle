@@ -217,6 +217,20 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
             </configuration>
             </toolchain>
             </toolchains>''',
+         // Same as above, except we test with a slightly malformed but acceptable
+         // encoding of 'UTF8' instead of 'UTF-8'. Using the JVM-provided implementation
+         // of DocumentParser, 'UTF8' is valid, though using the xercesImpl implementation
+         // 'UTF8' is not acceptable. We check here that this remains valid so that if
+         // the xerces jar is ever reintroduced to the classpath, this test will fail.
+         '''<?xml version="1.0" encoding="UTF8"?>
+            <toolchains>
+            <toolchain>
+            <type>jdk</type>
+            <configuration>
+            <jdkHome>/usr/lib/jvm/adoptopenjdk-16.jdk</jdkHome>
+            </configuration>
+            </toolchain>
+            </toolchains>''',
          '''<?xml version="1.0" encoding="UTF-8"?>
             <toolchains xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://maven.apache.org/TOOLCHAINS/1.1.0 http://maven.apache.org/xsd/toolchains-1.1.0.xsd">

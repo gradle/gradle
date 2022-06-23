@@ -19,6 +19,7 @@ package org.gradle.internal.jvm.inspection
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
@@ -45,7 +46,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
         def javaHome = new File(temporaryFolder, "localGradle").tap { mkdirs() }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         metadata
@@ -66,7 +67,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
                 javac << 'dummy'
             }
         }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         assert metadata.languageVersion == javaVersion
@@ -102,8 +103,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'ibmJdk7'        | ibmJvm('7')              | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                  | false
         'ibmJdk8'        | ibmJvm('8')              | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                  | false
         'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                  | false
-        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'                 | true
-        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'                 | false
+        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Azul Zulu JRE 6'            | true
+        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Azul Zulu JDK 8'            | false
         'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'                | true
         'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'                | false
         'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'      | false
@@ -135,7 +136,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
         def javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         assert metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) == isJ9
@@ -171,7 +172,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         if (exists) {
             javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
         }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         metadata.getErrorMessage().startsWith(errorMessage)
@@ -215,6 +216,9 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         ]
     }
 
+    private InstallationLocation testLocation(File javaHome) {
+        new InstallationLocation(javaHome, "test")
+    }
 
     private static Map<String, String> currentGradle() {
         ['java.home', 'java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name', 'java.runtime.version'].collectEntries { [it, System.getProperty(it)] }

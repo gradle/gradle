@@ -1,4 +1,5 @@
 import com.google.gson.Gson
+import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import gradlebuild.buildutils.model.ReleasedVersion
@@ -6,7 +7,7 @@ import java.net.URL
 
 
 tasks.withType<UpdateReleasedVersions>().configureEach {
-    releasedVersionsFile.set(layout.projectDirectory.file("released-versions.json"))
+    releasedVersionsFile.set(releasedVersionsFile())
     group = "Versioning"
 }
 

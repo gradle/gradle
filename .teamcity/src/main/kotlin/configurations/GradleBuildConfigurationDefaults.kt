@@ -1,5 +1,8 @@
 package configurations
 
+import common.Arch
+import common.BuildToolBuildJvm
+import common.Jvm
 import common.Os
 import common.VersionedSettingsBranch
 import common.applyDefaultSettings
@@ -71,7 +74,7 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
 
 fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
-        vcsRootExtId = "GradleBuildTooBranches"
+        vcsRootExtId = "GradleMaster"
         provider = github {
             authType = token {
                 token = "%github.bot-teamcity.token%"
@@ -84,7 +87,7 @@ fun BuildFeatures.enablePullRequestFeature() {
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "GradleBuildTooBranches"
+        vcsRootExtId = "GradleMaster"
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
@@ -150,14 +153,16 @@ fun applyTestDefaults(
     buildType: BaseGradleBuildType,
     gradleTasks: String,
     notQuick: Boolean = false,
+    buildJvm: Jvm = BuildToolBuildJvm,
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
     extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
     daemon: Boolean = true,
     preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
 ) {
-    buildType.applyDefaultSettings(os, timeout = timeout)
+    buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm, arch = arch)
 
     buildType.steps {
         preSteps()

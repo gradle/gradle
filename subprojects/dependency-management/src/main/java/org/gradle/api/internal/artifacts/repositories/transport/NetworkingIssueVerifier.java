@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -39,7 +40,7 @@ public class NetworkingIssueVerifier {
      * </ul>
      */
     public static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
-        if (failure instanceof SocketException || failure instanceof SocketTimeoutException || failure instanceof NoHttpResponseException) {
+        if (failure instanceof SocketException || failure instanceof SocketTimeoutException || failure instanceof NoHttpResponseException || failure instanceof ConnectionClosedException) {
             return true;
         }
         if (failure instanceof DefaultMultiCauseException) {

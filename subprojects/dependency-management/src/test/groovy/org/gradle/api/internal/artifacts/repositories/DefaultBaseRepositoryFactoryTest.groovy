@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -66,7 +67,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
             CollectionCallbackActionDecorator.NOOP,
             urlArtifactRepositoryFactory,
             TestUtil.checksumService,
-            providerFactory
+            providerFactory, new VersionParser()
     )
 
     def testCreateFlatDirResolver() {

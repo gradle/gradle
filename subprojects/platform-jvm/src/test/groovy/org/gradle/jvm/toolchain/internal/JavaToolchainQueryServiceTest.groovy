@@ -192,9 +192,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
-                def vendor = vendors[Integer.parseInt(javaHome.name.substring(2))]
-                def metadata = newMetadata(new File("/path/8"), vendor)
+            @Override
+            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
+                def vendor = vendors[Integer.parseInt(javaHome.location.name.substring(2))]
+                def metadata = newMetadata(new InstallationLocation(new File("/path/8"), javaHome.source), vendor)
                 return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input))
             }
         }
@@ -309,13 +310,14 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
+            @Override
+            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
                     def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input) {
                         @Override
                         boolean isCurrentJvm() {
-                            return currentJvmMapper.apply(javaHome)
+                            return currentJvmMapper.apply(javaHome.location)
                         }
                     }
                     return Optional.of(toolchain)
@@ -326,22 +328,19 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchainFactory
     }
 
-    def newMetadata(File javaHome, String vendor = "") {
-        if(javaHome.name.contains("broken")) {
-            return JvmInstallationMetadata.failure(javaHome, "errorMessage")
-        }
-        if(javaHome.name.contains("broken")) {
-            return JavaInstallationProbe.ProbeResult.failure(JavaInstallationProbe.InstallType.INVALID_JDK, "errorMessage")
+    def newMetadata(InstallationLocation javaHome, String vendor = "") {
+        if(javaHome.location.name.contains("broken")) {
+            return JvmInstallationMetadata.failure(javaHome.location, "errorMessage")
         }
         Mock(JvmInstallationMetadata) {
-            getLanguageVersion() >> JavaVersion.toVersion(javaHome.name)
-            getJavaHome() >> javaHome.absoluteFile.toPath()
-            getImplementationVersion() >> javaHome.name.replace("zzz", "999")
+            getLanguageVersion() >> JavaVersion.toVersion(javaHome.location.name)
+            getJavaHome() >> javaHome.location.absoluteFile.toPath()
+            getImplementationVersion() >> javaHome.location.name.replace("zzz", "999")
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
             hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
                 if(capability[0] == J9_VIRTUAL_MACHINE) {
-                    return javaHome.name.contains("j9")
+                    return javaHome.location.name.contains("j9")
                 }
                 return false
             }
