@@ -31,20 +31,24 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     def "cache is properly locked around provisioning a jdk"() {
         def cache = Mock(JdkCacheDirectory)
-        def lock = Mock(FileLock)
+        def downloader = Mock(FileDownloader)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def lock = Mock(FileLock)
         def spec = Mock(JavaToolchainSpec)
         def operationExecutor = new TestBuildOperationExecutor()
         def providerFactory = createProviderFactory("true")
+        def archiveName = "jdk-123.zip"
 
         given:
-        binary.canProvideMatchingJdk(spec) >> true
-        binary.toFilename(spec) >> 'jdk-123.zip'
+        binary.canProvide(spec) >> true
+        binary.toUri(spec) >> URI.create('http://server/' + archiveName)
+        binary.toArchiveFileName(spec) >> archiveName
+
         def downloadLocation = Mock(File)
-        downloadLocation.name >> "filename.zip"
+        downloadLocation.name >> "dir/" + archiveName
         cache.getDownloadLocation(_ as String) >> downloadLocation
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, operationExecutor)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, operationExecutor)
 
         when:
         provisioningService.tryInstall(spec)
@@ -53,72 +57,104 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         1 * cache.acquireWriteLock(downloadLocation, _) >> lock
 
         then:
-        1 * binary.download(_, _) >> Optional.empty()
+        1 * downloader.download(_, _)
 
         then:
         1 * lock.close()
 
         then:
-        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain filename.zip"}
+        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain " + downloadLocation.name}
         operationExecutor.log.getDescriptors().find {it.displayName == "Unpacking toolchain archive"}
     }
 
     def "skips downloading if already downloaded"() {
         def cache = Mock(JdkCacheDirectory)
+        def downloader = Mock(FileDownloader)
         def lock = Mock(FileLock)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
         def spec = Mock(JavaToolchainSpec)
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.canProvideMatchingJdk(spec) >> true
+        binary.canProvide(spec) >> true
         cache.acquireWriteLock(_, _) >> lock
-        binary.toFilename(spec) >> 'jdk-123.zip'
+        binary.toArchiveFileName(spec) >> 'jdk-123.zip'
         def downloadLocation = new File(temporaryFolder, "jdk.zip")
         downloadLocation.createNewFile()
         cache.getDownloadLocation(_ as String) >> downloadLocation
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        0 * binary.download(_, _)
+        0 * downloader.download(_, _)
     }
 
     def "skips downloading if cannot satisfy spec"() {
         def cache = Mock(JdkCacheDirectory)
+        def downloader = Mock(FileDownloader)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
         def spec = Mock(JavaToolchainSpec)
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.canProvideMatchingJdk(spec) >> false
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
+        binary.canProvide(spec) >> false
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         def result = provisioningService.tryInstall(spec)
 
         then:
         !result.isPresent()
-        0 * binary.download(_, _)
+        0 * downloader.download(_, _)
     }
 
     def "auto download can be disabled"() {
         def cache = Mock(JdkCacheDirectory)
+        def downloader = Mock(FileDownloader)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
         def spec = Mock(JavaToolchainSpec)
         def providerFactory = createProviderFactory("false")
 
         given:
-        binary.canProvideMatchingJdk(spec) >> true
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
+        binary.canProvide(spec) >> true
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         def result = provisioningService.tryInstall(spec)
 
         then:
         !result.isPresent()
+    }
+
+    def "downloads from url"() {
+        def cache = Mock(JdkCacheDirectory)
+        def downloader = Mock(FileDownloader)
+        def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def lock = Mock(FileLock)
+        def spec = Mock(JavaToolchainSpec)
+        def operationExecutor = new TestBuildOperationExecutor()
+        def providerFactory = createProviderFactory("true")
+        def archiveName = "file.tgz"
+
+        given:
+        binary.canProvide(spec) >> true
+        binary.toUri(spec) >> URI.create("uri")
+        binary.toArchiveFileName(spec) >> archiveName
+
+        def downloadLocation = Mock(File)
+        downloadLocation.name >> "dir/" + archiveName
+        cache.getDownloadLocation(_ as String) >> downloadLocation
+        cache.acquireWriteLock(_ as File, _ as String) >> lock
+
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, operationExecutor)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        1 * downloader.download(URI.create("uri"), downloadLocation)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {

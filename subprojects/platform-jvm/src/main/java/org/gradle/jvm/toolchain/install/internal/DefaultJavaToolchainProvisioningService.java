@@ -30,6 +30,9 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -46,36 +49,47 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     }
 
-    private final AdoptOpenJdkRemoteBinary openJdkBinary;
+    private final List<JavaToolchainRepository> toolchainRepositories;
+
+    private final FileDownloader downloader;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
-    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
-        this.openJdkBinary = openJdkBinary;
+    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, FileDownloader downloader, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
+        this.toolchainRepositories = Collections.singletonList(openJdkBinary); //TODO: the list of toolchain repositories should be passed in here
+        this.downloader = downloader;
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationExecutor = executor;
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
-        if (!isAutoDownloadEnabled() || !openJdkBinary.canProvideMatchingJdk(spec)) {
+        if (!isAutoDownloadEnabled()) {
             return Optional.empty();
         }
-        return provisionInstallation(spec);
+
+        for (JavaToolchainRepository toolchainRepository : toolchainRepositories) {
+            if (toolchainRepository.canProvide(spec)) {
+                return provisionInstallation(spec, toolchainRepository);
+            }
+        } //TODO: write test to confirm this in-order loop processing
+
+        return Optional.empty();
     }
 
-    private Optional<File> provisionInstallation(JavaToolchainSpec spec) {
+    private Optional<File> provisionInstallation(JavaToolchainSpec spec, JavaToolchainRepository toolchainRepository) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            String destinationFilename = openJdkBinary.toFilename(spec);
+            String destinationFilename = toolchainRepository.toArchiveFileName(spec);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
             try {
+                String displayName = "Provisioning toolchain " + destinationFile.getName();
                 return wrapInOperation(
-                    "Provisioning toolchain " + destinationFile.getName(),
-                    () -> provisionJdk(spec, destinationFile));
+                        displayName,
+                    () -> provisionJdk(toolchainRepository.toUri(spec), destinationFile));
             } catch (Exception e) {
                 throw new MissingToolchainException(spec, e);
             } finally {
@@ -84,12 +98,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
     }
 
-    private Optional<File> provisionJdk(JavaToolchainSpec spec, File destinationFile) {
+    private Optional<File> provisionJdk(URI source, File destination) {
         final Optional<File> jdkArchive;
-        if (destinationFile.exists()) {
-            jdkArchive = Optional.of(destinationFile);
+        if (destination.exists()) {
+            jdkArchive = Optional.of(destination);
         } else {
-            jdkArchive = openJdkBinary.download(spec, destinationFile);
+            downloader.download(source, destination);
+            jdkArchive = Optional.of(destination);
         }
         return wrapInOperation("Unpacking toolchain archive", () -> jdkArchive.map(cacheDirProvider::provisionFromArchive));
     }

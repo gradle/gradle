@@ -22,7 +22,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkDownloader;
+import org.gradle.jvm.toolchain.install.internal.FileDownloader;
 import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
@@ -73,7 +73,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(JavaToolchainFactory.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(AdoptOpenJdkRemoteBinary.class);
-        registration.add(AdoptOpenJdkDownloader.class);
+        registration.add(FileDownloader.class);
         registration.add(JavaToolchainQueryService.class);
         registration.add(DefaultJavaToolchainService.class);
     }

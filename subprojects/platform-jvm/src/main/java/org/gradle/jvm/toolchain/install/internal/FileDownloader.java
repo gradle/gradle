@@ -41,13 +41,13 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 
-public class AdoptOpenJdkDownloader {
+public class FileDownloader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdoptOpenJdkDownloader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloader.class);
 
     private final RepositoryTransportFactory repositoryTransportFactory;
 
-    public AdoptOpenJdkDownloader(RepositoryTransportFactory repositoryTransportFactory) {
+    public FileDownloader(RepositoryTransportFactory repositoryTransportFactory) {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
@@ -117,7 +117,7 @@ public class AdoptOpenJdkDownloader {
         } catch (URISyntaxException e) {
             throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
         }
-        return repositoryTransportFactory.createTransport("https", "adoptopenjdk toolchains", Collections.emptyList(), redirectVerifier);
+        return repositoryTransportFactory.createTransport("https", "jdk toolchains", Collections.emptyList(), redirectVerifier);
     }
 
 

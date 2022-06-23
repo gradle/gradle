@@ -28,40 +28,28 @@ import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.net.URI;
-import java.util.Optional;
 
-public class AdoptOpenJdkRemoteBinary {
+public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
 
     private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
     private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
 
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
-    private final AdoptOpenJdkDownloader downloader;
     private final Provider<String> adoptOpenJdkRootUrl;
     private final Provider<String> adoptiumRootUrl;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
+    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, ProviderFactory providerFactory) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
-        this.downloader = downloader;
         this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
-        if (!canProvideMatchingJdk(spec)) {
-            return Optional.empty();
-        }
-        URI source = toDownloadUri(spec);
-        downloader.download(source, destinationFile);
-        return Optional.of(destinationFile);
-    }
-
-    public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
+    @Override
+    public boolean canProvide(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = determineLanguageVersion(spec).canCompileOrRun(8);
         boolean matchesVendor = matchesVendor(spec);
         return matchesLanguageVersion && matchesVendor;
@@ -86,7 +74,8 @@ public class AdoptOpenJdkRemoteBinary {
         return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
-    URI toDownloadUri(JavaToolchainSpec spec) {
+    @Override
+    public URI toUri(JavaToolchainSpec spec) {
         return constructUri(spec);
     }
 
@@ -118,7 +107,8 @@ public class AdoptOpenJdkRemoteBinary {
         }
     }
 
-    public String toFilename(JavaToolchainSpec spec) {
+    @Override
+    public String toArchiveFileName(JavaToolchainSpec spec) {
         return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
     }
 
