@@ -17,12 +17,10 @@
 package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.TaskInternal
 import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.MutableIsolateContext
@@ -156,8 +154,6 @@ fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
 private
 val irrelevantDeclaringClasses = setOf(
     Object::class.java,
-    Task::class.java,
-    TaskInternal::class.java,
     DefaultTask::class.java,
     ConventionTask::class.java
 )

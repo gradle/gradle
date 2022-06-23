@@ -386,7 +386,7 @@ include::{snippetsPath}/files/fileCollections/tests/fileCollectionsWithClosure.o
 
 The key to lazy creation is passing a closure (in Groovy) or a `Provider` (in Kotlin) to the `files()` method. Your closure/provider simply needs to return a value of a type accepted by `files()`, such as `List<File>`, `String`, `FileCollection`, etc.
 
-_Iterating over a file collection_ can be done through the `each()` method (in Groovy) of `forEach` method (in Kotlin) on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
+_Iterating over a file collection_ can be done through the `each()` method (in Groovy) or `forEach` method (in Kotlin) on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
 
 The following example demonstrates such iteration as well as how you can convert file collections to other types using the `as` operator or supported properties:
 
@@ -495,7 +495,7 @@ You can see a practical example of extracting an archive file <<#sec:unpacking_a
 
 Many objects in Gradle have properties which accept a set of input files.
 For example, the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task has a `source` property that defines the source files to compile.
-You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the api docs.
+You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the API docs.
 This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure or `Provider`.
 
 *This is a feature of specific tasks*!

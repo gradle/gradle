@@ -57,11 +57,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public int compareTo(Node o) {
-        return -1;
-    }
-
-    @Override
     public void execute(NodeExecutionContext context) {
     }
 

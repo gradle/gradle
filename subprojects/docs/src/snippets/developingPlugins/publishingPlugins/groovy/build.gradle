@@ -2,7 +2,7 @@
 plugins {
     id 'java-gradle-plugin'                           // <1>
     id 'maven-publish'                                // <2>
-    id 'com.gradle.plugin-publish' version '1.0.0-rc-1'   // <3>
+    id 'com.gradle.plugin-publish' version '1.0.0-rc-3'   // <3>
 }
 // end::plugins_block[]
 

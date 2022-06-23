@@ -621,10 +621,6 @@ class DependencyManagementBuildScopeServices {
         return new DefaultComponentSelectorConverter(componentIdentifierFactory, localComponentRegistry);
     }
 
-    VersionParser createVersionParser() {
-        return new VersionParser();
-    }
-
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
         DefaultVersionSelectorScheme delegate = new DefaultVersionSelectorScheme(versionComparator, versionParser);
         CachingVersionSelectorScheme selectorScheme = new CachingVersionSelectorScheme(delegate);

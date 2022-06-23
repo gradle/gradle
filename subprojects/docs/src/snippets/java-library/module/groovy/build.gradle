@@ -17,7 +17,7 @@ tasks.named('compileJava') {
 
 // tag::dependencies[]
 dependencies {
-    implementation 'com.google.code.gson:gson:2.8.6'       // real module
+    implementation 'com.google.code.gson:gson:2.8.9'       // real module
     implementation 'org.apache.commons:commons-lang3:3.10' // automatic module
     implementation 'commons-cli:commons-cli:1.4'           // plain library
 }
