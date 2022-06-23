@@ -182,11 +182,15 @@ class WorkNodeCodec(
                     node.addShouldSuccessor(it)
                 }
                 readSuccessorReferences(nodesById) {
-                    require(it is TaskNode)
+                    require(it is TaskNode) {
+                        "Expecting a TaskNode as a must successor of `$node`, got `$it`."
+                    }
                     node.addMustSuccessor(it)
                 }
                 readSuccessorReferences(nodesById) {
-                    require(it is TaskNode)
+                    require(it is TaskNode) {
+                        "Expecting a TaskNode as a finalizing successor of `$node`, got `$it`."
+                    }
                     node.addFinalizingSuccessor(it)
                 }
                 val lifecycleSuccessors = mutableSetOf<Node>()
