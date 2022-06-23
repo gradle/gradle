@@ -33,7 +33,7 @@ public class ClassImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(ImplementationSnapshot.class.getName());
+        hasher.putString(ClassImplementationSnapshot.class.getName());
         hasher.putString(typeName);
         hasher.putHash(classLoaderHash);
     }
