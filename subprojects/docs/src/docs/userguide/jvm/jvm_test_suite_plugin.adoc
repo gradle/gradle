@@ -187,11 +187,11 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 == Sharing configuration between multiple test suites
 
-There are several ways to share configuration between multiple test suites and avoid duplication of dependencies or other elements in a build script.  These methods offer a tradeoff between flexibility and the use of a declarative vs. imperative configuration style.
+There are several ways to share configuration between multiple test suites to avoid the duplication of dependencies or other configuration.  Each method is a tradeoff between flexibility and the use of a declarative vs. imperative configuration style.
 
-1. Use the `configureEach` method on the `suites` object to lazily configure every suite
-2. Use the `withType`, `matching` and `configureEach` methods and filter by suite name to lazily configure a subset of suites
-3. Extract a custom configuration block and apply it only to the desired suites directly
+1. Use the `configureEach` method on the `suites` container to configure every test suite the same way.
+2. Use `withType` and `matching` with `configureEach` to filter test suites and configure a subset of them
+3. Extract the configuration block to a local variable and apply it only to the desired test suites 
 
 === Method 1: Use `configureEach`
 
