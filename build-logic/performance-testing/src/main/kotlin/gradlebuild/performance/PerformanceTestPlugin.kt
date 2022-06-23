@@ -30,6 +30,7 @@ import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
 import gradlebuild.basics.propertiesForPerformanceDb
+import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runAndroidStudioInHeadlessMode
 import gradlebuild.identity.extension.ModuleIdentityExtension
@@ -341,6 +342,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         buildCommitDistribution.configure {
             dependsOn(determineBaselines)
+            releasedVersionsFile.set(project.releasedVersionsFile())
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
         }
 

@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.testng
+package org.gradle.buildinit.plugins
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.TestNGCoverage
-import org.gradle.util.internal.VersionNumber
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class AbstractTestNGVersionIntegrationTest extends MultiVersionIntegrationSpec {
+class MultiProjectApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+    @Override
+    String subprojectName() {
+        return null
+    }
 
-    static boolean supportConfigFailurePolicy() {
-        return versionNumber >= VersionNumber.parse('5.13')
+
+    def "can explicitly configure application not to split projects with #dsl build scripts"() {
+        expect:
+        succeeds('init', '--type', "java-application", '--dsl', dsl.id)
+
+        where:
+        dsl << [BuildInitDsl.KOTLIN, BuildInitDsl.GROOVY]
     }
 }
