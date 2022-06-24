@@ -37,7 +37,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
     private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda$";
 
-    protected final String typeName;
+    protected final String classIdentifier;
 
     public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
         String className = type.getName();
@@ -58,23 +58,23 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
     }
 
     private static ImplementationSnapshot of(
-        String typeName,
+        String classIdentifier,
         @Nullable HashCode classLoaderHash,
         boolean isLambda,
         @Nullable Object value
     ) {
         if (classLoaderHash == null) {
-            return new UnknownImplementationSnapshot(typeName, UnknownReason.UNKNOWN_CLASSLOADER);
+            return new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNKNOWN_CLASSLOADER);
         }
 
         if (isLambda) {
             return Optional.ofNullable(value)
                 .flatMap(ImplementationSnapshot::serializedLambdaFor)
                 .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
-                .orElseGet(() -> new UnknownImplementationSnapshot(typeName, UnknownReason.UNTRACKED_LAMBDA));
+                .orElseGet(() -> new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNTRACKED_LAMBDA));
         }
 
-        return new ClassImplementationSnapshot(typeName, classLoaderHash);
+        return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);
     }
 
     private static Optional<SerializedLambda> serializedLambdaFor(Object lambda) {
@@ -104,12 +104,12 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
     }
 
-    protected ImplementationSnapshot(String typeName) {
-        this.typeName = typeName;
+    protected ImplementationSnapshot(String classIdentifier) {
+        this.classIdentifier = classIdentifier;
     }
 
-    public String getTypeName() {
-        return typeName;
+    public String getClassIdentifier() {
+        return classIdentifier;
     }
 
     @Nullable

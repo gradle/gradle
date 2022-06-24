@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
@@ -45,12 +45,10 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
     private void visitImplementation(PropertyVisitor visitor) {
         Object unwrapped = unwrapBean(getBean());
-        String className = unwrapped instanceof ScriptOrigin
-            ? ((ScriptOrigin) unwrapped).getOriginalClassName()
-            : unwrapped.getClass().getName();
+        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
         visitor.visitInputProperty(
             getPropertyName(),
-            new ImplementationPropertyValue(new ImplementationValue(className, unwrapped)),
+            new ImplementationPropertyValue(new ImplementationValue(classIdentifier, unwrapped)),
             false
         );
     }

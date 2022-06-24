@@ -102,7 +102,7 @@ abstract class AbstractValueProcessor {
             Map<?, ?> map = (Map<?, ?>) value;
             ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.add(new MapEntrySnapshot<T>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+                builder.add(new MapEntrySnapshot<>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
             }
             if (value instanceof Properties) {
                 return visitor.properties(builder.build());
@@ -143,7 +143,7 @@ abstract class AbstractValueProcessor {
         }
         if (value instanceof ImplementationValue) {
             ImplementationValue implementationValue = (ImplementationValue) value;
-            return visitor.implementationValue(implementationValue.getImplementationClassName(), implementationValue.getValue());
+            return visitor.implementationValue(implementationValue.getImplementationClassIdentifier(), implementationValue.getValue());
         }
 
         // Pluggable serialization
@@ -199,7 +199,7 @@ abstract class AbstractValueProcessor {
 
         T classValue(Class<?> value);
 
-        T implementationValue(String implementationClassName, Object implementation);
+        T implementationValue(String implementationClassIdentifier, Object implementation);
 
         T fileValue(File value);
 

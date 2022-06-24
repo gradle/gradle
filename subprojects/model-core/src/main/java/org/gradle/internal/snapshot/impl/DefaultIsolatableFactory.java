@@ -107,8 +107,8 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
-        public Isolatable<?> implementationValue(String implementationClassName, Object implementation) {
-            throw new IsolationException(implementationClassName);
+        public Isolatable<?> implementationValue(String implementationClassIdentifier, Object implementation) {
+            throw new IsolationException(implementationClassIdentifier);
         }
 
         @Override
