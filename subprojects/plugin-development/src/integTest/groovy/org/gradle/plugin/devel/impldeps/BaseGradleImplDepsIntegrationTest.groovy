@@ -25,17 +25,17 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     }
 
     static String applyJavaPlugin() {
-        """
-            plugins {
-                id 'java'
-            }
-        """
+        applyPlugins(['java'])
     }
 
     static String applyGroovyPlugin() {
+        applyPlugins(['groovy'])
+    }
+
+    static String applyPlugins(List<String> plugins) {
         """
             plugins {
-                id 'groovy'
+                ${plugins.collect { "id '$it'\n"}.join('')}
             }
         """
     }
@@ -44,14 +44,6 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         """
             dependencies {
                 implementation gradleApi()
-            }
-        """
-    }
-
-    static String testKitDependency() {
-        """
-            dependencies {
-                testImplementation gradleTestKit()
             }
         """
     }
@@ -87,37 +79,22 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
             }
         """
     }
-
-    static String testablePluginProject(String appliedLanguagePlugin = applyGroovyPlugin()) {
+    static String testablePluginProject(List<String> plugins = ['groovy-gradle-plugin']) {
         StringBuilder buildFile = new StringBuilder()
-        buildFile <<= appliedLanguagePlugin
-        buildFile <<= mavenCentralRepository()
-        buildFile <<= gradleApiDependency()
-        buildFile <<= testKitDependency()
-        buildFile <<= junitDependency()
-        buildFile.toString()
-    }
-
-    static String testablePluginProjectWithAddOpens(String appliedLanguagePlugin = applyGroovyPlugin()) {
-        return """
-            ${testablePluginProject(appliedLanguagePlugin)}
-            // Needed when using ProjectBuilder
-            class AddOpensArgProvider implements CommandLineArgumentProvider {
-                private final Test test;
-                public AddOpensArgProvider(Test test) {
-                    this.test = test;
+        buildFile << applyPlugins(plugins)
+        buildFile << mavenCentralRepository()
+        buildFile << junitDependency()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    plugin {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
                 }
-                @Override
-                Iterable<String> asArguments() {
-                    return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
-                        ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
-                        : []
-                }
-            }
-            tasks.withType(Test).configureEach {
-                jvmArgumentProviders.add(new AddOpensArgProvider(it))
             }
         """
+        buildFile.toString()
     }
 
     static void assertSingleGenerationOutput(String output, String regex) {
