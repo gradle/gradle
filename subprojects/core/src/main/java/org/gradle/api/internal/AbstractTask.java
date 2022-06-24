@@ -77,7 +77,7 @@ import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
-import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
@@ -837,17 +837,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
         HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
-        String actionClassName = AbstractTask.getActionClassName(value);
-        return ImplementationSnapshot.of(actionClassName, value, classLoaderHash);
-    }
-
-    private static String getActionClassName(Object action) {
-        if (action instanceof ScriptOrigin) {
-            ScriptOrigin origin = (ScriptOrigin) action;
-            return origin.getOriginalClassName() + "_" + origin.getContentHash();
-        } else {
-            return action.getClass().getName();
-        }
+        String actionClassIdentifier = ScriptOriginUtil.getOriginClassIdentifier(value);
+        return ImplementationSnapshot.of(actionClassIdentifier, value, classLoaderHash);
     }
 
     @Override

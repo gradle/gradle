@@ -17,16 +17,16 @@
 package org.gradle.internal.snapshot.impl;
 
 public class ImplementationValue {
-    private final String className;
+    private final String classIdentifier;
     private final Object value;
 
-    public ImplementationValue(String className, Object value) {
-        this.className = className;
+    public ImplementationValue(String classIdentifier, Object value) {
+        this.classIdentifier = classIdentifier;
         this.value = value;
     }
 
-    public String getImplementationClassName() {
-        return className;
+    public String getImplementationClassIdentifier() {
+        return classIdentifier;
     }
 
     public Object getValue() {

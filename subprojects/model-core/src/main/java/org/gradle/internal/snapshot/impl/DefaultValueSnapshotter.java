@@ -105,9 +105,9 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
-        public ValueSnapshot implementationValue(String implementationClassName, Object implementation) {
+        public ValueSnapshot implementationValue(String implementationClassIdentifier, Object implementation) {
             return ImplementationSnapshot.of(
-                implementationClassName,
+                implementationClassIdentifier,
                 implementation,
                 classLoaderHasher.getClassLoaderHash(implementation.getClass().getClassLoader()));
         }
