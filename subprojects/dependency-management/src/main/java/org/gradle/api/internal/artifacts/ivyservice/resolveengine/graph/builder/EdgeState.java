@@ -131,8 +131,8 @@ class EdgeState implements DependencyGraphEdge {
 
     void attachToTargetConfigurations() {
         ComponentState targetComponent = getTargetComponent();
-        if (targetComponent == null) {
-            // The selector failed or the module has been deselected. Do not attach.
+        if (targetComponent == null || !isUsed()) {
+            // The selector failed or the module has been deselected or the edge source has been deselected. Do not attach.
             return;
         }
 

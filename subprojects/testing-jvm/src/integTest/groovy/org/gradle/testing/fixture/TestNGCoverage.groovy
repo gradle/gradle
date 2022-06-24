@@ -24,21 +24,30 @@ class TestNGCoverage {
     final static String NEWEST = '7.5'
 
     private static final String FIXED_ILLEGAL_ACCESS = '5.14.6' // Oldest version to support JDK 16+ without explicit --add-opens
+
+    private static final String BROKEN_ICLASS_LISTENER = '6.9.10' // Introduces initial, buggy IClassListener
     private static final String FIXED_ICLASS_LISTENER = '6.9.13.3' // Introduces fixed IClassListener
+
+    private static final String FIRST_PRESERVE_ORDER_SUPPORT = '5.14.5' // First version to support preserve-order
+    private static final String BEFORE_BROKEN_PRESERVE_ORDER = '6.1.1' // Latest version before introduction of cbeust/testng#639 bug
+    private static final String FIXED_BROKEN_PRESERVE_ORDER = '6.9.4'  // Fixes cbeust/testng#639 for preserve-order
 
     private static final Set<String> VERSIONS = [
         '5.12.1', // Newest version without TestNG#setConfigFailurePolicy method (Added in 5.13)
         FIXED_ILLEGAL_ACCESS,
-        '6.1.1',  // Fixes NPE when using preserve-order and factories.
-        '6.8.21', // Newest version with cbeust/testng#639 bug
-        '6.9.4',  // Fixes cbeust/testng#639 for preserve-order
-        '6.9.10', // Introduces initial, buggy IClassListener
+        BEFORE_BROKEN_PRESERVE_ORDER,
+        FIXED_BROKEN_PRESERVE_ORDER,
+        BROKEN_ICLASS_LISTENER,
         FIXED_ICLASS_LISTENER,
         NEWEST
     ]
 
     static final Set<String> SUPPORTED_BY_JDK = testNgVersionsSupportedByJdk(VERSIONS, JavaVersion.current())
-    static final Set<String> SUPPORTS_PRESERVE_ORDER = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse('5.14.5') }
+    static final Set<String> SUPPORTS_PRESERVE_ORDER = SUPPORTED_BY_JDK.findAll {
+        VersionNumber version = VersionNumber.parse(it)
+        version >= VersionNumber.parse(FIRST_PRESERVE_ORDER_SUPPORT)
+            && !(version > VersionNumber.parse(BEFORE_BROKEN_PRESERVE_ORDER) && version < VersionNumber.parse(FIXED_BROKEN_PRESERVE_ORDER))
+    }
     static final Set<String> SUPPORTS_GROUP_BY_INSTANCES = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse('6.1') }
     static final Set<String> SUPPORTS_ICLASS_LISTENER = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse(FIXED_ICLASS_LISTENER) }
 
