@@ -107,6 +107,11 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
+        public Isolatable<?> implementationValue(String implementationClassName, Object implementation) {
+            throw new IsolationException(implementationClassName);
+        }
+
+        @Override
         public Isolatable<?> fileValue(File value) {
             return new FileValueSnapshot(value);
         }

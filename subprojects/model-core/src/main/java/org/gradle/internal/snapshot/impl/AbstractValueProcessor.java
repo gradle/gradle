@@ -141,6 +141,10 @@ abstract class AbstractValueProcessor {
         if (value instanceof HashCode) {
             return visitor.hashCode((HashCode) value);
         }
+        if (value instanceof ImplementationValue) {
+            ImplementationValue implementationValue = (ImplementationValue) value;
+            return visitor.implementationValue(implementationValue.getImplementationClassName(), implementationValue.getValue());
+        }
 
         // Pluggable serialization
         for (ValueSnapshotterSerializerRegistry registry : valueSnapshotterSerializerRegistryList) {
@@ -194,6 +198,8 @@ abstract class AbstractValueProcessor {
         T enumValue(Enum value);
 
         T classValue(Class<?> value);
+
+        T implementationValue(String implementationClassName, Object implementation);
 
         T fileValue(File value);
 
