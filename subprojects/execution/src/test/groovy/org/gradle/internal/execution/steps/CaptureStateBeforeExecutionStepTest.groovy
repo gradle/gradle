@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.fingerprint.InputFileFingerprintingException
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -157,7 +158,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     }
 
     def "no state is captured when input properties cannot be snapshot"() {
-        def failure = new InputFingerprinter.InputFileFingerprintingException("input", new IOException("Error"))
+        def failure = new InputFileFingerprintingException("input", new IOException("Error"))
         when:
         step.execute(work, context)
 

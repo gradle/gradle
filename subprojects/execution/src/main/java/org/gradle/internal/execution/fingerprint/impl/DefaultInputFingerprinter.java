@@ -19,13 +19,14 @@ package org.gradle.internal.execution.fingerprint.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.RegularFile;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
+import org.gradle.internal.execution.fingerprint.InputFileFingerprintingException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprintingException;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -113,15 +114,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                     valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
                 }
             } catch (Exception e) {
-                String msg = "value '%s' cannot be serialized";
-                if (actualValue instanceof RegularFile) {
-                    msg += ".  This property might have to use @InputFile, or a related file-based input annotation, instead of @Input";
-                }
-
                 throw new InputFingerprintingException(
-                    propertyName,
-                    String.format(msg, value.getValue()),
-                    e);
+                        propertyName,
+                        String.format("value '%s' cannot be serialized", value.getValue()),
+                        e);
             }
         }
 
