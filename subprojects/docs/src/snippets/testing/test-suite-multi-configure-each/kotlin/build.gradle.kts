@@ -27,16 +27,16 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites.configureEach { // <1>
-        if (this is JvmTestSuite) {
-            useJUnitJupiter()
-            dependencies { // <2>
-                implementation("org.mockito:mockito-junit-jupiter:4.6.1")
+    suites {
+        configureEach { // <1>
+            if (this is JvmTestSuite) {
+                useJUnitJupiter()
+                dependencies { // <2>
+                    implementation("org.mockito:mockito-junit-jupiter:4.6.1")
+                }
             }
         }
-    }
-
-    suites { // <3>
+        // <3>
         val integrationTest by registering(JvmTestSuite::class)
         val functionalTest by registering(JvmTestSuite::class) {
             dependencies { // <4>
