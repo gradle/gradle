@@ -47,7 +47,11 @@ testing {
 // end::multi-configure[]
 
 tasks.register('checkDependencies') {
-    dependsOn test, integrationTest, functionalTest
+    dependsOn(
+        configurations.integrationTestRuntimeClasspath,
+        configurations.functionalTestRuntimeClasspath,
+        configurations.testRuntimeClasspath
+    )
     doLast {
         assert configurations.testRuntimeClasspath.files.size() == 12
         assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
