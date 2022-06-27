@@ -27,14 +27,13 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites.withType(JvmTestSuite::class).matching { listOf("test", "integrationTest").contains(it.name) }.configureEach { // <1>
-        useJUnitJupiter()
-        dependencies {
-            implementation("org.mockito:mockito-junit-jupiter:4.6.1")
-        }
-    }
-
     suites {
+        withType(JvmTestSuite::class).matching { it.name in listOf("test", "integrationTest") }.configureEach { // <1>
+            useJUnitJupiter()
+            dependencies {
+                implementation("org.mockito:mockito-junit-jupiter:4.6.1")
+            }
+        }
         val integrationTest by registering(JvmTestSuite::class)
         val functionalTest by registering(JvmTestSuite::class) {
             useJUnit() // <2>
