@@ -40,6 +40,9 @@ fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.ex
 }
 
 
+fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
+
+
 /**
  * We use command line Git instead of JGit, because JGit's [Repository.resolve] does not work with worktrees.
  */
