@@ -27,14 +27,14 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites.configureEach { // <1>
-        useJUnitJupiter()
-        dependencies { // <2>
-            implementation('org.mockito:mockito-junit-jupiter:4.6.1')
+    suites { 
+        configureEach { // <1>
+            useJUnitJupiter()
+            dependencies { // <2>
+                implementation('org.mockito:mockito-junit-jupiter:4.6.1')
+            }
         }
-    }
-
-    suites { // <3>
+        // <3>
         integrationTest(JvmTestSuite)
         functionalTest(JvmTestSuite) {
             dependencies { // <4>
