@@ -134,7 +134,7 @@ public interface JvmComponentDependencies {
     Dependency gradleTestKit();
 
     /**
-     * Creates a dependency on the Groovy that is distributed with the current version of Gradle.
+     * Creates a dependency on the version of Groovy that is distributed with the current version of Gradle.
      *
      * @return The dependency.
      * @since 7.6
