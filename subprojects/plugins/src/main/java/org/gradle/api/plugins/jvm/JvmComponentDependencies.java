@@ -143,7 +143,8 @@ public interface JvmComponentDependencies {
      * @since 7.6
      */
     Dependency localGroovy();
-    
+
+    /**
      * Declares a dependency on the test fixtures of a project.
      * @param project the project upon which to add a test fixtures dependency
      *
