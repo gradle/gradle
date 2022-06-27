@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results.report;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
@@ -69,8 +70,8 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     body();
                         div().id("accordion").classAttr("mx-auto");
                         renderTableHeader();
-                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", getCrossVersionScenarios());
-                        renderTable("Cross build scenarios", "Compare the performance of different builds", getCrossBuildScenarios());
+                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", determineBaseline(), getCrossVersionScenarios());
+                        renderTable("Cross build scenarios", "Compare the performance of different builds", null, getCrossBuildScenarios());
                         renderPopoverDiv();
                     end();
                 footer(this);
@@ -140,10 +141,13 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
 
-            private void renderTable(String title, String description, List<PerformanceReportScenario> scenarios) {
+            private void renderTable(String title, String description, String baselineVersion, List<PerformanceReportScenario> scenarios) {
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col-12 p-0").text(title);
-                i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                        if (StringUtils.isNotEmpty(baselineVersion)) {
+                            b().text("(vs " + baselineVersion + ")").end();
+                        }
                     end();
                 end();
                 scenarios.forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
@@ -261,5 +265,13 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
             // @formatter:on
+    }
+
+    private String determineBaseline() {
+        return executionDataProvider.getReportScenarios().stream()
+            .filter(scenario -> !scenario.getCrossBuild())
+            .findFirst()
+            .map(scenario -> scenario.getHistoryExecutions().isEmpty() ? "" : scenario.getHistoryExecutions().get(0).getBaseVersion().getName())
+            .orElse("");
     }
 }
