@@ -37,12 +37,9 @@ testing {
             }
         }
 
-        val test by getting(JvmTestSuite::class) {
-            applyMockito(this) // <2>
-        }
+        val test by getting(JvmTestSuite::class, applyMockito)  // <2>
 
-        val integrationTest by registering(JvmTestSuite::class)
-        applyMockito(integrationTest.get()) // <3>
+        val integrationTest by registering(JvmTestSuite::class, applyMockito) // <3>
 
         val functionalTest by registering(JvmTestSuite::class) {
             useJUnit()
