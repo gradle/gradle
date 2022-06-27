@@ -449,6 +449,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         expect:
         succeeds 'checkConfiguration'
     }
+
     def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV map'() {
         given:
         buildKotlinFile << """
@@ -515,7 +516,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using #desc'() {
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using a GAV string'() {
         given:
         buildKotlinFile << """
             plugins {
@@ -534,18 +535,18 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
                 implementation("org.apache.commons:commons-lang3:3.11")
 
-                testImplementation($implementationNotationTest)
-                testCompileOnly($compileOnlyNotationTest)
-                testRuntimeOnly($runtimeOnlyNotationTest)
+                testImplementation("com.google.guava:guava:30.1.1-jre")
+                testCompileOnly("javax.servlet:servlet-api:3.0-alpha-1")
+                testRuntimeOnly("mysql:mysql-connector-java:8.0.26")
 
                 // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                 val integTestImplementation by configurations.getting
                 integTestImplementation(project)
-                integTestImplementation($implementationNotationInteg)
+                integTestImplementation("com.google.guava:guava:29.0-jre")
                 val integTestCompileOnly by configurations.getting
-                integTestCompileOnly($compileOnlyNotationInteg)
+                integTestCompileOnly("javax.servlet:servlet-api:2.5")
                 val integTestRuntimeOnly by configurations.getting
-                integTestRuntimeOnly($runtimeOnlyNotationInteg)
+                integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")
             }
 
             tasks.named("check") {
@@ -577,12 +578,134 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         succeeds 'checkConfiguration'
+    }
 
-        where:
-        desc                | implementationNotationTest                     | compileOnlyNotationTest                              | runtimeOnlyNotationTest                        | implementationNotationInteg                     | compileOnlyNotationInteg                              | runtimeOnlyNotationInteg
-        'GAV string'        | gavStr(guavaGroup, guavaName, guavaVerTest)    | gavStr(servletGroup, servletName, servletVerTest)    | gavStr(mysqlGroup, mysqlName, mysqlVerTest)    | gavStr(guavaGroup, guavaName, guavaVerInteg)    | gavStr(servletGroup, servletName, servletVerInteg)    | gavStr(mysqlGroup, mysqlName, mysqlVerInteg)
-        'GAV map'           | gavMap(guavaGroup, guavaName, guavaVerTest)    | gavMap(servletGroup, servletName, servletVerTest)    | gavMap(mysqlGroup, mysqlName, mysqlVerTest)    | gavMap(guavaGroup, guavaName, guavaVerInteg)    | gavMap(servletGroup, servletName, servletVerInteg)    | gavMap(mysqlGroup, mysqlName, mysqlVerInteg)
-        'named args'        | namedArgs(guavaGroup, guavaName, guavaVerTest) | namedArgs(servletGroup, servletName, servletVerTest) | namedArgs(mysqlGroup, mysqlName, mysqlVerTest) | namedArgs(guavaGroup, guavaName, guavaVerInteg) | namedArgs(servletGroup, servletName, servletVerInteg) | namedArgs(mysqlGroup, mysqlName, mysqlVerInteg)
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using a GAV map'() {
+        given:
+        buildKotlinFile << """
+            plugins {
+              `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val integTest by registering(JvmTestSuite::class)
+                }
+            }
+
+            dependencies {
+                // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+                implementation("org.apache.commons:commons-lang3:3.11")
+
+                testImplementation(mapOf("group" to "com.google.guava", "name" to "guava", "version" to "30.1.1-jre"))
+                testCompileOnly(mapOf("group" to "javax.servlet", "name" to "servlet-api", "version" to "3.0-alpha-1"))
+                testRuntimeOnly(mapOf("group" to "mysql", "name" to "mysql-connector-java", "version" to "8.0.26"))
+
+                // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                val integTestImplementation by configurations.getting
+                integTestImplementation(project)
+                integTestImplementation(mapOf("group" to "com.google.guava", "name" to "guava", "version" to "29.0-jre"))
+                val integTestCompileOnly by configurations.getting
+                integTestCompileOnly(mapOf("group" to "javax.servlet", "name" to "servlet-api", "version" to "2.5"))
+                val integTestRuntimeOnly by configurations.getting
+                integTestRuntimeOnly(mapOf("group" to "mysql", "name" to "mysql-connector-java", "version" to "6.0.6"))
+            }
+
+            tasks.named("check") {
+                dependsOn(testing.suites.named("integTest"))
+            }
+
+            tasks.register("checkConfiguration") {
+                dependsOn("test", "integTest")
+                doLast {
+                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+
+                    assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
+                    assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
+                    assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
+                    assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
+
+                    val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+                    val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+                    assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
+                    assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
+                    assert(!integTestCompileClasspathFileNames.contains("mysql-connector-java-6.0.6.jar")) { "runtimeOnly dependency" }
+                    assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-29.0-jre.jar", "mysql-connector-java-6.0.6.jar")))
+                    assert(!integTestRuntimeClasspathFileNames.contains("servlet-api-2.5.jar")) { "compileOnly dependency" }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using named args'() {
+        given:
+        buildKotlinFile << """
+            plugins {
+              `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val integTest by registering(JvmTestSuite::class)
+                }
+            }
+
+            dependencies {
+                // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+                implementation("org.apache.commons:commons-lang3:3.11")
+
+                testImplementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
+                testCompileOnly(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1")
+                testRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "8.0.26")
+
+                // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                val integTestImplementation by configurations.getting
+                integTestImplementation(project)
+                integTestImplementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
+                val integTestCompileOnly by configurations.getting
+                integTestCompileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
+                val integTestRuntimeOnly by configurations.getting
+                integTestRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
+            }
+
+            tasks.named("check") {
+                dependsOn(testing.suites.named("integTest"))
+            }
+
+            tasks.register("checkConfiguration") {
+                dependsOn("test", "integTest")
+                doLast {
+                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+
+                    assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
+                    assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
+                    assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
+                    assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
+
+                    val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+                    val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+                    assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
+                    assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
+                    assert(!integTestCompileClasspathFileNames.contains("mysql-connector-java-6.0.6.jar")) { "runtimeOnly dependency" }
+                    assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-29.0-jre.jar", "mysql-connector-java-6.0.6.jar")))
+                    assert(!integTestRuntimeClasspathFileNames.contains("servlet-api-2.5.jar")) { "compileOnly dependency" }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
     }
 
     @Ignore("currently failing in Kotlin, with or without mapOf, due to lack of exclude extension function from DependencyHandlerExtensions")
@@ -600,8 +723,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     val test by getting(JvmTestSuite::class) {
                         dependencies {
                             implementation($dependencyNotation) { (dep: ModuleDependency) ->
-                                exclude(mapOf("group" to "$collectionsGroup", "module" to "$collectionsName"))
-                                exclude(group = "$collectionsGroup", module = "$collectionsName")
+                                exclude(mapOf("group" to "commons-collections", "module" to "collections"))
+                                exclude(group = "commons-collections", module = "collections")
                             }
                         }
                     }
@@ -612,8 +735,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 dependsOn("test")
                 doLast {
                     val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    assert(testCompileClasspathFileNames.contains("${beanUtilsName}-${beanUtilsVer}.jar"))
-                    assert(!testCompileClasspathFileNames.contains("${collectionsName}-${collectionsVer}.jar")) { "excluded dependency" }
+                    assert(testCompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
+                    assert(!testCompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
             }
         """
@@ -665,8 +788,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         desc                | dependencyNotation
-        'GAV string'        | gavStr(beanUtilsGroup, beanUtilsName, beanUtilsVer)
-        'GAV map'           | gavMap(beanUtilsGroup, beanUtilsName, beanUtilsVer)
+        'GAV string'        | "commons-beanutils:commons-beanutils:1.9.4"
+        'GAV map'           | 'mapOf("group" to "commons-beanutils", "name" to "commons-beanutils", "version" to "1.9.4")'
     }
 
     def "can add dependencies using a non-String CharSequence: #type"() {
@@ -714,7 +837,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         type            | creationNotation
-        'StringBuffer'  | "StringBuffer(\"org.apache.commons:commons-lang3:3.11\")"
         'StringBuilder' | "StringBuilder(\"org.apache.commons:commons-lang3:3.11\")"
         'StrBuilder'    | "StrBuilder(\"org.apache.commons:commons-lang3:3.11\")"
     }
@@ -748,41 +870,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         suiteDesc           | suiteName   | suiteDeclaration
         'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
-    }
-
-    private static guavaGroup = 'com.google.guava'
-    private static guavaName = 'guava'
-    private static guavaVerTest = '30.1.1-jre'
-    private static guavaVerInteg = '29.0-jre'
-
-    private static servletGroup = 'javax.servlet'
-    private static servletName = 'servlet-api'
-    private static servletVerTest = '3.0-alpha-1'
-    private static servletVerInteg = '2.5'
-
-    private static mysqlGroup = 'mysql'
-    private static mysqlName = 'mysql-connector-java'
-    private static mysqlVerTest = '8.0.26'
-    private static mysqlVerInteg = '6.0.6'
-
-    private static beanUtilsGroup = 'commons-beanutils'
-    private static beanUtilsName = 'commons-beanutils'
-    private static beanUtilsVer = '1.9.4'
-
-    private static collectionsGroup = 'commons-collections'
-    private static collectionsName = 'commons-collections'
-    private static collectionsVer = '3.2.2'
-
-    private static gavStr(String group, String name, String version) {
-        return "\"$group:$name:$version\""
-    }
-
-    private static gavMap(String group, String name, String version) {
-        return "mapOf(\"group\" to \"$group\", \"name\" to  \"$name\", \"version\" to \"$version\")"
-    }
-
-    private static namedArgs(String group, String name, String version) {
-        return "group = \"$group\", name = \"$name\", version = \"$version\""
     }
     // endregion dependencies - modules (GAV)
 
