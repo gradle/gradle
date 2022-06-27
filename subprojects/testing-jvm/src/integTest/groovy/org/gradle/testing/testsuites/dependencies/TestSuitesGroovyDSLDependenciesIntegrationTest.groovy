@@ -336,7 +336,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - projects
 
     // region dependencies - modules (GAV)
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using #desc'() {
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string'() {
         given:
         buildFile << """
         plugins {
@@ -354,18 +354,18 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 test {
                     dependencies {
-                        implementation $implementationNotationTest
-                        compileOnly $compileOnlyNotationTest
-                        runtimeOnly $runtimeOnlyNotationTest
+                        implementation 'com.google.guava:guava:30.1.1-jre'
+                        compileOnly 'javax.servlet:servlet-api:3.0-alpha-1'
+                        runtimeOnly 'mysql:mysql-connector-java:8.0.26'
                     }
                 }
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
                         implementation project
-                        implementation $implementationNotationInteg
-                        compileOnly $compileOnlyNotationInteg
-                        runtimeOnly $runtimeOnlyNotationInteg
+                        implementation 'com.google.guava:guava:29.0-jre'
+                        compileOnly 'javax.servlet:servlet-api:2.5'
+                        runtimeOnly 'mysql:mysql-connector-java:6.0.6'
                     }
                 }
             }
@@ -400,13 +400,139 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         succeeds 'checkConfiguration'
-
-        where:
-        desc                | implementationNotationTest                     | compileOnlyNotationTest                              | runtimeOnlyNotationTest                        | implementationNotationInteg                     | compileOnlyNotationInteg                              | runtimeOnlyNotationInteg
-        'GAV string'        | gavStr(guavaGroup, guavaName, guavaVerTest)    | gavStr(servletGroup, servletName, servletVerTest)    | gavStr(mysqlGroup, mysqlName, mysqlVerTest)    | gavStr(guavaGroup, guavaName, guavaVerInteg)    | gavStr(servletGroup, servletName, servletVerInteg)    | gavStr(mysqlGroup, mysqlName, mysqlVerInteg)
-        'GAV map'           | gavMap(guavaGroup, guavaName, guavaVerTest)    | gavMap(servletGroup, servletName, servletVerTest)    | gavMap(mysqlGroup, mysqlName, mysqlVerTest)    | gavMap(guavaGroup, guavaName, guavaVerInteg)    | gavMap(servletGroup, servletName, servletVerInteg)    | gavMap(mysqlGroup, mysqlName, mysqlVerInteg)
-        'named args'        | namedArgs(guavaGroup, guavaName, guavaVerTest) | namedArgs(servletGroup, servletName, servletVerTest) | namedArgs(mysqlGroup, mysqlName, mysqlVerTest) | namedArgs(guavaGroup, guavaName, guavaVerInteg) | namedArgs(servletGroup, servletName, servletVerInteg) | namedArgs(mysqlGroup, mysqlName, mysqlVerInteg)
     }
+
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV map'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java-library'
+        }
+
+        ${mavenCentralRepository()}
+
+        dependencies {
+            // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+            implementation 'org.apache.commons:commons-lang3:3.11'
+        }
+
+        testing {
+            suites {
+                test {
+                    dependencies {
+                        implementation([group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'])
+                        compileOnly([group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1'])
+                        runtimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'])
+                    }
+                }
+                integTest(JvmTestSuite) {
+                    // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                    dependencies {
+                        implementation project
+                        implementation([group: 'com.google.guava', name: 'guava', version: '29.0-jre'])
+                        compileOnly([group: 'javax.servlet', name: 'servlet-api', version: '2.5'])
+                        runtimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'])
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
+                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+
+                assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
+                assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
+                assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
+                assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
+
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
+                assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
+                assert !integTestCompileClasspathFileNames.contains('mysql-connector-java-6.0.6.jar'): 'runtimeOnly dependency'
+                assert integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-29.0-jre.jar', 'mysql-connector-java-6.0.6.jar')
+                assert !integTestRuntimeClasspathFileNames.contains('servlet-api-2.5.jar'): 'compileOnly dependency'
+            }
+        }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using named args'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java-library'
+        }
+
+        ${mavenCentralRepository()}
+
+        dependencies {
+            // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+            implementation 'org.apache.commons:commons-lang3:3.11'
+        }
+
+        testing {
+            suites {
+                test {
+                    dependencies {
+                        implementation(group: 'com.google.guava', name: 'guava', version: '30.1.1-jre')
+                        compileOnly(group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1')
+                        runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '8.0.26')
+                    }
+                }
+                integTest(JvmTestSuite) {
+                    // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                    dependencies {
+                        implementation project
+                        implementation(group: 'com.google.guava', name: 'guava', version: '29.0-jre')
+                        compileOnly(group: 'javax.servlet', name: 'servlet-api', version: '2.5')
+                        runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '6.0.6')
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
+                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+
+                assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
+                assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
+                assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
+                assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
+
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
+                assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
+                assert !integTestCompileClasspathFileNames.contains('mysql-connector-java-6.0.6.jar'): 'runtimeOnly dependency'
+                assert integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-29.0-jre.jar', 'mysql-connector-java-6.0.6.jar')
+                assert !integTestRuntimeClasspathFileNames.contains('servlet-api-2.5.jar'): 'compileOnly dependency'
+            }
+        }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+   }
 
     def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using #desc'() {
         given:
