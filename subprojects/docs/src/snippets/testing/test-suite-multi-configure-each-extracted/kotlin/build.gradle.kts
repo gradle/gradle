@@ -37,8 +37,17 @@ testing {
             }
         }
 
+        /* This is the equivalent of:
+            val test by getting(JvmTestSuite::class) {
+                applyMockito(this)
+            }
+         */
         val test by getting(JvmTestSuite::class, applyMockito)  // <2>
 
+        /* This is the equivalent of:
+            val integrationTest by registering(JvmTestSuite::class)
+            applyMockito(integrationTest.get())
+         */
         val integrationTest by registering(JvmTestSuite::class, applyMockito) // <3>
 
         val functionalTest by registering(JvmTestSuite::class) {
