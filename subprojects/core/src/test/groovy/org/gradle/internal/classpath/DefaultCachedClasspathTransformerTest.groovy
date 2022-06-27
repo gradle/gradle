@@ -29,6 +29,7 @@ import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.io.ClassLoaderObjectInputStream
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.internal.upgrade.report.ApiUpgradeManager
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -67,6 +68,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def globalCacheLocations = Stub(GlobalCacheLocations)
     def fileLockManager = Stub(FileLockManager)
+    def apiUpgradeManager = Stub(ApiUpgradeManager)
     URLClassLoader testClassLoader = null
 
     @Subject
@@ -79,7 +81,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         fileSystemAccess,
         executorFactory,
         globalCacheLocations,
-        fileLockManager
+        fileLockManager,
+        apiUpgradeManager
     )
 
     def cleanup() {

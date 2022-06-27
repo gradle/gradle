@@ -25,6 +25,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.upgrade.report.ApiUpgrader;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
@@ -188,27 +189,35 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
 
     private static final String[] NO_EXCEPTIONS = new String[0];
+    private final ApiUpgrader apiUpgrader;
+
+    public InstrumentingTransformer(ApiUpgrader apiUpgrader) {
+        this.apiUpgrader = apiUpgrader;
+    }
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
         hasher.putInt(DECORATION_FORMAT);
+        apiUpgrader.applyConfigurationTo(hasher);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor)));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgrader));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
+        private final ApiUpgrader apiUpgrader;
         String className;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
 
-        public InstrumentingVisitor(ClassVisitor visitor) {
+        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgrader apiUpgrader) {
             super(ASM_LEVEL, visitor);
+            this.apiUpgrader = apiUpgrader;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -231,7 +240,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor);
+            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgrader);
         }
 
         @Override
@@ -304,11 +313,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
+        private final ApiUpgrader apiUpgrader;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgrader apiUpgrader) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.apiUpgrader = apiUpgrader;
         }
 
         @Override
@@ -442,6 +453,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     return true;
                 }
             }
+            apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, owner, name, descriptor, true);
             return false;
         }
 

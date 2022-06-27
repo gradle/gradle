@@ -30,6 +30,7 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.upgrade.report.ApiUpgradeManager;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
@@ -59,6 +60,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final GlobalCacheLocations globalCacheLocations;
     private final FileLockManager fileLockManager;
     private final ManagedExecutor executor;
+    private final ApiUpgradeManager apiUpgradeManager;
 
     public DefaultCachedClasspathTransformer(
         GlobalScopedCache globalScopedCache,
@@ -69,7 +71,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,
-        FileLockManager fileLockManager
+        FileLockManager fileLockManager,
+        ApiUpgradeManager apiUpgradeManager
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
@@ -79,6 +82,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.cache = classpathTransformerCacheFactory.createCache(globalScopedCache, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
+        this.apiUpgradeManager = apiUpgradeManager;
     }
 
     @Override
@@ -133,7 +137,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private Transform transformerFor(StandardTransform transform) {
         if (transform == StandardTransform.BuildLogic) {
-            return new InstrumentingTransformer();
+            return new InstrumentingTransformer(apiUpgradeManager.createApiUpgrader());
         } else {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -142,7 +146,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return instrumentingClasspathFileTransformerFor(new InstrumentingTransformer());
+                return instrumentingClasspathFileTransformerFor(new InstrumentingTransformer(apiUpgradeManager.createApiUpgrader()));
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:

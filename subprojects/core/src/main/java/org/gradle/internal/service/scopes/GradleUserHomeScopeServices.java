@@ -78,6 +78,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.upgrade.report.ApiUpgradeManager;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
@@ -106,6 +107,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathBuilder.class);
         registration.add(GradleUserHomeTemporaryFileProvider.class);
         registration.add(DefaultClasspathTransformerCacheFactory.class);
+        registration.add(ApiUpgradeManager.class);
         registration.add(GradleUserHomeScopeFileTimeStampInspector.class);
         registration.add(DefaultCachedClasspathTransformer.class);
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
