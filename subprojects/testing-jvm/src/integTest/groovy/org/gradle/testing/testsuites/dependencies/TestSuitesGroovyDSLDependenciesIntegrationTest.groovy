@@ -849,7 +849,180 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'GString'       | '"org.apache.commons:commons-lang3:3.${(11 + 11) / (2 + 1 - 1)}"'
     }
 
-    def "can NOT add a list of GAV dependencies to #suiteDesc"() {
+    // region multiple GAV strings
+    def "can add multiple of GAV dependencies to #suiteDesc - at the top level (varargs)"() {
+        given:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration
+                }
+            }
+
+            dependencies {
+                ${suiteName}Implementation 'org.apache.commons:commons-lang3:3.11', 'com.google.guava:guava:30.1.1-jre'
+            }
+
+            tasks.register('checkConfiguration') {
+                dependsOn $suiteName
+                doLast {
+                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    assert ${suiteName}CompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar')
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'test'
+        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
+    }
+
+    def "can add multiple GAV dependencies to #suiteDesc - at the top level (list)"() {
+        given:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration
+                }
+            }
+
+            dependencies {
+                ${suiteName}Implementation(['org.apache.commons:commons-lang3:3.11', 'com.google.guava:guava:30.1.1-jre'])
+            }
+
+            tasks.register('checkConfiguration') {
+                dependsOn $suiteName
+                doLast {
+                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    assert ${suiteName}CompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar')
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'test'
+        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
+    }
+
+    def "can NOT add multiple GAV dependencies to #suiteDesc - no paren or brackets (varargs)"() {
+        given:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        dependencies {
+                            implementation 'org.apache.commons:commons-lang3:3.11', 'com.google.guava:guava:30.1.1-jre'
+                        }
+                    }
+                }
+            }
+
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("Could not find method implementation() for arguments [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'test'
+        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
+    }
+
+    def "can NOT add multiple GAV dependencies to #suiteDesc - no brackets (varargs)"() {
+        given:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        dependencies {
+                            implementation('org.apache.commons:commons-lang3:3.11', 'com.google.guava:guava:30.1.1-jre')
+                        }
+                    }
+                }
+            }
+
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("Could not find method implementation() for arguments [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'test'
+        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
+    }
+
+    def "can NOT add multiple of GAV dependencies to #suiteDesc - no paren (list)"() {
+        given:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        dependencies {
+                            implementation ['org.apache.commons:commons-lang3:3.11', 'com.google.guava:guava:30.1.1-jre']
+                        }
+                    }
+                }
+            }
+
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("Could not get unknown property 'implementation' for object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'test'
+        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
+    }
+
+    def "can NOT add multiple GAV dependencies to #suiteDesc - both paren AND brackets (list)"() {
         given:
         buildFile << """
             plugins {
@@ -880,6 +1053,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'the default suite' | 'test'      | 'test'
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
+    // endregion multiple GAV strings
     // endregion dependencies - modules (GAV)
 
     // region dependencies - dependency objects

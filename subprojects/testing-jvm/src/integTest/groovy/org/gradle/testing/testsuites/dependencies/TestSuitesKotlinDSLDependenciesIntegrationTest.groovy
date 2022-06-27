@@ -841,11 +841,85 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'StrBuilder'    | "StrBuilder(\"org.apache.commons:commons-lang3:3.11\")"
     }
 
-    def "can NOT add a list of GAV dependencies to #suiteDesc"() {
+    // region multiple GAV strings
+    def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (varargs)"() {
         given:
         buildKotlinFile << """
             plugins {
-              `java-library`
+                `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration
+                }
+            }
+
+            dependencies {
+                val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
+                ${suiteName}Implementation("org.apache.commons:commons-lang3:3.11", "com.google.guava:guava:30.1.1-jre")
+            }
+
+            tasks.register("checkConfiguration") {
+                dependsOn("$suiteName")
+                doLast {
+                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+                    assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar")))
+                }
+            }
+        """
+
+        expect:
+        fails 'checkConfiguration'
+        result.assertHasErrorOutput("Could not resolve all files for configuration ':${suiteName}CompileClasspath'.")
+        result.assertHasErrorOutput("Could not find org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre:.")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+
+    def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (list)"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+
+            testing {
+                suites {
+                    $suiteDeclaration
+                }
+            }
+
+            dependencies {
+                val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
+                ${suiteName}Implementation(listOf("org.apache.commons:commons-lang3:3.11", "com.google.guava:guava:30.1.1-jre"))
+            }
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("Cannot convert the provided notation to an object of type Dependency: [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre].")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+
+    def "can NOT add multiple GAV dependencies to #suiteDesc (list)"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                `java-library`
             }
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
@@ -871,6 +945,38 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
     }
+
+    def "can NOT add multiple GAV dependencies to #suiteDesc (varargs)"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        dependencies {
+                            implementation("org.apache.commons:commons-lang3:3.11", "com.google.guava:guava:30.1.1-jre")
+                        }
+                    }
+                }
+            }
+
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("Script compilation error")
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+    // endregion multiple GAV strings
     // endregion dependencies - modules (GAV)
 
     // region dependencies - dependency objects
