@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
+import org.jetbrains.annotations.Nullable;
 
 public interface TypeValidationContext {
 
@@ -44,4 +45,17 @@ public interface TypeValidationContext {
         public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) { }
     };
 
+    TypeValidationContext FAIL_AND_INFORM = new TypeValidationContext() {
+        @Override
+        public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
+
+        }
+
+        @Override
+        public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
+            PropertyProblemBuilder build = new DefaultPropertyValidationProblemBuilder(null, null);
+            problemSpec.execute(build);
+            build.
+        }
+    };
 }

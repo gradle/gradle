@@ -169,35 +169,4 @@ public interface InputFingerprinter {
          */
         ImmutableSet<String> getPropertiesRequiringIsEmptyCheck();
     }
-
-    class InputFingerprintingException extends RuntimeException {
-        private final String propertyName;
-
-        public InputFingerprintingException(String propertyName, String message, Throwable cause) {
-            super(String.format("Cannot fingerprint input property '%s': %s.", propertyName, message), cause);
-            this.propertyName = propertyName;
-        }
-
-        public String getPropertyName() {
-            return propertyName;
-        }
-    }
-
-    class InputFileFingerprintingException extends RuntimeException {
-        private final String propertyName;
-
-        public InputFileFingerprintingException(String propertyName, Throwable cause) {
-            super(String.format("Cannot fingerprint input file property '%s': %s", propertyName, cause.getMessage()), cause);
-            this.propertyName = propertyName;
-        }
-
-        private InputFileFingerprintingException(String formattedMessage, Throwable cause, String propertyName) {
-            super(formattedMessage, cause);
-            this.propertyName = propertyName;
-        }
-
-        public String getPropertyName() {
-            return propertyName;
-        }
-    }
 }

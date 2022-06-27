@@ -19,7 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestInputAnnotationFailures extends AbstractIntegrationSpec {
-    def "misconfigured @Input annotation fails with outputs.upToDateWhen() with helpful error message"() {
+    def "using @Input annotation on #fieldType fields with upToDate check fails with helpful error message"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
@@ -34,27 +34,31 @@ class TestInputAnnotationFailures extends AbstractIntegrationSpec {
             @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Input
-                abstract RegularFileProperty getMyFile()
+                $fieldInitialization
 
                 @TaskAction
                 void action() {
-                    logger.warn("Input file: {}", myFile.getAsFile().get().absolutePath)
+                    logger.warn("Input file: {}", $fieldRead)
                 }
             }
 
             tasks.register('myTask', MyTask) {
                 outputs.upToDateWhen { false }
-                myFile = project.layout.projectDirectory.file('myFile.txt')
             }
         """
 
         expect:
         fails 'myTask'
-        result.assertHasErrorOutput("Cannot fingerprint input property 'myFile'")
+        result.assertHasErrorOutput("Cannot fingerprint input property 'myField'")
         result.assertHasErrorOutput("This property might have to use @InputFile, or a related file-based input annotation, instead of @Input")
+
+        where:
+        fieldType     | fieldInitialization                                                         | fieldRead
+        'RegularFile' | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"  | 'myField.getAsFile().absolutePath'
+        'Directory'   | "Directory myField = project.layout.projectDirectory.dir('myDir')"          | 'myField.getAsFile().absolutePath'
     }
 
-    def "misconfigured @Input annotation on DirectoryProperty fails with outputs.upToDateWhen() but does not print error message"() {
+    def "using @Input annotation on #propertyType fields with upToDate check fails with helpful error message"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
@@ -69,27 +73,32 @@ class TestInputAnnotationFailures extends AbstractIntegrationSpec {
             @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Input
-                abstract DirectoryProperty getMyDirectory()
+                $propertyInitialization
 
                 @TaskAction
                 void action() {
-                    logger.warn("Input directory: {}", myDirectory.getAsFile().get().absolutePath)
+                    logger.warn("Input file: {}", $propertyRead)
                 }
             }
 
             tasks.register('myTask', MyTask) {
+                $propertyAssignment
                 outputs.upToDateWhen { false }
-                myDirectory = project.layout.projectDirectory
             }
         """
 
         expect:
         fails 'myTask'
-        result.assertHasErrorOutput("Cannot fingerprint input property 'myDirectory'")
-        !result.getError().contains("This property might have to use @InputFile, or a related file-based input annotation, instead of @Input")
+        result.assertHasErrorOutput("Cannot fingerprint input property 'myProp'")
+        result.assertHasErrorOutput("This property might have to use @InputFile, or a related file-based input annotation, instead of @Input")
+
+        where:
+        propertyType            | propertyInitialization                        | propertyAssignment                                            | propertyRead
+        "RegularFileProperty"   | "abstract RegularFileProperty getMyProp()"    | "myProp = project.layout.projectDirectory.file('myFile.txt')" | "myProp.getAsFile().get().absolutePath"
+        "DirectoryProperty"     | "abstract DirectoryProperty getMyProp()"      | "myProp = project.layout.projectDirectory"                    | "myProp.getAsFile().get().absolutePath"
     }
 
-    def "misconfigured @Input annotation succeeds if no upToDate check done"() {
+    def "misconfigured @Input annotation on RegularFileProperty succeeds if no upToDate check done"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
