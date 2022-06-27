@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -110,6 +111,20 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
+    public Dependency gradleApi() {
+        return getDependencyHandler().create(DependencyFactory.ClassPathNotation.GRADLE_API);
+    }
+
+    @Override
+    public Dependency gradleTestKit() {
+        return getDependencyHandler().create(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
+    }
+
+    @Override
+    public Dependency localGroovy() {
+        return getDependencyHandler().create(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
+    }
+    
     public Dependency testFixtures(Project project) {
         final ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
         return testFixtures(projectDependency);
