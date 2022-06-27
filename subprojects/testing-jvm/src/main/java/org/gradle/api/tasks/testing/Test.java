@@ -267,7 +267,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     * Returns the version of Java used to run the tests based on the {@link JavaLauncher} specified by {@link #getJavaLauncher()},
+     * or the executable specified by {@link #getExecutable()} if the {@code JavaLauncher} is not present.
      *
      * @since 3.3
      */

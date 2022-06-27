@@ -167,6 +167,22 @@ dependencies {
     implementation localGroovy()
     testImplementation 'junit:junit:4.13'
 }
+// Needed when using ProjectBuilder
+class AddOpensArgProvider implements CommandLineArgumentProvider {
+    private final Test test;
+    public AddOpensArgProvider(Test test) {
+        this.test = test;
+    }
+    @Override
+    Iterable<String> asArguments() {
+        return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+            ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+            : []
+    }
+}
+tasks.withType(Test).configureEach {
+    jvmArgumentProviders.add(new AddOpensArgProvider(it))
+}
 """
 
         expect:
@@ -208,6 +224,22 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     testImplementation 'junit:junit:4.13'
+}
+// Needed when using ProjectBuilder
+class AddOpensArgProvider implements CommandLineArgumentProvider {
+    private final Test test;
+    public AddOpensArgProvider(Test test) {
+        this.test = test;
+    }
+    @Override
+    Iterable<String> asArguments() {
+        return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+            ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+            : []
+    }
+}
+tasks.withType(Test).configureEach {
+    jvmArgumentProviders.add(new AddOpensArgProvider(it))
 }
 """
 

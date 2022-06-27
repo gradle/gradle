@@ -21,37 +21,26 @@ import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 
-public class KnownImplementationSnapshot extends ImplementationSnapshot {
+public class ClassImplementationSnapshot extends ImplementationSnapshot {
     private final HashCode classLoaderHash;
 
-    public KnownImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+    public ClassImplementationSnapshot(String typeName, HashCode classLoaderHash) {
         super(typeName);
         this.classLoaderHash = classLoaderHash;
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(ImplementationSnapshot.class.getName());
-        hasher.putString(getTypeName());
+        hasher.putString(ClassImplementationSnapshot.class.getName());
+        hasher.putString(typeName);
         hasher.putHash(classLoaderHash);
     }
 
     @Override
     protected boolean isSameSnapshot(@Nullable Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        KnownImplementationSnapshot that = (KnownImplementationSnapshot) o;
-
-        if (!getTypeName().equals(that.getTypeName())) {
-            return false;
-        }
-        return classLoaderHash.equals(that.classLoaderHash);
+        return equals(o);
     }
 
     @Nonnull
@@ -61,42 +50,26 @@ public class KnownImplementationSnapshot extends ImplementationSnapshot {
     }
 
     @Override
-    public boolean isUnknown() {
-        return false;
-    }
-
-    @Override
-    @Nullable
-    public UnknownReason getUnknownReason() {
-        return null;
-    }
-
-    @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        KnownImplementationSnapshot that = (KnownImplementationSnapshot) o;
         if (this == o) {
             return true;
         }
-
-
-        if (!getTypeName().equals(that.getTypeName())) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return classLoaderHash.equals(that.classLoaderHash);
+
+        ClassImplementationSnapshot that = (ClassImplementationSnapshot) o;
+        return typeName.equals(that.typeName) &&
+            classLoaderHash.equals(that.classLoaderHash);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + classLoaderHash.hashCode();
-        return result;
+        return Objects.hash(typeName, classLoaderHash);
     }
 
     @Override
     public String toString() {
-        return getTypeName() + "@" + classLoaderHash;
+        return typeName + "@" + classLoaderHash;
     }
 }
