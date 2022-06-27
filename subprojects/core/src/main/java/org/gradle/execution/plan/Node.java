@@ -494,14 +494,6 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors.descendingSet();
     }
 
-    /**
-     * Returns if the node has the given node as a hard successor, i.e. a non-removable relationship.
-     */
-    @OverridingMethodsMustInvokeSuper
-    public boolean hasHardSuccessor(Node successor) {
-        return dependencySuccessors.contains(successor);
-    }
-
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
     }
