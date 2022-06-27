@@ -1,5 +1,3 @@
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-
 /*
  * Copyright 2021 the original author or authors.
  *
@@ -61,7 +59,11 @@ testing {
 // end::multi-configure[]
 
 val checkDependencies by tasks.registering {
-    dependsOn(testing.suites.getByName("test"), testing.suites.getByName("integrationTest"), testing.suites.getByName("functionalTest"))
+    dependsOn(
+        configurations.getByName("testRuntimeClasspath"),
+        configurations.getByName("integrationTestRuntimeClasspath"),
+        configurations.getByName("functionalTestRuntimeClasspath")
+    )
     doLast {
         assert(configurations.getByName("testRuntimeClasspath").files.size == 12)
         assert(configurations.getByName("testRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })

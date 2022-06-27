@@ -1,5 +1,3 @@
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-
 /*
  * Copyright 2021 the original author or authors.
  *
