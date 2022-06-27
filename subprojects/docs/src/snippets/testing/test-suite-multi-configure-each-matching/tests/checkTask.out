@@ -1,18 +1,3 @@
-> Task :compileIntegrationTestJava NO-SOURCE
-> Task :processIntegrationTestResources NO-SOURCE
-> Task :integrationTestClasses UP-TO-DATE
-> Task :integrationTest NO-SOURCE
-> Task :compileFunctionalTestJava NO-SOURCE
-> Task :processFunctionalTestResources NO-SOURCE
-> Task :functionalTestClasses UP-TO-DATE
-> Task :functionalTest NO-SOURCE
-> Task :compileJava NO-SOURCE
-> Task :processResources NO-SOURCE
-> Task :classes UP-TO-DATE
-> Task :compileTestJava NO-SOURCE
-> Task :processTestResources NO-SOURCE
-> Task :testClasses UP-TO-DATE
-> Task :test NO-SOURCE
 > Task :checkDependencies
 
 BUILD SUCCESSFUL in 0s
