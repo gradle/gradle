@@ -18,7 +18,6 @@ package org.gradle.execution.plan
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
-import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -29,7 +28,6 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import java.util.function.Consumer
@@ -456,8 +454,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
     }
 
-    @ToBeImplemented
-    def "finalizer dependencies can schedule across groups to break cycles"() {
+    def "finalizer groups that finalize each other form a cycle"() {
         given:
         TaskInternal finalizerA = createTask("finalizerA")
         TaskInternal finalizerB = createTask("finalizerB")
@@ -465,17 +462,29 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         TaskInternal finalizerDepB = task("finalizerDepB", finalizedBy: [finalizerA])
         relationships(finalizerA, dependsOn: [finalizerDepA])
         relationships(finalizerB, dependsOn: [finalizerDepB])
-        TaskInternal entryPoint = task("entryPoint", finalizedBy: [finalizerA])
+        TaskInternal entryPoint = task("entryPoint", finalizedBy: [finalizerA, finalizerB])
 
         when:
         addToGraphAndPopulate([entryPoint])
 
         then:
-        // TODO(mlopatkin): Should be
-        //      executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
-        // but now an exception happens
-        GradleException exception = thrown()
-        exception.message.startsWith("Misdetected cycle between :finalizerDepA and :finalizerDepB.")
+        // TODO(mlopatkin) A potential execution order that was working in 7.4:
+        //   executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
+        // It somewhat violates a finalizer constraint: "only run dependencies of a finalizer after completing a finalized task"
+        // To satisfy that, finalizerDepA should run after finalizerDepB, and finalizerDepB should run after finalizerDepA.
+        // Obviously, both constraints cannot be satisfied at once.
+        // There is an alternative reading though. The entryPoint is finalized by finalizerA, and we started to execute
+        // finalizerA's dependencies; finalizerDepA happen to be finalized by finalizerB, so we schedule it and its dependency after
+        // finalizerDepA. Then we complete everything with finalizerA. This reading is somewhat similar to the case where finalizerDepA
+        // is reachable from the entry point.
+        def e = thrown CircularReferenceException
+        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:finalizerDepA
+\\--- :finalizerDepB
+     \\--- :finalizerDepA (*)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "cannot add task with circular reference"() {

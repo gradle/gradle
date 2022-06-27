@@ -139,18 +139,6 @@ public abstract class TaskNode extends Node {
         }
     }
 
-    @Override
-    public boolean hasHardSuccessor(Node successor) {
-        if (super.hasHardSuccessor(successor)) {
-            return true;
-        }
-        if (!(successor instanceof TaskNode)) {
-            return false;
-        }
-        return getMustSuccessors().contains(successor)
-            || getFinalizingSuccessors().contains(successor);
-    }
-
     public abstract TaskInternal getTask();
 
     protected void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {

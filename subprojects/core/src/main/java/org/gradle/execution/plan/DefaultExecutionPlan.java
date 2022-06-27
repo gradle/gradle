@@ -486,12 +486,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private void onOrderingCycle(Node successor, Node currentNode) {
         CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
-            connectedNodes.addAll(node.getDependencySuccessors());
-            if (node instanceof TaskNode) {
-                TaskNode taskNode = (TaskNode) node;
-                connectedNodes.addAll(taskNode.getMustSuccessors());
-                connectedNodes.addAll(taskNode.getFinalizingSuccessors());
-            }
+            node.getHardSuccessors().forEach(connectedNodes::add);
         });
         graphWalker.add(successor);
 
@@ -507,8 +502,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
             (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
             (it, values, connectedNodes) -> {
+                Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
                 for (Node dependency : firstCycle) {
-                    if (it.hasHardSuccessor(dependency)) {
+                    if (dependency instanceof TaskNode && successors.contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
