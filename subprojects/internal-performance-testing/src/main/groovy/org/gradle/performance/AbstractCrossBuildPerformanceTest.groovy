@@ -29,6 +29,7 @@ import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Assume
 import org.junit.Rule
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
@@ -36,6 +37,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
 @CompileStatic
 @AllFeaturesShouldBeAnnotated
 class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
+    private static final String CROSS_VERSION_ONLY_PROPERTY_NAME = "org.gradle.performance.crossVersionOnly"
     private static final WritableResultsStore<CrossBuildPerformanceResults> RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -49,6 +51,7 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     CrossBuildPerformanceTestRunner runner
 
     def setup() {
+        Assume.assumeFalse(Boolean.getBoolean(CROSS_VERSION_ONLY_PROPERTY_NAME))
         runner = new CrossBuildPerformanceTestRunner(
                 new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
                 RESULTS_STORE.reportAlso(dataReporter),

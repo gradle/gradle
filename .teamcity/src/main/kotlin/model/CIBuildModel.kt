@@ -328,9 +328,9 @@ enum class PerformanceTestType(
     historical(
         displayName = "Historical Performance Test",
         timeout = 2280,
-        defaultBaselines = "3.5.1,4.10.3,5.6.4,6.9.1,last",
+        defaultBaselines = "last",
         channel = "historical",
-        extraParameters = "--checks none"
+        extraParameters = "--checks none --cross-version-only"
     ),
     adHoc(
         displayName = "AdHoc Performance Test",
