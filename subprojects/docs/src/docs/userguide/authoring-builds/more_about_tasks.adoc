@@ -1210,7 +1210,7 @@ If you are writing your own task that always should run, then you can also use t
 Sometimes you want to integrate an external tool like Git or Npm, both of which do their own up-to-date checking.
 In that case it doesn't make much sense for Gradle to also do up-to-date checks.
 You can disable Gradle's up-to-date checks by using the `@link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask]` annotation on the task wrapping the tool.
-Alternatively, you can use the runtime API method `link:{groovyDslDoc}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
+Alternatively, you can use the runtime API method `link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
 
 For example, let's say you want to implement a task which clones a Git repository.
 
