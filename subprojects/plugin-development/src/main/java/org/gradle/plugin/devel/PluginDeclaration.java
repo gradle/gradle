@@ -18,7 +18,6 @@ package org.gradle.plugin.devel;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.Project;
 import org.gradle.api.provider.SetProperty;
 
 import java.io.Serializable;
@@ -29,17 +28,15 @@ import java.io.Serializable;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
+public abstract class PluginDeclaration implements Named, Serializable { // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
     private final String name;
     private String id;
     private String implementationClass;
     private String displayName;
     private String description;
-    private SetProperty<String> tags;
 
-    public PluginDeclaration(Project project, String name) {
+    public PluginDeclaration(String name) {
         this.name = name;
-        this.tags = project.getObjects().setProperty(String.class);
     }
 
     @Override
@@ -120,8 +117,6 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
      * @since 7.6
      */
     @Incubating
-    public SetProperty<String> getTags() {
-        return tags;
-    }
+    public abstract SetProperty<String> getTags();
 
 }
