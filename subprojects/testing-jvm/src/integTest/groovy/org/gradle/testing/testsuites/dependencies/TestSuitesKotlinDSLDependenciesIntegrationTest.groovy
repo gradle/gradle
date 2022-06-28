@@ -1052,7 +1052,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1091,7 +1091,51 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
             }
-             """
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+
+    def 'can add dependency objects with actions (using exclude) to #suiteDesc - with smart cast'() {
+        given :
+        buildKotlinFile << """
+            plugins {
+              `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            val beanUtils = dependencies.create("commons-beanutils:commons-beanutils:1.9.4")
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        dependencies {
+                            implementation(beanUtils) {
+                                this as ExternalModuleDependency
+                                exclude(group = "commons-collections", module = "commons-collections")
+                            }
+                        }
+                    }
+                }
+            }
+
+            tasks.register("checkConfiguration") {
+                dependsOn("$suiteName")
+                doLast {
+                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+
+                    assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
+                    assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
+                }
+            }
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1135,7 +1179,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1185,7 +1229,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1228,7 +1272,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1267,7 +1311,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1278,7 +1322,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
     }
 
-    def 'can add dependency providers which provide dependency objects with actions (using because) to #suiteDesc'() {
+    def 'can add dependency providers which provide dependency objects with actions (using because) to #suiteDesc - with smart cast'() {
         given :
         buildKotlinFile << """
             plugins {
@@ -1294,6 +1338,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     $suiteDeclaration {
                         dependencies {
                             implementation(beanUtils) {
+                                this as ExternalModuleDependency
                                 because("for testing purposes")
                             }
                         }
@@ -1311,7 +1356,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1355,7 +1400,51 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
             }
-             """
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+
+    def 'can add dependency providers which provide GAVs with actions (using excludes) to #suiteDesc - with smart cast'() {
+        given :
+        buildKotlinFile << """
+            plugins {
+              `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            val beanUtils = project.provider { "commons-beanutils:commons-beanutils:1.9.4" }
+
+            testing {
+                suites {
+                    $suiteDeclaration {
+                        dependencies {
+                            implementation(beanUtils) {
+                                this as ExternalModuleDependency
+                                exclude(group = "commons-collections", module = "commons-collections")
+                            }
+                        }
+                    }
+                }
+            }
+
+            tasks.register("checkConfiguration") {
+                dependsOn("$suiteName")
+                doLast {
+                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+
+                    assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
+                    assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
+                }
+            }
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1399,7 +1488,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     }
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1484,6 +1573,56 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 $suiteDeclaration {
                     dependencies {
                         implementation(libs.commons.beanutils) {
+                            exclude(group = "commons-collections", module = "commons-collections")
+                        }
+                    }
+                }
+            }
+        }
+
+        tasks.register("checkConfiguration") {
+            dependsOn("$suiteName")
+            doLast {
+                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+
+                assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
+                assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
+            }
+        }
+        """
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        commons-beanutils = "1.9.4"
+
+        [libraries]
+        commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+
+        where:
+        suiteDesc           | suiteName   | suiteDeclaration
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+    }
+
+    def 'can add dependencies via a Version Catalog with actions (using exclude) to #suiteDesc - with smart cast'() {
+        given:
+        buildKotlinFile << """
+        plugins {
+          `java-library`
+        }
+
+        ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+        testing {
+            suites {
+                $suiteDeclaration {
+                    dependencies {
+                        implementation(libs.commons.beanutils) {
+                            this as ExternalModuleDependency
                             exclude(group = "commons-collections", module = "commons-collections")
                         }
                     }

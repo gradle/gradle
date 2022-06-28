@@ -1095,7 +1095,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
                 }
             }
-             """
+        """
 
             expect:
             succeeds 'checkConfiguration'
@@ -1133,7 +1133,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1175,7 +1175,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert deps*.reason == ['for testing purposes']
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1225,7 +1225,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1268,7 +1268,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1306,7 +1306,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1347,7 +1347,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert deps*.reason == ['for testing purposes']
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1390,7 +1390,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
@@ -1431,7 +1431,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     assert deps*.reason == ['for testing purposes']
                 }
             }
-             """
+        """
 
         expect:
         succeeds 'checkConfiguration'
