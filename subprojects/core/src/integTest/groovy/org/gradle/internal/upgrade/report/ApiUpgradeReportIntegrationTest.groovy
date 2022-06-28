@@ -21,7 +21,31 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ApiUpgradeReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "can upgradle Kotlin 1.6.21"() {
-//        executer.requireOwnGradleUserHomeDir()
+        def buildSrc = testDirectory.file("buildSrc")
+        buildSrc.file("build.gradle") << """
+plugins {
+    id 'groovy-gradle-plugin'
+}
+
+repositories {
+    gradlePluginPortal()
+}"""
+        buildSrc.file("src/main/groovy").mkdirs()
+        buildSrc.file("src/main/groovy/commons.java-conventions.gradle") << """
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+"""
+
+
         settingsFile """
             pluginManagement {
                 repositories {
