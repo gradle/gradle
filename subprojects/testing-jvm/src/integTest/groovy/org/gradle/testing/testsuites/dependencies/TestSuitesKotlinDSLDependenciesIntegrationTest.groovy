@@ -450,6 +450,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
+    // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
     def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV map'() {
         given:
         buildKotlinFile << """
@@ -789,7 +790,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         where:
         desc                | dependencyNotation
         'GAV string'        | "commons-beanutils:commons-beanutils:1.9.4"
-        'GAV map'           | 'mapOf("group" to "commons-beanutils", "name" to "commons-beanutils", "version" to "1.9.4")'
+        'GAV map'           | 'mapOf("group" to "commons-beanutils", "name" to "commons-beanutils", "version" to "1.9.4")' // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
     }
 
     def "can add dependencies using a non-String CharSequence: #type"() {

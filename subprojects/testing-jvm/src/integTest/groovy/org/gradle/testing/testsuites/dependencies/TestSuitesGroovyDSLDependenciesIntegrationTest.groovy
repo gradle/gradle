@@ -402,6 +402,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
+    // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
     def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV map'() {
         given:
         buildFile << """
@@ -796,7 +797,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         where:
         desc                | dependencyNotation
         'GAV string'        | "'commons-beanutils:commons-beanutils:1.9.4'"
-        'GAV map'           | "[group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4']"
+        'GAV map'           | "[group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4']" // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
         'named args'        | "group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'"
     }
 
