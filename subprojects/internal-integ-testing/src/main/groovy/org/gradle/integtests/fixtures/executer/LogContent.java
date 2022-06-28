@@ -38,8 +38,6 @@ import java.util.regex.Pattern;
 public class LogContent {
     // see org.gradle.internal.logging.console.StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
-    private final static Pattern JAVA_ILLEGAL_ACCESS_WARNING_PATTERN = Pattern.compile("(?ms)WARNING: An illegal reflective access operation has occurred$.+?"
-        + "^WARNING: All illegal access operations will be denied in a future release\r?\n");
 
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
@@ -58,7 +56,7 @@ public class LogContent {
      */
     public static LogContent of(String chars) {
         LogContent raw = new LogContent(toLines(chars), false, false, null);
-        return new LogContent(toLines(stripJavaIllegalAccessWarnings(chars)), false, false, raw);
+        return new LogContent(toLines(chars), false, false, raw);
     }
 
     private static ImmutableList<String> toLines(String chars) {
@@ -254,9 +252,5 @@ public class LogContent {
         }
         writer.flush();
         return console;
-    }
-
-    public static String stripJavaIllegalAccessWarnings(String result) {
-        return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
     }
 }
