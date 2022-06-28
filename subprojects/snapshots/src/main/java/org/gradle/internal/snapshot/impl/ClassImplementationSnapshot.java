@@ -26,15 +26,15 @@ import java.util.Objects;
 public class ClassImplementationSnapshot extends ImplementationSnapshot {
     private final HashCode classLoaderHash;
 
-    public ClassImplementationSnapshot(String typeName, HashCode classLoaderHash) {
-        super(typeName);
+    public ClassImplementationSnapshot(String classIdentifier, HashCode classLoaderHash) {
+        super(classIdentifier);
         this.classLoaderHash = classLoaderHash;
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
         hasher.putString(ClassImplementationSnapshot.class.getName());
-        hasher.putString(typeName);
+        hasher.putString(classIdentifier);
         hasher.putHash(classLoaderHash);
     }
 
@@ -59,17 +59,17 @@ public class ClassImplementationSnapshot extends ImplementationSnapshot {
         }
 
         ClassImplementationSnapshot that = (ClassImplementationSnapshot) o;
-        return typeName.equals(that.typeName) &&
+        return classIdentifier.equals(that.classIdentifier) &&
             classLoaderHash.equals(that.classLoaderHash);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(typeName, classLoaderHash);
+        return Objects.hash(classIdentifier, classLoaderHash);
     }
 
     @Override
     public String toString() {
-        return typeName + "@" + classLoaderHash;
+        return classIdentifier + "@" + classLoaderHash;
     }
 }

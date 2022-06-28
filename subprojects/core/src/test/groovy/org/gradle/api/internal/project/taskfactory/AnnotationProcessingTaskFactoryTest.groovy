@@ -45,6 +45,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
+import org.gradle.internal.snapshot.impl.ImplementationValue
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.work.InputChanges
@@ -606,7 +607,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
             property('outputDirs')
                 .dir(task.outputDirs[0])
                 .ancestorIsNotDirectory(task.outputDirs[0].parentFile)
-            .includeLink()
+                .includeLink()
         })
     }
 
@@ -664,7 +665,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         def e = thrown WorkValidationException
         validateException(task, false, e,
             missingValueMessage { type(TaskWithNestedBeanWithPrivateClass.canonicalName).property('bean.inputFile').includeLink() },
-            ignoredAnnotationOnField {type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
+            ignoredAnnotationOnField { type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
 
     @ValidationTestFor(
@@ -812,22 +813,35 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
     def "registers input property for #prop on #type.simpleName"() {
         given:
-        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
+        def task = expectTaskCreated(type, value as Object[])
 
         expect:
         inputProperties(task)[prop] == expected
 
         where:
         type                                      | prop                 | value                            | expected
+        TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
+        TaskWithOptionalNestedBean                | 'bean'               | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | 'bean'               | []                               | null
+        TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
+        // https://issues.gradle.org/browse/GRADLE-2815.html
+        TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true
+    }
+
+    def "registers input property implementation for #prop on #type.simpleName"() {
+        given:
+        def task = expectTaskCreated(type, value as Object[])
+
+        expect:
+        def implementationValue = inputProperties(task)[prop] as ImplementationValue
+        implementationValue.implementationClassIdentifier == expected.name
+
+        where:
+        type                                      | prop                 | value                            | expected
         TaskWithNestedBean                        | 'bean'               | [null]                           | Bean.class
         TaskWithNestedObject                      | 'bean.key'           | [['key': new Bean()]]            | Bean.class
         TaskWithNestedIterable                    | 'beans.$0'           | [new Bean()]                     | Bean.class
-        TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
         TaskWithNestedBeanWithPrivateClass        | 'bean'               | [null, null]                     | Bean2.class
-        TaskWithOptionalNestedBean                | 'bean'               | [null]                           | null
-        TaskWithOptionalNestedBeanWithPrivateType | 'bean'               | null                             | null
-        TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
-        TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
     }
 
     def "iterable nested properties are named by index"() {

@@ -362,14 +362,14 @@ Gradle considers the implementation of the following classes as inputs to a task
 
 There are two reasons why Gradle cannot track the implementation of a class:
 
-- a Java lambda was used to implement the class,
+- a non-serializable Java lambda was used to implement the class,
 - or the class has been loaded by a classloader unknown to Gradle.
 
 Using a Java lambda means that the bytecode uses invoke-dynamic instead of creating an actual sub-class.
-The class for the invoke-dynamic instruction is generated at JVM runtime and Gradle cannot uniquely identify this class across different JVMs.
+The class for the invoke-dynamic instruction is generated at JVM runtime and Gradle cannot uniquely identify this class across different JVMs if the target functional interface is not serializable.
 For task actions it is not a problem, because Gradle handles them in a special way.
-On the other hand, for classes of nested inputs implemented by a lambda Gradle does not support tracking.
-As a workaround you can convert the lambda to an anonymous inner class.
+On the other hand, for classes of nested inputs implemented by a non-serializable lambda Gradle does not support tracking.
+As a workaround you can convert the lambda to an anonymous inner class or make the target functional interface serializable.
 
 For the case where Gradle cannot track the implementation because it was loaded by a classloader unknown to Gradle, you can use Gradle's built-in ways to load the class.
 
