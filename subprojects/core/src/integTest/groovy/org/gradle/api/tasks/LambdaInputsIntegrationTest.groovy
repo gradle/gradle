@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture, ExecutionOptimizationDeprecationFixture {
@@ -58,7 +59,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
-        output.contains "Implementation of input property 'action' has changed for task ':myTask'"
+        outputContains("Implementation of input property 'action' has changed for task ':myTask'")
 
         where:
         originalImplementation                  | changedImplementation
@@ -77,6 +78,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
     }
 
     @ToBeFixedForConfigurationCache(because = "Non-serializable lambdas are not supported in configuration cache")
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/21104")
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
@@ -130,13 +132,48 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         file('build/tmp/myTask/output.txt').text == "changed"
     }
 
+    def "can change nested property from one serializable Java lambda to another and back"() {
+        setupSerializableConsumerInterface()
+        setupTaskClassWithConsumerProperty()
+        def originalClassName = "LambdaOriginal"
+        def changedClassName = "LambdaChanged"
+        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, serializableConsumerLambdaWritingFile("ACTION", "original"))
+        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, serializableConsumerLambdaWritingFile("ACTION", "changed"))
+        buildFile << """
+            task myTask(type: TaskWithConsumerProperty) {
+                consumer = providers.gradleProperty("changed").isPresent()
+                    ? ${changedClassName}.ACTION
+                    : ${originalClassName}.ACTION
+            }
+        """
+
+        buildFile.makeOlder()
+
+        when:
+        run 'myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+
+        when:
+        run 'myTask'
+        then:
+        skipped(':myTask')
+
+        when:
+        run 'myTask', '-Pchanged', '--info'
+        then:
+        executedAndNotSkipped(':myTask')
+        file('build/tmp/myTask/output.txt').text == "changed"
+        outputContains("Implementation of input property 'consumer' has changed for task ':myTask'")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/5510")
-    def "task with nested property defined by a serializable Java lambda disables execution optimizations"() {
+    def "can change nested property from one Action Java lambda to another and back"() {
         setupTaskClassWithActionProperty()
-        def originalClassName = "LambdaActionOriginal"
-        def changedClassName = "LambdaActionChanged"
-        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, serializableLambdaWritingFile("ACTION", "original"))
-        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, serializableLambdaWritingFile("ACTION", "changed"))
+        def originalClassName = "LambdaOriginal"
+        def changedClassName = "LambdaChanged"
+        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, serializableActionLambdaWritingFile("ACTION", "original"))
+        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, serializableActionLambdaWritingFile("ACTION", "changed"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
                 action = providers.gradleProperty("changed").isPresent()
@@ -158,17 +195,18 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         skipped(':myTask')
 
         when:
-        run 'myTask', '-Pchanged'
+        run 'myTask', '-Pchanged', '--info'
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
+        outputContains("Implementation of input property 'action' has changed for task ':myTask'")
     }
 
-    def "can change nested property from Java lambda to anonymous inner class and back"() {
+    def "can change nested property from an Action Java lambda to anonymous inner class and back"() {
         setupTaskClassWithActionProperty()
         def lambdaClassName = "LambdaAction"
         def anonymousClassName = "AnonymousAction"
-        file("buildSrc/src/main/java/${lambdaClassName}.java") << javaClass(lambdaClassName, serializableLambdaWritingFile("ACTION", "lambda"))
+        file("buildSrc/src/main/java/${lambdaClassName}.java") << javaClass(lambdaClassName, serializableActionLambdaWritingFile("ACTION", "lambda"))
         file("buildSrc/src/main/java/${anonymousClassName}.java") << javaClass(anonymousClassName, anonymousClassWritingFile("ACTION", "anonymous"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
@@ -293,21 +331,22 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
 
     @Issue(["https://github.com/gradle/gradle/issues/5510", "https://github.com/gradle/gradle/issues/17327"])
     def "task with Java lambda actions detects changes"() {
-        file("buildSrc/src/main/java/LambdaActionOriginal.java") << javaClass("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
-        file("buildSrc/src/main/java/LambdaActionChanged.java") << javaClass("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
-
         setupCustomTask()
+
+        def originalClassName = "LambdaOriginal"
+        def changedClassName = "LambdaChanged"
+        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, lambdaPrintingString("ACTION", "original"))
+        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, lambdaPrintingString("ACTION", "changed"))
 
         def script = """
             task myTask(type: CustomTask)
         """
 
-        buildFile << script <<
-            """
+        buildFile << script << """
             myTask.doLast(
                 providers.gradleProperty("changed").isPresent()
-                    ? LambdaActionChanged.ACTION
-                    : LambdaActionOriginal.ACTION
+                    ? ${changedClassName}.ACTION
+                    : ${originalClassName}.ACTION
             )
         """
 
@@ -322,9 +361,10 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         skipped(":myTask")
 
         when:
-        run "myTask", "-Pchanged"
+        run "myTask", "-Pchanged", "--info"
         then:
         executedAndNotSkipped(":myTask")
+        outputContains("One or more additional actions for task ':myTask' have changed.")
     }
 
     def "can change lambda action to anonymous inner class and back"() {
@@ -339,8 +379,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
             }
         """
 
-        buildFile << script <<
-            """
+        buildFile << script << """
             myTask.doLast(
                 providers.gradleProperty("anonymous").isPresent()
                     ? AnonymousAction.ACTION
@@ -382,8 +421,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
             task myTask(type: CustomTask)
         """
 
-        buildFile << script <<
-            """
+        buildFile << script << """
             myTask.doLast(LambdaAction.ACTION)
         """
 
@@ -436,6 +474,16 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
     }
 
+    private TestFile setupSerializableConsumerInterface() {
+        // declaring in top-level package, so that importing at usage site is not required.
+        file("buildSrc/src/main/java/CustomSerializableConsumer.java") << """
+            import java.util.function.Consumer;
+            import java.io.Serializable;
+
+            public interface CustomSerializableConsumer<T> extends Consumer<T>, Serializable {}
+        """
+    }
+
     private static String javaClass(String className, String classBody) {
         """
             import org.gradle.api.Action;
@@ -452,8 +500,18 @@ ${classBody}
         """
     }
 
-    private static String serializableLambdaWritingFile(String constantName, String outputString) {
+    /**
+     * Configuration cache infrastructure makes sure that {@code Action} instances are always serializable.
+     */
+    private static String serializableActionLambdaWritingFile(String constantName, String outputString) {
         lambdaWritingFile("Action", constantName, outputString)
+    }
+
+    /**
+     * @see #setupSerializableConsumerInterface()
+     */
+    private static String serializableConsumerLambdaWritingFile(String constantName, String outputString) {
+        lambdaWritingFile("CustomSerializableConsumer", constantName, outputString)
     }
 
     private static String nonSerializableLambdaWritingFile(String constantName, String outputString) {
