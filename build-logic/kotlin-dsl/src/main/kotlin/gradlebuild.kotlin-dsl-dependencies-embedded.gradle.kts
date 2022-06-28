@@ -42,7 +42,8 @@ tasks {
     }
 
     processResources {
-        // Add generated sources to the main jar because `src` or any other Gradle distribution does not include them
+        // Add generated sources to the main jar because `src` or any other Gradle distribution does not include them.
+        // A more general solution is probably required: https://github.com/gradle/gradle/issues/21114
         from(apiExtensionsFileCollection)
     }
 
