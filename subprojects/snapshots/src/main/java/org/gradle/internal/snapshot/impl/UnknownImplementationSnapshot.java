@@ -70,7 +70,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
         UnknownImplementationSnapshot that = (UnknownImplementationSnapshot) o;
 
-        return typeName.equals(that.typeName) && unknownReason.equals(that.unknownReason);
+        return classIdentifier.equals(that.classIdentifier) && unknownReason.equals(that.unknownReason);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
     }
 
     public String getProblemDescription() {
-        return String.format(unknownReason.descriptionTemplate, typeName);
+        return String.format(unknownReason.descriptionTemplate, classIdentifier);
     }
 
     public String getReasonDescription() {
@@ -101,11 +101,11 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public int hashCode() {
-        return Objects.hash(typeName, unknownReason);
+        return Objects.hash(classIdentifier, unknownReason);
     }
 
     @Override
     public String toString() {
-        return typeName + "@<" + unknownReason.name() + ">";
+        return classIdentifier + "@<" + unknownReason.name() + ">";
     }
 }

@@ -213,7 +213,7 @@ class SnapshotSerializerTest extends Specification {
 
         expect:
         ImplementationSnapshot copy = written as ImplementationSnapshot
-        copy.typeName == original.typeName
+        copy.classIdentifier == original.classIdentifier
         copy.classLoaderHash == null
         copy.unknownReason == UnknownImplementationSnapshot.UnknownReason.UNKNOWN_CLASSLOADER
     }
@@ -224,7 +224,7 @@ class SnapshotSerializerTest extends Specification {
 
         expect:
         ImplementationSnapshot copy = written as ImplementationSnapshot
-        copy.typeName == original.typeName
+        copy.classIdentifier == original.classIdentifier
         copy.classLoaderHash == null
         copy.unknownReason == UnknownImplementationSnapshot.UnknownReason.UNTRACKED_LAMBDA
     }
