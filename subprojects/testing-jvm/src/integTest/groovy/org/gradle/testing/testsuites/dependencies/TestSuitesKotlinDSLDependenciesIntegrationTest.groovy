@@ -767,10 +767,13 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             }
         """
 
-        file('src/test/org/samplePersonTest.java') << """
+        file('src/test/java/org/sample/PersonTest.java') << """
             package org.sample;
 
+            import org.junit.Test;
             import org.apache.commons.beanutils.PropertyUtils;
+
+            import static org.junit.Assert.assertEquals;
 
             public class PersonTest {
                 @Test
@@ -861,20 +864,51 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             dependencies {
                 val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
+
+                // This results in a call to the named-args version: DependencyHandlerExtensions.kt#create(String, String, String, String, String, String),
+                // using commons-lang as the group and guava as the name.  This causes a request for a non-existent dep with the GAV string
+                // "org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre:" that fails to resolve at runtime.
                 ${suiteName}Implementation("org.apache.commons:commons-lang3:3.11", "com.google.guava:guava:30.1.1-jre")
             }
 
             tasks.register("checkConfiguration") {
-                dependsOn("$suiteName")
+                dependsOn(configurations.getByName("${suiteName}CompileClasspath"))
                 doLast {
-                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-                    assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar")))
+                    // Due to the named-args method being invoked, we are actually requesting a single dependency
+                    val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
+                    // We might get junit included too, dependending on the test suite, so filter it
+                    val deps = ${suiteName}Implementation.dependencies.filter { it.name != "junit-jupiter" }
+                    assert(deps.size == 1) { "expected 1 dependency, found " + (deps.size) + " dependencies" }
+
+                    // The dependency uses the 2 args we supplied incorrectly
+                    val requested = deps.get(0)
+                    assert(requested.group == "org.apache.commons:commons-lang3:3.11") { "expected commons-lang3 group" }
+                    assert(requested.name == "com.google.guava:guava:30.1.1-jre") { "expected guava name" }
+                    assert(requested.version == null) { "expected null version" }
                 }
             }
         """
 
-        expect:
-        fails 'checkConfiguration'
+        file("src/$suiteName/java/org/sample/Test.java") << """
+            package org.sample;
+
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertEquals;
+
+            public class Test {
+                @Test
+                public void test() {
+                    assertEquals(1 + 1, 2);
+                }
+            }
+        """
+
+        expect: 'we will request an incorrect dependency'
+        succeeds 'checkConfiguration'
+
+        and: 'and not be able to run the suite, failing at resolution time'
+        fails suiteName
         result.assertHasErrorOutput("Could not resolve all files for configuration ':${suiteName}CompileClasspath'.")
         result.assertHasErrorOutput("Could not find org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre:.")
 
@@ -934,8 +968,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     }
                 }
             }
-
         """
+
 
         expect:
         fails 'help'
