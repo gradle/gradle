@@ -24,7 +24,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture, ExecutionOptimizationDeprecationFixture {
@@ -77,8 +76,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Non-serializable lambdas are not supported in configuration cache")
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/21104")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/21109")
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
@@ -172,8 +170,8 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         setupTaskClassWithActionProperty()
         def originalClassName = "LambdaOriginal"
         def changedClassName = "LambdaChanged"
-        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, serializableActionLambdaWritingFile("ACTION", "original"))
-        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, serializableActionLambdaWritingFile("ACTION", "changed"))
+        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, actionLambdaWritingFile("ACTION", "original"))
+        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, actionLambdaWritingFile("ACTION", "changed"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
                 action = providers.gradleProperty("changed").isPresent()
@@ -206,7 +204,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         setupTaskClassWithActionProperty()
         def lambdaClassName = "LambdaAction"
         def anonymousClassName = "AnonymousAction"
-        file("buildSrc/src/main/java/${lambdaClassName}.java") << javaClass(lambdaClassName, serializableActionLambdaWritingFile("ACTION", "lambda"))
+        file("buildSrc/src/main/java/${lambdaClassName}.java") << javaClass(lambdaClassName, actionLambdaWritingFile("ACTION", "lambda"))
         file("buildSrc/src/main/java/${anonymousClassName}.java") << javaClass(anonymousClassName, anonymousClassWritingFile("ACTION", "anonymous"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
@@ -503,7 +501,7 @@ ${classBody}
     /**
      * Configuration cache infrastructure makes sure that {@code Action} instances are always serializable.
      */
-    private static String serializableActionLambdaWritingFile(String constantName, String outputString) {
+    private static String actionLambdaWritingFile(String constantName, String outputString) {
         lambdaWritingFile("Action", constantName, outputString)
     }
 
