@@ -16,13 +16,12 @@
 
 package org.gradle.plugin.devel;
 
-import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.Project;
+import org.gradle.api.provider.SetProperty;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Describes a Gradle plugin under development.
@@ -36,10 +35,11 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
     private String implementationClass;
     private String displayName;
     private String description;
-    private Collection<String> tags;
+    private SetProperty<String> tags;
 
-    public PluginDeclaration(String name) {
+    public PluginDeclaration(Project project, String name) {
         this.name = name;
+        this.tags = project.getObjects().setProperty(String.class);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
     }
 
     /**
-     * Returns the tags for this plugin declaration.
+     * Returns the tags property for this plugin declaration.
      *
      * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
      * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
@@ -120,45 +120,8 @@ public class PluginDeclaration implements Named, Serializable { // TODO: Shouldn
      * @since 7.6
      */
     @Incubating
-    public Collection<String> getTags() {
-        if (tags == null) {
-            return Collections.emptyList();
-        }
+    public SetProperty<String> getTags() {
         return tags;
     }
 
-    /**
-     * Set the tags for this plugin declaration. Tags describe the categories this plugin covers.
-     *
-     * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
-     * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
-     *
-     * @since 7.6
-     */
-    @Incubating
-    public void setTags(Collection<String> tags) {
-        this.tags = tags;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof PluginDeclaration) {
-            PluginDeclaration other = (PluginDeclaration) obj;
-            return Objects.equal(name, other.name)
-                && Objects.equal(id, other.id)
-                && Objects.equal(implementationClass, other.implementationClass)
-                && Objects.equal(displayName, other.displayName)
-                && Objects.equal(description, other.description)
-                && Objects.equal(tags, other.tags);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(name, id, implementationClass, displayName, description, tags);
-    }
 }
