@@ -16,7 +16,6 @@
 
 package org.gradle.performance.results.report;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
@@ -28,6 +27,7 @@ import org.gradle.performance.results.ResultsStore;
 
 import java.io.Writer;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -71,7 +71,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                         div().id("accordion").classAttr("mx-auto");
                         renderTableHeader();
                         renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", determineBaseline(), getCrossVersionScenarios());
-                        renderTable("Cross build scenarios", "Compare the performance of different builds", null, getCrossBuildScenarios());
+                        renderTable("Cross build scenarios", "Compare the performance of different builds", Optional.empty(), getCrossBuildScenarios());
                         renderPopoverDiv();
                     end();
                 footer(this);
@@ -141,13 +141,11 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
 
-            private void renderTable(String title, String description, String baselineVersion, List<PerformanceReportScenario> scenarios) {
+            private void renderTable(String title, String description, Optional<String> baselineVersion, List<PerformanceReportScenario> scenarios) {
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col-12 p-0").text(title);
                         i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
-                        if (StringUtils.isNotEmpty(baselineVersion)) {
-                            b().text("(vs " + baselineVersion + ")").end();
-                        }
+                        baselineVersion.ifPresent(version -> b().text("(vs " + version + ")").end());
                     end();
                 end();
                 scenarios.forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
@@ -267,11 +265,11 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
             // @formatter:on
     }
 
-    private String determineBaseline() {
+    private Optional<String> determineBaseline() {
         return executionDataProvider.getReportScenarios().stream()
             .filter(scenario -> !scenario.getCrossBuild())
             .findFirst()
-            .map(scenario -> scenario.getHistoryExecutions().isEmpty() ? "" : scenario.getHistoryExecutions().get(0).getBaseVersion().getName())
-            .orElse("");
+            .filter(scenario -> !scenario.getHistoryExecutions().isEmpty())
+            .map(scenario -> scenario.getHistoryExecutions().get(0).getBaseVersion().getName());
     }
 }

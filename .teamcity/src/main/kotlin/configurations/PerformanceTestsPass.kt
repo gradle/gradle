@@ -18,6 +18,7 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestType
@@ -35,6 +36,13 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 
         applyDefaultSettings(os)
         params {
+            text(
+                "reverse.dep.*.performance.baselines",
+                type.defaultBaselines,
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = false,
+                description = "The baselines you want to run performance tests against."
+            )
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             param("performance.db.username", "tcagent")
             param("performance.channel", performanceTestSpec.channel())
