@@ -21,6 +21,7 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.CompositeSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.internal.ClosureSpec;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -34,9 +35,8 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
     private static final DescribingAndSpec<?> EMPTY = new DescribingAndSpec<>();
     private final AndSpec<T> specHolder;
 
-    @SuppressWarnings("unchecked")
     private DescribingAndSpec(AndSpec<T> specHolder) {
-        super(specHolder.getSpecs().toArray(new Spec[0]));
+        super(specHolder.getSpecs().toArray(Cast.uncheckedCast(new Spec[0])));
         this.specHolder = specHolder;
     }
 
@@ -53,10 +53,9 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
         return specHolder.isSatisfiedBy(element);
     }
 
-    @SuppressWarnings("unchecked")
     @Nullable
     public SelfDescribingSpec<? super T> findUnsatisfiedSpec(T element) {
-        return (SelfDescribingSpec<? super T>) specHolder.findUnsatisfiedSpec(element);
+        return Cast.uncheckedCast(specHolder.findUnsatisfiedSpec(element));
     }
 
     public DescribingAndSpec<T> and(Spec<? super T> spec, String description) {
@@ -68,8 +67,7 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
         return and(new ClosureSpec<>(closure), description);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> DescribingAndSpec<T> empty() {
-        return (DescribingAndSpec<T>) EMPTY;
+        return Cast.uncheckedNonnullCast(EMPTY);
     }
 }
