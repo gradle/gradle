@@ -41,11 +41,10 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
         }
 
         val latestFinalRelease = releasedVersions.finalReleases.first()
-        val latestRelease = listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc).filter { it.gradleVersion() > latestFinalRelease.gradleVersion() }.maxByOrNull { it.buildTimeStamp() }
-            ?: latestFinalRelease
+        val latestRelease = listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc).filter { it.gradleVersion() > latestFinalRelease.gradleVersion() }.maxByOrNull { it.buildTimeStamp() } ?: latestFinalRelease
         val previousVersions = (listOf(latestRelease) + releasedVersions.finalReleases).filter { it.gradleVersion() >= lowestInterestingVersion && it.gradleVersion().baseVersion < currentBaseVersion }.distinct()
         allPreviousVersions = previousVersions.map { it.gradleVersion() }
-        mostRecentRelease = (listOf(releasedVersions.latestRc) + releasedVersions.finalReleases).first().gradleVersion()
+        mostRecentRelease = previousVersions.first().gradleVersion()
         mostRecentSnapshot = releasedVersions.latestReleaseSnapshot.gradleVersion()
 
         val testedVersions = previousVersions.filter { it.gradleVersion() >= lowestTestedVersion }
