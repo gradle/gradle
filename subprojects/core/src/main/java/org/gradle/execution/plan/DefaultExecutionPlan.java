@@ -82,6 +82,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final Set<Node> finalizers = new LinkedHashSet<>();
+    private final Set<Node> preExecutionNodesVisited = new HashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
@@ -268,6 +269,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         filteredNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
+        finalizers.clear();
+        preExecutionNodesVisited.clear();
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
@@ -405,14 +408,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     // Cannot execute this node due to failed dependencies - skip it
                     if (node.shouldCancelExecutionDueToDependencies()) {
                         node.cancelExecution(this::recordNodeCompleted);
-                        if (node.getPrepareNode() != null && node.getPrepareNode().isRequired()) {
-                            node.getPrepareNode().cancelExecution(this::recordNodeCompleted);
-                        }
                     } else {
                         node.markFailedDueToDependencies(this::recordNodeCompleted);
-                        if (node.getPrepareNode() != null && node.getPrepareNode().isRequired()) {
-                            node.getPrepareNode().markFailedDueToDependencies(this::recordNodeCompleted);
-                        }
                     }
                     executionQueue.remove();
                     // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
@@ -420,31 +417,33 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     continue;
                 }
 
-                foundReadyNode = true;
-
-                Node prepareNode = node.getPrepareNode();
-                if (prepareNode != null) {
-                    if (!prepareNode.isRequired()) {
+                if (preExecutionNodesVisited.add(node)) {
+                    // The node is ready to execute and its pre-execution nodes have not been scheduled, so do this now
+                    executionQueue.startInsert();
+                    node.visitPreExecutionNodes(prepareNode -> {
                         prepareNode.require();
                         prepareNode.updateAllDependenciesComplete();
+                        node.addDependencySuccessor(prepareNode);
+                        executionQueue.insert(prepareNode);
+                    });
+                    if (executionQueue.restartFromInsertPoint()) {
+                        // Some pre-execution nodes were scheduled, so try to execute them now
+                        node.forceAllDependenciesCompleteUpdate();
+                        continue;
                     }
-                    if (prepareNode.allDependenciesComplete()) {
-                        if (attemptToStart(prepareNode, resources)) {
-                            node.addDependencySuccessor(prepareNode);
-                            node.forceAllDependenciesCompleteUpdate();
-                            return Selection.of(prepareNode);
-                        } else {
-                            // Cannot start prepare node, so skip to next node
-                            continue;
-                        }
-                    }
-                    // else prepare node has already completed
                 }
 
+                // Node is read to execute and all dependencies and pre-execution nodes have completed
+                foundReadyNode = true;
                 if (attemptToStart(node, resources)) {
                     executionQueue.remove();
                     return Selection.of(node);
                 }
+            }
+            if (node.isComplete()) {
+                // Is already complete
+                // - is a pre-execution node that is also scheduled but not yet executed
+                executionQueue.remove();
             }
             // Else, node is not yet complete
             // - its dependencies are not yet complete
@@ -458,7 +457,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         if (executionQueue.isEmpty()) {
             return Selection.noMoreWorkToStart();
         } else {
-            // Some nodes are yet to start
+            // No nodes are able to start
             // - they are ready to execute but cannot acquire the resources they need to start
             // - they are waiting for their dependencies to complete
             // - they are waiting for some external event
@@ -706,6 +705,17 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 handleFailure(node);
             } else {
                 LOGGER.debug("Node {} finished executing", node);
+                executionQueue.restart();
+                executionQueue.startInsert();
+                node.visitPostExecutionNodes(postNode -> {
+                    postNode.require();
+                    postNode.updateAllDependenciesComplete();
+                    for (Node predecessor : node.getDependencyPredecessors()) {
+                        predecessor.addDependencySuccessor(postNode);
+                        predecessor.forceAllDependenciesCompleteUpdate();
+                    }
+                    executionQueue.insert(postNode);
+                });
             }
         } finally {
             unlockProjectFor(node);
@@ -873,12 +883,13 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     static class ExecutionQueue {
         private final List<Node> nodes = new ArrayList<>();
-        private int pos = 0;
+        private int nextPos = 0;
+        private int insertPos;
 
         public void setNodes(Collection<Node> nodes) {
             this.nodes.clear();
             this.nodes.addAll(nodes);
-            pos = 0;
+            nextPos = 0;
         }
 
         public void clear() {
@@ -894,28 +905,68 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
 
         public void restart() {
-            pos = 0;
+            nextPos = 0;
         }
 
         public boolean hasNext() {
-            return pos < nodes.size();
+            return nextPos < nodes.size();
         }
 
+        /**
+         * Move to the next node.
+         */
         public Node next() {
-            return nodes.get(pos++);
+            return nodes.get(nextPos++);
         }
 
+        /**
+         * Remove the current node.
+         */
         public void remove() {
-            pos--;
-            nodes.remove(pos);
+            nextPos--;
+            nodes.remove(nextPos);
         }
 
+        /**
+         * Move the given node to the front of the queue. Leave the current node unchanged.
+         */
         public void priorityNode(Node node) {
             int previousPos = nodes.indexOf(node);
             nodes.remove(previousPos);
             nodes.add(0, node);
-            if (previousPos >= pos) {
-                pos++;
+            if (previousPos >= nextPos) {
+                nextPos++;
+            }
+        }
+
+        /**
+         * Start inserting nodes before the current node.
+         */
+        public void startInsert() {
+            if (nextPos > 0) {
+                nextPos--;
+            }
+            insertPos = nextPos;
+        }
+
+        /**
+         * Insert the given node at the current insert position.
+         */
+        public void insert(Node node) {
+            nodes.add(nextPos, node);
+            nextPos++;
+        }
+
+        /**
+         * Finish inserting nodes and make the first inserted node the next node.
+         */
+        public boolean restartFromInsertPoint() {
+            if (nextPos > insertPos) {
+                nextPos = insertPos;
+                return true;
+            } else {
+                nextPos++;
+                return false;
             }
         }
 

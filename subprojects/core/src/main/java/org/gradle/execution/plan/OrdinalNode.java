@@ -68,14 +68,11 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
         return ordinal;
     }
 
-    public void addDependenciesFrom(TaskNode taskNode) {
+    public void addDependenciesFrom(LocalTaskNode taskNode) {
         // Only add hard successors that will actually be executed
         Node prepareNode = taskNode.getPrepareNode();
-        if (taskNode.isRequired() && prepareNode != null) {
-            if (!prepareNode.isRequired()) {
-                prepareNode.require();
-                prepareNode.updateAllDependenciesComplete();
-            }
+        if (taskNode.isRequired()) {
+            prepareNode.require();
             addDependencySuccessor(prepareNode);
         }
     }
