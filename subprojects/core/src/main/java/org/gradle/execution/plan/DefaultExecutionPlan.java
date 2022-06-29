@@ -977,8 +977,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 if (i > 0) {
                     str.append(", ");
                 }
-                if (i == pos) {
-                    str.append('*');
+                if (i == nextPos) {
+                    str.append("(next)");
                 }
                 str.append(nodes.get(i));
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.execution.plan;
 
-/**
- * An object that has task dependencies associated with it.
- */
-public interface TaskDependencyContainer {
-    TaskDependencyContainer EMPTY = context -> {
-    };
+import org.gradle.api.internal.tasks.WorkNodeAction;
 
-    /**
-     * Adds the dependencies from this container to the given context. Failures to calculate the build dependencies should be supplied to the context rather than thrown.
-     */
-    void visitDependencies(TaskDependencyResolveContext context);
+import java.util.List;
+
+public interface PostExecutionNodeAwareActionNode extends WorkNodeAction {
+    List<? extends Node> getPostExecutionNodes();
 }
