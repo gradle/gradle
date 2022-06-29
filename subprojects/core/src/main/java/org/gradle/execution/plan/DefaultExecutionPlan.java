@@ -276,6 +276,132 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
     }
 
+    private void createOrdinalRelationships(Node node) {
+        if (node instanceof TaskNode && node.getOrdinal() != null) {
+            TaskNode taskNode = (TaskNode) node;
+            TaskClassifier taskClassifier = new TaskClassifier();
+            ProjectInternal project = (ProjectInternal) taskNode.getTask().getProject();
+            ServiceRegistry serviceRegistry = project.getServices();
+            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
+
+            // Walk the properties of the task to determine if it is a destroyer or a producer (or neither)
+            propertyWalker.visitProperties(taskNode.getTask(), TypeValidationContext.NOOP, taskClassifier);
+            taskNode.getTask().getOutputs().visitRegisteredProperties(taskClassifier);
+            ((TaskDestroyablesInternal) taskNode.getTask().getDestroyables()).visitRegisteredProperties(taskClassifier);
+            ((TaskLocalStateInternal) taskNode.getTask().getLocalState()).visitRegisteredProperties(taskClassifier);
+
+            if (taskClassifier.isDestroyer()) {
+                // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
+                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
+                ordinalNode.addDependenciesFrom(taskNode);
+
+                Node precedingProducersNode = ordinalNodeAccess.getPrecedingProducerLocationNode(taskNode.getOrdinal());
+                if (precedingProducersNode != null) {
+                    // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
+                    taskNode.addDependencySuccessor(precedingProducersNode);
+                }
+            } else if (taskClassifier.isProducer()) {
+                // Create (or get) a producer ordinal node that depends on the dependencies of this task node
+                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
+                ordinalNode.addDependenciesFrom(taskNode);
+
+                Node precedingDestroyersNode = ordinalNodeAccess.getPrecedingDestroyerLocationNode(taskNode.getOrdinal());
+                if (precedingDestroyersNode != null) {
+                    // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
+                    taskNode.addDependencySuccessor(precedingDestroyersNode);
+                }
+            }
+        }
+    }
+
+    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
+        GraphEdge edge = walkedShouldRunAfterEdges.peek();
+        if (edge != null && edge.to.equals(node)) {
+            walkedShouldRunAfterEdges.pop();
+        }
+    }
+
+    private void restoreExecutionPlan(Map<Node, Integer> planBeforeVisiting, GraphEdge toBeRemoved) {
+        int count = planBeforeVisiting.get(toBeRemoved.from);
+        nodeMapping.retainFirst(count);
+    }
+
+    private void restoreQueue(Deque<NodeInVisitingSegment> nodeQueue, HashMultimap<Node, Integer> visitingNodes, GraphEdge toBeRemoved) {
+        NodeInVisitingSegment nextInQueue = null;
+        while (nextInQueue == null || !toBeRemoved.from.equals(nextInQueue.node)) {
+            nextInQueue = nodeQueue.peekFirst();
+            visitingNodes.remove(nextInQueue.node, nextInQueue.visitingSegment);
+            if (!toBeRemoved.from.equals(nextInQueue.node)) {
+                nodeQueue.removeFirst();
+            }
+        }
+    }
+
+    private void restorePath(Deque<Node> path, GraphEdge toBeRemoved) {
+        Node removedFromPath = null;
+        while (!toBeRemoved.from.equals(removedFromPath)) {
+            removedFromPath = path.pop();
+        }
+    }
+
+    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<Node, Integer> visitingNodes, final NodeInVisitingSegment nodeWithVisitingSegment) {
+        Node node = nodeWithVisitingSegment.node;
+        if (!(node instanceof TaskNode)) {
+            return;
+        }
+        Iterables.removeIf(
+            ((TaskNode) node).getShouldSuccessors(),
+            input -> visitingNodes.containsEntry(input, nodeWithVisitingSegment.visitingSegment)
+        );
+    }
+
+    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(Map<Node, Integer> planBeforeVisiting, Node node) {
+        if (node instanceof TaskNode && !((TaskNode) node).getShouldSuccessors().isEmpty()) {
+            planBeforeVisiting.put(node, nodeMapping.size());
+        }
+    }
+
+    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<Node> path, Node node) {
+        if (!(node instanceof TaskNode)) {
+            return;
+        }
+        Node previous = path.peek();
+        if (previous instanceof TaskNode && ((TaskNode) previous).getShouldSuccessors().contains(node)) {
+            walkedShouldRunAfterEdges.push(new GraphEdge(previous, node));
+        }
+    }
+
+    private void onOrderingCycle(Node successor, Node currentNode) {
+        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
+            node.getHardSuccessors().forEach(connectedNodes::add);
+        });
+        graphWalker.add(successor);
+
+        List<Set<Node>> cycles = graphWalker.findCycles();
+        if (cycles.isEmpty()) {
+            // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
+            // https://github.com/gradle/gradle/issues/2293
+            throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
+        }
+        List<Node> firstCycle = new ArrayList<>(cycles.get(0));
+        Collections.sort(firstCycle);
+
+        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
+            (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
+            (it, values, connectedNodes) -> {
+                Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
+                for (Node dependency : firstCycle) {
+                    if (dependency instanceof TaskNode && successors.contains(dependency)) {
+                        connectedNodes.add(dependency);
+                    }
+                }
+            });
+        StringWriter writer = new StringWriter();
+        graphRenderer.renderTo(firstCycle.get(0), writer);
+        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
+    }
+
+>>>>>>> origin/release
     @Override
     public void onComplete(Consumer<LocalTaskNode> handler) {
         Consumer<LocalTaskNode> previous = this.completionHandler;
@@ -917,6 +1043,22 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             if (previousPos >= pos) {
                 pos++;
             }
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder str = new StringBuilder("ExecutionQueue[");
+            for (int i = 0; i < nodes.size(); ++i) {
+                if (i > 0) {
+                    str.append(", ");
+                }
+                if (i == pos) {
+                    str.append('*');
+                }
+                str.append(nodes.get(i));
+            }
+            str.append("]");
+            return str.toString();
         }
     }
 }

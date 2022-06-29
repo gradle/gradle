@@ -174,7 +174,6 @@ For example, the following task option:
 public abstract Property<Integer> getIntegerOption();
 ```
 
-
 can be passed from the command line as follows:
 ```shell
 gradle myCustomTask --integer-option=123
