@@ -793,7 +793,7 @@
   {
     "dirName": "worker-processes",
     "name": "worker-processes",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
