@@ -589,9 +589,9 @@
             <sha256 value="e5f60ab215d43f2614872bac5fdf9aaae3fd734bd67e93bf11a40007ec78d3f2" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="com.gradle.publish" name="plugin-publish-plugin" version="1.0.0-rc-3">
-         <artifact name="plugin-publish-plugin-1.0.0-rc-3.jar">
-            <sha256 value="3441a5772dcb9461146aa59caf2eb5a665826ed393340d10b16f1346d11340c0" origin="Artifact is not signed"/>
+      <component group="com.gradle.publish" name="plugin-publish-plugin" version="1.0.0">
+         <artifact name="plugin-publish-plugin-1.0.0.jar">
+            <sha256 value="34b81aba1dc0b18f9a35b0a28e800b460b6df105dcb92893c3a0e78276bd756c" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.h2database" name="h2" version="1.4.192">
