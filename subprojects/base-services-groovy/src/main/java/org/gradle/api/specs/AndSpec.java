@@ -57,7 +57,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
      * @param object to check specs against
      * @return an unsatisfied spec or null
      *
-     * @since 7.5
+     * @since 7.6
      */
     @Nullable
     @Incubating

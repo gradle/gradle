@@ -341,7 +341,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param onlyIfReason specifies the reason for a task to run, which is used for logging
      * @param onlyIfSpec specifies if a task should be run
      *
-     * @since 7.5
+     * @since 7.6
      */
     @Incubating
     void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
@@ -376,7 +376,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param onlyIfReason specifies the reason for a task to run, which is used for logging
      * @param onlyIfSpec specifies if a task should be run
      *
-     * @since 7.5
+     * @since 7.6
      */
     @Incubating
     void setOnlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
