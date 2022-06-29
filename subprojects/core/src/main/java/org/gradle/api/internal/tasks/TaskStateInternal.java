@@ -80,7 +80,7 @@ public class TaskStateInternal implements TaskState {
      * Sets the detailed reason why the task was skipped.
      * @see TaskStateInternal#getSkipReasonMessage()
      */
-    public void setSkipReasonMessage(String skipReasonMessage) {
+    public void setSkipReasonMessage(@Nullable String skipReasonMessage) {
         this.skipReasonMessage = skipReasonMessage;
     }
 
