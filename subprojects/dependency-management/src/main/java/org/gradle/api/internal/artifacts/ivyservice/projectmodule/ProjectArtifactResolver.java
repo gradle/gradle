@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -85,10 +84,6 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         @Override
         public ProjectInternal getOwningProject() {
             return projectState.getMutableModel();
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
         }
 
         @Override

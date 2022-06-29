@@ -1479,7 +1479,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
             selected.visitDependencies(collectingContext);
             if (!lenient) {
-                resolutionHost.rethrowFailure("task dependencies", collectingContext.getFailures());
+                resolutionHost.mapFailure("task dependencies", collectingContext.getFailures()).ifPresent(context::visitFailure);
             }
         }
 
@@ -1510,18 +1510,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void rethrowFailure(String type, Collection<Throwable> failures) {
+    private Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
         if (failures.isEmpty()) {
-            return;
+            return Optional.empty();
         }
         if (failures.size() == 1) {
-            failuresWithHint(failures).ifPresent(UncheckedException::throwAsUncheckedException);
+            Optional<ResolveException> resolveException = failuresWithHint(failures);
+            if (resolveException.isPresent()) {
+                return resolveException;
+            }
+            resolveException.ifPresent(UncheckedException::throwAsUncheckedException);
             Throwable failure = failures.iterator().next();
             if (failure instanceof ResolveException) {
-                throw UncheckedException.throwAsUncheckedException(failure);
+                return Optional.of((ResolveException) failure);
             }
         }
-        throw new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures);
+        return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
     }
 
     private void assertIsResolvable() {
@@ -2170,8 +2174,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+            return DefaultConfiguration.this.mapFailure(type, failures);
+        }
+
+        @Override
         public void rethrowFailure(String type, Collection<Throwable> failures) {
-            DefaultConfiguration.this.rethrowFailure(type, failures);
+            mapFailure(type, failures).ifPresent(e -> {
+                throw e;
+            });
         }
     }
 }
