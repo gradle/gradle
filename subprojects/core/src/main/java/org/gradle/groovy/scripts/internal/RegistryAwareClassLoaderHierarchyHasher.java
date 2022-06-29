@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
@@ -33,6 +34,7 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
         Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
 
         String gradleVersion = GradleVersion.current().getVersion();
+        addClassLoader(knownClassLoaders, null, "bootstrap");
         addClassLoader(knownClassLoaders, registry.getRuntimeClassLoader(), "runtime:" + gradleVersion);
         addClassLoader(knownClassLoaders, registry.getGradleApiClassLoader(), "gradle-api:" + gradleVersion);
         addClassLoader(knownClassLoaders, registry.getGradleCoreApiClassLoader(), "gradle-core-api:" + gradleVersion);
@@ -41,9 +43,7 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
         return knownClassLoaders;
     }
 
-    private static void addClassLoader(Map<ClassLoader, String> knownClassLoaders, ClassLoader classLoader, String id) {
-        if (classLoader != null) {
-            knownClassLoaders.put(classLoader, id);
-        }
+    private static void addClassLoader(Map<ClassLoader, String> knownClassLoaders, @Nullable ClassLoader classLoader, String id) {
+        knownClassLoaders.put(classLoader, id);
     }
 }
