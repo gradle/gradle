@@ -322,7 +322,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = onlyIfSpec.and(onlyIfClosure, "Task must satisfy provided closure");
+                onlyIfSpec = onlyIfSpec.and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
@@ -332,7 +332,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = onlyIfSpec.and(spec, "Task must satisfy provided spec");
+                onlyIfSpec = onlyIfSpec.and(spec, "Task satisfies onlyIf spec");
             }
         });
     }
@@ -352,7 +352,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task must satisfy provided spec");
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
             }
         });
     }
@@ -372,7 +372,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task must satisfy provided closure");
+                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
