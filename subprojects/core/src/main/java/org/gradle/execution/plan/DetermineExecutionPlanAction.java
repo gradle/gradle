@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
@@ -310,7 +311,8 @@ class DetermineExecutionPlanAction {
             (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
             (it, values, connectedNodes) -> {
                 for (Node dependency : cycle) {
-                    if (it.hasHardSuccessor(dependency)) {
+                    Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
+                    if (dependency instanceof TaskNode && successors.contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
