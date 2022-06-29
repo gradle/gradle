@@ -50,6 +50,7 @@ public class SkipOnlyIfTaskExecuter implements TaskExecuter {
         if (unsatisfiedSpec != null) {
             LOGGER.info("Skipping {} as task onlyIf '{}' is false.", task, unsatisfiedSpec.getDisplayName());
             state.setOutcome(TaskExecutionOutcome.SKIPPED);
+            state.setSkipReasonMessage("'" + unsatisfiedSpec.getDisplayName() + "' not satisfied");
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
 

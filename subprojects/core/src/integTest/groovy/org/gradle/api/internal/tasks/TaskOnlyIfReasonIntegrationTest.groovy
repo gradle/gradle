@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 
 class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
     def 'task only if with description prints value'() {
@@ -49,5 +51,13 @@ class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
         String taskPath
     ) {
         outputContains("Skipping task '$taskPath' as task onlyIf '$message' is false")
+        operations.only(ExecuteTaskBuildOperationType, {
+            if (taskPath != it.details.taskPath) {
+                return false
+            }
+            it.result.skipReasonMessage == "'$message' not satisfied"
+        })
     }
+
+    def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 }
