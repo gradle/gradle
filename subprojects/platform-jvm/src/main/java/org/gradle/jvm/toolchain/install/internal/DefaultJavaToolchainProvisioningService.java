@@ -72,15 +72,16 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
 
         for (JavaToolchainRepository toolchainRepository : toolchainRepositories) {
-            if (toolchainRepository.canProvide(spec)) {
-                return provisionInstallation(spec, toolchainRepository);
+            Optional<URI> uri = toolchainRepository.toUri(spec);
+            if (uri.isPresent()) {
+                return provisionInstallation(spec, uri.get(), toolchainRepository);
             }
         } //TODO: write test to confirm this in-order loop processing
 
         return Optional.empty();
     }
 
-    private Optional<File> provisionInstallation(JavaToolchainSpec spec, JavaToolchainRepository toolchainRepository) {
+    private Optional<File> provisionInstallation(JavaToolchainSpec spec, URI uri, JavaToolchainRepository toolchainRepository) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
             String destinationFilename = toolchainRepository.toArchiveFileName(spec);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
@@ -89,7 +90,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 String displayName = "Provisioning toolchain " + destinationFile.getName();
                 return wrapInOperation(
                         displayName,
-                    () -> provisionJdk(toolchainRepository.toUri(spec), destinationFile));
+                    () -> provisionJdk(uri, destinationFile));
             } catch (Exception e) {
                 throw new MissingToolchainException(spec, e);
             } finally {

@@ -40,8 +40,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def archiveName = "jdk-123.zip"
 
         given:
-        binary.canProvide(spec) >> true
-        binary.toUri(spec) >> URI.create('http://server/' + archiveName)
+        binary.toUri(spec) >> Optional.of(URI.create('http://server/' + archiveName))
         binary.toArchiveFileName(spec) >> archiveName
 
         def downloadLocation = Mock(File)
@@ -76,7 +75,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.canProvide(spec) >> true
+        binary.toUri(spec) >> Optional.of(URI.create("uri"))
         cache.acquireWriteLock(_, _) >> lock
         binary.toArchiveFileName(spec) >> 'jdk-123.zip'
         def downloadLocation = new File(temporaryFolder, "jdk.zip")
@@ -99,7 +98,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.canProvide(spec) >> false
+        binary.toUri(spec) >> Optional.empty()
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
@@ -118,7 +117,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("false")
 
         given:
-        binary.canProvide(spec) >> true
+        binary.toUri(spec) >> Optional.of(URI.create("uri"))
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
@@ -139,8 +138,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def archiveName = "file.tgz"
 
         given:
-        binary.canProvide(spec) >> true
-        binary.toUri(spec) >> URI.create("uri")
+        binary.toUri(spec) >> Optional.of(URI.create("uri"))
         binary.toArchiveFileName(spec) >> archiveName
 
         def downloadLocation = Mock(File)
