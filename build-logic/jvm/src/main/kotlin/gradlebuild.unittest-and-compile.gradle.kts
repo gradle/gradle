@@ -316,11 +316,7 @@ fun configureTests() {
             // Don't move this line into the lambda as it may cause config cache problems
             (predictiveSelection as PredictiveTestSelectionExtensionInternal).server.set(uri("https://ge.gradle.org"))
             predictiveSelection {
-                enabled.convention(
-                    project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
-                        enabled && !rerunAllTests
-                    }
-                )
+                enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
     }

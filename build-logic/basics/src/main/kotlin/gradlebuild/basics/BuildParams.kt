@@ -312,7 +312,9 @@ val Project.predictiveTestSelectionEnabled: Provider<Boolean>
                 val protectedBranches = listOf("master", "release")
                 ci && !protectedBranches.contains(branch) && !branch.startsWith("pre-test/")
             }
-        )
+        ).zip(project.rerunAllTests) { enabled, rerunAllTests ->
+            enabled && !rerunAllTests
+        }
 
 
 val Project.testDistributionEnabled: Boolean

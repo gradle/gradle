@@ -21,6 +21,7 @@ import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
 import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
@@ -61,6 +62,10 @@ extractCiData()
 
 if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
+}
+
+if (project.predictiveTestSelectionEnabled.get()) {
+    buildScan?.tag("PTS")
 }
 
 extractCheckstyleAndCodenarcData()
