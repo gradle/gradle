@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.jvm.toolchain.install.internal;
+package org.gradle.jvm.toolchain;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.jvm.toolchain.internal.JavaToolchainSpecVersion;
+
+import java.net.URI;
+import java.util.EnumSet;
+import java.util.Optional;
+import java.util.Set;
+
+public interface JavaToolchainRepository {
+
+    Optional<URI> toUri(JavaToolchainSpec spec);
+
+    String toArchiveFileName(JavaToolchainSpec spec);
+
+    default Set<JavaToolchainSpecVersion> getToolchainSpecCompatibility() {
+        return EnumSet.allOf(JavaToolchainSpecVersion.class);
+    }
+
+}

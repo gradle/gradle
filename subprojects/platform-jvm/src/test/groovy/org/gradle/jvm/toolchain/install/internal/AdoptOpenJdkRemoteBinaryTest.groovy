@@ -25,6 +25,7 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
+import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

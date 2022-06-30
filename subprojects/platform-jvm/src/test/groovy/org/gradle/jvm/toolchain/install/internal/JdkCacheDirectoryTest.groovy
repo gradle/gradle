@@ -25,6 +25,7 @@ import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Ignore
