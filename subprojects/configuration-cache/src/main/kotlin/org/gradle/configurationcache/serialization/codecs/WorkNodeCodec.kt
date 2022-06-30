@@ -23,6 +23,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.readCollectionInto
+import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
@@ -117,6 +118,10 @@ class WorkNodeCodec(
                 is FinalizerGroup -> {
                     writeSmallInt(1)
                     writeSmallInt(nodesById.getValue(group.node))
+                    val ownedNodeIds = group.ownedMembers.mapNotNull { node -> nodesById[node] }
+                    writeCollection(ownedNodeIds) {
+                        writeSmallInt(it)
+                    }
                     writeNodeGroup(group.delegate, nodesById)
                 }
                 is CompositeNodeGroup -> {
@@ -144,8 +149,9 @@ class WorkNodeCodec(
                 }
                 1 -> {
                     val finalizerNode = nodesById.getValue(readSmallInt()) as TaskNode
+                    val ownedNodes = readList { nodesById.getValue(readSmallInt()) }
                     val delegate = readNodeGroup(nodesById)
-                    FinalizerGroup(finalizerNode, delegate)
+                    FinalizerGroup(finalizerNode, delegate, ownedNodes)
                 }
                 2 -> {
                     val ordinalGroup = readNodeGroup(nodesById)
@@ -184,11 +190,12 @@ class WorkNodeCodec(
                     node.addShouldSuccessor(it)
                 }
                 readSuccessorReferences(nodesById) {
-                    require(it is TaskNode)
+                    require(it is TaskNode) {
+                        "Expecting a TaskNode as a must successor of `$node`, got `$it`."
+                    }
                     node.addMustSuccessor(it)
                 }
                 readSuccessorReferences(nodesById) {
-                    require(it is TaskNode)
                     node.addFinalizingSuccessor(it)
                 }
                 val lifecycleSuccessors = mutableSetOf<Node>()
