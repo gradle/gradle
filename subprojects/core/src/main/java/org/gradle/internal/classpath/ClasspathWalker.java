@@ -114,6 +114,20 @@ public class ClasspathWalker {
         public byte[] getContent() throws IOException {
             return entry.getContent();
         }
+
+        @Override
+        public CompressionMethod getCompressionMethod() {
+            switch (entry.getCompressionMethod()) {
+                case STORED:
+                    return CompressionMethod.STORED;
+                case DEFLATED:
+                    return CompressionMethod.DEFLATED;
+                default:
+                    // Zip entries can be in many formats but JARs are unlikely to have them as JVM doesn't
+                    // support exotic ones, and the clients mostly don't care.
+                    return CompressionMethod.UNDEFINED;
+            }
+        }
     }
 
     private static class FileEntry implements ClasspathEntryVisitor.Entry {
@@ -138,6 +152,14 @@ public class ClasspathWalker {
         @Override
         public byte[] getContent() throws IOException {
             return Files.readAllBytes(file.toPath());
+        }
+
+        @Override
+        public CompressionMethod getCompressionMethod() {
+            // Standalone files are somewhat STORED (not compressed), but this is more of an accident
+            // and not something that we'd want to expose. The clients may want to process STORED entries
+            // in a special way.
+            return CompressionMethod.UNDEFINED;
         }
     }
 }
