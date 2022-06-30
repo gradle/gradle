@@ -241,7 +241,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         !task.getOnlyIf().isSatisfiedBy(task)
         def condition1Spec = task.getOnlyIf().findUnsatisfiedSpec(task)
         condition1Spec != null
-        condition1Spec.displayName == "Task must satisfy provided spec"
+        condition1Spec.displayName == "Task satisfies onlyIf spec"
 
         when:
         condition1.set(true)
