@@ -96,6 +96,37 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21125")
+    def "task can be finalized by and dependency of multiple finalizers"() {
+        given:
+        buildFile '''
+            task finalizer1 {
+                dependsOn 'dep1'
+            }
+            task finalizer2 {
+                dependsOn 'dep1'
+            }
+            task dep1 {
+                dependsOn 'dep2'
+                finalizedBy 'finalizer1'
+            }
+            task dep2 {
+                finalizedBy 'finalizer2'
+                finalizedBy 'finalizer1'
+            }
+            task entryPoint {
+                finalizedBy 'finalizer1'
+                finalizedBy 'finalizer2'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalizer2', ':finalizer1'
+        }
+    }
+
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
@@ -210,13 +241,14 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         taskDisablingStatement << ['a.enabled = false', 'a.onlyIf {false}']
     }
 
-    @Ignore
+    @ToBeImplemented
     void 'requesting to run finalizer task before finalized results in a circular dependency failure'() {
         setupProject()
 
         expect:
         2.times {
-            fails 'b', 'a'
+            // TODO - should fail
+            succeeds 'b', 'a'
         }
     }
 
