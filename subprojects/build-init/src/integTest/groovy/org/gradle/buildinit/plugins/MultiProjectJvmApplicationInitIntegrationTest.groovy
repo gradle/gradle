@@ -177,6 +177,7 @@ class KotlinDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMu
     }
 }
 
+@Requires({ !(GradleContextualExecuter.embedded && TestPrecondition.JDK18_OR_LATER.fulfilled) })
 class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
     @Override
     BuildInitDsl getBuildDsl() {
@@ -189,6 +190,7 @@ class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest extends Abstract
     }
 }
 
+@Requires({ !(GradleContextualExecuter.embedded && TestPrecondition.JDK18_OR_LATER.fulfilled) })
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
     @Override
     BuildInitDsl getBuildDsl() {
@@ -201,6 +203,7 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest extends Abstract
     }
 }
 
+@Requires({ !(GradleContextualExecuter.embedded && TestPrecondition.JDK18_OR_LATER.fulfilled) })
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
     @Override
     BuildInitDsl getBuildDsl() {
