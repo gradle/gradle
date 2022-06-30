@@ -68,6 +68,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -76,7 +77,7 @@ import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
-import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
@@ -690,6 +691,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action instanceof InputChangesAwareTaskAction) {
             return (InputChangesAwareTaskAction) action;
         }
+        if (action instanceof ConfigureUtil.WrappedConfigureAction) {
+            Closure<?> configureClosure = ((ConfigureUtil.WrappedConfigureAction<?>) action).getConfigureClosure();
+            return convertClosureToAction(configureClosure, actionName);
+        }
         return new TaskActionWrapper(action, actionName);
     }
 
@@ -756,7 +761,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(closure), hasher.getClassLoaderHash(closure.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(closure, hasher);
         }
 
         @Override
@@ -800,7 +805,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(action, hasher);
         }
 
         @Override
@@ -830,13 +835,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static String getActionClassName(Object action) {
-        if (action instanceof ScriptOrigin) {
-            ScriptOrigin origin = (ScriptOrigin) action;
-            return origin.getOriginalClassName() + "_" + origin.getContentHash();
-        } else {
-            return action.getClass().getName();
-        }
+    private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
+        HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
+        String actionClassIdentifier = ScriptOriginUtil.getOriginClassIdentifier(value);
+        return ImplementationSnapshot.of(actionClassIdentifier, value, classLoaderHash);
     }
 
     @Override

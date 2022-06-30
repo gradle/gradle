@@ -85,6 +85,20 @@ public class CompositeNodeGroup extends HasFinalizers {
     }
 
     @Override
+    public void maybeAddToOwnedMembers(Node node) {
+        // Intentionally empty.
+        // Trying to add a node here means that this node is already owned by some
+        // FinalizerGroup or is a part of the OrdinalGroup.
+    }
+
+    @Override
+    public void removeFromOwnedMembers(Node node) {
+        for (FinalizerGroup group : finalizerGroups) {
+            group.removeFromOwnedMembers(node);
+        }
+    }
+
+    @Override
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         if (ordinalGroup.isReachableFromEntryPoint()) {
             // Reachable from entry point node, can run at any time

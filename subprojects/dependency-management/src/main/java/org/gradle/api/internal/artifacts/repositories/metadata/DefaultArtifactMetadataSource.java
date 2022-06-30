@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -34,61 +33,45 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.util.List;
 
+/**
+ * A metadata source which simply verifies the existence of a given artifact and does not
+ * attempt to fetch any further metadata from other external sources.
+ */
 public class DefaultArtifactMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
-    private final String artifactType;
-    private final String artifactExtension;
 
-    @Inject
     public DefaultArtifactMetadataSource(MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) {
-        this.artifactType = "jar";
-        this.artifactExtension = "jar";
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
     }
 
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
-        MutableModuleComponentResolveMetadata metaDataFromDefaultArtifact = createMetaDataFromDependencyArtifact(moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
-        if (metaDataFromDefaultArtifact != null) {
-            LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleComponentIdentifier, repositoryName);
-            metaDataFromDefaultArtifact.getSources()
-                .add(new ModuleDescriptorHashModuleSource(getDescriptorHash(moduleComponentIdentifier), false));
-            return metaDataFromDefaultArtifact;
+        IvyArtifactName artifact = getArtifactName(moduleComponentIdentifier, prescribedMetaData);
+        if (!artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
+            return null;
         }
-        return null;
-    }
 
-    private HashCode getDescriptorHash(ModuleComponentIdentifier moduleComponentIdentifier) {
+        LOGGER.debug("Using default metadata for artifact in module '{}' and repository '{}'.", moduleComponentIdentifier, repositoryName);
+
+        MutableModuleComponentResolveMetadata metadata = mutableModuleMetadataFactory.missing(moduleComponentIdentifier);
+
         // For empty metadata, we use a hash based on the identifier
-        return Hashing.md5().hashString(moduleComponentIdentifier.toString());
+        HashCode descriptorHash = Hashing.md5().hashString(moduleComponentIdentifier.toString());
+        metadata.getSources().add(new ModuleDescriptorHashModuleSource(descriptorHash, false));
+        return metadata;
     }
 
-    @Nullable
-    private MutableModuleComponentResolveMetadata createMetaDataFromDependencyArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        List<IvyArtifactName> artifactNames = getArtifactNames(moduleComponentIdentifier, overrideMetadata);
-        for (IvyArtifactName artifact : artifactNames) {
-            if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
-                return mutableModuleMetadataFactory.missing(moduleComponentIdentifier);
-            }
+    private IvyArtifactName getArtifactName(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
+        if (overrideMetadata.getArtifact() != null) {
+            return overrideMetadata.getArtifact();
         }
-        return null;
-    }
-
-    private List<IvyArtifactName> getArtifactNames(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
-        if (!overrideMetadata.getArtifacts().isEmpty()) {
-            return overrideMetadata.getArtifacts();
-        }
-        IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), artifactType, artifactExtension);
-        return ImmutableList.of(defaultArtifact);
+        return new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "jar", "jar");
     }
 
     @Override

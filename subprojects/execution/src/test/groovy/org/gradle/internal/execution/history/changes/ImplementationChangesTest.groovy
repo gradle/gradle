@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
-import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot
 import spock.lang.Specification
 
 class ImplementationChangesTest extends Specification {
@@ -110,7 +110,7 @@ class ImplementationChangesTest extends Specification {
 
     List<String> changesBetween(
         ImplementationSnapshot previousImpl, List<ImplementationSnapshot> previousAdditionalImpls,
-        KnownImplementationSnapshot currentImpl, List<KnownImplementationSnapshot> currentAdditionalImpls
+        ClassImplementationSnapshot currentImpl, List<ClassImplementationSnapshot> currentAdditionalImpls
     ) {
         def visitor = new CollectingChangeVisitor()
         new ImplementationChanges(
@@ -121,8 +121,8 @@ class ImplementationChangesTest extends Specification {
         return visitor.changes*.message
     }
 
-    private KnownImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash = taskLoaderHash) {
-        new KnownImplementationSnapshot(type.getName(), classLoaderHash)
+    private ClassImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash = taskLoaderHash) {
+        new ClassImplementationSnapshot(type.getName(), classLoaderHash)
     }
 
     private static ImplementationSnapshot unknownImpl(Class<?> type) {

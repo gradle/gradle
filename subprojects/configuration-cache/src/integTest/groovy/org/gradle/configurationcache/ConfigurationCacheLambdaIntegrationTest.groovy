@@ -156,4 +156,42 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         then:
         outputContains("OK!")
     }
+
+    def "restores task with CommandLineArgumentProvider implemented by Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+                import org.gradle.process.CommandLineArgumentProvider;
+
+                import java.util.Collections;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        project.getTasks().register("ok", task -> {
+                            CommandLineArgumentProvider cmdLineArgumentProvider = () -> Collections.singleton("-Dfoo=bar");
+                            task.doLast(t -> {
+                                System.out.println("args: " + cmdLineArgumentProvider.asArguments());
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("args: [-Dfoo=bar]")
+    }
 }
