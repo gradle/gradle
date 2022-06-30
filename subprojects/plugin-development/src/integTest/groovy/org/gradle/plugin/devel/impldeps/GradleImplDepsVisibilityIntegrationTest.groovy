@@ -106,7 +106,7 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
 
     def "can use ProjectBuilder to unit test a plugin"() {
         when:
-        buildFile << testablePluginProjectWithAddOpens()
+        buildFile << testablePluginProject()
 
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 

@@ -414,7 +414,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         @Override
         public Iterable<String> asArguments() {
-            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_16)
+            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_1_9)
                 ? Collections.singletonList("--add-opens=java.base/java.lang=ALL-UNNAMED")
                 : Collections.emptyList();
         }
