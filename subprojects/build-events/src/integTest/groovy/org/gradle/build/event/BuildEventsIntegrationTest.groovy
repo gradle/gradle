@@ -16,13 +16,13 @@
 
 package org.gradle.build.event
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
@@ -30,6 +30,8 @@ import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.util.internal.TextUtil
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @ConfigurationCacheTest
@@ -292,7 +294,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b")
     }
 
-    @NotYetImplemented
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Tries to resolve external (api) jars that are not available in the embedded environment
     @Issue("https://github.com/gradle/gradle/issues/16774")
     def "can use plugin that registers build event listener with ProjectBuilder"() {
         given:
@@ -317,7 +319,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             import org.junit.Test
             class MyTest {
                 @Test void test() {
-                    def project = ProjectBuilder.builder().withProjectDir(new File("${testDirectory}")).build()
+                    def projectPath = new File("${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}")
+                    def project = ProjectBuilder.builder().withProjectDir(projectPath).build()
                     project.plugins.apply("my-plugin")
                 }
             }
