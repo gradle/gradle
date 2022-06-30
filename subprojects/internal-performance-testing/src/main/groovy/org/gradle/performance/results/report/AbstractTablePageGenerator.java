@@ -257,9 +257,6 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
             private void renderVersionHeader(String version) {
                 th();
                     colspan("2").text(version);
-                    if (version.contains("-commit-")) {
-                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The test is executed against the commit where your branch forks from master.").text(" ").end();
-                    }
                 end();
             }
             // @formatter:on
