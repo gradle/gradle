@@ -27,6 +27,7 @@ import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import model.CIBuildModel
 import model.PerformanceTestBuildSpec
 import model.PerformanceTestType
@@ -55,7 +56,13 @@ class PerformanceTest(
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
-            param("performance.baselines", type.defaultBaselines)
+            text(
+                "performance.baselines",
+                type.defaultBaselines,
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = false,
+                description = "The baselines you want to run performance tests against."
+            )
             param("performance.channel", performanceTestBuildSpec.channel())
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             when (os) {
