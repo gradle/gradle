@@ -6,9 +6,11 @@ plugins {
 // tag::external-task-build[]
 }
 
+// tag::gradle-api-dependencies[]
 dependencies {
     implementation(gradleApi())
 }
+// end::gradle-api-dependencies[]
 // end::external-task-build[]
 
 repositories {

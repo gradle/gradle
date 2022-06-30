@@ -1544,4 +1544,41 @@ task b(dependsOn: a)
             }
         )
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/7923")
+    def "task is not up-to-date when the implementation of a named #actionMethodName action changes"() {
+        buildScript """
+            tasks.register('myTask') {
+                outputs.dir(layout.buildDirectory.dir('myDir'))
+                ${actionMethodName}('myAction') { println("printing from action") }
+            }
+        """
+
+        when:
+        run ':myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+        outputContains("printing from action")
+
+        when:
+        buildFile << """
+            tasks.register('other')
+        """
+        run ':myTask', '--info'
+        then:
+        executedAndNotSkipped(':myTask')
+        outputContains("printing from action")
+        outputContains("One or more additional actions for task ':myTask' have changed.")
+
+        when:
+        run ':myTask'
+        then:
+        skipped(':myTask')
+
+        where:
+        actionMethodName << [
+            "doFirst",
+            "doLast",
+        ]
+    }
 }

@@ -24,6 +24,7 @@ We would like to thank the following community members for their contributions t
 [John](https://github.com/goughy000),
 [sll552](https://github.com/sll552),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel)
+[Karl-Michael Schindler](https://github.com/kamischi)
 
 ## Upgrade instructions
 
@@ -172,7 +173,6 @@ For example, the following task option:
 @Option(option = "integer-option", description = "Your description")
 public abstract Property<Integer> getIntegerOption();
 ```
-
 
 can be passed from the command line as follows:
 ```shell
