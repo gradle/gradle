@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.install.internal;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+public enum JavaToolchainSpecVersion {
 
-import java.net.URI;
-import java.util.Optional;
-
-public interface JavaToolchainRepository {
-
-    Optional<URI> toUri(JavaToolchainSpec spec);
-
-    String toArchiveFileName(JavaToolchainSpec spec);
+    V1
 
 }

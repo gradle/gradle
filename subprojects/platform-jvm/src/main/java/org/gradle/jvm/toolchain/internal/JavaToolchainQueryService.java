@@ -26,8 +26,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 
 import javax.inject.Inject;
 import java.io.File;

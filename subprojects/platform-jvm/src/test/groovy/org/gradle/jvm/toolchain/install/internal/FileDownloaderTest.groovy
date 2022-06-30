@@ -25,6 +25,7 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.verifier.HttpRedirectVerifier
+import org.gradle.jvm.toolchain.internal.install.FileDownloader
 import spock.lang.Specification
 import spock.lang.TempDir
 

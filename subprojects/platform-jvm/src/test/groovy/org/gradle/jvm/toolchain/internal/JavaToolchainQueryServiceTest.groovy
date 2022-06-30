@@ -31,7 +31,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification

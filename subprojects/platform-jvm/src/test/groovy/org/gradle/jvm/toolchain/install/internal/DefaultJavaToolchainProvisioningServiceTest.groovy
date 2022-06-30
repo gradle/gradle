@@ -21,6 +21,10 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
+import org.gradle.jvm.toolchain.internal.install.FileDownloader
+import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import spock.lang.Specification
 import spock.lang.TempDir
 
