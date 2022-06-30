@@ -19,12 +19,11 @@ package org.gradle.jvm.toolchain.install.internal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import java.net.URI;
+import java.util.Optional;
 
 public interface JavaToolchainRepository {
 
-    boolean canProvide(JavaToolchainSpec spec);
-
-    URI toUri(JavaToolchainSpec spec);
+    Optional<URI> toUri(JavaToolchainSpec spec);
 
     String toArchiveFileName(JavaToolchainSpec spec);
 

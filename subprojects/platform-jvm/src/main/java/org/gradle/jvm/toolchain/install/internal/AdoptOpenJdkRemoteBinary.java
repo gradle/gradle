@@ -29,6 +29,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.Optional;
 
 public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
 
@@ -49,7 +50,20 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
     }
 
     @Override
-    public boolean canProvide(JavaToolchainSpec spec) {
+    public String toArchiveFileName(JavaToolchainSpec spec) {
+        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
+    }
+
+    @Override
+    public Optional<URI> toUri(JavaToolchainSpec spec) {
+        if (canProvide(spec)) {
+            return Optional.of(constructUri(spec));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private boolean canProvide(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = determineLanguageVersion(spec).canCompileOrRun(8);
         boolean matchesVendor = matchesVendor(spec);
         return matchesLanguageVersion && matchesVendor;
@@ -72,11 +86,6 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
         }
 
         return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
-    }
-
-    @Override
-    public URI toUri(JavaToolchainSpec spec) {
-        return constructUri(spec);
     }
 
     private URI constructUri(JavaToolchainSpec spec) {
@@ -105,11 +114,6 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
         } else {
             return vendorSpec.toString().toLowerCase();
         }
-    }
-
-    @Override
-    public String toArchiveFileName(JavaToolchainSpec spec) {
-        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {

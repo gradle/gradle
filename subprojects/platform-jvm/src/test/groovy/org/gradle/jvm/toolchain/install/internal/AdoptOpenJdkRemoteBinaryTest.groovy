@@ -39,7 +39,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def uri = binary.toUri(spec)
+        def uri = binary.toUri(spec).get()
 
         then:
         uri.toString() == expectedPath
@@ -96,7 +96,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory)
 
         when:
-        def uri = binary.toUri(spec)
+        def uri = binary.toUri(spec).get()
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
@@ -113,11 +113,12 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def operatingSystem = OperatingSystem.MAC_OS
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
+
         when:
-        def canProvide = binary.canProvide(spec)
+        Optional<URI> uri = binary.toUri(spec)
 
         then:
-        !canProvide
+        !uri.isPresent()
 
         where:
         javaVersion << ([5, 6, 7])
@@ -133,10 +134,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def canProvide = binary.canProvide(spec)
+        Optional<URI> uri = binary.toUri(spec)
 
         then:
-        !canProvide
+        !uri.isPresent()
 
         where:
         vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
@@ -152,12 +153,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        boolean canProvide = binary.canProvide(spec)
-        URI uri = binary.toUri(spec)
+        Optional<URI> uri = binary.toUri(spec)
 
         then:
-        canProvide
-        uri == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
+        uri.isPresent()
+        uri.get() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
 
         where:
         vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
@@ -173,12 +173,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        boolean canProvide = binary.canProvide(spec)
-        URI uri = binary.toUri(spec)
+        Optional<URI> uri = binary.toUri(spec)
 
         then:
-        canProvide
-        uri == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
+        uri.isPresent()
+        uri.get() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
     }
 
     def newSpec(int jdkVersion = 11, JvmImplementation implementation = null, JvmVendorSpec vendor = null) {
