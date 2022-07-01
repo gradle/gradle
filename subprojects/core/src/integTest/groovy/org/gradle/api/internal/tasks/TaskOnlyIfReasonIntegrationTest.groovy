@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 
 class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
-    def 'task only if with description prints value'() {
+    def 'task skipped by #condition reports "#reason"'() {
         buildFile("""
             tasks.register("task") {
                 $condition
