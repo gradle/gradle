@@ -56,7 +56,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFileFingerprintingException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -348,7 +347,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void handleUnreadableInputs(InputFileFingerprintingException ex) {
+    public void handleUnreadableInputs(InputFingerprinter.InputFileFingerprintingException ex) {
         nagUserAboutUnreadableInputsOrOutputs("input", ex.getPropertyName(), ex.getCause());
     }
 

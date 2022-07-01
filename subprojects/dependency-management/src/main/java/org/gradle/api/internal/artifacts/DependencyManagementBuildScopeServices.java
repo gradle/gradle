@@ -171,6 +171,7 @@ import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
+import org.gradle.internal.execution.steps.PreCaptureValidateStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
@@ -727,8 +728,9 @@ class DependencyManagementBuildScopeServices {
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new RemoveUntrackedExecutionStateStep<>(
+            new PreCaptureValidateStep<>(buildOperationExecutor,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(buildOperationExecutor, virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -739,7 +741,7 @@ class DependencyManagementBuildScopeServices {
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))));
+        )))))))))))))))))));
         // @formatter:on
     }
 

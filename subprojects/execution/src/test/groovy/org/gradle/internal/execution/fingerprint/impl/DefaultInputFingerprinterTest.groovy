@@ -27,7 +27,6 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
-import org.gradle.internal.execution.fingerprint.InputFingerprintingException
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
@@ -177,7 +176,7 @@ class DefaultInputFingerprinterTest extends Specification {
         0 * _
 
         then:
-        def ex = thrown InputFingerprintingException
+        def ex = thrown InputFingerprinter.InputFingerprintingException
         ex.message == "Cannot fingerprint input property 'input': value 'failing-value' cannot be serialized."
         ex.propertyName == "input"
         ex.cause == failure
