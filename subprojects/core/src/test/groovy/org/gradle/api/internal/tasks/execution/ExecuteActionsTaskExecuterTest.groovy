@@ -61,6 +61,7 @@ import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
+import org.gradle.internal.execution.steps.PreCaptureValidateStep
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -171,8 +172,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
         new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
+        new PreCaptureValidateStep<>(buildOperationExecutor,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-        new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+        new ValidateStep<>(buildOperationExecutor, virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
@@ -181,7 +183,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new CancelExecutionStep<>(cancellationToken,
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
-    ))))))))))))))))
+    )))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
