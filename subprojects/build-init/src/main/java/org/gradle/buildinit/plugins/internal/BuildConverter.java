@@ -30,6 +30,4 @@ public interface BuildConverter extends BuildInitializer {
     boolean canApplyToCurrentDirectory(Directory current);
 
     String getSourceBuildDescription();
-
-    void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects);
 }

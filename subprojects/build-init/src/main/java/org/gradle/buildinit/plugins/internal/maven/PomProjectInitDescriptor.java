@@ -17,15 +17,9 @@ package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -45,15 +39,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class PomProjectInitDescriptor implements BuildConverter {
-    private final static String MAVEN_VERSION = "3.6.3";
-    private final static String MAVEN_WAGON_VERSION = "3.4.2";
-    private final static String AETHER_VERSION = "1.1.0";
-
     private final MavenSettingsProvider settingsProvider;
     private final DocumentationRegistry documentationRegistry;
     private final WorkerExecutor executor;
-
-    private FileCollection mavenClasspath;
 
     public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor executor) {
         this.settingsProvider = mavenSettingsProvider;
@@ -87,28 +75,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects) {
-        DependencyHandler dependencies = detachedResolver.getDependencies();
-        Configuration config = detachedResolver.getConfigurations().detachedConfiguration(
-            dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
-            dependencies.create("org.apache.maven:maven-plugin-api:" + MAVEN_VERSION),
-            dependencies.create("org.apache.maven:maven-compat:" + MAVEN_VERSION),
-            dependencies.create("org.apache.maven.wagon:wagon-http:" + MAVEN_WAGON_VERSION),
-            dependencies.create("org.apache.maven.wagon:wagon-provider-api:" + MAVEN_WAGON_VERSION),
-            dependencies.create("org.eclipse.aether:aether-connector-basic:" + AETHER_VERSION),
-            dependencies.create("org.eclipse.aether:aether-transport-wagon:" + AETHER_VERSION)
-        );
-        config.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
-        detachedResolver.getRepositories().mavenCentral();
-        mavenClasspath = config;
-    }
-
-    @Override
     public void generate(InitSettings initSettings) {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         try {
             Settings settings = settingsProvider.buildSettings();
-            executor.classLoaderIsolation(config -> config.getClasspath().from(mavenClasspath))
+            executor.noIsolation()
                     .submit(Maven2GradleWorkAction.class, params -> {
                         params.getWorkingDir().set(initSettings.getTarget());
                         params.getDsl().set(initSettings.getDsl());
