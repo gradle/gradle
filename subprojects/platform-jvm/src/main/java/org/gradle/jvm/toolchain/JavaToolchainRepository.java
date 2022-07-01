@@ -45,7 +45,7 @@ public interface JavaToolchainRepository {
     Optional<Metadata> toMetadata(JavaToolchainSpec spec);
 
     /**
-     * Returns the highest version of {@see JavaToolchainSpec} this repository implementation can handle.
+     * Returns the highest version of {@link JavaToolchainSpec} this repository implementation can handle.
      *
      * All versions lower than the upper limit must also be handled by the repository.
      */
