@@ -18,17 +18,16 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -38,7 +37,6 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.problems.BaseProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,26 +47,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
-public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
+public class ValidateStep<C extends BeforeExecutionContext, R extends Result> extends AbstractValidateStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
-    private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
     private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
+        BuildOperationExecutor buildOperationExecutor,
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
         Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
+        super(buildOperationExecutor);
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
         this.delegate = delegate;
@@ -94,18 +91,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
 
         if (!errors.isEmpty()) {
-            int maxErrCount = Integer.getInteger(MAX_NB_OF_ERRORS, 5);
-            ImmutableSet<String> uniqueErrors = errors.stream().map(ValidateStep::renderedErrorMessage).collect(ImmutableSet.toImmutableSet());
-            throw WorkValidationException.forProblems(uniqueErrors)
-                .limitTo(maxErrCount)
-                .withSummary(helper ->
-                    String.format("%s found with the configuration of %s (%s).",
-                        helper.size() == 1
-                            ? "A problem was"
-                            : "Some problems were",
-                        work.getDisplayName(),
-                        describeTypesChecked(validationContext.getValidatedTypes()))
-                ).get();
+            throwValidationException(work, validationContext, errors);
         }
 
         if (!warnings.isEmpty()) {
@@ -225,20 +211,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
             .reportAs(Severity.WARNING)
             .documentedAt("validation_problems", "implementation_unknown");
-    }
-
-    private static String renderedErrorMessage(TypeValidationProblem p) {
-        return renderMinimalInformationAbout(p);
-    }
-
-    private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-        return types.size() == 1
-            ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
-            : "types '" + types.stream().map(ValidateStep::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
-    }
-
-    private static String getTypeDisplayName(Class<?> type) {
-        return ModelType.of(type).getDisplayName();
     }
 
     public interface ValidationWarningRecorder {

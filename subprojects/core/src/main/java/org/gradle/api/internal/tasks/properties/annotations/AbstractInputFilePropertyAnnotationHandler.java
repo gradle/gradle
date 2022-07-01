@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
@@ -35,7 +31,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.internal.execution.fingerprint.InputFingerprintingException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -100,8 +95,6 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
-        Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
-        checkForTypesNeedingInput(propertyMetadata.getPropertyName(), valueType);
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
             validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
@@ -118,11 +111,4 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     }
 
     protected abstract InputFilePropertyType getFilePropertyType();
-
-    private static void checkForTypesNeedingInput(String propertyName, Class<?> valueType) {
-        if (RegularFileProperty.class.isAssignableFrom(valueType) || DirectoryProperty.class.isAssignableFrom(valueType)) {
-            String msg = "value '%s' cannot be serialized.  This property might have to use @InputFile, or a related file-based input annotation, instead of @Input";
-            throw new InputFingerprintingException(propertyName, String.format(msg, propertyName));
-        }
-    }
 }

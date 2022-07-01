@@ -24,9 +24,7 @@ import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
-import org.gradle.internal.execution.fingerprint.InputFileFingerprintingException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprintingException;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -115,9 +113,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 }
             } catch (Exception e) {
                 throw new InputFingerprintingException(
-                        propertyName,
-                        String.format("value '%s' cannot be serialized", value.getValue()),
-                        e);
+                    propertyName,
+                    String.format("value '%s' cannot be serialized",
+                    value.getValue()),
+                    e);
             }
         }
 
