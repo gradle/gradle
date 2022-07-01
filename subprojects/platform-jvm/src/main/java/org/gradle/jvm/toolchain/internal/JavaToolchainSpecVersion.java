@@ -16,8 +16,18 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+/**
+ * The purpose of versions on {@see JavaToolchainSpec} is to allow
+ * for the extension of the field set contained by them, i.e. to
+ * enable more and more detailed ways of specifying toolchains.
+ *
+ * The version of a {@code JavaToolchainSpec} is as high as the
+ * newest type of toolchain specification criteria it employs, so
+ * it's less about code versions being used and more about the
+ * novelty of the actual ways of describing toolchains.
+ */
 public enum JavaToolchainSpecVersion {
 
-    V1
+    V1,
 
 }

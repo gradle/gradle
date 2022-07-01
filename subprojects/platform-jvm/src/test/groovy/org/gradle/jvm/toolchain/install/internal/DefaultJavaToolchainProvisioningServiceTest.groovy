@@ -20,6 +20,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.jvm.toolchain.JavaToolchainRepository
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
@@ -45,11 +46,9 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.toUri(spec) >> Optional.of(URI.create('http://server/' + archiveName))
-        binary.toArchiveFileName(spec) >> archiveName
+        binary.toMetadata(spec) >> Optional.of(new MockMetadata())
 
-        def downloadLocation = Mock(File)
-        downloadLocation.name >> "dir/" + archiveName
-        cache.getDownloadLocation(_ as String) >> downloadLocation
+        cache.getDownloadLocation(_ as String) >> { String filename -> new File("dir/" + filename) }
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, operationExecutor)
 
@@ -57,7 +56,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * cache.acquireWriteLock(downloadLocation, _) >> lock
+        1 * cache.acquireWriteLock(_, _) >> lock
 
         then:
         1 * downloader.download(_, _)
@@ -66,7 +65,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         1 * lock.close()
 
         then:
-        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain " + downloadLocation.name}
+        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain " + MockMetadata.ARCHIVE_FILE_NAME}
         operationExecutor.log.getDescriptors().find {it.displayName == "Unpacking toolchain archive"}
     }
 
@@ -81,10 +80,9 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         binary.toUri(spec) >> Optional.of(URI.create("uri"))
         cache.acquireWriteLock(_, _) >> lock
-        binary.toArchiveFileName(spec) >> 'jdk-123.zip'
-        def downloadLocation = new File(temporaryFolder, "jdk.zip")
-        downloadLocation.createNewFile()
-        cache.getDownloadLocation(_ as String) >> downloadLocation
+        binary.toMetadata(spec) >> Optional.of(new MockMetadata())
+        new File(temporaryFolder, MockMetadata.ARCHIVE_FILE_NAME).createNewFile()
+        cache.getDownloadLocation(_ as String) >> {String fileName -> new File(temporaryFolder, fileName)}
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
@@ -143,11 +141,9 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.toUri(spec) >> Optional.of(URI.create("uri"))
-        binary.toArchiveFileName(spec) >> archiveName
+        binary.toMetadata(spec) >> Optional.of(new MockMetadata())
 
-        def downloadLocation = Mock(File)
-        downloadLocation.name >> "dir/" + archiveName
-        cache.getDownloadLocation(_ as String) >> downloadLocation
+        cache.getDownloadLocation(_ as String) >> {String fileName -> new File(fileName)}
         cache.acquireWriteLock(_ as File, _ as String) >> lock
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, operationExecutor)
@@ -156,12 +152,47 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(URI.create("uri"), downloadLocation)
+        1 * downloader.download(URI.create("uri"), new File(MockMetadata.ARCHIVE_FILE_NAME))
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
         return Mock(ProviderFactory) {
             gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
+        }
+    }
+
+    private class MockMetadata implements JavaToolchainRepository.Metadata {
+
+        static String ARCHIVE_FILE_NAME = "ibm-11-x64-hotspot-linux.zip"
+
+        @Override
+        String fileExtension() {
+            return "zip"
+        }
+
+        @Override
+        String vendor() {
+            return "ibm"
+        }
+
+        @Override
+        String languageLevel() {
+            return "11"
+        }
+
+        @Override
+        String operatingSystem() {
+            return "linux"
+        }
+
+        @Override
+        String implementation() {
+            return "hotspot"
+        }
+
+        @Override
+        String architecture() {
+            return "x64"
         }
     }
 

@@ -44,8 +44,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Contextual
     private static class MissingToolchainException extends GradleException {
 
-        public MissingToolchainException(JavaToolchainSpec spec, @Nullable Throwable cause) {
-            super("Unable to download toolchain matching these requirements: " + spec.getDisplayName(), cause);
+        public MissingToolchainException(URI uri, @Nullable Throwable cause) {
+            super("Unable to download toolchain from: " + uri, cause);
         }
 
     }
@@ -75,16 +75,20 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         for (JavaToolchainRepository toolchainRepository : toolchainRepositories) {
             Optional<URI> uri = toolchainRepository.toUri(spec);
             if (uri.isPresent()) {
-                return provisionInstallation(spec, uri.get(), toolchainRepository);
+                Optional<JavaToolchainRepository.Metadata> metadata = toolchainRepository.toMetadata(spec);
+                if (!metadata.isPresent()) {
+                    throw new RuntimeException("Invalid toolchain repository implementation, metadata not provided for URI: " + uri);
+                }
+                return provisionInstallation(uri.get(), metadata.get());
             }
         } //TODO: write test to confirm this in-order loop processing
 
         return Optional.empty();
     }
 
-    private Optional<File> provisionInstallation(JavaToolchainSpec spec, URI uri, JavaToolchainRepository toolchainRepository) {
+    private Optional<File> provisionInstallation(URI uri, JavaToolchainRepository.Metadata metadata) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            String destinationFilename = toolchainRepository.toArchiveFileName(spec);
+            String destinationFilename = toArchiveFileName(metadata);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
             try {
@@ -93,7 +97,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                         displayName,
                     () -> provisionJdk(uri, destinationFile));
             } catch (Exception e) {
-                throw new MissingToolchainException(spec, e);
+                throw new MissingToolchainException(uri, e);
             } finally {
                 fileLock.close();
             }
@@ -117,6 +121,10 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {
         return buildOperationExecutor.call(new ToolchainProvisioningBuildOperation<>(displayName, provisioningStep));
+    }
+
+    public static String toArchiveFileName(JavaToolchainRepository.Metadata metadata) {
+        return String.format("%s-%s-%s-%s-%s.%s", metadata.vendor(), metadata.languageLevel(), metadata.architecture(), metadata.implementation(), metadata.operatingSystem(), metadata.fileExtension());
     }
 
     private static class ToolchainProvisioningBuildOperation<T> implements CallableBuildOperation<T> {
