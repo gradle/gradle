@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
+
 /**
  * The purpose of versions on {@see JavaToolchainSpec} is to allow
  * for the extension of the field set contained by them, i.e. to
@@ -25,7 +27,10 @@ package org.gradle.jvm.toolchain;
  * newest type of toolchain specification criteria it employs, so
  * it's less about code versions being used and more about the
  * novelty of the actual ways of describing toolchains.
+ *
+ * @since 7.6
  */
+@Incubating
 public enum JavaToolchainSpecVersion {
 
     V1,
