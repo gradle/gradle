@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.jvm.toolchain.internal.JavaToolchainSpecVersion;
-
 import java.net.URI;
 import java.util.Optional;
 

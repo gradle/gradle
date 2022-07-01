@@ -27,7 +27,7 @@ import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchainSpecVersion;
+import org.gradle.jvm.toolchain.JavaToolchainSpecVersion;
 
 import javax.inject.Inject;
 import java.net.URI;
