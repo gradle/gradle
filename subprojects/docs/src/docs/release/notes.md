@@ -264,9 +264,9 @@ The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now expo
 
 These defaults are the same as what was previously used, so there should be no changes to the default behavior.
 
-### --show-version (-V) flag
+### Show Gradle version information in console output (`--show-gradle-version`/`-V`)
 
-The `-V` flag (long form `--show-version`) instructs Gradle to first print version information and then continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
+The `-V` flag (long form `--show-gradle-version`) instructs Gradle to print version information and continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
 
 This flag may be useful in CI environments to record Gradle version information in the log as part of a single Gradle execution.
 
@@ -289,7 +289,7 @@ See the [documentation](userguide/pmd_plugin.html#sec:pmd_conf_threads) for more
 
 ### Better test compatibility with Java 9+
 
-When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. In some cases, this would cause code to pass during testing but fail at runtime.  
+When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. In some cases, this would cause code to pass during testing but fail at runtime.
 
 This change may cause new test failures and warnings. When running on Java 16+, code performing reflection on JDK internals will now fail tests. When running on Java 9-15, illegal access warnings will appear in logs. While this change may break some existing builds, most failures are likely to uncover suppressed issues which would have only been detected at runtime.
 
