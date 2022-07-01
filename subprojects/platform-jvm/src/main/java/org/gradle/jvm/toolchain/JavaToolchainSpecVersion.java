@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain;
 import org.gradle.api.Incubating;
 
 /**
- * The purpose of versions on {@see JavaToolchainSpec} is to allow
+ * The purpose of versions on {@link JavaToolchainSpec} is to allow
  * for the extension of the field set contained by them, i.e. to
  * enable more and more detailed ways of specifying toolchains.
  *
