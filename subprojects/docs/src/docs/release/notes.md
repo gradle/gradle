@@ -9,23 +9,25 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Xin Wang](https://github.com/scaventz),
-[David Morris](https://github.com/codefish1),
-[Daniel Lin](https://github.com/ephemient),
-[Edmund Mok](https://github.com/edmundmok),
-[Martin d'Anjou](https://github.com/martinda),
-[BJ Hargrave](https://github.com/bjhargrave),
+
 [altrisi](https://github.com/altrisi),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
+[BJ Hargrave](https://github.com/bjhargrave),
+[Daniel Lin](https://github.com/ephemient),
+[David Morris](https://github.com/codefish1),
+[Edmund Mok](https://github.com/edmundmok),
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
-[Sam Snyder](https://github.com/sambsnyd),
-[teawithbrownsugar](https://github.com/teawithbrownsugar),
 [John](https://github.com/goughy000),
-[sll552](https://github.com/sll552),
-[Leonardo Brondani Schenkel](https://github.com/lbschenkel)
 [Karl-Michael Schindler](https://github.com/kamischi)
+[Leonardo Brondani Schenkel](https://github.com/lbschenkel)
+[Martin d'Anjou](https://github.com/martinda),
+[Sam Snyder](https://github.com/sambsnyd),
+[sll552](https://github.com/sll552),
+[teawithbrownsugar](https://github.com/teawithbrownsugar),
+[urdak](https://github.com/urdak),
+[Xin Wang](https://github.com/scaventz),
 
 ## Upgrade instructions
 

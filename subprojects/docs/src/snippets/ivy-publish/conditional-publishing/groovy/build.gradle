@@ -38,7 +38,7 @@ publishing {
 
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
-    onlyIf {
+    onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
         if (repository == publishing.repositories.external)
             return publication == publishing.publications.binary
         if (repository == publishing.repositories.internal)
