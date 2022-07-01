@@ -29,9 +29,17 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
     File source(String... classBodies) {
         File out
         for (String body : classBodies) {
+            def packageGroup = (body =~ "\\s*package ([\\w.]+).*")
+            String packageName = packageGroup.size() > 0 ? packageGroup[0][1] : ""
+            String packageFolder = packageName.replaceAll("[.]", "/")
             def className = (body =~ /(?s).*?(?:class|interface|enum) ([\w$]+) .*/)[0][1]
             assert className: "unable to find class name"
-            def f = file("src/main/${language.name}/${className}.${language.name}")
+            def f
+            if (packageFolder.isEmpty()) {
+                f = file("src/main/${language.name}/${className}.${language.name}")
+            } else {
+                f = file("src/main/${language.name}/${packageFolder}/${className}.${language.name}")
+            }
             f.createFile()
             f.text = body
             out = f
