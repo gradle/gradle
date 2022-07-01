@@ -16,9 +16,17 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
+
 import java.net.URI;
 import java.util.Optional;
 
+/**
+ * Java Toolchain Download SPI.
+ *
+ * @since 7.6
+ */
+@Incubating
 public interface JavaToolchainRepository {
 
     /**
@@ -46,7 +54,10 @@ public interface JavaToolchainRepository {
     /**
      * Contains information about toolchains located at specific URIs, returned when serving a certain
      * {@code JavaToolchainSpec}.
+     *
+     * @since 7.6
      */
+    @Incubating
     interface Metadata {
 
         /**
