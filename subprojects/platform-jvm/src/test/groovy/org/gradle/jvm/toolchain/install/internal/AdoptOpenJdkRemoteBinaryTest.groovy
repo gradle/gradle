@@ -87,7 +87,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-11-x64-openj9-mac.tar.gz"
         12         | "Darwin"            | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-mac.tar.gz"
         13         | "OSX"               | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-mac.tar.gz"
-        13         | "Solaris"           | SystemInfo.Architecture.i386    | null                   | JvmVendorSpec.APPLE       | "apple-13-x32-hotspot-solaris.tar.gz"
     }
 
     def "uses configured base uri #customBaseUrl if available"() {
