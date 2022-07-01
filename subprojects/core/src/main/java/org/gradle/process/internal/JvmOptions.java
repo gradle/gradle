@@ -150,7 +150,13 @@ public class JvmOptions {
             boolean server = debugOptions.getServer().get();
             boolean suspend = debugOptions.getSuspend().get();
             int port = debugOptions.getPort().get();
-            args.add("-agentlib:jdwp=transport=dt_socket,server=" + (server ? 'y' : 'n') + ",suspend=" + (suspend ? 'y' : 'n') + ",address=" + port);
+            String host = debugOptions.getHost().getOrNull();
+            String address = (host != null ? host + ":" : "") + port;
+            args.add("-agentlib:jdwp=transport=dt_socket," +
+                "server=" + (server ? 'y' : 'n') +
+                ",suspend=" + (suspend ? 'y' : 'n') +
+                ",address=" + address
+            );
         }
         return args;
     }
@@ -346,6 +352,7 @@ public class JvmOptions {
     private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
         // This severs the connection between from this debugOptions to the other debugOptions
         otherOptions.getEnabled().set(debugOptions.getEnabled().get());
+        otherOptions.getHost().set(debugOptions.getHost().getOrNull());
         otherOptions.getPort().set(debugOptions.getPort().get());
         otherOptions.getServer().set(debugOptions.getServer().get());
         otherOptions.getSuspend().set(debugOptions.getSuspend().get());
