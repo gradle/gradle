@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain;
 
 /**
  * The purpose of versions on {@see JavaToolchainSpec} is to allow
