@@ -97,11 +97,15 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
                 LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
                 return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
             }
-            WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, cleaningCompiler.getCompiler().execute(spec));
-            Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
-            LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
-            LOG.debug("Recompiled classes {}", classesToCompile);
-            return result.or(workResult);
+            try {
+                WorkResult result = cleaningCompiler.getCompiler().execute(spec);
+                result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, result);
+                return result.or(workResult);
+            } finally {
+                Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
+                LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
+                LOG.debug("Recompiled classes {}", classesToCompile);
+            }
         });
     }
 }
