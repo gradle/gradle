@@ -26,8 +26,8 @@ import org.gradle.internal.time.Clock;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DistributionLocator;
 import org.gradle.wrapper.GradleUserHomeLookup;
 import org.gradle.wrapper.SystemPropertiesHandler;
 import org.gradle.wrapper.WrapperConfiguration;
@@ -58,7 +58,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration(), clock);
+            return new ZippedDistribution(wrapper.getConfiguration(), clock, layout.getRootDirectory());
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -84,7 +84,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration, clock);
+        return new ZippedDistribution(configuration, clock, null);
     }
 
     /**
@@ -101,12 +101,14 @@ public class DistributionFactory {
 
     private static class ZippedDistribution implements Distribution {
         private InstalledDistribution installedDistribution;
-        private final WrapperConfiguration wrapperConfiguration;
+        private WrapperConfiguration wrapperConfiguration;
         private final Clock clock;
+        private final File projectDirectory;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Clock clock) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Clock clock, File projectDirectory) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.clock = clock;
+            this.projectDirectory = projectDirectory;
         }
 
         @Override
@@ -137,6 +139,20 @@ public class DistributionFactory {
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
             return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
+        }
+
+        @Override
+        public Distribution checkChangesInConfiguration() {
+            if (projectDirectory == null) {
+                return this;
+            } else {
+                WrapperConfiguration newConfig = WrapperExecutor.forProjectDirectory(projectDirectory).getConfiguration();
+                if (wrapperConfiguration.equals(newConfig)) {
+                    return this;
+                } else {
+                    return new ZippedDistribution(newConfig, clock, projectDirectory);
+                }
+            }
         }
 
         private Map<String, String> determineSystemProperties(ConnectionParameters connectionParameters) {
@@ -204,6 +220,11 @@ public class DistributionFactory {
             Arrays.sort(files);
             return DefaultClassPath.of(files);
         }
+
+        @Override
+        public Distribution checkChangesInConfiguration() {
+            return this;
+        }
     }
 
     private static class ClasspathDistribution implements Distribution {
@@ -216,6 +237,11 @@ public class DistributionFactory {
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
             return registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
+        }
+
+        @Override
+        public Distribution checkChangesInConfiguration() {
+            return this;
         }
     }
 }

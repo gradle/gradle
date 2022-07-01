@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import spock.lang.Specification
 
 class LazyConsumerActionExecutorTest extends Specification {
-    final Distribution distribution = Mock()
+    final Distribution distribution = Stub()
     final ToolingImplementationLoader implementationLoader = Mock()
     final ConsumerOperationParameters params = Mock()
     final ConsumerAction<String> action = Mock()
@@ -37,8 +37,11 @@ class LazyConsumerActionExecutorTest extends Specification {
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final FailsafeBuildProgressListenerAdapter buildProgressListener = Mock()
     final BuildCancellationToken cancellationToken = Mock()
-
     final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, connectionParams)
+
+    def setup() {
+        distribution.checkChangesInConfiguration() >> distribution
+    }
 
     def createsConnectionOnDemandToBuildModel() {
         when:

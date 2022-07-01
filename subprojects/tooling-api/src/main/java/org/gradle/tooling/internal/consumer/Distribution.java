@@ -25,4 +25,11 @@ public interface Distribution {
 
     ClassPath getToolingImplementationClasspath(
         ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken);
+
+    /**
+     * Checks the distribution's configuration and creates a new instance if there is a change.
+     *
+     * @return A new distribution instance with the updated configuration, or {@code this} of no changes were detected.
+     */
+    Distribution checkChangesInConfiguration();
 }

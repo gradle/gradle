@@ -124,6 +124,38 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/21137')
+    def "respects wrapper configuration updates between invocations"() {
+        given:
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
+        server.expect(server.get("/another-dist.zip").sendFile(distribution.binDistribution))
+        file("gradle/wrapper/gradle-wrapper.properties") << """
+            distributionBase=PROJECT
+            distributionPath=wrapper/dists
+            distributionUrl=http\\://localhost:${server.port}/custom-dist.zip
+            zipStoreBase=PROJECT
+            zipStorePath=wrapper/dists
+        """.stripIndent()
+        toolingApi.withConnector { GradleConnector connector -> connector.useBuildDistribution() }
+
+        when:
+        toolingApi.withConnection { connection ->
+            connection.newBuild().forTasks("help").run()
+            file("gradle/wrapper/gradle-wrapper.properties") << """
+                distributionBase=PROJECT
+                distributionPath=wrapper/dists
+                distributionUrl=http\\://localhost:${server.port}/another-dist.zip
+                zipStoreBase=PROJECT
+                zipStorePath=wrapper/dists
+                """.stripIndent()
+            connection.newBuild().forTasks("help").run()
+        }
+
+        then:
+        file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
+        file("wrapper/dists/another-dist").assertIsDir().listFiles().size() == 1
+    }
+
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
     def "receives distribution download progress events"() {
         given:

@@ -41,7 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Creates the actual executor implementation on demand.
  */
 public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
-    private final Distribution distribution;
+    private Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
 
@@ -152,13 +152,19 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             if (stopped) {
                 throw new IllegalStateException("This connection has been stopped.");
             }
+
+            // at this point we
             executing.add(Thread.currentThread());
-            if (connection == null) {
+
+            Distribution newDistribution = distribution.checkChangesInConfiguration();
+            if (connection == null || !newDistribution.equals(distribution)) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
                 ProgressLoggerFactory progressLoggerFactory = loggingProvider.getProgressLoggerFactory();
-                connection = implementationLoader.create(distribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
+                connection = implementationLoader.create(newDistribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
+                distribution = newDistribution;
             }
+
             return connection;
         } finally {
             lock.unlock();

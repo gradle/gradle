@@ -81,4 +81,48 @@ public class WrapperConfiguration {
     public void setNetworkTimeout(int networkTimeout) {
         this.networkTimeout = networkTimeout;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        WrapperConfiguration that = (WrapperConfiguration) o;
+
+        if (networkTimeout != that.networkTimeout) {
+            return false;
+        }
+        if (distribution != null ? !distribution.equals(that.distribution) : that.distribution != null) {
+            return false;
+        }
+        if (distributionBase != null ? !distributionBase.equals(that.distributionBase) : that.distributionBase != null) {
+            return false;
+        }
+        if (distributionPath != null ? !distributionPath.equals(that.distributionPath) : that.distributionPath != null) {
+            return false;
+        }
+        if (distributionSha256Sum != null ? !distributionSha256Sum.equals(that.distributionSha256Sum) : that.distributionSha256Sum != null) {
+            return false;
+        }
+        if (zipBase != null ? !zipBase.equals(that.zipBase) : that.zipBase != null) {
+            return false;
+        }
+        return zipPath != null ? zipPath.equals(that.zipPath) : that.zipPath == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = distribution != null ? distribution.hashCode() : 0;
+        result = 31 * result + (distributionBase != null ? distributionBase.hashCode() : 0);
+        result = 31 * result + (distributionPath != null ? distributionPath.hashCode() : 0);
+        result = 31 * result + (distributionSha256Sum != null ? distributionSha256Sum.hashCode() : 0);
+        result = 31 * result + (zipBase != null ? zipBase.hashCode() : 0);
+        result = 31 * result + (zipPath != null ? zipPath.hashCode() : 0);
+        result = 31 * result + networkTimeout;
+        return result;
+    }
 }

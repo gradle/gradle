@@ -297,6 +297,11 @@ project.description = text
             o.completed()
             return delegate.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken)
         }
+
+        @Override
+        Distribution checkChangesInConfiguration() {
+            return this
+        }
     }
 
     def "receives progress and logging while the model is building"() {
