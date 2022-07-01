@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @param <R> result of execution delegate
  */
 /* package */ abstract class AbstractValidateStep<C extends Context, R extends Result> extends BuildOperationStep<C, R> {
-    private static final int maxErrCount = Integer.getInteger("org.gradle.internal.max.validation.errors", 5);
+    private static final int MAX_ERR_COUNT = Integer.getInteger("org.gradle.internal.max.validation.errors", 5);
 
     public AbstractValidateStep(BuildOperationExecutor buildOperationExecutor) {
         super(buildOperationExecutor);
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
                 .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                 .collect(ImmutableSet.toImmutableSet());
         throw WorkValidationException.forProblems(uniqueErrors)
-                .limitTo(maxErrCount)
+                .limitTo(MAX_ERR_COUNT)
                 .withSummary(new Summarizer(work, validationContext))
                 .get();
     }
