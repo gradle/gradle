@@ -65,7 +65,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         1 * lock.close()
 
         then:
-        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain " + MockMetadata.ARCHIVE_FILE_NAME}
+        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain " + MockMetadata.archiveFileName}
         operationExecutor.log.getDescriptors().find {it.displayName == "Unpacking toolchain archive"}
     }
 
@@ -81,7 +81,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         binary.toUri(spec) >> Optional.of(URI.create("uri"))
         cache.acquireWriteLock(_, _) >> lock
         binary.toMetadata(spec) >> Optional.of(new MockMetadata())
-        new File(temporaryFolder, MockMetadata.ARCHIVE_FILE_NAME).createNewFile()
+        new File(temporaryFolder, MockMetadata.archiveFileName).createNewFile()
         cache.getDownloadLocation(_ as String) >> {String fileName -> new File(temporaryFolder, fileName)}
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
@@ -152,7 +152,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(URI.create("uri"), new File(MockMetadata.ARCHIVE_FILE_NAME))
+        1 * downloader.download(URI.create("uri"), new File(MockMetadata.archiveFileName))
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
@@ -163,7 +163,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     private class MockMetadata implements JavaToolchainRepository.Metadata {
 
-        static String ARCHIVE_FILE_NAME = "ibm-11-x64-hotspot-linux.zip"
+        static String archiveFileName = "ibm-11-x64-hotspot-linux.zip"
 
         @Override
         String fileExtension() {
