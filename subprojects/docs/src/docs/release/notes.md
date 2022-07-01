@@ -264,9 +264,9 @@ The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now expo
 
 These defaults are the same as what was previously used, so there should be no changes to the default behavior.
 
-### --show-gradle-version (-V) flag
+### Show Gradle version information in console output (`--show-gradle-version`/`-V`)
 
-The `-V` flag (long form `--show-gradle-version`) instructs Gradle to first print version information and then continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
+The `-V` flag (long form `--show-gradle-version`) instructs Gradle to print version information and continue executing any requested tasks.  This is in contrast to the pre-existing `-v` (long form `--version`) flag which prints version information and then immediately exits.
 
 This flag may be useful in CI environments to record Gradle version information in the log as part of a single Gradle execution.
 
