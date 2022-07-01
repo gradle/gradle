@@ -78,6 +78,11 @@ _Default is `10800000` (3 hours)._
 When set to `true`, Gradle will run the build with remote debugging enabled, listening on port 5005. Note that this is the equivalent of adding `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` to the JVM command line and will suspend the virtual machine until a debugger is attached.
 _Default is `false`._
 
+`org.gradle.debug.host=(host address)`::
+Specifies the host address to listen on or connect to when debug is enabled.
+In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
+By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
+
 `org.gradle.debug.port=(port number)`::
 Specifies the port number to listen on when debug is enabled.
 _Default is `5005`._
