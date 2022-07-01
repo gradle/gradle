@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.transaction;
 import com.google.common.base.MoreObjects;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 import org.gradle.api.tasks.WorkResult;
@@ -100,7 +101,7 @@ public class CompileTransaction {
             deletePotentiallyEmptyDirectories(stashResult);
             moveCompileOutputToOriginalFolders(stagedOutputs);
             return result;
-        } catch (Exception t) {
+        } catch (CompilationFailedException t) {
             rollbackStash(stashResult.stashedFiles);
             throw t;
         } finally {
