@@ -16,6 +16,8 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
 import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
 
@@ -571,5 +573,56 @@ sourceSets {
         then:
         outputs.noneRecompiled()
         outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
+    def "writes relative paths to source-to-class mapping after incremental compilation"() {
+        source("package test.gradle; class A {}", "package test2.gradle; class B {}")
+        outputs.snapshot { run language.compileTaskName }
+        def previousCompilationDataFile = file("build/tmp/${language.compileTaskName}/previous-compilation-data.bin")
+        def previousCompilationAccess = new PreviousCompilationAccess(new StringInterner())
+
+        when:
+        source("package test.gradle; class A { static class C {} }")
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", 'A$C')
+        def previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile)
+        previousCompilationData.compilerApiData.sourceToClassMapping == [
+            ("test/gradle/A.${languageName}" as String): ["test.gradle.A", "test.gradle.A\$C"] as Set,
+            ("test2/gradle/B.${languageName}" as String): ["test2.gradle.B"] as Set
+        ]
+    }
+
+    def "nothing is stashed on full recompilation but it's stashed on incremental compilation"() {
+        given:
+        source("class A {}", "class B {}")
+        def compileTransactionDir = file("build/tmp/${language.compileTaskName}/compileTransaction")
+
+        when: "First compilation is always full compilation"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B")
+        !compileTransactionDir.exists()
+
+        when: "Compilation after failure with clean is full recompilation"
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+        outputs.snapshot { source("class A { }") }
+        run "clean", language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B")
+        !compileTransactionDir.exists()
+
+        when: "Incremental compilation"
+        outputs.snapshot { source("class A {}") }
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A")
+        compileTransactionDir.exists()
+        compileTransactionDir.file("stash-dir/A.class.uniqueId0").exists()
     }
 }

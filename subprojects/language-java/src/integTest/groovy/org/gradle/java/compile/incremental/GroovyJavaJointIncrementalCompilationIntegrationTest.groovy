@@ -28,8 +28,10 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
     private static final Map SOURCES = [
         'G': 'class G { }',
         'G.changed': 'class G { int i }',
+        'G.failure': 'class G { garbage }',
         'J': 'class J { }',
         'J.changed': 'class J { int i; }',
+        'J.failure': 'class J { garbage }',
 
         'G_J': 'class G_J extends J { }',
 
@@ -41,18 +43,18 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
 
     def 'Groovy-Java joint compilation on #scenario'() {
         given:
-        applyFileSet(initialSet)
+        applyGroovyFileSet(initialSet)
         run "compileGroovy"
 
         when:
-        applyFileSet(firstChange)
+        applyGroovyFileSet(firstChange)
         run "compileGroovy", "--info"
 
         then: 'first build'
         upToDateOrMessage(firstBuildMessage)
 
         when: 'second build'
-        applyFileSet(secondChange)
+        applyGroovyFileSet(secondChange)
         run "compileGroovy", "--info"
 
         then:
@@ -70,18 +72,109 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'Change root Groovy files '                 | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'Incremental compilation of' | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'
     }
 
-    void applyFileSet(List<String> fileSet) {
+    def 'Groovy-Java joint compilation incremental compilation after failure: #scenario'() {
+        given:
+        applyGroovyFileSet(initialSet)
+        outputs.snapshot { run "compileGroovy" }
+
+        when: 'first build'
+        applyGroovyFileSet(firstChange)
+        runAndFail "compileGroovy", "--info"
+
+        then:
+        outputs.noneRecompiled()
+
+        when: 'second build'
+        applyGroovyFileSet(secondChange)
+        run "compileGroovy", "--info"
+
+        then:
+        upToDateOrMessage(secondBuildMessage)
+        outputs.recompiledClasses(secondChangeRecompiledClasses as String[])
+
+        when: 'third build'
+        outputs.snapshot()
+        applyGroovyFileSet(thirdChange)
+        run "compileGroovy", "--info"
+
+        then:
+        upToDateOrMessage('UP-TO-DATE')
+        outputs.noneRecompiled()
+
+        where:
+        scenario                                    | initialSet   | firstChange          | secondChange         | secondChangeRecompiledClasses | secondBuildMessage           | thirdChange
+        'Change Java files'                         | ['G', 'J']   | ['G', 'J.failure']   | ['G', 'J.changed']   | ['J']                         | 'Incremental compilation of' | ['G', 'J.changed']
+        'Change Groovy files'                       | ['G', 'J']   | ['G.failure', 'J']   | ['G.changed', 'J']   | ['G']                         | 'Incremental compilation of' | ['G.changed', 'J']
+        'Change Java files which Groovy depends on' | ['G_J', 'J'] | ['G_J', 'J.failure'] | ['G_J', 'J.changed'] | ['G_J', 'J']                  | 'Incremental compilation of' | ['G_J', 'J.changed']
+        'Change Groovy files which Java depends on' | ['G', 'J_G'] | ['G.failure', 'J_G'] | ['G.changed', 'J_G'] | ['G', 'J_G']                  | 'Incremental compilation of' | ['G.changed', 'J_G']
+    }
+
+    def 'Groovy-Java joint compilation incremental compilation after failure with mix sources: #scenario'() {
+        given:
+        applyMixFileSet(initialSet)
+        outputs.snapshot { run "compileGroovy" }
+
+        when: 'first build'
+        applyMixFileSet(firstChange)
+        runAndFail "compileGroovy", "--info"
+
+        then:
+        outputs.noneRecompiled()
+
+        when: 'second build'
+        applyMixFileSet(secondChange)
+        run "compileGroovy", "--info"
+
+        then:
+        upToDateOrMessage(":compileJava", secondBuildMessage[0] as String)
+        upToDateOrMessage(":compileGroovy", secondBuildMessage[1] as String)
+        outputs.recompiledClasses(secondChangeRecompiledClasses as String[])
+
+        when: 'third build'
+        outputs.snapshot()
+        applyMixFileSet(thirdChange)
+        run "compileGroovy", "--info"
+
+        then:
+        upToDateOrMessage(":compileJava", 'UP-TO-DATE')
+        upToDateOrMessage(":compileGroovy", 'UP-TO-DATE')
+        outputs.noneRecompiled()
+
+        where:
+        scenario                                    | initialSet   | firstChange          | secondChange         | secondChangeRecompiledClasses | secondBuildMessage                                           | thirdChange
+        'Change Java files'                         | ['G', 'J']   | ['G', 'J.failure']   | ['G', 'J.changed']   | ['J']                         | ['Incremental compilation of', 'UP-TO-DATE']                 | ['G', 'J.changed']
+        'Change Java files which Groovy depends on' | ['G_J', 'J'] | ['G_J', 'J.failure'] | ['G_J', 'J.changed'] | ['G_J', 'J']                  | ['Incremental compilation of', 'Incremental compilation of'] | ['G_J', 'J.changed']
+        'Change Groovy file'                        | ['G', 'J']   | ['G.failure', 'J']   | ['G.changed', 'J']   | ['G']                         | ['UP-TO-DATE', 'Incremental compilation of']                 | ['G.changed', 'J']
+    }
+
+    void applyGroovyFileSet(List<String> fileSet) {
         file('src/main/groovy').forceDeleteDir()
         fileSet.each {
-            file("src/main/groovy/${it.replace('.changed', '') + (it.startsWith('J') ? '.java' : '.groovy')}").text = SOURCES[it]
+            file("src/main/groovy/${it.replace('.changed', '').replace('.failure', '') + (it.startsWith('J') ? '.java' : '.groovy')}").text = SOURCES[it]
+        }
+    }
+
+    void applyMixFileSet(List<String> fileSet) {
+        file('src/main/groovy').forceDeleteDir()
+        file('src/main/java').forceDeleteDir()
+        fileSet.each {
+            if (it.startsWith("J")) {
+                file("src/main/java/${it.replace('.changed', '').replace('.failure', '')}.java").text = SOURCES[it]
+            } else {
+                file("src/main/groovy/${it.replace('.changed', '').replace('.failure', '')}.groovy").text = SOURCES[it]
+            }
         }
     }
 
     void upToDateOrMessage(String message) {
+        upToDateOrMessage(":compileGroovy", message)
+    }
+
+    void upToDateOrMessage(String taskName, String message) {
         if (message == 'UP-TO-DATE') {
-            skipped(":compileGroovy")
+            skipped(taskName)
         } else {
-            executedAndNotSkipped(":compileGroovy")
+            executedAndNotSkipped(taskName)
         }
         outputContains(message)
     }

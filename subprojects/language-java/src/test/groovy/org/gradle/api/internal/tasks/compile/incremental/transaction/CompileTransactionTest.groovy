@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
@@ -79,7 +80,7 @@ class CompileTransactionTest extends Specification {
         isTransactionDirEmpty
     }
 
-    def "files are stashed and restored on failure"() {
+    def "files are stashed and restored on compile failure"() {
         def destinationDir = spec.getDestinationDir()
         createNewFile(new File(destinationDir, "file.txt"))
         createNewFile(new File(destinationDir, "subDir/another-file.txt"))
@@ -109,11 +110,11 @@ class CompileTransactionTest extends Specification {
                             "some-ann-file.class", "some-dest-file.class",
                             "some-duplicated-file.class", "some-duplicated-file.class",
                             "some-header-file.class", "some-header-file.h"]
-            throw new RuntimeException("Exception")
+            throw new CompilationFailedException()
         }
 
         then:
-        thrown(RuntimeException)
+        thrown(CompilationFailedException)
         destinationDir.list() as Set ==~ ["file.txt", "subDir"]
         new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt", "some-dest-file.class"]
         annotationOutput.list() as Set ==~ ["some-duplicated-file.class", "some-ann-file.class", "some-ann-file.ann"]
@@ -133,6 +134,23 @@ class CompileTransactionTest extends Specification {
         }
 
         then:
+        isEmptyDirectory(destinationDir)
+    }
+
+    def "files are stashed but not restored on a failure not produced by the compilation"() {
+        def destinationDir = spec.getDestinationDir()
+        new File(destinationDir, "file.txt").createNewFile()
+        def pattern = new PatternSet().include("**/*.txt")
+
+        when:
+        newCompileTransaction(pattern).execute {
+            assert isEmptyDirectory(destinationDir)
+            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
+            throw new RuntimeException()
+        }
+
+        then:
+        thrown(RuntimeException)
         isEmptyDirectory(destinationDir)
     }
 
@@ -233,7 +251,7 @@ class CompileTransactionTest extends Specification {
         headerOutput.list() as Set ==~ ["header-file.txt"]
     }
 
-    def "on failure files are not moved to an output directory"() {
+    def "on compile failure files are not moved to an output directory"() {
         def destinationDir = createNewDirectory(file("someDir"))
         def stagingDir = fileInTransactionDir("compile-output")
         spec.setDestinationDir(destinationDir)
@@ -243,11 +261,11 @@ class CompileTransactionTest extends Specification {
                 new File(stagingDir, "file.txt").createNewFile()
                 new File(stagingDir, "subDir").mkdir()
                 new File(stagingDir, "subDir/another-file.txt").createNewFile()
-                throw new RuntimeException("Exception")
+                throw new CompilationFailedException()
             }
 
         then:
-        thrown(RuntimeException)
+        thrown(CompilationFailedException)
         isEmptyDirectory(destinationDir)
     }
 
