@@ -27,6 +27,7 @@ import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchainSpecVersion;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -51,17 +52,26 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
     }
 
     @Override
-    public String toArchiveFileName(JavaToolchainSpec spec) {
-        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
-    }
-
-    @Override
     public Optional<URI> toUri(JavaToolchainSpec spec) {
         if (canProvide(spec)) {
             return Optional.of(constructUri(spec));
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
+        if (canProvide(spec)) {
+            return Optional.of(new MetadataImpl(spec));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
+        return JavaToolchainSpecVersion.V1;
     }
 
     private boolean canProvide(JavaToolchainSpec spec) {
@@ -163,6 +173,51 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
             baseUri += "/";
         }
         return baseUri;
+    }
+
+    private class MetadataImpl implements Metadata {
+
+        private final JavaToolchainSpec spec;
+
+        public MetadataImpl(JavaToolchainSpec spec) {
+            this.spec = spec;
+        }
+
+        @Override
+        public String fileExtension() {
+            return determineFileExtension();
+        }
+
+        @Override
+        public String vendor() {
+            return determineVendor(spec);
+        }
+
+        @Override
+        public String languageLevel() {
+            return determineLanguageVersion(spec).toString();
+        }
+
+        @Override
+        public String operatingSystem() {
+            return determineOs();
+        }
+
+        @Override
+        public String implementation() {
+            return determineImplementation(spec);
+        }
+
+        @Override
+        public String architecture() {
+            return determineArch();
+        }
+
+        @Override
+        public String toString() {
+            return "fileExtension: " + fileExtension() + ", vendor: " + vendor() + ", languageLevel: " + languageLevel() +
+                    "operatingSystem: " + operatingSystem() + ", implementation: " + implementation() + ", architecture: " + architecture();
+        }
     }
 
     private static String determineOrganization(JavaToolchainSpec spec) {

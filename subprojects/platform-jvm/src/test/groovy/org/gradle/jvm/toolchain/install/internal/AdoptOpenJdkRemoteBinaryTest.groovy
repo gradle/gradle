@@ -21,11 +21,13 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainRepository
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -68,10 +70,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
-        def filename = binary.toArchiveFileName(spec)
+        Optional<JavaToolchainRepository.Metadata> metadata = binary.toMetadata(spec)
 
         then:
-        filename == expectedFilename
+        metadata.isPresent()
+        DefaultJavaToolchainProvisioningService.toArchiveFileName(metadata.get()) == expectedFilename
 
         where:
         jdkVersion | operatingSystemName | architecture                    | implementation         | vendor                    | expectedFilename
