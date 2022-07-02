@@ -98,15 +98,17 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
             execSpec.getMainModule().set("gradle.worker");
         }
         execSpec.getMainClass().set("worker." + GradleWorkerMain.class.getName());
+        final File optionsFile;
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
-            File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
+            optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
             List<String> jvmArgs = writeOptionsFile(runAsModule, workerMainClassPath, implementationModulePath, applicationClasspath, applicationModulePath, optionsFile);
             execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
             execSpec.classpath(workerMainClassPath);
             execSpec.systemProperty("java.security.manager", "worker." + BootstrapSecurityManager.class.getName());
+            optionsFile = null; // no options file
         }
 
         // Serialize configuration for the worker process to it stdin
@@ -150,7 +152,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
 
             WorkerConfig config = new WorkerConfig(
                 logLevel, publishProcessInfo, gradleUserHomeDir.getAbsolutePath(),
-                (MultiChoiceAddress) serverAddress, workerId, displayName, processBuilder.getWorker());
+                (MultiChoiceAddress) serverAddress, workerId, displayName, processBuilder.getWorker(), optionsFile);
 
             // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker
             OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);

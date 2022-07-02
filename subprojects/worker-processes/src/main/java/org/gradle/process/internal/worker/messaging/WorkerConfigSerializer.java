@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -50,8 +51,9 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
         final long workerId = decoder.readSmallLong();
         final String displayName = decoder.readString();
         Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
-
-        return new WorkerConfig(logLevel, shouldPublishJvmMemoryInfo, gradleUserHomeDirPath, serverAddress, workerId, displayName, workerAction);
+        String maybeOptionsFile = decoder.readNullableString();
+        File optionsFile = maybeOptionsFile != null ? new File(maybeOptionsFile) : null;
+        return new WorkerConfig(logLevel, shouldPublishJvmMemoryInfo, gradleUserHomeDirPath, serverAddress, workerId, displayName, workerAction, optionsFile);
     }
 
     @Override
@@ -63,6 +65,7 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
         encoder.writeSmallLong(config.getWorkerId());
         encoder.writeString(config.getDisplayName());
         encoder.writeBinary(serializeWorker(config.getWorkerAction()));
+        encoder.writeNullableString(config.getOptionsFile());
     }
 
     private static Action<? super WorkerProcessContext> deserializeWorker(byte[] serializedWorker, ClassLoader loader) throws IOException {

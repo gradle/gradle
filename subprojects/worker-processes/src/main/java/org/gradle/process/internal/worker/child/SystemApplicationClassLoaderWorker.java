@@ -116,6 +116,13 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
                 CompositeStoppable.stoppable(connection, basicWorkerServices).stop();
                 loggingManager.stop();
+                String maybeOptionsFile = config.getOptionsFile();
+                if (maybeOptionsFile != null) {
+                    // This is the options file passed to the worker to limit
+                    // the size of the command-line. Delete it before exiting the worker
+                    File optionsFile = new File(maybeOptionsFile);
+                    optionsFile.deleteOnExit();
+                }
             } catch (Throwable t) {
                 // We're failing while shutting down, so log whatever might have happened.
                 unrecoverableErrorHandler.execute(t);

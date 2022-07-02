@@ -21,6 +21,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -34,8 +36,9 @@ public class WorkerConfig {
     private final long workerId;
     private final String displayName;
     private final Action<? super WorkerProcessContext> workerAction;
+    private final File optionsFile;
 
-    public WorkerConfig(LogLevel logLevel, boolean publishJvmMemoryInfo, String gradleUserHomeDirPath, MultiChoiceAddress serverAddress, long workerId, String displayName, Action<? super WorkerProcessContext> workerAction) {
+    public WorkerConfig(LogLevel logLevel, boolean publishJvmMemoryInfo, String gradleUserHomeDirPath, MultiChoiceAddress serverAddress, long workerId, String displayName, Action<? super WorkerProcessContext> workerAction, File optionsFile) {
         this.logLevel = logLevel;
         this.publishJvmMemoryInfo = publishJvmMemoryInfo;
         this.gradleUserHomeDirPath = gradleUserHomeDirPath;
@@ -43,6 +46,7 @@ public class WorkerConfig {
         this.workerId = workerId;
         this.displayName = displayName;
         this.workerAction = workerAction;
+        this.optionsFile = optionsFile;
 
         assert workerAction instanceof Serializable;
     }
@@ -79,5 +83,10 @@ public class WorkerConfig {
 
     public Action<? super WorkerProcessContext> getWorkerAction() {
         return workerAction;
+    }
+
+    @Nullable
+    public String getOptionsFile() {
+        return optionsFile != null ? optionsFile.getAbsolutePath() : null;
     }
 }
