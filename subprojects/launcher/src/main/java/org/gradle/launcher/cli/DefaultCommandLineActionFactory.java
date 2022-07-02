@@ -124,7 +124,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
             parser.option(VERSION, "version").hasDescription("Print version info and exit.");
-            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Print version info and continue.");
+            parser.option(VERSION_CONTINUE, "show-gradle-version").hasDescription("Print version info and continue.");
         }
 
         @Override
