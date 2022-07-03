@@ -33,6 +33,11 @@ public class CompositeNodeGroup extends HasFinalizers {
         this.reachableFromEntryPoint = reachableFromEntryPoint();
     }
 
+    @Override
+    public String toString() {
+        return "composite group, entry point: " + isReachableFromEntryPoint() + " groups: " + finalizerGroups;
+    }
+
     @Nullable
     @Override
     public OrdinalGroup asOrdinal() {
@@ -85,20 +90,6 @@ public class CompositeNodeGroup extends HasFinalizers {
     }
 
     @Override
-    public void maybeAddToOwnedMembers(Node node) {
-        // Intentionally empty.
-        // Trying to add a node here means that this node is already owned by some
-        // FinalizerGroup or is a part of the OrdinalGroup.
-    }
-
-    @Override
-    public void removeFromOwnedMembers(Node node) {
-        for (FinalizerGroup group : finalizerGroups) {
-            group.removeFromOwnedMembers(node);
-        }
-    }
-
-    @Override
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         if (ordinalGroup.isReachableFromEntryPoint()) {
             // Reachable from entry point node, can run at any time
@@ -119,4 +110,5 @@ public class CompositeNodeGroup extends HasFinalizers {
         // No finalizer group is ready to run, and either all of them have failed or some are not yet complete
         return state;
     }
+
 }

@@ -161,7 +161,7 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
 
     @Override
     public String toString() {
-        return taskIdentityPath.toString();
+        return "other build task " + taskIdentityPath;
     }
 
     @Override
