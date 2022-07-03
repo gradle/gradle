@@ -576,6 +576,7 @@ task execStartScript(type: Exec) {
             System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
             System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
             System.out.println("FOO: " + System.getProperty("FOO"));
+            System.out.println("APP_NAME: " + System.getenv("APP_NAME"));
             System.out.println("Hello World!");
         """
     }
@@ -838,5 +839,28 @@ rootProject.name = 'sample'
 
         where:
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21164")
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variable APP_NAME should not be overridden by start script"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment APP_NAME: 'my-custom-app-name-set-from-outside'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("APP_NAME: my-custom-app-name-set-from-outside")
     }
 }
