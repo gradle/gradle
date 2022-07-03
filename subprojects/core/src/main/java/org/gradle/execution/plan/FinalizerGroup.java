@@ -19,10 +19,11 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -33,16 +34,10 @@ public class FinalizerGroup extends HasFinalizers {
     private final TaskNode node;
     private final NodeGroup delegate;
     private final Set<Node> members = new LinkedHashSet<>();
-    /**
-     * A collection of Nodes owned by this group. Only a single FinalizerGroup may own a node.
-     * The owned nodes can still be members of other finalizer groups though.
-     * The important distinction is how these members are handled when they are finalized by this group.
-     * They aren't considered the group successors but only successors to the finalizer node itself.
-     * This prevents deadlocks and false cycles when a dependency of a finalizer is finalized by it.
-     */
-    private final Set<Node> ownedMembers = new HashSet<>();
     @Nullable
     private OrdinalGroup ordinal;
+    @Nullable
+    private ElementSuccessors successors;
 
     public FinalizerGroup(TaskNode node, NodeGroup delegate) {
         this.ordinal = delegate.asOrdinal();
@@ -50,14 +45,9 @@ public class FinalizerGroup extends HasFinalizers {
         this.delegate = delegate;
     }
 
-    public FinalizerGroup(TaskNode node, NodeGroup delegate, Collection<Node> ownedMembers) {
-        this(node, delegate);
-        this.ownedMembers.addAll(ownedMembers);
-    }
-
     @Override
     public String toString() {
-        return "finalizer in " + ordinal;
+        return "finalizer " + node + " in " + ordinal;
     }
 
     public TaskNode getNode() {
@@ -86,10 +76,6 @@ public class FinalizerGroup extends HasFinalizers {
         return node.getFinalizingSuccessors();
     }
 
-    private Set<Node> getFinalizedNodesInReverseOrder() {
-        return node.getFinalizingSuccessorsInReverseOrder();
-    }
-
     @Nullable
     @Override
     public OrdinalGroup asOrdinal() {
@@ -110,35 +96,30 @@ public class FinalizerGroup extends HasFinalizers {
     @Override
     public Collection<Node> getSuccessorsFor(Node node) {
         assert members.contains(node) : "Node " + node + " is not part of the finalizer group of " + this.node;
-        Set<Node> successors = getFinalizedNodes();
-        if (!isFinalizerNode(node)) {
-            successors = filterSuccessorsForFinalizerDependency(successors);
+        if (successors == null) {
+            successors = createSuccessors();
         }
-        return successors;
+        return successors.successorsFor(node);
     }
 
     @Override
     public Collection<Node> getSuccessorsInReverseOrderFor(Node node) {
-        assert members.contains(node) : "Node " + node + " is not part of the finalizer group of " + this.node;
-        Set<Node> successors = getFinalizedNodesInReverseOrder();
-        if (!isFinalizerNode(node)) {
-            successors = filterSuccessorsForFinalizerDependency(successors);
-        }
+        List<Node> successors = new ArrayList<>(getSuccessorsFor(node));
+        Collections.reverse(successors);
         return successors;
     }
 
-    private Set<Node> filterSuccessorsForFinalizerDependency(Set<Node> successors) {
-        // The nodes that are dependencies of the finalizer can have a smaller set of successors.
-        // Owned nodes finalized by this finalizer that are also dependencies of the finalizer are not considered
-        // successors to finalizer dependencies (but they are successors to the finalizer).
-        // This prevents deadlocks and false cycles when two unrelated finalizer's dependencies finalized by this
-        // finalizer are considered each other's successors.
-        // Such nodes are still successors to other finalized nodes, like non-members and not-owned members.
-        // Not owned members are expected to be scheduled by their other group. Typically, it is a node reachable
-        // from the entry point, but a dependency of some other finalizer can also be an example.
-        Set<Node> filteredSuccessors = new LinkedHashSet<>(successors);
-        filteredSuccessors.removeIf(ownedMembers::contains);
-        return filteredSuccessors;
+    private ElementSuccessors createSuccessors() {
+        for (Node finalizedNode : getFinalizedNodes()) {
+            if (members.contains(finalizedNode)) {
+                return new FinalizesMembers();
+            }
+        }
+        return new DoesNotFinalizeMembers();
+    }
+
+    private static boolean memberCanStartAtAnyTime(Node node) {
+        return node.getGroup().isReachableFromEntryPoint();
     }
 
     @Override
@@ -147,29 +128,17 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     @Override
-    public void maybeAddToOwnedMembers(Node node) {
-        ownedMembers.add(node);
-    }
-
-    @Override
-    public void removeFromOwnedMembers(Node node) {
-        ownedMembers.remove(node);
-    }
-
-    public Collection<Node> getOwnedMembers() {
-        return Collections.unmodifiableCollection(ownedMembers);
-    }
-
-    @Override
     public void addMember(Node node) {
         members.add(node);
         delegate.addMember(node);
+        successors = null;
     }
 
     @Override
     public void removeMember(Node node) {
         members.remove(node);
         delegate.removeMember(node);
+        successors = null;
     }
 
     public void visitAllMembers(Consumer<Node> visitor) {
@@ -180,19 +149,25 @@ public class FinalizerGroup extends HasFinalizers {
 
     @Override
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
-        // If this node is reachable from an entry point and is not the finalizer itself, then it can start at any time
-        if (delegate.isReachableFromEntryPoint() && !isFinalizerNode(node)) {
+        if (!isFinalizerNode(node) && memberCanStartAtAnyTime(node)) {
+            // Is not the finalizer and is reachable from an entry point, so can start
             return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
         }
 
-        // Otherwise, wait for (almost) all finalized nodes to complete with one exception.
+        // Wait for all finalized nodes, potentially excluding some finalized nodes that are also members of this group
+        Collection<Node> successors = getSuccessorsFor(node);
+        if (successors.isEmpty()) {
+            // All finalized nodes are also members and none can start early
+            return checkPeersCompleteFor(node);
+        }
         boolean isAnyExecuted = false;
-        for (Node finalized : getSuccessorsFor(node)) {
+        for (Node finalized : successors) {
             if (!finalized.isComplete()) {
                 return Node.DependenciesState.NOT_COMPLETE;
             }
             isAnyExecuted |= finalized.isExecuted();
         }
+        // All relevant finalized nodes have completed
         // Can run if any finalized node executed or if this node is reachable from an entry point
         if (isAnyExecuted || delegate.isReachableFromEntryPoint()) {
             return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
@@ -208,7 +183,96 @@ public class FinalizerGroup extends HasFinalizers {
         }
     }
 
+    /**
+     * Determines the state for a member node that is also a finalized node, in the case where all finalized nodes are also member nodes
+     * and none can start for some other reason.
+     *
+     * The approach is to defer execution until one of the member nodes is "activated", that is, it can start if its membership in this
+     * group is ignored.
+     */
+    private Node.DependenciesState checkPeersCompleteFor(Node node) {
+        // If some other member has already completed, then allow all other members to start.
+        for (Node member : members) {
+            if (member.isComplete()) {
+                return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            }
+        }
+
+        HasFinalizers hasFinalizers = (HasFinalizers) node.getGroup();
+        for (FinalizerGroup group : hasFinalizers.getFinalizerGroups()) {
+            if (group == this) {
+                continue;
+            }
+            if (group.isActivated(node)) {
+                return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            }
+        }
+
+        return Node.DependenciesState.NOT_COMPLETE;
+    }
+
+    private boolean isActivated(Node node) {
+        // A node is active when it is the finalizer of this group and is ready to start
+        if (node == this.node) {
+            return checkSuccessorsCompleteFor(node) == Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
+        }
+        return false;
+    }
+
     private boolean isFinalizerNode(Node node) {
         return node == this.node;
     }
+
+    private abstract class ElementSuccessors {
+        public Set<Node> successorsFor(Node node) {
+            // If the node is the finalizer for this group, it should wait for all the finalized nodes
+            if (isFinalizerNode(node)) {
+                return getFinalizedNodes();
+            }
+
+            // If the node is reachable from an entry point, it can start at any time
+            if (memberCanStartAtAnyTime(node)) {
+                return Collections.emptySet();
+            }
+
+            return getFilteredSuccessorsFor(node);
+        }
+
+        protected abstract Set<Node> getFilteredSuccessorsFor(Node node);
+    }
+
+    private class DoesNotFinalizeMembers extends ElementSuccessors {
+        @Override
+        protected Set<Node> getFilteredSuccessorsFor(Node node) {
+            // None of the finalized nodes are members of the group -> so all members should wait for all the finalized nodes
+            return getFinalizedNodes();
+        }
+    }
+
+    private class FinalizesMembers extends ElementSuccessors {
+        private final Set<Node> finalizedNodesThatCanStartAtAnyTime;
+
+        public FinalizesMembers() {
+            Set<Node> successors = getFinalizedNodes();
+            finalizedNodesThatCanStartAtAnyTime = new LinkedHashSet<>(successors.size());
+            for (Node successor : successors) {
+                if (!members.contains(successor) || memberCanStartAtAnyTime(successor)) {
+                    finalizedNodesThatCanStartAtAnyTime.add(successor);
+                }
+            }
+        }
+
+        @Override
+        protected Set<Node> getFilteredSuccessorsFor(Node node) {
+            // If the node is not finalized by this group, it should wait for all the finalized nodes
+            Set<Node> successors = getFinalizedNodes();
+            if (!successors.contains(node)) {
+                return successors;
+            }
+
+            // The node is also finalized by this group, so it should wait for those finalized nodes that can start at any time
+            return finalizedNodesThatCanStartAtAnyTime;
+        }
+    }
+
 }
