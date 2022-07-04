@@ -44,8 +44,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Contextual
     private static class MissingToolchainException extends GradleException {
 
-        public MissingToolchainException(URI uri, @Nullable Throwable cause) {
-            super("Unable to download toolchain from: " + uri, cause);
+        public MissingToolchainException(JavaToolchainSpec spec, URI uri, @Nullable Throwable cause) {
+            super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from: " + uri, cause);
         }
 
     }
@@ -79,14 +79,14 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 if (!metadata.isPresent()) {
                     throw new RuntimeException("Invalid toolchain repository implementation, metadata not provided for URI: " + uri);
                 }
-                return provisionInstallation(uri.get(), metadata.get());
+                return provisionInstallation(spec, uri.get(), metadata.get());
             }
         } //TODO: write test to confirm this in-order loop processing
 
         return Optional.empty();
     }
 
-    private Optional<File> provisionInstallation(URI uri, JavaToolchainRepository.Metadata metadata) {
+    private Optional<File> provisionInstallation(JavaToolchainSpec spec, URI uri, JavaToolchainRepository.Metadata metadata) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
             String destinationFilename = toArchiveFileName(metadata);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
@@ -97,7 +97,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                         displayName,
                     () -> provisionJdk(uri, destinationFile));
             } catch (Exception e) {
-                throw new MissingToolchainException(uri, e);
+                throw new MissingToolchainException(spec, uri, e);
             } finally {
                 fileLock.close();
             }
