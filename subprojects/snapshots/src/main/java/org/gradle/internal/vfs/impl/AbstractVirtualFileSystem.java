@@ -81,7 +81,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public <T> T store(String baseLocation, StoringAction<T> storingAction) {
         long versionBefore = versionHierarchyRoot.getVersion(baseLocation);
-        return storingAction.snapshot(snapshot -> storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot));
+        return storingAction.snapshot(snapshot -> {
+            storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot);
+            return snapshot;
+        });
     }
 
     private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {

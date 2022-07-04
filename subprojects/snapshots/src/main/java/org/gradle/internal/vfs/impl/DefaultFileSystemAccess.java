@@ -97,7 +97,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 if (fileMetadata.getType() == FileType.Missing) {
-                    vfsStorer.accept(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                    vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 }
                 if (fileMetadata.getType() != FileType.RegularFile) {
                     return Optional.empty();
@@ -106,9 +106,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                     () -> virtualFileSystem.findSnapshot(location)
                         .orElseGet(() -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
-                            vfsStorer.accept(fileSnapshot);
-                            return fileSnapshot;
+                            return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata));
                         })).getHash();
                 return Optional.of(hash);
             }))
@@ -143,18 +141,14 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
             switch (fileMetadata.getType()) {
                 case RegularFile:
                     HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                    RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
-                    vfsStorer.accept(regularFileSnapshot);
-                    return regularFileSnapshot;
+                    return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hash, fileMetadata));
                 case Missing:
-                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, fileMetadata.getAccessType());
-                    vfsStorer.accept(missingFileSnapshot);
-                    return missingFileSnapshot;
+                    return vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 case Directory:
                     return directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
-                        vfsStorer);
+                        vfsStorer::store);
                 default:
                     throw new UnsupportedOperationException();
             }

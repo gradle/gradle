@@ -62,12 +62,12 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         start {
             vfs.store(location, { vfsStore ->
                 instant.snapshottingStarted
-                vfsStore.accept(regularFile("${location}/some/child"))
-                vfsStore.accept(regularFile("${location}/other/child"))
+                vfsStore.store(regularFile("${location}/some/child"))
+                vfsStore.store(regularFile("${location}/other/child"))
                 instant.partialSnapshotsStored
                 thread.blockUntil.invalidated
-                vfsStore.accept(regularFile("${location}/other/child2"))
-                vfsStore.accept(regularFile("${location}/some/child2"))
+                vfsStore.store(regularFile("${location}/other/child2"))
+                vfsStore.store(regularFile("${location}/some/child2"))
                 instant.snapshottingFinished
                 return directory(location, [])
             } as VirtualFileSystem.StoringAction)
