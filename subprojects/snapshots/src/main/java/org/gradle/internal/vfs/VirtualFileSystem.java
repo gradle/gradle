@@ -20,7 +20,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public interface VirtualFileSystem {
@@ -59,7 +58,11 @@ public interface VirtualFileSystem {
      * would be reported here when they are found.
      */
     interface StoringAction<T> {
-        T snapshot(Consumer<FileSystemLocationSnapshot> snapshot);
+        T snapshot(VfsStorer snapshot);
+    }
+
+    interface VfsStorer {
+        FileSystemLocationSnapshot store(FileSystemLocationSnapshot snapshot);
     }
 
     /**
