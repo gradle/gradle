@@ -403,6 +403,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
         0 * _
     }
+
     def "transformation keeps the compression level of archive entries"() {
         given:
         def file = testDir.file("thing.jar")

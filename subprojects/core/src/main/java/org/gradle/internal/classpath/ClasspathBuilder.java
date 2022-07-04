@@ -141,7 +141,7 @@ public class ClasspathBuilder {
                 // See https://stackoverflow.com/q/1206970.
                 entry.setSize(contents.length);
                 entry.setCompressedSize(contents.length);
-                entry.setCrc(Hashing.crc32().hashBytes(contents).padToLong());
+                entry.setCrc(computeCrc32Of(contents));
             }
         }
 
@@ -151,6 +151,10 @@ public class ClasspathBuilder {
             // It isn't clear if storing them uncompressed too would bring a performance benefit,
             // as reading less from the disk may save more time than spent unpacking.
             return compressionMethod != CompressionMethod.STORED;
+        }
+
+        private static long computeCrc32Of(byte[] contents) {
+            return Hashing.crc32().hashBytes(contents).padToLong();
         }
     }
 }
