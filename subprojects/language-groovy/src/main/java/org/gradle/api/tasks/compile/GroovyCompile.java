@@ -261,7 +261,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         spec.setSourcesRoots(sourceRoots);
         spec.setSourceFiles(stableSourcesAsFileTree);
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
-        spec.setJavaDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(determineGroovyCompileClasspath()));

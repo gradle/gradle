@@ -16,12 +16,5 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import java.io.File;
-
 public interface GroovyJavaJointCompileSpec extends JavaCompileSpec, GroovyCompileSpec {
-
-    File getJavaDestinationDir();
-
-    void setJavaDestinationDir(File destinationDir);
-
 }
