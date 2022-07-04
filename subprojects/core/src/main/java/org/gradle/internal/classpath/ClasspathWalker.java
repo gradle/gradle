@@ -156,9 +156,10 @@ public class ClasspathWalker {
 
         @Override
         public CompressionMethod getCompressionMethod() {
-            // Standalone files are somewhat STORED (not compressed), but this is more of an accident
-            // and not something that we'd want to expose. The clients may want to process STORED entries
-            // in a special way.
+            // One could argue that files have STORED as the compression method, as they obviously aren't compressed.
+            // However, this property is mostly an accident of the way this classpath entry was produced.
+            // Exposing it may put unnecessary burden on clients if, for example, they try to keep the compression method
+            // while repackaging entries.
             return CompressionMethod.UNDEFINED;
         }
     }
