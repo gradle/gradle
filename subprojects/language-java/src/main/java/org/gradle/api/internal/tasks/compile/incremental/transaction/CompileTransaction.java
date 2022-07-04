@@ -227,41 +227,28 @@ public class CompileTransaction {
     }
 
     private void moveCompileOutputToOriginalFolders(List<StagedOutput> stagedOutputs) {
-        stagedOutputs.forEach(output -> moveAllFilesFromDirectoryTo(output.stagingDirectory, output.sourceDirectory));
-    }
-
-    private void moveAllFilesFromDirectoryTo(File sourceDirectory, File destinationDirectory) {
-        Path sourcePath = sourceDirectory.toPath();
-        try (Stream<Path> dirStream = Files.walk(sourcePath)) {
-            dirStream.filter(Files::isRegularFile)
-                .forEach(path -> {
-                    File newFile = new File(destinationDirectory, sourcePath.relativize(path).toString());
-                    moveFile(path.toFile(), newFile);
-                });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        stagedOutputs.forEach(StagedOutput::unstage);
     }
 
     private void rollbackStash(List<StashedFile> stashedFiles) {
-        stashedFiles.forEach(stashedFile -> moveFile(stashedFile.stashFile, stashedFile.sourceFile));
+        stashedFiles.forEach(StashedFile::unstash);
     }
 
-    private void moveFile(File sourceFile, File destinationFile) {
+    private void setupSpecOutputs(List<StagedOutput> stagedOutputs) {
+        stagedOutputs.forEach(StagedOutput::setupSpecOutput);
+    }
+
+    private void restoreSpecOutputs(List<StagedOutput> stagedOutputs) {
+        stagedOutputs.forEach(StagedOutput::restoreSpecOutput);
+    }
+
+    private static void moveFile(File sourceFile, File destinationFile) {
         try {
             destinationFile.getParentFile().mkdirs();
             Files.move(sourceFile.toPath(), destinationFile.toPath(), REPLACE_EXISTING);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private void setupSpecOutputs(List<StagedOutput> stagedOutputs) {
-        stagedOutputs.forEach(output -> output.setSpecOutput.accept(output.stagingDirectory));
-    }
-
-    private void restoreSpecOutputs(List<StagedOutput> stagedOutputs) {
-        stagedOutputs.forEach(output -> output.setSpecOutput.accept(output.sourceDirectory));
     }
 
     private static class StashResult {
@@ -289,6 +276,28 @@ public class CompileTransaction {
             this.stagingDirectory = stagingDirectory;
             this.setSpecOutput = setSpecOutput;
         }
+
+        public void setupSpecOutput() {
+            setSpecOutput.accept(stagingDirectory);
+        }
+
+        public void restoreSpecOutput() {
+            setSpecOutput.accept(sourceDirectory);
+        }
+
+        public void unstage() {
+            Path stagingPath = stagingDirectory.toPath();
+            try (Stream<Path> dirStream = Files.walk(stagingPath)) {
+                dirStream
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        File newFile = new File(sourceDirectory, stagingPath.relativize(path).toString());
+                        moveFile(path.toFile(), newFile);
+                    });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 
     private static class StashedFile {
@@ -298,6 +307,10 @@ public class CompileTransaction {
         private StashedFile(File sourceFile, File stashFile) {
             this.sourceFile = sourceFile;
             this.stashFile = stashFile;
+        }
+
+        public void unstash() {
+            moveFile(stashFile, sourceFile);
         }
     }
 }
