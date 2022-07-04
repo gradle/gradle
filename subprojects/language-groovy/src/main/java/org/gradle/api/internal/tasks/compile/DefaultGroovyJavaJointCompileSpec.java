@@ -47,14 +47,4 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     public boolean incrementalCompilationEnabled() {
         return getCompileOptions().getPreviousCompilationDataFile() != null;
     }
-
-    @Override
-    public File getJavaDestinationDir() {
-        return javaDestinationDir;
-    }
-
-    @Override
-    public void setJavaDestinationDir(File javaDestinationDir) {
-        this.javaDestinationDir = javaDestinationDir;
-    }
 }

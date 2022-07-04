@@ -72,6 +72,35 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'Change root Groovy files '                 | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'Incremental compilation of' | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'
     }
 
+    def 'Groovy-Java compilation with mix sourceSet on #scenario'() {
+        given:
+        applyMixFileSet(initialSet)
+        run "compileGroovy"
+
+        when:
+        applyMixFileSet(firstChange)
+        run "compileGroovy", "--info"
+
+        then: 'first build'
+        upToDateOrMessage(":compileJava", firstBuildMessage[0] as String)
+        upToDateOrMessage(":compileGroovy", firstBuildMessage[1] as String)
+
+        when: 'second build'
+        applyMixFileSet(secondChange)
+        run "compileGroovy", "--info"
+
+        then:
+        upToDateOrMessage(":compileJava", secondBuildMessage[0] as String)
+        upToDateOrMessage(":compileGroovy", secondBuildMessage[1] as String)
+
+        where:
+        scenario                                    | initialSet   | firstChange          | firstBuildMessage                                            | secondChange         | secondBuildMessage
+        'Add Java files to Java file set'           | ['G']        | ['J', 'G']           | ['a full rebuild', "UP-TO-DATE"]                             | ['J', 'G']           | ['UP-TO-DATE', 'UP-TO-DATE']
+        'Add Groovy files to Groovy file set'       | ['J']        | ['J', 'G']           | ["UP-TO-DATE", "a full rebuild"]                             | ['J.changed', 'G']   | ['Incremental compilation of', 'UP-TO-DATE']
+        'Change Java files'                         | ['J', 'G']   | ['J.changed', 'G']   | ['Incremental compilation of', "UP-TO-DATE"]                 | ['J.changed', 'G']   | ['UP-TO-DATE', 'UP-TO-DATE']
+        'Change Java files which Groovy depends on' | ['J', 'G_J'] | ['J.changed', 'G_J'] | ['Incremental compilation of', 'Incremental compilation of'] | ['J.changed', 'G_J'] | ['UP-TO-DATE', 'UP-TO-DATE']
+    }
+
     def 'Groovy-Java joint compilation incremental compilation after failure: #scenario'() {
         given:
         applyGroovyFileSet(initialSet)
@@ -142,9 +171,9 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
 
         where:
         scenario                                    | initialSet   | firstChange          | secondChange         | secondChangeRecompiledClasses | secondBuildMessage                                           | thirdChange
-        'Change Java files'                         | ['G', 'J']   | ['G', 'J.failure']   | ['G', 'J.changed']   | ['J']                         | ['Incremental compilation of', 'UP-TO-DATE']                 | ['G', 'J.changed']
-        'Change Java files which Groovy depends on' | ['G_J', 'J'] | ['G_J', 'J.failure'] | ['G_J', 'J.changed'] | ['G_J', 'J']                  | ['Incremental compilation of', 'Incremental compilation of'] | ['G_J', 'J.changed']
-        'Change Groovy file'                        | ['G', 'J']   | ['G.failure', 'J']   | ['G.changed', 'J']   | ['G']                         | ['UP-TO-DATE', 'Incremental compilation of']                 | ['G.changed', 'J']
+        'Change Java files'                         | ['J', 'G']   | ['J.failure', 'G']   | ['J.changed', 'G']   | ['J']                         | ['Incremental compilation of', 'UP-TO-DATE']                 | ['J.changed', 'G']
+        'Change Java files which Groovy depends on' | ['J', 'G_J'] | ['J.failure', 'G_J'] | ['J.changed', 'G_J'] | ['J', 'G_J']                  | ['Incremental compilation of', 'Incremental compilation of'] | ['J.changed', 'G_J']
+        'Change Groovy file'                        | ['J', 'G']   | ['J', 'G.failure']   | ['J', 'G.changed']   | ['G']                         | ['UP-TO-DATE', 'Incremental compilation of']                 | ['J', 'G.changed']
     }
 
     void applyGroovyFileSet(List<String> fileSet) {
