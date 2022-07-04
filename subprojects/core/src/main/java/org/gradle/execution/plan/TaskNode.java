@@ -73,10 +73,6 @@ public abstract class TaskNode extends Node {
         return finalizingSuccessors;
     }
 
-    public Set<Node> getFinalizingSuccessorsInReverseOrder() {
-        return finalizingSuccessors.descendingSet();
-    }
-
     public Set<Node> getShouldSuccessors() {
         return shouldSuccessors;
     }
@@ -158,12 +154,6 @@ public abstract class TaskNode extends Node {
         if (!getFinalizingSuccessors().isEmpty()) {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
             NodeGroup oldGroup = getGroup();
-            if (oldGroup instanceof HasFinalizers) {
-                // The finalizer has its own scheduling logic. Its execution moment is determined by the node it finalizes.
-                // The other finalizer groups containing this node (as a dependency of the finalizer) should always consider it
-                // as a hard successor for group elements.
-                ((HasFinalizers) oldGroup).removeFromOwnedMembers(this);
-            }
             FinalizerGroup finalizerGroup = new FinalizerGroup(this, oldGroup);
             setGroup(finalizerGroup);
         }
