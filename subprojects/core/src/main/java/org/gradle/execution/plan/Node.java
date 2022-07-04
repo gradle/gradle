@@ -143,10 +143,7 @@ public abstract class Node {
         NodeGroup newGroup = group;
         for (Node predecessor : getDependencyPredecessors()) {
             if (predecessor.getGroup() instanceof HasFinalizers) {
-                HasFinalizers newGroupWithFinalizers = maybeInheritGroupAsFinalizerDependency((HasFinalizers) predecessor.getGroup(), newGroup);
-                // The first finalizer group to reach here would "own" this node if it isn't part of some ordinal group already.
-                newGroupWithFinalizers.maybeAddToOwnedMembers(this);
-                newGroup = newGroupWithFinalizers;
+                newGroup = maybeInheritGroupAsFinalizerDependency((HasFinalizers) predecessor.getGroup(), newGroup);
             }
         }
         if (newGroup != group) {
@@ -164,7 +161,7 @@ public abstract class Node {
         }
 
         HasFinalizers currentFinalizers = (HasFinalizers) current;
-        if (currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
+        if (currentFinalizers.isReachableFromEntryPoint() == finalizers.isReachableFromEntryPoint() && currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
             return currentFinalizers;
         }
 
@@ -477,7 +474,7 @@ public abstract class Node {
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessors() {
-        return dependencySuccessors;
+        return getHardSuccessors();
     }
 
     /**
