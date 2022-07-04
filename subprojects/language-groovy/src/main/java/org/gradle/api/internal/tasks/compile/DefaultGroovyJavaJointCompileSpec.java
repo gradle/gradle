@@ -22,7 +22,6 @@ import java.util.List;
 public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec implements GroovyJavaJointCompileSpec {
     private MinimalGroovyCompileOptions groovyCompileOptions;
     private List<File> groovyClasspath;
-    private File javaDestinationDir;
 
     @Override
     public MinimalGroovyCompileOptions getGroovyCompileOptions() {
