@@ -17,39 +17,32 @@
 package org.gradle.internal.upgrade.report;
 
 import org.gradle.internal.hash.Hasher;
-import org.objectweb.asm.MethodVisitor;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ApiUpgrader {
-    public static final ApiUpgrader NO_UPGRADES = new ApiUpgrader(Collections.emptyList());
+public class ApiUpgradeReporter {
+    public static final ApiUpgradeReporter NO_UPGRADES = new ApiUpgradeReporter(Collections.emptyList());
 
-    private final List<Replacement> replacements;
+    private final List<ReportableApiChange> changes;
 
-    public ApiUpgrader(List<Replacement> replacements) {
-        this.replacements = replacements;
+    public ApiUpgradeReporter(List<ReportableApiChange> changes) {
+        this.changes = changes;
     }
 
-    public boolean generateReplacementMethod(MethodVisitor methodVisitor, int opcode, String owner, String name, String desc, boolean itf) {
-        for (int index = 0; index < replacements.size(); index++) {
-            Replacement replacement = replacements.get(index);
-            if (replacement.replaceByteCodeIfMatches(opcode, owner, name, desc, itf, index, methodVisitor)) {
-                return true;
-            }
+    public void reportApiChanges(int opcode, String owner, String name, String desc) {
+        for (ReportableApiChange change : changes) {
+            change.reportApiChangeIfMatches(opcode, owner, name, desc);
         }
-        return false;
     }
 
     public boolean shouldDecorateCallsiteArray() {
-        return !replacements.isEmpty();
+        return !changes.isEmpty();
     }
 
     public void applyConfigurationTo(Hasher hasher) {
-        for (Replacement replacement : replacements) {
-            replacement.applyConfigurationTo(hasher);
+        for (ReportableApiChange change : changes) {
+            change.applyConfigurationTo(hasher);
         }
     }
-
-
 }

@@ -20,32 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ApiUpgradeReportIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can upgradle Kotlin 1.6.21"() {
-        def buildSrc = testDirectory.file("buildSrc")
-        buildSrc.file("build.gradle") << """
-plugins {
-    id 'groovy-gradle-plugin'
-}
+    private static final File ACCEPTED_TEST_CHANGES = new File("src/integTest/resources/org/gradle/api/internal/upgrade/report/ApiUpgradeReportIntegrationTest/accepted-public-api-changes.json")
 
-repositories {
-    gradlePluginPortal()
-}"""
-        buildSrc.file("src/main/groovy").mkdirs()
-        buildSrc.file("src/main/groovy/commons.java-conventions.gradle") << """
-plugins {
-    id 'java'
-}
-
-repositories {
-    mavenCentral()
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
-"""
-
-
+    def "can report upgrades for Kotlin 1.6.21"() {
+        // TODD don't force delete caches, but properly rerun report
+        // executer.requireOwnGradleUserHomeDir() is not used since it download Kotlin plugin everytime which can take a long time
+        executer.getGradleUserHomeDir().file("caches/jars-9").forceDeleteDir()
         settingsFile """
             pluginManagement {
                 repositories {
@@ -65,10 +45,9 @@ tasks.named('test') {
         file("src/main/kotlin/MyClass.kt") << """
             class MyClass {}
         """
-        file("src/main/java/MyJavaClass.java") << "public class MyJavaClass {}"
 
         when:
-        run("compileKotlin", "-Pkotlin.parallel.tasks.in.project=true", "--info")
+        run("compileKotlin", "-Pkotlin.parallel.tasks.in.project=true", "--info", "-Dorg.gradle.binary.upgrade.report.json=${ACCEPTED_TEST_CHANGES.getAbsolutePath()}")
         then:
         executedAndNotSkipped(":compileKotlin")
     }

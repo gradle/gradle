@@ -25,7 +25,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.upgrade.report.ApiUpgrader;
+import org.gradle.internal.upgrade.report.ApiUpgradeReporter;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
@@ -189,35 +189,35 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
 
     private static final String[] NO_EXCEPTIONS = new String[0];
-    private final ApiUpgrader apiUpgrader;
+    private final ApiUpgradeReporter apiUpgradeReporter;
 
-    public InstrumentingTransformer(ApiUpgrader apiUpgrader) {
-        this.apiUpgrader = apiUpgrader;
+    public InstrumentingTransformer(ApiUpgradeReporter apiUpgradeReporter) {
+        this.apiUpgradeReporter = apiUpgradeReporter;
     }
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
         hasher.putInt(DECORATION_FORMAT);
-        apiUpgrader.applyConfigurationTo(hasher);
+        apiUpgradeReporter.applyConfigurationTo(hasher);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgrader));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgradeReporter));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
-        private final ApiUpgrader apiUpgrader;
+        private final ApiUpgradeReporter apiUpgradeReporter;
         String className;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
 
-        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgrader apiUpgrader) {
+        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgradeReporter apiUpgradeReporter) {
             super(ASM_LEVEL, visitor);
-            this.apiUpgrader = apiUpgrader;
+            this.apiUpgradeReporter = apiUpgradeReporter;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -240,7 +240,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgrader);
+            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgradeReporter);
         }
 
         @Override
@@ -313,13 +313,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
-        private final ApiUpgrader apiUpgrader;
+        private final ApiUpgradeReporter apiUpgradeReporter;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgrader apiUpgrader) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgradeReporter apiUpgradeReporter) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
-            this.apiUpgrader = apiUpgrader;
+            this.apiUpgradeReporter = apiUpgradeReporter;
         }
 
         @Override
@@ -453,7 +453,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     return true;
                 }
             }
-            apiUpgrader.generateReplacementMethod(mv, INVOKEVIRTUAL, owner, name, descriptor, true);
+            apiUpgradeReporter.reportApiChanges(INVOKEVIRTUAL, owner, name, descriptor);
             return false;
         }
 

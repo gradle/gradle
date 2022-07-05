@@ -17,6 +17,7 @@
 package org.gradle.internal.upgrade.report;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import groovy.json.JsonSlurper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,14 +34,39 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 class ApiUpgradeJsonParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiUpgradeJsonParser.class);
+
     private static final Pattern METHOD_PATTERN = Pattern.compile("Method (\\w+(?:\\.\\w+)*) (\\w+(?:\\.\\w+)*)\\.(\\w+)\\((.*)\\)");
     private static final Pattern COMMA_LIST_PATTERN = Pattern.compile(",\\s*");
 
-    public ImmutableList<ReportableApiChange> parseAcceptedApiChanges(String apiChangesPath) {
-        List<JsonApiChange> jsonApiChanges = parseApiChangeFile(new File(apiChangesPath));
+    private static final Map<String, Class<?>> PRIMITIVE_CLASSES = Stream.<Class<?>>of(
+        boolean.class,
+        byte.class,
+        short.class,
+        int.class,
+        long.class,
+        float.class,
+        double.class,
+        char.class
+    ).collect(toMap(Class::getName, identity()));
+
+    private static final Map<String, List<String>> ALL_KNOWN_SUBTYPES = ImmutableMap.<String, List<String>>builder()
+        .put("org.gradle.api.tasks.compile.AbstractCompile", ImmutableList.of("org.gradle.api.tasks.compile.JavaCompile",
+            "org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile",
+            "org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
+            "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask",
+            "org.gradle.api.tasks.compile.GroovyCompile")
+        )
+        .build();
+
+    public ImmutableList<ReportableApiChange> parseAcceptedApiChanges(File apiChangesPath) {
+        List<JsonApiChange> jsonApiChanges = parseApiChangeFile(apiChangesPath);
         return jsonApiChanges.stream()
             .map(this::mapToApiChange)
             .filter(Optional::isPresent)
@@ -55,35 +81,47 @@ class ApiUpgradeJsonParser {
             return Optional.empty();
         }
 
-        String returnTypeName = methodMatcher.group(1);
         String typeName = methodMatcher.group(2);
         String methodName = methodMatcher.group(3);
-        String[] parameterTypeNames = COMMA_LIST_PATTERN.split(methodMatcher.group(4));
+        List<String> parameterTypeNames = Arrays.stream(COMMA_LIST_PATTERN.split(methodMatcher.group(4)))
+            .filter(split -> !split.isEmpty())
+            .collect(Collectors.toList());
         Optional<Class<?>> type = getClassForName(typeName);
         if (!type.isPresent()) {
-            LOGGER.error("Cannot find upgraded type {} for {}", typeName, member);
+            // This means type is not on a classpath, so it doesn't need upgrade
             return Optional.empty();
         }
 
-        List<Class<?>> parameterTypes = Arrays.stream(parameterTypeNames)
+        List<Class<?>> parameterTypes = parameterTypeNames.stream()
             .map(name -> getClassForName(name).orElse(null))
             .collect(Collectors.toList());
         if (parameterTypes.stream().anyMatch(Objects::isNull)) {
-            LOGGER.error("Cannot find all type parameters {}", Arrays.asList(parameterTypeNames));
+            LOGGER.error("Cannot find all type parameters {} for upgrade {}", parameterTypeNames, member);
             return Optional.empty();
         }
 
         try {
             Method method = type.get().getMethod(methodName, parameterTypes.toArray(new Class[0]));
-            return Optional.of(new MethodReportableApiChange(jsonApiChange.type, Collections.emptyList(), method));
+            List<String> allKnownSubtypes = ALL_KNOWN_SUBTYPES.getOrDefault(type.get().getName(), Collections.emptyList());
+            return Optional.of(new MethodReportableApiChange(jsonApiChange.type, allKnownSubtypes, method));
         } catch (NoSuchMethodException e) {
-            LOGGER.error("Cannot find upgraded {}", member, e);
+            // This means that method on classpath has different signature, so we cannot upgrade it
+            LOGGER.error("Cannot find method for upgrade {}", member);
             return Optional.empty();
         }
     }
 
     private Optional<Class<?>> getClassForName(String name) {
         try {
+            if (name.endsWith("[]")) {
+                // TODO handle primitives also here
+                String arrayName = "[L" + name.replace("[]", "") + ";";
+                return Optional.of(Class.forName(arrayName));
+            }
+            Class<?> primitiveClass = PRIMITIVE_CLASSES.get(name);
+            if (primitiveClass != null) {
+                return Optional.of(primitiveClass);
+            }
             return Optional.of(Class.forName(name));
         } catch (ClassNotFoundException e) {
             return Optional.empty();
