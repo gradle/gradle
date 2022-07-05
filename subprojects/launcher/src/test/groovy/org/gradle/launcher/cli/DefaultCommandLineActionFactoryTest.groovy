@@ -41,11 +41,11 @@ import spock.lang.Specification
 
 class DefaultCommandLineActionFactoryTest extends Specification {
     @Rule
-    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     @Rule
-    public final SetSystemProperties sysProperties = new SetSystemProperties()
+    public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final ExecutionListener executionListener = Mock()
     final LoggingServiceRegistry loggingServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()
@@ -111,11 +111,11 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "reports command-line parse failure"() {
         when:
-        def commandLineExecution = factory.convert([badOption])
+        def commandLineExecution = factory.convert(['--broken'])
         commandLineExecution.execute(executionListener)
 
         then:
-        outputs.stdErr.contains("Unknown command-line option '" + badOption + "'.")
+        outputs.stdErr.contains('--broken')
         outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
         outputs.stdErr.contains('--help')
         outputs.stdErr.contains('--some-option')
@@ -124,9 +124,6 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
-
-        where:
-        badOption << ['--broken', '--show-version']
     }
 
     def "reports failure to build action due to command-line parse failure"() {
@@ -201,7 +198,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     }
 
     def "uses system property for application name"() {
-        System.setProperty("org.gradle.appname", "gradle-app")
+        System.setProperty("org.gradle.appname", "gradle-app");
 
         when:
         def commandLineExecution = factory.convert(['-?'])
@@ -290,8 +287,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         where:
         options            | action1Intermediary | action2Called
         ['-V']             | false               | 0
-        ['--show-gradle-version'] | false               | 0
+        ['--show-version'] | false               | 0
         ['-V']             | true                | 1
-        ['--show-gradle-version'] | true                | 1
+        ['--show-version'] | true                | 1
     }
 }
