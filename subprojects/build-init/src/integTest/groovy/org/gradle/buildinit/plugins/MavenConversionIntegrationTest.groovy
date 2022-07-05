@@ -660,8 +660,8 @@ Root project 'webinar-parent'
         dsl.assertGradleFilesGenerated()
 
         def isGroovy = scriptDsl == BuildInitDsl.GROOVY
-        def descriptionPropertyAssignment = (isGroovy ? 'description = \'That\\\'s it' : 'description = "That\'s it"')
-        dsl.getBuildFile().text.contains(descriptionPropertyAssignment)
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'That\\\'s it\'' : 'description = "That\'s it"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20981")
@@ -675,8 +675,8 @@ Root project 'webinar-parent'
         dsl.assertGradleFilesGenerated()
 
         def isGroovy = scriptDsl == BuildInitDsl.GROOVY
-        def descriptionPropertyAssignment = (isGroovy ? 'description = \'"Quoted description"\'' : 'description = "\\"Quoted description\\"')
-        dsl.getBuildFile().text.contains(descriptionPropertyAssignment)
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'"Quoted description"\'' : 'description = "\\"Quoted description\\""')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
     }
 
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
