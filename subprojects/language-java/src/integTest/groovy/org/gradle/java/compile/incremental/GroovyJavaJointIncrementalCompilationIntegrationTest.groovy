@@ -32,6 +32,8 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'J': 'class J { }',
         'J.changed': 'class J { int i; }',
         'J.failure': 'class J { garbage }',
+        'J_J': 'class J_J extends J {}',
+        'G_J_J': 'class G_J_J extends J_J {}',
 
         'G_J': 'class G_J extends J { }',
 
@@ -47,29 +49,33 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         run "compileGroovy"
 
         when:
-        applyGroovyFileSet(firstChange)
+        outputs.snapshot { applyGroovyFileSet(firstChange) }
         run "compileGroovy", "--info"
 
         then: 'first build'
         upToDateOrMessage(firstBuildMessage)
+        outputs.recompiledClasses(firstCompiledClasses as String[])
 
         when: 'second build'
-        applyGroovyFileSet(secondChange)
+        outputs.snapshot { applyGroovyFileSet(secondChange) }
         run "compileGroovy", "--info"
 
         then:
         upToDateOrMessage(secondBuildMessage)
+        outputs.recompiledClasses(secondCompiledClasses as String[])
 
         where:
-        scenario                                    | initialSet            | firstChange                   | firstBuildMessage            | secondChange                  | secondBuildMessage
-        'Add Java files to Groovy file set'         | ['G']                 | ['G', 'J']                    | 'Incremental compilation of' | ['G', 'J']                    | 'UP-TO-DATE'
-        'Add Groovy files to Java file set'         | ['J']                 | ['G', 'J']                    | 'Incremental compilation of' | ['G', 'J.changed']            | 'Incremental compilation of'
-        'Change Java files in joint compilation'    | ['G', 'J']            | ['G', 'J.changed']            | 'Incremental compilation of' | ['G', 'J.changed']            | 'UP-TO-DATE'
-        'Change Groovy files which Java depends on' | ['G', 'J_G']          | ['G.changed', 'J_G']          | 'Incremental compilation of' | ['G.changed', 'J_G']          | 'UP-TO-DATE'
-        'Remove Java files in joint compilation'    | ['G', 'J']            | ['G']                         | 'UP-TO-DATE'                 | ['G', 'G_G']                  | 'Incremental compilation of '
-        'Remove Groovy files in joint compilation'  | ['G', 'J']            | ['J']                         | 'UP-TO-DATE'                 | ['J', 'G']                    | 'Incremental compilation of'
-        'Add Groovy files to joint file set'        | ['G', 'J']            | ['G', 'J', 'G_G']             | 'Incremental compilation of' | ['G', 'J', 'G_G']             | 'UP-TO-DATE'
-        'Change root Groovy files '                 | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'Incremental compilation of' | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'
+        scenario                                    | initialSet            | firstChange                   | firstBuildMessage            | firstCompiledClasses  | secondChange                  | secondBuildMessage           | secondCompiledClasses
+        'Add Java files to Groovy file set'         | ['G']                 | ['G', 'J']                    | 'Incremental compilation of' | ['J']                 | ['G', 'J']                    | 'UP-TO-DATE'                 | []
+        'Add Groovy files to Java file set'         | ['J']                 | ['G', 'J']                    | 'Incremental compilation of' | ['G']                 | ['G', 'J.changed']            | 'Incremental compilation of' | ['J']
+        'Change Java files in joint compilation'    | ['G', 'J']            | ['G', 'J.changed']            | 'Incremental compilation of' | ['J']                 | ['G', 'J.changed']            | 'UP-TO-DATE'                 | []
+        'Change Groovy files which Java depends on' | ['G', 'J', 'J_G']     | ['G.changed', 'J', 'J_G']     | 'Incremental compilation of' | ['G', 'J_G']          | ['G.changed', 'J', 'J_G']     | 'UP-TO-DATE'                 | []
+        'Change Java files which Groovy depends on' | ['G', 'G_J', 'J']     | ['G', 'G_J', 'J.changed']     | 'Incremental compilation of' | ['G_J', 'J']          | ['G', 'G_J', 'J.changed']     | 'UP-TO-DATE'                 | []
+        'Remove Java files in joint compilation'    | ['G', 'J']            | ['G']                         | 'UP-TO-DATE'                 | []                    | ['G', 'G_G']                  | 'Incremental compilation of' | ['G_G']
+        'Remove Groovy files in joint compilation'  | ['G', 'J']            | ['J']                         | 'UP-TO-DATE'                 | []                    | ['J', 'G']                    | 'Incremental compilation of' | ['G']
+        'Add Groovy files to joint file set'        | ['G', 'J']            | ['G', 'J', 'G_G']             | 'Incremental compilation of' | ['G_G']               | ['G', 'J', 'G_G']             | 'UP-TO-DATE'                 | []
+        'Change root Groovy files'                  | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'Incremental compilation of' | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'                 | []
+        'Change root Java files'                    | ['J', 'J_J', 'G_J_J'] | ['J.changed', 'J_J', 'G_J_J'] | 'Incremental compilation of' | ['J', 'J_J', 'G_J_J'] | ['J.changed', 'J_J', 'G_J_J'] | 'UP-TO-DATE'                 | []
     }
 
     def 'Groovy-Java compilation with mix sourceSet on #scenario'() {
