@@ -67,6 +67,8 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+## New features and usability improvements
+
 ### Improvements for IDE integrators
 
 #### Tooling API progress events expose difference between test assertion failures and test framework failures
@@ -165,9 +167,20 @@ networkTimeout=30000
 
 See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
 
+### Command-line improvements
+
+#### Tasks can be re-run selectively 
+
+A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
+```
+gradle test --rerun
+```
+
+See the [documentation](userguide/command_line_interface.html#sec:builtin_task_options) for more information.
+
 ### Improvements for plugin authors
 
-### Integer task options
+#### Integer task options
 
 It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
 

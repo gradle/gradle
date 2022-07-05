@@ -28,12 +28,15 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.io.ClassLoaderObjectInputStream
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Subject
+
+import java.util.zip.ZipEntry
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None
@@ -401,6 +404,23 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * _
     }
 
+    def "transformation keeps the compression level of archive entries"() {
+        given:
+        def file = testDir.file("thing.jar")
+        jarWithStoredResource(file)
+        def classpath = DefaultClassPath.of(file)
+        def cachedFile = testDir.file("cached/40ba77bb7fbecc72eec8f0e8257e55d5/thing.jar")
+
+        when:
+        def cachedClasspath = transformer.transform(classpath, BuildLogic)
+
+        then:
+        cachedClasspath.asFiles == [cachedFile]
+        def zip = new ZipTestFixture(cachedFile)
+        zip.hasCompression("a.class", ZipEntry.DEFLATED)
+        zip.hasCompression("res.txt", ZipEntry.STORED)
+    }
+
     def "uses non-file URL from origin"() {
         given:
         def file = testDir.file("thing.jar")
@@ -532,6 +552,13 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     void modifiedJar(TestFile file) {
         classpathBuilder.jar(file) {
             it.put("b.class", classTwo())
+        }
+    }
+
+    void jarWithStoredResource(TestFile file) {
+        classpathBuilder.jar(file) {
+            it.put("a.class", classOne(), ClasspathEntryVisitor.Entry.CompressionMethod.DEFLATED)
+            it.put("res.txt", "resource".bytes, ClasspathEntryVisitor.Entry.CompressionMethod.STORED)
         }
     }
 

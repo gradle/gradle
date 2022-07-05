@@ -483,6 +483,11 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             boolean canReopen() {
                 return !unsafe
             }
+
+            @Override
+            ZipEntry.ZipCompressionMethod getCompressionMethod() {
+                return ZipEntry.ZipCompressionMethod.DEFLATED
+            }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }
