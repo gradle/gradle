@@ -39,8 +39,6 @@ public class TextUtil {
         }
     };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
-    private static final Pattern A_SINGLE_QUOTE =  Pattern.compile("'");
-    private static final Pattern A_DOUBLE_QUOTE =  Pattern.compile("\"");
 
     /**
      * Returns the line separator for Windows.
@@ -208,13 +206,5 @@ public class TextUtil {
      */
     public static String toLowerCaseLocaleSafe(String s) {
         return s.toLowerCase(Locale.ENGLISH);
-    }
-
-    public static String escapeSingleQuotes(String s) {
-        return A_SINGLE_QUOTE.matcher(s).replaceAll("\\\\'");
-    }
-
-    public static String escapeDoubleQuotes(String s) {
-        return A_DOUBLE_QUOTE.matcher(s).replaceAll("\\\\\"");
     }
 }

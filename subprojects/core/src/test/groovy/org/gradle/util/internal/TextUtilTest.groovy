@@ -120,28 +120,4 @@ class TextUtilTest extends Specification {
         "aBc"       | "a-bc"
         "aBec"      | "a-bec"
     }
-
-    def escapeSingleQuotes() {
-        expect:
-        TextUtil.escapeSingleQuotes(unescaped) == escaped
-
-        where:
-        unescaped   | escaped
-        ""          | ""
-        "foo"       | "foo"
-        "\"foo\""   | "\"foo\""
-        "'foo' bar" | "\\'foo\\' bar"
-    }
-
-    def escapeDoubleQuotes() {
-        expect:
-        TextUtil.escapeDoubleQuotes(unescaped) == escaped
-
-        where:
-        unescaped     | escaped
-        ""            | ""
-        "foo"         | "foo"
-        "'foo'"       | "'foo'"
-        "\"foo\" bar" | "\\\"foo\\\" bar"
-    }
 }
