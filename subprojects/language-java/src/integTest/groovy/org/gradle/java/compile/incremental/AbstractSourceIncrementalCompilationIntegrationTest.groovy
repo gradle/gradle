@@ -423,11 +423,13 @@ sourceSets {
         """)
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated package foo;"""
-        source("package foo; class A {}")
-        source("package foo; public class B {}")
-        source("package foo.bar; class C {}")
-        source("package baz; class D {}")
-        source("package baz; import foo.B; class E extends B {}")
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -442,11 +444,13 @@ sourceSets {
     def "recompiles all classes in a package if the package-info file is added"() {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
-        source("package foo; class A {}")
-        source("package foo; public class B {}")
-        source("package foo.bar; class C {}")
-        source("package baz; class D {}")
-        source("package baz; import foo.B; class E extends B {}")
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -462,11 +466,13 @@ sourceSets {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated package foo;"""
-        source("package foo; class A {}")
-        source("package foo; public class B {}")
-        source("package foo.bar; class C {}")
-        source("package baz; class D {}")
-        source("package baz; import foo.B; class E extends B {}")
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 

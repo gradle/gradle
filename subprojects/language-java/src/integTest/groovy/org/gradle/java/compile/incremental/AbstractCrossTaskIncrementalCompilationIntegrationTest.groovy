@@ -282,8 +282,10 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     def "deletion of a jar with duplicate class causes recompilation"() {
-        source api: ["package org.junit; public class Assert {}"]
-        source impl: ["class A extends org.junit.Assert {}"]
+        source(
+            api: ["package org.junit; public class Assert {}"],
+            impl: ["class A extends org.junit.Assert {}"]
+        )
 
         file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.13' }"
 

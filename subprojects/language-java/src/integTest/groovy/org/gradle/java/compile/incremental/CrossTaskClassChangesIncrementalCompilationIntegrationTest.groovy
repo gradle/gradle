@@ -293,8 +293,10 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
         """]
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
         packageFile.text = """@Deprecated package foo;"""
-        source api: ["package foo; public class A {}", "package bar; public class B {}"]
-        source impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        source(
+            api: ["package foo; public class A {}", "package bar; public class B {}"],
+            impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        )
 
         impl.snapshot { succeeds "impl:${language.compileTaskName}" }
 
@@ -309,8 +311,10 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
     def "recompiles downstream dependents of classes whose package-info was added"() {
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
-        source api: ["package foo; public class A {}", "package bar; public class B {}"]
-        source impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        source(
+            api: ["package foo; public class A {}", "package bar; public class B {}"],
+            impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        )
 
         impl.snapshot { succeeds "impl:${language.compileTaskName}" }
 
@@ -326,8 +330,10 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
         packageFile.text = """@Deprecated package foo;"""
-        source api: ["package foo; public class A {}", "package bar; public class B {}"]
-        source impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        source(
+            api: ["package foo; public class A {}", "package bar; public class B {}"],
+            impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        )
 
         impl.snapshot { succeeds "impl:${language.compileTaskName}" }
 
