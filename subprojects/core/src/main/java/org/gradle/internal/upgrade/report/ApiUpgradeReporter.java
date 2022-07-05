@@ -20,6 +20,8 @@ import org.gradle.internal.hash.Hasher;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ApiUpgradeReporter {
     public static final ApiUpgradeReporter NO_UPGRADES = new ApiUpgradeReporter(Collections.emptyList());
@@ -30,10 +32,13 @@ public class ApiUpgradeReporter {
         this.changes = changes;
     }
 
-    public void reportApiChanges(int opcode, String owner, String name, String desc) {
-        for (ReportableApiChange change : changes) {
-            change.reportApiChangeIfMatches(opcode, owner, name, desc);
-        }
+    public List<String> reportApiChanges(int opcode, String owner, String name, String desc) {
+        return changes.stream()
+            .map(change -> change.reportApiChangeIfMatches(opcode, owner, name, desc))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     public boolean shouldDecorateCallsiteArray() {

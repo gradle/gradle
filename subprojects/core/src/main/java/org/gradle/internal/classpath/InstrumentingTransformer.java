@@ -33,6 +33,8 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -214,6 +218,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
+        private String sourceName;
 
         public InstrumentingVisitor(ClassVisitor visitor, ApiUpgradeReporter apiUpgradeReporter) {
             super(ASM_LEVEL, visitor);
@@ -240,7 +245,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgradeReporter);
+            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgradeReporter, sourceName);
+        }
+
+        @Override
+        public void visitSource(String source, String debug) {
+            this.sourceName = source;
+            super.visitSource(source, debug);
         }
 
         @Override
@@ -311,15 +322,21 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     }
 
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
+
+        private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingMethodVisitor.class);
+
         private final InstrumentingVisitor owner;
         private final String className;
         private final ApiUpgradeReporter apiUpgradeReporter;
+        private final String sourceName;
+        private int lineNumber;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgradeReporter apiUpgradeReporter) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgradeReporter apiUpgradeReporter, String sourceName) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.apiUpgradeReporter = apiUpgradeReporter;
+            this.sourceName = sourceName;
         }
 
         @Override
@@ -436,6 +453,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor) {
+            reportApiUpgrade(owner, name, descriptor);
             // Runtime.exec(...)
             if (owner.equals(RUNTIME_TYPE.getInternalName()) && name.equals("exec")) {
                 Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForRuntimeExecDescriptor(descriptor);
@@ -453,8 +471,29 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     return true;
                 }
             }
-            apiUpgradeReporter.reportApiChanges(INVOKEVIRTUAL, owner, name, descriptor);
             return false;
+        }
+
+        private void reportApiUpgrade(String owner, String name, String descriptor) {
+            List<String> report = apiUpgradeReporter.reportApiChanges(INVOKEVIRTUAL, owner, name, descriptor);
+            if (!report.isEmpty()) {
+                // There must be a better way to get full source file name, but for now this "heuristic" should do it
+                int lastIndexOfSlash = className.lastIndexOf("/");
+                String fullSourceName = lastIndexOfSlash > -1
+                    ? className.substring(0, lastIndexOfSlash) + "/" + sourceName
+                    : sourceName;
+                if (report.size() == 1) {
+                    LOGGER.info("{}: line: {}: {}", fullSourceName, lineNumber, report.get(0));
+                } else {
+                    LOGGER.info("{}: line: {}:\n\t{}", fullSourceName, lineNumber, String.join("\n\t", report));
+                }
+            }
+        }
+
+        @Override
+        public void visitLineNumber(int line, Label start) {
+            this.lineNumber = line;
+            super.visitLineNumber(line, start);
         }
 
         private Optional<String> getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(String descriptor) {

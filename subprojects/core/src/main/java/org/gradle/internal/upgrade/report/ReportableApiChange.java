@@ -18,9 +18,11 @@ package org.gradle.internal.upgrade.report;
 
 import org.gradle.internal.hash.Hasher;
 
+import java.util.Optional;
+
 public interface ReportableApiChange {
 
-    void reportApiChangeIfMatches(int opcode, String owner, String name, String desc);
+    Optional<String> reportApiChangeIfMatches(int opcode, String owner, String name, String desc);
 
     void applyConfigurationTo(Hasher hasher);
 

@@ -18,11 +18,10 @@ package org.gradle.internal.upgrade.report;
 
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +29,6 @@ import java.util.stream.Stream;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
 public class MethodReportableApiChange implements ReportableApiChange {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodReplacement.class);
 
     private final Set<String> types;
     private final String methodName;
@@ -60,12 +58,13 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public void reportApiChangeIfMatches(int opcode, String owner, String name, String desc) {
+    public Optional<String> reportApiChangeIfMatches(int opcode, String owner, String name, String desc) {
         if (opcode == INVOKEVIRTUAL
             && types.contains(owner)
             && name.equals(methodName)
             && desc.equals(methodDescriptor)) {
-            LOGGER.info("Matched {}.{}({})", owner, name, desc);
+            return Optional.of("Method call '" + owner + "." + name + "(" + desc + ")'");
         }
+        return Optional.empty();
     }
 }
