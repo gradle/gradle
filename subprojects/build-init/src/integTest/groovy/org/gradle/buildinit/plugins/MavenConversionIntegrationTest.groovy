@@ -679,6 +679,26 @@ Root project 'webinar-parent'
         dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeBackslashes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        '''hello world ' this is cool!'''
+        def descriptionPropertyAssignment = (
+            isGroovy
+                ? 'description = \'Backslashes \\\\ next to single quotes \\\'\\\\\\\' and double quotes "\\\\" oh my!\''
+                : 'description = "Backslashes \\\\ next to single quotes \'\\\\\' and double quotes \\"\\\\\\" oh my!"'
+        )
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()

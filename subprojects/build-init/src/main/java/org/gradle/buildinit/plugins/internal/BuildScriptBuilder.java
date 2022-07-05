@@ -1966,7 +1966,7 @@ public class BuildScriptBuilder {
         }
 
         private String escapeBackslashesAndDoubleQuotes(String string) {
-            return string.replace("\"", "\\\"");
+            return string.replace("\\", "\\\\").replace("\"", "\\\"");
         }
 
         @Override
@@ -2140,7 +2140,7 @@ public class BuildScriptBuilder {
         }
 
         private String escapeBackslashesAndSingleQuotes(String string) {
-            return string.replace("'", "\\'");
+            return string.replace("\\", "\\\\").replace("'", "\\'");
         }
 
         @Override
