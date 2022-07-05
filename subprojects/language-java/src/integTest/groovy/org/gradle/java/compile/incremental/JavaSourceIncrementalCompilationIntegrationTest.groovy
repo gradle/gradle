@@ -16,7 +16,6 @@
 
 package org.gradle.java.compile.incremental
 
-
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
