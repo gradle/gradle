@@ -20,6 +20,6 @@
     <groupId>util</groupId>
     <artifactId>util</artifactId>
     <version>2.5</version>
-    <name>Backslashes \ next to single quotes '\' and double quotes "\" oh my!</name>
+    <name>A description \ with a backslash</name>
     <packaging>jar</packaging>
 </project>
