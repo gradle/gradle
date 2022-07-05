@@ -690,12 +690,7 @@ Root project 'webinar-parent'
         dsl.assertGradleFilesGenerated()
 
         def isGroovy = scriptDsl == BuildInitDsl.GROOVY
-        '''hello world ' this is cool!'''
-        def descriptionPropertyAssignment = (
-            isGroovy
-                ? 'description = \'Backslashes \\\\ next to single quotes \\\'\\\\\\\' and double quotes "\\\\" oh my!\''
-                : 'description = "Backslashes \\\\ next to single quotes \'\\\\\' and double quotes \\"\\\\\\" oh my!"'
-        )
+        def descriptionPropertyAssignment = (isGroovy ? "description = 'A description \\\\ with a backslash'" : 'description = "A description \\\\ with a backslash"')
         dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
     }
 
