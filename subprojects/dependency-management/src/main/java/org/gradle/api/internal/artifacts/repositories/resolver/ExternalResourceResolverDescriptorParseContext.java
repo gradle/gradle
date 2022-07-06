@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -28,6 +27,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -78,11 +78,11 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         componentResolver.resolve(moduleComponentIdentifier, DefaultComponentOverrideMetadata.EMPTY, moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        artifactResolver.resolveArtifactsWithType(moduleVersionResolveResult.getMetadata(), artifactType, moduleArtifactsResolveResult);
+        artifactResolver.resolveArtifactsWithType(moduleVersionResolveResult.getState().getArtifactResolveMetadata(), artifactType, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
         ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getResult().iterator().next();
-        artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getMetadata().getSources(), artifactResolveResult);
+        artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getState().getSources(), artifactResolveResult);
         File file = artifactResolveResult.getResult();
         LocallyAvailableExternalResource resource = fileResourceRepository.resource(file);
         ComponentArtifactIdentifier id = artifactMetaData.getId();

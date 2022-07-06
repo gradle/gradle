@@ -37,7 +37,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.hasResult()
         result.id == id
         result.moduleVersionId == mvId
-        result.metadata == null
+        result.state == null
         result.failure == null
     }
 
@@ -56,7 +56,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.hasResult()
         result.id == id
         result.moduleVersionId == mvId
-        result.metadata == metaData
+        result.state == metaData
         result.failure == null
     }
 

@@ -145,8 +145,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public void addArtifacts(String configuration, Collection<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentId, artifact);
-            allArtifacts.put(configuration, artifactMetadata);
+            allArtifacts.put(configuration, new PublishArtifactLocalArtifactMetadata(componentId, artifact));
         }
     }
 
@@ -295,17 +294,19 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         private ImmutableList<LocalComponentArtifactMetadata> configurationArtifacts;
 
-        protected DefaultLocalConfigurationMetadata(String name,
-                                                    String description,
-                                                    boolean visible,
-                                                    boolean transitive,
-                                                    Set<String> extendsFrom,
-                                                    ImmutableSet<String> hierarchy,
-                                                    ImmutableAttributes attributes,
-                                                    boolean canBeConsumed,
-                                                    DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
-                                                    boolean canBeResolved,
-                                                    ImmutableCapabilities capabilities) {
+        protected DefaultLocalConfigurationMetadata(
+            String name,
+            String description,
+            boolean visible,
+            boolean transitive,
+            Set<String> extendsFrom,
+            ImmutableSet<String> hierarchy,
+            ImmutableAttributes attributes,
+            boolean canBeConsumed,
+            DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+            boolean canBeResolved,
+            ImmutableCapabilities capabilities
+        ) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;

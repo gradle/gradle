@@ -32,6 +32,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -133,8 +134,10 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * resolveIvyFactory.create(_, _, _, _, _, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
+        def state = Mock(ComponentGraphResolveState)
+        _ * state.artifactResolveMetadata >> Mock(ComponentResolveMetadata)
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
-            resolveResult.resolved(Mock(ComponentResolveMetadata))
+            resolveResult.resolved(state)
         }
     }
 

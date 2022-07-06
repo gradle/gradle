@@ -157,7 +157,7 @@ public class DependencyGraphBuilder {
     }
 
     private static List<? extends DependencyMetadata> syntheticDependenciesOf(DefaultBuildableComponentResolveResult rootModule, String name) {
-        ComponentResolveMetadata metadata = rootModule.getMetadata();
+        ComponentResolveMetadata metadata = rootModule.getState().getArtifactResolveMetadata();
         if (metadata instanceof RootLocalComponentMetadata) {
             return ((RootLocalComponentMetadata)metadata).getSyntheticDependencies(name);
         }

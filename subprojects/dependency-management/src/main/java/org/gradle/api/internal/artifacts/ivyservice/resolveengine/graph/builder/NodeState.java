@@ -599,7 +599,7 @@ public class NodeState implements DependencyGraphNode {
         if (metadata == null) {
             // the platform doesn't exist, so we're building a lenient one
             metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
-            potentialEdge.component.setMetadata(metadata);
+            potentialEdge.component.setState(metadata);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
