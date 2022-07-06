@@ -45,7 +45,9 @@ tasks.compileKotlin.configure {
 }
 
 tasks.withType<Test>().configureEach {
-    // This is required for the PerformanceTestIntegrationTest
-    environment("BUILD_BRANCH", "myBranch")
-    environment("BUILD_COMMIT_ID", "myCommitId")
+    // PerformanceTestIntegrationTest needs a clean environment
+    val testEnv = System.getenv().toMutableMap()
+    testEnv.remove("BUILD_BRANCH")
+    testEnv.remove("BUILD_COMMIT_ID")
+    setEnvironment(testEnv)
 }

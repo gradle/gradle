@@ -16,13 +16,12 @@
 
 package gradlebuild.performance.tasks
 
+import gradlebuild.basics.BuildEnvironmentExtension
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Assume
@@ -34,10 +33,12 @@ class DetermineBaselinesTest {
     private
     val project = ProjectBuilder.builder().build()
 
+    private
+    val buildEnvironmentExtension = project.extensions.create("buildEnvironment", BuildEnvironmentExtension::class.java)
+
     @Before
     fun setUp() {
         project.file("version.txt").writeText("1.0")
-        project.apply(plugin = "gradlebuild.module-identity")
 
         // mock project.execAndGetStdout
         mockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
@@ -129,7 +130,7 @@ class DetermineBaselinesTest {
 
     private
     fun setCurrentBranch(branch: String) {
-        project.the<ModuleIdentityExtension>().gradleBuildBranch.set(branch)
+        buildEnvironmentExtension.gitBranch.set(branch)
     }
 
     private
