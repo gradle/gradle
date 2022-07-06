@@ -28,6 +28,7 @@ We would like to thank the following community members for their contributions t
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [urdak](https://github.com/urdak),
 [Xin Wang](https://github.com/scaventz),
+[Jendrik Johannes](https://github.com/jjohannes),
 
 ## Upgrade instructions
 
