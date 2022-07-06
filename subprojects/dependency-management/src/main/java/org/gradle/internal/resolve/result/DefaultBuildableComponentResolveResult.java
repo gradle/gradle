@@ -20,12 +20,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
-    private ComponentResolveMetadata metadata;
+    private ComponentGraphResolveState state;
     private ModuleVersionResolveException failure;
 
     public DefaultBuildableComponentResolveResult() {
@@ -33,7 +33,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
 
     @Override
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
-        metadata = null;
+        state = null;
         this.failure = failure;
         return this;
     }
@@ -44,32 +44,32 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     @Override
-    public void resolved(ComponentResolveMetadata metaData) {
-        this.metadata = metaData;
+    public void resolved(ComponentGraphResolveState state) {
+        this.state = state;
     }
 
     @Override
-    public void setMetadata(ComponentResolveMetadata metadata) {
+    public void setResult(ComponentGraphResolveState state) {
         assertResolved();
-        this.metadata = metadata;
+        this.state = state;
     }
 
     @Override
     public ComponentIdentifier getId() {
         assertResolved();
-        return metadata.getId();
+        return state.getId();
     }
 
     @Override
     public ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException {
         assertResolved();
-        return metadata.getModuleVersionId();
+        return state.getModuleVersionId();
     }
 
     @Override
-    public ComponentResolveMetadata getMetadata() throws ModuleVersionResolveException {
+    public ComponentGraphResolveState getState() throws ModuleVersionResolveException {
         assertResolved();
-        return metadata;
+        return state;
     }
 
     @Override
@@ -93,7 +93,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
 
     @Override
     public boolean hasResult() {
-        return failure != null || metadata != null;
+        return failure != null || state != null;
     }
 
     public void applyTo(BuildableComponentIdResolveResult idResolve) {
@@ -101,8 +101,8 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         if (failure != null) {
             idResolve.failed(failure);
         }
-        if (metadata != null) {
-            idResolve.resolved(metadata);
+        if (state != null) {
+            idResolve.resolved(state);
         }
     }
 

@@ -59,7 +59,7 @@ class LatestModuleConflictResolver<T extends ComponentResolutionState> implement
             return;
         }
 
-        // Work backwards from highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
+        // Work backwards from the highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
         List<Version> sorted = new ArrayList<>(matches.keySet());
         sorted.sort(Collections.reverseOrder(versionComparator));
         T bestComponent = null;

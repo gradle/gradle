@@ -464,7 +464,7 @@ class ModuleResolveState implements CandidateModule {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadata() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setMetadata(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
+                componentState.setState(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
     }

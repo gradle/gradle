@@ -42,7 +42,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         then:
         result.moduleVersionId == id
-        result.metadata == metaData
+        result.state == metaData
     }
 
     def "cannot get id when no result has been specified"() {
@@ -56,7 +56,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get meta-data when no result has been specified"() {
         when:
-        result.metadata
+        result.state
 
         then:
         IllegalStateException e = thrown()
@@ -91,7 +91,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.metadata
+        result.state
 
         then:
         ModuleVersionResolveException e = thrown()

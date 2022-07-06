@@ -19,7 +19,7 @@ package org.gradle.internal.resolve.result;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 
@@ -28,7 +28,7 @@ import java.util.Collections;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
-    private ComponentResolveMetadata metadata;
+    private ComponentGraphResolveState state;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private boolean rejected;
@@ -59,9 +59,9 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public ComponentResolveMetadata getMetadata() {
+    public ComponentGraphResolveState getState() {
         assertResolved();
-        return metadata;
+        return state;
     }
 
     @Override
@@ -83,9 +83,9 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public void resolved(ComponentResolveMetadata metadata) {
-        resolved(metadata.getId(), metadata.getModuleVersionId());
-        this.metadata = metadata;
+    public void resolved(ComponentGraphResolveState state) {
+        resolved(state.getId(), state.getModuleVersionId());
+        this.state = state;
     }
 
     @Override
@@ -153,7 +153,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     private void reset() {
         failure = null;
-        metadata = null;
+        state = null;
         id = null;
         moduleVersionId = null;
         rejected = false;

@@ -105,7 +105,7 @@ class SelectorStateResolverResults {
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState());
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -134,7 +134,7 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult previous = registration.result;
             ResolvableSelectorState previousSelector = registration.selector;
             if (emptyVersion(previous) || sameVersion(previous, candidate) ||
-                    (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
+                (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
                 registration.result = candidate;
                 replaces = true;
             }
@@ -181,7 +181,7 @@ class SelectorStateResolverResults {
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
-                (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector
