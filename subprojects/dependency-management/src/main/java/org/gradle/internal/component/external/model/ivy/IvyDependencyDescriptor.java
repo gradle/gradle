@@ -28,12 +28,14 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -123,7 +125,8 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     @Override
-    public List<ConfigurationGraphResolveMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent) {
+    public VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState) {
+        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveMetadata> targets = Lists.newLinkedList();
         boolean matched = false;
@@ -162,7 +165,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
 
-        return targets;
+        return new VariantSelectionResult(ImmutableList.copyOf(targets), false);
     }
 
     private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveMetadata> targetConfigurations) {

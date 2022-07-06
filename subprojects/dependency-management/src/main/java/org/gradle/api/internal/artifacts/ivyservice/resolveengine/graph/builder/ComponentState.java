@@ -153,7 +153,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     @Nullable
-    public ComponentGraphResolveMetadata getMetadata() {
+    public ComponentGraphResolveMetadata getMetadataOrNull() {
         resolve();
         if (resolveState == null) {
             return null;
@@ -162,23 +162,19 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    @Nullable
-    @Override
-    public ComponentResolveMetadata getArtifactResolveMetadata() {
-        resolve();
-        if (resolveState == null) {
-            return null;
-        } else {
-            return resolveState.getArtifactResolveMetadata();
-        }
-    }
-
-    public ComponentGraphResolveMetadata getResolvedMetadata() {
+    public ComponentGraphResolveMetadata getMetadata() {
         resolve();
         return resolveState.getMetadata();
     }
 
-    public ComponentGraphResolveState getResolveState() {
+    @Override
+    public ComponentResolveMetadata getArtifactResolveMetadata() {
+        resolve();
+        return resolveState.getArtifactResolveMetadata();
+    }
+
+    @Nullable
+    public ComponentGraphResolveState getResolveStateOrNull() {
         resolve();
         return resolveState;
     }
@@ -245,7 +241,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
                 if (version != this) {
-                    ComponentGraphResolveMetadata metadata = version.getMetadata();
+                    ComponentGraphResolveMetadata metadata = version.getMetadataOrNull();
                     if (metadata instanceof LenientPlatformResolveMetadata) {
                         LenientPlatformResolveMetadata lenient = (LenientPlatformResolveMetadata) metadata;
                         this.resolveState = lenient.withVersion((ModuleComponentIdentifier) componentIdentifier, id);

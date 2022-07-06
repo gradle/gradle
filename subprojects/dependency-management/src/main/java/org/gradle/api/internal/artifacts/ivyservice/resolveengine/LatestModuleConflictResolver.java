@@ -76,7 +76,7 @@ class LatestModuleConflictResolver<T extends ComponentResolutionState> implement
             }
             // Only care about the first qualified version that matches
             if (bestComponent == null) {
-                ComponentGraphResolveMetadata metaData = component.getMetadata();
+                ComponentGraphResolveMetadata metaData = component.getMetadataOrNull();
                 if (hasReleaseStatus(metaData)) {
                     details.select(component);
                     return;

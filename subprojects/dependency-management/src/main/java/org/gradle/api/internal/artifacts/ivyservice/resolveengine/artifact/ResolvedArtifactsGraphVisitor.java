@@ -83,11 +83,11 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toNode) {
-        ConfigurationMetadata targetVariant = toNode.getArtifactResolveMetadata();
         ComponentResolveMetadata component = toNode.getOwner().getArtifactResolveMetadata();
+        ConfigurationMetadata targetConfiguration = component.getArtifactResolveMetadata(toNode.getMetadata());
         ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
-        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetVariant);
+        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetConfiguration);
         if (!artifacts.isEmpty()) {
             int id = nextId++;
             ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts, overriddenAttributes);
@@ -97,7 +97,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toNode.getNodeId());
         if (configurationArtifactSet == null) {
             ExcludeSpec exclusions = dependency.getExclusions();
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetVariant, exclusions, overriddenAttributes);
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

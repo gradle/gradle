@@ -137,7 +137,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         getModule(rootResult.getModuleVersionId().getModule(), true);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getState());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
-        ConfigurationGraphResolveMetadata rootVariant = rootVersion.getResolvedMetadata().getConfiguration(id.getConfiguration());
+        ConfigurationGraphResolveMetadata rootVariant = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
         root = new RootNode(idGenerator.generateId(), rootVersion, id, this, rootVariant);
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
@@ -187,9 +187,9 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.values();
     }
 
-    public NodeState getNode(ComponentState module, VariantGraphResolveMetadata variant) {
+    public NodeState getNode(ComponentState module, VariantGraphResolveMetadata variant, boolean selectedByVariantAwareResolution) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), variant.getName());
-        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, variant));
+        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, variant, selectedByVariantAwareResolution));
     }
 
     public Collection<SelectorState> getSelectors() {

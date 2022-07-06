@@ -23,11 +23,13 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -82,7 +84,8 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      *    - Always include 'master' if it exists, and it has dependencies and/or artifacts.
      */
     @Override
-    public List<ConfigurationGraphResolveMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent) {
+    public VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState) {
+        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         ImmutableList.Builder<ConfigurationGraphResolveMetadata> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
@@ -96,10 +99,10 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
             result.add(findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "compile"));
         }
         ConfigurationGraphResolveMetadata master = targetComponent.getConfiguration("master");
-        if (master != null && (!master.getDependencies().isEmpty() || !master.getLegacyMetadata().getArtifacts().isEmpty())) {
+        if (master != null && (!master.getDependencies().isEmpty() || !targetComponentState.resolveArtifactsFor(master).getArtifacts().isEmpty())) {
             result.add(master);
         }
-        return result.build();
+        return new VariantSelectionResult(result.build(), false);
     }
 
     private ConfigurationGraphResolveMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent, String target) {

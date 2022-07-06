@@ -47,11 +47,12 @@ import java.util.Set;
 
 public abstract class AttributeConfigurationSelector {
 
-    public static VariantGraphResolveMetadata selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
-        return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
+    public static VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+        return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private static VariantGraphResolveMetadata selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private static VariantSelectionResult selectVariantsUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         List<? extends VariantGraphResolveMetadata> consumableVariants = variantsForGraphTraversal.or(ImmutableList.of());
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
@@ -89,7 +90,7 @@ public abstract class AttributeConfigurationSelector {
                 // we're looking for.
                 String classifier = requestedArtifacts.get(0).getClassifier();
                 if (classifier != null) {
-                    List<VariantGraphResolveMetadata> sameClassifier = findVariantsProvidingExactlySameClassifier(matches, classifier);
+                    List<VariantGraphResolveMetadata> sameClassifier = findVariantsProvidingExactlySameClassifier(matches, classifier, targetComponentState);
                     if (sameClassifier != null && sameClassifier.size() == 1) {
                         return singleVariant(variantsForGraphTraversal, sameClassifier);
                     }
@@ -105,7 +106,7 @@ public abstract class AttributeConfigurationSelector {
                 throw new AmbiguousConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent(), discarded);
             } else {
                 // Perform a second resolution with tracing
-                return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
+                return selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
             }
         } else {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
@@ -113,11 +114,11 @@ public abstract class AttributeConfigurationSelector {
         }
     }
 
-    private static List<VariantGraphResolveMetadata> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveMetadata> matches, String classifier) {
+    private static List<VariantGraphResolveMetadata> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveMetadata> matches, String classifier, ComponentGraphResolveState targetComponent) {
         List<VariantGraphResolveMetadata> sameClassifier = null;
         // let's see if we can find a single variant which has exactly the requested artifacts
         for (VariantGraphResolveMetadata match : matches) {
-            List<? extends ComponentArtifactMetadata> artifacts = match.getLegacyMetadata().getArtifacts();
+            List<? extends ComponentArtifactMetadata> artifacts = targetComponent.resolveArtifactsFor(match).getArtifacts();
             if (artifacts.size() == 1) {
                 ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
                 if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
@@ -136,12 +137,8 @@ public abstract class AttributeConfigurationSelector {
         return sameClassifier;
     }
 
-    private static VariantGraphResolveMetadata singleVariant(Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal, List<VariantGraphResolveMetadata> matches) {
-        VariantGraphResolveMetadata match = matches.get(0);
-        if (variantsForGraphTraversal.isPresent()) {
-            return SelectedByVariantMatchingConfigurationMetadata.of(match.getLegacyMetadata());
-        }
-        return match;
+    private static VariantSelectionResult singleVariant(Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal, List<VariantGraphResolveMetadata> matches) {
+        return new VariantSelectionResult(ImmutableList.of(matches.get(0)), variantsForGraphTraversal.isPresent());
     }
 
     private static ImmutableList<VariantGraphResolveMetadata> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveMetadata> consumableVariants, String group, String name, boolean lenient) {

@@ -35,4 +35,10 @@ public interface ComponentGraphResolveState {
     ComponentGraphResolveMetadata getMetadata();
 
     ComponentResolveMetadata getArtifactResolveMetadata();
+
+    /**
+     * Resolves the artifacts for the given variant of this component. Note that this may be expensive, for example it may block
+     * waiting for access to the source project or for network or IO requests to the source repository.
+     */
+    VariantArtifactsGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 }

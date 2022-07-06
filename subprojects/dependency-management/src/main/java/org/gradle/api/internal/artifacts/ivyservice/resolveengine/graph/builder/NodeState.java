@@ -52,14 +52,12 @@ import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantSelectionResult;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -131,14 +129,14 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md) {
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
         this.resultId = resultId;
         this.id = id;
         this.component = component;
         this.resolveState = resolveState;
         this.metadata = md;
         this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
-        this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
+        this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
         this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
         component.addConfiguration(this);
@@ -197,11 +195,6 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public VariantGraphResolveMetadata getMetadata() {
         return metadata;
-    }
-
-    @Override
-    public ConfigurationMetadata getArtifactResolveMetadata() {
-        return metadata.getLegacyMetadata();
     }
 
     @Override
@@ -1347,8 +1340,8 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public List<? extends VariantGraphResolveMetadata> selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-            return dependencyMetadata.selectVariants(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+        public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+            return dependencyMetadata.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
         }
 
         @Override

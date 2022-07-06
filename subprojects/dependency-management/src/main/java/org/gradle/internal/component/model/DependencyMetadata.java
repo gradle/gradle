@@ -40,7 +40,7 @@ public interface DependencyMetadata {
     /**
      * Select the matching variants for this dependency from the given target component.
      */
-    List<? extends VariantGraphResolveMetadata> selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
+    VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
 
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.
