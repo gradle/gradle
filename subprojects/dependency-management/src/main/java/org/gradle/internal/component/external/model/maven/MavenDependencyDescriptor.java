@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -81,7 +81,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      *    - Always include 'master' if it exists, and it has dependencies and/or artifacts.
      */
     @Override
-    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent) {
         ImmutableList.Builder<ConfigurationMetadata> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
@@ -101,7 +101,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         return result.build();
     }
 
-    private ConfigurationMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, String target) {
+    private ConfigurationMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent, String target) {
         ConfigurationMetadata configuration = targetComponent.getConfiguration(target);
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");

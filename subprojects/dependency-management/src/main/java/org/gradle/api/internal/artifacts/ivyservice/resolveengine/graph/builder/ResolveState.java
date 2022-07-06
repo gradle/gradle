@@ -136,7 +136,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         getModule(rootResult.getModuleVersionId().getModule(), true);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getState());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
-        ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
+        ConfigurationMetadata configurationMetadata = rootVersion.getResolvedMetadata().getConfiguration(id.getConfiguration());
         root = new RootNode(idGenerator.generateId(), rootVersion, id, this, configurationMetadata);
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());

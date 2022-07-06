@@ -52,7 +52,8 @@ import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -590,16 +591,16 @@ public class NodeState implements DependencyGraphNode {
 
     private void addPlatformEdges(Collection<EdgeState> discoveredEdges, ModuleComponentIdentifier platformComponentIdentifier, ModuleComponentSelector platformSelector) {
         PotentialEdge potentialEdge = PotentialEdge.of(resolveState, this, platformComponentIdentifier, platformSelector, platformComponentIdentifier);
-        ComponentResolveMetadata metadata = potentialEdge.metadata;
+        ComponentGraphResolveState state = potentialEdge.state;
         VirtualPlatformState virtualPlatformState = null;
-        if (metadata == null || metadata instanceof LenientPlatformResolveMetadata) {
+        if (state == null || state instanceof LenientPlatformResolveMetadata) {
             virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
             virtualPlatformState.participatingModule(component.getModule());
         }
-        if (metadata == null) {
+        if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
-            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
-            potentialEdge.component.setState(metadata);
+            state = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
+            potentialEdge.component.setState(state);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
@@ -1340,7 +1341,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
             return dependencyMetadata.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
         }
 

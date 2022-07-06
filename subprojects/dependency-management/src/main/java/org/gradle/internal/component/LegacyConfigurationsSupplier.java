@@ -17,15 +17,15 @@ package org.gradle.internal.component;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
 public class LegacyConfigurationsSupplier implements Supplier<ImmutableList<? extends ConfigurationMetadata>> {
-    private final ComponentResolveMetadata targetComponent;
+    private final ComponentGraphResolveMetadata targetComponent;
 
-    public LegacyConfigurationsSupplier(ComponentResolveMetadata targetComponent) {
+    public LegacyConfigurationsSupplier(ComponentGraphResolveMetadata targetComponent) {
         this.targetComponent = targetComponent;
     }
 

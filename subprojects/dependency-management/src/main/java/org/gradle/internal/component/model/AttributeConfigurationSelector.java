@@ -47,11 +47,11 @@ import java.util.Set;
 
 public abstract class AttributeConfigurationSelector {
 
-    public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+    public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
         return selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> consumableConfigurations = variantsForGraphTraversal.or(ImmutableList.of());
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
@@ -144,7 +144,7 @@ public abstract class AttributeConfigurationSelector {
         return match;
     }
 
-    private static ImmutableList<ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends ConfigurationMetadata> consumableConfigurations, String group, String name, boolean lenient) {
+    private static ImmutableList<ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends ConfigurationMetadata> consumableConfigurations, String group, String name, boolean lenient) {
         if (consumableConfigurations.isEmpty()) {
             return ImmutableList.of();
         }
@@ -179,7 +179,7 @@ public abstract class AttributeConfigurationSelector {
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private static MatchResult providesAllCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
+    private static MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
         if (providerCapabilities.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {

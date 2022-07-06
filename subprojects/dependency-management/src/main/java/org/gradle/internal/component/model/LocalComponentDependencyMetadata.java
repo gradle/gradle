@@ -55,30 +55,34 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final AttributeContainer moduleAttributes;
     private final ImmutableAttributes dependencyAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
-                                            ComponentSelector selector,
-                                            @Nullable String moduleConfiguration,
-                                            @Nullable AttributeContainer moduleAttributes,
-                                            AttributeContainer dependencyAttributes,
-                                            @Nullable String dependencyConfiguration,
-                                            List<IvyArtifactName> artifactNames,
-                                            List<ExcludeMetadata> excludes,
-                                            boolean force, boolean changing, boolean transitive, boolean constraint, boolean endorsing,
-                                            @Nullable String reason) {
+    public LocalComponentDependencyMetadata(
+        ComponentIdentifier componentId,
+        ComponentSelector selector,
+        @Nullable String moduleConfiguration,
+        @Nullable AttributeContainer moduleAttributes,
+        AttributeContainer dependencyAttributes,
+        @Nullable String dependencyConfiguration,
+        List<IvyArtifactName> artifactNames,
+        List<ExcludeMetadata> excludes,
+        boolean force, boolean changing, boolean transitive, boolean constraint, boolean endorsing,
+        @Nullable String reason
+    ) {
         this(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, false, reason);
     }
 
-    public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
-                                            ComponentSelector selector,
-                                            @Nullable String moduleConfiguration,
-                                            AttributeContainer moduleAttributes,
-                                            AttributeContainer dependencyAttributes,
-                                            @Nullable String dependencyConfiguration,
-                                            List<IvyArtifactName> artifactNames,
-                                            List<ExcludeMetadata> excludes,
-                                            boolean force, boolean changing, boolean transitive,
-                                            boolean constraint, boolean endorsing, boolean fromLock,
-                                            @Nullable String reason) {
+    public LocalComponentDependencyMetadata(
+        ComponentIdentifier componentId,
+        ComponentSelector selector,
+        @Nullable String moduleConfiguration,
+        AttributeContainer moduleAttributes,
+        AttributeContainer dependencyAttributes,
+        @Nullable String dependencyConfiguration,
+        List<IvyArtifactName> artifactNames,
+        List<ExcludeMetadata> excludes,
+        boolean force, boolean changing, boolean transitive,
+        boolean constraint, boolean endorsing, boolean fromLock,
+        @Nullable String reason
+    ) {
         this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
@@ -136,7 +140,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
      * @return A List containing a single `ConfigurationMetadata` representing the target variant.
      */
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
         Optional<ImmutableList<? extends ConfigurationMetadata>> targetVariants = targetComponent.getVariantsForGraphTraversal();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || targetVariants.isPresent());
@@ -161,7 +165,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return ImmutableList.of(toConfiguration);
     }
 
-    private void verifyConsumability(ComponentResolveMetadata targetComponent, ConfigurationMetadata toConfiguration) {
+    private void verifyConsumability(ComponentGraphResolveMetadata targetComponent, ConfigurationMetadata toConfiguration) {
         if (!toConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }

@@ -52,6 +52,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -468,7 +469,7 @@ public class DependencyGraphBuilder {
     }
 
     private void validateChangingVersions(ComponentState selected) {
-        ComponentResolveMetadata metadata = selected.getMetadata();
+        ComponentGraphResolveMetadata metadata = selected.getMetadata();
         boolean moduleIsChanging = metadata != null && metadata.isChanging();
         for (NodeState node : selected.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
