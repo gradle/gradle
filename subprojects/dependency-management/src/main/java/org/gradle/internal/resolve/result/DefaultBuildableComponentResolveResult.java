@@ -63,7 +63,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     @Override
     public ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException {
         assertResolved();
-        return state.getModuleVersionId();
+        return state.getMetadata().getModuleVersionId();
     }
 
     @Override

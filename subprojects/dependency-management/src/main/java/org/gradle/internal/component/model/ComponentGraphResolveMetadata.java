@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,15 +46,25 @@ public interface ComponentGraphResolveMetadata {
 
     /**
      * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes. May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}. The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
-     *
-     * <p>Note: currently, {@link ConfigurationMetadata} is used to represent these variants. This is to help with migration. The set of objects returned by this method may or may not be the same as those returned by {@link #getConfigurationNames()}.</p>
      */
-    Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal();
+    Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal();
 
     Set<String> getConfigurationNames();
 
     @Nullable
-    ConfigurationMetadata getConfiguration(String name);
+    ConfigurationGraphResolveMetadata getConfiguration(String name);
+
+    /**
+     * Returns the synthetic dependencies for the root configuration with the supplied name.
+     * Synthetic dependencies are dependencies which are an internal implementation detail of Gradle,
+     * used for example in dependency locking or consistent resolution. They are not "real" dependencies
+     * in the sense that they are not added by users, and they are not always used during resolution
+     * based on which phase of execution we are (task dependencies, execution, ...)
+     *
+     * @param configuration the name of the configuration for which to get the synthetic dependencies
+     * @return the synthetic dependencies of the requested configuration
+     */
+    List<? extends DependencyMetadata> getSyntheticDependencies(String configuration);
 
     ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners();
 

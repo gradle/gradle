@@ -59,6 +59,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -85,7 +86,7 @@ public class NodeState implements DependencyGraphNode {
     private final List<EdgeState> outgoingEdges = Lists.newArrayList();
     private final ResolvedConfigurationIdentifier id;
 
-    private final ConfigurationMetadata metaData;
+    private final VariantGraphResolveMetadata metadata;
     private final ResolveState resolveState;
     private final ModuleExclusions moduleExclusions;
     private final boolean isTransitive;
@@ -130,13 +131,13 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md) {
         this.resultId = resultId;
         this.id = id;
         this.component = component;
         this.resolveState = resolveState;
-        this.metaData = md;
-        this.isTransitive = metaData.isTransitive() || metaData.isExternalVariant();
+        this.metadata = md;
+        this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
         this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
         this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
@@ -194,17 +195,22 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Override
-    public ConfigurationMetadata getMetadata() {
-        return metaData;
+    public VariantGraphResolveMetadata getMetadata() {
+        return metadata;
+    }
+
+    @Override
+    public ConfigurationMetadata getArtifactResolveMetadata() {
+        return metadata.getLegacyMetadata();
     }
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        if (metaData instanceof LocalConfigurationMetadata) {
+        if (metadata instanceof LocalConfigurationMetadata) {
             // Only when this node has a transitive incoming edge
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.isTransitive()) {
-                    return ((LocalConfigurationMetadata) metaData).getFiles();
+                    return ((LocalConfigurationMetadata) metadata).getFiles();
                 }
             }
         }
@@ -288,7 +294,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private boolean canIgnoreExternalVariant() {
-        if (!metaData.isExternalVariant()) {
+        if (!metadata.isExternalVariant()) {
             return true;
         }
         // We need to ignore external variants when all edges are artifact ones
@@ -472,7 +478,7 @@ public class NodeState implements DependencyGraphNode {
             cachedFilteredDependencyStates = null;
         }
         List<? extends DependencyMetadata> dependencies = getAllDependencies();
-        if (transitiveEdgeCount == 0 && metaData.isExternalVariant()) {
+        if (transitiveEdgeCount == 0 && metadata.isExternalVariant()) {
             // there must be a single dependency state because this variant is an "available-at"
             // variant and here we are in the case the "including" component said that transitive
             // should be false so we need to arbitrarily carry that onto the dependency metadata
@@ -484,7 +490,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     protected List<? extends DependencyMetadata> getAllDependencies() {
-        return metaData.getDependencies();
+        return metadata.getDependencies();
     }
 
     private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {
@@ -691,7 +697,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
-        if (metaData.isExternalVariant()) {
+        if (metadata.isExternalVariant()) {
             // If the current node represents an external variant, we must not consider its excludes
             // because it's some form of "delegation"
             return moduleExclusions.excludeAny(
@@ -719,7 +725,7 @@ public class NodeState implements DependencyGraphNode {
 
     private ExcludeSpec computeNodeExclusions() {
         if (cachedNodeExclusions == null) {
-            cachedNodeExclusions = moduleExclusions.excludeAny(metaData.getExcludes());
+            cachedNodeExclusions = moduleExclusions.excludeAny(metadata.getExcludes());
         }
         return cachedNodeExclusions;
     }
@@ -1172,7 +1178,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
-        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
         // between variants of the same module.
@@ -1200,7 +1206,7 @@ public class NodeState implements DependencyGraphNode {
         if (onComponent != null) {
             return onComponent;
         }
-        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
         if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
             for (Capability capability : capabilities) {
                 if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
@@ -1221,7 +1227,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     boolean hasShadowedCapability() {
-        for (Capability capability : metaData.getCapabilities().getCapabilities()) {
+        for (Capability capability : metadata.getCapabilities().getCapabilities()) {
             if (capability instanceof ShadowedCapability) {
                 return true;
             }
@@ -1251,9 +1257,9 @@ public class NodeState implements DependencyGraphNode {
         if (cachedVariantResult != null) {
             return cachedVariantResult;
         }
-        DisplayName name = Describables.of(metaData.getName());
-        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
-        AttributeContainer attributes = desugar(metaData.getAttributes());
+        DisplayName name = Describables.of(metadata.getName());
+        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+        AttributeContainer attributes = desugar(metadata.getAttributes());
         List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
         cachedVariantResult = new DefaultResolvedVariantResult(
             component.getComponentId(),
@@ -1341,8 +1347,8 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-            return dependencyMetadata.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+        public List<? extends VariantGraphResolveMetadata> selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+            return dependencyMetadata.selectVariants(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
         }
 
         @Override

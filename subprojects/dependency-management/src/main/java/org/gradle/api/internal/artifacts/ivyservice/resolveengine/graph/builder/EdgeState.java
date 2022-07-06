@@ -34,6 +34,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -258,11 +259,11 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        List<ConfigurationMetadata> targetConfigurations;
+        List<? extends VariantGraphResolveMetadata> targetVariants;
         try {
             ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
             attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
-            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
+            targetVariants = dependencyMetadata.selectVariants(attributes, targetModuleVersion, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
         } catch (AttributeMergingException mergeError) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
@@ -276,8 +277,8 @@ class EdgeState implements DependencyGraphEdge {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
             return;
         }
-        for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
-            NodeState targetNodeState = resolveState.getNode(targetComponent, targetConfiguration);
+        for (VariantGraphResolveMetadata targetVariant : targetVariants) {
+            NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant);
             this.targetNodes.add(targetNodeState);
         }
     }

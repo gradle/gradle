@@ -18,11 +18,11 @@ package org.gradle.internal.component;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 
 import java.util.Set;
 
-public class LegacyConfigurationsSupplier implements Supplier<ImmutableList<? extends ConfigurationMetadata>> {
+public class LegacyConfigurationsSupplier implements Supplier<ImmutableList<? extends ConfigurationGraphResolveMetadata>> {
     private final ComponentGraphResolveMetadata targetComponent;
 
     public LegacyConfigurationsSupplier(ComponentGraphResolveMetadata targetComponent) {
@@ -30,11 +30,11 @@ public class LegacyConfigurationsSupplier implements Supplier<ImmutableList<? ex
     }
 
     @Override
-    public ImmutableList<? extends ConfigurationMetadata> get() {
+    public ImmutableList<? extends ConfigurationGraphResolveMetadata> get() {
         Set<String> configurationNames = targetComponent.getConfigurationNames();
-        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
         for (String configurationName : configurationNames) {
-            ConfigurationMetadata configuration = targetComponent.getConfiguration(configurationName);
+            ConfigurationGraphResolveMetadata configuration = targetComponent.getConfiguration(configurationName);
             if (configuration.isCanBeConsumed()) {
                 builder.add(configuration);
             }

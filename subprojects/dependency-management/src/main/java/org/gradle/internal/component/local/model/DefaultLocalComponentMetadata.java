@@ -43,13 +43,13 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
@@ -71,7 +71,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleSources moduleSources = ImmutableModuleSources.of();
 
-    private Optional<ImmutableList<? extends ConfigurationMetadata>> consumableConfigurations;
+    private Optional<List<? extends VariantGraphResolveMetadata>> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(ModuleVersionIdentifier moduleVersionId, ComponentIdentifier componentId, String status, AttributesSchemaInternal attributesSchema) {
         this.moduleVersionId = moduleVersionId;
@@ -232,9 +232,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
      * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
      */
     @Override
-    public synchronized Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+    public synchronized Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
-            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+            ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
             boolean hasAtLeastOneConsumableConfiguration = false;
             for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
                 if (configuration.isCanBeConsumed() && !configuration.getAttributes().isEmpty()) {

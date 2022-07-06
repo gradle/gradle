@@ -42,8 +42,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -337,10 +337,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     private void addOtherVariants(Consumer<ResolvedVariantResult> consumer) {
-        Optional<ImmutableList<? extends ConfigurationMetadata>> variants = resolveState.getMetadata().getVariantsForGraphTraversal();
+        Optional<? extends List<? extends VariantGraphResolveMetadata>> variants = resolveState.getMetadata().getVariantsForGraphTraversal();
         if (variants.isPresent()) {
-            for (ConfigurationMetadata configurationMetadata : variants.get()) {
-                for (VariantResolveMetadata variant : configurationMetadata.getVariants()) {
+            for (VariantGraphResolveMetadata mainVariant : variants.get()) {
+                for (VariantResolveMetadata variant : mainVariant.getVariants()) {
                     List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
                     if (capabilities.isEmpty()) {
                         capabilities = ImmutableList.of(getImplicitCapability());
