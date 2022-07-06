@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -44,7 +45,7 @@ public abstract class ExternalDependencyDescriptor {
 
     protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
 
-    protected abstract List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent);
+    protected abstract List<ConfigurationGraphResolveMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent);
 
     public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
 

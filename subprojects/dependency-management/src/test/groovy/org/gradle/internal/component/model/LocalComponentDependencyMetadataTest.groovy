@@ -87,7 +87,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema, [] as Set) == [toConfig]
+        dep.selectVariants(attributes([:]), toComponent, attributesSchema, [] as Set) == [toConfig]
     }
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
@@ -117,7 +117,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set == [expected] as Set
+        dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -147,7 +147,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("default") >> defaultConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -185,7 +185,7 @@ Configuration 'default':
         toComponent.getConfiguration("bar") >> toBarConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -231,7 +231,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set
+            def result = dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -301,7 +301,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set
+            def result = dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -344,7 +344,7 @@ Configuration 'bar':
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema,[] as Set)
+        dep.selectVariants(attributes([:]), toComponent, attributesSchema,[] as Set)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -425,7 +425,7 @@ Configuration 'bar':
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributeSchemaWithCompatibility, [] as Set)*.name as Set == [expected] as Set
+        dep.selectVariants(attributes(queryAttributes), toComponent, attributeSchemaWithCompatibility, [] as Set)*.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected

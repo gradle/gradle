@@ -17,16 +17,16 @@
 package org.gradle.internal.component;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -43,11 +43,11 @@ public class NoMatchingConfigurationSelectionException extends StyledException {
     }
 
     private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> configurations = new TreeMap<>();
-        Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
-        ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
-        for (ConfigurationMetadata configurationMetadata : variantsParticipatingInSelection) {
-            configurations.put(configurationMetadata.getName(), configurationMetadata);
+        Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
+        Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
+        List<? extends VariantGraphResolveMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
+        for (VariantGraphResolveMetadata variant : variantsParticipatingInSelection) {
+            variants.put(variant.getName(), variant);
         }
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
@@ -57,13 +57,13 @@ public class NoMatchingConfigurationSelectionException extends StyledException {
             formatter.node("No matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + " but:");
         }
         formatter.startChildren();
-        if (configurations.isEmpty()) {
+        if (variants.isEmpty()) {
             formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");
         } else {
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
-            for (ConfigurationMetadata configuration : configurations.values()) {
-                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware, false, describer);
+            for (VariantGraphResolveMetadata variant : variants.values()) {
+                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, variant, variantAware, false, describer);
             }
         }
         formatter.endChildren();

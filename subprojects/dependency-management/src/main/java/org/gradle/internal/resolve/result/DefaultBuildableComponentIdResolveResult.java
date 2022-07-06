@@ -84,7 +84,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     @Override
     public void resolved(ComponentGraphResolveState state) {
-        resolved(state.getId(), state.getModuleVersionId());
+        resolved(state.getId(), state.getMetadata().getModuleVersionId());
         this.state = state;
     }
 

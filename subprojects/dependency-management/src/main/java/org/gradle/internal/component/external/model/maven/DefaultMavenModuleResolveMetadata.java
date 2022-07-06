@@ -34,9 +34,11 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -104,7 +106,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+        return Optional.fromNullable(getDerivedVariants());
+    }
+
+    protected Optional<List<? extends ConfigurationGraphResolveMetadata>> deriveVariants() {
         return Optional.fromNullable(getDerivedVariants());
     }
 

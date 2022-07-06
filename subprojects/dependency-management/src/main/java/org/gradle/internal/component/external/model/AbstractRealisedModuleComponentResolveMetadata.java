@@ -29,6 +29,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
@@ -47,7 +48,7 @@ import java.util.Set;
  */
 public abstract class AbstractRealisedModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
 
-    private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
+    private Optional<List<? extends VariantGraphResolveMetadata>> graphVariants;
     private final ImmutableMap<String, ConfigurationMetadata> configurations;
 
     public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
@@ -79,14 +80,14 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
     }
 
     @Override
-    public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+    public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
             graphVariants = buildVariantsForGraphTraversal(getVariants());
         }
         return graphVariants;
     }
 
-    private Optional<ImmutableList<? extends ConfigurationMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+    private Optional<List<? extends VariantGraphResolveMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }

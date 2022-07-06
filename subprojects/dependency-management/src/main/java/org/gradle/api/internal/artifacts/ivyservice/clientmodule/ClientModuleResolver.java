@@ -43,6 +43,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
@@ -152,7 +153,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+        public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
             return Optional.absent();
         }
 

@@ -25,7 +25,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -39,17 +39,17 @@ import java.util.TreeMap;
 public class AmbiguousConfigurationSelectionException extends StyledException {
     public AmbiguousConfigurationSelectionException(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
-                                                    List<? extends ConfigurationMetadata> matches,
+                                                    List<? extends VariantGraphResolveMetadata> matches,
                                                     ComponentGraphResolveMetadata targetComponent,
                                                     boolean variantAware,
-                                                    Set<ConfigurationMetadata> discarded) {
+                                                    Set<VariantGraphResolveMetadata> discarded) {
         super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, discarded, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<>();
-        for (ConfigurationMetadata match : matches) {
-            ambiguousConfigurations.put(match.getName(), match);
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveMetadata> matches, Set<VariantGraphResolveMetadata> discarded, ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
+        Map<String, VariantGraphResolveMetadata> ambiguousVariants = new TreeMap<>();
+        for (VariantGraphResolveMetadata match : matches) {
+            ambiguousVariants.put(match.getName(), match);
         }
         TreeFormatter formatter = new TreeFormatter();
         String configTerm = variantAware ? "variants" : "configurations";
@@ -60,23 +60,23 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
         }
         formatter.append(style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()));
         formatter.startChildren();
-        for (String configuration : ambiguousConfigurations.keySet()) {
+        for (String configuration : ambiguousVariants.keySet()) {
             formatter.node(configuration);
         }
         formatter.endChildren();
         formatter.node("All of them match the consumer attributes");
-        // We're sorting the names of the configurations and later attributes
+        // We're sorting the names of the variants and later attributes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
-        for (ConfigurationMetadata ambiguousConf : ambiguousConfigurations.values()) {
-            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware, true, describer);
+        for (VariantGraphResolveMetadata ambiguousVariant : ambiguousVariants.values()) {
+            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousVariant, variantAware, true, describer);
         }
         formatter.endChildren();
         if (!discarded.isEmpty()) {
             formatter.node("The following " + configTerm + " were also considered but didn't match the requested attributes:");
             formatter.startChildren();
             discarded.stream()
-                .sorted(Comparator.comparing(ConfigurationMetadata::getName))
+                .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
                 .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf, variantAware, false, describer));
             formatter.endChildren();
         }
@@ -88,20 +88,20 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
                                     ComponentGraphResolveMetadata targetComponent,
                                     AttributeContainerInternal consumerAttributes,
                                     AttributeMatcher attributeMatcher,
-                                    ConfigurationMetadata configuration,
+                                    VariantGraphResolveMetadata variant,
                                     boolean variantAware,
                                     boolean ambiguous,
                                     AttributeDescriber describer) {
-        AttributeContainerInternal producerAttributes = configuration.getAttributes();
+        AttributeContainerInternal producerAttributes = variant.getAttributes();
         if (variantAware) {
             formatter.node("Variant '");
         } else {
             formatter.node("Configuration '");
         }
-        formatter.append(configuration.getName());
+        formatter.append(variant.getName());
         formatter.append("'");
         if (variantAware) {
-            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, configuration.getCapabilities().getCapabilities()));
+            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().getCapabilities()));
         }
         if (ambiguous) {
             formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);

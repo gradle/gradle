@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -81,12 +82,12 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      *    - Always include 'master' if it exists, and it has dependencies and/or artifacts.
      */
     @Override
-    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent) {
-        ImmutableList.Builder<ConfigurationMetadata> result = ImmutableList.builder();
+    public List<ConfigurationGraphResolveMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent) {
+        ImmutableList.Builder<ConfigurationGraphResolveMetadata> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
             // From every configuration other than compile, include both the runtime and compile dependencies
-            ConfigurationMetadata runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "runtime");
+            ConfigurationGraphResolveMetadata runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "runtime");
             result.add(runtime);
             requiresCompile = !runtime.getHierarchy().contains("compile");
         }
@@ -94,15 +95,15 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
             // From compile configuration, or when the target's runtime configuration does not extend from compile, include the compile dependencies
             result.add(findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "compile"));
         }
-        ConfigurationMetadata master = targetComponent.getConfiguration("master");
-        if (master != null && (!master.getDependencies().isEmpty() || !master.getArtifacts().isEmpty())) {
+        ConfigurationGraphResolveMetadata master = targetComponent.getConfiguration("master");
+        if (master != null && (!master.getDependencies().isEmpty() || !master.getLegacyMetadata().getArtifacts().isEmpty())) {
             result.add(master);
         }
         return result.build();
     }
 
-    private ConfigurationMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent, String target) {
-        ConfigurationMetadata configuration = targetComponent.getConfiguration(target);
+    private ConfigurationGraphResolveMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent, String target) {
+        ConfigurationGraphResolveMetadata configuration = targetComponent.getConfiguration(target);
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");
             if (configuration == null) {

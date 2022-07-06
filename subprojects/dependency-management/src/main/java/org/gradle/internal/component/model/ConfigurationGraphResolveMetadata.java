@@ -16,23 +16,21 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import javax.annotation.Nullable;
 
 /**
- * State for a component instance, which is used to perform dependency graph resolution.
+ * Immutable metadata for a configuration of a component instance, which is used to perform dependency graph resolution.
  */
-public interface ComponentGraphResolveState {
-    ComponentIdentifier getId();
+public interface ConfigurationGraphResolveMetadata extends VariantGraphResolveMetadata {
+    ImmutableSet<String> getHierarchy();
 
-    /**
-     * @return the sources information for this component.
-     */
+    boolean isCanBeConsumed();
+
+    boolean isVisible();
+
     @Nullable
-    ModuleSources getSources();
-
-    ComponentGraphResolveMetadata getMetadata();
-
-    ComponentResolveMetadata getArtifactResolveMetadata();
+    DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation();
 }

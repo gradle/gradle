@@ -158,7 +158,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
 
-        def configuration = consumer.selectConfigurations(attributes, immutable, schema, [] as Set)[0]
+        def configuration = consumer.selectVariants(attributes, immutable, schema, [] as Set)[0]
         configuration.dependencies
     }
 }

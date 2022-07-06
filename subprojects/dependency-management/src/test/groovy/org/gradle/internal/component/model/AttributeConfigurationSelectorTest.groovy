@@ -430,7 +430,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        selected = AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(
+        selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
                 consumerAttributes,
                 requestedCapabilities,
                 targetComponent,

@@ -26,6 +26,7 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +58,11 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
     @Override
     default ComponentResolveMetadata getArtifactResolveMetadata() {
         return this;
+    }
+
+    @Override
+    default List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
+        return Collections.emptyList();
     }
 
     /**

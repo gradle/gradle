@@ -82,28 +82,28 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         artifactsByNodeId.clear();
     }
 
-    private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
-        ConfigurationMetadata targetConfiguration = toConfiguration.getMetadata();
-        ComponentResolveMetadata component = toConfiguration.getOwner().getArtifactResolveMetadata();
+    private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toNode) {
+        ConfigurationMetadata targetVariant = toNode.getArtifactResolveMetadata();
+        ComponentResolveMetadata component = toNode.getOwner().getArtifactResolveMetadata();
         ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
-        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetConfiguration);
+        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetVariant);
         if (!artifacts.isEmpty()) {
             int id = nextId++;
             ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts, overriddenAttributes);
             return new ArtifactsForNode(id, artifactSet);
         }
 
-        ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
+        ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toNode.getNodeId());
         if (configurationArtifactSet == null) {
             ExcludeSpec exclusions = dependency.getExclusions();
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetVariant, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!exclusions.mayExcludeArtifacts()) {
-                artifactsByNodeId.put(toConfiguration.getNodeId(), configurationArtifactSet);
+                artifactsByNodeId.put(toNode.getNodeId(), configurationArtifactSet);
             }
         }
 
