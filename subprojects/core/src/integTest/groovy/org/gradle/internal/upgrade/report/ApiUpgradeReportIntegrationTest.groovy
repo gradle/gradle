@@ -23,9 +23,6 @@ class ApiUpgradeReportIntegrationTest extends AbstractIntegrationSpec {
     private static final File ACCEPTED_TEST_CHANGES = new File("src/integTest/resources/org/gradle/api/internal/upgrade/report/ApiUpgradeReportIntegrationTest/accepted-public-api-changes.json")
 
     def "can report upgrades for Kotlin 1.6.21"() {
-        // TODD don't force delete caches, but properly rerun report
-        // executer.requireOwnGradleUserHomeDir() is not used since it download Kotlin plugin everytime which can take a long time
-        executer.getGradleUserHomeDir().file("caches/jars-9").forceDeleteDir()
         settingsFile """
             pluginManagement {
                 repositories {

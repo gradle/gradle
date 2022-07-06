@@ -57,18 +57,7 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public void applyConfigurationTo(Hasher hasher) {
-        hasher.putString(MethodReplacement.class.getName());
-        for (String type : types) {
-            hasher.putString(type);
-        }
-        hasher.putString(methodName);
-        hasher.putString(methodDescriptor);
-        // TODO: Can we capture the replacements as well?
-    }
-
-    @Override
-    public Optional<String> reportApiChangeIfMatches(int opcode, String owner, String name, String desc) {
+    public Optional<String> getApiChangeReportIfMatches(int opcode, String owner, String name, String desc) {
         if (opcode == INVOKEVIRTUAL
             && types.contains(owner)
             && name.equals(methodName)

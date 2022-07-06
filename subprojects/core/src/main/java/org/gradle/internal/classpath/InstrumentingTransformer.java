@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -475,7 +473,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private void reportApiUpgrade(String owner, String name, String descriptor) {
-            List<String> report = apiUpgradeReporter.reportApiChanges(INVOKEVIRTUAL, owner, name, descriptor);
+            List<String> report = apiUpgradeReporter.getApiChangesReport(INVOKEVIRTUAL, owner, name, descriptor);
             if (!report.isEmpty()) {
                 // There must be a better way to get full source file name, but for now this "heuristic" should do it
                 int lastIndexOfSlash = className.lastIndexOf("/");

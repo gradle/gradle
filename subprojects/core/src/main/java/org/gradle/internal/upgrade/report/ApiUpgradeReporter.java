@@ -21,20 +21,20 @@ import org.gradle.internal.hash.Hasher;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ApiUpgradeReporter {
-    public static final ApiUpgradeReporter NO_UPGRADES = new ApiUpgradeReporter(Collections.emptyList());
 
     private final List<ReportableApiChange> changes;
 
-    public ApiUpgradeReporter(List<ReportableApiChange> changes) {
+    private ApiUpgradeReporter(List<ReportableApiChange> changes) {
         this.changes = changes;
     }
 
-    public List<String> reportApiChanges(int opcode, String owner, String name, String desc) {
+    public List<String> getApiChangesReport(int opcode, String owner, String name, String desc) {
         return changes.stream()
-            .map(change -> change.reportApiChangeIfMatches(opcode, owner, name, desc))
+            .map(change -> change.getApiChangeReportIfMatches(opcode, owner, name, desc))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .distinct()
@@ -46,8 +46,18 @@ public class ApiUpgradeReporter {
     }
 
     public void applyConfigurationTo(Hasher hasher) {
-        for (ReportableApiChange change : changes) {
-            change.applyConfigurationTo(hasher);
+        if (!changes.isEmpty()) {
+            // This invalidates transform cache, so report is shown always, this is good for a spike,
+            // but should be done differently for production
+            hasher.putString(UUID.randomUUID().toString());
         }
+    }
+
+    public static ApiUpgradeReporter noUpgrades() {
+        return newApiUpgradeReporter(Collections.emptyList());
+    }
+
+    public static ApiUpgradeReporter newApiUpgradeReporter(List<ReportableApiChange> changes) {
+        return new ApiUpgradeReporter(changes);
     }
 }
