@@ -24,7 +24,10 @@ import gradlebuild.basics.BuildEnvironment.isWindows
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.androidStudioHome
 import gradlebuild.basics.autoDownloadAndroidStudio
+import gradlebuild.basics.buildBranch
+import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.includePerformanceTestScenarios
+import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
@@ -33,7 +36,6 @@ import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runAndroidStudioInHeadlessMode
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.Config.androidStudioVersion
 import gradlebuild.performance.Config.defaultAndroidStudioJvmArgs
@@ -186,12 +188,11 @@ class PerformanceTestPlugin : Plugin<Project> {
             performanceResultsDirectory.set(repoRoot().dir("perf-results"))
             reportDir.set(project.layout.buildDirectory.dir(this@configureEach.name))
             databaseParameters.set(project.propertiesForPerformanceDb)
-            val moduleIdentity = project.the<ModuleIdentityExtension>()
-            branchName.set(moduleIdentity.gradleBuildBranch)
+            branchName.set(buildBranch)
             channel.convention(branchName.map { "commits-$it" })
-            channelPatterns.add(moduleIdentity.logicalBranch)
-            channelPatterns.add(moduleIdentity.logicalBranch.map { "commits-pre-test/$it/%" })
-            commitId.set(moduleIdentity.gradleBuildCommitId)
+            channelPatterns.add(logicalBranch)
+            channelPatterns.add(logicalBranch.map { "commits-pre-test/$it/%" })
+            commitId.set(buildCommitId)
             projectName.set(project.name)
         }
 
@@ -484,10 +485,9 @@ class PerformanceTestExtension(
             testProjectName.set(generatorTask.name)
             testProjectFiles.from(generatorTask)
 
-            val identityExtension = project.the<ModuleIdentityExtension>()
-            val gradleBuildBranch = identityExtension.gradleBuildBranch.get()
+            val gradleBuildBranch = project.buildBranch.get()
             branchName = gradleBuildBranch
-            commitId.set(identityExtension.gradleBuildCommitId)
+            commitId.set(project.buildCommitId)
 
             reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")
 

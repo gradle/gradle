@@ -46,7 +46,7 @@ dependencies {
         }
         api("commons-io:commons-io:2.8.0")
         api("commons-lang:commons-lang:2.6")
-        api("io.mockk:mockk:1.10.6")
+        api("io.mockk:mockk:1.12.4")
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.3.1")
         api("com.sun.xml.bind:jaxb-core:2.2.11")
