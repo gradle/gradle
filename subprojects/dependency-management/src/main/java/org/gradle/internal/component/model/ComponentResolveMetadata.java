@@ -16,9 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
@@ -88,13 +86,6 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
      */
     @Nullable
     ConfigurationMetadata getConfiguration(String name);
-
-    /**
-     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes. May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}. The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
-     *
-     * <p>Note: currently, {@link ConfigurationMetadata} is used to represent these variants. This is to help with migration. The set of objects returned by this method may or may not be the same as those returned by {@link #getConfigurationNames()}.</p>
-     */
-    Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal();
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.

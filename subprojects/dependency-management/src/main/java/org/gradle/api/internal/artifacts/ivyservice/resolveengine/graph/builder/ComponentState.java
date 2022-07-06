@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -151,13 +153,34 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     @Nullable
-    public ComponentResolveMetadata getMetadata() {
+    public ComponentGraphResolveMetadata getMetadata() {
+        resolve();
+        if (resolveState == null) {
+            return null;
+        } else {
+            return resolveState.getMetadata();
+        }
+    }
+
+    @Nullable
+    @Override
+    public ComponentResolveMetadata getArtifactResolveMetadata() {
         resolve();
         if (resolveState == null) {
             return null;
         } else {
             return resolveState.getArtifactResolveMetadata();
         }
+    }
+
+    public ComponentGraphResolveMetadata getResolvedMetadata() {
+        resolve();
+        return resolveState.getMetadata();
+    }
+
+    public ComponentGraphResolveState getResolveState() {
+        resolve();
+        return resolveState;
     }
 
     @Override
@@ -222,7 +245,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
                 if (version != this) {
-                    ComponentResolveMetadata metadata = version.getMetadata();
+                    ComponentGraphResolveMetadata metadata = version.getMetadata();
                     if (metadata instanceof LenientPlatformResolveMetadata) {
                         LenientPlatformResolveMetadata lenient = (LenientPlatformResolveMetadata) metadata;
                         this.resolveState = lenient.withVersion((ModuleComponentIdentifier) componentIdentifier, id);
@@ -314,8 +337,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     private void addOtherVariants(Consumer<ResolvedVariantResult> consumer) {
-        if (resolveState.getVariantsForGraphTraversal().isPresent()) {
-            for (ConfigurationMetadata configurationMetadata : resolveState.getVariantsForGraphTraversal().get()) {
+        Optional<ImmutableList<? extends ConfigurationMetadata>> variants = resolveState.getMetadata().getVariantsForGraphTraversal();
+        if (variants.isPresent()) {
+            for (ConfigurationMetadata configurationMetadata : variants.get()) {
                 for (VariantResolveMetadata variant : configurationMetadata.getVariants()) {
                     List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
                     if (capabilities.isEmpty()) {

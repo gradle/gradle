@@ -27,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -110,6 +110,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
+
     @Override
     public ModuleComponentSelector getSelector() {
         return selector;
@@ -124,7 +125,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
      * Always use attribute matching to choose a target variant.
      */
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, getArtifacts()));
     }
 

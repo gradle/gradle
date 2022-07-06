@@ -29,7 +29,7 @@ import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -218,7 +218,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {
-        ComponentResolveMetadata targetModuleVersion = targetComponent.getMetadata();
+        ComponentGraphResolveMetadata targetModuleVersion = targetComponent.getMetadata();
         targetNodes.clear();
         targetNodeSelectionFailure = null;
         if (targetModuleVersion == null) {

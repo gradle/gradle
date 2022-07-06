@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
@@ -122,7 +122,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     @Override
-    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveMetadata targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationMetadata> targets = Lists.newLinkedList();
         boolean matched = false;
@@ -164,7 +164,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return targets;
     }
 
-    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationMetadata> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationMetadata> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {

@@ -40,7 +40,7 @@ public interface DependencyMetadata {
     /**
      * Select the target configurations for this dependency from the given target component.
      */
-    List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
+    List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
 
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.
@@ -85,6 +85,7 @@ public interface DependencyMetadata {
 
     /**
      * An optional human readable reason why this dependency is used.
+     *
      * @return if not null, a description why this dependency is used.
      */
     @Nullable

@@ -19,7 +19,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -76,7 +76,7 @@ class LatestModuleConflictResolver<T extends ComponentResolutionState> implement
             }
             // Only care about the first qualified version that matches
             if (bestComponent == null) {
-                ComponentResolveMetadata metaData = component.getMetadata();
+                ComponentGraphResolveMetadata metaData = component.getMetadata();
                 if (hasReleaseStatus(metaData)) {
                     details.select(component);
                     return;
@@ -102,11 +102,11 @@ class LatestModuleConflictResolver<T extends ComponentResolutionState> implement
         details.select(matches.get(sorted.get(0)));
     }
 
-    private boolean hasReleaseStatus(@Nullable ComponentResolveMetadata metadata) {
+    private boolean hasReleaseStatus(@Nullable ComponentGraphResolveMetadata metadata) {
         return metadata != null && "release".equals(metadata.getStatus());
     }
 
-    private boolean isMavenSnapshot(@Nullable ComponentResolveMetadata metadata) {
+    private boolean isMavenSnapshot(@Nullable ComponentGraphResolveMetadata metadata) {
         if (metadata instanceof MavenModuleResolveMetadata) {
             return ((MavenModuleResolveMetadata) metadata).getSnapshotTimestamp() != null || metadata.getModuleVersionId().getVersion().endsWith("-SNAPSHOT");
         }

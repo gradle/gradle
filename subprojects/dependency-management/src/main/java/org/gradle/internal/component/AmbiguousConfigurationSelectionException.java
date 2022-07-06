@@ -19,12 +19,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -40,13 +40,13 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
     public AmbiguousConfigurationSelectionException(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
-                                                    ComponentResolveMetadata targetComponent,
+                                                    ComponentGraphResolveMetadata targetComponent,
                                                     boolean variantAware,
                                                     Set<ConfigurationMetadata> discarded) {
         super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, discarded, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
@@ -85,7 +85,7 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
     }
 
     static void formatConfiguration(TreeFormatter formatter,
-                                    ComponentResolveMetadata targetComponent,
+                                    ComponentGraphResolveMetadata targetComponent,
                                     AttributeContainerInternal consumerAttributes,
                                     AttributeMatcher attributeMatcher,
                                     ConfigurationMetadata configuration,
