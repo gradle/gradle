@@ -21,6 +21,7 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,17 +34,26 @@ public class MethodReportableApiChange implements ReportableApiChange {
     private final Set<String> types;
     private final String methodName;
     private final String methodDescriptor;
+    private final String displayText;
+    private final String acceptation;
+    private final List<String> changes;
 
     public MethodReportableApiChange(
         String type,
         Collection<String> knownSubtypes,
-        Method method
+        Method method,
+        String displayText,
+        String acceptation,
+        List<String> changes
     ) {
         this.types = Stream.concat(Stream.of(type), knownSubtypes.stream())
             .map(className -> className.replace('.', '/'))
             .collect(Collectors.toSet());
         this.methodName = method.getName();
         this.methodDescriptor = Type.getMethodDescriptor(method);
+        this.displayText = displayText;
+        this.acceptation = acceptation;
+        this.changes = changes;
     }
 
     @Override
@@ -63,7 +73,7 @@ public class MethodReportableApiChange implements ReportableApiChange {
             && types.contains(owner)
             && name.equals(methodName)
             && desc.equals(methodDescriptor)) {
-            return Optional.of("Method call '" + owner + "." + name + "(" + desc + ")'");
+            return Optional.of("Method call '" + displayText + "', changes: " + changes + ", acceptation: " + acceptation);
         }
         return Optional.empty();
     }

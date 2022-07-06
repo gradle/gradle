@@ -83,7 +83,8 @@ class ApiUpgradeJsonParser {
 
         String typeName = methodMatcher.group(2);
         String methodName = methodMatcher.group(3);
-        List<String> parameterTypeNames = Arrays.stream(COMMA_LIST_PATTERN.split(methodMatcher.group(4)))
+        String parameters = methodMatcher.group(4);
+        List<String> parameterTypeNames = Arrays.stream(COMMA_LIST_PATTERN.split(parameters))
             .filter(split -> !split.isEmpty())
             .collect(Collectors.toList());
         Optional<Class<?>> type = getClassForName(typeName);
@@ -103,9 +104,13 @@ class ApiUpgradeJsonParser {
         try {
             Method method = type.get().getMethod(methodName, parameterTypes.toArray(new Class[0]));
             List<String> allKnownSubtypes = ALL_KNOWN_SUBTYPES.getOrDefault(type.get().getName(), Collections.emptyList());
-            return Optional.of(new MethodReportableApiChange(jsonApiChange.type, allKnownSubtypes, method));
+            String displayParameters = parameterTypes.stream()
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(","));
+            String displayText = String.format("%s %s.%s(%s)", method.getReturnType().getSimpleName(), type.get().getName(), methodName, displayParameters);
+            return Optional.of(new MethodReportableApiChange(jsonApiChange.type, allKnownSubtypes, method, displayText, jsonApiChange.acceptation, jsonApiChange.changes));
         } catch (NoSuchMethodException e) {
-            // This means that method on classpath has different signature, so we cannot upgrade it
+            // This means that method on classpath has different signature, so older/newer version is used, we can't report for
             LOGGER.error("Cannot find method for upgrade {}", member);
             return Optional.empty();
         }
