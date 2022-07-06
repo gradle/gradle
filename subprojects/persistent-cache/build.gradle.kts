@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":logging"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

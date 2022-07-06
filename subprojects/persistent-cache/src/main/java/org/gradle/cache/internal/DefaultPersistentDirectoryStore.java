@@ -30,6 +30,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.util.internal.CacheDirUtil;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public DefaultPersistentDirectoryStore open() {
         GFileUtils.mkdirs(dir);
+        CacheDirUtil.markAsCacheDirectory(dir);
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open();
