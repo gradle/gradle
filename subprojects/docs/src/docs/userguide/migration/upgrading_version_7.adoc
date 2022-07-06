@@ -238,7 +238,7 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 [[checkstyle_worker_api]]
 ==== Checkstyle tasks use toolchains and execute in parallel by default
 
-The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
+The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
 
 Since Checkstyle runs as an external process you can control the memory via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle tasks. In case of out of memory errors, increasing the max memory via the `maxHeapSize` property should solve the issue. By default, the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
 
