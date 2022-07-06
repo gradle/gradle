@@ -34,6 +34,9 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
         Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
 
         String gradleVersion = GradleVersion.current().getVersion();
+
+        // Some implementations may use null to represent the bootstrap class loader and in such cases
+        // Class.getClassLoader() will return null when the class was loaded by the bootstrap class loader.
         addClassLoader(knownClassLoaders, null, "bootstrap");
         addClassLoader(knownClassLoaders, registry.getRuntimeClassLoader(), "runtime:" + gradleVersion);
         addClassLoader(knownClassLoaders, registry.getGradleApiClassLoader(), "gradle-api:" + gradleVersion);
