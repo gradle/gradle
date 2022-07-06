@@ -42,7 +42,6 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -67,7 +66,7 @@ import static org.gradle.internal.component.external.model.maven.DefaultMavenMod
 public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     /**
-     * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, in a realised version.
+     * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, into a realised version.
      *
      * @param metadata the lazy metadata to transform
      * @return the realised version of the metadata
@@ -78,27 +77,27 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
         List<ConfigurationMetadata> derivedVariants = ImmutableList.of();
         if (variants.isEmpty()) {
-            Optional<List<? extends ConfigurationGraphResolveMetadata>> maybeDeriveVariants = metadata.deriveVariants();
-            if (maybeDeriveVariants.isPresent()) {
+            Optional<List<? extends ConfigurationMetadata>> sourceVariants = metadata.deriveVariants();
+            if (sourceVariants.isPresent()) {
                 ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
-                for (ConfigurationGraphResolveMetadata derivedVariant : maybeDeriveVariants.get()) {
-                    ImmutableList<ModuleDependencyMetadata> dependencies = Cast.uncheckedCast(derivedVariant.getDependencies());
+                for (ConfigurationMetadata sourceVariant : sourceVariants.get()) {
+                    ImmutableList<ModuleDependencyMetadata> dependencies = Cast.uncheckedCast(sourceVariant.getDependencies());
                     // We do not need to apply the rules manually to derived variants, because the derivation already
                     // instantiated 'derivedVariant' as 'DefaultConfigurationMetadata' which does the rules application
                     // automatically when calling the getters (done in the code below).
                     RealisedConfigurationMetadata derivedVariantMetadata = new RealisedConfigurationMetadata(
                         metadata.getId(),
-                        derivedVariant.getName(),
-                        derivedVariant.isTransitive(),
-                        derivedVariant.isVisible(),
-                        derivedVariant.getHierarchy(),
-                        Cast.uncheckedCast(derivedVariant.getLegacyMetadata().getArtifacts()),
-                        derivedVariant.getExcludes(),
-                        derivedVariant.getAttributes(),
-                        (ImmutableCapabilities) derivedVariant.getCapabilities(),
+                        sourceVariant.getName(),
+                        sourceVariant.isTransitive(),
+                        sourceVariant.isVisible(),
+                        sourceVariant.getHierarchy(),
+                        Cast.uncheckedCast(sourceVariant.getArtifacts()),
+                        sourceVariant.getExcludes(),
+                        sourceVariant.getAttributes(),
+                        (ImmutableCapabilities) sourceVariant.getCapabilities(),
                         dependencies,
                         false,
-                        derivedVariant.isExternalVariant()
+                        sourceVariant.isExternalVariant()
                     );
                     builder.add(derivedVariantMetadata);
                 }

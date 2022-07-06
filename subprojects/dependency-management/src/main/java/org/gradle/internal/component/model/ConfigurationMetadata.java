@@ -28,11 +28,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationMetadata extends ConfigurationGraphResolveMetadata {
-    @Override
-    default ConfigurationMetadata getLegacyMetadata() {
-        return this;
-    }
+public interface ConfigurationMetadata extends ConfigurationGraphResolveMetadata, VariantArtifactsGraphResolveMetadata {
 
     /**
      * The set of configurations that this configuration extends. Includes this configuration.

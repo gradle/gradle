@@ -80,7 +80,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     public void visitNode(DependencyGraphNode node) {
         boolean changing = false;
         ComponentIdentifier identifier = node.getOwner().getComponentId();
-        ComponentGraphResolveMetadata metadata = node.getOwner().getMetadata();
+        ComponentGraphResolveMetadata metadata = node.getOwner().getMetadataOrNull();
         if (metadata != null && metadata.isChanging()) {
             changing = true;
         }

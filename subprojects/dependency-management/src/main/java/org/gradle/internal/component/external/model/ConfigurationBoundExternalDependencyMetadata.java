@@ -16,7 +16,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -28,11 +27,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -103,13 +103,13 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
      * otherwise revert to legacy selection of target configurations.
      */
     @Override
-    public List<? extends VariantGraphResolveMetadata> selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         // This is a slight different condition than that used for a dependency declared in a Gradle project,
         // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
-        if (alwaysUseAttributeMatching || hasVariants(targetComponent)) {
-            return ImmutableList.of(AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, getArtifacts()));
+        if (alwaysUseAttributeMatching || hasVariants(targetComponentState.getMetadata())) {
+            return AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
-        return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponent);
+        return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponentState);
     }
 
     private boolean hasVariants(ComponentGraphResolveMetadata targetComponent) {

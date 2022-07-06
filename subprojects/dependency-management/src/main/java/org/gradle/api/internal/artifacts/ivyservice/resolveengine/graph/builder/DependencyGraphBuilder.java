@@ -460,7 +460,7 @@ public class DependencyGraphBuilder {
     }
 
     private void validateChangingVersions(ComponentState selected) {
-        ComponentGraphResolveMetadata metadata = selected.getMetadata();
+        ComponentGraphResolveMetadata metadata = selected.getMetadataOrNull();
         boolean moduleIsChanging = metadata != null && metadata.isChanging();
         for (NodeState node : selected.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();

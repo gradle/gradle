@@ -61,6 +61,15 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
     }
 
     @Override
+    default VariantArtifactsGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
+        return (VariantArtifactsGraphResolveMetadata) variant;
+    }
+
+    default ConfigurationMetadata getArtifactResolveMetadata(VariantGraphResolveMetadata variant) {
+        return (ConfigurationMetadata) variant;
+    }
+
+    @Override
     default List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
         return Collections.emptyList();
     }

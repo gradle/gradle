@@ -140,12 +140,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
      * @return A List containing a single `ConfigurationMetadata` representing the target variant.
      */
     @Override
-    public List<VariantGraphResolveMetadata> selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
         Optional<List<? extends VariantGraphResolveMetadata>> targetVariants = targetComponent.getVariantsForGraphTraversal();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || targetVariants.isPresent());
         if (useConfigurationAttributes) {
-            return ImmutableList.of(AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, getArtifacts()));
+            return AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -162,7 +163,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, targetVariants.isPresent(), DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
-        return ImmutableList.of(toConfiguration);
+        return new VariantSelectionResult(ImmutableList.of(toConfiguration), false);
     }
 
     private void verifyConsumability(ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveMetadata toConfiguration) {

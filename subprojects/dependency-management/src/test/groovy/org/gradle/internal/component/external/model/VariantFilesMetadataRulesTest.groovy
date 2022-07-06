@@ -332,6 +332,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
 
-        consumer.selectVariants(attributes, immutable, schema, [] as Set)[0]
+        consumer.selectVariants(attributes, immutable, schema, [] as Set).variants[0]
     }
 }

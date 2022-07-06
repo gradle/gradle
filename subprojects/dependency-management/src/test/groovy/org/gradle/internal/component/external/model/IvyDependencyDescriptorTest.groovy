@@ -160,7 +160,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).empty
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants.empty
     }
 
     def "selects configurations from target component that match configuration mappings"() {
@@ -180,7 +180,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2] // verify order as well
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2] // verify order as well
     }
 
     def "selects matching configurations for super-configurations"() {
@@ -200,7 +200,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
     }
 
     def "configuration mapping can use wildcard on LHS"() {
@@ -221,8 +221,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig2]
     }
 
     def "configuration mapping can use wildcard on RHS to select all public configurations"() {
@@ -245,7 +245,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
     }
 
     private ConfigurationMetadata config(name, visible) {
@@ -277,9 +277,9 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent).variants == [toConfig2]
     }
 
     def "configuration mapping can include fallback on LHS"() {
@@ -305,9 +305,9 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig3]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1, toConfig3]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent) as List == [toConfig2, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent).variants == [toConfig2, toConfig3]
     }
 
     def "configuration mapping can include fallback on RHS"() {
@@ -335,9 +335,9 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent).variants == [toConfig2]
     }
 
     def "configuration mapping can include self placeholder on RHS"() {
@@ -355,8 +355,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig1]
     }
 
     def "configuration mapping can include this placeholder on RHS"() {
@@ -378,8 +378,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig2]
     }
 
     def "configuration mapping can include wildcard on LHS and placeholder on RHS"() {
@@ -401,8 +401,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent).variants == [toConfig2]
 
         where:
         // these all map to the same thing

@@ -26,6 +26,9 @@ import java.util.Set;
 
 /**
  * Immutable metadata for a component variant instance, which is used to perform dependency graph resolution.
+ *
+ * <p>Note that this metadata does not provide any information about the available artifacts of this variants, as this may be expensive to resolve.
+ * Information about the artifacts can be accessed via the methods of {@link ComponentGraphResolveState}.</p>
  */
 public interface VariantGraphResolveMetadata extends HasAttributes {
     String getName();
@@ -43,6 +46,4 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
     boolean isTransitive();
 
     boolean isExternalVariant();
-
-    ConfigurationMetadata getLegacyMetadata();
 }
