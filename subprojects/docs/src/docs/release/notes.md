@@ -19,6 +19,7 @@ We would like to thank the following community members for their contributions t
 [Edmund Mok](https://github.com/edmundmok),
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
+[Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
 [Karl-Michael Schindler](https://github.com/kamischi)
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel)
@@ -28,7 +29,7 @@ We would like to thank the following community members for their contributions t
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [urdak](https://github.com/urdak),
 [Xin Wang](https://github.com/scaventz),
-[Jendrik Johannes](https://github.com/jjohannes),
+
 
 ## Upgrade instructions
 
