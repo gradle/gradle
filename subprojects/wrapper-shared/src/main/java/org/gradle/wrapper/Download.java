@@ -16,6 +16,8 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.util.internal.CacheDirUtil;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -85,7 +87,9 @@ public class Download implements IDownload {
     }
 
     public void download(URI address, File destination) throws Exception {
-        destination.getParentFile().mkdirs();
+        File downloadDir = destination.getParentFile();
+        downloadDir.mkdirs();
+        CacheDirUtil.markAsCacheDirectory(downloadDir);
         downloadInternal(address, destination);
     }
 

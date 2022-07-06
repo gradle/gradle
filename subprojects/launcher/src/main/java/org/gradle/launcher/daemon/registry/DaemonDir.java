@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.util.internal.CacheDirUtil;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
 
@@ -31,6 +32,7 @@ public class DaemonDir {
         this.versionedDir = new File(baseDir, GradleVersion.current().getVersion());
         this.registryFile = new File(versionedDir, "registry.bin");
         GFileUtils.mkdirs(this.versionedDir);
+        CacheDirUtil.markAsCacheDirectory(baseDir);
     }
 
     public File getBaseDir() {
