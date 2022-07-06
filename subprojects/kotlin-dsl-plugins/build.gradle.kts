@@ -54,6 +54,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
+    excludePatterns.add("org/gradle/kotlin/dsl/plugins/precompiled/**")
 }
 
 testFilesCleanup.reportOnly.set(true)
