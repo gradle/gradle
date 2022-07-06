@@ -17,6 +17,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
 import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.Transformer
@@ -143,6 +144,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
         val scriptPlugins = scriptPluginFiles.map(::PrecompiledScriptPlugin)
         enableScriptCompilationOf(
             scriptPlugins,
+            target.jvmTarget,
             target.kotlinSourceDirectorySet
         )
 
@@ -163,6 +165,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 private
 fun Project.enableScriptCompilationOf(
     scriptPlugins: List<PrecompiledScriptPlugin>,
+    jvmTargetProvider: Provider<JavaVersion>,
     kotlinSourceDirectorySet: SourceDirectorySet
 ) {
 
@@ -195,6 +198,8 @@ fun Project.enableScriptCompilationOf(
             }
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
+
+            jvmTarget.set(jvmTargetProvider)
 
             dependsOn(extractPrecompiledScriptPluginPlugins)
             sourceDir(extractedPluginsBlocks)

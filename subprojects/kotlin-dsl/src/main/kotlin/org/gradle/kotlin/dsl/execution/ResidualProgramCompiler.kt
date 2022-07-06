@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.plugins.ExtensionAware
@@ -84,6 +85,7 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
+    private val jvmTarget: JavaVersion,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
@@ -707,6 +709,7 @@ class ResidualProgramCompiler(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
+                jvmTarget,
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
