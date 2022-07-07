@@ -16,7 +16,6 @@
 
 package org.gradle.internal.upgrade.report;
 
-import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
