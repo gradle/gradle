@@ -32,6 +32,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -157,8 +158,11 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def state = Stub(ComponentGraphResolveState) {
+            metadata >> immutable
+        }
 
-        def configuration = consumer.selectVariants(attributes, immutable, schema, [] as Set).variants[0]
+        def configuration = consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
         configuration.dependencies
     }
 }

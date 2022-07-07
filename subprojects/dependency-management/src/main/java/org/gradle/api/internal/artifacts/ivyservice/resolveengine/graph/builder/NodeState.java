@@ -239,7 +239,7 @@ public class NodeState implements DependencyGraphNode {
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
         // If traversed before:
         //      If net exclusions for this node have not changed, ignore
-        //      If net exclusions for this node not changed, remove previous state and traverse outgoing edges again.
+        //      If net exclusions for this node have changed, remove previous state and traverse outgoing edges again.
 
         if (!component.isSelected()) {
             LOGGER.debug("version for {} is not selected. ignoring.", this);
@@ -592,13 +592,13 @@ public class NodeState implements DependencyGraphNode {
         PotentialEdge potentialEdge = PotentialEdge.of(resolveState, this, platformComponentIdentifier, platformSelector, platformComponentIdentifier);
         ComponentGraphResolveState state = potentialEdge.state;
         VirtualPlatformState virtualPlatformState = null;
-        if (state == null || state instanceof LenientPlatformResolveMetadata) {
+        if (state == null || state instanceof LenientPlatformGraphResolveState) {
             virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
             virtualPlatformState.participatingModule(component.getModule());
         }
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
-            state = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
+            state = new LenientPlatformGraphResolveState(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setState(state);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
@@ -1175,7 +1175,7 @@ public class NodeState implements DependencyGraphNode {
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
         // between variants of the same module.
-        // We also need too add the implicit capability if it was seen before as an explicit
+        // We also need to add the implicit capability if it was seen before as an explicit
         // capability in order to detect the conflict between the two.
         // Note that the fact that the implicit capability is not included in other cases
         // is not a bug but a performance optimization.

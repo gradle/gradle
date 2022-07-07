@@ -43,6 +43,7 @@ import static org.gradle.util.AttributeTestUtil.attributes
 class AttributeConfigurationSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
+    private ComponentGraphResolveState targetState
     private ComponentResolveMetadata targetComponent
     private ConfigurationMetadata selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
@@ -433,7 +434,7 @@ All of them match the consumer attributes:
         selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
                 consumerAttributes,
                 requestedCapabilities,
-                targetComponent,
+                targetState,
                 attributesSchema,
                 artifacts
         ).variants[0]
@@ -477,6 +478,9 @@ All of them match the consumer attributes:
                     ImmutableList.copyOf(variants)
             )
             getAttributesSchema() >> attributesSchema
+        }
+        targetState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> targetComponent
             resolveArtifactsFor(_) >> { VariantGraphResolveMetadata variant -> variant }
         }
     }

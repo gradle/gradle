@@ -77,7 +77,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "selects the target configuration from target component"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
-        def toComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
         def toConfig = Stub(LocalConfigurationMetadata) {
             isCanBeConsumed() >> true
             getAttributes() >> attributes([:])
@@ -87,7 +90,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectVariants(attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
+        dep.selectVariants(attributes([:]), toState, attributesSchema, [] as Set).variants == [toConfig]
     }
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
@@ -108,6 +111,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
             getAttributesSchema() >> EmptySchema.INSTANCE
         }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('extra', String))
 
@@ -117,7 +123,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(attributes(queryAttributes), toState, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -140,6 +146,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 getDisplayName() >> "[target]"
             }
         }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('will', String))
 
@@ -147,7 +156,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("default") >> defaultConfig
 
         when:
-        dep.selectVariants(attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(attributes(key: 'other'), toState, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -170,11 +179,13 @@ Configuration 'default':
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "[target]"
             }
             getAttributesSchema() >> EmptySchema.INSTANCE
+        }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
         }
 
         attributesSchema.attribute(Attribute.of('key', String))
@@ -185,7 +196,7 @@ Configuration 'default':
         toComponent.getConfiguration("bar") >> toBarConfig
 
         when:
-        dep.selectVariants(attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(attributes(key: 'something'), toState, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -217,6 +228,9 @@ Configuration 'bar':
                 getDisplayName() >> "[target]"
             }
         }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
             it.ordered(true, { a, b -> a <=> b })
@@ -231,7 +245,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(attributes(queryAttributes), toState, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -287,6 +301,9 @@ Configuration 'bar':
                 getDisplayName() >> "[target]"
             }
         }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
             it.ordered(true, { a, b -> a <=> b })
@@ -301,7 +318,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(attributes(queryAttributes), toState, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -339,12 +356,15 @@ Configuration 'bar':
         def dep = new LocalComponentDependencyMetadata(fromId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, false, null)
         def toComponent = Stub(ComponentResolveMetadata)
         toComponent.id >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
 
         given:
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectVariants(attributes([:]), toComponent, attributesSchema,[] as Set)
+        dep.selectVariants(attributes([:]), toState, attributesSchema,[] as Set)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -412,6 +432,9 @@ Configuration 'bar':
             getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
             getAttributesSchema() >> EmptySchema.INSTANCE
         }
+        def toState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> toComponent
+        }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
             it.compatibilityRules.add(EqualsValuesCompatibleRule)
@@ -425,7 +448,7 @@ Configuration 'bar':
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectVariants(attributes(queryAttributes), toComponent, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected
