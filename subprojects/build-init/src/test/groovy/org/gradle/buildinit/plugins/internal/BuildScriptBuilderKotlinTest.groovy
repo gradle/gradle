@@ -593,5 +593,7 @@ description = \"${output}\"
         "'foo'"        | "'foo'"
         '"bar"'        | '\\"bar\\"'
         'foo "\\" bar' | 'foo \\"\\\\\\" bar'
+        '$foo'         | '\\$foo'
+        '\\$foo'       | '\\\\\\$foo'
     }
 }

@@ -1962,11 +1962,14 @@ public class BuildScriptBuilder {
     private static final class KotlinSyntax implements Syntax {
         @Override
         public String string(String string) {
-            return '"' + escapeBackslashesAndDoubleQuotes(string) + '"';
+            return '"' + escapeBackslashesDoubleQuotesAndDollarSigns(string) + '"';
         }
 
-        private String escapeBackslashesAndDoubleQuotes(String string) {
-            return string.replace("\\", "\\\\").replace("\"", "\\\"");
+        private String escapeBackslashesDoubleQuotesAndDollarSigns(String string) {
+            return string
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("$", "\\$");
         }
 
         @Override
