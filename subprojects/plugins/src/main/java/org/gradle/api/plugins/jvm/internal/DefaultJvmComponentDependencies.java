@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
@@ -124,7 +125,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     public Dependency localGroovy() {
         return getDependencyHandler().create(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
     }
-    
+
     public Dependency testFixtures(Project project) {
         final ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
         return testFixtures(projectDependency);
@@ -141,6 +142,18 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         moduleDependency.capabilities(capabilities -> {
             capabilities.requireCapability(new ImmutableCapability(moduleDependency.getGroup(), moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
         });
+        return moduleDependency;
+    }
+
+    @Override
+    public Dependency runtimeView(Project project) {
+        ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
+        return runtimeView(projectDependency);
+    }
+
+    @Override
+    public Dependency runtimeView(ModuleDependency moduleDependency) {
+        moduleDependency.attributes(attrs -> attrs.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME)));
         return moduleDependency;
     }
 

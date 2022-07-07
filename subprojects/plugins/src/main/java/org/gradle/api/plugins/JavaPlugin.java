@@ -303,24 +303,15 @@ public class JavaPlugin implements Plugin<Project> {
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
             final SourceSet testSourceSet = suite.getSources();
-            ConfigurationContainer configurations = project.getConfigurations();
 
-            Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
-            Configuration testRuntimeOnlyConfiguration = configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
-            Configuration testCompileClasspathConfiguration = configurations.getByName(testSourceSet.getCompileClasspathConfigurationName());
-            Configuration testRuntimeClasspathConfiguration = configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName());
+            // The IntelliJ model builder relies on the main source set being created before the tests.
+            // So, this code here cannot live in the JvmTestSuitePlugin and must live here, so that we
+            // can ensure we register this test suite after we've created the main source set.
 
-            // We cannot reference the main source set lazily (via a callable) since the IntelliJ model builder
-            // relies on the main source set being created before the tests. So, this code here cannot live in the
-            // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
-            // created the main source set.
-            final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
-            final FileCollection testSourceSetOutput = testSourceSet.getOutput();
-            testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
-            testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
+            testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+            testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
-            testImplementationConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
-            testRuntimeOnlyConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
+            suite.getDependencies().implementation(suite.getDependencies().runtimeView(project));
         });
 
         // Force the realization of this test suite, targets and task
