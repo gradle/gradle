@@ -47,7 +47,6 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
-import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -90,7 +89,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 
 object Config {
-    const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
@@ -110,7 +108,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         createAndWireCommitDistributionTask(performanceTestExtension)
         createAdditionalTasks(performanceTestSourceSet)
-        createRebaselineTask(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
         configureAndroidStudioInstallation()
     }
@@ -121,13 +118,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest", this, performanceTestSourceSet, cleanTestProjectsTask, buildService)
         performanceTestExtension.baselines.set(project.performanceBaselines)
         return performanceTestExtension
-    }
-
-    private
-    fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
-        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class) {
-            source(performanceTestSourceSet.allSource)
-        }
     }
 
     private
@@ -345,6 +335,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             dependsOn(determineBaselines)
             releasedVersionsFile.set(project.releasedVersionsFile())
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
+            commitDistribution.set(project.rootProject.layout.projectDirectory.file(commitBaseline.map { "intTestHomeDir/commit-distributions/gradle-$it.zip" }))
+            commitDistributionToolingApiJar.set(project.rootProject.layout.projectDirectory.file(commitBaseline.map { "intTestHomeDir/commit-distributions/gradle-$it-tooling-api.jar" }))
         }
 
         tasks.withType<PerformanceTest>().configureEach {
