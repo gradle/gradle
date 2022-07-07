@@ -17,13 +17,12 @@
 package gradlebuild.performance.tasks
 
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.basics.logicalBranch
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.*
 import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
@@ -70,7 +69,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = project.the<ModuleIdentityExtension>().logicalBranch.get() in listOf("master", "release")
+    fun currentBranchIsMasterOrRelease() = project.logicalBranch.get() in listOf("master", "release")
 
     private
     fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", defaultBaseline)
