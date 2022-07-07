@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
@@ -331,7 +332,9 @@ class VariantFilesMetadataRulesTest extends Specification {
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
-
-        consumer.selectVariants(attributes, immutable, schema, [] as Set).variants[0]
+        def state = Stub(ComponentGraphResolveState) {
+            metadata >> immutable
+        }
+        consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
     }
 }

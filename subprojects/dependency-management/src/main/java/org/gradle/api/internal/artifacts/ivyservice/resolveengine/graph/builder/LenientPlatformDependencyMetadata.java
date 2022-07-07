@@ -87,8 +87,8 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        if (targetComponentState instanceof LenientPlatformResolveMetadata) {
-            LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponentState;
+        if (targetComponentState instanceof LenientPlatformGraphResolveState) {
+            LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponentState.getMetadata();
             return new VariantSelectionResult(Collections.singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState(), platformId)), false);
         }
         // the target component exists, so we need to fallback to the traditional selection process

@@ -41,7 +41,6 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -168,9 +167,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public ComponentResolveMetadata getArtifactResolveMetadata() {
+    public ComponentGraphResolveState getResolveState() {
         resolve();
-        return resolveState.getArtifactResolveMetadata();
+        assert resolveState != null;
+        return resolveState;
     }
 
     @Nullable
@@ -241,11 +241,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
                 if (version != this) {
-                    ComponentGraphResolveMetadata metadata = version.getMetadataOrNull();
-                    if (metadata instanceof LenientPlatformResolveMetadata) {
-                        LenientPlatformResolveMetadata lenient = (LenientPlatformResolveMetadata) metadata;
-                        this.resolveState = lenient.withVersion((ModuleComponentIdentifier) componentIdentifier, id);
-                        return true;
+                    ComponentGraphResolveState versionState = version.getResolveStateOrNull();
+                    if (versionState != null) {
+                        ComponentGraphResolveState lenient = versionState.maybeAsLenientPlatform((ModuleComponentIdentifier) componentIdentifier, id);
+                        if (lenient != null) {
+                            setState(lenient);
+                            return true;
+                        }
                     }
                 }
             }

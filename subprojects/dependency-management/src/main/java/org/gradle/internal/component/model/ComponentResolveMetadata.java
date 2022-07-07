@@ -33,7 +33,7 @@ import java.util.Set;
 /**
  * The meta-data for a component instance that is required during dependency resolution.
  */
-public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphResolveState, ComponentGraphResolveMetadata {
+public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphResolveMetadata {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     /**
@@ -49,21 +49,6 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
      * time more things will use the component identifier. At some point, the module version identifier will become optional for a component.
      */
     ModuleVersionIdentifier getModuleVersionId();
-
-    @Override
-    default ComponentGraphResolveMetadata getMetadata() {
-        return this;
-    }
-
-    @Override
-    default ComponentResolveMetadata getArtifactResolveMetadata() {
-        return this;
-    }
-
-    @Override
-    default VariantArtifactsGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
-        return (VariantArtifactsGraphResolveMetadata) variant;
-    }
 
     default ConfigurationMetadata getArtifactResolveMetadata(VariantGraphResolveMetadata variant) {
         return (ConfigurationMetadata) variant;

@@ -16,7 +16,9 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 import javax.annotation.Nullable;
 
@@ -41,4 +43,10 @@ public interface ComponentGraphResolveState {
      * waiting for access to the source project or for network or IO requests to the source repository.
      */
     VariantArtifactsGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
+
+    /**
+     * When this component is a lenient platform, create a copy with the given ids.
+     */
+    @Nullable
+    ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
 }

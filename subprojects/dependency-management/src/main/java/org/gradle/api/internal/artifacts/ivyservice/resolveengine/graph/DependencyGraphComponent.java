@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -36,7 +36,7 @@ public interface DependencyGraphComponent extends ResolvedGraphComponent {
     @Nullable
     ComponentGraphResolveMetadata getMetadataOrNull();
 
-    ComponentResolveMetadata getArtifactResolveMetadata();
+    ComponentGraphResolveState getResolveState();
 
     Collection<? extends DependencyGraphComponent> getDependents();
 

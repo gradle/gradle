@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 class PotentialEdge {
     final EdgeState edge;
     final ModuleVersionIdentifier toModuleVersionId;
+    @Nullable
     final ComponentGraphResolveState state;
     final ComponentState component;
 
