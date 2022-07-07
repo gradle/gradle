@@ -22,6 +22,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Assume
@@ -36,8 +37,13 @@ class DetermineBaselinesTest {
     private
     val buildEnvironmentExtension = project.extensions.create("buildEnvironment", BuildEnvironmentExtension::class.java)
 
+
+    private
+    val defaultPerformanceBaselines = "7.5-commit-123456"
+
     @Before
     fun setUp() {
+        project.extra["defaultPerformanceBaselines"] = defaultPerformanceBaselines
         project.file("version.txt").writeText("1.0")
 
         // mock project.execAndGetStdout
@@ -47,11 +53,6 @@ class DetermineBaselinesTest {
     @After
     fun cleanUp() {
         unmockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
-    }
-
-    @Test
-    fun `determines defaults when configured as force-defaults`() {
-        verifyBaselineDetermination(false, forceDefaultBaseline, defaultBaseline)
     }
 
     @Test
@@ -72,8 +73,6 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and default configuration`() {
-        // Windows git complains "long path" so we don't build commit distribution on Windows
-        Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
         mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
@@ -83,7 +82,7 @@ class DetermineBaselinesTest {
         mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
 
         // then
-        verifyBaselineDetermination(false, defaultBaseline, "5.1-commit-master-fork-point")
+        verifyBaselineDetermination(false, null, "5.1-commit-master-fork-point")
     }
 
     @Test
@@ -108,7 +107,7 @@ class DetermineBaselinesTest {
         setCurrentBranch("master")
 
         // then
-        verifyBaselineDetermination(false, defaultBaseline, defaultBaseline)
+        verifyBaselineDetermination(false, defaultPerformanceBaselines, defaultPerformanceBaselines)
     }
 
     @Test
