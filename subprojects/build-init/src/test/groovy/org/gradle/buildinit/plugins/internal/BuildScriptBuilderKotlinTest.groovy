@@ -572,7 +572,7 @@ foo = "last"
 """)
     }
 
-    def "generates basic Kotlin build script with proper escaping for backslashes and double quotes"() {
+    def "generates basic Kotlin build script with proper escaping for backslashes, double quotes, and dollar signs"() {
         when:
         builder
             .propertyAssignment(null, "description", input)
