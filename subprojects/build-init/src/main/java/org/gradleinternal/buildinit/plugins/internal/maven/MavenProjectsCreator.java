@@ -18,12 +18,9 @@ package org.gradleinternal.buildinit.plugins.internal.maven;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionRequestPopulationException;
 import org.apache.maven.execution.MavenExecutionRequestPopulator;
-import org.apache.maven.execution.MavenExecutionResult;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
@@ -38,8 +35,6 @@ import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.classworlds.ClassWorld;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.eclipse.aether.DefaultRepositorySystemSession;
-import org.eclipse.aether.RepositorySystemSession;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.internal.CollectionUtils;
@@ -98,13 +93,6 @@ public class MavenProjectsCreator {
         List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
         //noinspection NullableProblems
         CollectionUtils.collect(allProjects, reactorProjects, ProjectBuildingResult::getProject);
-
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        result.setProject(mavenProject);
-        RepositorySystemSession repoSession = new DefaultRepositorySystemSession();
-        @SuppressWarnings("deprecation")
-        MavenSession session = new MavenSession(container, repoSession, executionRequest, result);
-        session.setCurrentProject(mavenProject);
 
         return reactorProjects;
     }

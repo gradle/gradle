@@ -22,7 +22,8 @@ val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
-val mavenVersion = "3.6.3"
+val mavenVersion = "3.8.6"
+val mavenResolverVersion = "1.6.3"
 val nativePlatformVersion = "0.22-milestone-23"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
@@ -111,19 +112,29 @@ dependencies {
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
+
         api(libs.maven3BuilderSupport)  { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3Core)           { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3Model)           { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3RepositoryMetadata) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3Settings)        { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3SettingsBuilder) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3ResolverConnectorBasic) { version { strictly(mavenResolverVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3ResolverTransportHttp) { version { strictly(mavenResolverVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+        api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+        api(libs.annotationApi)         { version { strictly("1.2"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusCipher)          { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.4.1"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusAnnotations)     { version { strictly("2.1.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+
         api(libs.minlog)                { version { strictly("1.2") }}
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
         api(libs.objenesis)             { version { strictly("2.6") }}
-        api(libs.plexusCipher)          { version { strictly("1.7"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusSecDispatcher)   { version { strictly("1.4"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusUtils)           { version { strictly("3.3.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
@@ -136,10 +147,6 @@ dependencies {
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.7") }}
         api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
-
-        // compile only
-        api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
-        api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}

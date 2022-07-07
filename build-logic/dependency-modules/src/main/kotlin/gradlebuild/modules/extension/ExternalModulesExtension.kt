@@ -104,10 +104,17 @@ abstract class ExternalModulesExtension {
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
+    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+    val maven3Core = "org.apache.maven:maven-core"
     val maven3Model = "org.apache.maven:maven-model"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
+    val maven3ResolverTransportHttp = "org.apache.maven.resolver:maven-resolver-transport-http"
+    val maven3ResolverConnectorBasic = "org.apache.maven.resolver:maven-resolver-connector-basic"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
+    val annotationApi = "javax.annotation:javax.annotation-api"
+
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
@@ -116,6 +123,7 @@ abstract class ExternalModulesExtension {
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
     val plexusSecDispatcher = "org.codehaus.plexus:plexus-sec-dispatcher"
     val plexusUtils = "org.codehaus.plexus:plexus-utils"
+    val plexusAnnotations = "org.codehaus.plexus:plexus-component-annotations"
     val plist = "com.googlecode.plist:dd-plist"
     val pmavenCommon = "org.sonatype.pmaven:pmaven-common"
     val pmavenGroovy = "org.sonatype.pmaven:pmaven-groovy"
@@ -128,10 +136,6 @@ abstract class ExternalModulesExtension {
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
     val xmlApis = "xml-apis:xml-apis"
-
-    // Compile only dependencies (dynamically downloaded if needed)
-    val maven3Compat = "org.apache.maven:maven-compat"
-    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -246,6 +250,11 @@ abstract class ExternalModulesExtension {
         maven3RepositoryMetadata to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
+        maven3Compat to License.Apache2,
+        maven3Core to License.Apache2,
+        maven3ResolverTransportHttp to License.Apache2,
+        maven3ResolverConnectorBasic to License.Apache2,
+        maven3PluginApi to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
