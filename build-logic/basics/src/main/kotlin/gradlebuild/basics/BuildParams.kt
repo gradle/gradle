@@ -120,6 +120,7 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+
     internal
     val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
     const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
@@ -167,14 +168,26 @@ fun Project.propertyFromAnySource(propertyName: String) = gradleProperty(propert
 
 
 val Project.buildBranch: Provider<String>
-    get() = environmentVariable(BUILD_BRANCH).orElse(currentGitBranch())
+    get() = environmentVariable(BUILD_BRANCH).orElse(currentGitBranchViaFileSystemQuery())
+
+
+/**
+ * The logical branch.
+ * For non-pre-tested commit branches this is the same as {@link #buildBranch}.
+ * For pre-tested commit branches, this is the branch which will be forwarded to the state on this branch when
+ * pre-tested commit passes.
+ *
+ * For example, for the pre-tested commit branch "pre-test/master/queue/alice/personal-branch" the logical branch is "master".
+ */
+val Project.logicalBranch: Provider<String>
+    get() = buildBranch.map(::toPreTestedCommitBaseBranch)
 
 
 val Project.buildCommitId: Provider<String>
     get() = environmentVariable(BUILD_COMMIT_ID)
         .orElse(gradleProperty(BUILD_PROMOTION_COMMIT_ID))
         .orElse(environmentVariable(BUILD_VCS_NUMBER))
-        .orElse(currentGitCommit())
+        .orElse(currentGitCommitViaFileSystemQuery())
 
 
 val Project.isBuildCommitDistribution: Boolean
