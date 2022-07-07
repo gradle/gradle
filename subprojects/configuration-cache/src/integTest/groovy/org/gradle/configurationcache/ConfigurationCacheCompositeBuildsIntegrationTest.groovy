@@ -278,7 +278,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             settingsFile "includeBuild '$it'\n"
         }
         buildFile '''
-            ['clean', 'jar'].each { name ->
+            ['clean', 'compileJava'].each { name ->
                 tasks.register(name) {
                     gradle.includedBuilds.each { build ->
                         dependsOn(build.task(':' + name))
@@ -307,19 +307,19 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun 'clean', 'jar'
+        configurationCacheRun 'clean', 'compileJava'
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun 'clean', 'jar'
+        configurationCacheRun 'clean', 'compileJava'
 
         then:
         configurationCache.assertStateLoaded()
 
         and:
-        result.assertTaskOrder(':lib:jar', ':util:jar', ':jar')
+        result.assertTaskOrder(':lib:compileJava', ':util:compileJava', ':compileJava')
 
         where:
         order << ['lib', 'util'].permutations()
