@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
-
+import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.configurationcache.fixtures.ExternalProcessFixture
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 

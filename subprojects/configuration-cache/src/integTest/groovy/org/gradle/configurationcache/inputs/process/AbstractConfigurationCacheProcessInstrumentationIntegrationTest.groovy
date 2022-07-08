@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
+import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.process.ShellScript
 
 abstract class AbstractConfigurationCacheProcessInstrumentationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {

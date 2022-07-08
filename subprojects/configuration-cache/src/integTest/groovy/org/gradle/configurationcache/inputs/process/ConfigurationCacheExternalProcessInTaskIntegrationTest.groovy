@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
