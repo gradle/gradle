@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
+import gradlebuild.classycle.ClassycleExtension
+
 plugins {
     `java-library`
     `jvm-test-suite`
     id("gradlebuild.dependency-modules")
     id("gradlebuild.code-quality")
+}
+
+val classycleExtension = extensions.create<ClassycleExtension>("classycle").apply {
+    excludePatterns.convention(emptyList())
 }
 
 val sharedArchTestClasses by configurations.creating {
@@ -53,7 +59,7 @@ testing {
                     testTask.configure {
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets.main.get().output.classesDirs
-                        systemProperty("package.cycle.exclude.patterns", classycle.excludePatterns.get().joinToString(","))
+                        systemProperty("package.cycle.exclude.patterns", classycleExtension.excludePatterns.get().joinToString(","))
                     }
                 }
             }

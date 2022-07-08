@@ -319,11 +319,6 @@
             <sha256 value="e77f0b091a800acd15217bbc3c3629c1af0925b55b271fc5d0586422985639bb" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="classycle" name="classycle" version="1.4.2">
-         <artifact name="classycle-1.4.2.jar">
-            <sha256 value="6625a678ba5b8f77dc9c7c1aac941c39d6f4649f232f48144f57533b97c5b03f" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="com.andreapivetta.kolor" name="kolor" version="0.0.2">
          <artifact name="kolor-0.0.2.jar">
             <sha256 value="ec3b40d491ffad244c63a10d54e431d8b87ed97a749869b266f6e794f40547c2"/>
