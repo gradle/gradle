@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.classycle.ClassycleExtension
+import gradlebuild.archtest.PackageCyclesExtension
 
 plugins {
     `java-library`
@@ -23,7 +23,7 @@ plugins {
     id("gradlebuild.code-quality")
 }
 
-val classycleExtension = extensions.create<ClassycleExtension>("classycle").apply {
+val packageCyclesExtension = extensions.create<PackageCyclesExtension>("packageCycles").apply {
     excludePatterns.convention(emptyList())
 }
 
@@ -59,7 +59,7 @@ testing {
                     testTask.configure {
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets.main.get().output.classesDirs
-                        systemProperty("package.cycle.exclude.patterns", classycleExtension.excludePatterns.get().joinToString(","))
+                        systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
                     }
                 }
             }
