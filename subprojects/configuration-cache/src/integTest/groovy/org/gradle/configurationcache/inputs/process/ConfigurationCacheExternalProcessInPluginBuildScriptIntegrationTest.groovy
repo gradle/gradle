@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.exec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.javaexec

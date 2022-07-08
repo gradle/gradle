@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
 class ConfigurationCacheExternalProcessInstrumentationInKotlinIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
     def "#title is intercepted in kotlin build script"(VarInitializer varInitializer) {
