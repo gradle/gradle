@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.classycle.tasks.Classycle
-import gradlebuild.classycle.extension.ClassycleExtension
 
 plugins {
     id("base")
@@ -25,7 +23,6 @@ plugins {
 val codeQuality = tasks.register("codeQuality") {
     dependsOn(tasks.withType<CodeNarc>())
     dependsOn(tasks.withType<Checkstyle>())
-    dependsOn(tasks.withType<Classycle>())
     dependsOn(tasks.withType<ValidatePlugins>())
 }
 
@@ -45,15 +42,6 @@ val rules by configurations.creating {
     }
 }
 
-val classycle by configurations.creating {
-    isVisible = false
-    isCanBeConsumed = false
-
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-    }
-}
-
 dependencies {
     rules("gradlebuild:code-quality-rules") {
         because("Provides rules defined in XML files")
@@ -63,8 +51,6 @@ dependencies {
     }
     codenarc("org.codenarc:CodeNarc:3.0.1")
     codenarc(embeddedKotlin("stdlib"))
-
-    classycle("classycle:classycle:1.4.2@jar")
 
     components {
         withModule<CodeNarcRule>("org.codenarc:CodeNarc")
@@ -99,21 +85,6 @@ tasks.withType<CodeNarc>().configureEach {
     reports.xml.required.set(true)
     if (name.contains("IntegTest")) {
         config = configFile("codenarc-integtests.xml")
-    }
-}
-
-val classycleExtension = extensions.create<ClassycleExtension>("classycle").apply {
-    excludePatterns.convention(emptyList())
-}
-
-extensions.findByType<SourceSetContainer>()?.all {
-    tasks.register<Classycle>(getTaskName("classycle", null)) {
-        classycleClasspath.from(classycle)
-        classesDirs.from(output.classesDirs)
-        excludePatterns.set(classycleExtension.excludePatterns)
-        reportName.set(this@all.name)
-        reportDir.set(reporting.baseDirectory.dir("classycle"))
-        reportResourcesZip.from(rules)
     }
 }
 
