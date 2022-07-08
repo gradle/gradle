@@ -142,10 +142,11 @@ class GenerateProjectAccessors(
     )
 
     override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
-        val hasher = Hashing.newHasher()
-        requireNotNull(identityInputs[PROJECT_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
-        hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
-        val identityHash = hasher.hash().toString()
+        val identityHash = Hashing.newHasher().run {
+            putString("project-accessors")
+            putString(project.layout.projectDirectory.asFile.absolutePath)
+            hash().toString()
+        }
         return UnitOfWork.Identity { identityHash }
     }
 

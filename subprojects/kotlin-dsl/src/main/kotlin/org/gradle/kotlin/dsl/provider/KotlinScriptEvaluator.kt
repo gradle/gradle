@@ -239,6 +239,7 @@ class StandardKotlinScriptEvaluator(
         ): File = try {
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
+                    scriptHost.fileName,
                     templateId,
                     sourceHash,
                     compilationClassPath,
@@ -326,6 +327,7 @@ class StandardKotlinScriptEvaluator(
 
 internal
 class CompileKotlinScript(
+    private val fileName: String,
     private val templateId: String,
     private val sourceHash: HashCode,
     private val compilationClassPath: ClassPath,
@@ -363,11 +365,11 @@ class CompileKotlinScript(
         identityInputs: MutableMap<String, ValueSnapshot>,
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
-        val identityHash = newHasher().let { hasher ->
-            listOf("templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
-                requireNotNull(identityInputs[it]).appendToHasher(hasher)
-            }
-            hasher.hash().toString()
+        val identityHash = newHasher().run {
+            putString("compile-script")
+            requireNotNull(identityInputs["templateId"]).appendToHasher(this)
+            putString(fileName)
+            hash().toString()
         }
         return UnitOfWork.Identity { identityHash }
     }
@@ -386,7 +388,7 @@ class CompileKotlinScript(
         }
 
     override fun getDisplayName(): String =
-        "Kotlin DSL script compilation ($templateId)"
+        "Kotlin DSL script compilation ($templateId) for '$fileName'"
 
     override fun loadRestoredOutput(workspace: File): Any =
         classesDir(workspace)

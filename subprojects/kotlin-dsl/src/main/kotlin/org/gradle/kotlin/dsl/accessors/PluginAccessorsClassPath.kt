@@ -33,7 +33,7 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
@@ -97,11 +97,10 @@ class PluginAccessorClassPathGenerator @Inject constructor(
 
         rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
             val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-            val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
             val work = GeneratePluginAccessors(
                 rootProject,
                 buildSrcClassLoaderScope,
-                classLoaderHash,
+                classLoaderHierarchyHasher,
                 fileCollectionFactory,
                 inputFingerprinter,
                 workspaceProvider
@@ -116,7 +115,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
 class GeneratePluginAccessors(
     private val rootProject: Project,
     private val buildSrcClassLoaderScope: ClassLoaderScope,
-    private val classLoaderHash: HashCode,
+    private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
@@ -151,16 +150,25 @@ class GeneratePluginAccessors(
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = UnitOfWork.Identity { classLoaderHash.toString() }
+    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
+        val identityHash = Hashing.newHasher().run {
+            putString("plugin-accessors")
+            putString(rootProject.layout.projectDirectory.asFile.absolutePath)
+            hash().toString()
+        }
+        return UnitOfWork.Identity { identityHash }
+    }
 
     override fun getWorkspaceProvider() = workspaceProvider.accessors
 
     override fun getInputFingerprinter() = inputFingerprinter
 
-    override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
+    override fun getDisplayName(): String = "Kotlin DSL plugin accessors for '$rootProject'"
 
     override fun visitIdentityInputs(visitor: InputVisitor) {
-        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { classLoaderHash }
+        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) {
+            requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+        }
     }
 
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
