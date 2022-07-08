@@ -20,4 +20,7 @@ public class FoobarExtensions {
     public static void extensionMethod(Foobar foo) {
         System.out.println("Hello from extension " + foo);
     }
+    public static void call(Foobar foo, String name) {
+        System.out.println("Hello " + name);
+    }
 }

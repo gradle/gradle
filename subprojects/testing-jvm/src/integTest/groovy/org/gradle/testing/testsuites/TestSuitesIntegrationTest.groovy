@@ -77,10 +77,20 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             testing.suites.test.dependencies.foobar.extensionMethod()
+            testing.suites.test.dependencies.foobar.call("first-direct")
+            testing.suites.test.dependencies.foobar("first")
+            testing.suites.test.dependencies.foobar "first-no-parens"
 
             testing {
                 suites {
                     test {
+                        dependencies {
+                            foobar.extensionMethod()
+                            foobar.call("second-direct")
+                            // both of these don't work
+                            // foobar("second")
+                            // foobar "second-no-parens"
+                        }
                         useJUnit()
                     }
                 }

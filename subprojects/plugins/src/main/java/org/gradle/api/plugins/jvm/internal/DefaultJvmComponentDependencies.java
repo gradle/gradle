@@ -78,7 +78,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
 
     @Override
     public Foobar getFoobar() {
-        return new Foobar();
+        return getObjectFactory().newInstance(Foobar.class);
     }
 
     @Override
