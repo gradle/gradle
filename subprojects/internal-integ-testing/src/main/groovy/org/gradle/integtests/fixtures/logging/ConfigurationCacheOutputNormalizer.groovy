@@ -19,12 +19,17 @@ package org.gradle.integtests.fixtures.logging
 import org.gradle.exemplar.executor.ExecutionMetadata
 import org.gradle.exemplar.test.normalizer.OutputNormalizer
 
+import java.util.regex.Pattern
+
 class ConfigurationCacheOutputNormalizer implements OutputNormalizer {
     @Override
     String normalize(String output, ExecutionMetadata executionMetadata) {
         return output.replaceAll(
             "configuration-cache/.*/configuration-cache-report",
             "configuration-cache/<hash>/configuration-cache-report"
-        )
+        ).replaceAll("Configuration cache entry stored\\.(\\n)?", "")
+        .replaceAll("\\d+ problem(s)? were found storing the configuration cache\\.(\\n)(\\n)", "")
+        .replaceAll("See the complete report at file:///home/user/gradle/samples/build/reports/configuration-cache/<hash>/configuration-cache-report.html(\\n)(\\n)", "")
+
     }
 }

@@ -45,7 +45,8 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
-    MoreMemorySampleModifier.class
+    MoreMemorySampleModifier.class,
+    OptionalConfigurationCacheOutputSampleModifier.class
 })
 /*
  * To run the samples tests:
@@ -61,4 +62,3 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
  */
 abstract class BaseSamplesTest {
 }
-

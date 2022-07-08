@@ -122,6 +122,7 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+    const val CONFIGURATION_CACHE_FOR_DOCS_TESTS_ENABLED = "enableConfigurationCacheForDocsTests"
 
     internal
     val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
