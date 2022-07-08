@@ -17,8 +17,10 @@
 package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.kotlin.dsl.support.loggerFor
 
 import java.io.Closeable
+import java.time.Duration
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
@@ -36,7 +38,38 @@ object BuildServices {
 
 
 internal
+interface AsyncIOScopeSettings {
+    val ioActionTimeoutMs: Long
+}
+
+
+internal
+class JavaSystemPropertiesAsyncIOScopeSettings : AsyncIOScopeSettings {
+    companion object {
+        private
+        val LOGGER = loggerFor<JavaSystemPropertiesAsyncIOScopeSettings>()
+        const val IO_ACTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.kotlin.dsl.io.timeout"
+        val DEFAULT_IO_ACTION_TIMEOUT = Duration.ofMinutes(1).toMillis()
+    }
+
+    override val ioActionTimeoutMs: Long by lazy {
+        System.getProperty(IO_ACTION_TIMEOUT_SYSTEM_PROPERTY)
+            .takeIf { !it.isNullOrBlank() }?.let { property ->
+                val timeout = property.toLongOrNull()
+                if (timeout == null) {
+                    LOGGER.warn("Invalid value for java system property '{}': {}. Default timeout '{}' will be used.",
+                        IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, property, DEFAULT_IO_ACTION_TIMEOUT)
+                }
+                timeout
+            } ?: DEFAULT_IO_ACTION_TIMEOUT
+    }
+}
+
+
+internal
 class DefaultAsyncIOScopeFactory(
+    private
+    val settings: AsyncIOScopeSettings = JavaSystemPropertiesAsyncIOScopeSettings(),
     executorServiceProvider: () -> ExecutorService
 ) : Closeable, AsyncIOScopeFactory {
 
@@ -58,7 +91,7 @@ class DefaultAsyncIOScopeFactory(
         }
 
         override fun close() {
-            pending?.get(1, TimeUnit.MINUTES)
+            pending?.get(settings.ioActionTimeoutMs, TimeUnit.MILLISECONDS)
             checkForFailure()
         }
 
