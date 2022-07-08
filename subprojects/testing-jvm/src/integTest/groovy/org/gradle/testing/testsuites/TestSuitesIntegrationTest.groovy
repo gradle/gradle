@@ -76,6 +76,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
             ${mavenCentralRepository()}
 
+            testing.suites.test.dependencies.foobar.extensionMethod()
+
             testing {
                 suites {
                     test {

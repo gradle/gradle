@@ -47,6 +47,9 @@ public interface JvmComponentDependencies {
      * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
      */
     void implementation(Object dependencyNotation);
+
+    Foobar getFoobar();
+
     /**
      * Add a dependency to the set of implementation dependencies with additional configuration.
      * <p><br>

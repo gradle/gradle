@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.Foobar;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -73,6 +74,11 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     @Override
     public void implementation(Object dependency) {
         implementation(dependency, null);
+    }
+
+    @Override
+    public Foobar getFoobar() {
+        return new Foobar();
     }
 
     @Override
