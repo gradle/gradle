@@ -24,6 +24,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -34,6 +35,7 @@ import java.io.IOException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 
 class DefaultAsyncIOScopeFactoryTest {
@@ -97,6 +99,22 @@ class DefaultAsyncIOScopeFactoryTest {
         }
     }
 
+    @Test
+    fun `#io timeout reported upon IOScope#close`() {
+        val settings = object : AsyncIOScopeSettings {
+            override val ioActionTimeoutMs = 1L
+        }
+        withAsyncIOScopeFactory(settings) {
+            val scope = newScope().apply {
+                io { Thread.sleep(100L) }
+            }
+            assertThat(
+                exceptionOrNullFrom { scope.close() },
+                instanceOf(TimeoutException::class.java)
+            )
+        }
+    }
+
     private
     fun awaitExceptionFrom(scope: IOScope) =
         await atMost ONE_SECOND untilNotNull { exceptionOrNullFrom { scope.io { } } }
@@ -105,7 +123,10 @@ class DefaultAsyncIOScopeFactoryTest {
     fun exceptionOrNullFrom(action: () -> Unit) = runCatching(action).exceptionOrNull()
 
     private
-    fun withAsyncIOScopeFactory(action: DefaultAsyncIOScopeFactory.() -> Unit) {
-        DefaultAsyncIOScopeFactory { Executors.newSingleThreadExecutor() }.useToRun(action)
+    fun withAsyncIOScopeFactory(
+        settings: AsyncIOScopeSettings = JavaSystemPropertiesAsyncIOScopeSettings(),
+        action: DefaultAsyncIOScopeFactory.() -> Unit
+    ) {
+        DefaultAsyncIOScopeFactory(settings) { Executors.newSingleThreadExecutor() }.useToRun(action)
     }
 }
