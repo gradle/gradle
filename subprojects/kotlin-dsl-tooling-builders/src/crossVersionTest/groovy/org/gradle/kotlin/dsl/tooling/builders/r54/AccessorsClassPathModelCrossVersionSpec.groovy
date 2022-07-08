@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
 import org.hamcrest.Matcher
+import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItem
@@ -61,6 +62,7 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
         )
     }
 
+    @Ignore
     def "the set of jit accessors is a function of the set of applied plugins"() {
 
         given:
