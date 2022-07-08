@@ -16,9 +16,9 @@
 
 package org.gradle.configurationcache.inputs.process
 
-class ConfigurationCacheExternalProcessInstrumentationInDynamicGroovyWithoutIndyIntegrationTest extends AbstractConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegrationTest {
+class ExternalProcessInstrumentationInDynamicGroovyWithIndyIntegrationTest extends AbstractExternalProcessInstrumentationInDynamicGroovyIntegrationTest {
     @Override
     boolean enableIndy() {
-        return false
+        return true
     }
 }

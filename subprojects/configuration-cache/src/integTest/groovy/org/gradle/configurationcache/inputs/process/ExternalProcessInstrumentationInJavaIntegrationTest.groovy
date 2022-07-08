@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.inputs.process
 
-class ConfigurationCacheExternalProcessInstrumentationInJavaIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
+class ExternalProcessInstrumentationInJavaIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
     def "#title is intercepted in java build code"(VarInitializer varInitializer) {
         given:
         def cwd = testDirectory.file(expectedPwdSuffix)
