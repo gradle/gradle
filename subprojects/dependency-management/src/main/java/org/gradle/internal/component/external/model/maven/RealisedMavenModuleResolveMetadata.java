@@ -74,7 +74,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
         ImmutableList<? extends ComponentVariant> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
-        List<ConfigurationMetadata> derivedVariants = ImmutableList.of();
+        ImmutableList<ConfigurationMetadata> derivedVariants = ImmutableList.of();
         if (variants.isEmpty()) {
             Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants = metadata.maybeDeriveVariants();
             if (maybeDeriveVariants.isPresent()) {
@@ -100,8 +100,9 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                     );
                     builder.add(derivedVariantMetadata);
                 }
-                derivedVariants = addVariantsFromRules(metadata, builder.build(), variantMetadataRules);
+                derivedVariants = builder.build();
             }
+            derivedVariants = addVariantsFromRules(metadata, derivedVariants, variantMetadataRules);
         }
         for (String configurationName : metadata.getConfigurationNames()) {
             configurations.put(configurationName, createConfiguration(metadata, configurationName));
@@ -109,7 +110,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
     }
 
-    private static List<ConfigurationMetadata> addVariantsFromRules(ModuleComponentResolveMetadata componentMetadata,
+    private static ImmutableList<ConfigurationMetadata> addVariantsFromRules(ModuleComponentResolveMetadata componentMetadata,
                                                                     ImmutableList<ConfigurationMetadata> derivedVariants,
                                                                     VariantMetadataRules variantMetadataRules) {
         List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
