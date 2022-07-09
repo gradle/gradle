@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -251,23 +252,39 @@ public class FinalizerGroup extends HasFinalizers {
 
     private class FinalizesMembers extends ElementSuccessors {
         private final Set<Node> finalizedNodesThatCanStartAtAnyTime;
+        private final Set<Node> membersThatAreDeferred;
 
         public FinalizesMembers() {
             Set<Node> successors = getFinalizedNodes();
             finalizedNodesThatCanStartAtAnyTime = new LinkedHashSet<>(successors.size());
+            List<Node> queue = new ArrayList<>();
             for (Node successor : successors) {
-                if (!members.contains(successor) || memberCanStartAtAnyTime(successor)) {
+                if (!members.contains(successor)) {
                     finalizedNodesThatCanStartAtAnyTime.add(successor);
+                } else if (memberCanStartAtAnyTime(successor)) {
+                    finalizedNodesThatCanStartAtAnyTime.add(successor);
+                } else {
+                    queue.add(successor);
                 }
+            }
+
+            // TODO - a better option would be to split FinalizerGroup into several types, eg so that there are implementations for members that should start
+            // early, those that should be deferred, etc. Then the general purpose inheritance mechanism can be used instead of traversing the dependencies here
+            membersThatAreDeferred = new HashSet<>();
+            while (!queue.isEmpty()) {
+                Node node = queue.remove(0);
+                if (!membersThatAreDeferred.add(node)) {
+                    continue;
+                }
+                queue.addAll(0, node.getDependencySuccessors());
             }
         }
 
         @Override
         protected Set<Node> getFilteredSuccessorsFor(Node node) {
-            // If the node is not finalized by this group, it should wait for all the finalized nodes
-            Set<Node> successors = getFinalizedNodes();
-            if (!successors.contains(node)) {
-                return successors;
+            // If the node is not finalized by this group,  it should wait for all the finalized nodes
+            if (!membersThatAreDeferred.contains(node)) {
+                return getFinalizedNodes();
             }
 
             // The node is also finalized by this group, so it should wait for those finalized nodes that can start at any time
