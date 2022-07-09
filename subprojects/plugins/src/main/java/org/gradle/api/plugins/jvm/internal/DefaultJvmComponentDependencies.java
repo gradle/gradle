@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
@@ -146,15 +147,23 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
-    public Dependency runtimeView(Project project) {
-        ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
-        return runtimeView(projectDependency);
+    public ModuleDependency runtimeView(Project project) {
+        return runtimeView((ProjectDependency) getDependencyHandler().create(project));
     }
 
     @Override
-    public Dependency runtimeView(ModuleDependency moduleDependency) {
-        moduleDependency.attributes(attrs -> attrs.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME)));
-        return moduleDependency;
+    public ModuleDependency runtimeView(ModuleDependency moduleDependency) {
+        return moduleDependency.attributes(attrs ->
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME))
+        );
+    }
+
+    @Override
+    public ModuleDependency classes(ModuleDependency moduleDependency) {
+        return moduleDependency.attributes(attrs ->
+//            {}
+            attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjectFactory().named(LibraryElements.class, LibraryElements.CLASSES))
+        );
     }
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
