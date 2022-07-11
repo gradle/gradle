@@ -17,6 +17,7 @@
 package org.gradle.testing.testsuites.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import spock.lang.Ignore
 
@@ -53,11 +54,17 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test", "integTest")
+
+                val testCompileClasspathFiles = configurations.getByName("testCompileClasspath").files
+                val testRuntimeClasspathFiles = configurations.getByName("testRuntimeClasspath").files
+                val integTestCompileClasspathFiles = configurations.getByName("integTestCompileClasspath").files
+                val integTestRuntimeClasspathFiles = configurations.getByName("integTestRuntimeClasspath").files
+
                 doLast {
-                    assert(configurations.getByName("testCompileClasspath").files.map { it.name }.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 is an implementation dependency for the default test suite" }
-                    assert(configurations.getByName("testRuntimeClasspath").files.map { it.name }.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 is an implementation dependency for the default test suite" }
-                    assert(!configurations.getByName("integTestCompileClasspath").files.map { it.name }.contains("commons-lang3-3.11.jar")) { "default test suite dependencies should not leak to integTest" }
-                    assert(!configurations.getByName("integTestRuntimeClasspath").files.map { it.name }.contains("commons-lang3-3.11.jar")) { "default test suite dependencies should not leak to integTest" }
+                    assert(testCompileClasspathFiles.map { it.name }.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 is an implementation dependency for the default test suite" }
+                    assert(testRuntimeClasspathFiles.map { it.name }.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 is an implementation dependency for the default test suite" }
+                    assert(!integTestCompileClasspathFiles.map { it.name }.contains("commons-lang3-3.11.jar")) { "default test suite dependencies should not leak to integTest" }
+                    assert(!integTestRuntimeClasspathFiles.map { it.name }.contains("commons-lang3-3.11.jar")) { "default test suite dependencies should not leak to integTest" }
                 }
             }
         """
@@ -158,9 +165,13 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test", "integTest")
+
+            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
             doLast {
-                assert(configurations.getByName("testRuntimeClasspath").files.map { it.name } .equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
-                assert(!configurations.getByName("integTestRuntimeClasspath").files.map { it.name }.contains("commons-lang3-3.11.jar")) { "integTest does not implicitly depend on the production project" }
+                assert(testRuntimeClasspathFileNames.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
+                assert(!integTestRuntimeClasspathFileNames.contains("commons-lang3-3.11.jar")) { "integTest does not implicitly depend on the production project" }
             }
         }
         """
@@ -199,10 +210,15 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test", "integTest")
+
+            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
             doLast {
-                assert(configurations.getByName("testCompileClasspath").files.map { it.name } .equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
-                assert(configurations.getByName("testRuntimeClasspath").files.map { it.name } .equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
-                assert(configurations.getByName("integTestRuntimeClasspath").files.map { it.name }.contains("commons-lang3-3.11.jar")) { "integTest explicitly depends on the production project" }
+                assert(testCompileClasspathFileNames.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
+                assert(testRuntimeClasspathFileNames.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
+                assert(integTestRuntimeClasspathFileNames.contains("commons-lang3-3.11.jar")) { "integTest explicitly depends on the production project" }
             }
         }
         """
@@ -250,8 +266,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register("checkConfiguration") {
+                val compileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+
                 doLast {
-                    assert(configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }.contains("commons-lang3-3.11.jar"))
+                    assert(compileClasspathFileNames.contains("commons-lang3-3.11.jar"))
                 }
             }
         """
@@ -362,11 +380,11 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register("checkConfiguration") {
+                val reasons = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ProjectDependency::class).map { it.getReason() }
                 doLast {
-                    val deps = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ProjectDependency::class)
-                    assert(deps.size == 1)
-                    deps.forEach {
-                        assert(it.getReason().equals("for testing purposes"))
+                    assert(reasons.size == 1)
+                    reasons.forEach {
+                        assert(it == "for testing purposes")
                     }
                 }
             }
@@ -425,17 +443,18 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test", "integTest")
+
+            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
             doLast {
-                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
                 assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
                 assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                 assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
                 assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
                 assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
                 assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
@@ -492,17 +511,18 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test", "integTest")
+
+            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
             doLast {
-                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
                 assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
                 assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                 assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
                 assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
                 assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
                 assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
@@ -556,17 +576,17 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test", "integTest")
-                doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+                doLast {
                     assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
                     assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                     assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
                     assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                    val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                    val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
                     assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
                     assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
@@ -620,17 +640,17 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test", "integTest")
-                doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+                doLast {
                     assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
                     assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                     assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
                     assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                    val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                    val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
                     assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
                     assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
@@ -684,17 +704,17 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test", "integTest")
-                doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+                doLast {
                     assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar", "guava-30.1.1-jre.jar")))
                     assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                     assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "guava-30.1.1-jre.jar", "mysql-connector-java-8.0.26.jar")))
                     assert(!testRuntimeClasspathFileNames.contains("servlet-api-3.0-alpha-1.jar")) { "compileOnly dependency" }
-
-                    val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                    val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
                     assert(integTestCompileClasspathFileNames.containsAll(listOf("servlet-api-2.5.jar", "guava-29.0-jre.jar")))
                     assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
@@ -829,8 +849,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test")
+
+            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
             doLast {
-                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
                 assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar")))
             }
         }
@@ -846,6 +867,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     // region multiple GAV strings
+    @ToBeFixedForConfigurationCache(because = "Task is meant to fail, won't be cached")
     def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (varargs)"() {
         given:
         buildKotlinFile << """
@@ -1042,10 +1064,11 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test")
-                doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+
+                doLast {
                     assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar")))
                     assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                     assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "mysql-connector-java-8.0.26.jar")))
@@ -1128,9 +1151,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
-                doLast {
-                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
 
+                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+                doLast {
                     assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
@@ -1171,11 +1194,12 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
+
+                val reasons = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }.map { it.getReason() }
                 doLast {
-                    val deps = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }
-                    assert(deps.size == 1)
-                    deps.forEach {
-                        assert(it.getReason().equals("for testing purposes"))
+                    assert(reasons.size == 1)
+                    reasons.forEach {
+                        assert(it == "for testing purposes")
                     }
                 }
             }
@@ -1219,10 +1243,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test")
-                doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+                doLast {
                     assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar")))
                     assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                     assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "mysql-connector-java-8.0.26.jar")))
@@ -1262,10 +1286,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("test")
-                doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                    val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+                doLast {
                     assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "servlet-api-3.0-alpha-1.jar")))
                     assert(!testCompileClasspathFileNames.contains("mysql-connector-java-8.0.26.jar")) { "runtimeOnly dependency" }
                     assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar", "mysql-connector-java-8.0.26.jar")))
@@ -1304,9 +1328,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
-                doLast {
-                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
 
+                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+                doLast {
                     assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
@@ -1348,11 +1372,12 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
+
+                val reasons = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }.map { it.getReason() }
                 doLast {
-                    val deps = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }
-                    assert(deps.size == 1)
-                    deps.forEach {
-                        assert(it.getReason().equals("for testing purposes"))
+                    assert(reasons.size == 1)
+                    reasons.forEach {
+                        assert(it == "for testing purposes")
                     }
                 }
             }
@@ -1437,9 +1462,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
-                doLast {
-                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
 
+                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+                doLast {
                     assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
@@ -1480,11 +1505,12 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
+
+                val reasons = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }.map { it.getReason() }
                 doLast {
-                    val deps = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }
-                    assert(deps.size == 1)
-                    deps.forEach {
-                        assert(it.getReason().equals("for testing purposes"))
+                    assert(reasons.size == 1)
+                    reasons.forEach {
+                        assert(it == "for testing purposes")
                     }
                 }
             }
@@ -1528,10 +1554,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test", "integTest")
-            doLast {
-                val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
-                val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
+            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+            doLast {
                 assert(integTestCompileClasspathFileNames.containsAll(listOf("guava-30.1.1-jre.jar")))
                 assert(integTestRuntimeClasspathFileNames.containsAll(listOf("guava-30.1.1-jre.jar")))
                 assert(integTestCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar")))
@@ -1632,9 +1658,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
-            doLast {
-                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
 
+            val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+            doLast {
                 assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                 assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
             }
@@ -1681,11 +1707,12 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
+
+            val reasons = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }.map { it.getReason() }
             doLast {
-                val deps = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ModuleDependency::class).matching { it.group.equals("commons-beanutils") }
-                assert(deps.size == 1)
-                deps.forEach {
-                    assert(it.getReason().equals("for testing purposes"))
+                assert(reasons.size == 1)
+                reasons.forEach {
+                    assert(it == "for testing purposes")
                 }
             }
         }
@@ -1733,10 +1760,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
-            doLast {
-                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-                val ${suiteName}RuntimeClasspathFileNames = configurations.getByName("${suiteName}RuntimeClasspath").files.map { it.name }
 
+            val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+            val ${suiteName}RuntimeClasspathFileNames = configurations.getByName("${suiteName}RuntimeClasspath").files.map { it.name }
+            doLast {
                 assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("groovy-json-3.0.5.jar", "groovy-nio-3.0.5.jar", "groovy-3.0.5.jar")))
                 assert(${suiteName}RuntimeClasspathFileNames.containsAll(listOf("groovy-json-3.0.5.jar", "groovy-nio-3.0.5.jar", "groovy-3.0.5.jar")))
             }
@@ -1794,10 +1821,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
-            doLast {
-                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-                val ${suiteName}RuntimeClasspathFileNames = configurations.getByName("${suiteName}RuntimeClasspath").files.map { it.name }
 
+            val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+            val ${suiteName}RuntimeClasspathFileNames = configurations.getByName("${suiteName}RuntimeClasspath").files.map { it.name }
+            doLast {
                 assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("commons-lang3-3.12.0.jar", "commons-collections4-4.4.jar")))
                 assert(${suiteName}RuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.12.0.jar", "commons-collections4-4.4.jar", "commons-io-2.11.0.jar", "commons-csv-1.9.0.jar")))
             }
@@ -1854,10 +1881,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
-            doLast {
-                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-                val ${suiteName}RuntimeClasspathFileNames = configurations.getByName("${suiteName}RuntimeClasspath").files.map { it.name }
 
+            val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+            val ${suiteName}RuntimeClasspathFileNames = configurations.getByName("${suiteName}RuntimeClasspath").files.map { it.name }
+            doLast {
                 assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("guava-30.1.1-jre.jar")))
                 assert(${suiteName}RuntimeClasspathFileNames.containsAll(listOf("guava-30.1.1-jre.jar")))
                 assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("commons-lang3-3.11.jar")))
@@ -2061,10 +2088,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("test")
-            doLast {
-                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
-                val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
 
+            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+            doLast {
                 assert(testCompileClasspathFileNames.containsAll(listOf("dummy-1.jar")))
                 assert(testRuntimeClasspathFileNames.containsAll(listOf("dummy-1.jar")))
                 assert(testCompileClasspathFileNames.containsAll(listOf("dummy-2.jar")))
@@ -2106,8 +2133,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
+
+                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
                 doLast {
-                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
                     assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("dummy-1.jar", "dummy-2.jar", "dummy-3.jar")))
                 }
             }
@@ -2151,11 +2179,13 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
-            doLast {
-                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-                assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("dummy-1.jar", "dummy-2.jar")))
 
-                assert(configurationActions.containsAll(listOf("configured files")))
+            // Assert at configuration time to avoid configuration cache issues
+            assert(configurationActions.containsAll(listOf("configured files")))
+
+            val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+            doLast {
+                assert(${suiteName}CompileClasspathFileNames.containsAll(listOf("dummy-1.jar", "dummy-2.jar")))
             }
         }
         """
