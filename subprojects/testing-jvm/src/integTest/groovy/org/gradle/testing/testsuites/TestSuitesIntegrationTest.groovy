@@ -60,7 +60,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files == [tasks.jar.outputs.files.singleFile] as Set
+                    assert configurations.testRuntimeClasspath.files == sourceSets.main.output.classesDirs.files
                 }
             }
         """
