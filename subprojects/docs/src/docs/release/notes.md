@@ -21,14 +21,15 @@ We would like to thank the following community members for their contributions t
 [Gabriel Feo](https://github.com/gabrielfeo),
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
-[Karl-Michael Schindler](https://github.com/kamischi)
-[Leonardo Brondani Schenkel](https://github.com/lbschenkel)
+[Karl-Michael Schindler](https://github.com/kamischi),
+[Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
+[Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
-[Xin Wang](https://github.com/scaventz),
+[Xin Wang](https://github.com/scaventz)
 
 
 ## Upgrade instructions
