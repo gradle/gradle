@@ -72,6 +72,9 @@ class ConfigurationCacheStartParameter(
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
+    val isOffline
+        get() = startParameter.isOffline
+
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
