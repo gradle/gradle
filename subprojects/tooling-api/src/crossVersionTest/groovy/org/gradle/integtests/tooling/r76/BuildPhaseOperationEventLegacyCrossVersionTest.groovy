@@ -47,11 +47,11 @@ class BuildPhaseOperationEventLegacyCrossVersionTest extends ToolingApiSpecifica
             include 'a'
         """
         file("a/build.gradle") << """
-            tasks.register("taskA")
-            tasks.register("taskB") {
+            task taskA {}
+            task taskB {
                 dependsOn 'taskA'
             }
-            tasks.register("taskC") {
+            task taskC {
                 dependsOn 'taskB'
             }
         """
