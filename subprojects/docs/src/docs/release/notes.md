@@ -22,6 +22,7 @@ We would like to thank the following community members for their contributions t
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
 [Karl-Michael Schindler](https://github.com/kamischi),
+[Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Sam Snyder](https://github.com/sambsnyd),
