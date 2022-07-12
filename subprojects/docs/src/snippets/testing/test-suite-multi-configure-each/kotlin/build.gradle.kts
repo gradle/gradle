@@ -48,22 +48,18 @@ testing {
 // end::multi-configure[]
 
 val checkDependencies by tasks.registering {
-    val testRuntimeClasspath = configurations.getByName("testRuntimeClasspath")
-    val integrationTestRuntimeClasspath = configurations.getByName("integrationTestRuntimeClasspath")
-    val functionalTestRuntimeClasspath = configurations.getByName("functionalTestRuntimeClasspath")
-
-    val testRuntimeClasspathFiles = testRuntimeClasspath.files
-    val integrationTestRuntimeClasspathFiles = integrationTestRuntimeClasspath.files
-    val functionalTestRuntimeClasspathFiles = functionalTestRuntimeClasspath.files
+    val testRuntimeClasspath: FileCollection = configurations.getByName("testRuntimeClasspath")
+    val integrationTestRuntimeClasspath: FileCollection = configurations.getByName("integrationTestRuntimeClasspath")
+    val functionalTestRuntimeClasspath: FileCollection = configurations.getByName("functionalTestRuntimeClasspath")
 
     dependsOn(testRuntimeClasspath, integrationTestRuntimeClasspath, functionalTestRuntimeClasspath)
     doLast {
-        assert(testRuntimeClasspathFiles.size == 12)
-        assert(testRuntimeClasspathFiles.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(integrationTestRuntimeClasspathFiles.size == 12)
-        assert(integrationTestRuntimeClasspathFiles.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(functionalTestRuntimeClasspathFiles.size == 13)
-        assert(functionalTestRuntimeClasspathFiles.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(functionalTestRuntimeClasspathFiles.any { it.name == "commons-lang3-3.11.jar" })
+        assert(testRuntimeClasspath.files.size == 12)
+        assert(testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(integrationTestRuntimeClasspath.files.size == 12)
+        assert(integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(functionalTestRuntimeClasspath.files.size == 13)
+        assert(functionalTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" })
     }
 }
