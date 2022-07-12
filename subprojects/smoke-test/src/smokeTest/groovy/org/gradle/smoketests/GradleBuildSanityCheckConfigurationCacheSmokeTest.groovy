@@ -21,12 +21,11 @@ import org.gradle.testkit.runner.TaskOutcome
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
     def "can run Gradle sanityCheck with configuration cache enabled"() {
-
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
         // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
         def tasks = [
-            ':configuration-cache:sanityCheck',
+            ":configuration-cache:sanityCheck",
             ":docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
