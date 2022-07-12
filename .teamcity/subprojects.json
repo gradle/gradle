@@ -364,6 +364,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "internal-architecture-testing",
+    "name": "internal-architecture-testing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "internal-build-reports",
     "name": "internal-build-reports",
     "unitTests": false,
@@ -793,7 +800,7 @@
   {
     "dirName": "worker-processes",
     "name": "worker-processes",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

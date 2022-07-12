@@ -66,7 +66,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
     @Override
     public void appendToHasher(Hasher hasher) {
         hasher.putString(LambdaImplementationSnapshot.class.getName());
-        hasher.putString(typeName);
+        hasher.putString(classIdentifier);
         hasher.putHash(classLoaderHash);
         hasher.putString(functionalInterfaceClass);
         hasher.putString(implClass);
@@ -116,7 +116,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         }
 
         LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
-        return typeName.equals(that.typeName) &&
+        return classIdentifier.equals(that.classIdentifier) &&
             classLoaderHash.equals(that.classLoaderHash) &&
             functionalInterfaceClass.equals(that.functionalInterfaceClass) &&
             implClass.equals(that.implClass) &&
@@ -127,11 +127,11 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public int hashCode() {
-        return Objects.hash(typeName, classLoaderHash, functionalInterfaceClass, implClass, implMethodName, implMethodSignature, implMethodKind);
+        return Objects.hash(classIdentifier, classLoaderHash, functionalInterfaceClass, implClass, implMethodName, implMethodSignature, implMethodKind);
     }
 
     @Override
     public String toString() {
-        return typeName + "::" + implMethodName + "@" + classLoaderHash;
+        return classIdentifier + "::" + implMethodName + "@" + classLoaderHash;
     }
 }

@@ -9,22 +9,28 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[David Morris](https://github.com/codefish1),
-[Daniel Lin](https://github.com/ephemient),
-[Edmund Mok](https://github.com/edmundmok),
-[Martin d'Anjou](https://github.com/martinda),
-[BJ Hargrave](https://github.com/bjhargrave),
+
 [altrisi](https://github.com/altrisi),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
+[BJ Hargrave](https://github.com/bjhargrave),
+[Daniel Lin](https://github.com/ephemient),
+[David Morris](https://github.com/codefish1),
+[Edmund Mok](https://github.com/edmundmok),
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
-[Sam Snyder](https://github.com/sambsnyd),
-[teawithbrownsugar](https://github.com/teawithbrownsugar),
+[Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
+[Karl-Michael Schindler](https://github.com/kamischi),
+[Leonardo Brondani Schenkel](https://github.com/lbschenkel),
+[Martin d'Anjou](https://github.com/martinda),
+[Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
-[Leonardo Brondani Schenkel](https://github.com/lbschenkel)
-[Karl-Michael Schindler](https://github.com/kamischi)
+[teawithbrownsugar](https://github.com/teawithbrownsugar),
+[Thomas Broadley](https://github.com/tbroadley),
+[urdak](https://github.com/urdak),
+[Xin Wang](https://github.com/scaventz)
+
 
 ## Upgrade instructions
 
@@ -63,6 +69,8 @@ Example:
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+## New features and usability improvements
 
 ### Improvements for IDE integrators
 
@@ -162,9 +170,20 @@ networkTimeout=30000
 
 See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
 
+### Command-line improvements
+
+#### Tasks can be re-run selectively 
+
+A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
+```
+gradle test --rerun
+```
+
+See the [documentation](userguide/command_line_interface.html#sec:builtin_task_options) for more information.
+
 ### Improvements for plugin authors
 
-### Integer task options
+#### Integer task options
 
 It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
 
@@ -173,7 +192,6 @@ For example, the following task option:
 @Option(option = "integer-option", description = "Your description")
 public abstract Property<Integer> getIntegerOption();
 ```
-
 
 can be passed from the command line as follows:
 ```shell

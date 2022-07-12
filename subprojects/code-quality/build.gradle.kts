@@ -38,6 +38,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
 }

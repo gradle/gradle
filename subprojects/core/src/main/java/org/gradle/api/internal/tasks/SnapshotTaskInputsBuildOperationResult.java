@@ -366,7 +366,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementations -> !additionalImplementations.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
-                .map(ImplementationSnapshot::getTypeName)
+                .map(ImplementationSnapshot::getClassIdentifier)
                 .collect(Collectors.toList())
             )
             .orElse(null);

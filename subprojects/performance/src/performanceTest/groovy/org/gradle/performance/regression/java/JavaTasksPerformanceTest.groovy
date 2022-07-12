@@ -25,10 +25,6 @@ import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def setup() {
-        runner.targetVersions = ["7.6-20220513002340+0000"]
-    }
-
     @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
     )

@@ -57,3 +57,7 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+
+strictCompile {
+    ignoreDeprecations()
+}

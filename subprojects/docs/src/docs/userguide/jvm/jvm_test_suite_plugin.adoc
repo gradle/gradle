@@ -185,6 +185,55 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 `Test` tasks associated with a test suite target can also be configured directly, by name.  It is not necessary to configure via the test suite DSL.
 
+== Sharing configuration between multiple test suites
+
+There are several ways to share configuration between multiple test suites to avoid the duplication of dependencies or other configuration.  Each method is a tradeoff between flexibility and the use of a declarative vs. imperative configuration style.
+
+1. Use the `configureEach` method on the `suites` container to configure every test suite the same way.
+2. Use `withType` and `matching` with `configureEach` to filter test suites and configure a subset of them.
+3. Extract the configuration block to a local variable and apply it only to the desired test suites.
+
+=== Method 1: Use `configureEach`
+
+This is the most straightforward way to share configuration across _every_ test suite.  The configuration is applied to each test suite.
+
+====
+include::sample[dir="snippets/testing/test-suite-multi-configure-each/groovy",files="build.gradle[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+====
+
+<1> Configure every JVM test suite
+<2> Provide the dependencies to be shared by all test suites
+<3> Define the additional test suites which will be configured upon creation
+<4> Add dependencies specific to the `functionalTest` test suite
+
+=== Method 2: Use `withType`, `matching` and `configureEach`
+
+This method adds filtering commands to only apply the configuration to a subset of the test suites, as identified by name.
+
+====
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/groovy",files="build.gradle[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+====
+
+<1> Configure every JVM test suite matching the given criteria
+<2> Use a different testing framework for the `functionalTest` test suite
+<3> Add dependencies specific to the `functionalTest` test suite
+
+
+=== Method 3: Extract a custom configuration block
+
+This method is the most flexible, but also the most imperative.
+
+====
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/groovy",files="build.gradle[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+====
+
+<1> Define a closure which takes a single `JvmTestSuite` parameter and configures it
+<2> Apply the closure to a test suite, using the default (`test`) test suite
+<3> Alternate means of applying a configuration closure to a test suite outside of its declaration, using the `integrationTest` test suite
+
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
 Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].  However, there are important differences.

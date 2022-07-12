@@ -180,6 +180,10 @@ public class DaemonParameters {
         jvmOptions.getDebugOptions().getPort().set(debug);
     }
 
+    public void setDebugHost(String host) {
+        jvmOptions.getDebugOptions().getHost().set(host);
+    }
+
     public void setDebugSuspend(boolean suspend) {
         jvmOptions.getDebugOptions().getSuspend().set(suspend);
     }

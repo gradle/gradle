@@ -151,7 +151,7 @@ public abstract class Node {
         }
     }
 
-    private static NodeGroup maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
+    private static HasFinalizers maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
         if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
             return finalizers;
         }
@@ -161,8 +161,8 @@ public abstract class Node {
         }
 
         HasFinalizers currentFinalizers = (HasFinalizers) current;
-        if (currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
-            return current;
+        if (currentFinalizers.isReachableFromEntryPoint() == finalizers.isReachableFromEntryPoint() && currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
+            return currentFinalizers;
         }
 
         ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();
@@ -474,7 +474,7 @@ public abstract class Node {
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessors() {
-        return dependencySuccessors;
+        return getHardSuccessors();
     }
 
     /**
@@ -490,14 +490,6 @@ public abstract class Node {
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return dependencySuccessors.descendingSet();
-    }
-
-    /**
-     * Returns if the node has the given node as a hard successor, i.e. a non-removable relationship.
-     */
-    @OverridingMethodsMustInvokeSuper
-    public boolean hasHardSuccessor(Node successor) {
-        return dependencySuccessors.contains(successor);
     }
 
     public Set<Node> getFinalizers() {

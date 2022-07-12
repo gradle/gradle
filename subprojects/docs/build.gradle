@@ -543,6 +543,13 @@ samples {
             description = "Developing a Gradle plugin in a build without publishing."
             category = "Build organization"
         }
+
+        crossProjectOutputSharing {
+            sampleDirectory = samplesRoot.dir("build-organization/cross-project-output-sharing")
+            displayName = "Sharing task outputs across projects in a multi-project build"
+            description = "Sharing a file made by a task in one Gradle project, with a task in another Gradle project."
+            category = "Build organization"
+        }
     }
 }
 
