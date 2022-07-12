@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -32,10 +31,12 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
-public abstract class Node implements Comparable<Node> {
+public abstract class Node {
     @VisibleForTesting
     enum ExecutionState {
         // Node is not scheduled to run in any plan
@@ -67,8 +68,8 @@ public abstract class Node implements Comparable<Node> {
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private boolean filtered;
-    private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
+    private final NavigableSet<Node> dependencySuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> dependencyPredecessors = newSortedNodeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
@@ -77,14 +78,32 @@ public abstract class Node implements Comparable<Node> {
         return state;
     }
 
+    String healthDiagnostics() {
+        if (isComplete()) {
+            return this + " (state=" + state + ")";
+        } else {
+            String specificState = nodeSpecificHealthDiagnostics();
+            if (!specificState.isEmpty()) {
+                specificState = ", " + specificState;
+            }
+            return this + " (state=" + state + ", dependencies=" + dependenciesState + specificState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
+        }
+    }
+
+    protected String nodeSpecificHealthDiagnostics() {
+        return "";
+    }
+
     public NodeGroup getGroup() {
         return group;
     }
 
     public void setGroup(NodeGroup group) {
-        this.group.removeMember(this);
-        this.group = group;
-        this.group.addMember(this);
+        if (this.group != group) {
+            this.group.removeMember(this);
+            this.group = group;
+            this.group.addMember(this);
+        }
     }
 
     @Nullable
@@ -132,7 +151,7 @@ public abstract class Node implements Comparable<Node> {
         }
     }
 
-    private static NodeGroup maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
+    private static HasFinalizers maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
         if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
             return finalizers;
         }
@@ -142,14 +161,28 @@ public abstract class Node implements Comparable<Node> {
         }
 
         HasFinalizers currentFinalizers = (HasFinalizers) current;
-        if (currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
-            return current;
+        if (currentFinalizers.isReachableFromEntryPoint() == finalizers.isReachableFromEntryPoint() && currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
+            return currentFinalizers;
         }
 
         ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();
         builder.addAll(currentFinalizers.getFinalizerGroups());
         builder.addAll(finalizers.getFinalizerGroups());
         return new CompositeNodeGroup(currentFinalizers.getOrdinalGroup(), builder.build());
+    }
+
+    public void maybeUpdateOrdinalGroup() {
+        OrdinalGroup ordinal = getGroup().asOrdinal();
+        OrdinalGroup newOrdinal = ordinal;
+        for (Node successor : getHardSuccessors()) {
+            OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
+            if (successorOrdinal != null && (ordinal == null || successorOrdinal.getOrdinal() > ordinal.getOrdinal())) {
+                newOrdinal = successorOrdinal;
+            }
+        }
+        if (newOrdinal != ordinal) {
+            setGroup(getGroup().withOrdinalGroup(newOrdinal));
+        }
     }
 
     @Nullable
@@ -263,7 +296,9 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void cancelExecution(Consumer<Node> completionAction) {
-        assert !isCannotRunInAnyPlan();
+        if (isCannotRunInAnyPlan()) {
+            throw new IllegalStateException("Cannot cancel node " + this);
+        }
         state = ExecutionState.NOT_SCHEDULED;
         completionAction.accept(this);
     }
@@ -439,7 +474,7 @@ public abstract class Node implements Comparable<Node> {
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessors() {
-        return dependencySuccessors;
+        return getHardSuccessors();
     }
 
     /**
@@ -455,14 +490,6 @@ public abstract class Node implements Comparable<Node> {
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return dependencySuccessors.descendingSet();
-    }
-
-    /**
-     * Returns if the node has the given node as a hard successor, i.e. a non-removable relationship.
-     */
-    @OverridingMethodsMustInvokeSuper
-    public boolean hasHardSuccessor(Node successor) {
-        return dependencySuccessors.contains(successor);
     }
 
     public Set<Node> getFinalizers() {

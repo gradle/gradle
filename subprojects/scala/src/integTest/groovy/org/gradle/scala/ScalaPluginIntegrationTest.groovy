@@ -17,7 +17,6 @@ package org.gradle.scala
 
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
@@ -208,7 +207,7 @@ task someTask
 
         then:
         def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
         if (GradleContextualExecuter.isConfigCache()) {
             // Nested in the CC problems report
             failure.assertHasFailures(2)
@@ -242,7 +241,6 @@ task someTask
         succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     @Issue("gradle/gradle#19300")
     def 'show that log4j-core, if present, is 2_17_1 at the minimum'() {
         given:

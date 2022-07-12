@@ -31,28 +31,28 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache
     def taskCanAccessTaskGraph() {
         buildFile << """
-    boolean notified = false
-    task a(dependsOn: 'b') {
-        doLast { task ->
-            assert notified
-            assert gradle.taskGraph.hasTask(task)
-            assert gradle.taskGraph.hasTask(':a')
-            assert gradle.taskGraph.hasTask(a)
-            assert gradle.taskGraph.hasTask(':b')
-            assert gradle.taskGraph.hasTask(b)
-            assert gradle.taskGraph.allTasks == [b, a]
-        }
-    }
-    task b
-    gradle.taskGraph.whenReady { graph ->
-        assert graph.hasTask(':a')
-        assert graph.hasTask(a)
-        assert graph.hasTask(':b')
-        assert graph.hasTask(b)
-        assert graph.allTasks == [b, a]
-        notified = true
-    }
-"""
+            boolean notified = false
+            task a(dependsOn: 'b') {
+                doLast { task ->
+                    assert notified
+                    assert gradle.taskGraph.hasTask(task)
+                    assert gradle.taskGraph.hasTask(':a')
+                    assert gradle.taskGraph.hasTask(a)
+                    assert gradle.taskGraph.hasTask(':b')
+                    assert gradle.taskGraph.hasTask(b)
+                    assert gradle.taskGraph.allTasks == [b, a]
+                }
+            }
+            task b
+            gradle.taskGraph.whenReady { graph ->
+                assert graph.hasTask(':a')
+                assert graph.hasTask(a)
+                assert graph.hasTask(':b')
+                assert graph.hasTask(b)
+                assert graph.allTasks == [b, a]
+                notified = true
+            }
+        """
         expect:
         2.times {
             succeeds "a"
@@ -63,18 +63,18 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache
     def buildFinishedHookCanAccessTaskGraph() {
         buildFile << """
-    task a(dependsOn: 'b')
-    task b
-    gradle.buildFinished {
-        def graph = gradle.taskGraph
-        // This is existing behaviour, not desired behaviour
-        assert !graph.hasTask(':a')
-        assert !graph.hasTask(a)
-        assert !graph.hasTask(':b')
-        assert !graph.hasTask(b)
-        assert graph.allTasks == [b, a]
-    }
-"""
+            task a(dependsOn: 'b')
+            task b
+            gradle.buildFinished {
+                def graph = gradle.taskGraph
+                // This is existing behaviour, not desired behaviour
+                assert !graph.hasTask(':a')
+                assert !graph.hasTask(a)
+                assert !graph.hasTask(':b')
+                assert !graph.hasTask(b)
+                assert graph.allTasks == [b, a]
+            }
+        """
         expect:
         2.times {
             succeeds "a"
@@ -85,22 +85,22 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         buildFile << """
-    gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }
-    task a {
-        doLast { task ->
-            project.ext.executedA = task
-        }
-    }
-    task b {
-        doLast {
-            assert a == project.executedA
-            assert gradle.taskGraph.hasTask(':a')
-        }
-    }
-    task c(dependsOn: a)
-    task d(dependsOn: a)
-    task e(dependsOn: [a, d]);
-"""
+            gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }
+            task a {
+                doLast { task ->
+                    project.ext.executedA = task
+                }
+            }
+            task b {
+                doLast {
+                    assert a == project.executedA
+                    assert gradle.taskGraph.hasTask(':a')
+                }
+            }
+            task c(dependsOn: a)
+            task d(dependsOn: a)
+            task e(dependsOn: [a, d]);
+        """
         expect:
         2.times {
             run("a", "b").assertTasksExecuted(":a", ":b")
@@ -113,12 +113,12 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
         settingsFile << "include 'child1', 'child2', 'child1-2', 'child1-2-2'"
         buildFile << """
-    task a
-    allprojects {
-        task b
-        task c(dependsOn: ['b', ':a'])
-    };
-"""
+            task a
+            allprojects {
+                task b
+                task c(dependsOn: ['b', ':a'])
+            };
+        """
 
         expect:
         2.times {
@@ -130,13 +130,13 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
         settingsFile << "include 'child1', 'child2'"
         buildFile << """
-    defaultTasks 'a', 'b'
-    task a
-    subprojects {
-        task a(dependsOn: ':a')
-        task b(dependsOn: ':a')
-    }
-"""
+            defaultTasks 'a', 'b'
+            task a
+            subprojects {
+                task a(dependsOn: ':a')
+                task b(dependsOn: ':a')
+            }
+        """
 
         expect:
         2.times {
@@ -146,10 +146,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def doesNotExecuteTaskActionsWhenDryRunSpecified() {
         buildFile << """
-    task a { doLast { fail() } }
-    task b(dependsOn: a) { doLast { fail() } }
-    defaultTasks 'b'
-"""
+            task a { doLast { fail() } }
+            task b(dependsOn: a) { doLast { fail() } }
+            defaultTasks 'b'
+        """
 
         expect:
         2.times {
@@ -162,34 +162,34 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def executesTaskActionsInCorrectEnvironment() {
         buildFile << """
-    // An action attached to built-in task
-    task a { doLast { assert Thread.currentThread().contextClassLoader == getClass().classLoader } }
-
-    // An action defined by a custom task
-    task b(type: CustomTask)
-    class CustomTask extends DefaultTask {
-        @TaskAction def go() {
-            assert Thread.currentThread().contextClassLoader == getClass().classLoader
-        }
-    }
-
-    // An action implementation
-    task c
-    class DoLast implements Action<Task> {
-        void execute(Task t) {
-            assert Thread.currentThread().contextClassLoader == getClass().classLoader
-        }
-    }
-    c.doLast new DoLast()
-
-//  The following is NOT compatible with the configuration cache because anonymous inner classes
-//  in a groovy script always capture the script object reference:
-//    c.doLast new Action<Task>() {
-//        void execute(Task t) {
-//            assert Thread.currentThread().contextClassLoader == getClass().classLoader
-//        }
-//    }
-"""
+            // An action attached to built-in task
+            task a { doLast { assert Thread.currentThread().contextClassLoader == getClass().classLoader } }
+        
+            // An action defined by a custom task
+            task b(type: CustomTask)
+            class CustomTask extends DefaultTask {
+                @TaskAction def go() {
+                    assert Thread.currentThread().contextClassLoader == getClass().classLoader
+                }
+            }
+        
+            // An action implementation
+            task c
+            class DoLast implements Action<Task> {
+                void execute(Task t) {
+                    assert Thread.currentThread().contextClassLoader == getClass().classLoader
+                }
+            }
+            c.doLast new DoLast()
+        
+            // The following is NOT compatible with the configuration cache because anonymous inner classes
+            // in a groovy script always capture the script object reference:
+            //   c.doLast new Action<Task>() {
+            //       void execute(Task t) {
+            //           assert Thread.currentThread().contextClassLoader == getClass().classLoader
+            //       }
+            //   }
+        """
         expect:
         2.times {
             succeeds("a", "b", "c")
@@ -199,16 +199,16 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """
-    task a
-    task b(dependsOn: a)
-    task c(dependsOn: [a, b])
-    task d(dependsOn: c)
-    defaultTasks 'd'
-"""
+            task a
+            task b(dependsOn: a)
+            task c(dependsOn: [a, b])
+            task d(dependsOn: c)
+            defaultTasks 'd'
+        """
         file("sub/build.gradle") << """
-    task c
-    task d(dependsOn: c)
-"""
+            task c
+            task d(dependsOn: c)
+        """
 
         expect:
         2.times {
@@ -231,13 +231,13 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
         settingsFile << "include 'sub'"
         buildFile << """
-    task a
-"""
+            task a
+        """
         file("sub/build.gradle") << """
-    task a
-    task b
-    task c(dependsOn: [a, b, ':a'])
-"""
+            task a
+            task b
+            task c(dependsOn: [a, b, ':a'])
+        """
 
         expect:
         2.times {
@@ -247,10 +247,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
-task someDep
-task someOtherDep
-task someTask(dependsOn: [someDep, someOtherDep])
-"""
+            task someDep
+            task someOtherDep
+            task someTask(dependsOn: [someDep, someOtherDep])
+        """
 
         expect:
         2.times {
@@ -261,10 +261,10 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def 'can combine exclude task filters'() {
         buildFile << """
-task someDep
-task someOtherDep
-task someTask(dependsOn: [someDep, someOtherDep])
-"""
+            task someDep
+            task someOtherDep
+            task someTask(dependsOn: [someDep, someOtherDep])
+        """
 
         expect:
         2.times {
@@ -278,14 +278,14 @@ task someTask(dependsOn: [someDep, someOtherDep])
     def 'excluding a task that is a dependency of multiple tasks'() {
         settingsFile << "include 'sub'"
         buildFile << """
-    task a
-    task b(dependsOn: a)
-    task c(dependsOn: a)
-    task d(dependsOn: [b, c])
-"""
+            task a
+            task b(dependsOn: a)
+            task c(dependsOn: a)
+            task d(dependsOn: [b, c])
+        """
         file("sub/build.gradle") << """
-    task a
-"""
+            task a
+        """
 
         expect:
         2.times {
@@ -297,8 +297,8 @@ task someTask(dependsOn: [someDep, someOtherDep])
     @Issue("https://issues.gradle.org/browse/GRADLE-2022")
     def tryingToInstantiateTaskDirectlyFailsWithGoodErrorMessage() {
         buildFile << """
-    new DefaultTask()
-"""
+            new DefaultTask()
+        """
         expect:
         2.times {
             fails "tasks"
@@ -308,32 +308,32 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "sensible error message for circular task dependency"() {
         buildFile << """
-    task a(dependsOn: 'b')
-    task b(dependsOn: 'a')
-"""
+            task a(dependsOn: 'b')
+            task b(dependsOn: 'a')
+        """
         expect:
         2.times {
             fails 'b'
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:a
-\\--- :b
-     \\--- :a (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                |:a
+                |\\--- :b
+                |     \\--- :a (*)
+                |
+                |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 
     def "honours mustRunAfter task ordering"() {
         buildFile << """
-    task a {
-        mustRunAfter 'b'
-    }
-    task b
-    task c(dependsOn: ['a', 'b'])
-    task d
-    c.mustRunAfter d
-
-"""
+            task a {
+                mustRunAfter 'b'
+            }
+            task b
+            task c(dependsOn: ['a', 'b'])
+            task d
+            c.mustRunAfter d
+        
+        """
         expect:
         2.times {
             succeeds 'c', 'd'
@@ -343,12 +343,12 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "finalizer task is executed if a finalized task is executed"() {
         buildFile << """
-    task a
-    task b {
-        doLast {}
-        finalizedBy a
-    }
-"""
+            task a
+            task b {
+                doLast {}
+                finalizedBy a
+            }
+        """
         expect:
         2.times {
             succeeds 'b'
@@ -358,12 +358,12 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "finalizer task is executed even if the finalised task fails"() {
         buildFile << """
-    task a
-    task b  {
-        doLast { throw new RuntimeException() }
-        finalizedBy a
-    }
-"""
+            task a
+            task b  {
+                doLast { throw new RuntimeException() }
+                finalizedBy a
+            }
+        """
         expect:
         2.times {
             fails 'b'
@@ -373,17 +373,17 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "finalizer task is not executed if the finalized task does not run"() {
         buildFile << """
-    task a {
-        doLast { throw new RuntimeException() }
-    }
-    task b
-    task c {
-        doLast {}
-        dependsOn a
-        finalizedBy b
-        onlyIf { false }
-    }
-"""
+            task a {
+                doLast { throw new RuntimeException() }
+            }
+            task b
+            task c {
+                doLast {}
+                dependsOn a
+                finalizedBy b
+                onlyIf { false }
+            }
+        """
         expect:
         2.times {
             fails 'c'
@@ -393,20 +393,20 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {
         buildFile << """
-    task a {
-        mustRunAfter 'b'
-    }
-    task b(dependsOn: 'a')
-"""
+            task a {
+                mustRunAfter 'b'
+            }
+            task b(dependsOn: 'a')
+        """
         expect:
         2.times {
             fails 'b'
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:a
-\\--- :b
-     \\--- :a (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                |:a
+                |\\--- :b
+                |     \\--- :a (*)
+                |
+                |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 
@@ -434,17 +434,17 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "honours shouldRunAfter task ordering"() {
         buildFile << """
-    task a() {
-        dependsOn 'b'
-    }
-    task b() {
-        shouldRunAfter 'c'
-    }
-    task c()
-    task d() {
-        dependsOn 'c'
-    }
-"""
+            task a() {
+                dependsOn 'b'
+            }
+            task b() {
+                shouldRunAfter 'c'
+            }
+            task c()
+            task d() {
+                dependsOn 'c'
+            }
+        """
         expect:
         2.times {
             args("--max-workers=1")
@@ -455,31 +455,31 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
         buildFile << """
-    task a() {
-        dependsOn 'b', 'h'
-    }
-    task b() {
-        dependsOn 'c'
-    }
-    task c() {
-        dependsOn 'g'
-        shouldRunAfter 'd'
-    }
-    task d() {
-        finalizedBy 'e'
-        dependsOn 'f'
-    }
-    task e()
-    task f() {
-        dependsOn 'c'
-    }
-    task g() {
-        shouldRunAfter 'h'
-    }
-    task h() {
-        dependsOn 'b'
-    }
-"""
+            task a() {
+                dependsOn 'b', 'h'
+            }
+            task b() {
+                dependsOn 'c'
+            }
+            task c() {
+                dependsOn 'g'
+                shouldRunAfter 'd'
+            }
+            task d() {
+                finalizedBy 'e'
+                dependsOn 'f'
+            }
+            task e()
+            task f() {
+                dependsOn 'c'
+            }
+            task g() {
+                shouldRunAfter 'h'
+            }
+            task h() {
+                dependsOn 'b'
+            }
+        """
 
         expect:
         2.times {
@@ -603,7 +603,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         2.times {
             succeeds ':build'
-            result.assertTasksExecutedInOrder(':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build')
+            result.assertTasksExecutedInOrder ':b:jar', ':a:compileJava', any(':a:compileFinalizer', ':a:jar'), ':build'
         }
     }
 
@@ -770,11 +770,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         2.times {
             fails("myTask")
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:finalizer
-\\--- :finalizer (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                |:finalizer
+                |\\--- :finalizer (*)
+                |
+                |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 
@@ -791,11 +791,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         2.times {
             fails("a")
-            failure.assertHasDescription """Circular dependency between the following tasks:
-:b
-\\--- :b (*)
-
-(*) - details omitted (listed previously)"""
+            failure.assertHasDescription """|Circular dependency between the following tasks:
+                |:b
+                |\\--- :b (*)
+                |
+                |(*) - details omitted (listed previously)""".stripMargin()
         }
     }
 

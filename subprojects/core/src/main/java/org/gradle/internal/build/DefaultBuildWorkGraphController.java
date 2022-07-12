@@ -237,9 +237,16 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
         }
 
-        public boolean shouldSchedule() {
+        boolean shouldSchedule() {
             synchronized (lock) {
                 return taskNode == null || !taskNode.isRequired();
+            }
+        }
+
+        @Override
+        public String healthDiagnostics() {
+            synchronized (lock) {
+                return "exportedTaskState=" + getTaskState();
             }
         }
 

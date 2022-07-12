@@ -18,11 +18,15 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -32,11 +36,15 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 public class DefaultJvmComponentDependencies implements JvmComponentDependencies {
     private final Configuration implementation;
@@ -100,6 +108,40 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     @Override
     public void annotationProcessor(Object dependency, @Nullable Action<? super Dependency> configuration) {
         doAdd(annotationProcessor, dependency, configuration);
+    }
+
+    @Override
+    public Dependency gradleApi() {
+        return getDependencyHandler().create(DependencyFactory.ClassPathNotation.GRADLE_API);
+    }
+
+    @Override
+    public Dependency gradleTestKit() {
+        return getDependencyHandler().create(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
+    }
+
+    @Override
+    public Dependency localGroovy() {
+        return getDependencyHandler().create(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
+    }
+    
+    public Dependency testFixtures(Project project) {
+        final ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
+        return testFixtures(projectDependency);
+    }
+
+    @Override
+    public Dependency testFixtures(ProjectDependency projectDependency) {
+        projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
+        return projectDependency;
+    }
+
+    @Override
+    public Dependency testFixtures(ModuleDependency moduleDependency) {
+        moduleDependency.capabilities(capabilities -> {
+            capabilities.requireCapability(new ImmutableCapability(moduleDependency.getGroup(), moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+        });
+        return moduleDependency;
     }
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {

@@ -163,7 +163,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
         DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
         if (!descriptor.isExplicitName()) {
-            LOGGER.warn("Project accessors enabled, but root project name not explicitly set. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
+            LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
+                    "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
         }
     }
 

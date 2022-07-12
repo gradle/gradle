@@ -133,11 +133,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "buildSrc/build", settings.isUseIncubatingAPIs());
         buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
         if (getLanguage() == Language.KOTLIN) {
-            String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin";
-            if (settings.getDsl() == BuildInitDsl.GROOVY) {
-                // we don't get a Kotlin version from context without the 'kotlin-dsl' plugin
-                kotlinPluginCoordinates = kotlinPluginCoordinates + ":" + libraryVersionProvider.getVersion("kotlin");
-            }
+            String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin:" + libraryVersionProvider.getVersion("kotlin");
             buildSrcScriptBuilder.implementationDependency(null, kotlinPluginCoordinates);
         }
         return buildSrcScriptBuilder;

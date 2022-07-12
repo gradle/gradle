@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
@@ -25,7 +25,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.junit.Rule
 
-class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest implements MissingTaskDependenciesFixture {
+class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest implements ExecutionOptimizationDeprecationFixture {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)

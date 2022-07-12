@@ -16,6 +16,10 @@
 
 package org.gradle.jvm.internal.services;
 
+import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
+import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkDownloader;
@@ -29,6 +33,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
@@ -36,7 +41,6 @@ import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
@@ -46,6 +50,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(JdkCacheDirectory.class);
         registration.add(JavaInstallationRegistry.class);
         registerJavaInstallationSuppliers(registration);
+        registerInvalidJavaInstallationsCacheInvalidator(registration);
     }
 
     private void registerJavaInstallationSuppliers(ServiceRegistration registration) {
@@ -71,6 +76,24 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(AdoptOpenJdkDownloader.class);
         registration.add(JavaToolchainQueryService.class);
         registration.add(DefaultJavaToolchainService.class);
+    }
+
+    private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            public void configure(ServiceRegistration serviceRegistration, JvmMetadataDetector globalJvmMetadataDetector) {
+                if (globalJvmMetadataDetector instanceof ConditionalInvalidation) {
+                    // Avoiding generic-unchecked cast with this intermediate implementation that checks the types of the items:
+                    ConditionalInvalidation<JvmInstallationMetadata> checkedInvalidationFromDetector =
+                        predicate -> ((ConditionalInvalidation<?>) globalJvmMetadataDetector).invalidateItemsMatching(item ->
+                            item instanceof JvmInstallationMetadata && predicate.test((JvmInstallationMetadata) item)
+                        );
+                    serviceRegistration.add(
+                        InvalidJvmInstallationCacheInvalidator.class,
+                        new InvalidJvmInstallationCacheInvalidator(checkedInvalidationFromDetector)
+                    );
+                }
+            }
+        });
     }
 
 }

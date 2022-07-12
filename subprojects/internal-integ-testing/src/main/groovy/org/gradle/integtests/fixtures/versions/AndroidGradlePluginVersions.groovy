@@ -57,7 +57,7 @@ class AndroidGradlePluginVersions {
 
     private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
-    private static final VersionNumber KOTLIN_1_5_20 = VersionNumber.parse('1.5.20')
+    private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
 
     static boolean isAgpNightly(String agpVersion) {
         return agpVersion.contains("-") && agpVersion.substring(agpVersion.indexOf("-") + 1).matches("^[0-9].*")
@@ -162,6 +162,6 @@ class AndroidGradlePluginVersions {
     private static VersionNumber getMinimumSupportedKotlinVersionFor(VersionNumber agpVersion) {
         return agpVersion.baseVersion < AGP_7_3
             ? null
-            : KOTLIN_1_5_20
+            : KOTLIN_1_6_20
     }
 }

@@ -170,7 +170,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -178,7 +178,7 @@ abstract class AbstractSmokeTest extends Specification {
         static node = Versions.of("1.3.1")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("10.2.0")
+        static ktlint = Versions.of("10.3.0")
 
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
         static newNode = Versions.of("3.1.1")
@@ -202,6 +202,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         String latest() {
             versions.last()
+        }
+
+        String latestStable() {
+            versions.reverse().find { version ->
+                !version.containsIgnoreCase("rc") &&
+                !version.containsIgnoreCase("beta") &&
+                !version.containsIgnoreCase("alpha") &&
+                !version.containsIgnoreCase("milestone")
+            }
         }
 
         String latestStartsWith(String prefix) {
