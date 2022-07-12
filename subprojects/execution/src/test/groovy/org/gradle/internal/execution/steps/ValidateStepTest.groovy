@@ -21,7 +21,6 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -35,8 +34,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
-    def step = new ValidateStep<>(buildOperationExecutor, virtualFileSystem, warningReporter, delegate)
+    def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
 
     @Override

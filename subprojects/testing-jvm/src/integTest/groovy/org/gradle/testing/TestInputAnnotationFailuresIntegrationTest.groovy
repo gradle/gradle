@@ -18,7 +18,7 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class TestInputAnnotationFailures extends AbstractIntegrationSpec {
+class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec {
     def "using @Input annotation on #fieldType file fields with upToDate check fails with helpful error message"() {
         given:
         buildFile << """

@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
  */
 @Contextual
 public class WorkValidationException extends GradleException {
+    public static final int MAX_ERR_COUNT = Integer.getInteger("org.gradle.internal.max.validation.errors", 5);
+
     private final List<String> problems;
 
     private WorkValidationException(String message, Collection<String> problems) {

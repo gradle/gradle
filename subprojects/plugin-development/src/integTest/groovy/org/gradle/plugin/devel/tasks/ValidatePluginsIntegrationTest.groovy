@@ -588,6 +588,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         "InputFile"  | _
         "InputFiles" | _
     }
+
     @ValidationTestFor([
             ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
             ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION

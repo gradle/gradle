@@ -79,13 +79,13 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
-                        .reportAs(ERROR)
-                        .forProperty(propertyMetadata.getPropertyName())
-                        .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")
-                        .happensBecause("Properties of primitive type cannot be optional")
-                        .addPossibleSolution("Remove the @Optional annotation")
-                        .addPossibleSolution(() -> "Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
-                        .documentedAt("validation_problems", "cannot_use_optional_on_primitive_types")
+                    .reportAs(ERROR)
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")
+                    .happensBecause("Properties of primitive type cannot be optional")
+                    .addPossibleSolution("Remove the @Optional annotation")
+                    .addPossibleSolution(() -> "Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
+                    .documentedAt("validation_problems", "cannot_use_optional_on_primitive_types")
             );
         }
     }

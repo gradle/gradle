@@ -18,20 +18,22 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -52,7 +54,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
-public class ValidateStep<C extends BeforeExecutionContext, R extends Result> extends AbstractValidateStep<C, R> {
+public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
 
     private final VirtualFileSystem virtualFileSystem;
@@ -60,12 +62,10 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> ex
     private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
-        BuildOperationExecutor buildOperationExecutor,
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
         Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
-        super(buildOperationExecutor);
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
         this.delegate = delegate;
@@ -211,6 +211,16 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> ex
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
             .reportAs(Severity.WARNING)
             .documentedAt("validation_problems", "implementation_unknown");
+    }
+
+    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<TypeValidationProblem> validationErrors) {
+        ImmutableSet<String> uniqueErrors = validationErrors.stream()
+                .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                .collect(ImmutableSet.toImmutableSet());
+        throw WorkValidationException.forProblems(uniqueErrors)
+                .limitTo(WorkValidationException.MAX_ERR_COUNT)
+                .withSummary(new ValidationErrorSummarizer(work, validationContext))
+                .get();
     }
 
     public interface ValidationWarningRecorder {
