@@ -379,7 +379,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn(" * If the version is a rich version and that its not expressible as a");
         writeLn(" * single version string, then an empty string is returned.");
         if (context != null) {
-            writeLn(" * This version was declared in " + context);
+            writeLn(" * This version was declared in " + sanitizeUnicodeEscapes(context));
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(versionAlias));
@@ -435,7 +435,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn("    /**");
         writeLn("     * Creates a dependency provider for " + name + " (" + coordinates + ")");
         if (context != null) {
-            writeLn("     * This dependency was declared in " + context);
+            writeLn("     * This dependency was declared in " + sanitizeUnicodeEscapes(context));
         }
         writeLn("     */");
         String methodName = asProvider ? "asProvider": "get" + toJavaName(name);
@@ -468,7 +468,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             }
             writeLn(" * </ul>");
             if (context != null) {
-                writeLn(" * This bundle was declared in " + context);
+                writeLn(" * This bundle was declared in " + sanitizeUnicodeEscapes(context));
             }
             writeLn(" */");
             String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
@@ -482,13 +482,23 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLn("/**");
             writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + id + "'");
             if (context != null) {
-                writeLn(" * This plugin was declared in " + context);
+                writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
             }
             writeLn(" */");
             String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
             writeLn("public Provider<PluginDependency> " + methodName + "() { return createPlugin(\"" + alias + "\"); }");
         });
         writeLn();
+    }
+
+    /**
+     * Java compiler would fail to compile sources that have illegal unicode escape characters, including in the comments.
+     * Such characters could be accidentally introduced by a backslash followed by {@code 'u'},
+     * e.g. in Windows path {@code '..\\user\dir'}.
+     */
+    private static String sanitizeUnicodeEscapes(String s) {
+        // If a backslash precedes 'u', then we replace the backslash with its unicode notation '\\u005c'
+        return s.replace("\\u", "\\u005cu");
     }
 
     private static ClassNode rootNode(AccessorKind kind) {
