@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDependencyExtensions
 
