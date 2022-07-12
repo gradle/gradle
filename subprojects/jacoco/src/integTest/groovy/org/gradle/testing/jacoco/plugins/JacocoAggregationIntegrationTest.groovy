@@ -149,7 +149,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can aggregate jacoco execution data from subprojects"() {
+    def "can aggregate jacoco execution data from dependent projects"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
