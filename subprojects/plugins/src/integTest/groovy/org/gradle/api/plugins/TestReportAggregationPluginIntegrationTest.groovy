@@ -145,7 +145,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def 'can aggregate unit test results from subprojects'() {
+    def 'can aggregate unit test results from dependent projects'() {
         given:
         file('application/build.gradle') << '''
             apply plugin: 'org.gradle.test-report-aggregation'

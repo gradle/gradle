@@ -94,33 +94,33 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             });
         });
 
-        configureTestDataElementsVariants(project);
+        configureTestDataElementsVariants(project, java);
     }
 
     private String getDefaultTestType(JvmTestSuite testSuite) {
         return DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
     }
 
-    private void configureTestDataElementsVariants(Project project) {
+    private void configureTestDataElementsVariants(Project project, JavaPluginExtension java) {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
         testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
+            SourceSet mainSourceSet = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             suite.getTargets().configureEach(target -> {
-                addTestResultsVariant(project, suite, target);
+                addTestResultsVariant(project, suite, target, mainSourceSet);
             });
         });
     }
 
-    private void addTestResultsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+    private void addTestResultsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target, SourceSet mainSourceSet) {
         final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
-            project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
-
+        variant.extendsFrom(project.getConfigurations().getByName(mainSourceSet.getImplementationConfigurationName()),
+            project.getConfigurations().getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
