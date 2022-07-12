@@ -62,7 +62,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
+        result.task(":configuration-cache:archTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.UP_TO_DATE
         result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
