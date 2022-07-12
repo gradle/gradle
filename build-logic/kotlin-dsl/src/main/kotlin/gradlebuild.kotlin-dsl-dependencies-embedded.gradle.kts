@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDependencyExtensions
 
@@ -25,7 +26,8 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "2.3.3" // TODO:kotlin-dsl
+// TODO 2.4.1
+val publishedKotlinDslPluginVersion = "2.4.1" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
