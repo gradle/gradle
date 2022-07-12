@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 public class OrdinalGroup extends NodeGroup {
     private final int ordinal;
 
-    public OrdinalGroup(int ordinal) {
+    OrdinalGroup(int ordinal) {
         this.ordinal = ordinal;
     }
 
@@ -37,6 +37,11 @@ public class OrdinalGroup extends NodeGroup {
     @Override
     public OrdinalGroup asOrdinal() {
         return this;
+    }
+
+    @Override
+    public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+        return newOrdinal;
     }
 
     @Override

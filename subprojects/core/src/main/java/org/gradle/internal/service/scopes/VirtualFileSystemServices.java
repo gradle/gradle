@@ -76,13 +76,13 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
-import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
@@ -215,7 +215,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             WatchableFileSystemDetector watchableFileSystemDetector
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-            VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+            SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(caseSensitivity);
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
             Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
@@ -226,13 +226,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
-                    rootReference,
+                    root,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsWrittenByCurrentBuild,
                     watchableFileSystemDetector,
                     fileChangeListeners
                 ))
-                .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
+                .orElse(new WatchingNotSupportedVirtualFileSystem(root));
             listenerManager.addListener((BuildAddedListener) buildState -> {
                     File buildRootDir = buildState.getBuildRootDir();
                     virtualFileSystem.registerWatchableHierarchy(buildRootDir);

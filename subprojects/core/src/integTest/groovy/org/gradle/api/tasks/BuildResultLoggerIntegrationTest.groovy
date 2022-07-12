@@ -221,7 +221,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
             tasks.register("invalid", InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem(), 'id', 'section')
 
         when:
         run "invalid"

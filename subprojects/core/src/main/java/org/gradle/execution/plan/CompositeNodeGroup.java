@@ -33,10 +33,20 @@ public class CompositeNodeGroup extends HasFinalizers {
         this.reachableFromEntryPoint = reachableFromEntryPoint();
     }
 
+    @Override
+    public String toString() {
+        return "composite group, entry point: " + isReachableFromEntryPoint() + " groups: " + finalizerGroups;
+    }
+
     @Nullable
     @Override
     public OrdinalGroup asOrdinal() {
         return ordinalGroup.asOrdinal();
+    }
+
+    @Override
+    public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
+        return new CompositeNodeGroup(newOrdinal, finalizerGroups);
     }
 
     public NodeGroup getOrdinalGroup() {
@@ -100,4 +110,5 @@ public class CompositeNodeGroup extends HasFinalizers {
         // No finalizer group is ready to run, and either all of them have failed or some are not yet complete
         return state;
     }
+
 }

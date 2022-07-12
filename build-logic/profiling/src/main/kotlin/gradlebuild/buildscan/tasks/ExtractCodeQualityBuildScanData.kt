@@ -101,7 +101,7 @@ abstract class ExtractCodeNarcBuildScanData : AbstractExtractCodeQualityBuildSca
                         getElementsByTag("Message").first()
                             ?: getElementsByTag("SourceLine").first()
                     }
-                    "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
+                    "$filePath:${violation.attr("lineNumber")} \u2192 ${message?.text() ?: "Message not found"}"
                 }
             }
         }

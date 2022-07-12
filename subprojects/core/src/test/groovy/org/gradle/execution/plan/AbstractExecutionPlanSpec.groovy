@@ -99,6 +99,15 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         return task
     }
 
+    protected void relationships(Map options, TaskInternal task) {
+        dependsOn(task, options.dependsOn ?: [])
+        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
+        mustRunAfter(task, options.mustRunAfter ?: [])
+        shouldRunAfter(task, options.shouldRunAfter ?: [])
+        finalizedBy(task, options.finalizedBy ?: [])
+        task.getSharedResources() >> (options.resources ?: [])
+    }
+
     protected void dependsOn(TaskInternal task, List<Task> dependsOnTasks) {
         task.getTaskDependencies() >> taskDependencyResolvingTo(task, dependsOnTasks)
     }

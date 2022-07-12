@@ -54,8 +54,8 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         newScalaVersion | newZincVersion
-        '2.11.12'       | '1.2.0'
-        '2.12.6'        | '1.2.5'
+        '2.11.12'       | '1.6.0'
+        '2.12.6'        | '1.6.1'
         defaultScalaVersion = '2.11.12'
         defaultZincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'

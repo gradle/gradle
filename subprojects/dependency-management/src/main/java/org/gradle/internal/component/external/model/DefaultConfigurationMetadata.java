@@ -36,7 +36,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
     private final VariantMetadataRules componentMetadataRules;
 
-    private List<ModuleDependencyMetadata> calculatedDependencies;
+    private List<? extends ModuleDependencyMetadata> calculatedDependencies;
     private ImmutableList<? extends ModuleComponentArtifactMetadata> calculatedArtifacts;
 
     // Could be precomputed, but we avoid doing so if attributes are never requested

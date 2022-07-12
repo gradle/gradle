@@ -37,7 +37,6 @@ import org.gradle.configurationcache.problems.DocumentationSection.NotYetImpleme
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.codecs.Codecs
-import org.gradle.configurationcache.serialization.codecs.WorkNodeCodec
 import org.gradle.configurationcache.serialization.logNotImplemented
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readFile
@@ -252,16 +251,20 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledNodes: List<Node>) {
-        WorkNodeCodec(gradle, internalTypesCodec).run {
+        workNodeCodec(gradle).run {
             writeWork(scheduledNodes)
         }
     }
 
     private
     suspend fun DefaultReadContext.readWorkGraph(gradle: GradleInternal) =
-        WorkNodeCodec(gradle, internalTypesCodec).run {
+        workNodeCodec(gradle).run {
             readWork()
         }
+
+    private
+    fun workNodeCodec(gradle: GradleInternal) =
+        codecs.workNodeCodecFor(gradle)
 
     private
     suspend fun DefaultWriteContext.writeRequiredBuildServicesOf(gradle: GradleInternal, buildTreeState: StoredBuildTreeState) {
@@ -500,7 +503,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
-            buildCache.setRegistrations(read() as MutableSet<BuildCacheServiceRegistration>)
+            buildCache.registrations = readNonNull<MutableSet<BuildCacheServiceRegistration>>()
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
     }
@@ -622,10 +625,6 @@ class ConfigurationCacheState(
     private
     fun stateFileFor(buildDefinition: BuildDefinition) =
         stateFile.stateFileForIncludedBuild(buildDefinition)
-
-    private
-    val internalTypesCodec
-        get() = codecs.internalTypesCodec()
 
     private
     val userTypesCodec

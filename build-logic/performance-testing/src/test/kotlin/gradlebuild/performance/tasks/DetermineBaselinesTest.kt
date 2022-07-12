@@ -16,8 +16,8 @@
 
 package gradlebuild.performance.tasks
 
+import gradlebuild.basics.BuildEnvironmentExtension
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -34,10 +34,17 @@ class DetermineBaselinesTest {
     private
     val project = ProjectBuilder.builder().build()
 
+    private
+    val buildEnvironmentExtension = project.extensions.create("buildEnvironment", BuildEnvironmentExtension::class.java)
+
+
+    private
+    val defaultPerformanceBaselines = "7.5-commit-123456"
+
     @Before
     fun setUp() {
+        project.extra["defaultPerformanceBaselines"] = defaultPerformanceBaselines
         project.file("version.txt").writeText("1.0")
-        project.apply(plugin = "gradlebuild.module-identity")
 
         // mock project.execAndGetStdout
         mockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
@@ -46,11 +53,6 @@ class DetermineBaselinesTest {
     @After
     fun cleanUp() {
         unmockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
-    }
-
-    @Test
-    fun `determines defaults when configured as force-defaults`() {
-        verifyBaselineDetermination(false, forceDefaultBaseline, defaultBaseline)
     }
 
     @Test
@@ -71,8 +73,6 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and default configuration`() {
-        // Windows git complains "long path" so we don't build commit distribution on Windows
-        Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
         mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
@@ -82,7 +82,7 @@ class DetermineBaselinesTest {
         mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
 
         // then
-        verifyBaselineDetermination(false, defaultBaseline, "5.1-commit-master-fork-point")
+        verifyBaselineDetermination(false, null, "5.1-commit-master-fork-point")
     }
 
     @Test
@@ -107,7 +107,7 @@ class DetermineBaselinesTest {
         setCurrentBranch("master")
 
         // then
-        verifyBaselineDetermination(false, defaultBaseline, defaultBaseline)
+        verifyBaselineDetermination(false, defaultPerformanceBaselines, defaultPerformanceBaselines)
     }
 
     @Test
@@ -129,7 +129,7 @@ class DetermineBaselinesTest {
 
     private
     fun setCurrentBranch(branch: String) {
-        project.the<ModuleIdentityExtension>().gradleBuildBranch.set(branch)
+        buildEnvironmentExtension.gitBranch.set(branch)
     }
 
     private

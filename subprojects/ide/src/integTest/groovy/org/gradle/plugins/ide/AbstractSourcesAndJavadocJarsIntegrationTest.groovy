@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -32,7 +33,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     @Rule
     HttpServer server
 
-    String groovyVersion = "3.0.10"
+    String groovyVersion = GroovyCoverage.CURRENT_STABLE
 
     def setup() {
         server.start()

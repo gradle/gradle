@@ -65,6 +65,9 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
         if (shortProblemDescription == null) {
             throw new IllegalStateException("You must provide at least a short description of the problem");
         }
+        if (userManualReference == null) {
+            throw new IllegalStateException("You must provide a user manual reference");
+        }
         return new TypeValidationProblem(
             problemId,
             severity,

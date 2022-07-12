@@ -107,6 +107,10 @@ class ConfigurationCacheProblems(
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
             }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+            }
         }
     }
 

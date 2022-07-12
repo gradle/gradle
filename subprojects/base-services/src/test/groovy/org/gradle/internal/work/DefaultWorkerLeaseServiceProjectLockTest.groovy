@@ -503,7 +503,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
         when:
         async {
             start {
-                def workerLease = workerLeaseService.getWorkerLease()
+                def workerLease = workerLeaseService.newWorkerLease()
                 workerLeaseService.withLocks([projectLock, workerLease]) {
                     workerLeaseService.runAsIsolatedTask {
                         thread.blockUntil.projectLocked
@@ -515,7 +515,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
             workerLeaseService.withLocks([projectLock]) {
                 instant.projectLocked
                 start {
-                    def workerLease = workerLeaseService.getWorkerLease()
+                    def workerLease = workerLeaseService.newWorkerLease()
                     coordinationService.withStateLock(lock(workerLease))
                     try {
                         instant.worker2Executed
@@ -599,7 +599,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "releases worker lease but does not release project locks in blocking action when changes to locks are disallowed"() {
-        def lease = workerLeaseService.workerLease
+        def lease = workerLeaseService.newWorkerLease()
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
@@ -618,7 +618,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "releases and reacquires project locks in blocking action when changes to locks are allowed"() {
-        def lease = workerLeaseService.workerLease
+        def lease = workerLeaseService.newWorkerLease()
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
@@ -651,7 +651,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
 
     def "releases worker lease but does not release project locks in blocking action when thread has uncontrolled access to any project"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
-        def lease = workerLeaseService.workerLease
+        def lease = workerLeaseService.newWorkerLease()
 
         expect:
         workerLeaseService.withLocks([projectLock, lease]) {
@@ -695,7 +695,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
     }
 
     def "does not gather statistics when not acquiring project lock"() {
-        def workerLease = workerLeaseService.getWorkerLease()
+        def workerLease = workerLeaseService.newWorkerLease()
 
         when:
         System.setProperty(DefaultWorkerLeaseService.PROJECT_LOCK_STATS_PROPERTY, "")

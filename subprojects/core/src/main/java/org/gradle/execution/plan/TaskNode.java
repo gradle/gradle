@@ -25,12 +25,14 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 public abstract class TaskNode extends Node {
-    private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> mustSuccessors = newSortedNodeSet();
     private final Set<Node> mustPredecessors = Sets.newHashSet();
-    private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizers = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> finalizers = newSortedNodeSet();
+    private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
     public DependenciesState doCheckDependenciesComplete() {
@@ -71,10 +73,6 @@ public abstract class TaskNode extends Node {
         return finalizingSuccessors;
     }
 
-    public Set<Node> getFinalizingSuccessorsInReverseOrder() {
-        return finalizingSuccessors.descendingSet();
-    }
-
     public Set<Node> getShouldSuccessors() {
         return shouldSuccessors;
     }
@@ -103,7 +101,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(
             shouldSuccessors,
-            getGroup().getSuccessors(),
+            getGroup().getSuccessorsFor(this),
             mustSuccessors,
             super.getAllSuccessors()
         );
@@ -112,7 +110,7 @@ public abstract class TaskNode extends Node {
     @Override
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
-            getGroup().getSuccessors(),
+            getGroup().getSuccessorsFor(this),
             mustSuccessors,
             super.getHardSuccessors()
         );
@@ -123,7 +121,7 @@ public abstract class TaskNode extends Node {
         return Iterables.concat(
             super.getAllSuccessorsInReverseOrder(),
             mustSuccessors.descendingSet(),
-            getGroup().getSuccessorsInReverseOrder(),
+            getGroup().getSuccessorsInReverseOrderFor(this),
             shouldSuccessors.descendingSet()
         );
     }
@@ -137,18 +135,6 @@ public abstract class TaskNode extends Node {
         for (Node node : finalizers) {
             node.getFinalizerGroup().visitAllMembers(visitor);
         }
-    }
-
-    @Override
-    public boolean hasHardSuccessor(Node successor) {
-        if (super.hasHardSuccessor(successor)) {
-            return true;
-        }
-        if (!(successor instanceof TaskNode)) {
-            return false;
-        }
-        return getMustSuccessors().contains(successor)
-            || getFinalizingSuccessors().contains(successor);
     }
 
     public abstract TaskInternal getTask();
@@ -167,11 +153,9 @@ public abstract class TaskNode extends Node {
         super.updateGroupOfFinalizer();
         if (!getFinalizingSuccessors().isEmpty()) {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
-            FinalizerGroup finalizerGroup = new FinalizerGroup(this, getGroup());
+            NodeGroup oldGroup = getGroup();
+            FinalizerGroup finalizerGroup = new FinalizerGroup(this, oldGroup);
             setGroup(finalizerGroup);
-            for (Node node : getFinalizingSuccessors()) {
-                finalizerGroup.maybeInheritFrom(node.getGroup());
-            }
         }
     }
 }

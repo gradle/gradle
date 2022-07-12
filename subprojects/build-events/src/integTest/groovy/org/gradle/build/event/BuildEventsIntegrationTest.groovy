@@ -16,13 +16,14 @@
 
 package org.gradle.build.event
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
@@ -30,6 +31,8 @@ import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.util.internal.TextUtil
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @ConfigurationCacheTest
@@ -292,7 +295,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b")
     }
 
-    @NotYetImplemented
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Tries to resolve external (api) jars that are not available in the embedded environment
     @Issue("https://github.com/gradle/gradle/issues/16774")
     def "can use plugin that registers build event listener with ProjectBuilder"() {
         given:
@@ -317,7 +320,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             import org.junit.Test
             class MyTest {
                 @Test void test() {
-                    def project = ProjectBuilder.builder().withProjectDir(new File("${testDirectory}")).build()
+                    def project = ProjectBuilder.builder().build()
                     project.plugins.apply("my-plugin")
                 }
             }
@@ -328,6 +331,72 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
+
+        // ensure the test has been executed
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('my.MyTest')
+        result.testClass('my.MyTest').assertTestCount(1, 0, 0)
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Cannot run TestKit in embedded mode
+    def "can use plugin that registers build event listener with TestKit"() {
+        given:
+        def plugin = file('src/main/groovy/my-plugin.gradle')
+        loggingListener(plugin)
+        plugin << """
+            def listener = project.gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
+            gradle.services.get(${BuildEventsListenerRegistry.name}).onTaskCompletion(listener)
+            println('listener registered')
+        """
+
+        file("build.gradle") << """
+            plugins { id 'groovy-gradle-plugin' }
+            repositories { mavenCentral() }
+            dependencies { testImplementation("junit:junit:4.13") }
+            test.testLogging {
+                showStandardStreams = true
+                showExceptions = true
+            }
+        """
+
+        def testProjectDir = file("testTmp").tap { it.mkdirs() }
+
+        file("src/test/groovy/my/MyTest.groovy") << """
+            package my
+            import org.gradle.testfixtures.*
+            import org.gradle.testkit.runner.GradleRunner
+            import org.junit.Test
+
+            class MyTest {
+                @Test void test() {
+                    def projectDir = new File("${TextUtil.normaliseFileSeparators(testProjectDir.absolutePath)}")
+                    new File(projectDir, 'settings.gradle').text = ""
+                    new File(projectDir, 'build.gradle').text = '''
+                        plugins { id 'my-plugin' }
+                    '''
+
+                    def runner = GradleRunner.create()
+                    runner.forwardOutput()
+                    runner.withPluginClasspath()
+                    runner.withArguments("help")
+                    runner.withProjectDir(projectDir)
+                    runner.withDebug(true)
+                    def result = runner.build()
+                }
+            }
+        """
+
+        when:
+        run 'test'
+
+        then:
+        executedAndNotSkipped(':test')
+        outputContains("listener registered")
+
+        // ensure the test has been executed
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('my.MyTest')
+        result.testClass('my.MyTest').assertTestCount(1, 0, 0)
     }
 
     void loggingListener(TestFile file = buildFile) {
