@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
+import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -33,22 +34,26 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.Optional;
 
-public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
+public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
 
     private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
     private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
 
-    private final SystemInfo systemInfo;
-    private final OperatingSystem operatingSystem;
     private final Provider<String> adoptOpenJdkRootUrl;
     private final Provider<String> adoptiumRootUrl;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, ProviderFactory providerFactory) {
-        this.systemInfo = systemInfo;
-        this.operatingSystem = operatingSystem;
+    public AdoptOpenJdkRemoteBinary(ProviderFactory providerFactory) {
         this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
+    }
+
+    protected OperatingSystem operatingSystem() {
+        return OperatingSystem.current(); //TODO: hack, this should be part of the toolchain spec!
+    }
+
+    protected SystemInfo systemInfo() {
+        return Native.get(SystemInfo.class); //TODO: hack, this should be part of the toolchain spec!
     }
 
     @Override
@@ -128,7 +133,7 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
     }
 
     private String determineFileExtension() {
-        if (operatingSystem.isWindows()) {
+        if (operatingSystem().isWindows()) {
             return "zip";
         }
         return "tar.gz";
@@ -139,7 +144,7 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
     }
 
     private String determineArch() {
-        switch (systemInfo.getArchitecture()) {
+        switch (systemInfo().getArchitecture()) {
             case i386:
                 return "x32";
             case amd64:
@@ -147,18 +152,18 @@ public class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
             case aarch64:
                 return "aarch64";
         }
-        return systemInfo.getArchitectureName();
+        return systemInfo().getArchitectureName();
     }
 
     private String determineOs() {
-        if (operatingSystem.isWindows()) {
+        if (operatingSystem().isWindows()) {
             return "windows";
-        } else if (operatingSystem.isMacOsX()) {
+        } else if (operatingSystem().isMacOsX()) {
             return "mac";
-        } else if (operatingSystem.isLinux()) {
+        } else if (operatingSystem().isLinux()) {
             return "linux";
         }
-        return operatingSystem.getFamilyName();
+        return operatingSystem().getFamilyName();
     }
 
     private static String determineReleaseState() {

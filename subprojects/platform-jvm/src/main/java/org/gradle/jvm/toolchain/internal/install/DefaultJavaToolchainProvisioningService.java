@@ -19,20 +19,21 @@ package org.gradle.jvm.toolchain.internal.install;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistryInternal;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -59,8 +60,16 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
-    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, FileDownloader downloader, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
-        this.toolchainRepositories = Collections.singletonList(openJdkBinary); //TODO: the list of toolchain repositories should be passed in here
+    public DefaultJavaToolchainProvisioningService(
+            JavaToolchainRepositoryRegistry toolchainRepositoryRegistry,
+            FileDownloader downloader,
+            JdkCacheDirectory cacheDirProvider,
+            ProviderFactory factory,
+            BuildOperationExecutor executor
+    ) {
+        toolchainRepositoryRegistry.register("adoptOpenJdk", AdoptOpenJdkRemoteBinary.class); //TODO: hack until this implementation is moved into a plug-in
+
+        this.toolchainRepositories = ((JavaToolchainRepositoryRegistryInternal) toolchainRepositoryRegistry).requestedRepositories();
         this.downloader = downloader;
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);

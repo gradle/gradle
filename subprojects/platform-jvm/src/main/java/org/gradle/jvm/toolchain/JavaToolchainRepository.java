@@ -17,6 +17,8 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceParameters;
 
 import java.net.URI;
 import java.util.Optional;
@@ -27,7 +29,9 @@ import java.util.Optional;
  * @since 7.6
  */
 @Incubating
-public interface JavaToolchainRepository {
+public interface JavaToolchainRepository extends BuildService<BuildServiceParameters.None> {
+
+    //TODO: think about build service parameters, we will need them, for example base URI
 
     /**
      * Returns the URI from which a Java Toolchain matching the provided specification can be downloaded.
