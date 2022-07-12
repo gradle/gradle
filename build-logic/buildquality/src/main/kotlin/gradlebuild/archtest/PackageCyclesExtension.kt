@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild.classycle.extension
+package gradlebuild.archtest
 
 import org.gradle.api.provider.ListProperty
 
 
-abstract class ClassycleExtension {
+abstract class PackageCyclesExtension {
 
     abstract val excludePatterns: ListProperty<String>
 }
