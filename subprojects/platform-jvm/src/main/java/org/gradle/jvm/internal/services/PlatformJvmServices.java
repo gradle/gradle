@@ -23,12 +23,12 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.internal.install.FileDownloader;
-import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
@@ -49,6 +49,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(JdkCacheDirectory.class);
         registration.add(JavaInstallationRegistry.class);
+        registration.add(DefaultJavaToolchainRepositoryRegistry.class);
         registerJavaInstallationSuppliers(registration);
         registerInvalidJavaInstallationsCacheInvalidator(registration);
     }
@@ -72,7 +73,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(JavaToolchainFactory.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
-        registration.add(AdoptOpenJdkRemoteBinary.class);
         registration.add(FileDownloader.class);
         registration.add(JavaToolchainQueryService.class);
         registration.add(DefaultJavaToolchainService.class);

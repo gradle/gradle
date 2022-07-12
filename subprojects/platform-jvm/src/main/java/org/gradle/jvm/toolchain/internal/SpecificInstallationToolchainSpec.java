@@ -55,7 +55,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         SpecificInstallationToolchainSpec that = (SpecificInstallationToolchainSpec) o;
