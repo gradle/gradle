@@ -1962,7 +1962,14 @@ public class BuildScriptBuilder {
     private static final class KotlinSyntax implements Syntax {
         @Override
         public String string(String string) {
-            return '"' + string + '"';
+            return '"' + escapeKotlinStringLiteral(string) + '"';
+        }
+
+        private String escapeKotlinStringLiteral(String string) {
+            return string
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("$", "\\$");
         }
 
         @Override
@@ -2132,7 +2139,11 @@ public class BuildScriptBuilder {
     private static final class GroovySyntax implements Syntax {
         @Override
         public String string(String string) {
-            return "'" + string + "'";
+            return "'" + escapeGroovyStringLiteral(string) + "'";
+        }
+
+        private String escapeGroovyStringLiteral(String string) {
+            return string.replace("\\", "\\\\").replace("'", "\\'");
         }
 
         @Override
