@@ -201,7 +201,10 @@ gradle myCustomTask --integer-option=123
 
 #### Java and Groovy incremental compilation after a failure
 
-Gradle already supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile) by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) as an opt-in experimental feature. But in previous versions any build after a compilation failure was not incremental but a full recompilation instead. With this version, Java and Groovy incremental compilation will work incrementally also after a failure. This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
+Gradle already supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile) by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) as an opt-in experimental feature.
+In previous versions after a compilation failure the next compilation was not incremental but a full recompilation instead.
+With this version, Java and Groovy incremental compilation will work incrementally also after a failure.
+This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
 
 #### Better test compatibility with Java 9+
 
