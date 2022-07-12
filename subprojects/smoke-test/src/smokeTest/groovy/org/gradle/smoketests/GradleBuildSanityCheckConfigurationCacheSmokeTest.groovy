@@ -20,7 +20,6 @@ import org.gradle.testkit.runner.TaskOutcome
 
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
-    @spock.lang.Ignore
     def "can run Gradle sanityCheck with configuration cache enabled"() {
 
         given:
