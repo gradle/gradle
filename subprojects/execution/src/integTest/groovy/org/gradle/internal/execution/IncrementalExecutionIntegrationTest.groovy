@@ -47,7 +47,6 @@ import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
-import org.gradle.internal.execution.steps.PreCaptureValidateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep
@@ -160,9 +159,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new RemoveUntrackedExecutionStateStep<>(
-            new PreCaptureValidateStep<>(buildOperationExecutor,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(buildOperationExecutor, virtualFileSystem, validationWarningReporter,
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -173,7 +171,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new CreateOutputsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))
+        ))))))))))))))))))
         // @formatter:on
     }
 
