@@ -30,10 +30,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantSelectionResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -429,12 +429,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public List<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata targetConfiguration) {
+    public List<ComponentArtifactMetadata> getArtifacts(VariantArtifactResolveState targetVariant) {
         List<IvyArtifactName> artifacts = dependencyMetadata.getArtifacts();
         if (artifacts.isEmpty()) {
             return Collections.emptyList();
         }
-        return artifacts.stream().map(targetConfiguration::artifact).collect(Collectors.toList());
+        return artifacts.stream().map(targetVariant::artifact).collect(Collectors.toList());
     }
 
     void maybeDecreaseHardEdgeCount(NodeState removalSource) {

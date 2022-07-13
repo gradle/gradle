@@ -19,10 +19,18 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ArtifactSelector;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
-public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> implements ComponentGraphResolveState {
+public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final T metadata;
 
     public DefaultComponentGraphResolveState(T metadata) {
@@ -41,23 +49,57 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
     }
 
     @Override
-    public ComponentGraphResolveMetadata getMetadata() {
+    public T getMetadata() {
         return metadata;
     }
 
     @Override
-    public T getArtifactResolveMetadata() {
-        return metadata;
-    }
-
-    @Override
-    public VariantArtifactsGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
-        return (VariantArtifactsGraphResolveMetadata) variant;
+    public VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
+        return (VariantArtifactGraphResolveMetadata) variant;
     }
 
     @Nullable
     @Override
     public ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
         return null;
+    }
+
+    @Override
+    public ComponentArtifactResolveState prepareForArtifactResolution() {
+        return this;
+    }
+
+    @Override
+    public VariantArtifactResolveState prepareForResolution(VariantGraphResolveMetadata variant) {
+        ConfigurationMetadata configurationMetadata = (ConfigurationMetadata) variant;
+        return new DefaultVariantArtifactResolveState(configurationMetadata);
+    }
+
+    @Override
+    public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        artifactResolver.resolveArtifactsWithType(metadata, artifactType, result);
+    }
+
+    @Override
+    public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
+        return artifactSelector.resolveArtifacts(metadata, artifacts, overriddenAttributes);
+    }
+
+    private class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
+        private final ConfigurationMetadata configurationMetadata;
+
+        public DefaultVariantArtifactResolveState(ConfigurationMetadata configurationMetadata) {
+            this.configurationMetadata = configurationMetadata;
+        }
+
+        @Override
+        public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
+            return configurationMetadata.artifact(artifact);
+        }
+
+        @Override
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+            return artifactSelector.resolveArtifacts(metadata, configurationMetadata, exclusions, overriddenAttributes);
+        }
     }
 }

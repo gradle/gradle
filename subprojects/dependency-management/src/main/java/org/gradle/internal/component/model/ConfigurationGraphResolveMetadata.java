@@ -22,7 +22,7 @@ import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import javax.annotation.Nullable;
 
 /**
- * Immutable metadata for a configuration of a component instance, which is used to perform dependency graph resolution.
+ * Immutable metadata for a configuration of a component instance that is used to perform dependency graph resolution.
  */
 public interface ConfigurationGraphResolveMetadata extends VariantGraphResolveMetadata {
     ImmutableSet<String> getHierarchy();

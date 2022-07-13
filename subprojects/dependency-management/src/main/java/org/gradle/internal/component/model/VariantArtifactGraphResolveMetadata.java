@@ -19,8 +19,10 @@ package org.gradle.internal.component.model;
 import java.util.List;
 
 /**
- * Immutable metadata for the artifacts of a variant instance, which is used to perform dependency graph resolution.
+ * Immutable metadata for the artifacts of a variant instance that is used to perform dependency graph resolution.
+ *
+ * <p>Note: only provides a limited view of the artifact metadata, exposing only that required to perform graph resolution.</p>
  */
-public interface VariantArtifactsGraphResolveMetadata {
+public interface VariantArtifactGraphResolveMetadata {
     List<? extends ComponentArtifactMetadata> getArtifacts();
 }

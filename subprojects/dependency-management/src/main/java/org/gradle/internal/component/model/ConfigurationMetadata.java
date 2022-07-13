@@ -28,8 +28,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationMetadata extends ConfigurationGraphResolveMetadata, VariantArtifactsGraphResolveMetadata {
-
+public interface ConfigurationMetadata extends ConfigurationGraphResolveMetadata, VariantArtifactGraphResolveMetadata {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      *
