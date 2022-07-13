@@ -43,11 +43,3 @@ tasks.compileGroovy.configure {
 tasks.compileKotlin.configure {
     classpath += files(tasks.compileGroovy)
 }
-
-tasks.withType<Test>().configureEach {
-    // PerformanceTestIntegrationTest needs a clean environment
-    val testEnv = System.getenv().toMutableMap()
-    testEnv.remove("BUILD_BRANCH")
-    testEnv.remove("BUILD_COMMIT_ID")
-    setEnvironment(testEnv)
-}
