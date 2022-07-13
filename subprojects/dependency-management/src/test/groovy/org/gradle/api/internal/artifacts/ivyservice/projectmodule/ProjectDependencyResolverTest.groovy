@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
-
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -65,7 +66,10 @@ class ProjectDependencyResolverTest extends Specification {
         then:
         1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
         1 * registry.getComponent(id) >> componentMetaData
-        1 * result.resolved(componentMetaData)
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state instanceof DefaultLocalComponentGraphResolveState
+            assert state.metadata == componentMetaData
+        }
         0 * result._
     }
 
@@ -80,7 +84,10 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.getComponent(projectComponentId) >> componentMetaData
-        1 * result.resolved(componentMetaData)
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state instanceof DefaultLocalComponentGraphResolveState
+            assert state.metadata == componentMetaData
+        }
         0 * result._
     }
 

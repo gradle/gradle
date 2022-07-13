@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
@@ -37,5 +38,5 @@ public interface VariantArtifactResolveState {
     /**
      * Creates a set that will resolve the artifacts of this variant, minus those artifacts that are excluded.
      */
-    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 }

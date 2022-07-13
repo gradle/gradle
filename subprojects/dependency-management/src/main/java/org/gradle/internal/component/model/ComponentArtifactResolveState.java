@@ -36,7 +36,7 @@ public interface ComponentArtifactResolveState {
     @Nullable
     ModuleSources getSources();
 
-    VariantArtifactResolveState prepareForResolution(VariantGraphResolveMetadata variant);
+    VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant);
 
     /**
      * Discovers the set of artifacts belonging to the given component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
