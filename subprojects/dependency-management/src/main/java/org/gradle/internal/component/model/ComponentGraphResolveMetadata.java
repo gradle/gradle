@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -69,7 +68,7 @@ public interface ComponentGraphResolveMetadata {
      */
     List<? extends DependencyMetadata> getSyntheticDependencies(String configuration);
 
-    ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners();
+    List<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     @Nullable
     String getStatus();

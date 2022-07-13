@@ -43,7 +43,6 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
@@ -338,7 +337,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         Optional<? extends List<? extends VariantGraphResolveMetadata>> variants = resolveState.getMetadata().getVariantsForGraphTraversal();
         if (variants.isPresent()) {
             for (VariantGraphResolveMetadata mainVariant : variants.get()) {
-                for (VariantResolveMetadata variant : mainVariant.getVariants()) {
+                for (VariantGraphResolveMetadata.Subvariant variant : mainVariant.getVariants()) {
                     List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
                     if (capabilities.isEmpty()) {
                         capabilities = ImmutableList.of(getImplicitCapability());
@@ -357,7 +356,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
         // Fall-back if there's no graph data
         for (NodeState node : nodes) {
-            for (VariantResolveMetadata variant : node.getMetadata().getVariants()) {
+            for (VariantGraphResolveMetadata.Subvariant variant : node.getMetadata().getVariants()) {
                 consumer.accept(new DefaultResolvedVariantResult(
                     resolveState.getId(),
                     Describables.of(variant.getName()),

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -31,19 +30,35 @@ import java.util.Set;
  * Information about the artifacts can be accessed via the methods of {@link ComponentGraphResolveState}.</p>
  */
 public interface VariantGraphResolveMetadata extends HasAttributes {
+    /**
+     * Returns the name for this variant, which is unique for the variants of its owning component.
+     */
     String getName();
 
     ImmutableAttributes getAttributes();
 
-    Set<? extends VariantResolveMetadata> getVariants();
+    /**
+     * Returns the "sub variants" of this variant.
+     *
+     * <p>This concept should disappear.</p>
+     */
+    Set<? extends Subvariant> getVariants();
 
     List<? extends DependencyMetadata> getDependencies();
 
-    ImmutableList<ExcludeMetadata> getExcludes();
+    List<? extends ExcludeMetadata> getExcludes();
 
     CapabilitiesMetadata getCapabilities();
 
     boolean isTransitive();
 
     boolean isExternalVariant();
+
+    interface Subvariant {
+        String getName();
+
+        ImmutableAttributes getAttributes();
+
+        CapabilitiesMetadata getCapabilities();
+    }
 }
