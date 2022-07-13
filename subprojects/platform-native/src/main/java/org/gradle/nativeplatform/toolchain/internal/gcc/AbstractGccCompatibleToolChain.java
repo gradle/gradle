@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -94,8 +95,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         target(new Intel32Architecture());
         target(new Intel64Architecture());
-        target(new OsxIntelArchitecture());
-        target(new OsxArmArchitecture());
+        target(new OsxArm64Architecture());
         configInsertLocation = 0;
     }
 
@@ -300,17 +300,24 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
-                && !targetPlatform.getOperatingSystem().isMacOsX()
                 && targetPlatform.getArchitecture().isAmd64();
         }
 
         @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m64");
+            boolean isMacOsX = gccToolChain.getPlatform().getOperatingSystem().isMacOsX();
+            final String[] compilerArgs;
+            if (isMacOsX) {
+                compilerArgs = new String[]{"-arch", "x86_64"};
+            } else {
+                compilerArgs = new String[]{"-m64"};
+            }
+            gccToolChain.compilerProbeArgs(compilerArgs);
+
             Action<List<String>> m64args = new Action<List<String>>() {
                 @Override
                 public void execute(List<String> args) {
-                    args.add("-m64");
+                    args.addAll(Arrays.asList(compilerArgs));
                 }
             };
             gccToolChain.getCppCompiler().withArguments(m64args);
@@ -322,34 +329,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static class OsxIntelArchitecture implements TargetPlatformConfiguration {
-        @Override
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent()
-                && targetPlatform.getOperatingSystem().isMacOsX()
-                && targetPlatform.getArchitecture().isAmd64();
-        }
-
-        @Override
-        public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-arch", "x86_64");
-            Action<List<String>> architectureArgs = new Action<List<String>>() {
-                @Override
-                public void execute(List<String> args) {
-                    args.add("-arch");
-                    args.add("x86_64");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(architectureArgs);
-            gccToolChain.getcCompiler().withArguments(architectureArgs);
-            gccToolChain.getObjcCompiler().withArguments(architectureArgs);
-            gccToolChain.getObjcppCompiler().withArguments(architectureArgs);
-            gccToolChain.getLinker().withArguments(architectureArgs);
-            gccToolChain.getAssembler().withArguments(architectureArgs);
-        }
-    }
-
-    private static class OsxArmArchitecture implements TargetPlatformConfiguration {
+    private static class OsxArm64Architecture implements TargetPlatformConfiguration {
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
@@ -359,12 +339,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-arch", "arm64");
+            final String[] compilerArgs = new String[]{"-arch", "arm64"};
             Action<List<String>> architectureArgs = new Action<List<String>>() {
                 @Override
                 public void execute(List<String> args) {
-                    args.add("-arch");
-                    args.add("arm64");
+                    args.addAll(Arrays.asList(compilerArgs));
                 }
             };
             gccToolChain.getCppCompiler().withArguments(architectureArgs);
