@@ -43,8 +43,9 @@ public interface ComponentGraphResolveState {
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
 
     /**
-     * Resolves the artifacts for the given variant of this component. Note that this may be expensive, for example it may block
-     * waiting for access to the source project or for network or IO requests to the source repository.
+     * Determines the set of artifacts for the given variant of this component.
+     *
+     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
     VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 

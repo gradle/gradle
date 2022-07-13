@@ -35,7 +35,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.BuildTree.class)
 public class ProjectArtifactResolver implements ArtifactResolver {
     private final ProjectStateRegistry projectStateRegistry;
 

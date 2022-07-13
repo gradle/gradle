@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,18 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
-public interface LocalComponentMetadata extends ComponentResolveMetadata {
-    @Nullable
-    @Override
-    LocalConfigurationMetadata getConfiguration(String name);
+/**
+ * <p>Instances of this type are cached, once for each project per build in the build tree. This means that the implementation must be thread-safe.
+ */
+@ThreadSafe
+public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
+    ModuleVersionIdentifier getModuleVersionId();
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 }
