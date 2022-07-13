@@ -153,7 +153,6 @@ public class DependencyGraphBuilder {
         validateGraph(resolveState, resolutionStrategy.isFailingOnDynamicVersions(), resolutionStrategy.isFailingOnChangingVersions());
 
         assembleResult(resolveState, modelVisitor);
-
     }
 
     /**

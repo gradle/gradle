@@ -110,7 +110,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
@@ -1279,7 +1279,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public ComponentResolveMetadata toRootComponentMetaData() {
+    public LocalComponentMetadata toRootComponentMetaData() {
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 

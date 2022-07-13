@@ -16,41 +16,15 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-
-public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
-    private final T metadata;
-
+public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
     public DefaultComponentGraphResolveState(T metadata) {
-        this.metadata = metadata;
-    }
-
-    @Override
-    public ComponentIdentifier getId() {
-        return metadata.getId();
-    }
-
-    @Nullable
-    @Override
-    public ModuleSources getSources() {
-        return metadata.getSources();
-    }
-
-    @Override
-    public T getMetadata() {
-        return metadata;
+        super(metadata);
     }
 
     @Override
@@ -58,48 +32,29 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
         return (VariantArtifactGraphResolveMetadata) variant;
     }
 
-    @Nullable
     @Override
-    public ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return null;
-    }
-
-    @Override
-    public ComponentArtifactResolveState prepareForArtifactResolution() {
-        return this;
-    }
-
-    @Override
-    public VariantArtifactResolveState prepareForResolution(VariantGraphResolveMetadata variant) {
+    public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
         ConfigurationMetadata configurationMetadata = (ConfigurationMetadata) variant;
-        return new DefaultVariantArtifactResolveState(configurationMetadata);
+        return new DefaultVariantArtifactResolveState(getMetadata(), configurationMetadata);
     }
 
-    @Override
-    public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(metadata, artifactType, result);
-    }
+    private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
+        private final ComponentResolveMetadata component;
+        private final ConfigurationMetadata configuration;
 
-    @Override
-    public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return artifactSelector.resolveArtifacts(metadata, artifacts, overriddenAttributes);
-    }
-
-    private class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
-        private final ConfigurationMetadata configurationMetadata;
-
-        public DefaultVariantArtifactResolveState(ConfigurationMetadata configurationMetadata) {
-            this.configurationMetadata = configurationMetadata;
+        public DefaultVariantArtifactResolveState(ComponentResolveMetadata componentMetadata, ConfigurationMetadata configuration) {
+            this.component = componentMetadata;
+            this.configuration = configuration;
         }
 
         @Override
         public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-            return configurationMetadata.artifact(artifact);
+            return configuration.artifact(artifact);
         }
 
         @Override
-        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(metadata, configurationMetadata, exclusions, overriddenAttributes);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+            return artifactSelector.resolveArtifacts(component, configuration, exclusions, overriddenAttributes);
         }
     }
 }
