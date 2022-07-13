@@ -50,10 +50,6 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
      */
     ModuleVersionIdentifier getModuleVersionId();
 
-    default ConfigurationMetadata getArtifactResolveMetadata(VariantGraphResolveMetadata variant) {
-        return (ConfigurationMetadata) variant;
-    }
-
     @Override
     default List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
         return Collections.emptyList();

@@ -41,6 +41,6 @@ public class LenientPlatformGraphResolveState extends DefaultComponentGraphResol
     @Nullable
     @Override
     public ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new LenientPlatformGraphResolveState(getArtifactResolveMetadata().withVersion(componentIdentifier, moduleVersionIdentifier));
+        return new LenientPlatformGraphResolveState(getMetadata().withVersion(componentIdentifier, moduleVersionIdentifier));
     }
 }

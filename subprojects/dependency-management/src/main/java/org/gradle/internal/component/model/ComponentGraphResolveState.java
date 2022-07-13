@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import javax.annotation.Nullable;
 
 /**
- * State for a component instance, which is used to perform dependency graph resolution.
+ * State for a component instance that is used to perform dependency graph resolution.
  */
 public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
@@ -36,17 +36,17 @@ public interface ComponentGraphResolveState {
 
     ComponentGraphResolveMetadata getMetadata();
 
-    ComponentResolveMetadata getArtifactResolveMetadata();
-
-    /**
-     * Resolves the artifacts for the given variant of this component. Note that this may be expensive, for example it may block
-     * waiting for access to the source project or for network or IO requests to the source repository.
-     */
-    VariantArtifactsGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
-
     /**
      * When this component is a lenient platform, create a copy with the given ids.
      */
     @Nullable
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
+
+    /**
+     * Resolves the artifacts for the given variant of this component. Note that this may be expensive, for example it may block
+     * waiting for access to the source project or for network or IO requests to the source repository.
+     */
+    VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
+
+    ComponentArtifactResolveState prepareForArtifactResolution();
 }
