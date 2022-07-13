@@ -16,6 +16,9 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -30,10 +33,24 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata> {
+public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata> implements LocalComponentGraphResolveState {
     private final ProjectArtifactSetResolver artifactSetResolver;
+    private final ConcurrentMap<LocalConfigurationMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
+
+    @Override
+    public ModuleVersionIdentifier getModuleVersionId() {
+        return getMetadata().getModuleVersionId();
+    }
+
+    @Override
+    public LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
+        return getMetadata().copy(componentIdentifier, artifacts);
+    }
 
     public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata, ProjectArtifactSetResolver artifactSetResolver) {
         super(metadata);
@@ -42,16 +59,19 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
-        return (VariantArtifactGraphResolveMetadata) variant;
+        return stateFor((LocalConfigurationMetadata) variant);
     }
 
     @Override
     public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
-        LocalConfigurationMetadata configuration = (LocalConfigurationMetadata) variant;
-        return new DefaultLocalVariantArtifactResolveState(getMetadata(), configuration, artifactSetResolver);
+        return stateFor((LocalConfigurationMetadata) variant);
     }
 
-    private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState {
+    private DefaultLocalVariantArtifactResolveState stateFor(LocalConfigurationMetadata configuration) {
+        return variants.computeIfAbsent(configuration, c -> new DefaultLocalVariantArtifactResolveState(getMetadata(), configuration, artifactSetResolver));
+    }
+
+    private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
         private final LocalConfigurationMetadata configuration;
         private final ProjectArtifactSetResolver artifactSetResolver;
@@ -60,6 +80,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             this.component = component;
             this.configuration = configuration;
             this.artifactSetResolver = artifactSetResolver;
+        }
+
+        @Override
+        public List<? extends ComponentArtifactMetadata> getArtifacts() {
+            return configuration.getArtifacts();
         }
 
         @Override

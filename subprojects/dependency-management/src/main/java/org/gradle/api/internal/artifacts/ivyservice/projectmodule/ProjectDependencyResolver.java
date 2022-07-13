@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -84,14 +85,14 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
             ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(selector);
-            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
-            if (componentMetaData == null) {
+            LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
+            if (component == null) {
                 result.failed(new ModuleVersionResolveException(selector, () -> projectId + " not found."));
             } else {
-                if (rejector != null && rejector.accept(componentMetaData.getModuleVersionId().getVersion())) {
-                    result.rejected(projectId, componentMetaData.getModuleVersionId());
+                if (rejector != null && rejector.accept(component.getModuleVersionId().getVersion())) {
+                    result.rejected(projectId, component.getModuleVersionId());
                 } else {
-                    result.resolved(resolveStateFor(componentMetaData));
+                    result.resolved(component);
                 }
             }
         }
@@ -101,11 +102,11 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
         if (isProjectModule(identifier)) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
-            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
-            if (componentMetaData == null) {
+            LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
+            if (component == null) {
                 result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), () -> projectId + " not found."));
             } else {
-                result.resolved(resolveStateFor(componentMetaData));
+                result.resolved(component);
             }
         }
     }

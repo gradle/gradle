@@ -37,6 +37,8 @@ public interface VariantArtifactResolveState {
 
     /**
      * Creates a set that will resolve the artifacts of this variant, minus those artifacts that are excluded.
+     *
+     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
     ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 }

@@ -93,6 +93,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     /**
      * Creates a copy of this metadata, transforming the artifacts and dependencies of this component.
      */
+    @Override
     public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
         DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(moduleVersionId, componentIdentifier, status, attributesSchema);
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
