@@ -65,4 +65,37 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("The property was called 3 times")
     }
+
+    def "cannot call a property on a NDOC with no call method (in #context)"() {
+        given:
+        buildFile << """
+            class NonCallableItem {
+            }
+
+            abstract class NamedThing implements Named {
+                private final NonCallableItem prop = new NonCallableItem()
+
+                NonCallableItem getProp() {
+                    return prop
+                }
+            }
+
+            def container = objects.domainObjectContainer(NamedThing)
+            container.register("foo")
+
+            ${code}
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failureHasCause("Could not find method prop() for arguments [] on object of type NamedThing.")
+
+        where:
+        context | code
+        "Top-level call" | "container.foo.prop()"
+        "Inside Project.configure" | "configure(container.foo) { prop() }"
+        "Inside NDOC.configure" | "container.configure { foo { prop() } }"
+    }
 }
