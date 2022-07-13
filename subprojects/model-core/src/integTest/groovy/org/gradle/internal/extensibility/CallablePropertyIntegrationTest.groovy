@@ -26,7 +26,7 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can call a property on a NDOC"() {
-        given:
+        when:
         buildFile << """
             class CallableItem {
                 def counter = 0
@@ -56,14 +56,11 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            println("The property was called " + container.foo.prop.counter + " times")
+            assert container.foo.prop.counter == 3
         """
 
-        when:
-        succeeds 'help'
-
         then:
-        outputContains("The property was called 3 times")
+        succeeds 'help'
     }
 
     def "cannot call a property on a NDOC with no call method (in #context)"() {
