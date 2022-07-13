@@ -199,10 +199,10 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     }
 
     private ImmutableList<ExcludeMetadata> constructVariantExcludes(VariantGraphResolveMetadata base) {
-        if(base == null) {
+        if (base == null) {
             return ImmutableList.of();
         }
-        return base.getExcludes();
+        return ImmutableList.copyOf(base.getExcludes());
     }
 
     /**

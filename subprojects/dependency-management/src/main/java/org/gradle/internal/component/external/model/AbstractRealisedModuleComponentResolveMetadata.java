@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -121,7 +120,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         }
 
         @Override
-        public AttributeContainerInternal getAttributes() {
+        public ImmutableAttributes getAttributes() {
             throw new UnsupportedOperationException("NameOnlyVariantResolveMetadata cannot be used that way");
         }
 

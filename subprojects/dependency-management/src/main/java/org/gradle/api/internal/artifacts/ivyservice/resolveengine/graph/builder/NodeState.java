@@ -569,7 +569,7 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges the collection of edges for this component
      */
     private void visitOwners(Collection<EdgeState> discoveredEdges) {
-        ImmutableList<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
+        List<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
             PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
             for (VirtualComponentIdentifier owner : owners) {

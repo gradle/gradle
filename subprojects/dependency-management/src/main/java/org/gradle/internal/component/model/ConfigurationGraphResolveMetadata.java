@@ -16,16 +16,16 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * Immutable metadata for a configuration of a component instance that is used to perform dependency graph resolution.
  */
 public interface ConfigurationGraphResolveMetadata extends VariantGraphResolveMetadata {
-    ImmutableSet<String> getHierarchy();
+    Set<String> getHierarchy();
 
     boolean isCanBeConsumed();
 
