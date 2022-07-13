@@ -51,15 +51,12 @@ public class FileDownloader {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    public void download(URI source, File tmpFile) {
-        final ExternalResource resource = createExternalResource(source, tmpFile.getName());
+    public void download(URI source, File file) {
+        final ExternalResource resource = createExternalResource(source, file.getName());
         try {
-            downloadResource(source, tmpFile, resource);
+            downloadResource(source, file, resource);
         } catch (MissingResourceException e) {
-            throw new MissingResourceException(source, "Unable to download toolchain. " +
-                "This might indicate that the combination " +
-                "(version, architecture, release/early access, ...) for the " +
-                "requested JDK is not available.", e);
+            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", source, file), e);
         }
     }
 
