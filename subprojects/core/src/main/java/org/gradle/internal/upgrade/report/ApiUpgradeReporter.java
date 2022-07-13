@@ -16,6 +16,7 @@
 
 package org.gradle.internal.upgrade.report;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collections;
@@ -29,7 +30,7 @@ public class ApiUpgradeReporter {
     private final List<ReportableApiChange> changes;
 
     private ApiUpgradeReporter(List<ReportableApiChange> changes) {
-        this.changes = changes;
+        this.changes = ImmutableList.copyOf(changes);
     }
 
     public List<String> getApiChangesReport(int opcode, String owner, String name, String desc) {

@@ -16,9 +16,10 @@
 
 package org.gradle.internal.upgrade.report;
 
+import org.codehaus.groovy.runtime.callsite.CallSite;
+
 import java.util.Optional;
 
-public interface ReportableApiChange {
-    Optional<String> getApiChangeReportIfMatches(int opcode, String owner, String name, String desc);
-    Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration();
+public interface DynamicGroovyUpgradeDecoration {
+    Optional<CallSite> decorateCallSite(CallSite callSite);
 }

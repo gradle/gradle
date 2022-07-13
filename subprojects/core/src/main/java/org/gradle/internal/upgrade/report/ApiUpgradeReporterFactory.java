@@ -16,6 +16,8 @@
 
 package org.gradle.internal.upgrade.report;
 
+import org.gradle.internal.lazy.Lazy;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -25,15 +27,18 @@ public class ApiUpgradeReporterFactory {
 
     private static final String BINARY_UPGRADE_JSON_PATH = "org.gradle.binary.upgrade.report.json";
 
-    private final ApiUpgradeJsonParser apiUpgradeJsonParser = new ApiUpgradeJsonParser();
-
-    public ApiUpgradeReporter createApiUpgrader() {
+    private final Lazy<ApiUpgradeReporter> lazyApiUpgrader = Lazy.locking().of(() -> {
         String path = System.getProperty(BINARY_UPGRADE_JSON_PATH);
         if (path == null || !Files.exists(Paths.get(path))) {
             return ApiUpgradeReporter.noUpgrades();
         }
         File file = new File(path);
-        List<ReportableApiChange> changes = apiUpgradeJsonParser.parseAcceptedApiChanges(file);
+        List<ReportableApiChange> changes = new ApiUpgradeJsonParser().parseAcceptedApiChanges(file);
+        DynamicGroovyApiUpgradeDecorator.init(changes);
         return ApiUpgradeReporter.newApiUpgradeReporter(changes);
+    });
+
+    public ApiUpgradeReporter getApiUpgrader() {
+        return lazyApiUpgrader.get();
     }
 }

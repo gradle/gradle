@@ -30,6 +30,8 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
 public class MethodReportableApiChange implements ReportableApiChange {
 
+    private final Class<?> type;
+    private final List<Class<?>> parameterTypes;
     private final Set<String> types;
     private final String methodName;
     private final String methodDescriptor;
@@ -38,14 +40,17 @@ public class MethodReportableApiChange implements ReportableApiChange {
     private final List<String> changes;
 
     public MethodReportableApiChange(
-        String type,
+        Class<?> type,
+        List<Class<?>> parameterTypes,
         Collection<String> knownSubtypes,
         Method method,
         String displayText,
         String acceptation,
         List<String> changes
     ) {
-        this.types = Stream.concat(Stream.of(type), knownSubtypes.stream())
+        this.type = type;
+        this.parameterTypes = parameterTypes;
+        this.types = Stream.concat(Stream.of(type.getName()), knownSubtypes.stream())
             .map(className -> className.replace('.', '/'))
             .collect(Collectors.toSet());
         this.methodName = method.getName();
@@ -64,5 +69,28 @@ public class MethodReportableApiChange implements ReportableApiChange {
             return Optional.of("Method call '" + displayText + "', changes: " + changes + ", acceptation: " + acceptation);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration() {
+        // TODO, we should probably rather check changes that should say that something is a property upgrade
+        if (!"Property upgraded".equals(this.acceptation)) {
+            throw new UnsupportedOperationException("Unsupported upgrade: " + this.displayText);
+        }
+        if ((methodName.startsWith("is") || methodName.startsWith("get")) && parameterTypes.isEmpty()) {
+            return Optional.of(new DynamicGroovyPropertyUpgradeDecoration(type, extractPropertyName(methodName)));
+        }
+        return Optional.empty();
+    }
+
+    private String extractPropertyName(String methodName) {
+        String capitalizedProperty;
+        if (methodName.startsWith("is")) {
+            capitalizedProperty = methodName.replace("is", "");
+        } else {
+            capitalizedProperty = methodName.replace("get", "");
+        }
+        // TODO maybe we need smarter algorithm here
+        return capitalizedProperty.substring(0, 1).toLowerCase() + capitalizedProperty.substring(1);
     }
 }

@@ -137,7 +137,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private Transform transformerFor(StandardTransform transform) {
         if (transform == StandardTransform.BuildLogic) {
-            return new InstrumentingTransformer(apiUpgradeReporterFactory.createApiUpgrader());
+            return new InstrumentingTransformer(apiUpgradeReporterFactory.getApiUpgrader());
         } else {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -146,7 +146,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return instrumentingClasspathFileTransformerFor(new InstrumentingTransformer(apiUpgradeReporterFactory.createApiUpgrader()));
+                return instrumentingClasspathFileTransformerFor(new InstrumentingTransformer(apiUpgradeReporterFactory.getApiUpgrader()));
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:

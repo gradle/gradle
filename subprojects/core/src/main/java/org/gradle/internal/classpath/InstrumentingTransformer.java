@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.upgrade.report.ApiUpgradeReporter;
+import org.gradle.internal.upgrade.report.DynamicGroovyApiUpgradeDecorator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
@@ -75,6 +76,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type STRING_TYPE = getType(String.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
+    private static final Type DYNAMIC_GROOVY_API_UPGRADE_DECORATOR_TYPE = getType(DynamicGroovyApiUpgradeDecorator.class);
     private static final Type OBJECT_TYPE = getType(Object.class);
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
     private static final Type LONG_TYPE = getType(Long.class);
@@ -308,6 +310,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
                 _DUP();
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                if (apiUpgradeReporter.shouldDecorateCallsiteArray()) {
+                    _DUP();
+                    _INVOKESTATIC(DYNAMIC_GROOVY_API_UPGRADE_DECORATOR_TYPE, "decorateCallSiteArray", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                }
                 _ARETURN();
                 visitMaxs(2, 0);
                 visitEnd();

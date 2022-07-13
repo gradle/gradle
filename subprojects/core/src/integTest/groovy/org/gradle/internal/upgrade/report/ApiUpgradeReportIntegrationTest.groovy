@@ -34,19 +34,28 @@ class ApiUpgradeReportIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             plugins {
                 id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+                id 'java'
             }
             repositories {
                 mavenCentral()
+            }
+
+            tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = "1.8"
+                targetCompatibility = sourceCompatibility
             }
         """
         file("src/main/kotlin/MyClass.kt") << """
             class MyClass {}
         """
+        file("src/main/java/MyClass2.java") << """
+            class MyClass2 {}
+        """
 
         when:
-        run("compileKotlin", "-Pkotlin.parallel.tasks.in.project=true", "--info", "-Dorg.gradle.binary.upgrade.report.json=${ACCEPTED_TEST_CHANGES.getAbsolutePath()}")
+        run("assemble", "-Pkotlin.parallel.tasks.in.project=true", "--info", "-Dorg.gradle.binary.upgrade.report.json=${ACCEPTED_TEST_CHANGES.getAbsolutePath()}")
         then:
-        executedAndNotSkipped(":compileKotlin")
+        executedAndNotSkipped(":assemble")
     }
 
 }
