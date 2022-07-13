@@ -31,6 +31,7 @@ import java.util.TreeMap
 import java.util.TreeSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 
 internal
@@ -140,6 +141,17 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
         @Suppress("unchecked_cast")
         val comparator = read() as Comparator<Any?>?
         readCollectionInto { TreeSet(comparator) }
+    }
+)
+
+
+internal
+val copyOnWriteArraySetCodec: Codec<CopyOnWriteArraySet<Any?>> = codec(
+    { writeCollection(it) },
+    {
+        // Avoid the overhead of copying the underlying array for each inserted element
+        // by creating the COW data structure from a list.
+        CopyOnWriteArraySet(readList())
     }
 )
 

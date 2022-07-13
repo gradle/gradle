@@ -295,6 +295,7 @@ class Codecs(
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
         bind(HashSetCodec)
         bind(treeSetCodec)
+        bind(copyOnWriteArraySetCodec)
         bind(ImmutableSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
