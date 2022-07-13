@@ -65,7 +65,6 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         } else {
             succeeds "run"
         }
-        result.assertTaskNotSkipped(":run")
 
         switch (expectedFailures.size()) {
             case 0:
