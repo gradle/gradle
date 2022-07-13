@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage
@@ -268,15 +269,19 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.linker) == []
-            argsFor(platformToolChain.cCompiler) == []
-            argsFor(platformToolChain.cppCompiler) == []
-            argsFor(platformToolChain.assembler) == []
+        1 * action.execute({ GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == linkerArg
+            argsFor(platformToolChain.cCompiler) == compilerArg
+            argsFor(platformToolChain.cppCompiler) == compilerArg
+            argsFor(platformToolChain.assembler) == compilerArg
+            argsFor(platformToolChain.objcCompiler) == compilerArg
+            argsFor(platformToolChain.objcppCompiler) == compilerArg
             argsFor(platformToolChain.staticLibArchiver) == []
-            argsFor(platformToolChain.objcCompiler) == []
-            argsFor(platformToolChain.objcppCompiler) == []
-        }
+        })
+
+        where:
+        linkerArg | compilerArg
+        ["-m64"]  | ["-m64"]
     }
 
     def "supplies args for supported architecture for non-macOS platforms"() {
@@ -293,20 +298,20 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.linker) == [linkerArg]
-            argsFor(platformToolChain.cppCompiler) == [compilerArg]
-            argsFor(platformToolChain.cCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcppCompiler) == [compilerArg]
-            argsFor(platformToolChain.assembler) == [compilerArg]
+        1 * action.execute({ GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == linkerArg
+            argsFor(platformToolChain.cppCompiler) == compilerArg
+            argsFor(platformToolChain.cCompiler) == compilerArg
+            argsFor(platformToolChain.objcCompiler) == compilerArg
+            argsFor(platformToolChain.objcppCompiler) == compilerArg
+            argsFor(platformToolChain.assembler) == compilerArg
             argsFor(platformToolChain.staticLibArchiver) == []
-        }
+        })
 
         where:
         arch     | linkerArg | compilerArg
-        "i386"   | "-m32"    | "-m32"
-        "x86_64" | "-m64"    | "-m64"
+        "i386"   | ["-m32"]  | ["-m32"]
+        "x86_64" | ["-m64"]  | ["-m64"]
     }
 
     def "supplies args for supported architecture for macOS platforms"() {
@@ -325,20 +330,20 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.linker) == [linkerArg]
-            argsFor(platformToolChain.cppCompiler) == [compilerArg]
-            argsFor(platformToolChain.cCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcCompiler) == [compilerArg]
-            argsFor(platformToolChain.objcppCompiler) == [compilerArg]
+        1 * action.execute({ GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == linkerArg
+            argsFor(platformToolChain.cppCompiler) == compilerArg
+            argsFor(platformToolChain.cCompiler) == compilerArg
+            argsFor(platformToolChain.objcCompiler) == compilerArg
+            argsFor(platformToolChain.objcppCompiler) == compilerArg
             argsFor(platformToolChain.assembler) == assemblerArgs
             argsFor(platformToolChain.staticLibArchiver) == []
-        }
+        })
 
         where:
         arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArgs
-        "i386"   | X86            | 32           | "-m32"    | "-m32"      | ["-arch", "i386"]
-        "x86_64" | X86            | 64           | "-m64"    | "-m64"      | ["-arch", "x86_64"]
+        "i386"   | X86            | 32           | []        | []          | []
+        "x86_64" | X86            | 64           | []        | []          | []
     }
 
     def "uses supplied platform configurations in order to target binary"() {
@@ -396,15 +401,15 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            assert platformToolChain.platform == platform
-            assert platformToolChain.cCompiler
-            assert platformToolChain.cppCompiler
-            assert platformToolChain.objcCompiler
-            assert platformToolChain.objcppCompiler
-            assert platformToolChain.linker
-            assert platformToolChain.staticLibArchiver
-        }
+        1 * action.execute({ GccPlatformToolChain platformToolChain ->
+            platformToolChain.platform == platform
+            platformToolChain.cCompiler
+            platformToolChain.cppCompiler
+            platformToolChain.objcCompiler
+            platformToolChain.objcppCompiler
+            platformToolChain.linker
+            platformToolChain.staticLibArchiver
+        })
     }
 
     def getMessage(ToolSearchResult result) {
@@ -424,7 +429,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
     }
 
-    def argsFor(GccCommandLineToolConfigurationInternal tool) {
+    def argsFor(GccCommandLineToolConfiguration tool) {
+        assert tool in GccCommandLineToolConfigurationInternal : "Expected argument to be an instance of GccCommandLineToolConfigurationInternal"
         def args = []
         tool.getArgAction().execute(args)
         args
