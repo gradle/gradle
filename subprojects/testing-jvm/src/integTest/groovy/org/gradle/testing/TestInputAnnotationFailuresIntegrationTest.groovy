@@ -19,7 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec {
-    def "using @Input annotation on #fieldType file fields with upToDate check fails with helpful error message"() {
+    def "using @Input annotation on #fieldType file fields fails validation with helpful error message"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
@@ -61,7 +61,7 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         'RegularFile'   | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"        | 'myField.getAsFile().absolutePath'
     }
 
-    def "using @Input annotation on #fieldType directory fields with upToDate check fails with helpful error message"() {
+    def "using @Input annotation on #fieldType directory fields fails validation with helpful error message"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
@@ -99,7 +99,7 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
        'Directory'    | "Directory myField = project.layout.projectDirectory.dir('myDir')"          | 'myField.getAsFile().absolutePath'
     }
 
-    def "using @Input annotation on #propertyType file properties fails with helpful error message"() {
+    def "using @Input annotation on #propertyType file property fails validation with helpful error message"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
@@ -140,7 +140,6 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
         where:
         propertyType            | propertyInitialization                                                                | propertyRead
-        "File"                  | "final File myProp = project.layout.projectDirectory.file('myFile.txt').getAsFile()"  | 'myProp.absolutePath'
         "RegularFileProperty"   | "abstract RegularFileProperty getMyProp()"                                            | "myProp.getAsFile().get().absolutePath"
     }
 
