@@ -212,7 +212,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Could not read 'https://example.com/v3/binary/latest/99/ga/${os()}/x64/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
     }
 
-    private String os() {
+    private static String os() {
         OperatingSystem os = OperatingSystem.current()
         if (os.isWindows()) {
             return "windows";

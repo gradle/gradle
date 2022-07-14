@@ -16,15 +16,21 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 
-import java.util.List;
+import javax.inject.Inject;
 
-public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
+public class DefaultToolchainManagementSpec implements ToolchainManagementSpec {
 
-    void request(String... registryNames);
+    private final JavaToolchainRepositoryRegistryInternal registry;
 
-    List<JavaToolchainRepository> requestedRepositories();
+    @Inject
+    public DefaultToolchainManagementSpec(JavaToolchainRepositoryRegistryInternal registry) {
+        this.registry = registry;
+    }
 
+    @Override
+    public void jdks(String... registryNames) {
+        registry.request(registryNames);
+    }
 }

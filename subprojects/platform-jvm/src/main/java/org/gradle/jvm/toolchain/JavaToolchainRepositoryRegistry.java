@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * TODO
@@ -24,9 +25,8 @@ import org.gradle.api.Incubating;
  * @since 7.6
  */
 @Incubating
+@HasInternalProtocol
 public interface JavaToolchainRepositoryRegistry {
-
-    //TODO: how to access this registry from Settings? it's not part of the Core API, nor do we want to make it so (I guess)...
 
     /**
      * TODO

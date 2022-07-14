@@ -17,14 +17,20 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +38,21 @@ import java.util.stream.Collectors;
 
 public class DefaultJavaToolchainRepositoryRegistry implements JavaToolchainRepositoryRegistryInternal {
 
-    public static final Action<BuildServiceSpec<BuildServiceParameters.None>> EMPTY_CONFIGURE_ACTION = buildServiceSpec -> {
+    public static final String DEFAULT_REGISTRY_NAME = "adoptOpenJdk";
+
+    private static final Action<BuildServiceSpec<BuildServiceParameters.None>> EMPTY_CONFIGURE_ACTION = buildServiceSpec -> {
     };
+
     private final BuildServiceRegistry sharedServices;
 
     private final Map<String, Provider<? extends JavaToolchainRepository>> registrations = new HashMap<>();
 
+    private final List<String> requests = new ArrayList<>();
+
     @Inject
     public DefaultJavaToolchainRepositoryRegistry(Gradle gradle) {
         this.sharedServices = gradle.getSharedServices();
+        register(DEFAULT_REGISTRY_NAME, AdoptOpenJdkRemoteBinary.class); //our default implementation, should go away in 8.0
     }
 
     @Override
@@ -50,8 +62,31 @@ public class DefaultJavaToolchainRepositoryRegistry implements JavaToolchainRepo
     }
 
     @Override
-    public List<JavaToolchainRepository> requestedRepositories() {
-        //TODO: this is a hack, for now we consider that all repositories registered are also requested
-        return registrations.values().stream().map(Provider::get).collect(Collectors.toList());
+    public void request(String... registryNames) {
+        validateNames(registryNames);
+        //TODO: what if the list has names which haven't been registered?
+        requests.addAll(Arrays.asList(registryNames));
     }
+
+    @Override
+    public List<JavaToolchainRepository> requestedRepositories() {
+        if (requests.isEmpty()) {
+            DeprecationLogger.warnOfChangedBehaviour("Starting from Gradle 8.0 there will be no default Java Toolchain Registry.",
+                            "Need to explicitly request them via the 'toolchainManagement' block.")
+                    .undocumented()
+                    .nagUser(); //TODO: improve this warning
+            return Collections.singletonList(registrations.get(DEFAULT_REGISTRY_NAME).get());
+        }
+
+        return requests.stream().map(name -> registrations.get(name).get()).collect(Collectors.toList());
+    }
+
+    private void validateNames(String... registryNames) {
+        for (String name : registryNames) {
+            if (!registrations.containsKey(name)) {
+                throw new GradleException("Unknown Java Toolchain registry: " + name);
+            }
+        }
+    }
+
 }

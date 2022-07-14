@@ -35,6 +35,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -381,5 +382,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public DependencyResolutionManagementInternal getDependencyResolutionManagement() {
         return dependencyResolutionManagement;
+    }
+
+    @Override
+    @Inject
+    public ToolchainManagementSpec getToolchainManagement() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void toolchainManagement(Action<? super ToolchainManagementSpec> rule) {
+        rule.execute(getToolchainManagement());
     }
 }

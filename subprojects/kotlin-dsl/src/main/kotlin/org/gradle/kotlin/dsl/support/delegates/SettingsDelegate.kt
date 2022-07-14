@@ -30,6 +30,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.toolchain.management.ToolchainManagementSpec
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.vcs.SourceControl
@@ -94,6 +95,12 @@ abstract class SettingsDelegate : Settings {
 
     override fun getPluginManagement(): PluginManagementSpec =
         delegate.pluginManagement
+
+    override fun toolchainManagement(toolchainManagementSpec: Action<in ToolchainManagementSpec>) =
+        delegate.toolchainManagement(toolchainManagementSpec)
+
+    override fun getToolchainManagement(): ToolchainManagementSpec =
+        delegate.toolchainManagement
 
     override fun sourceControl(configuration: Action<in SourceControl>) =
         delegate.sourceControl(configuration)
