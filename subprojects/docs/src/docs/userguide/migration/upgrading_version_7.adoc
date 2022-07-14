@@ -42,6 +42,30 @@ Some plugins will break with this new version of Gradle, for example because the
 link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
 Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
 
+=== Updates to Attribute Disambiguation Rules related methods
+
+The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+
+[[strict-kotlin-dsl-precompiled-scripts-accessors]]
+=== Strict Kotlin DSL precompiled script plugins accessors generation
+
+Type safe Kotlin DSL accessors generation for precompiled script plugins does not fail the build by default if a plugin requested in such precompiled scripts fails to be applied.
+Because the cause could be environmental and for backwards compatibility reasons, this behaviour hasn't changed yet.
+
+Back in Gradle 7.1 the `:generatePrecompiledScriptPluginAccessors` task responsible for the accessors generation has been marked as non-cacheable by default.
+The `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property was introduced in order to offer an opt-in to a stricter mode of operation that fails the build when a plugin application fails, and enable the build cache for that task.
+
+Starting with Gradle 7.6, non-strict accessors generation for Kotlin DSL precompiled script plugins has been deprecated.
+This will change in Gradle 8.0.
+Strict accessor generation will become the default.
+To opt in to the strict behavior, set the 'org.gradle.kotlin.dsl.precompiled.accessors.strict' system property to `true`.
+
+This can be achieved persistently in the `gradle.properties` file in your build root directory:
+
+```properties
+systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
+```
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
@@ -94,10 +118,66 @@ In order to set the old default, the executable can be manually defined in `grad
 ----
 signing.gnupg.executable=gpg2
 ----
+==== `mustRunAfter` constraints no longer violated by `finalizedBy` dependencies
+
+In previous Gradle versions, `mustRunAfter` constraints between regular tasks and finalizer task dependencies would not be honored.
+
+For a concrete example, consider the following task graph definition:
+
+[source,kotlin]
+----
+tasks {
+    register("dockerTest") {
+        dependsOn("dockerUp")     // dependsOn createContainer mustRunAfter removeContainer
+        finalizedBy("dockerStop") // dependsOn removeContainer
+    }
+
+    register("dockerUp") {
+        dependsOn("createContainer")
+    }
+
+    register("dockerStop") {
+        dependsOn("removeContainer")
+    }
+
+    register("createContainer") {
+        mustRunAfter("removeContainer")
+    }
+
+    register("removeContainer") {
+    }
+}
+----
+
+The relevant constraints are:
+
+- `dockerStop` is a finalizer of `dockerTest` so it  must be run after `dockerTest`;
+- `removeContainer` is a dependency of `dockerStop` so it must be run before `dockerStop`;
+- `createContainer` must run after `removeContainer`;
+
+Prior to Gradle 7.5, `gradle dockerTest` would yield the following order of execution, in violation of the `mustRunAfter` constraint between `:createContainer` and `:removeContainer`:
+
+```
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :removeContainer UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
+
+Starting with Gradle 7.5, `mustRunAfter` constraints are fully honored yielding the following order of execution:
+
+```
+> Task :removeContainer UP-TO-DATE
+> Task :createContainer UP-TO-DATE
+> Task :dockerUp UP-TO-DATE
+> Task :dockerTest UP-TO-DATE
+> Task :dockerStop UP-TO-DATE
+```
 
 ==== Updates to bundled Gradle dependencies
 
-- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.10].
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.11].
 
 ==== Scala Zinc version updated to 1.6.1
 
@@ -106,6 +186,61 @@ It takes into account which methods are being used and which have changed, which
 
 Zinc version has been updated to the newest available one in order to benefit from all the recent bugfixes.
 Due to that, if you use `zincVersion` setting it's advised to remove it and only use the default version, because Gradle will only be able to compile Scala code with Zinc versions set to 1.6.x or higher.
+
+==== Removes implicit `--add-opens` for test workers
+
+Prior to Gradle 7.5, JDK modules `java.base/java.util` and `java.base/java.lang` were automatically opened in test workers on JDK9+ by passing `--add-opens` CLI arguments. This meant any tests were able to perform deep reflection on JDK internals without warning or failing. This caused tests to be unreliable by allowing code to pass when it would otherwise fail in a production environment.
+
+These implicit arguments have been removed and are no longer added by default. If your code or any of your dependencies are performing deep refection into JDK internals during test execution, you may see the following behavior changes:
+
+Before Java 16, new build warnings are shown. These new warnings are printed to stderr and will not fail the build:
+```
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by com.google.inject.internal.cglib.core.ReflectUtils$2 (file:/.../testng-5.12.1.jar) to <method>
+WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.core.ReflectUtils$2
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+```
+
+With Java 16 or higher, exceptions are thrown that fail the build:
+```
+// Thrown by TestNG
+java.lang.reflect.InaccessibleObjectException: Unable to make <method> accessible: module java.base does not "opens java.lang" to unnamed module @1e92bd61
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:354)
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:297)
+	at java.base/java.lang.reflect.Method.checkCanSetAccessible(Method.java:199)
+	at java.base/java.lang.reflect.Method.setAccessible(Method.java:193)
+    ...
+
+// Thrown by ProjectBuilder
+org.gradle.api.GradleException: Could not inject synthetic classes.
+	at org.gradle.initialization.DefaultLegacyTypesSupport.injectEmptyInterfacesIntoClassLoader(DefaultLegacyTypesSupport.java:91)
+	at org.gradle.testfixtures.internal.ProjectBuilderImpl.getGlobalServices(ProjectBuilderImpl.java:182)
+	at org.gradle.testfixtures.internal.ProjectBuilderImpl.createProject(ProjectBuilderImpl.java:111)
+	at org.gradle.testfixtures.ProjectBuilder.build(ProjectBuilder.java:120)
+	...
+Caused by: java.lang.RuntimeException: java.lang.IllegalAccessException: module java.base does not open java.lang to unnamed module @1e92bd61
+```
+
+In most cases, these errors can be resolved by updating the code or dependency performing the illegal access. If the code-under-test or the newest version of the dependency in question performs illegal access by design, the old behavior can be restored by opening the `java.base/java.lang` and `java.base/java.util` modules manually with `--add-opens`:
+
+```
+tasks.withType(Test).configureEach {
+    jvmArgs(["--add-opens=java.base/java.lang=ALL-UNNAMED",
+             "--add-opens=java.base/java.util=ALL-UNNAMED"]
+}
+```
+
+If you are developing Gradle plugins, `ProjectBuilder` relies on reflection in the `java.base/java.lang` module. Gradle will automatically add the appropriate `--add-opens` flag to tests when the `java-gradle-plugin` plugin is applied.
+
+If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. Updating to at least `5.14.6` should fix the incompatibility.
+
+[[checkstyle_worker_api]]
+==== Checkstyle tasks use toolchains and execute in parallel by default
+
+The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
+
+Since Checkstyle runs as an external process you can control the memory via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle tasks. In case of out of memory errors, increasing the max memory via the `maxHeapSize` property should solve the issue. By default, the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
 
 === Deprecations
 

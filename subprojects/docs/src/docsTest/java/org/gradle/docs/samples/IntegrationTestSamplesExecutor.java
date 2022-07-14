@@ -35,15 +35,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toMap;
 
 class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     private static final String WARNING_MODE_FLAG_PREFIX = "--warning-mode=";
 
     private static final String NO_STACKTRACE_CHECK = "-Dorg.gradle.sampletest.noStackTraceCheck=true";
+
+    private static final String SAMPLE_ENV_PREFIX = "-Dorg.gradle.sampletest.env.";
 
     private final File workingDir;
     private final boolean expectFailure;
@@ -63,7 +67,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .map(it -> WarningMode.valueOf(capitalize(it.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase())))
             .findFirst().orElse(WarningMode.Fail);
         List<String> filteredFlags = flags.stream()
-            .filter(it -> !it.startsWith(WARNING_MODE_FLAG_PREFIX) && !it.equals(NO_STACKTRACE_CHECK))
+            .filter(it -> !it.startsWith(WARNING_MODE_FLAG_PREFIX) && !it.equals(NO_STACKTRACE_CHECK) && !it.startsWith(SAMPLE_ENV_PREFIX))
             .collect(toCollection(ArrayList::new));
         filteredFlags.add(getAvailableJdksFlag());
         GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
@@ -76,6 +80,15 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
 
         if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {
             executer.withStackTraceChecksDisabled();
+        }
+
+        Map<String, String> env = flags.stream()
+            .filter(it -> it.startsWith(SAMPLE_ENV_PREFIX))
+            .map(it -> it.replace(SAMPLE_ENV_PREFIX, "").split("="))
+            .filter(it -> it.length == 2)
+            .collect(toMap(it -> it[0], it -> it[1]));
+        if (!env.isEmpty()) {
+            executer.withEnvironmentVars(env);
         }
 
         try {

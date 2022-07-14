@@ -17,10 +17,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.10.1")
+    id("com.gradle.enterprise").version("3.10.3")
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.3.4-milestone-1") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise.test-distribution").version("2.3.5") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.cc-experiment")
 }
 
@@ -150,6 +150,7 @@ include("architecture-test")
 include("internal-testing")
 include("internal-integ-testing")
 include("internal-performance-testing")
+include("internal-architecture-testing")
 include("internal-build-reports")
 include("integ-test")
 include("kotlin-dsl-integ-tests")

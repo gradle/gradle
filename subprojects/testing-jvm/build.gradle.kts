@@ -67,7 +67,7 @@ strictCompile {
     ignoreDeprecations() // uses deprecated software model types
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 

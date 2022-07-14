@@ -192,7 +192,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
             }
         """
         def pluginBuild = pluginBuild("build-logic")
-        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration, null)
 
         when:
         settingsFile << """
@@ -222,7 +222,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
             }
         """
         def pluginBuild = pluginBuild("build-logic")
-        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration, null)
 
         when:
         settingsFile << """
@@ -252,7 +252,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
             }
         """
         def pluginBuild = pluginBuild("build-logic")
-        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration, null)
 
         when:
         settingsFile << """

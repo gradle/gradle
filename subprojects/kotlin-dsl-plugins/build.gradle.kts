@@ -50,7 +50,7 @@ dependencies {
     integTestLocalRepository(project)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
 }
 

@@ -19,12 +19,14 @@ import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isTravis
+import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.logicalBranch
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
 import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -63,14 +65,16 @@ if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
 }
 
+if (project.predictiveTestSelectionEnabled.orNull == true) {
+    buildScan?.tag("PTS")
+}
+
 extractCheckstyleAndCodenarcData()
 
 extractWatchFsData()
 
-project.the<ModuleIdentityExtension>().apply {
-    if (logicalBranch.get() != gradleBuildBranch.get()) {
-        buildScan?.tag("PRE_TESTED_COMMIT")
-    }
+if (logicalBranch.orNull != buildBranch.orNull) {
+    buildScan?.tag("PRE_TESTED_COMMIT")
 }
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {

@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
@@ -92,7 +93,7 @@ class DetermineExecutionPlanAction {
         createOrdinalRelationships();
 
         ordinalNodeAccess.createInterNodeRelationships();
-        nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
+        ordinalNodeAccess.getAllNodes().forEach(nodeMapping::add);
     }
 
     private void updateFinalizerGroups() {
@@ -292,12 +293,7 @@ class DetermineExecutionPlanAction {
 
     private List<Set<Node>> findCycles(Node successor) {
         CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
-            connectedNodes.addAll(node.getDependencySuccessors());
-            if (node instanceof TaskNode) {
-                TaskNode taskNode = (TaskNode) node;
-                connectedNodes.addAll(taskNode.getMustSuccessors());
-                connectedNodes.addAll(taskNode.getFinalizingSuccessors());
-            }
+            node.getHardSuccessors().forEach(connectedNodes::add);
         });
         graphWalker.add(successor);
         return graphWalker.findCycles();
@@ -310,7 +306,8 @@ class DetermineExecutionPlanAction {
             (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
             (it, values, connectedNodes) -> {
                 for (Node dependency : cycle) {
-                    if (it.hasHardSuccessor(dependency)) {
+                    Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
+                    if (dependency instanceof TaskNode && successors.contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }

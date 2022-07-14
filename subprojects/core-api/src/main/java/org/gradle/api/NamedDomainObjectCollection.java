@@ -239,7 +239,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @param name The object's name
      * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
-     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
     NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
@@ -250,7 +250,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param name The object's name
      * @param type The object's type
      * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
-     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
@@ -263,7 +263,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param type The object's type
      * @param configurationAction The action to use to configure the object.
      * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
-     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;

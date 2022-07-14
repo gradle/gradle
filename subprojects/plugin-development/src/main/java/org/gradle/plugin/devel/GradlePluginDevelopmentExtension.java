@@ -21,8 +21,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -60,10 +62,15 @@ import java.util.Set;
  */
 public class GradlePluginDevelopmentExtension {
 
-    private SourceSet pluginSourceSet;
+    private final Property<String> website;
+
+    private final Property<String> vcsUrl;
+
     private final SourceSetContainer testSourceSets;
-    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
+    private SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
+
+    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
         this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
@@ -73,6 +80,8 @@ public class GradlePluginDevelopmentExtension {
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
+        this.website = project.getObjects().property(String.class);
+        this.vcsUrl = project.getObjects().property(String.class);
         testSourceSets(testSourceSets);
     }
 
@@ -132,6 +141,26 @@ public class GradlePluginDevelopmentExtension {
     }
 
     /**
+     * Returns the property holding the URL for the plugin's website.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public Property<String> getWebsite() {
+        return website;
+    }
+
+    /**
+     * Returns the property holding the URL for the plugin's VCS repository.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public Property<String> getVcsUrl() {
+        return vcsUrl;
+    }
+
+    /**
      * Returns the declared plugins.
      *
      * @return the declared plugins, never null
@@ -152,7 +181,10 @@ public class GradlePluginDevelopmentExtension {
     /**
      * Whether the plugin should automatically configure the publications for the plugins.
      * @return true if publishing should be automated, false otherwise
+     *
+     * @deprecated non-automatic publishing of plugins will no longer be supported
      */
+    @Deprecated
     public boolean isAutomatedPublishing() {
         return automatedPublishing;
     }
@@ -160,8 +192,16 @@ public class GradlePluginDevelopmentExtension {
     /**
      * Configures whether the plugin should automatically configure the publications for the plugins.
      * @param automatedPublishing whether to automated publication
+     *
+     * @deprecated non-automatic publishing of plugins will no longer be supported
      */
+    @Deprecated
     public void setAutomatedPublishing(boolean automatedPublishing) {
+        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "setAutomatedPublishing")
+                .withAdvice("Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
+                .willBeRemovedInGradle8()
+                .undocumented()
+                .nagUser();
         this.automatedPublishing = automatedPublishing;
     }
 }

@@ -901,7 +901,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
-            return new TasksFromProjectDependencies(taskName, getAllDependencies());
+            return new TasksFromProjectDependencies(taskName, this::getAllDependencies);
         } else {
             return new TasksFromDependentProjects(taskName, getName());
         }

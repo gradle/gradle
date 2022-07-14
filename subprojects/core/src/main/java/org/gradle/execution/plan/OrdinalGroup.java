@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 public class OrdinalGroup extends NodeGroup {
     private final int ordinal;
 
-    public OrdinalGroup(int ordinal) {
+    OrdinalGroup(int ordinal) {
         this.ordinal = ordinal;
     }
 
@@ -50,25 +50,6 @@ public class OrdinalGroup extends NodeGroup {
     }
 
     public int getOrdinal() {
-        return ordinal;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        OrdinalGroup that = (OrdinalGroup) o;
-
-        return ordinal == that.ordinal;
-    }
-
-    @Override
-    public int hashCode() {
         return ordinal;
     }
 }

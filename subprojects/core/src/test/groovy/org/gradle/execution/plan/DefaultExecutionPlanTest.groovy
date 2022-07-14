@@ -49,7 +49,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -452,6 +452,39 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         where:
         orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
+    }
+
+    def "finalizer groups that finalize each other form a cycle"() {
+        given:
+        TaskInternal finalizerA = createTask("finalizerA")
+        TaskInternal finalizerB = createTask("finalizerB")
+        TaskInternal finalizerDepA = task("finalizerDepA", finalizedBy: [finalizerB])
+        TaskInternal finalizerDepB = task("finalizerDepB", finalizedBy: [finalizerA])
+        relationships(finalizerA, dependsOn: [finalizerDepA])
+        relationships(finalizerB, dependsOn: [finalizerDepB])
+        TaskInternal entryPoint = task("entryPoint", finalizedBy: [finalizerA, finalizerB])
+
+        when:
+        addToGraphAndPopulate([entryPoint])
+
+        then:
+        // TODO(mlopatkin) A potential execution order that was working in 7.4:
+        //   executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
+        // It somewhat violates a finalizer constraint: "only run dependencies of a finalizer after completing a finalized task"
+        // To satisfy that, finalizerDepA should run after finalizerDepB, and finalizerDepB should run after finalizerDepA.
+        // Obviously, both constraints cannot be satisfied at once.
+        // There is an alternative reading though. The entryPoint is finalized by finalizerA, and we started to execute
+        // finalizerA's dependencies; finalizerDepA happen to be finalized by finalizerB, so we schedule it and its dependency after
+        // finalizerDepA. Then we complete everything with finalizerA. This reading is somewhat similar to the case where finalizerDepA
+        // is reachable from the entry point.
+        def e = thrown CircularReferenceException
+        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:finalizerDepA
+\\--- :finalizerDepB
+     \\--- :finalizerDepA (*)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "cannot add task with circular reference"() {
@@ -1125,15 +1158,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return task
     }
 
-    private void relationships(Map options, TaskInternal task) {
-        dependsOn(task, options.dependsOn ?: [])
-        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
-        mustRunAfter(task, options.mustRunAfter ?: [])
-        shouldRunAfter(task, options.shouldRunAfter ?: [])
-        finalizedBy(task, options.finalizedBy ?: [])
-        task.getSharedResources() >> (options.resources ?: [])
-    }
-
     private TaskInternal filteredTask(final String name) {
         def task = createTask(name)
         task.getTaskDependencies() >> brokenDependencies()
@@ -1143,4 +1167,3 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return task
     }
 }
-
