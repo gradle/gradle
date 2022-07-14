@@ -66,9 +66,13 @@ public class MethodReportableApiChange implements ReportableApiChange {
             && types.contains(owner)
             && name.equals(methodName)
             && desc.equals(methodDescriptor)) {
-            return Optional.of("Method call '" + displayText + "', changes: " + changes + ", acceptation: " + acceptation);
+            return Optional.of(getChangeReport());
         }
         return Optional.empty();
+    }
+
+    private String getChangeReport() {
+        return "Method call '" + displayText + "', changes: " + changes + ", acceptation: " + acceptation;
     }
 
     @Override
@@ -78,7 +82,8 @@ public class MethodReportableApiChange implements ReportableApiChange {
             throw new UnsupportedOperationException("Unsupported upgrade: " + this.displayText);
         }
         if ((methodName.startsWith("is") || methodName.startsWith("get")) && parameterTypes.isEmpty()) {
-            return Optional.of(new DynamicGroovyPropertyUpgradeDecoration(type, extractPropertyName(methodName)));
+            String propertyName = extractPropertyName(methodName);
+            return Optional.of(new DynamicGroovyPropertyUpgradeDecoration(type, propertyName, this::getChangeReport));
         }
         return Optional.empty();
     }

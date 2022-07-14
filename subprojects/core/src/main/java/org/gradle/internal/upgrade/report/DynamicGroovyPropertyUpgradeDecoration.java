@@ -22,19 +22,23 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.gradle.internal.lazy.Lazy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgradeDecoration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicGroovyPropertyUpgradeDecoration.class);
     private final Class<?> type;
     private final String propertyName;
+    private final Lazy<String> changeReport;
 
-    public DynamicGroovyPropertyUpgradeDecoration(Class<?> type, String propertyName) {
+    public DynamicGroovyPropertyUpgradeDecoration(Class<?> type, String propertyName, Supplier<String> changeReport) {
         this.type = type;
         this.propertyName = propertyName;
+        this.changeReport = Lazy.locking().of(changeReport);
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
         GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass(type, propertyName, metaClass));
     }
@@ -48,7 +52,10 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
                 public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
                     Object typeToCheck = inferReceiverFromCallSiteReceiver(receiver);
                     if (type.isInstance(typeToCheck)) {
-                        LOGGER.info("Calling getter for Groovy property {}.{}", type.getName(), propertyName);
+                        Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
+                        String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
+                        int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
+                        LOGGER.info("{}: line {}: {}", file, lineNumber, changeReport.get());
                     }
                     return super.callGroovyObjectGetProperty(receiver);
                 }
@@ -56,9 +63,21 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
                 @Override
                 public Object callGetProperty(Object receiver) throws Throwable {
                     if (type.isInstance(receiver)) {
-                        LOGGER.info("Calling getter for property {}.{}", type.getName(), propertyName);
+                        Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
+                        String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
+                        int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
+                        LOGGER.info("{}: line {}: {}", file, lineNumber, changeReport.get());
                     }
                     return super.callGetProperty(receiver);
+                }
+
+                private Optional<StackTraceElement> getOwnerStackTraceElement() {
+                    for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+                        if (element.getLineNumber() >= 0 && element.getClassName().equals(callSite.getArray().owner.getName())) {
+                            return Optional.of(element);
+                        }
+                    }
+                    return Optional.empty();
                 }
             });
         }
