@@ -434,7 +434,7 @@ class EdgeState implements DependencyGraphEdge {
         if (artifacts.isEmpty()) {
             return Collections.emptyList();
         }
-        return artifacts.stream().map(targetVariant::artifact).collect(Collectors.toList());
+        return artifacts.stream().map(targetVariant::resolveArtifact).collect(Collectors.toList());
     }
 
     void maybeDecreaseHardEdgeCount(NodeState removalSource) {
