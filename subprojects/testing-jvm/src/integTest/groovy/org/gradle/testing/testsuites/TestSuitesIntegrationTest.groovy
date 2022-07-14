@@ -849,7 +849,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest(JvmTestSuite) {
                         dependencies {
-                            gradleTestKit()
+                            getArtifactTypes()
                         }
                     }
                 }
@@ -857,7 +857,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         fails("help")
-        failure.assertHasErrorOutput("Could not find method gradleTestKit() for arguments [] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        failure.assertHasErrorOutput("Could not find method getArtifactTypes() for arguments [] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
         failure.assertHasErrorOutput("\tThis method is present in the top-level dependencies block, but can not be used within a Test Suite's dependencies block.")
         failure.assertHasErrorOutput("See https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html for an overview on the differences between these two blocks, or compare the following DSL references:")
         failure.assertHasErrorOutput("\thttps://docs.gradle.org/current/dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html")
