@@ -23,6 +23,7 @@ val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val mavenVersion = "3.6.3"
+val mavenResolverVersion = "1.4.1"
 val nativePlatformVersion = "0.22-milestone-23"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
@@ -112,8 +113,12 @@ dependencies {
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
         api(libs.maven3BuilderSupport)  { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3Model)           { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3RepositoryMetadata) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3ResolverConnectorBasic) { version { strictly(mavenResolverVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3ResolverTransportHttp) { version { strictly(mavenResolverVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3Settings)        { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.maven3SettingsBuilder) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.minlog)                { version { strictly("1.2") }}
@@ -136,10 +141,6 @@ dependencies {
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.7") }}
         api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
-
-        // compile only
-        api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
-        api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}

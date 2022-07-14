@@ -104,8 +104,12 @@ abstract class ExternalModulesExtension {
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
+    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
     val maven3Model = "org.apache.maven:maven-model"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
+    val maven3ResolverTransportHttp = "org.apache.maven.resolver:maven-resolver-transport-http"
+    val maven3ResolverConnectorBasic = "org.apache.maven.resolver:maven-resolver-connector-basic"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
     val minlog = "com.esotericsoftware.minlog:minlog"
@@ -128,10 +132,6 @@ abstract class ExternalModulesExtension {
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
     val xmlApis = "xml-apis:xml-apis"
-
-    // Compile only dependencies (dynamically downloaded if needed)
-    val maven3Compat = "org.apache.maven:maven-compat"
-    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -242,8 +242,12 @@ abstract class ExternalModulesExtension {
         kryo to License.BSD3,
         log4jToSlf4j to License.MIT,
         maven3BuilderSupport to License.Apache2,
+        maven3Compat to License.Apache2,
         maven3Model to License.Apache2,
+        maven3PluginApi to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
+        maven3ResolverConnectorBasic to License.Apache2,
+        maven3ResolverTransportHttp to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
         minlog to License.BSD3,

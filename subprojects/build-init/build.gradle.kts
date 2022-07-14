@@ -29,12 +29,13 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
-    implementation(libs.maven3SettingsBuilder)
 
-    compileOnly(libs.maven3Compat)
-    compileOnly(libs.maven3PluginApi)
-    testRuntimeOnly(libs.maven3Compat)
-    testRuntimeOnly(libs.maven3PluginApi)
+    implementation(libs.maven3Compat)
+    implementation(libs.maven3Model)
+    implementation(libs.maven3PluginApi)
+    implementation(libs.maven3ResolverConnectorBasic)
+    implementation(libs.maven3ResolverTransportHttp)
+    implementation(libs.maven3SettingsBuilder)
 
     testImplementation(project(":cli"))
     testImplementation(project(":base-services-groovy"))

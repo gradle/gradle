@@ -55,10 +55,6 @@ public class BuildInitPlugin implements Plugin<Project> {
                     new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
                 );
                 initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
-
-                ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
-                initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
-
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
             });
         }
