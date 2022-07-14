@@ -25,4 +25,11 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
     public DefaultMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
         super(module, versionConstraint);
     }
+
+    public String toString() {
+        String versionConstraintAsString = getVersionConstraint().toString();
+        return versionConstraintAsString.isEmpty()
+            ? getModule().toString()
+            : getModule() + ":" + versionConstraintAsString;
+    }
 }
