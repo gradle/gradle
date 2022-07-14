@@ -16,9 +16,19 @@
 
 package org.gradle.internal.upgrade.report;
 
-import java.util.Optional;
+import java.io.Closeable;
+import java.io.IOException;
 
-public interface ReportableApiChange {
-    Optional<String> getApiChangeReportIfMatches(int opcode, String owner, String name, String desc);
-    Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeReporter reporter);
+public class ApiUpgradeReportPrinter implements Closeable {
+
+    private final ApiUpgradeReporterFactory factory;
+
+    public ApiUpgradeReportPrinter(ApiUpgradeReporterFactory factory) {
+        this.factory = factory;
+    }
+
+    @Override
+    public void close() throws IOException {
+        factory.getApiUpgraderAndRelease().getChanges().forEach(System.out::println);
+    }
 }

@@ -22,23 +22,33 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ApiUpgradeReporterFactory {
 
     private static final String BINARY_UPGRADE_JSON_PATH = "org.gradle.binary.upgrade.report.json";
 
-    private final Lazy<ApiUpgradeReporter> lazyApiUpgrader = Lazy.locking().of(() -> {
-        String path = System.getProperty(BINARY_UPGRADE_JSON_PATH);
-        if (path == null || !Files.exists(Paths.get(path))) {
-            return ApiUpgradeReporter.noUpgrades();
-        }
-        File file = new File(path);
-        List<ReportableApiChange> changes = new ApiUpgradeJsonParser().parseAcceptedApiChanges(file);
-        DynamicGroovyApiUpgradeDecorator.init(changes);
-        return ApiUpgradeReporter.newApiUpgradeReporter(changes);
-    });
+    private final AtomicReference<Lazy<ApiUpgradeReporter>> lazyApiUpgrader = new AtomicReference<>(initNewCollector());
+
+    private Lazy<ApiUpgradeReporter> initNewCollector() {
+        return Lazy.locking().of(() -> {
+            String path = System.getProperty(BINARY_UPGRADE_JSON_PATH);
+            if (path == null || !Files.exists(Paths.get(path))) {
+                return ApiUpgradeReporter.noUpgrades();
+            }
+            File file = new File(path);
+            List<ReportableApiChange> changes = new ApiUpgradeJsonParser().parseAcceptedApiChanges(file);
+            ApiUpgradeReporter reporter = ApiUpgradeReporter.newApiUpgradeReporter(changes);
+            DynamicGroovyApiUpgradeDecorator.init(reporter, changes);
+            return reporter;
+        });
+    }
 
     public ApiUpgradeReporter getApiUpgrader() {
-        return lazyApiUpgrader.get();
+        return lazyApiUpgrader.get().get();
+    }
+
+    public ApiUpgradeReporter getApiUpgraderAndRelease() {
+        return lazyApiUpgrader.getAndSet(initNewCollector()).get();
     }
 }

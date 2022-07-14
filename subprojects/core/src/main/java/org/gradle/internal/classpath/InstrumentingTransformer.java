@@ -479,19 +479,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private void reportApiUpgrade(String owner, String name, String descriptor) {
-            List<String> report = apiUpgradeReporter.getApiChangesReport(INVOKEVIRTUAL, owner, name, descriptor);
-            if (!report.isEmpty()) {
-                // There must be a better way to get full source file name, but for now this "heuristic" should do it
-                int lastIndexOfSlash = className.lastIndexOf("/");
-                String fullSourceName = lastIndexOfSlash > -1
-                    ? className.substring(0, lastIndexOfSlash) + "/" + sourceName
-                    : sourceName;
-                if (report.size() == 1) {
-                    LOGGER.info("{}: line: {}: {}", fullSourceName, lineNumber, report.get(0));
-                } else {
-                    LOGGER.info("{}: line: {}:\n\t{}", fullSourceName, lineNumber, String.join("\n\t", report));
-                }
-            }
+            // There must be a better way to get full source file name, but for now this "heuristic" should do it
+            int lastIndexOfSlash = className.lastIndexOf("/");
+            String fullSourceName = lastIndexOfSlash > -1
+                ? className.substring(0, lastIndexOfSlash) + "/" + sourceName
+                : sourceName;
+            apiUpgradeReporter.collectStaticApiChangesReport(INVOKEVIRTUAL, fullSourceName, lineNumber, owner, name, descriptor);
         }
 
         @Override

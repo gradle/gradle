@@ -29,19 +29,21 @@ public class DynamicGroovyApiUpgradeDecorator {
 
     private static final AtomicReference<DynamicGroovyApiUpgradeDecorator> registry = new AtomicReference<>();
 
+    private final ApiUpgradeReporter reporter;
     private final Lazy<List<DynamicGroovyUpgradeDecoration>> decorations;
 
-    private DynamicGroovyApiUpgradeDecorator(List<ReportableApiChange> changes) {
+    private DynamicGroovyApiUpgradeDecorator(ApiUpgradeReporter reporter, List<ReportableApiChange> changes) {
+        this.reporter = reporter;
         this.decorations = Lazy.locking().of(() -> initChanges(changes));
     }
 
-    public static void init(List<ReportableApiChange> changes) {
-        registry.compareAndSet(null, new DynamicGroovyApiUpgradeDecorator(changes));
+    public static void init(ApiUpgradeReporter reporter, List<ReportableApiChange> changes) {
+        registry.compareAndSet(null, new DynamicGroovyApiUpgradeDecorator(reporter, changes));
     }
 
-    private static List<DynamicGroovyUpgradeDecoration> initChanges(List<ReportableApiChange> changes) {
+    private List<DynamicGroovyUpgradeDecoration> initChanges(List<ReportableApiChange> changes) {
         return changes.stream()
-            .map(ReportableApiChange::mapToDynamicGroovyDecoration)
+            .map(change -> change.mapToDynamicGroovyDecoration(reporter))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(ImmutableList.toImmutableList());

@@ -33,6 +33,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.upgrade.report.ApiUpgradeReportPrinter;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.problems.buildtree.ProblemReporter;
 
@@ -59,6 +60,7 @@ public class BuildTreeScopeServices {
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
+        registration.add(ApiUpgradeReportPrinter.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -82,7 +84,7 @@ public class BuildTreeScopeServices {
         return new DefaultConfigurationTimeBarrier();
     }
 
-    protected ProblemReporter createProblemReporter() {
+    protected ProblemReporter createProblemReporter(ApiUpgradeReportPrinter printer) {
         return new DeprecationsReporter();
     }
 }

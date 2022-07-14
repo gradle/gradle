@@ -76,14 +76,14 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration() {
+    public Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeReporter reporter) {
         // TODO, we should probably rather check changes that should say that something is a property upgrade
         if (!"Property upgraded".equals(this.acceptation)) {
             throw new UnsupportedOperationException("Unsupported upgrade: " + this.displayText);
         }
         if ((methodName.startsWith("is") || methodName.startsWith("get")) && parameterTypes.isEmpty()) {
             String propertyName = extractPropertyName(methodName);
-            return Optional.of(new DynamicGroovyPropertyUpgradeDecoration(type, propertyName, this::getChangeReport));
+            return Optional.of(new DynamicGroovyPropertyUpgradeDecoration(reporter, type, propertyName, this::getChangeReport));
         }
         return Optional.empty();
     }

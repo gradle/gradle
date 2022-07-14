@@ -31,11 +31,13 @@ import java.util.function.Supplier;
 
 public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgradeDecoration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicGroovyPropertyUpgradeDecoration.class);
+    private final ApiUpgradeReporter reporter;
     private final Class<?> type;
     private final String propertyName;
     private final Lazy<String> changeReport;
 
-    public DynamicGroovyPropertyUpgradeDecoration(Class<?> type, String propertyName, Supplier<String> changeReport) {
+    public DynamicGroovyPropertyUpgradeDecoration(ApiUpgradeReporter reporter, Class<?> type, String propertyName, Supplier<String> changeReport) {
+        this.reporter = reporter;
         this.type = type;
         this.propertyName = propertyName;
         this.changeReport = Lazy.locking().of(changeReport);
@@ -55,7 +57,7 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
                         Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
                         String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
                         int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
-                        LOGGER.info("{}: line {}: {}", file, lineNumber, changeReport.get());
+                        reporter.collectDynamicApiChangesReport(file, lineNumber, changeReport.get());
                     }
                     return super.callGroovyObjectGetProperty(receiver);
                 }
@@ -66,7 +68,7 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
                         Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
                         String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
                         int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
-                        LOGGER.info("{}: line {}: {}", file, lineNumber, changeReport.get());
+                        reporter.collectDynamicApiChangesReport(file, lineNumber, changeReport.get());
                     }
                     return super.callGetProperty(receiver);
                 }
