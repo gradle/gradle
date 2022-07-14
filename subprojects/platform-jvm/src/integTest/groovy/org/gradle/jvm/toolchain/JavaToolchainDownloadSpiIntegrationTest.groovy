@@ -18,14 +18,51 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.os.OperatingSystem
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def "can inject custom toolchain download service via settings plugin"() {
+    def "will use default if no custom toolchain registry injected"() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+
+        failure.getOutput().contains("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. Need to explicitly request them via the 'toolchainManagement' block.")
+
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
+                .assertHasCause("Unable to download 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' into file '${testDirectory}/user-home/jdks/adoptium-99-x64-hotspot-${os()}.tar.gz'")
+                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "can inject custom toolchain registry via settings plugin"() {
         settingsFile << """
             ${customToolchainRegistryPluginCode()}            
             apply plugin: CustomToolchainRegistryPlugin
+            
+            toolchainManagement {
+                jdks("customRegistry")
+            }
         """
 
         buildFile << """
@@ -55,6 +92,16 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasCause("Could not GET 'https://exoticJavaToolchain.com/java-99'.")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "if toolchain registries are explicitly requested, then the default one is excluded"() {
+        //TODO
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "it is possible to explicitly request the default registry"() {
+        //TODO
+    }
+
     private static String customToolchainRegistryPluginCode() {
         """
             public abstract class CustomToolchainRegistryPlugin implements Plugin<Settings> {
@@ -63,7 +110,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             
                 void apply(Settings settings) {
                     JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-                    registry.register("adoptOpenJdk", CustomToolchainRegistry.class)
+                    registry.register("customRegistry", CustomToolchainRegistry.class)
                 }
             }
             
@@ -130,6 +177,18 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             """
+    }
+
+    private static String os() {
+        OperatingSystem os = OperatingSystem.current()
+        if (os.isWindows()) {
+            return "windows";
+        } else if (os.isMacOsX()) {
+            return "mac";
+        } else if (os.isLinux()) {
+            return "linux";
+        }
+        return os.getFamilyName();
     }
 
 }

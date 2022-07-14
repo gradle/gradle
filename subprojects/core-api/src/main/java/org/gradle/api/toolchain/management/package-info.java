@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
-
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
-
-import java.util.List;
-
-public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
-
-    void request(String... registryNames);
-
-    List<JavaToolchainRepository> requestedRepositories();
-
-}
+/**
+ * APIs to influence how toolchains are resolved.
+ * @since 7.6
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.api.toolchain.management;

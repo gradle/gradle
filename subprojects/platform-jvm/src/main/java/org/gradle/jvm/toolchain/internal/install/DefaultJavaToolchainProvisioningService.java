@@ -51,7 +51,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     }
 
-    private final List<JavaToolchainRepository> toolchainRepositories;
+    private final List<JavaToolchainRepository> toolchainRegistries;
 
     private final FileDownloader downloader;
     private final JdkCacheDirectory cacheDirProvider;
@@ -67,9 +67,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             ProviderFactory factory,
             BuildOperationExecutor executor
     ) {
-        toolchainRepositoryRegistry.register("adoptOpenJdk", AdoptOpenJdkRemoteBinary.class); //TODO: hack until this implementation is moved into a plug-in
-
-        this.toolchainRepositories = ((JavaToolchainRepositoryRegistryInternal) toolchainRepositoryRegistry).requestedRepositories();
+        this.toolchainRegistries = ((JavaToolchainRepositoryRegistryInternal) toolchainRepositoryRegistry).requestedRepositories();
         this.downloader = downloader;
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
@@ -81,7 +79,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             return Optional.empty();
         }
 
-        for (JavaToolchainRepository toolchainRepository : toolchainRepositories) {
+        for (JavaToolchainRepository toolchainRepository : toolchainRegistries) {
             Optional<URI> uri = toolchainRepository.toUri(spec);
             if (uri.isPresent()) {
                 Optional<JavaToolchainRepository.Metadata> metadata = toolchainRepository.toMetadata(spec);
@@ -90,7 +88,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 }
                 return provisionInstallation(spec, uri.get(), metadata.get());
             }
-        } //TODO: write test to confirm this in-order loop processing
+        }
 
         return Optional.empty();
     }
