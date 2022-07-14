@@ -48,7 +48,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
         }
 
         @Override
-        public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
+        public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
             return configuration.artifact(artifact);
         }
 

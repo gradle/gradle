@@ -32,8 +32,10 @@ public interface VariantArtifactResolveState {
      * This is used to create a ComponentArtifactMetadata from an artifact declared as part of a dependency.
      * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
      * (For external module components, we just instantiate a new artifact metadata).
+     *
+     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
-    ComponentArtifactMetadata artifact(IvyArtifactName artifact);
+    ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact);
 
     /**
      * Creates a set that will resolve the artifacts of this variant, minus those artifacts that are excluded.
