@@ -22,6 +22,7 @@ val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
+val junitPlatformVersion = "1.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-23"
 val slf4jVersion = "1.7.30"
@@ -29,6 +30,11 @@ val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests
 val tomljVersion = "1.0.0"
 
 val bytebuddyVersion = "1.10.20"
+
+// Those two versions are managed by the junit bom, which is pulled in by Spock.
+// In order to downgrade, we need to add a constraint here.
+val junitPlatformCommons = "org.junit.platform:junit-platform-commons"
+val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
 
 dependencies {
     constraints {
@@ -107,7 +113,9 @@ dependencies {
         api(libs.junit)                 { version { strictly("4.13.2") }}
         api(libs.junit5JupiterApi)      { version { strictly("5.8.2") }}
         api(libs.junit5Vintage)         { version { strictly("5.8.2") }}
-        api(libs.junitPlatform)         { version { strictly("1.8.2") }}
+        api(libs.junitPlatform)         { version { strictly(junitPlatformVersion) }}
+        api(junitPlatformCommons)       { version { strictly(junitPlatformVersion) }}
+        api(junitPlatformEngine)        { version { strictly(junitPlatformVersion) }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
@@ -169,8 +177,8 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
-        api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
-        api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
+        api(libs.spock)                 { version { strictly("2.2-M3-groovy-3.0") }}
+        api(libs.spockJUnit4)           { version { strictly("2.2-M3-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
