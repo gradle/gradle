@@ -104,7 +104,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
 
     private void parameterizeFeature(FeatureInfo feature) {
         if (feature.getDataProcessorMethod() == null) {
-            MethodInfo dataProcessor = new MethodInfo(new ConstantInvoker(new Object[]{"data"})) {
+            MethodInfo dataProcessor = new SyntheticMethodInfo(new Object[]{"data"}) {
                 @Override
                 public <ANN extends Annotation> ANN getAnnotation(Class<ANN> clazz) {
                     if (clazz.equals(DataProcessorMetadata.class)) {
@@ -127,7 +127,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             dataProcessor.setName("internalDataProcessor");
             dataProcessor.setKind(MethodKind.DATA_PROCESSOR);
 
-            MethodInfo dataProviderMethod = new MethodInfo(new ConstantInvoker(Collections.singleton("data")));
+            MethodInfo dataProviderMethod = new SyntheticMethodInfo(Collections.singleton("data"));
             feature.setDataProcessorMethod(dataProcessor);
             DataProviderInfo dataProvider = new DataProviderInfo();
             dataProvider.setParent(feature);
@@ -227,6 +227,17 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             currentExecution.before(invocation);
             invocation.proceed();
             currentExecution.after();
+        }
+    }
+
+    public static class SyntheticMethodInfo extends MethodInfo {
+        public SyntheticMethodInfo(Object value) {
+            super(new ConstantInvoker(value));
+        }
+
+        @Override
+        public boolean hasBytecodeName(String name) {
+            return false;
         }
     }
 
