@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.extensions
 
 
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Specification
@@ -47,7 +48,9 @@ class MultiTestLifecycleSpec extends Specification {
             "rule before", "setup", "unrolled test: 3: isFluid: true", "cleanup", "rule after",
             "rule before", "setup", "unrolled test with required: 1: isFluid: true", "cleanup", "rule after",
             "rule before", "setup", "unrolled test with required: 2: isFluid: true", "cleanup", "rule after",
-            "rule before", "setup", "unrolled test with required: 3: isFluid: true", "cleanup", "rule after"
+            "rule before", "setup", "unrolled test with required: 3: isFluid: true", "cleanup", "rule after",
+            "rule before", "setup", "skipped test: isFluid: false", "cleanup", "rule after",
+            "rule before", "setup", "skipped test: isFluid: true", "cleanup", "rule after"
         ])
     }
 
@@ -82,6 +85,14 @@ class MultiTestLifecycleSpec extends Specification {
 
         where:
         foo << [1, 2, 3]
+    }
+
+    def "skipped test"() {
+        LIFECYCLE.pushEvent("skipped test: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
+        Assume.assumeTrue("can skip test", false)
+
+        expect:
+        false
     }
 
     static class SampleRule extends ExternalResource {
