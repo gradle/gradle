@@ -22,6 +22,7 @@ val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
+val junitJupiterVersion = "5.8.2"
 val junitPlatformVersion = "1.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-23"
@@ -35,6 +36,9 @@ val bytebuddyVersion = "1.10.20"
 // In order to downgrade, we need to add a constraint here.
 val junitPlatformCommons = "org.junit.platform:junit-platform-commons"
 val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
+val junitJupiterEngine = "org.junit.jupiter:junit-jupiter-engine"
+val junitJupiterParams = "org.junit.jupiter:junit-jupiter-params"
+val junitJupiter = "org.junit.jupiter:junit-jupiter"
 
 dependencies {
     constraints {
@@ -111,8 +115,11 @@ dependencies {
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
-        api(libs.junit5JupiterApi)      { version { strictly("5.8.2") }}
-        api(libs.junit5Vintage)         { version { strictly("5.8.2") }}
+        api(libs.junit5JupiterApi)      { version { strictly(junitJupiterVersion) }}
+        api(junitJupiter)               { version { strictly(junitJupiterVersion) }}
+        api(junitJupiterEngine)         { version { strictly(junitJupiterVersion) }}
+        api(junitJupiterParams)         { version { strictly(junitJupiterVersion) }}
+        api(libs.junit5Vintage)         { version { strictly(junitJupiterVersion) }}
         api(libs.junitPlatform)         { version { strictly(junitPlatformVersion) }}
         api(junitPlatformCommons)       { version { strictly(junitPlatformVersion) }}
         api(junitPlatformEngine)        { version { strictly(junitPlatformVersion) }}
