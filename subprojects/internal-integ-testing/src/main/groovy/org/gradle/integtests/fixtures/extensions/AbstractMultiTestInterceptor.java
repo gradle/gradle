@@ -102,6 +102,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
     }
 
+    /**
+     * Parameterizes a feature running one iteration with 0 parameters.
+     */
     private void parameterizeFeature(FeatureInfo feature) {
         if (feature.getDataProcessorMethod() == null) {
             MethodInfo dataProcessor = new SyntheticMethodInfo(new Object[]{"data"}) {
@@ -231,10 +234,16 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     }
 
     public static class SyntheticMethodInfo extends MethodInfo {
-        public SyntheticMethodInfo(Object value) {
-            super(new ConstantInvoker(value));
+        public SyntheticMethodInfo(Object returnValue) {
+            super(new ConstantInvoker(returnValue));
         }
 
+        /**
+         * This method is called when Spock sanitizes the stacktrace.
+         *
+         * The default implementation would fail here, so we always return false,
+         * since this method never will be in the bytecode.
+         */
         @Override
         public boolean hasBytecodeName(String name) {
             return false;
