@@ -1,7 +1,7 @@
 [[performance_gradle]]
 = Improving the Performance of Gradle Builds
 
-TIP: Want faster Gradle Builds? https://gradle.com/training/build-cache-deep-dive/?bid=guides-performance[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
+TIP: Want faster Gradle Builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
 
 Build performance is critical to your productivity.
 The longer the build takes to complete, the more likely you'll be taken out of your development flow.

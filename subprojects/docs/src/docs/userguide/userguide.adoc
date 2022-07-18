@@ -14,7 +14,7 @@
 
 = Gradle User Manual
 
-TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/build-cache-deep-dive/?bid=docs-userguide[Register here] for our Build Cache Training.
+TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache Training.
 
 Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a link:https://groovy-lang.org/[Groovy] or link:https://kotlinlang.org/[Kotlin] DSL. Read about link:{website}/features/[Gradle features] to learn what is possible with Gradle.
 
