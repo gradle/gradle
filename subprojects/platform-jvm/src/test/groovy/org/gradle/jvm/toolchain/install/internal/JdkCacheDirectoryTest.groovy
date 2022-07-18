@@ -143,7 +143,7 @@ class JdkCacheDirectoryTest extends Specification {
         installedJdk.exists()
         new File(installedJdk, "jdk-with-symlinks/bin/file").exists()
 
-        //todo: completely wrong; the uncompressed archive should look like this:
+        //TODO: completely wrong; the uncompressed archive should look like this:
         // .
         // ├── bin -> zulu-11.jdk/Contents/Home/bin
         // ├── file

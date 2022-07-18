@@ -31,7 +31,7 @@ import java.util.Optional;
 @Incubating
 public interface JavaToolchainRepository extends BuildService<BuildServiceParameters.None> {
 
-    //TODO: think about build service parameters, we will need them, for example base URI
+    //TODO (#21082): think about build service parameters, we will need them, for example base URI
 
     /**
      * Returns the URI from which a Java Toolchain matching the provided specification can be downloaded.

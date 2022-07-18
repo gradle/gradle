@@ -49,11 +49,11 @@ public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepositor
     }
 
     protected OperatingSystem operatingSystem() {
-        return OperatingSystem.current(); //TODO: hack, this should be part of the toolchain spec!
+        return OperatingSystem.current(); //TODO (#21082): hack, can't inject it since turning this class into a build service; should be part of the toolchain spec anyways !
     }
 
     protected SystemInfo systemInfo() {
-        return Native.get(SystemInfo.class); //TODO: hack, this should be part of the toolchain spec!
+        return Native.get(SystemInfo.class); //TODO (#21082): hack, can't inject it since turning this class into a build service; should be part of the toolchain spec anyways !
     }
 
     @Override

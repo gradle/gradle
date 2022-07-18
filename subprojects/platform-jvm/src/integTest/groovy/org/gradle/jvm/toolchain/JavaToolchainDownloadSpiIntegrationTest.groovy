@@ -19,40 +19,9 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
-
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def "will use default if no custom toolchain registry injected"() {
-        buildFile << """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(99)
-                }
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        failure = executer
-                .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir()
-                .withToolchainDownloadEnabled()
-                .runWithFailure()
-
-        then:
-
-        failure.getOutput().contains("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. Need to explicitly request them via the 'toolchainManagement' block.")
-
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
-                .assertHasCause("Unable to download 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' into file '${testDirectory}/user-home/jdks/adoptium-99-x64-hotspot-${os()}.tar.gz'")
-                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
-    }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
@@ -93,13 +62,107 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def "if toolchain registries are explicitly requested, then the default one is excluded"() {
-        //TODO
+    def "will use default if no custom toolchain registry requested"() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+
+        failure.getOutput().contains("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. Need to explicitly request them via the 'toolchainManagement' block.")
+
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
+                .assertHasCause("Unable to download 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' into file '${testDirectory}/user-home/jdks/adoptium-99-x64-hotspot-${os()}.tar.gz'")
+                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "if toolchain registries are explicitly requested, then the default is NOT automatically added to the request"() {
+        settingsFile << """
+            ${uselessToolchainRegistryPluginCode()}            
+            apply plugin: UselessToolchainRegistryPlugin
+            
+            toolchainManagement {
+                jdks("uselessRegistry")
+            }
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("No compatible toolchains found for request filter: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "it is possible to explicitly request the default registry"() {
-        //TODO
+        settingsFile << """
+            toolchainManagement {
+                jdks("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")
+            }
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
+                .assertHasCause("Unable to download 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' into file '${testDirectory}/user-home/jdks/adoptium-99-x64-hotspot-${os()}.tar.gz'")
+                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
     }
 
     private static String customToolchainRegistryPluginCode() {
@@ -120,16 +183,18 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     private static String customToolchainRegistryCode() {
         """
+            import java.util.Optional;
+
             public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
 
                 @Override
-                public java.util.Optional<URI> toUri(JavaToolchainSpec spec) {
-                    return java.util.Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + spec.getLanguageVersion().get()));
+                public Optional<URI> toUri(JavaToolchainSpec spec) {
+                    return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + spec.getLanguageVersion().get()));
                 }
         
                 @Override
-                public java.util.Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
-                    return java.util.Optional.of(new MetadataImp(spec));
+                public Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
+                    return Optional.of(new MetadataImp(spec));
                 }
         
                 @Override
@@ -174,6 +239,46 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                     public String architecture() {
                         return "x64";
                     }
+                }
+            }
+            """
+    }
+
+    private static String uselessToolchainRegistryPluginCode() {
+        """
+            public abstract class UselessToolchainRegistryPlugin implements Plugin<Settings> {
+                @Inject
+                protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
+            
+                void apply(Settings settings) {
+                    JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
+                    registry.register("uselessRegistry", UselessToolchainRegistry.class)
+                }
+            }
+            
+            ${uselessToolchainRegistryCode()}
+        """
+    }
+
+    private static String uselessToolchainRegistryCode() {
+        """
+            import java.util.Optional;
+
+            public abstract class UselessToolchainRegistry implements JavaToolchainRepository {
+
+                @Override
+                public Optional<URI> toUri(JavaToolchainSpec spec) {
+                    return Optional.empty();
+                }
+        
+                @Override
+                public Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
+                    return Optional.empty();
+                }
+        
+                @Override
+                public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
+                    return JavaToolchainSpecVersion.V1;
                 }
             }
             """

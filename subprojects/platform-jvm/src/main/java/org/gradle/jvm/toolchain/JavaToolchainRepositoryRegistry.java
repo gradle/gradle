@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * TODO
+ * TODO (#21082)
  *
  * @since 7.6
  */
@@ -29,11 +29,11 @@ import org.gradle.internal.HasInternalProtocol;
 public interface JavaToolchainRepositoryRegistry {
 
     /**
-     * TODO
+     * TODO (#21082)
      *
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
-    //TODO: do we also need a configure action, like we have in BuildServiceRegistry
-    //TODO: does this method need to be a "registerIfAbsent" instead
+    //TODO (#21082): do we also need a configure action, like we have in BuildServiceRegistry
+    //TODO (#21082): does this method need to be a "registerIfAbsent" instead
 
 }
