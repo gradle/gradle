@@ -30,7 +30,7 @@ import model.PerformanceTestCoverage
 import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
+import model.StageName
 import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -57,7 +57,7 @@ class PerformanceTestBuildTypeTest {
         val performanceTest = PerformanceTest(
             buildModel,
             Stage(
-                StageNames.PULL_REQUEST_FEEDBACK,
+                StageName.PULL_REQUEST_FEEDBACK,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
                     SpecificBuild.Gradleception,

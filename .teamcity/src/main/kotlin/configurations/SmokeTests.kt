@@ -31,7 +31,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         this,
         ":smoke-test:$task",
         timeout = 120,
-        notQuick = true,
         extraParameters = buildScanTag("SmokeTests") +
             " -PtestJavaVersion=${testJava.version.major}" +
             " -PtestJavaVendor=${testJava.vendor.name}" +
