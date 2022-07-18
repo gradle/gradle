@@ -178,9 +178,24 @@ class AbstractIntegrationSpec extends Specification {
         'build.gradle.kts'
     }
 
+    /**
+     * Sets (replacing) the contents of the build.gradle file.
+     *
+     * To append, use #buildFile(String).
+     */
     protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
         buildFile.text = script
         buildFile
+    }
+
+    /**
+     * Sets (replacing) the contents of the settings.gradle file.
+     *
+     * To append, use #settingsFile(String)
+     */
+    protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
+        settingsFile.text = script
+        settingsFile
     }
 
     protected TestFile getSettingsFile() {

@@ -16,14 +16,22 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.credentials.DefaultPasswordCredentials
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.util.internal.GUtil
+import org.junit.Rule
 
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
 class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @Rule
+    public final HttpServer server = new HttpServer()
+
     def setup() {
-        buildFile << """
+        buildFile """
             // TODO - use public APIs when available
             import org.gradle.api.internal.attributes.*
             import org.gradle.api.internal.component.*
@@ -65,48 +73,86 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         """
     }
 
+    def "can publish maven publication metadata to remote repository"() {
+        def username = "someuser"
+        def password = "somepassword"
+        with(server) {
+            requireAuthentication(username, password)
+            // or else insecure protocol enforcement is skipped
+            useHostname()
+            start()
+        }
+        def remoteRepo = new MavenHttpRepository(server, mavenRepo)
+        def prepareRepository = {
+            def rootModule = remoteRepo.module("group", "root")
+            def credentials = new DefaultPasswordCredentials(username, password)
+            rootModule.pom.expectPublish(true, credentials)
+            rootModule.moduleMetadata.expectPublish(true, credentials)
+            rootModule.rootMetaData.expectGetMissing(credentials)
+            rootModule.rootMetaData.expectPublish(true, credentials)
+        }
+
+        def repositoryName = "CustomHttp"
+        settingsFile "rootProject.name = 'root'"
+        buildFile buildFileConfiguration("""
+            repositories {
+                maven {
+                    name "${repositoryName}"
+                    url "${remoteRepo.uri}"
+                    allowInsecureProtocol true
+                    credentials {
+                        username '${username}'
+                        password '${password}'
+                    }
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+        def metadataFile = file('build/publications/maven/module.json')
+        def tasks = [
+            "generateMetadataFileForMavenPublication",
+            "generatePomFileForMavenPublication",
+            "publishMavenPublicationTo${repositoryName}Repository",
+            "publishAllPublicationsTo${repositoryName}Repository"
+        ]
+
+        expect:
+        !GUtil.isSecureUrl(server.uri)
+
+        when:
+        prepareRepository()
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateStored()
+        metadataFile.exists()
+
+        when:
+        def storeTimeRepo = mavenRepoFiles()
+        def storeTimeMetadata = metadataFile.text
+        metadataFile.delete()
+        deleteDirectory(mavenRepo.rootDir)
+
+        prepareRepository()
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateLoaded()
+        def loadTimeRepo = mavenRepoFiles()
+        storeTimeRepo == loadTimeRepo
+        def loadTimeMetadata = metadataFile.text
+        storeTimeMetadata == loadTimeMetadata
+    }
+
     def "can publish maven publication metadata to local repository"() {
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-
-            group = 'group'
-            version = '1.0'
-
-            def mainComponent = new TestComponent()
-            mainComponent.usages.add(
-                new TestUsage(
-                    name: 'api',
-                    usage: objects.named(Usage, 'api'),
-                    dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
-                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
-                    attributes: testAttributes
-                )
-            )
-
-            dependencies {
-                implementation("org:foo:1.0") {
-                   because 'version 1.0 is tested'
-                }
-                constraints {
-                    implementation("org:bar:2.0") {
-                        because 'because 2.0 is cool'
-                    }
-                }
+        settingsFile "rootProject.name = 'root'"
+        buildFile buildFileConfiguration("""
+            repositories {
+                maven { url "${mavenRepo.uri}" }
             }
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from mainComponent
-                        withoutBuildIdentifier()
-                    }
-                }
-            }
-        """
+        """)
         def configurationCache = newConfigurationCacheFixture()
         def metadataFile = file('build/publications/maven/module.json')
         def tasks = [
@@ -136,6 +182,46 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         storeTimeRepo == loadTimeRepo
         def loadTimeMetadata = metadataFile.text
         storeTimeMetadata == loadTimeMetadata
+    }
+
+    private String buildFileConfiguration(String repositoriesBlock) {
+        """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def mainComponent = new TestComponent()
+            mainComponent.usages.add(
+                new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
+                    attributes: testAttributes
+                )
+            )
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                   because 'version 1.0 is tested'
+                }
+                constraints {
+                    implementation("org:bar:2.0") {
+                        because 'because 2.0 is cool'
+                    }
+                }
+            }
+
+            publishing {
+                $repositoriesBlock
+                publications {
+                    maven(MavenPublication) {
+                        from mainComponent
+                    }
+                }
+            }
+        """
     }
 
     private Map<File, String> mavenRepoFiles() {
