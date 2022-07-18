@@ -98,6 +98,8 @@ class MultiTestLifecycleSpec extends Specification {
     static class SampleRule extends ExternalResource {
         private final String name
 
+        // We add a constructor parameter here, so this class can't be instantiated by the default constructor.
+        // This way we can test if the class has been initialized correctly by Spock.
         SampleRule(String name) {
             this.name = name
         }
