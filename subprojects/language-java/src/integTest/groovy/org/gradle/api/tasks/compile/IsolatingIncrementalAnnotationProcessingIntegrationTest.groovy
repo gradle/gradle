@@ -100,7 +100,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21203")
-    def "generated files are recompiled when annotated file is affected by a change through method return type generic"() {
+    def "generated files are recompiled when annotated file is affected by a change through method return type parameter"() {
         given:
         def util = java "class Util {}"
         java """import java.util.List;

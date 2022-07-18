@@ -481,7 +481,7 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21203")
-    def "can detect deletion of class used as method parametrized return type"() {
+    def "can detect deletion of class used as method return type parameter"() {
         //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
 
         source """
@@ -498,7 +498,7 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21203")
-    def "can detect deletion of class used as method parametrized argument type"() {
+    def "can detect deletion of class used as method argument type parameter"() {
         //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
 
         source """
