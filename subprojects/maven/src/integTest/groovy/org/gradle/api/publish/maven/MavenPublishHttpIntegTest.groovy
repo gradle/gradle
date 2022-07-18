@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -51,7 +50,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         settingsFile << "rootProject.name = '$name'"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to an unauthenticated http repo (with extra checksums = #extraChecksums)"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -82,7 +80,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         extraChecksums << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -117,8 +114,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         outputContains("remote repository doesn't support SHA-512. This will not fail the build.")
     }
 
-
-    @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
@@ -148,7 +143,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure publishing with wrong credentials using #authScheme"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('wrong', 'wrong')
@@ -169,7 +163,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure when required credentials are not provided #authScheme"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -189,7 +182,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3312")
-    @ToBeFixedForConfigurationCache
     def "can publish to a http repo via redirects"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -218,7 +210,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3312")
-    @ToBeFixedForConfigurationCache
     def "can publish to an authenticated http repo via redirects"() {
         given:
         redirectServer.start()
@@ -248,7 +239,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("gradle/gradle#1641")
-    @ToBeFixedForConfigurationCache
     def "can publish a new version of a module already present in the target repository"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -288,7 +278,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.versions == ["2", "3"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "retries artifact upload for transient network error"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -314,7 +303,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.assertPublishedAsJavaModule()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using credentials Provider with inferred identity"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
@@ -350,7 +338,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasErrorOutput("- mavenPassword")
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/14902")
     def "does not fail when publishing is set to always up to date"() {
         given:

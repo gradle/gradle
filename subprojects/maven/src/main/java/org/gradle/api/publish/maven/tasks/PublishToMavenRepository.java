@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -30,7 +31,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -48,7 +48,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public class PublishToMavenRepository extends AbstractPublishToMaven {
-    private final Transient.Var<MavenArtifactRepository> repository = varOf();
+    private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
 
     private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
@@ -75,8 +75,8 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
      * @param repository The repository to publish to
      */
     public void setRepository(MavenArtifactRepository repository) {
-        this.repository.set(repository);
-        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
+        this.repository.set((DefaultMavenArtifactRepository) repository);
+        this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
     }
 
     @TaskAction
@@ -91,7 +91,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        MavenArtifactRepository repository = getRepository();
+        DefaultMavenArtifactRepository repository = this.repository.get();
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
@@ -135,16 +135,16 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
 
     static abstract class RepositorySpec {
 
-        static RepositorySpec of(MavenArtifactRepository repository) {
+        static RepositorySpec of(DefaultMavenArtifactRepository repository) {
             return new Configured(repository);
         }
 
         abstract MavenArtifactRepository get(ServiceRegistry services);
 
         static class Configured extends RepositorySpec implements java.io.Serializable {
-            final MavenArtifactRepository repository;
+            final DefaultMavenArtifactRepository repository;
 
-            public Configured(MavenArtifactRepository repository) {
+            public Configured(DefaultMavenArtifactRepository repository) {
                 this.repository = repository;
             }
 
@@ -154,26 +154,31 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             }
 
             private Object writeReplace() {
-                if ("file".equals(repository.getUrl().getScheme())) {
-                    return new LocalRepositorySpec(repository.getUrl());
-                }
-                // Let the configuration cache report on the unsupported repository
-                return new UnsupportedRepositorySpec(repository);
+                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), repository.getConfiguredCredentials().getOrNull());
             }
         }
 
-        static class LocalRepositorySpec extends RepositorySpec {
-
+        static class DefaultRepositorySpec extends RepositorySpec {
             private final URI repositoryUrl;
+            private final Credentials credentials;
+            private final boolean allowInsecureProtocol;
+            private final String name;
 
-            public LocalRepositorySpec(URI repositoryUrl) {
+            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, Credentials credentials) {
+                this.name = name;
                 this.repositoryUrl = repositoryUrl;
+                this.allowInsecureProtocol = allowInsecureProtocol;
+                this.credentials = credentials;
             }
-
             @Override
             MavenArtifactRepository get(ServiceRegistry services) {
-                MavenArtifactRepository repository = services.get(BaseRepositoryFactory.class).createMavenRepository();
+                DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) services.get(BaseRepositoryFactory.class).createMavenRepository();
+                repository.setName(name);
                 repository.setUrl(repositoryUrl);
+                repository.setAllowInsecureProtocol(allowInsecureProtocol);
+                if (credentials != null) {
+                    repository.setConfiguredCredentials(credentials);
+                }
                 return repository;
             }
         }
