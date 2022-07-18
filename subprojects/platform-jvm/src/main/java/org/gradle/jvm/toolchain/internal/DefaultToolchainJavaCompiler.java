@@ -20,8 +20,10 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails.JavaTool;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +34,18 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     private final JavaToolchain javaToolchain;
     private final JavaCompilerFactory compilerFactory;
+    private final BuildOperationProgressEventEmitter eventEmitter;
 
-    public DefaultToolchainJavaCompiler(JavaToolchain javaToolchain, JavaCompilerFactory compilerFactory) {
+    public DefaultToolchainJavaCompiler(JavaToolchain javaToolchain, JavaCompilerFactory compilerFactory, BuildOperationProgressEventEmitter eventEmitter) {
         this.javaToolchain = javaToolchain;
         this.compilerFactory = compilerFactory;
+        this.eventEmitter = eventEmitter;
     }
 
     @Override
     @Nested
     public JavaInstallationMetadata getMetadata() {
+        emitToolchainEvent();
         return javaToolchain;
     }
 
@@ -53,8 +58,13 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> WorkResult execute(T spec) {
         LOGGER.info("Compiling with toolchain '{}'.", javaToolchain.getDisplayName());
+        emitToolchainEvent();
         final Class<T> specType = (Class<T>) spec.getClass();
         return compilerFactory.create(specType).execute(spec);
+    }
+
+    private void emitToolchainEvent() {
+        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(JavaTool.COMPILER, javaToolchain));
     }
 
 }
