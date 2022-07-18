@@ -22,6 +22,7 @@ val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
+val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-23"
 val slf4jVersion = "1.7.30"
@@ -34,7 +35,7 @@ val bytebuddyVersion = "1.10.20"
 javaPlatform.allowDependencies()
 
 dependencies {
-    api(platform("org.junit:junit-bom:5.8.2!!"))
+    api(platform("org.junit:junit-bom:${junit5Version}!!"))
 
     constraints {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
@@ -110,6 +111,9 @@ dependencies {
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
+        api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
+        api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
+        api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
