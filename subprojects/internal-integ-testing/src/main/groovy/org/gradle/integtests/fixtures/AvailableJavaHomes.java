@@ -53,6 +53,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -190,6 +191,14 @@ public abstract class AvailableJavaHomes {
         }
         // Use the JDK instead
         return jvm.getJavaHome();
+    }
+
+    public static JvmInstallationMetadata getJvmInstallationMetadata(Jvm jvm) {
+        Path targetJavaHome = jvm.getJavaHome().toPath();
+        return INSTALLATIONS.get().stream()
+            .filter(it -> it.getJavaHome().equals(targetJavaHome))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("No JVM installation found for " + jvm));
     }
 
     private static Jvm jvmFromMetadata(JvmInstallationMetadata metadata) {
