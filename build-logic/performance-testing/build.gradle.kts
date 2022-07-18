@@ -43,9 +43,3 @@ tasks.compileGroovy.configure {
 tasks.compileKotlin.configure {
     classpath += files(tasks.compileGroovy)
 }
-
-tasks.withType<Test>().configureEach {
-    // This is required for the PerformanceTestIntegrationTest
-    environment("BUILD_BRANCH", "myBranch")
-    environment("BUILD_COMMIT_ID", "myCommitId")
-}

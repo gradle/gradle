@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild.classycle.extension
 
-import org.gradle.api.provider.ListProperty
+package org.gradle.tooling.events.lifecycle;
 
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEvent;
 
-abstract class ClassycleExtension {
+/**
+ * Event describing the build phase.
+ *
+ * @since 7.6
+ */
+@Incubating
+public interface BuildPhaseProgressEvent extends ProgressEvent {
 
-    abstract val excludePatterns: ListProperty<String>
+    @Override
+    BuildPhaseOperationDescriptor getDescriptor();
 }

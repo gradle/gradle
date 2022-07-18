@@ -351,7 +351,7 @@ To show project-contextual options, including help on a specific task, see the `
 `-v`, `--version`::
 Prints Gradle, Groovy, Ant, JVM, and operating system version information and exit without executing any tasks.
 
-`-V`, `--show-gradle-version`::
+`-V`, `--show-version`::
 Prints Gradle, Groovy, Ant, JVM, and operating system version information and continue execution of specified tasks.
 
 `-S`, `--full-stacktrace`::

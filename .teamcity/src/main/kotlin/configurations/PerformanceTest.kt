@@ -60,8 +60,8 @@ class PerformanceTest(
                 "performance.baselines",
                 type.defaultBaselines,
                 display = ParameterDisplay.PROMPT,
-                allowEmpty = false,
-                description = "The baselines you want to run performance tests against."
+                allowEmpty = true,
+                description = "The baselines you want to run performance tests against. Empty means default baseline."
             )
             param("performance.channel", performanceTestBuildSpec.channel())
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
