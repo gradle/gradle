@@ -39,4 +39,6 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata {
      * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.
      */
     Set<LocalFileDependencyMetadata> getFiles();
+
+    void prepareToResolveArtifacts();
 }
