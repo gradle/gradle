@@ -79,7 +79,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         try {
             Settings settings = settingsProvider.buildSettings();
-            executor.noIsolation()
+            executor.classLoaderIsolation()
                     .submit(Maven2GradleWorkAction.class, params -> {
                         params.getWorkingDir().set(initSettings.getTarget());
                         params.getDsl().set(initSettings.getDsl());
