@@ -61,14 +61,15 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public Optional<String> getApiChangeReportIfMatches(int opcode, String owner, String name, String desc) {
-        if (opcode == INVOKEVIRTUAL
-            && types.contains(owner)
-            && name.equals(methodName)
-            && desc.equals(methodDescriptor)) {
-            return Optional.of(getChangeReport());
-        }
-        return Optional.empty();
+    public String getApiChangeReport() {
+        return getChangeReport();
+    }
+
+    @Override
+    public List<ApiMatcher> getMatchers() {
+        return types.stream()
+            .map(type -> new ApiMatcher(INVOKEVIRTUAL, type, methodName, methodDescriptor))
+            .collect(Collectors.toList());
     }
 
     private String getChangeReport() {

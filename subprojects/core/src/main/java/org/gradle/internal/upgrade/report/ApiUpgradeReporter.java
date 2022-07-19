@@ -18,30 +18,41 @@ package org.gradle.internal.upgrade.report;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.upgrade.report.ReportableApiChange.ApiMatcher;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ApiUpgradeReporter {
 
-    private final List<ReportableApiChange> changes;
-    private final List<String> detectedChanges;
+    private final Map<ApiMatcher, Set<ReportableApiChange>> changes;
+    private final Set<String> detectedChanges;
 
     private ApiUpgradeReporter(List<ReportableApiChange> changes) {
-        this.changes = ImmutableList.copyOf(changes);
-        this.detectedChanges = new ArrayList<>();
+        this.changes = toMap(changes);
+        this.detectedChanges = new LinkedHashSet<>();
+    }
+
+    private Map<ApiMatcher, Set<ReportableApiChange>> toMap(List<ReportableApiChange> changes) {
+        Map<ApiMatcher, Set<ReportableApiChange>> map = new LinkedHashMap<>();
+        for (ReportableApiChange change : changes) {
+            for (ApiMatcher matcher : change.getMatchers()) {
+                map.computeIfAbsent(matcher, k -> new LinkedHashSet<>()).add(change);
+            }
+        }
+        return map;
     }
 
     public void collectStaticApiChangesReport(int opcode, String sourceFile, int lineNumber, String owner, String name, String desc) {
-        List<String> report = changes.stream()
-            .map(change -> change.getApiChangeReportIfMatches(opcode, owner, name, desc))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .distinct()
+        ApiMatcher matcher = new ApiMatcher(opcode, owner, name, desc);
+        List<String> report = changes.getOrDefault(matcher, Collections.emptySet()).stream()
+            .map(ReportableApiChange::getApiChangeReport)
             .collect(Collectors.toList());
         if (!report.isEmpty()) {
             if (report.size() == 1) {
