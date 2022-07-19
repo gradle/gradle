@@ -131,15 +131,33 @@ Any tasks that can be configured with a path to a Java executable, or a Java hom
 
 While you will not be able to wire a toolchain tool directly, they all have metadata that gives access to their full path or to the path of the Java installation they belong to.
 
-For example, you can configure the executable for a Kotlin compile tasks as follows:
+For example, you can configure the `java` executable for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-kotlin/groovy/",files="build.gradle[tags=compiler-kotlin]"]
-include::sample[dir="snippets/java/toolchain-kotlin/kotlin/",files="build.gradle.kts[tags=compiler-kotlin]"]
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-executable]"]
+include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-executable]"]
 ====
 
-Similarly, doing `compiler.get().executablePath` would give you the full path to `javac` for the given toolchain.
-Please note however that this may realize (and provision) a toolchain eagerly.
+Another example, you can configure the _Java Home_ for a task as follows:
+
+====
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-home]"]
+include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-home]"]
+====
+
+Yet another example, you can configure the Java _compiler_ executable for a task as follows:
+
+====
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
+include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-compiler]"]
+====
+
+[WARNING]
+====
+The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration.
+
+Doing respectively `launcher.get().executablePath`, `launcher.get().metadata.installationPath` or `compiler.get().executablePath` instead will give you the full path for the given toolchain but note that this may realize (and provision) a toolchain eagerly.
+====
 
 [[sec:auto_detection]]
 == Auto detection of installed toolchains
