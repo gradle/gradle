@@ -54,23 +54,9 @@ class FileCollectionCodec(
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
-            runCatching {
-                val visitor = CollectingVisitor()
-                value.visitStructure(visitor)
-                visitor.elements
-            }.apply {
-                onSuccess { elements ->
-                    write(elements)
-                }
-                onFailure { ex ->
-                    logPropertyProblem("serialize", ex) {
-                        text("value ")
-                        reference(value.toString())
-                        text(" failed to visit file collection")
-                    }
-                    write(BrokenValue(ex))
-                }
-            }
+            val visitor = CollectingVisitor()
+            value.visitStructure(visitor)
+            write(visitor.elements)
         }
     }
 
