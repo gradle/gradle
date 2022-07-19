@@ -28,10 +28,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Immutable metadata for a component instance that is used to perform dependency graph resolution.
+ * Immutable metadata for a component instance (ie version of a component) that is used to perform dependency graph resolution.
  *
- * <p>Note that this metadata does not provide any information about the available artifacts of this component or its variants, as this may be expensive to resolve.
+ * <p>Note this interface exposes only information that is required for dependency graph resolution. In particular, it does not provide any information about the available artifacts of this
+ * component or its variants, as this may be expensive to calculate and is only required in specific cases.
  * Information about the artifacts can be accessed via the methods of {@link ComponentGraphResolveState}.</p>
+ *
+ * <p>Implementations must be immutable, thread safe and "fast" (ie should not run user code, or touch the file system or network etc).
+ * Expensive operations should live on {@link ComponentGraphResolveState} instead. Note that not all implementations currently honor this contract as a transitional step.</p>
+ *
  */
 public interface ComponentGraphResolveMetadata {
     /**

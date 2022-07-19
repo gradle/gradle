@@ -29,6 +29,18 @@ import java.util.Collection;
 
 /**
  * State for a component instance that is used to perform artifact resolution.
+ *
+ * <p>Resolution happens in multiple steps. The first is to calculate the dependency graph, and the subsequent steps select artifacts. Artifact resolution is broken down into 3 main steps:</p>
+ * <ul>
+ *     <li>Select a variant of the component instance. The variant selected for artifact resolution may be different to that used for graph resolution,
+ *     for example when using an {@link org.gradle.api.artifacts.ArtifactView} to select different variants.</li>
+ *     <li>Determine how to produce the artifacts of the variant, for example by running a chain of transformers.</li>
+ *     <li>Produce the artifacts, for example by running the transforms or downloading files.</li>
+ * </ul>
+ *
+ * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
+ *
+ * <p>Instances of this type are located using {@link ComponentGraphResolveState#prepareForArtifactResolution()}.</p>
  */
 public interface ComponentArtifactResolveState {
     ComponentIdentifier getId();
@@ -36,15 +48,18 @@ public interface ComponentArtifactResolveState {
     @Nullable
     ModuleSources getSources();
 
+    /**
+     * Returns the state required to resolve artifacts, given a variant that was selected during graph resolution.
+     */
     VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant);
 
     /**
-     * Discovers the set of artifacts belonging to the given component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
+     * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
      */
     void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 
     /**
-     * Creates a set that will resolve the given artifacts of the given component.
+     * Creates a set that will resolve the given artifacts of the given component. Does not perform any resolution.
      */
-    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes);
+    ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes);
 }

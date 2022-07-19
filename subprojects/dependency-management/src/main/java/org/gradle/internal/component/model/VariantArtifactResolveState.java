@@ -24,6 +24,8 @@ import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
 /**
  * State for a variant instance that is used for artifact resolution.
+ *
+ * <p>Instances of this type are located using {@link ComponentArtifactResolveState}.</p>
  */
 public interface VariantArtifactResolveState {
     /**
