@@ -16,9 +16,7 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -60,20 +58,6 @@ public class CalculatedValueContainerFactory {
 
         public SupplierBackedCalculator(Supplier<T> supplier) {
             this.supplier = supplier;
-        }
-
-        @Override
-        public boolean usesMutableProjectState() {
-            return false;
-        }
-
-        @Override
-        public ProjectInternal getOwningProject() {
-            return null;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
         }
 
         @Override
