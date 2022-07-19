@@ -68,7 +68,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentReso
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
         return artifactSelector.resolveArtifacts(getMetadata(), artifacts, overriddenAttributes);
     }
 

@@ -23,14 +23,19 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import javax.annotation.Nullable;
 
 /**
- * State for a component instance that is used to perform dependency graph resolution.
+ * State for a component instance (ie version of a component) that is used to perform dependency graph resolution.
+ *
+ * <p>Resolution happens in multiple steps. The first step is to calculate the dependency graph, which involves selecting component instances and one or more variants of each instance.
+ * This type exposes only the information and operations required to do this. In particular, it does not expose any information about artifacts unless this is actually required for graph resolution,
+ * which can happen only in certain specific cases (and something we should deprecate).</p>
+ *
+ * <p>The subsequent resolution steps, to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
+ *
+ * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
  */
 public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
 
-    /**
-     * @return the sources information for this component.
-     */
     @Nullable
     ModuleSources getSources();
 
@@ -45,9 +50,12 @@ public interface ComponentGraphResolveState {
     /**
      * Determines the set of artifacts for the given variant of this component.
      *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
+     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be avoided.
      */
     VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 
+    /**
+     * Creates the state that can be used for artifact resolution for this component instance.
+     */
     ComponentArtifactResolveState prepareForArtifactResolution();
 }

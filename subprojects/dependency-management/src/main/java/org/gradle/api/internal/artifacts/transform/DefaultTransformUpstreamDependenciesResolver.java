@@ -44,6 +44,7 @@ import org.gradle.internal.model.ValueCalculator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -87,11 +88,13 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private Set<ComponentIdentifier> buildDependencies;
     private Set<ComponentIdentifier> dependencies;
 
-    public DefaultTransformUpstreamDependenciesResolver(ComponentIdentifier componentIdentifier,
-                                                        ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
-                                                        DomainObjectContext owner,
-                                                        FilteredResultFactory filteredResultFactory,
-                                                        CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultTransformUpstreamDependenciesResolver(
+        ComponentIdentifier componentIdentifier,
+        ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
+        DomainObjectContext owner,
+        FilteredResultFactory filteredResultFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.componentIdentifier = componentIdentifier;
         this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
@@ -168,6 +171,11 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
+    /**
+     * Represents a work node that prepares the upstream dependencies of a particular transform applied to a particular artifact.
+     * This is a separate node so that this work can access project state to do the resolution and to discover additional dependencies for the transform
+     * during resolution of upstream dependencies. It also allows the work of resolution to be attributed separately to the work of the transform.
+     */
     public static abstract class FinalizeTransformDependencies implements ValueCalculator<ArtifactTransformDependencies> {
         public abstract FileCollection selectedArtifacts();
 
@@ -180,6 +188,10 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
+    /**
+     * A work node used in builds where the upstream dependencies must be resolved. This implementation is not used when the work graph is loaded from the configuration cache,
+     * as the dependencies have already been resolved in that case.
+     */
     public class FinalizeTransformDependenciesFromSelectedArtifacts extends FinalizeTransformDependencies {
         private final ImmutableAttributes fromAttributes;
 
@@ -205,6 +217,9 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         @Nullable
         @Override
         public WorkNodeAction getPreExecutionAction() {
+            // Before resolving, need to determine the full set of upstream dependencies that need to be built.
+            // The full set is usually known when the work graph is built. However, in certain cases where a project dependency conflicts with an external dependency, this is not known
+            // until the full graph resolution, which can happen at execution time.
             return new CalculateFinalDependencies();
         }
 
@@ -230,30 +245,41 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             @Override
             public void run(NodeExecutionContext context) {
                 TaskNodeFactory taskNodeFactory = context.getService(TaskNodeFactory.class);
-                selectedArtifacts().visitDependencies(new TaskDependencyResolveContext() {
-                    @Override
-                    public void add(Object dependency) {
-                        if (dependency instanceof Task) {
-                            tasks.add(taskNodeFactory.getNode((Task) dependency));
-                        }
-                    }
-
-                    @Override
-                    public void visitFailure(Throwable failure) {
-                    }
-
-                    @Nullable
-                    @Override
-                    public Task getTask() {
-                        return null;
-                    }
-                });
+                selectedArtifacts().visitDependencies(new CollectingTaskDependencyResolveContext(tasks, taskNodeFactory));
             }
 
             @Override
             public List<TaskNode> getPostExecutionNodes() {
                 return tasks;
             }
+
+        }
+    }
+
+    private static class CollectingTaskDependencyResolveContext implements TaskDependencyResolveContext {
+        private final TaskNodeFactory taskNodeFactory;
+        private final Collection<TaskNode> tasks;
+
+        public CollectingTaskDependencyResolveContext(Collection<TaskNode> tasks, TaskNodeFactory taskNodeFactory) {
+            this.tasks = tasks;
+            this.taskNodeFactory = taskNodeFactory;
+        }
+
+        @Override
+        public void add(Object dependency) {
+            if (dependency instanceof Task) {
+                tasks.add(taskNodeFactory.getNode((Task) dependency));
+            }
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+        }
+
+        @Nullable
+        @Override
+        public Task getTask() {
+            return null;
         }
     }
 
