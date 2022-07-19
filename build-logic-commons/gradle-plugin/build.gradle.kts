@@ -14,14 +14,7 @@ java {
 dependencies {
     compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.10.3")
 
-    // TODO remove and keep 1.7 only once wrapper is updated
-    if (KotlinVersion.CURRENT.isAtLeast(1, 7)) {
-        implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.4.1")
-        implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
-    } else {
-        implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.3.3")
-        implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
-
-    }
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.4.1")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
 }
