@@ -56,7 +56,7 @@ class FileCollectionCodec(
         encodePreservingIdentityOf(value) {
             runCatching {
                 val visitor = CollectingVisitor()
-                value.visitStructure(visitor)
+                resolving(value).visitStructure(visitor)
                 visitor.elements
             }.apply {
                 onSuccess { elements ->
@@ -73,6 +73,10 @@ class FileCollectionCodec(
             }
         }
     }
+
+    private
+    fun resolving(value: FileCollectionInternal) =
+        fileCollectionFactory.resolvingLeniently(value)
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
         return decodePreservingIdentity { id ->
