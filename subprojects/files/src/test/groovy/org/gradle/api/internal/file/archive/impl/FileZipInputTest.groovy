@@ -90,6 +90,9 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         then:
         noExceptionThrown()
         content == ZIP_ENTRY_CONTENT.bytes
+
+        cleanup:
+        zipInput?.close()
     }
 
     @Requires(TestPrecondition.JDK11_OR_LATER)
@@ -110,5 +113,8 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         then:
         noExceptionThrown()
         content == ZIP_ENTRY_CONTENT.bytes
+
+        cleanup:
+        zipInput?.close()
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 
@@ -32,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
+public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
@@ -40,31 +41,50 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
-        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild, taskResource);
+        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
+            @Override
+            protected IncludedBuildTaskResource getTarget() {
+                return taskResource;
+            }
+        };
     }
 
-    public static TaskInAnotherBuild of(
+    /**
+     * Creates a lazy reference to a task in another build.
+     *
+     * The task will be located on-demand to allow for cycles between builds stored to
+     * the configuration cache.
+     *
+     * @param taskPath the path to the task relative to its build
+     * @param targetBuild the build containing the task
+     * @param taskGraph the task graph where the task should be located
+     * @return a lazy reference to the given task.
+     */
+    public static TaskInAnotherBuild lazy(
         String taskPath,
         BuildIdentifier targetBuild,
         BuildTreeWorkGraphController taskGraph
     ) {
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
-        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
+        Lazy<IncludedBuildTaskResource> target = Lazy.unsafe().of(() -> taskGraph.locateTask(taskIdentifier));
+        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild) {
+            @Override
+            protected IncludedBuildTaskResource getTarget() {
+                return target.get();
+            }
+        };
     }
 
     private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Waiting;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
-    private final IncludedBuildTaskResource target;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild, IncludedBuildTaskResource target) {
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
         this.taskIdentityPath = taskIdentityPath;
         this.taskPath = taskPath;
         this.targetBuild = targetBuild;
-        this.target = target;
     }
 
     public BuildIdentifier getTargetBuild() {
@@ -81,7 +101,7 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
 
     @Override
     public TaskInternal getTask() {
-        return target.getTask();
+        return getTarget().getTask();
     }
 
     @Override
@@ -98,6 +118,7 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
 
     @Override
     public void prepareForExecution(Action<Node> monitor) {
+        IncludedBuildTaskResource target = getTarget();
         target.queueForExecution();
         target.onComplete(() -> monitor.execute(this));
     }
@@ -140,7 +161,7 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
 
         // This node is ready to "execute" when the task in the other build has completed
         if (!taskState.isComplete()) {
-            taskState = target.getTaskState();
+            taskState = getTarget().getTaskState();
         }
         switch (taskState) {
             case Waiting:
@@ -156,12 +177,12 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
 
     @Override
     public String toString() {
-        return taskIdentityPath.toString();
+        return "other build task " + taskIdentityPath;
     }
 
     @Override
     protected String nodeSpecificHealthDiagnostics() {
-        return "taskState=" + taskState + ", " + target.healthDiagnostics();
+        return "taskState=" + taskState + ", " + getTarget().healthDiagnostics();
     }
 
     @Override
@@ -172,4 +193,6 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
         return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
     }
+
+    protected abstract IncludedBuildTaskResource getTarget();
 }

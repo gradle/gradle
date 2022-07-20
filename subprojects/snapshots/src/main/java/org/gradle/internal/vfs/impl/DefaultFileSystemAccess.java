@@ -84,32 +84,37 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
         return virtualFileSystem.findMetadata(location)
-            .<Optional<HashCode>>flatMap(snapshot -> {
+            .<Optional<FileSystemLocationSnapshot>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
                     return Optional.of(Optional.empty());
                 }
                 if (snapshot instanceof FileSystemLocationSnapshot) {
-                    return Optional.of(Optional.of(((FileSystemLocationSnapshot) snapshot).getHash()));
+                    return Optional.of(Optional.of((FileSystemLocationSnapshot) snapshot));
                 }
                 return Optional.empty();
             })
-            .orElseGet(() -> {
+            .orElseGet(() -> virtualFileSystem.store(location, vfsStorer -> {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
-                if (fileMetadata.getType() == FileType.Missing) {
-                    virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                switch (fileMetadata.getType()) {
+                    case Missing:
+                        // For performance reasons, we cache the information about the missing file snapshot.
+                        vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                        return Optional.empty();
+                    case Directory:
+                        return Optional.empty();
+                    case RegularFile:
+                        return Optional.of(producingSnapshots.guardByKey(location,
+                            () -> virtualFileSystem.findSnapshot(location)
+                                .orElseGet(() -> {
+                                    HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                                    return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata));
+                                })));
+                    default:
+                        throw new IllegalArgumentException("Unknown file type: " + fileMetadata.getType());
                 }
-                if (fileMetadata.getType() != FileType.RegularFile) {
-                    return Optional.empty();
-                }
-                HashCode hash = producingSnapshots.guardByKey(location,
-                    () -> virtualFileSystem.findSnapshot(location)
-                        .orElseGet(() -> virtualFileSystem.store(location, () -> {
-                            HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                            return new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
-                        })).getHash());
-                return Optional.of(hash);
-            })
+            }))
+            .map(FileSystemLocationSnapshot::getHash)
             .map(visitor);
     }
 
@@ -135,27 +140,24 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
-        File file = new File(location);
-        FileMetadata fileMetadata = this.stat.stat(file);
-        switch (fileMetadata.getType()) {
-            case RegularFile:
-                return virtualFileSystem.store(location, () -> {
+        return virtualFileSystem.store(location, vfsStorer -> {
+            File file = new File(location);
+            FileMetadata fileMetadata = this.stat.stat(file);
+            switch (fileMetadata.getType()) {
+                case RegularFile:
                     HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                    return new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
-                });
-            case Missing:
-                return virtualFileSystem.store(location, () -> new MissingFileSnapshot(location, fileMetadata.getAccessType()));
-            case Directory:
-                return virtualFileSystem.store(
-                    location,
-                    vfsStorer -> directorySnapshotter.snapshot(
+                    return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hash, fileMetadata));
+                case Missing:
+                    return vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
+                case Directory:
+                    return directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
-                        vfsStorer)
-                );
-            default:
-                throw new UnsupportedOperationException();
-        }
+                        vfsStorer::store);
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        });
     }
 
     private FileSystemLocationSnapshot readLocation(String location) {

@@ -303,19 +303,16 @@ enum class PerformanceTestType(
     per_commit(
         displayName = "Performance Regression Test",
         timeout = 420,
-        defaultBaselines = "defaults",
         channel = "commits"
     ),
     per_day(
         displayName = "Slow Performance Regression Test",
         timeout = 420,
-        defaultBaselines = "defaults",
         channel = "commits"
     ),
     per_week(
         displayName = "Performance Experiment",
         timeout = 420,
-        defaultBaselines = "defaults",
         channel = "experiments"
     ),
     flakinessDetection(
@@ -323,19 +320,18 @@ enum class PerformanceTestType(
         timeout = 600,
         defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
-        extraParameters = "--checks none --rerun"
+        extraParameters = "--checks none --rerun --cross-version-only"
     ),
     historical(
         displayName = "Historical Performance Test",
         timeout = 2280,
-        defaultBaselines = "3.5.1,4.10.3,5.6.4,6.9.1,last",
+        defaultBaselines = "last",
         channel = "historical",
-        extraParameters = "--checks none"
+        extraParameters = "--checks none --cross-version-only"
     ),
     adHoc(
         displayName = "AdHoc Performance Test",
         timeout = 30,
-        defaultBaselines = "none",
         channel = "adhoc",
         extraParameters = "--checks none"
     );
@@ -380,37 +376,37 @@ enum class SpecificBuild {
     },
     SmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION)
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, splitNumber = 2)
         }
     },
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, splitNumber = 4)
         }
     },
     SantaTrackerSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "santaTrackerSmokeTest", 2)
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "santaTrackerSmokeTest", 4)
         }
     },
     ConfigCacheSantaTrackerSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "configCacheSantaTrackerSmokeTest", 2)
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "configCacheSantaTrackerSmokeTest", 4)
         }
     },
     GradleBuildSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME)
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME, splitNumber = 4)
         }
     },
     ConfigCacheSmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest", splitNumber = 4)
         }
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, "configCacheSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, "configCacheSmokeTest", splitNumber = 4)
         }
     },
     FlakyTestQuarantineLinux {

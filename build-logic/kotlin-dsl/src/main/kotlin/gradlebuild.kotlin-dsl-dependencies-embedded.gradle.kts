@@ -26,7 +26,7 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "2.3.3" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "2.4.1" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
@@ -35,8 +35,16 @@ tasks {
         kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
     }
 
+    val apiExtensionsFileCollection = files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions)
+
     sourceSets.main {
-        kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions))
+        kotlin.srcDir(apiExtensionsFileCollection)
+    }
+
+    processResources {
+        // Add generated sources to the main jar because `src` or any other Gradle distribution does not include them.
+        // A more general solution is probably required: https://github.com/gradle/gradle/issues/21114
+        from(apiExtensionsFileCollection)
     }
 
 // -- Version manifest properties --------------------------------------

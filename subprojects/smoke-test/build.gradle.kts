@@ -3,6 +3,7 @@ import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.basics.buildCommitId
 
 plugins {
     id("gradlebuild.internal.java")
@@ -61,7 +62,7 @@ tasks {
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
         remoteUri.set(rootDir.absolutePath)
-        ref.set(moduleIdentity.gradleBuildCommitId)
+        ref.set(buildCommitId)
     }
 
     val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)

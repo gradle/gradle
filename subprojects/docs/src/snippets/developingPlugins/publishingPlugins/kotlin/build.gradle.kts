@@ -1,34 +1,36 @@
 // tag::plugins_block[]
 plugins {
-    id("java-gradle-plugin")                          // <1>
-    id("maven-publish")                               // <2>
-    id("com.gradle.plugin-publish") version "1.0.0-rc-2"  // <3>
+    id("com.gradle.plugin-publish") version "1.0.0"
 }
 // end::plugins_block[]
 
-// tag::gradle-plugin[]
+// tag::global_config[]
 group = "io.github.johndoe" // <1>
-version = "1.0"     // <2>
+version = "1.0" // <2>
 
-gradlePlugin {
+gradlePlugin { // <3>
+    website.set("<substitute your project website>") // <4>
+    vcsUrl.set("<uri to project source repository>") // <5>
+
+    // ... // <6>
+}
+// end::global_config[]
+
+// tag::per_plugin_config[]
+gradlePlugin { // <1>
+    // ... // <2>
+
     plugins { // <3>
         create("greetingsPlugin") { // <4>
             id = "<your plugin identifier>" // <5>
             displayName = "<short displayable name for plugin>" // <6>
-            description = "<Good human-readable description of what your plugin is about>" // <7>
+            description = "<human-readable description of what your plugin is about>" // <7>
+            tags.set(listOf("tags", "for", "your", "plugins")) // <8>
             implementationClass = "<your plugin class>"
         }
     }
 }
-// end::gradle-plugin[]
-
-// tag::plugin_bundle[]
-pluginBundle {
-    website = "<substitute your project website>"   // <1>
-    vcsUrl = "<uri to project source repository>"   // <2>
-    tags = listOf("tags", "for", "your", "plugins") // <3>
-}
-// end::plugin_bundle[]
+// end::per_plugin_config[]
 
 // tag::local_repository[]
 publishing {
