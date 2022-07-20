@@ -100,16 +100,15 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     @Incubating
     protected AbstractScalaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
-        this.scalaCompileOptions = getProject().getObjects().newInstance(ScalaCompileOptions.class);
+        this.scalaCompileOptions = objectFactory.newInstance(ScalaCompileOptions.class);
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
     }
 
     @Deprecated // Kept to preserve binary compatibility; will be removed in Gradle 8.
     @SuppressWarnings("unused")
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
-        ObjectFactory objectFactory = getObjectFactory();
         this.scalaCompileOptions = scalaCompileOptions;
-        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
+        this.scalaCompileOptions.setIncrementalOptions(getObjectFactory().newInstance(IncrementalCompileOptions.class));
     }
 
     /**
