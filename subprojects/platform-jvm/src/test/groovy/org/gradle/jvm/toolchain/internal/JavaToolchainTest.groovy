@@ -25,8 +25,8 @@ import spock.lang.Specification
 class JavaToolchainTest extends Specification {
     def "java version is reported as specified in metadata"() {
         given:
-        def javaHome = new File("/jvm/$implementationVersion").absoluteFile
-        def metadata = JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, "vendor", "implName", "archName")
+        def javaHome = new File("/jvm/$javaVersion").absoluteFile
+        def metadata = JvmInstallationMetadata.from(javaHome, javaVersion, "vendor", "runtimeName", runtimeVersion, "jvmName", jvmVersion, "jvmVendor", "archName")
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
 
@@ -42,9 +42,9 @@ class JavaToolchainTest extends Specification {
         javaToolchain.jvmVersion == jvmVersion
 
         where:
-        implementationVersion | runtimeVersion  | jvmVersion   | languageVersion
-        "1.8.0_292"           | "1.8.0_292-b10" | "25.292-b10" | 8
-        "11.0.11"             | "11.0.9+11"     | "11.0.9+11"  | 11
-        "16"                  | "16+36"         | "16+36"      | 16
+        javaVersion | runtimeVersion  | jvmVersion   | languageVersion
+        "1.8.0_292" | "1.8.0_292-b10" | "25.292-b10" | 8
+        "11.0.11"   | "11.0.9+11"     | "11.0.9+11"  | 11
+        "16"        | "16+36"         | "16+36"      | 16
     }
 }
