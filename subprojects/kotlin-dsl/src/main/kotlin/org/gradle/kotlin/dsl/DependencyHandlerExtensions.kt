@@ -76,10 +76,7 @@ fun DependencyHandler.create(
  * @since 7.6
  */
 @Incubating
-inline fun DependencyHandler.create(
-    dependencyNotation: String,
-    dependencyConfiguration: ExternalModuleDependency.() -> Unit
-): ExternalModuleDependency =
+inline fun DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
 
     (create(dependencyNotation) as ExternalModuleDependency).apply(dependencyConfiguration)
 
