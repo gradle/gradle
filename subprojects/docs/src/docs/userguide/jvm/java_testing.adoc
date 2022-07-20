@@ -613,7 +613,7 @@ If you want to skip the tests when running a build, you have a few options. You 
 
 This excludes the `test` task and any other task that it _exclusively_ depends on, i.e. no other task depends on the same task. Those tasks will not be marked "SKIPPED" by Gradle, but will simply not appear in the list of tasks executed.
 
-Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
+Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
 
 .Skipping the unit tests based on a project property
 ====
@@ -650,6 +650,7 @@ You can also enable debugging in the DSL, where you can also configure other pro
     test {
         debugOptions {
             enabled = true
+            host = 'localhost'
             port = 4455
             server = true
             suspend = true
@@ -657,6 +658,8 @@ You can also enable debugging in the DSL, where you can also configure other pro
     }
 
 With this configuration the test JVM will behave just like when passing the `--debug-jvm` argument but it will listen on port 4455.
+
+To debug the test process remotely via network,  the `host` needs to be set to the machine's IP address or `"*"` (listen on all interfaces).
 
 [[sec:java_test_fixtures]]
 == Using test fixtures

@@ -19,6 +19,8 @@ For any non-trivial change, we need to be able to answer these questions:
 
 We may ask you to answer these questions directly in the GitHub issue or (for large changes) in a shared Google Doc.
 
+If you are looking for good first issues, take a look at the list of [_🌱 onboarding_ issues](https://github.com/gradle/gradle/issues?q=is%3Aopen+is%3Aissue+label%3A%22%F0%9F%8C%B1+onboarding%22+no%3Aassignee) that should be actionable and ready for a contribution.
+
 ### Security vulnerabilities
 
 Do not report security vulnerabilities to the public issue tracker. Follow our [Security Vulnerability Disclosure Policy](https://github.com/gradle/gradle/security/policy).

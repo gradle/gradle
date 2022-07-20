@@ -98,7 +98,10 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 
 === Attaching a debugger to your build
 
-You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005. You can change the port number by setting the `org.gradle.debug.port` property to the desired port number.
+You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+You can change the port number by setting the `org.gradle.debug.port` property to the desired port number.
+
+To attach the debugger remotely via network, you need to set the `org.gradle.debug.host` property to the machine's IP address or `*` (listen on all interfaces).
 
 ----
 ❯ gradle help -Dorg.gradle.debug=true

@@ -269,7 +269,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 // This is a bit hackish but the mapping from file names to ivy artifact names is completely broken
                 String fileName = artifactIdentifier.getFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
                 fileName = Files.getNameWithoutExtension(fileName); // removes the .asc
-                DefaultIvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
+                IvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
                 return new DefaultIvyArtifactName(
                     base.getName(),
                     "asc",

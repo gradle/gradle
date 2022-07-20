@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -23,9 +22,9 @@ import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 
-abstract class CacheMissMonitorBuildService @Inject constructor(objects: ObjectFactory) : BuildService<CacheMissMonitorBuildService.Params>, OperationCompletionListener {
+
+abstract class CacheMissMonitorBuildService : BuildService<CacheMissMonitorBuildService.Params>, OperationCompletionListener {
     val cacheMiss: AtomicBoolean = AtomicBoolean(false)
 
     interface Params : BuildServiceParameters {

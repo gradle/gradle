@@ -68,7 +68,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Inject
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
-        onlyIf(task -> isRequired() || getSignatory() != null);
+        onlyIf("Signing is required, or signatory is set", task -> isRequired() || getSignatory() != null);
     }
 
     /**
