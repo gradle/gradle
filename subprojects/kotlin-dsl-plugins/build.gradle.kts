@@ -41,6 +41,8 @@ dependencies {
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":kotlin-dsl")))
 
+    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
+
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.mockitoKotlin)
 
