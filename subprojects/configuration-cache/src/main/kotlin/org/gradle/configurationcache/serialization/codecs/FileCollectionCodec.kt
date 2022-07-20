@@ -42,7 +42,6 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
-import org.gradle.configurationcache.serialization.logPropertyProblem
 import java.io.File
 
 
