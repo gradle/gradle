@@ -139,7 +139,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "fails serialization of resolution error")
     def "can substitute a dependency without capabilities with a dependency with capabilities"() {
         mavenRepo.module("org", "lib", "1.0").publish()
 
