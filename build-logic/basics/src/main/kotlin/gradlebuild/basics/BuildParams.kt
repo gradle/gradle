@@ -57,7 +57,6 @@ import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_INCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_ONLY_TEST_GRADLE_VERSION
 import gradlebuild.basics.BuildParams.VENDOR_MAPPING
-import gradlebuild.basics.BuildParams.YARNPKG_MIRROR_URL
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -125,7 +124,6 @@ object BuildParams {
 
     internal
     val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
-    const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
 }
 
 
@@ -360,7 +358,3 @@ val Project.runAndroidStudioInHeadlessMode: Boolean
 
 val Project.androidStudioHome: Provider<String>
     get() = propertyFromAnySource(STUDIO_HOME)
-
-
-val Project.yarnpkgMirrorUrl: Provider<String>
-    get() = environmentVariable(YARNPKG_MIRROR_URL)
