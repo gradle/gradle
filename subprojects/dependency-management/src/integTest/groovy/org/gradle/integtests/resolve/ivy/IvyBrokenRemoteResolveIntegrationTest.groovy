@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module"() {
         given:
         def repo = ivyHttpRepo("repo1")
@@ -79,7 +78,6 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing modules"() {
         given:
         def repo = ivyHttpRepo("repo1")
