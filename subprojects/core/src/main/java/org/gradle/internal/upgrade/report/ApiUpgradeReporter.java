@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ApiUpgradeReporter {
@@ -36,14 +37,14 @@ public class ApiUpgradeReporter {
 
     private ApiUpgradeReporter(List<ReportableApiChange> changes) {
         this.changes = toMap(changes);
-        this.detectedChanges = new LinkedHashSet<>();
+        this.detectedChanges = ConcurrentHashMap.newKeySet();
     }
 
     private Map<ApiMatcher, Set<ReportableApiChange>> toMap(List<ReportableApiChange> changes) {
-        Map<ApiMatcher, Set<ReportableApiChange>> map = new LinkedHashMap<>();
+        Map<ApiMatcher, Set<ReportableApiChange>> map = new ConcurrentHashMap<>();
         for (ReportableApiChange change : changes) {
             for (ApiMatcher matcher : change.getMatchers()) {
-                map.computeIfAbsent(matcher, k -> new LinkedHashSet<>()).add(change);
+                map.computeIfAbsent(matcher, k -> ConcurrentHashMap.newKeySet()).add(change);
             }
         }
         return map;
@@ -80,7 +81,7 @@ public class ApiUpgradeReporter {
     }
 
     public List<String> getChanges() {
-        return ImmutableList.copyOf(detectedChanges);
+        return ImmutableList.sortedCopyOf(detectedChanges);
     }
 
     public static ApiUpgradeReporter noUpgrades() {
