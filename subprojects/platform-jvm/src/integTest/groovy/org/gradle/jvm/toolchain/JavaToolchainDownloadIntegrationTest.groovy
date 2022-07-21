@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain
 
+import groovy.io.FileType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -50,7 +51,16 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
 
         TestFile installLocation = temporaryFolder.file("user-home", "jdks", "temurin-8-x86_64-${osInFilename()}")
-        installLocation.isDirectory()
+        if (!installLocation.isDirectory()) { //TODO (#21082): hack to debug on other OSs, remove
+            def list = []
+
+            def dir = temporaryFolder.file("user-home", "jdks").canonicalFile
+            dir.eachFileRecurse (FileType.FILES) { file ->
+                list << file
+            }
+
+            throw new RuntimeException("Not found: " + list.join("\n\t"))
+        }
 
         File[] subFolders = installLocation.getCanonicalFile().listFiles()
         subFolders.length == 1
