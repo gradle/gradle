@@ -258,4 +258,36 @@ task someTask
         matcher.find()
         Integer.valueOf(matcher.group(1)) >= 16
     }
+
+    def "Scala compiler daemon respects keepalive option"() {
+        buildFile << """
+            plugins {
+                id 'scala'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation('org.scala-lang:scala-library:2.12.6')
+            }
+
+            tasks.withType(AbstractScalaCompile) {
+                scalaCompileOptions.keepAliveMode = KeepAliveMode.SESSION
+            }
+        """
+        file('src/main/scala/Foo.scala') << '''
+            class Foo {
+            }
+        '''
+        expect:
+        succeeds(':compileScala', '--info')
+        postBuildOutputContains('Stopped 1 worker daemon')
+
+        when:
+        buildFile.text = buildFile.text.replace('SESSION', 'DAEMON')
+
+        then:
+        succeeds(':compileScala', '--info')
+        postBuildOutputDoesNotContain('Stopped 1 worker daemon')
+    }
 }
