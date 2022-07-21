@@ -52,7 +52,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        targetDir.file("buildSrc").assertHasDescendants(
+        targetDir.file(incubating ? "gradle/plugins" : "buildSrc").assertHasDescendants(
             buildFile,
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}",
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",
