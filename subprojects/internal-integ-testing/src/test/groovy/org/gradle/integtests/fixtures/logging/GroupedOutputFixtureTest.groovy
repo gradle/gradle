@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.fixtures.logging
 
+import org.gradle.integtests.fixtures.logging.GroupedTaskFixture.ComparisonFailureFormat
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.PotentialMatchesExistComparisonFailure
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class GroupedOutputFixtureTest extends Specification {
@@ -411,9 +411,8 @@ Hello, World!
     }
 
     // region assertOutputContains
-    @Ignore
-    def "test assertOutputContains using #format format with multiple missing expected lines"() {
-        given:
+    def "test assertOutputContains using #format format searching for single expected line"() {
+        given: "sample output for a task not containing the expected line"
         def consoleOutput = """> Task :example1
 toast
 bacon
@@ -431,25 +430,20 @@ eggs
         GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         when:
-        groupedOutput.task(':example1').withAssertionFailureFormat(format)
-                .assertOutputContains(Arrays.asList("eggs", "bacon"))
+        groupedOutput.task(':example1').assertOutputContains(["waffles"], format)
 
         then:
-        Exception e = thrown()
+        Throwable e = thrown()
         e.class == expectedException
-        if (expectedException == PotentialMatchesExistComparisonFailure) {
-            assert e.getNumPotentialMatches() == expectedMatches
-        }
 
         where:
-        format                                              || expectedException                        | expectedMatches
-        GroupedTaskFixture.ComparisonFailureFormat.AUTO     || PotentialMatchesExistComparisonFailure   | 2
-        GroupedTaskFixture.ComparisonFailureFormat.LEGACY   || NullPointerException                     | null
+        format                          || expectedException
+        ComparisonFailureFormat.AUTO    || AssertionError
+        ComparisonFailureFormat.LEGACY  || AssertionError
     }
 
-    @Ignore
-    def "test assertOutputContains using #format format with single missing expected line"() {
-        given:
+    def "test assertOutputContains using #format format searching for multiple expected lines"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
         def consoleOutput = """> Task :example1
 toast
 bacon
@@ -467,19 +461,45 @@ eggs
         GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         when:
-        groupedOutput.task(':example1').assertOutputContains(Arrays.asList("waffles"))
+        groupedOutput.task(':example1').assertOutputContains(["eggs", "bacon"], format)
 
         then:
-        Exception e = thrown(Exception)
+        Throwable e = thrown()
         e.class == expectedException
         if (expectedException == PotentialMatchesExistComparisonFailure) {
             assert e.getNumPotentialMatches() == expectedMatches
         }
 
         where:
-        format                                              || expectedException                        | expectedMatches
-        GroupedTaskFixture.ComparisonFailureFormat.AUTO     || PotentialMatchesExistComparisonFailure   | 2
-        GroupedTaskFixture.ComparisonFailureFormat.LEGACY   || NullPointerException                     | null
+        format                               || expectedException                        | expectedMatches
+        ComparisonFailureFormat.AUTO         || PotentialMatchesExistComparisonFailure   | 2
+        ComparisonFailureFormat.LINEWISE     || PotentialMatchesExistComparisonFailure   | 2
+        ComparisonFailureFormat.UNIFIED      || PotentialMatchesExistComparisonFailure   | 2
+    }
+
+    def "test assertOutputContains using legacy format where expected lines (#expected) are each present, but not in a continuous sequence"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        expect:
+        groupedOutput.task(':example1').assertOutputContains(expected, ComparisonFailureFormat.LEGACY)
+
+        where:
+        expected << [["eggs", "bacon"], ["eggs", "eggs"], ["bacon", "toast", "eggs"]]
     }
     // endregion assertOutputContains
 }
