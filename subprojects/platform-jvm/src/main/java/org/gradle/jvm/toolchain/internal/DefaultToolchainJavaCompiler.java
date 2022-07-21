@@ -64,7 +64,7 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
     }
 
     private void emitToolchainEvent() {
-        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(JavaTool.COMPILER, javaToolchain));
+        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(JavaTool.COMPILER, javaToolchain.getMetadata()));
     }
 
 }

@@ -31,45 +31,48 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "toolchain usage events are emitted for java compilation"() {
-        // TODO: we probably don't need Jvm instance at all in the tests
-        def otherJdk = AvailableJavaHomes.differentJdk
-        def otherJdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJdk)
-        buildscriptWithToolchain(otherJdk)
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        buildscriptWithToolchain(jdkMetadata)
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:
-        runWithToolchainConfigured(otherJdk, "compileJava")
+        runWithToolchainConfigured(jdkMetadata, "compileJava")
         def events = eventsFor(":compileJava")
         then:
         events.size() > 0
         events.each { usageEvent ->
-            assertToolchainUsage("javac", otherJdkMetadata, usageEvent)
+            assertToolchainUsage("javac", jdkMetadata, usageEvent)
         }
 
         when:
-        runWithToolchainConfigured(otherJdk, "compileJava")
+        runWithToolchainConfigured(jdkMetadata, "compileJava")
         events = eventsFor(":compileJava")
         then:
         skipped(":compileJava")
         events.size() > 0
         events.each { usageEvent ->
-            assertToolchainUsage("javac", otherJdkMetadata, usageEvent)
+            assertToolchainUsage("javac", jdkMetadata, usageEvent)
         }
     }
-
 
     private void assertToolchainUsage(String toolName, JvmInstallationMetadata jdkMetadata, BuildOperationRecord.Progress usageEvent) {
         assert usageEvent.details.toolName == toolName
 
         def usedToolchain = usageEvent.details.toolchain
         assert usedToolchain == [
-            languageVersion: jdkMetadata.languageVersion.toString(),
-            vendor: jdkMetadata.vendor.displayName,
+            javaVersion: jdkMetadata.javaVersion,
+            javaVendor: jdkMetadata.vendor.displayName,
+            runtimeName: jdkMetadata.runtimeName,
+            runtimeVersion: jdkMetadata.runtimeVersion,
+            jvmName: jdkMetadata.jvmName,
+            jvmVersion: jdkMetadata.jvmVersion,
+            jvmVendor: jdkMetadata.jvmVendor,
+            architecture: jdkMetadata.architecture,
         ]
     }
 
-    private TestFile buildscriptWithToolchain(Jvm someJdk) {
+    private TestFile buildscriptWithToolchain(JvmInstallationMetadata jdkMetadata) {
         buildFile << """
             apply plugin: "java"
 
@@ -80,15 +83,15 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
                 }
             }
         """
     }
 
-    def runWithToolchainConfigured(Jvm jvm, String... tasks) {
+    def runWithToolchainConfigured(JvmInstallationMetadata jdkMetadata, String... tasks) {
         result = executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
+            .withArgument("-Porg.gradle.java.installations.paths=" + jdkMetadata.javaHome.toAbsolutePath())
             .withTasks(tasks)
             .run()
     }
