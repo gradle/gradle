@@ -19,12 +19,12 @@ package org.gradle.api.toolchain.management;
 import org.gradle.api.Incubating;
 
 /**
- * TODO
+ * TODO (#21082)
  *
  * @since 7.6
  */
 @Incubating
-public interface ToolchainManagementSpec { //TODO: far from final version!
+public interface ToolchainManagementSpec { //TODO (#21082): far from final version!
 
     void jdks(String... registryNames);
 

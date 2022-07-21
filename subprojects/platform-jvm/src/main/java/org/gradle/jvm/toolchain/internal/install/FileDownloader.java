@@ -51,20 +51,23 @@ public class FileDownloader {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    public void download(URI source, File file) {
-        final ExternalResource resource = createExternalResource(source, file.getName());
+    public ExternalResource getResourceFor(URI source) {
+        return createExternalResource(source);
+    }
+
+    public void download(URI source, File destination, ExternalResource resource) {
         try {
-            downloadResource(source, file, resource);
+            downloadResource(source, destination, resource);
         } catch (MissingResourceException e) {
-            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", source, file), e);
+            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", source, destination), e);
         }
     }
 
-    private ExternalResource createExternalResource(URI source, String name) {
+    private ExternalResource createExternalResource(URI source) {
         final ExternalResourceName resourceName = new ExternalResourceName(source) {
             @Override
             public String getShortDisplayName() {
-                return name;
+                return source.toString();
             }
         };
         return getTransport(source).getRepository().withProgressLogging().resource(resourceName);

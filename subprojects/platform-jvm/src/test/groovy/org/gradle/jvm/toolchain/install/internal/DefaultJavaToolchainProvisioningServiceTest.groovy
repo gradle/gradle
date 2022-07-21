@@ -19,8 +19,10 @@ package org.gradle.jvm.toolchain.install.internal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
+import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.jvm.toolchain.JavaToolchainRepository
+import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistryInternal
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
@@ -32,32 +34,41 @@ import spock.lang.TempDir
 
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
+    private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
+
+    private static final URI DOWNLOAD_URI = URI.create('https://server/whatever')
+
     @TempDir
     public File temporaryFolder
 
     def binary = Mock(AdoptOpenJdkRemoteBinary)
     def registry = Mock(JavaToolchainRepositoryRegistryInternal)
+    def downloader = Mock(FileDownloader)
+    def cache = Mock(JdkCacheDirectory)
+    def archiveFileLock = Mock(FileLock)
 
     def setup() {
         registry.requestedRepositories() >> Collections.singletonList(binary)
+
+        ExternalResource downloadResource = Mock(ExternalResource)
+        downloader.getResourceFor(_ as URI) >> downloadResource
+        ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
+        downloadResource.getMetaData() >> downloadResourceMetadata
+        downloadResourceMetadata.getFilename() >> ARCHIVE_NAME
+
+        cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
+        cache.getDownloadLocation() >> temporaryFolder
+        cache.provisionFromArchive(_ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
     }
 
     def "cache is properly locked around provisioning a jdk"() {
-        def cache = Mock(JdkCacheDirectory)
-        def downloader = Mock(FileDownloader)
-
-        def lock = Mock(FileLock)
         def spec = Mock(JavaToolchainSpec)
 
         def operationExecutor = new TestBuildOperationExecutor()
         def providerFactory = createProviderFactory("true")
-        def archiveName = "jdk-123.zip"
 
         given:
-        binary.toUri(spec) >> Optional.of(URI.create('http://server/' + archiveName))
-        binary.toMetadata(spec) >> Optional.of(new MockMetadata())
-
-        cache.getDownloadLocation(_ as String) >> { String filename -> new File("dir/" + filename) }
+        binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor)
 
@@ -65,44 +76,39 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * cache.acquireWriteLock(_, _) >> lock
+        1 * cache.acquireWriteLock(_, _) >> archiveFileLock
 
         then:
-        1 * downloader.download(_, _)
+        1 * downloader.download(_, _, _)
 
         then:
-        1 * lock.close()
+        1 * archiveFileLock.close()
+
 
         then:
-        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain " + MockMetadata.archiveFileName}
-        operationExecutor.log.getDescriptors().find {it.displayName == "Unpacking toolchain archive"}
+        List<BuildOperationDescriptor> descriptors = operationExecutor.log.getDescriptors()
+        descriptors.find {it.name == "Examining toolchain URI " + DOWNLOAD_URI }
+        descriptors.find {it.name == "Downloading toolchain from URI " + DOWNLOAD_URI }
+        descriptors.find {it.name == "Unpacking toolchain archive " + ARCHIVE_NAME }
     }
 
     def "skips downloading if already downloaded"() {
-        def cache = Mock(JdkCacheDirectory)
-        def downloader = Mock(FileDownloader)
-        def lock = Mock(FileLock)
         def spec = Mock(JavaToolchainSpec)
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.toUri(spec) >> Optional.of(URI.create("uri"))
-        cache.acquireWriteLock(_, _) >> lock
-        binary.toMetadata(spec) >> Optional.of(new MockMetadata())
-        new File(temporaryFolder, MockMetadata.archiveFileName).createNewFile()
-        cache.getDownloadLocation(_ as String) >> {String fileName -> new File(temporaryFolder, fileName)}
+        binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
+        new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        0 * downloader.download(_, _)
+        0 * downloader.download(_, _, _)
     }
 
     def "skips downloading if cannot satisfy spec"() {
-        def cache = Mock(JdkCacheDirectory)
-        def downloader = Mock(FileDownloader)
         def spec = Mock(JavaToolchainSpec)
         def providerFactory = createProviderFactory("true")
 
@@ -115,17 +121,15 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         !result.isPresent()
-        0 * downloader.download(_, _)
+        0 * downloader.download(_, _, _)
     }
 
     def "auto download can be disabled"() {
-        def cache = Mock(JdkCacheDirectory)
-        def downloader = Mock(FileDownloader)
         def spec = Mock(JavaToolchainSpec)
         def providerFactory = createProviderFactory("false")
 
         given:
-        binary.toUri(spec) >> Optional.of(URI.create("uri"))
+        binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
@@ -136,20 +140,12 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     }
 
     def "downloads from url"() {
-        def cache = Mock(JdkCacheDirectory)
-        def downloader = Mock(FileDownloader)
-        def lock = Mock(FileLock)
         def spec = Mock(JavaToolchainSpec)
         def operationExecutor = new TestBuildOperationExecutor()
         def providerFactory = createProviderFactory("true")
-        def archiveName = "file.tgz"
 
         given:
-        binary.toUri(spec) >> Optional.of(URI.create("uri"))
-        binary.toMetadata(spec) >> Optional.of(new MockMetadata())
-
-        cache.getDownloadLocation(_ as String) >> {String fileName -> new File(fileName)}
-        cache.acquireWriteLock(_ as File, _ as String) >> lock
+        binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor)
 
@@ -157,47 +153,12 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(URI.create("uri"), new File(MockMetadata.archiveFileName))
+        1 * downloader.download(DOWNLOAD_URI, new File(temporaryFolder, ARCHIVE_NAME), _)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
         return Mock(ProviderFactory) {
             gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
-        }
-    }
-
-    private class MockMetadata implements JavaToolchainRepository.Metadata {
-
-        static String archiveFileName = "ibm-11-x64-hotspot-linux.zip"
-
-        @Override
-        String fileExtension() {
-            return "zip"
-        }
-
-        @Override
-        String vendor() {
-            return "ibm"
-        }
-
-        @Override
-        String languageLevel() {
-            return "11"
-        }
-
-        @Override
-        String operatingSystem() {
-            return "linux"
-        }
-
-        @Override
-        String implementation() {
-            return "hotspot"
-        }
-
-        @Override
-        String architecture() {
-            return "x64"
         }
     }
 

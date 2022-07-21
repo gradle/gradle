@@ -36,7 +36,9 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-        executer.withToolchainDownloadEnabled()
+        executer
+            .withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {

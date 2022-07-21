@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.install.internal
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
@@ -24,7 +25,11 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector
+import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.util.internal.Resources
 import org.junit.Rule
@@ -42,9 +47,9 @@ class JdkCacheDirectoryTest extends Specification {
     @Rule
     public final Resources resources = new Resources()
 
-    def "handles non-exisiting jdk directory when listing java homes"() {
+    def "handles non-existing jdk directory when listing java homes"() {
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector())
 
         when:
         def homes = jdkCacheDirectory.listJavaHomes()
@@ -57,7 +62,7 @@ class JdkCacheDirectoryTest extends Specification {
         assumeTrue(OperatingSystem.current().isMacOsX())
 
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector())
 
         def install1 = new File(temporaryFolder, "jdks/jdk-mac/Contents/Home").tap { mkdirs() }
         new File(temporaryFolder, "jdks/jdk-mac/provisioned.ok").createNewFile()
@@ -76,7 +81,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "lists jdk directories when listing java homes"() {
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector())
 
         def install1 = new File(temporaryFolder, "jdks/jdk-1").tap { mkdirs() }
         new File(install1, "provisioned.ok").createNewFile()
@@ -101,15 +106,15 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "provisions jdk from tar.gz archive"() {
         def jdkArchive = resources.getResource("jdk.tar.gz")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
 
         when:
-        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
         installedJdk.getParentFile().getParentFile().getName() == "jdks"
-        installedJdk.getParentFile().getName() == "jdk"
+        installedJdk.getParentFile().getName() == "vendor-11-arch-${os()}"
         installedJdk.getName() == "jdk"
         new File(installedJdk, "provisioned.ok").exists()
         new File(installedJdk, "file").exists()
@@ -117,15 +122,15 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "provisions jdk from zip archive"() {
         def jdkArchive = resources.getResource("jdk.zip")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
 
         when:
-        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
         installedJdk.getParentFile().getParentFile().getName() == "jdks"
-        installedJdk.getParentFile().getName() == "jdk"
+        installedJdk.getParentFile().getName() == "vendor-11-arch-${os()}"
         installedJdk.getName() == "jdk-123"
         new File(installedJdk, "provisioned.ok").exists()
         new File(installedJdk, "file").exists()
@@ -134,10 +139,10 @@ class JdkCacheDirectoryTest extends Specification {
     @Ignore
     def "provisions jdk from tar.gz archive with MacOS symlinks"() {
         def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
 
         when:
-        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
@@ -183,5 +188,21 @@ class JdkCacheDirectoryTest extends Specification {
         def lock = Mock(FileLock)
         lockManager.lock(_ as File, _ as LockOptions, _ as String, _ as String) >> lock
         lockManager
+    }
+
+    JvmMetadataDetector mockDetector() {
+        JvmInstallationMetadata metadata = Mock(JvmInstallationMetadata)
+        metadata.getVendor() >> JvmVendor.fromString("vendor")
+        metadata.getLanguageVersion() >> JavaVersion.VERSION_11
+        metadata.getArchitecture() >> "arch"
+
+        def detector = Mock(JvmMetadataDetector)
+        detector.getMetadata(_ as InstallationLocation) >> metadata
+        detector
+    }
+
+    private static String os() {
+        OperatingSystem os = OperatingSystem.current()
+        return os.getFamilyName().replaceAll("[^a-zA-Z0-9\\-]", "_")
     }
 }
