@@ -99,6 +99,29 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21203")
+    def "generated files are recompiled when annotated file is affected by a change through method return type parameter"() {
+        given:
+        def util = java "class Util {}"
+        java """import java.util.List;
+            @Helper class A {
+                public List<Util> foo() {
+                    return null;
+                }
+            }
+        """
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        util.text = "class Util { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
+    }
+
     def "classes depending on generated files are recompiled when annotated file's ABI is affected by a change"() {
         given:
         def util = java "class Util {}"
