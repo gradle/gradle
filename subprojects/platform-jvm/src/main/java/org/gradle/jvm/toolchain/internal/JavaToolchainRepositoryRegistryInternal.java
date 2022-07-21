@@ -25,6 +25,8 @@ public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRe
 
     void request(String... registryNames);
 
+    boolean hasExplicitRequests();
+
     List<JavaToolchainRepository> requestedRepositories();
 
 }

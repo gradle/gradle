@@ -68,12 +68,13 @@ public class DefaultJavaToolchainRepositoryRegistry implements JavaToolchainRepo
     }
 
     @Override
+    public boolean hasExplicitRequests() {
+        return !requests.isEmpty();
+    }
+
+    @Override
     public List<JavaToolchainRepository> requestedRepositories() {
         if (requests.isEmpty()) {
-            DeprecationLogger.warnOfChangedBehaviour("Starting from Gradle 8.0 there will be no default Java Toolchain Registry.",
-                            "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block.")
-                    .undocumented() //TODO (#21082): needs to be documented properly
-                    .nagUser();
             return Collections.singletonList(registrations.get(DEFAULT_REGISTRY_NAME).get());
         }
 
