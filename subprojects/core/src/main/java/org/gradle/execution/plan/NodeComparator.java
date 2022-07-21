@@ -80,6 +80,10 @@ public class NodeComparator implements Comparator<Node> {
                 ((TaskInAnotherBuild) o2).getTaskIdentityPath()
             );
         }
-        return o1.getClass().getName().compareTo(o2.getClass().getName());
+        int diff = o1.getClass().getName().compareTo(o2.getClass().getName());
+        if (diff != 0) {
+            return diff;
+        }
+        return -1;
     }
 }
