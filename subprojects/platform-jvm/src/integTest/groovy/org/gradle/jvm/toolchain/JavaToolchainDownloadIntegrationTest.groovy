@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
@@ -41,7 +40,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
 
         when:
-        ExecutionResult result = executer
+        executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
@@ -50,7 +49,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
 
-        TestFile installLocation = temporaryFolder.file("user-home", "jdks", "temurin-8-x86_64-${osInFilename()}")
+        TestFile installLocation = temporaryFolder.file("user-home", "jdks", "temurin-8-${architectureInFilename()}-${osInFilename()}")
         if (!installLocation.isDirectory()) { //TODO (#21082): hack to debug on other OSs, remove
             def list = []
 
@@ -59,7 +58,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 list << file
             }
 
-            throw new RuntimeException("Not found: " + list.join("\n\t"))
+            throw new RuntimeException("Expected temurin-8-${architectureInFilename()}-${osInFilename()}, but: " + list.join("\n\t"))
         }
 
         File[] subFolders = installLocation.getCanonicalFile().listFiles()
@@ -280,5 +279,9 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     private static String osInFilename() {
         OperatingSystem os = OperatingSystem.current()
         return os.getFamilyName().replaceAll("[^a-zA-Z0-9\\-]", "_")
+    }
+
+    private static String architectureInFilename() {
+        return System.getProperty("os.arch")
     }
 }
