@@ -1,3 +1,4 @@
+
 The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
@@ -21,7 +22,9 @@ We would like to thank the following community members for their contributions t
 [Gabriel Feo](https://github.com/gabrielfeo),
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
+[Joseph Woolf](https://github.com/jsmwoolf),
 [Karl-Michael Schindler](https://github.com/kamischi),
+[Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Sam Snyder](https://github.com/sambsnyd),
