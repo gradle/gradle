@@ -23,7 +23,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 
