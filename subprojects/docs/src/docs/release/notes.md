@@ -229,6 +229,30 @@ one of the addresses of the current machine's network interfaces.
 Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
 accepting connections via network on Java 9+.
 
+### Reason messages in task predicates
+
+It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
+```groovy
+tasks.named("slowBenchmark") {
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
+        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
+    }
+}
+```
+
+These reason messages are reported in the console with the `--info` logging level.
+This might be helpful in finding out why a particular task is skipped.
+
+```
+gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
+```
+
+```
+> Task :slowBenchmark SKIPPED
+Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
+:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
