@@ -449,9 +449,11 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         ]
     }
 
-    def createExecHandleFactory(Map<String, String> actualProperties, Boolean validatePropertyKeys = true) {
+    def createExecHandleFactory(Map<String, String> actualProperties) {
         def probedSystemProperties = ProbedSystemProperty.values().findAll { it != ProbedSystemProperty.Z_ERROR }
-        assert !validatePropertyKeys || actualProperties.keySet() == probedSystemProperties.collect { it.systemPropertyKey }.toSet()
+        if (!actualProperties.isEmpty()) {
+            assert actualProperties.keySet() == probedSystemProperties.collect { it.systemPropertyKey }.toSet()
+        }
 
         def execHandleFactory = Mock(ExecHandleFactory)
         def exec = Mock(ExecHandleBuilder)
