@@ -33,6 +33,8 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
 
     //TODO (#21082): think about build service parameters, we will need them, for example base URI
 
+    //TODO (#21082): instead of having the repository metadata, would be better to probe the freshly downloaded JVM ...
+
     /**
      * Returns the URI from which a Java Toolchain matching the provided specification can be downloaded.
      * The URI must point to either a ZIP or a TAR archive file.
@@ -42,58 +44,9 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
     Optional<URI> toUri(JavaToolchainSpec spec);
 
     /**
-     * Returns information about the Java Toolchain that would match the provided specification.
-     *
-     * Returns an empty Optional if and only if the provided specification can't be matched.
-     */
-    Optional<Metadata> toMetadata(JavaToolchainSpec spec);
-
-    /**
      * Returns the highest version of {@link JavaToolchainSpec} this repository implementation can handle.
      *
      * All versions lower than the upper limit must also be handled by the repository.
      */
     JavaToolchainSpecVersion getToolchainSpecCompatibility();
-
-    /**
-     * Contains information about toolchains located at specific URIs, returned when serving a certain
-     * {@code JavaToolchainSpec}.
-     *
-     * @since 7.6
-     */
-    @Incubating
-    interface Metadata {
-
-        /**
-         * File extension of the toolchain archive file. Has to be a valid ZIP or TAR archive extension, like
-         * "zip", "tar.gz", "tgz" and so on.
-         */
-        String fileExtension();
-
-        /**
-         * Name of vendor providing the toolchain, for example "adoptium", "ibm", "oracle" and so on.
-         */
-        String vendor();
-
-        /**
-         * The Java language level the toolchain supports, for example "11" for Java 11.
-         */
-        String languageLevel();
-
-        /**
-         * The OS for which the toolchain has been built for, like "linux", "windows", "mac" and so on.
-         */
-        String operatingSystem();
-
-        /**
-         * Type of implementation of the toolchain, for example "hotspot", "openj9" and so on.
-         */
-        String implementation();
-
-        /**
-         * The architecture for which the toolchain has been developed, for example "x32", "x64", "aarch64" and so on.
-         */
-        String architecture();
-
-    }
 }

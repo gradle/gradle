@@ -44,7 +44,8 @@ class FileDownloaderTest extends Specification {
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
-        downloader.download(URI.create("https://foo"), destinationFile)
+        URI uri = URI.create("https://foo")
+        downloader.download(uri, destinationFile, downloader.getResourceFor(uri))
 
         then:
         noExceptionThrown()
@@ -60,7 +61,8 @@ class FileDownloaderTest extends Specification {
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
-        downloader.download(URI.create("https://foo"), destinationFile)
+        URI uri = URI.create("https://foo")
+        downloader.download(uri, destinationFile, downloader.getResourceFor(uri))
 
         then:
         thrown(BuildCancelledException)

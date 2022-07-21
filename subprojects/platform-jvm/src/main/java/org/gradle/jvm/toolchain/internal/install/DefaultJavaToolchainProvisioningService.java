@@ -19,6 +19,9 @@ package org.gradle.jvm.toolchain.internal.install;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -82,44 +85,47 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         for (JavaToolchainRepository toolchainRepository : toolchainRegistries) {
             Optional<URI> uri = toolchainRepository.toUri(spec);
             if (uri.isPresent()) {
-                Optional<JavaToolchainRepository.Metadata> metadata = toolchainRepository.toMetadata(spec);
-                if (!metadata.isPresent()) {
-                    throw new RuntimeException("Invalid toolchain repository implementation, metadata not provided for URI: " + uri);
-                }
-                return provisionInstallation(spec, uri.get(), metadata.get());
+                return Optional.of(provisionInstallation(spec, uri.get()));
             }
         }
 
         return Optional.empty();
     }
 
-    private Optional<File> provisionInstallation(JavaToolchainSpec spec, URI uri, JavaToolchainRepository.Metadata metadata) {
+    private File provisionInstallation(JavaToolchainSpec spec, URI uri) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            String destinationFilename = toArchiveFileName(metadata);
-            File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
-            final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
             try {
-                String displayName = "Provisioning toolchain " + destinationFile.getName();
-                return wrapInOperation(
-                        displayName,
-                    () -> provisionJdk(uri, destinationFile));
+                File downloadFolder = cacheDirProvider.getDownloadLocation();
+                ExternalResource resource = wrapInOperation("Examining toolchain URI " + uri, () -> downloader.getResourceFor(uri));
+                File archiveFile = new File(downloadFolder, getFileName(uri, resource));
+                final FileLock fileLock = cacheDirProvider.acquireWriteLock(archiveFile, "Downloading toolchain");
+                try {
+                    if (!archiveFile.exists()) {
+                        wrapInOperation("Downloading toolchain from URI " + uri, () -> {
+                            downloader.download(uri, archiveFile, resource);
+                            return null;
+                        });
+                    }
+                    return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(archiveFile, uri));
+                } finally {
+                    fileLock.close();
+                }
             } catch (Exception e) {
                 throw new MissingToolchainException(spec, uri, e);
-            } finally {
-                fileLock.close();
             }
         }
     }
 
-    private Optional<File> provisionJdk(URI source, File destination) {
-        final Optional<File> jdkArchive;
-        if (destination.exists()) {
-            jdkArchive = Optional.of(destination);
-        } else {
-            downloader.download(source, destination);
-            jdkArchive = Optional.of(destination);
+    private String getFileName(URI uri, ExternalResource resource) {
+        ExternalResourceMetaData metaData = resource.getMetaData();
+        if (metaData == null) {
+            throw ResourceExceptions.getMissing(uri);
         }
-        return wrapInOperation("Unpacking toolchain archive", () -> jdkArchive.map(cacheDirProvider::provisionFromArchive));
+        String fileName = metaData.getFilename();
+        if (fileName == null) {
+            throw new GradleException("Can't determine filename for resource located at: " + uri);
+        }
+        return fileName;
     }
 
     private boolean isAutoDownloadEnabled() {
@@ -129,11 +135,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {
         return buildOperationExecutor.call(new ToolchainProvisioningBuildOperation<>(displayName, provisioningStep));
     }
-
-    public static String toArchiveFileName(JavaToolchainRepository.Metadata metadata) {
-        return String.format("%s-%s-%s-%s-%s.%s", metadata.vendor(), metadata.languageLevel(), metadata.architecture(), metadata.implementation(), metadata.operatingSystem(), metadata.fileExtension());
-    }
-
     private static class ToolchainProvisioningBuildOperation<T> implements CallableBuildOperation<T> {
         private final String displayName;
         private final Callable<T> provisioningStep;

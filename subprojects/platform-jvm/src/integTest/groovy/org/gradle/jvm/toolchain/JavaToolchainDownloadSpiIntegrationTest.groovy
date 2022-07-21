@@ -51,6 +51,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
+                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -58,7 +59,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: https://exoticJavaToolchain.com/java-99")
-                .assertHasCause("Could not GET 'https://exoticJavaToolchain.com/java-99'.")
+                .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -79,17 +80,17 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
+                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
         then:
 
-        failure.getOutput().contains("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. Need to explicitly request them via the 'toolchainManagement' block.")
+        failure.getOutput().contains("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block.")
 
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
-                .assertHasCause("Unable to download 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' into file '${testDirectory}/user-home/jdks/adoptium-99-x64-hotspot-${os()}.tar.gz'")
                 .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
     }
 
@@ -120,6 +121,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
+                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -153,6 +155,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
+                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -161,7 +164,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
-                .assertHasCause("Unable to download 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' into file '${testDirectory}/user-home/jdks/adoptium-99-x64-hotspot-${os()}.tar.gz'")
                 .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
     }
 
@@ -193,52 +195,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 }
         
                 @Override
-                public Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
-                    return Optional.of(new MetadataImp(spec));
-                }
-        
-                @Override
                 public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
                     return JavaToolchainSpecVersion.V1;
-                }
-
-                private static class MetadataImp implements Metadata {
-        
-                    private final JavaLanguageVersion languageVersion;
-        
-                    public MetadataImp(JavaToolchainSpec spec) {
-                        this.languageVersion = spec.getLanguageVersion().get();
-                    }
-        
-                    @Override
-                    public String fileExtension() {
-                        return "tgz";
-                    }
-        
-                    @Override
-                    public String vendor() {
-                        return "exotic";
-                    }
-        
-                    @Override
-                    public String languageLevel() {
-                        return languageVersion.toString();
-                    }
-        
-                    @Override
-                    public String operatingSystem() {
-                        return "linux";
-                    }
-        
-                    @Override
-                    public String implementation() {
-                        return "exoticVM";
-                    }
-        
-                    @Override
-                    public String architecture() {
-                        return "x64";
-                    }
                 }
             }
             """
@@ -268,11 +226,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public Optional<URI> toUri(JavaToolchainSpec spec) {
-                    return Optional.empty();
-                }
-        
-                @Override
-                public Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
                     return Optional.empty();
                 }
         

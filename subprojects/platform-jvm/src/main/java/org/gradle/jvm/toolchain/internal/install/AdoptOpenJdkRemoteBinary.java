@@ -66,15 +66,6 @@ public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepositor
     }
 
     @Override
-    public Optional<Metadata> toMetadata(JavaToolchainSpec spec) {
-        if (canProvide(spec)) {
-            return Optional.of(new MetadataImpl(spec));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    @Override
     public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
         return JavaToolchainSpecVersion.V1;
     }
@@ -123,22 +114,6 @@ public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepositor
         return isJ9Requested(spec) ? "openj9" : "hotspot";
     }
 
-    private String determineVendor(JavaToolchainSpec spec) {
-        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        if (vendorSpec == DefaultJvmVendorSpec.any()) {
-            return "adoptium";
-        } else {
-            return vendorSpec.toString().toLowerCase();
-        }
-    }
-
-    private String determineFileExtension() {
-        if (operatingSystem().isWindows()) {
-            return "zip";
-        }
-        return "tar.gz";
-    }
-
     private static JavaLanguageVersion determineLanguageVersion(JavaToolchainSpec spec) {
         return spec.getLanguageVersion().get();
     }
@@ -178,51 +153,6 @@ public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepositor
             baseUri += "/";
         }
         return baseUri;
-    }
-
-    private class MetadataImpl implements Metadata {
-
-        private final JavaToolchainSpec spec;
-
-        public MetadataImpl(JavaToolchainSpec spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        public String fileExtension() {
-            return determineFileExtension();
-        }
-
-        @Override
-        public String vendor() {
-            return determineVendor(spec);
-        }
-
-        @Override
-        public String languageLevel() {
-            return determineLanguageVersion(spec).toString();
-        }
-
-        @Override
-        public String operatingSystem() {
-            return determineOs();
-        }
-
-        @Override
-        public String implementation() {
-            return determineImplementation(spec);
-        }
-
-        @Override
-        public String architecture() {
-            return determineArch();
-        }
-
-        @Override
-        public String toString() {
-            return "fileExtension: " + fileExtension() + ", vendor: " + vendor() + ", languageLevel: " + languageLevel() +
-                    "operatingSystem: " + operatingSystem() + ", implementation: " + implementation() + ", architecture: " + architecture();
-        }
     }
 
     private static String determineOrganization(JavaToolchainSpec spec) {

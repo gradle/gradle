@@ -22,13 +22,11 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainRepository
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
-import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -60,34 +58,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         12         | "Darwin"            | SystemInfo.Architecture.i386    | "https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x32/jdk/hotspot/normal/adoptopenjdk"
         13         | "OSX"               | SystemInfo.Architecture.aarch64 | "https://api.adoptopenjdk.net/v3/binary/latest/13/ga/mac/aarch64/jdk/hotspot/normal/adoptopenjdk"
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "https://api.adoptopenjdk.net/v3/binary/latest/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
-    }
-
-    def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
-        given:
-        def spec = newSpec(jdkVersion, implementation, vendor)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> architecture
-        def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
-
-        when:
-        Optional<JavaToolchainRepository.Metadata> metadata = binary.toMetadata(spec)
-
-        then:
-        metadata.isPresent()
-        DefaultJavaToolchainProvisioningService.toArchiveFileName(metadata.get()) == expectedFilename
-
-        where:
-        jdkVersion | operatingSystemName | architecture                    | implementation         | vendor                    | expectedFilename
-        11         | "Windows"           | SystemInfo.Architecture.amd64   | null                   | null                      | "adoptium-11-x64-hotspot-windows.zip"
-        12         | "Windows"           | SystemInfo.Architecture.i386    | JvmImplementation.J9   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-12-x32-openj9-windows.zip"
-        13         | "Windows"           | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-windows.zip"
-        11         | "Linux"             | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.ADOPTIUM    | "adoptium-11-x64-hotspot-linux.tar.gz"
-        12         | "Linux"             | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-linux.tar.gz"
-        13         | "Linux"             | SystemInfo.Architecture.aarch64 | JvmImplementation.J9   | null                      | "adoptium-13-aarch64-openj9-linux.tar.gz"
-        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-11-x64-openj9-mac.tar.gz"
-        12         | "Darwin"            | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-mac.tar.gz"
-        13         | "OSX"               | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-mac.tar.gz"
     }
 
     def "uses configured base uri #customBaseUrl if available"() {
