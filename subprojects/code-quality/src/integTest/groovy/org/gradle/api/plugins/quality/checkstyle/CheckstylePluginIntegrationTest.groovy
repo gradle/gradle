@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality.checkstyle
+
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
+
+import static org.gradle.api.plugins.quality.checkstyle.CheckstylePluginMultiProjectTest.javaClassWithNewLineAtEnd
+import static org.gradle.api.plugins.quality.checkstyle.CheckstylePluginMultiProjectTest.simpleCheckStyleConfig
 
 class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -31,7 +34,6 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21301")
-    @ToBeImplemented
     def "can pass a URL in configProperties"() {
         given:
         buildFile """
@@ -44,14 +46,13 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
                 configProperties["some"] = new URL("https://gradle.org/")
             }
         """
-        file('src/main/java/Some.java') << """
-            public class Some {}
-        """
+        file('src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         when:
-        fails 'check'
+        succeeds 'check'
 
         then:
-        failureHasCause("Could not serialize unit of work.")
+        executedAndNotSkipped ':checkstyleMain'
     }
 }
