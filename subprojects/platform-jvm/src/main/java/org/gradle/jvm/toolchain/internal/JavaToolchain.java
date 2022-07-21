@@ -71,7 +71,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     @Internal
     public JavaCompiler getJavaCompiler() {
-        return new DefaultToolchainJavaCompiler(this, compilerFactory, eventEmitter);
+        return new DefaultToolchainJavaCompiler(this, compilerFactory);
     }
 
     @Internal
@@ -136,8 +136,12 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return javaHome.toString();
     }
 
-    public RegularFile findExecutable(String toolname) {
-        return getInstallationPath().file(getBinaryPath(toolname));
+    public RegularFile findExecutable(String toolName) {
+        return getInstallationPath().file(getBinaryPath(toolName));
+    }
+
+    public void emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool javaTool) {
+        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(javaTool, metadata));
     }
 
     private Path computeEnclosingJavaHome(Path home) {
