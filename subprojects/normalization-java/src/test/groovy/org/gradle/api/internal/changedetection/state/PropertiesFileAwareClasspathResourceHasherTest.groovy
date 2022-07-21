@@ -27,6 +27,7 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.io.IoFunction
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.util.PropertiesUtils
 import spock.lang.Specification
@@ -273,6 +274,32 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
+    def "hashes original context with delegate for files that do not match a resource filter (filename: #filename)"() {
+        delegate = Mock(ResourceHasher)
+        def hasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
+        def notProperties = unsafeContextFor(filename, "foo".bytes)
+
+        when:
+        hasher.hash(notProperties)
+
+        then:
+        1 * delegate.hash(notProperties)
+
+        where:
+        filename << ['foo.txt', 'foo.properties']
+    }
+
+    def "always hashes directories with delegate"() {
+        delegate = Mock(ResourceHasher)
+        def directory = directoryContextfor("foo.properties")
+
+        when:
+        filteredHasher.hash(directory)
+
+        then:
+        1 * delegate.hash(directory)
+    }
+
     enum SnapshotContext {
         ZIP_ENTRY, FILE_SNAPSHOT
     }
@@ -303,11 +330,19 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         contextFor(context, "META-INF/build-info.properties", attributes, comments)
     }
 
+    static unsafeContextFor(String path, byte[] bytes) {
+        return zipEntry(path, bytes, true)
+    }
+
+    static directoryContextfor(String path) {
+        return zipEntry(path, [] as byte[], true, true)
+    }
+
     static filter(String... properties) {
         return new IgnoringResourceEntryFilter(ImmutableSet.copyOf(properties))
     }
 
-    ZipEntryContext zipEntry(String path, Map<String, String> attributes, String comments = "") {
+    static ZipEntryContext zipEntry(String path, Map<String, String> attributes, String comments = "") {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
@@ -315,11 +350,11 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         return zipEntry(path, bos.toByteArray())
     }
 
-    ZipEntryContext zipEntry(String path, byte[] bytes) {
+    static ZipEntryContext zipEntry(String path, byte[] bytes, boolean unsafe = false, boolean directory = false) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
-                return false
+                return directory
             }
 
             @Override
@@ -333,13 +368,23 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
-                action.run(new ByteArrayInputStream(bytes))
+            <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+                action.apply(new ByteArrayInputStream(bytes))
             }
 
             @Override
             int size() {
                 return bytes.length
+            }
+
+            @Override
+            boolean canReopen() {
+                return !unsafe
+            }
+
+            @Override
+            ZipEntry.ZipCompressionMethod getCompressionMethod() {
+                return ZipEntry.ZipCompressionMethod.DEFLATED
             }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")

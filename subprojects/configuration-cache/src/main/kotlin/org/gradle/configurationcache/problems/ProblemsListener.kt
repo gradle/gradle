@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.configurationcache.ConfigurationCacheError
+import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scopes
 
@@ -24,6 +26,13 @@ import org.gradle.internal.service.scopes.Scopes
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
+
+    fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+        throw ConfigurationCacheError(
+            "${propertyDescriptionFor(trace)}: ${StructuredMessage.build(message)}",
+            error.maybeUnwrapInvocationTargetException()
+        )
+    }
 
     fun forIncompatibleType(): ProblemsListener = this
 }

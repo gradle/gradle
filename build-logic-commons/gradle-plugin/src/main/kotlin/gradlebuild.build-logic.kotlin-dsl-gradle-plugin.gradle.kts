@@ -22,10 +22,7 @@ plugins {
     id("gradlebuild.ci-reporting")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+java.configureJavaToolChain()
 
 dependencies {
     api(platform(project(":build-platform")))
@@ -42,7 +39,7 @@ ktlint {
 
 tasks.runKtlintCheckOverKotlinScripts {
     // Only check the build files, not all *.kts files in the project
-    setIncludes(listOf("*.gradle.kts"))
+    includes += listOf("*.gradle.kts")
 }
 
 tasks.named("codeQuality") {

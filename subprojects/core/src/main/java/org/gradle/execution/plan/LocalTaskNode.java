@@ -106,7 +106,8 @@ public class LocalTaskNode extends TaskNode {
     public boolean isCanCancel() {
         FinalizerGroup finalizerGroup = getFinalizerGroup();
         if (finalizerGroup != null) {
-            for (Node node : finalizerGroup.getSuccessors()) {
+            // TODO(mlopatkin) what if this node is some dependency of a finalizer and its group is a CompositeNodeGroup and not just a FinalizerGroup?
+            for (Node node : finalizerGroup.getFinalizedNodes()) {
                 // Cannot cancel this node if something it finalizes has started
                 if (node.isExecuting() || node.isExecuted()) {
                     return false;
@@ -171,16 +172,6 @@ public class LocalTaskNode extends TaskNode {
 
     private Set<Node> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter());
-    }
-
-    @Override
-    public int compareTo(Node other) {
-        // Prefer to run tasks first
-        if (!(other instanceof LocalTaskNode)) {
-            return -1;
-        }
-        LocalTaskNode localTask = (LocalTaskNode) other;
-        return task.compareTo(localTask.task);
     }
 
     @Override
