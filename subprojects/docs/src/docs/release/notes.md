@@ -224,6 +224,44 @@ This change may cause new test failures and warnings. When running on Java 16+, 
 
 For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
 
+### Options for debugging the JVM over network with Java 9+
+
+A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
+connections over the network.
+If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
+they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
+
+In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
+On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
+one of the addresses of the current machine's network interfaces.
+
+Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
+accepting connections via network on Java 9+.
+
+### Reason messages in task predicates
+
+It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
+```groovy
+tasks.named("slowBenchmark") {
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
+        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
+    }
+}
+```
+
+These reason messages are reported in the console with the `--info` logging level.
+This might be helpful in finding out why a particular task is skipped.
+
+```
+gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
+```
+
+```
+> Task :slowBenchmark SKIPPED
+Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
+:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
