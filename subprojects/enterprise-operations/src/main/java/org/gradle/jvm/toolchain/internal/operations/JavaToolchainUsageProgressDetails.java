@@ -18,21 +18,45 @@ package org.gradle.jvm.toolchain.internal.operations;
 
 
 /**
- * Details about the Java toolchain being used.
+ * Details about the Java tool being used and the toolchain it belongs to.
  *
  * @since 7.6
  */
 public interface JavaToolchainUsageProgressDetails {
 
+    /**
+     * Name of the tool from Java distribution such as {@code javac}, {@code java} or {@code javadoc}.
+     */
     String getToolName();
 
+    /**
+     * Toolchain to which the tool belongs.
+     */
     JavaToolchain getToolchain();
 
     interface JavaToolchain {
 
-        String getLanguageVersion();
+        /**
+         * Returns Java language version such as {@code 11.0.15}.
+         */
+        String getJavaVersion();
 
-        String getVendor();
+        /**
+         * Display name of the toolchain vendor such as {@code Eclipse Temurin}.
+         */
+        String getJavaVendor();
+
+        String getRuntimeName();
+
+        String getRuntimeVersion();
+
+        String getJvmName();
+
+        String getJvmVersion();
+
+        String getJvmVendor();
+
+        String getArchitecture();
 
     }
 

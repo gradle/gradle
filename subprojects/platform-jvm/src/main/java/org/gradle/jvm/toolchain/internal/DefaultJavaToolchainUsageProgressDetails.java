@@ -16,17 +16,18 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails;
 
 public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUsageProgressDetails {
 
     private final JavaTool toolName;
 
-    private final org.gradle.jvm.toolchain.internal.JavaToolchain toolchain;
+    private final JvmInstallationMetadata toolchainMetadata;
 
-    public DefaultJavaToolchainUsageProgressDetails(JavaTool toolName, org.gradle.jvm.toolchain.internal.JavaToolchain toolchain) {
+    public DefaultJavaToolchainUsageProgressDetails(JavaTool toolName, JvmInstallationMetadata toolchainMetadata) {
         this.toolName = toolName;
-        this.toolchain = toolchain;
+        this.toolchainMetadata = toolchainMetadata;
     }
 
     @Override
@@ -36,15 +37,46 @@ public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUs
 
     @Override
     public JavaToolchain getToolchain() {
+        JvmInstallationMetadata metadata = toolchainMetadata;
         return new JavaToolchain() {
             @Override
-            public String getLanguageVersion() {
-                return toolchain.getMetadata().getLanguageVersion().toString();
+            public String getJavaVersion() {
+                return metadata.getJavaVersion();
             }
 
             @Override
-            public String getVendor() {
-                return toolchain.getVendor();
+            public String getJavaVendor() {
+                return metadata.getVendor().getDisplayName();
+            }
+
+            @Override
+            public String getRuntimeName() {
+                return metadata.getRuntimeName();
+            }
+
+            @Override
+            public String getRuntimeVersion() {
+                return metadata.getRuntimeVersion();
+            }
+
+            @Override
+            public String getJvmName() {
+                return metadata.getJvmName();
+            }
+
+            @Override
+            public String getJvmVersion() {
+                return metadata.getJvmVersion();
+            }
+
+            @Override
+            public String getJvmVendor() {
+                return metadata.getJvmVendor();
+            }
+
+            @Override
+            public String getArchitecture() {
+                return metadata.getArchitecture();
             }
         };
     }
