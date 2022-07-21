@@ -16,13 +16,19 @@
 
 package org.gradle.internal.upgrade.report;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.StartParameter;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.upgrade.report.ReportableApiChange.ApiMatcher;
 
+import javax.inject.Inject;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,14 +36,36 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class ApiUpgradeReporter {
+@ServiceScope(Scopes.BuildSession.class)
+public class ApiUpgradeReporter implements Closeable {
 
-    private final Map<ApiMatcher, Set<ReportableApiChange>> changes;
-    private final Set<String> detectedChanges;
+    private static final String BINARY_UPGRADE_JSON_PATH = "org.gradle.binary.upgrade.report.json";
 
-    private ApiUpgradeReporter(List<ReportableApiChange> changes) {
-        this.changes = toMap(changes);
-        this.detectedChanges = ConcurrentHashMap.newKeySet();
+    private final List<ReportableApiChange> apiUpgrades;
+    private final Map<ApiMatcher, Set<ReportableApiChange>> apiUpgradeMap;
+    private final Set<String> requiredUpgrades;
+    private final String randomHash;
+
+    @Inject
+    public ApiUpgradeReporter(StartParameter startParameter) {
+        this(getApiUpgradesFromFile(startParameter));
+    }
+
+    private ApiUpgradeReporter(List<ReportableApiChange> apiUpgrades) {
+        this.apiUpgrades = apiUpgrades;
+        this.apiUpgradeMap = toMap(apiUpgrades);
+        this.requiredUpgrades = ConcurrentHashMap.newKeySet();
+        this.randomHash = UUID.randomUUID().toString();
+        DynamicGroovyApiUpgradeDecorator.init(this);
+    }
+
+    private static List<ReportableApiChange> getApiUpgradesFromFile(StartParameter startParameter) {
+        String path = startParameter.getSystemPropertiesArgs().get(BINARY_UPGRADE_JSON_PATH);
+        if (path == null || !Files.exists(Paths.get(path))) {
+            return Collections.emptyList();
+        }
+        File file = new File(path);
+        return new ApiUpgradeJsonParser().parseAcceptedApiChanges(file);
     }
 
     private Map<ApiMatcher, Set<ReportableApiChange>> toMap(List<ReportableApiChange> changes) {
@@ -52,43 +80,40 @@ public class ApiUpgradeReporter {
 
     public void collectStaticApiChangesReport(int opcode, String sourceFile, int lineNumber, String owner, String name, String desc) {
         ApiMatcher matcher = new ApiMatcher(opcode, owner, name, desc);
-        List<String> report = changes.getOrDefault(matcher, Collections.emptySet()).stream()
+        List<String> report = apiUpgradeMap.getOrDefault(matcher, Collections.emptySet()).stream()
             .map(ReportableApiChange::getApiChangeReport)
             .collect(Collectors.toList());
         if (!report.isEmpty()) {
             if (report.size() == 1) {
-                detectedChanges.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report.get(0)));
+                requiredUpgrades.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report.get(0)));
             } else {
-                detectedChanges.add(String.format("%s: line: %s:\n\t%s", sourceFile, lineNumber, String.join("\n\t", report)));
+                requiredUpgrades.add(String.format("%s: line: %s:\n\t%s", sourceFile, lineNumber, String.join("\n\t", report)));
             }
         }
     }
 
     public void collectDynamicApiChangesReport(String sourceFile, int lineNumber, String report) {
-        detectedChanges.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report));
+        requiredUpgrades.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report));
     }
 
-    public boolean shouldDecorateCallsiteArray() {
-        return !changes.isEmpty();
+    public List<ReportableApiChange> getApiUpgrades() {
+        return apiUpgrades;
     }
 
     public void applyConfigurationTo(Hasher hasher) {
-        if (!changes.isEmpty()) {
+        if (!apiUpgradeMap.isEmpty()) {
             // This invalidates transform cache, so report is shown always, this is good for a spike,
             // but should be done differently for production
-            hasher.putString(UUID.randomUUID().toString());
+            hasher.putString(randomHash);
         }
     }
 
-    public List<String> getChanges() {
-        return ImmutableList.sortedCopyOf(detectedChanges);
-    }
-
     public static ApiUpgradeReporter noUpgrades() {
-        return newApiUpgradeReporter(Collections.emptyList());
+        return new ApiUpgradeReporter(Collections.emptyList());
     }
 
-    public static ApiUpgradeReporter newApiUpgradeReporter(List<ReportableApiChange> changes) {
-        return new ApiUpgradeReporter(changes);
+    @Override
+    public void close() throws IOException {
+        requiredUpgrades.forEach(System.out::println);
     }
 }

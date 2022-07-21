@@ -16,19 +16,21 @@
 
 package org.gradle.internal.upgrade.report;
 
-import java.io.Closeable;
-import java.io.IOException;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public class ApiUpgradeReportPrinter implements Closeable {
+import java.util.concurrent.atomic.AtomicReference;
 
-    private final ApiUpgradeReporterFactory factory;
+@ServiceScope(Scopes.UserHome.class)
+public class TransformApiUpgradeCollectorProvider {
 
-    public ApiUpgradeReportPrinter(ApiUpgradeReporterFactory factory) {
-        this.factory = factory;
+    private final AtomicReference<ApiUpgradeReporter> apiUpgradeReporter = new AtomicReference<>(ApiUpgradeReporter.noUpgrades());
+
+    public void set(ApiUpgradeReporter apiUpgradeReporter) {
+        this.apiUpgradeReporter.set(apiUpgradeReporter);
     }
 
-    @Override
-    public void close() throws IOException {
-        factory.getApiUpgraderAndRelease().getChanges().forEach(System.out::println);
+    public ApiUpgradeReporter getApiUpgrader() {
+        return apiUpgradeReporter.get();
     }
 }

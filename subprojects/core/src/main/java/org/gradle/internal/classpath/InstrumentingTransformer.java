@@ -310,7 +310,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
                 _DUP();
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
-                if (apiUpgradeReporter.shouldDecorateCallsiteArray()) {
+                if (DynamicGroovyApiUpgradeDecorator.shouldDecorateCallsiteArray()) {
                     _DUP();
                     _INVOKESTATIC(DYNAMIC_GROOVY_API_UPGRADE_DECORATOR_TYPE, "decorateCallSiteArray", RETURN_VOID_FROM_CALL_SITE_ARRAY);
                 }

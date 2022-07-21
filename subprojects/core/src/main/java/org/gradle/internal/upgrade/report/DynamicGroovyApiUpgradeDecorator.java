@@ -32,21 +32,25 @@ public class DynamicGroovyApiUpgradeDecorator {
     private final ApiUpgradeReporter reporter;
     private final Lazy<List<DynamicGroovyUpgradeDecoration>> decorations;
 
-    private DynamicGroovyApiUpgradeDecorator(ApiUpgradeReporter reporter, List<ReportableApiChange> changes) {
+    private DynamicGroovyApiUpgradeDecorator(ApiUpgradeReporter reporter) {
         this.reporter = reporter;
-        this.decorations = Lazy.locking().of(() -> initChanges(changes));
+        this.decorations = Lazy.locking().of(() -> initDecorations(reporter.getApiUpgrades()));
     }
 
-    public static void init(ApiUpgradeReporter reporter, List<ReportableApiChange> changes) {
-        registry.compareAndSet(null, new DynamicGroovyApiUpgradeDecorator(reporter, changes));
-    }
-
-    private List<DynamicGroovyUpgradeDecoration> initChanges(List<ReportableApiChange> changes) {
+    private List<DynamicGroovyUpgradeDecoration> initDecorations(List<ReportableApiChange> changes) {
         return changes.stream()
             .map(change -> change.mapToDynamicGroovyDecoration(reporter))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(ImmutableList.toImmutableList());
+    }
+
+    public static void init(ApiUpgradeReporter reporter) {
+        registry.set(new DynamicGroovyApiUpgradeDecorator(reporter));
+    }
+
+    public static boolean shouldDecorateCallsiteArray() {
+        return registry.get() != null;
     }
 
     /**
