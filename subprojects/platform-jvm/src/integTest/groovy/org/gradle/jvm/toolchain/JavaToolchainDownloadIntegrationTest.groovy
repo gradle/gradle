@@ -42,7 +42,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         when:
         ExecutionResult result = executer
                 .withTasks("compileJava")
-                .withArguments("--info")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
                 .run()
