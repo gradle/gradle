@@ -56,6 +56,65 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         }
     }
 
+    def "toolchain usage events are emitted for test"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        buildscriptWithToolchain(jdkMetadata)
+
+        file("src/test/java/FooTest.java") << """
+            public class FooTest {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        when:
+        runWithToolchainConfigured(jdkMetadata, "check")
+        def compileTestEvents = eventsFor(":compileTestJava")
+        def testEvents = eventsFor(":test")
+        then:
+        compileTestEvents.size() > 0
+        compileTestEvents.each { usageEvent ->
+            assertToolchainUsage("javac", jdkMetadata, usageEvent)
+        }
+        testEvents.size() > 0
+        testEvents.each { usageEvent ->
+            assertToolchainUsage("java", jdkMetadata, usageEvent)
+        }
+    }
+
+    def "toolchain usage events are emitted for javadoc"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        buildscriptWithToolchain(jdkMetadata)
+
+        file("src/main/java/Foo.java") << """
+            /**
+             * This is a {@code} Foo class.
+             */
+            public class Foo {}
+        """
+
+        when:
+        runWithToolchainConfigured(jdkMetadata, "javadoc")
+        def events = eventsFor(":javadoc")
+        then:
+        events.size() > 0
+        events.each { usageEvent ->
+            assertToolchainUsage("javadoc", jdkMetadata, usageEvent)
+        }
+    }
+
+    // TODO: test with a custom task that uses a toolchain
+
+    // TODO: test with a custom task that uses two toolchains
+
+    // TODO: test with two tasks using own toolchain in one build, and each event should be attributed to the right tasks
+    //  - two tasks could be in the same project
+    //  - two tasks could in different sub-projects (one using Java 8 and Java 11)
+
+    // TODO: javaCompile.options.forkOptions.javaHome = "blah" while using a toolchain
+
+    // TODO: test with Kotlin plugin
+
     private void assertToolchainUsage(String toolName, JvmInstallationMetadata jdkMetadata, BuildOperationRecord.Progress usageEvent) {
         assert usageEvent.details.toolName == toolName
 
