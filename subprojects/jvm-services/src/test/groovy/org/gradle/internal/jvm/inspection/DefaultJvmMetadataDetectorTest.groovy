@@ -164,7 +164,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
     def "detects invalid installation because #errorMessage"() {
         given:
-        def execHandleFactory = createExecHandleFactory(systemProperties, validateProperties)
+        def execHandleFactory = createExecHandleFactory(systemProperties)
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
@@ -189,10 +189,10 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         assertIsUnsupported({ metadata.architecture })
 
         where:
-        jdk                                   | systemProperties | validateProperties | exists | errorMessage
-        'localGradle'                         | currentGradle()  | true               | false  | "No such directory: "
-        'binary that has invalid output'      | invalidOutput()  | false              | true   | "Unexpected command output:"
-        'binary that returns unknown version' | invalidVersion() | true               | true   | "Cannot parse version number: bad luck"
+        jdk                                   | systemProperties | exists | errorMessage
+        'localGradle'                         | currentGradle()  | false  | "No such directory: "
+        'binary that has invalid output'      | invalidOutput()  | true   | "Unexpected command output:"
+        'binary that returns unknown version' | invalidVersion() | true   | "Cannot parse version number: bad luck"
     }
 
     private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
