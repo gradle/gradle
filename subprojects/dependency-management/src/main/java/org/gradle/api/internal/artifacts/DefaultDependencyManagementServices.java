@@ -58,6 +58,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
@@ -140,6 +141,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -296,7 +298,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 NamedObjectInstantiator instantiator,
                 DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                 ChecksumService checksumService,
-                ProviderFactory providerFactory
+                ProviderFactory providerFactory,
+                VersionParser versionParser
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -320,7 +323,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 callbackDecorator,
                 urlArtifactRepositoryFactory,
                 checksumService,
-                providerFactory
+                providerFactory,
+                versionParser
             );
         }
 
@@ -495,7 +499,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildState currentBuild,
                                                        TransformedVariantFactory transformedVariantFactory,
                                                        DependencyVerificationOverride dependencyVerificationOverride,
-                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                                       WorkerLeaseService workerLeaseService) {
             return new ErrorHandlingConfigurationResolver(
                 new ShortCircuitEmptyConfigurationResolver(
                     new DefaultConfigurationResolver(
@@ -522,7 +527,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         currentBuild.getBuildIdentifier(),
                         new AttributeDesugaring(attributesFactory),
                         dependencyVerificationOverride,
-                        componentSelectionDescriptorFactory),
+                        componentSelectionDescriptorFactory,
+                        workerLeaseService),
                     componentIdentifierFactory,
                     moduleIdentifierFactory,
                     currentBuild.getBuildIdentifier()));

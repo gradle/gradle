@@ -63,6 +63,16 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         String getSkipMessage();
 
         /**
+         * The detailed reason why the task was skipped, if provided by the project configuration.
+         *
+         * Expected to be {@link org.gradle.api.tasks.TaskState#getSkipReasonMessage()}.
+         *
+         * @since 7.6
+         */
+        @Nullable
+        String getSkipReasonMessage();
+
+        /**
          * Whether the task had any actions.
          * See {@link org.gradle.api.internal.tasks.TaskStateInternal#isActionable()}.
          */

@@ -42,6 +42,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def ancestryTracker = Mock(BuildOperationAncestryTracker)
         def testExecutionRequest = Mock(TestExecutionRequestAction)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(ancestryTracker, testExecutionRequest)
+        1 * testExecutionRequest.getTestPatternSpecs() >> []
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
         def defaultTestDescriptor = Mock(DefaultTestDescriptor)

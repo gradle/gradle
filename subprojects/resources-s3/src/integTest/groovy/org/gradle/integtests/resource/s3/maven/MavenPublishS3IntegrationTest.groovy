@@ -24,6 +24,7 @@ import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Requires
 
@@ -127,6 +128,9 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.expectDownloadMissing()
         expectPublish(module.rootMetaData)
 
+        if (TestPrecondition.MAC_OS_X_M1.fulfilled) {
+            executer.withStackTraceChecksDisabled()
+        }
         succeeds 'publish'
 
         then:

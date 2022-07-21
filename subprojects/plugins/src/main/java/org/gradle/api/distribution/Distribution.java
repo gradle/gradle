@@ -17,6 +17,7 @@
 package org.gradle.api.distribution;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.provider.Property;
@@ -41,6 +42,16 @@ public interface Distribution extends Named {
      * @since 6.0
      */
     Property<String> getDistributionBaseName();
+
+    /**
+     * The classifier of the distribution, used as the archive classifier in the archives of this distribution.
+     * <p>
+     * By default, no classifier is added.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    Property<String> getDistributionClassifier();
 
     /**
      * The contents of the distribution.

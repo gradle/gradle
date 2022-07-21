@@ -18,6 +18,7 @@ package org.gradle.jvm.tasks;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
@@ -181,7 +182,7 @@ public class Jar extends Zip {
      * @param configureClosure The closure.
      * @return This.
      */
-    public Jar manifest(Closure<?> configureClosure) {
+    public Jar manifest(@DelegatesTo(Manifest.class) Closure<?> configureClosure) {
         ConfigureUtil.configure(configureClosure, forceManifest());
         return this;
     }
@@ -220,7 +221,7 @@ public class Jar extends Zip {
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
      */
-    public CopySpec metaInf(Closure<?> configureClosure) {
+    public CopySpec metaInf(@DelegatesTo(CopySpec.class) Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
 

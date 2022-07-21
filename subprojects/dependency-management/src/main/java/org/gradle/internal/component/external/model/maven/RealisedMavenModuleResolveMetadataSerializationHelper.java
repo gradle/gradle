@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
@@ -231,7 +232,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         int mapping = decoder.readSmallInt();
         if (mapping == deduplicationDependencyCache.size()) {
             ModuleComponentSelector requested = getComponentSelectorSerializer().read(decoder);
-            IvyArtifactName artifactName = readNullableArtifact(decoder);
+            IvyArtifactName artifactName = IvyArtifactNameSerializer.INSTANCE.readNullable(decoder);
             List<ExcludeMetadata> mavenExcludes = readMavenExcludes(decoder);
             MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
             MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
@@ -253,7 +254,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         } else {
             encoder.writeSmallInt(nextMapping);
             getComponentSelectorSerializer().write(encoder, mavenDependency.getSelector());
-            writeNullableArtifact(encoder, mavenDependency.getDependencyArtifact());
+            IvyArtifactNameSerializer.INSTANCE.writeNullable(encoder, mavenDependency.getDependencyArtifact());
             writeMavenExcludeRules(encoder, mavenDependency.getAllExcludes());
             encoder.writeSmallInt(mavenDependency.getScope().ordinal());
             encoder.writeSmallInt(mavenDependency.getType().ordinal());

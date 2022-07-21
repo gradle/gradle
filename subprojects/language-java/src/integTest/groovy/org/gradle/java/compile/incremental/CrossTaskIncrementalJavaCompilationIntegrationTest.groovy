@@ -40,8 +40,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     // This behavior is kept for backward compatibility - may be removed in the future
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "recompiles when upstream module-info changes with manual module path"() {
-        file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
-        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
+        source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}"]
         def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
         moduleInfo.text = """
             module api {
@@ -79,26 +78,27 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         settingsFile << "include 'otherApi'"
         file("impl/build.gradle") << "dependencies { implementation(project(':otherApi')) }"
 
-        file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
         file("api/src/main/${language.name}/module-info.${language.name}") << """
             module api {
                 exports a;
             }
         """
-        file("otherApi/src/main/${language.name}/a2/A.${language.name}").text = "package a2; public class A {}"
         file("otherApi/src/main/${language.name}/module-info.${language.name}") << """
             module otherApi {
                 exports a2;
             }
         """
-        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; class B extends a.A{}"
-        file("impl/src/main/${language.name}/b/B2.${language.name}").text = "package b; class B2 extends a2.A{}"
         file("impl/src/main/${language.name}/module-info.${language.name}").text = """
             module impl {
                 requires api;
                 requires otherApi;
             }
         """
+        source(
+            api: ["package a; public class A {}"],
+            otherApi: ["package a2; public class A {}"],
+            impl: ["package b; class B extends a.A{}", "package b; class B2 extends a2.A{}"]
+        )
         succeeds "impl:${language.compileTaskName}"
 
         when:

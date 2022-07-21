@@ -82,6 +82,34 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
+    fun `cache key honours --offline`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = true
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    isOffline = true
+                }
+            )
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = true
+            },
+            not(equalTo(cacheKeyStringFromStartParameter {
+                isOffline = false
+            }))
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = false
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+    }
+
+    @Test
     fun `sanity check`() {
         assertThat(
             cacheKeyStringFromStartParameter {},

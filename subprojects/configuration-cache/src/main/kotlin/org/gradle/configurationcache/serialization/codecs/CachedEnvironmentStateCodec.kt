@@ -16,11 +16,8 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
-import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.propertyDescriptionFor
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -33,11 +30,13 @@ import java.io.IOException
 
 internal
 object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnvironmentState> {
+
     override suspend fun WriteContext.encode(value: EnvironmentChangeTracker.CachedEnvironmentState) {
         writeBoolean(value.cleared)
 
         writeCollection(value.updates) { update ->
-            withPropertyTrace(PropertyTrace.SystemProperty(update.key.toString(), update.location ?: PropertyTrace.Unknown)) {
+            val keyString = update.key.toString()
+            withPropertyTrace(PropertyTrace.SystemProperty(keyString, update.location ?: PropertyTrace.Unknown)) {
                 try {
                     write(update.key)
                     write(update.value)
@@ -46,10 +45,10 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
                 } catch (passThrough: ConfigurationCacheProblemsException) {
                     throw passThrough
                 } catch (error: Exception) {
-                    throw ConfigurationCacheError(
-                        propertyDescriptionFor(trace),
-                        error.maybeUnwrapInvocationTargetException()
-                    )
+                    onError(error) {
+                        text("failed to write system property ")
+                        reference(keyString)
+                    }
                 }
             }
         }

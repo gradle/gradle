@@ -24,9 +24,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
-
     def setup() {
-        runner.targetVersions = ["7.4.1-20220211002507+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 

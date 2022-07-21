@@ -113,7 +113,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "adhoc dependency resolution in task action")
     void "caches incremental build state"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")

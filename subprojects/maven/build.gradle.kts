@@ -62,7 +62,7 @@ strictCompile {
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/publication/maven/internal/**")
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }

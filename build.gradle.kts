@@ -1,4 +1,5 @@
 plugins {
+    id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
 
     id("gradlebuild.lifecycle")                  // CI: Add lifecycle tasks to for the CI pipeline (currently needs to be applied early as it might modify global properties)

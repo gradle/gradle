@@ -199,7 +199,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         inDirectory 'project'
         run 'help'
         then:
-        outputContains 'Project accessors enabled, but root project name not explicitly set.'
+        outputContains 'Project accessors enabled, but root project name not explicitly set for \'project\'.'
 
         //run second time
         when:
@@ -207,9 +207,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         run 'help'
         then:
         if (GradleContextualExecuter.isConfigCache()) {
-            outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set.'
+            outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set for \'project\'.'
         } else {
-            outputContains 'Project accessors enabled, but root project name not explicitly set.'
+            outputContains 'Project accessors enabled, but root project name not explicitly set for \'project\'.'
         }
     }
 
@@ -227,12 +227,12 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         when:
         run 'help'
         then:
-        outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set.'
+        outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set'
 
         //run second time
         when:
         run 'help'
         then:
-        outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set.'
+        outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set'
     }
 }

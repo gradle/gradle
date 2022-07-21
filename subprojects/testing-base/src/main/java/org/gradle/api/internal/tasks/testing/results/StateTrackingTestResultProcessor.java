@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
@@ -97,14 +98,14 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     }
 
     @Override
-    public final void failure(Object testId, Throwable result) {
+    public final void failure(Object testId, TestFailure testFailure) {
         TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
                     "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
                     testId, executing.keySet()));
         }
-        testState.failures.add(result);
+        testState.failures.add(testFailure);
     }
 
     @Override

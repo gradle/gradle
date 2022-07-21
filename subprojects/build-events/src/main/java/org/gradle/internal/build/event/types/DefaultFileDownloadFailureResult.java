@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
 
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
 public class DefaultFileDownloadFailureResult extends DefaultFailureResult implements InternalFileDownloadResult {
     private final long bytesDownloaded;
 
-    public DefaultFileDownloadFailureResult(long startTime, long endTime, List<DefaultFailure> failures, long bytesDownloaded) {
+    public DefaultFileDownloadFailureResult(long startTime, long endTime, List<InternalFailure> failures, long bytesDownloaded) {
         super(startTime, endTime, failures);
         this.bytesDownloaded = bytesDownloaded;
     }
