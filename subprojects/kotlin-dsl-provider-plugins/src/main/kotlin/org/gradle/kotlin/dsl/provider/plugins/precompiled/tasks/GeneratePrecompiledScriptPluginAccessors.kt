@@ -77,7 +77,7 @@ import javax.inject.Inject
 
 
 internal
-val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
+const val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
 
 
 @CacheableTask

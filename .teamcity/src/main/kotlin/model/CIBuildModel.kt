@@ -320,7 +320,7 @@ enum class PerformanceTestType(
         timeout = 600,
         defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
-        extraParameters = "--checks none --rerun"
+        extraParameters = "--checks none --rerun --cross-version-only"
     ),
     historical(
         displayName = "Historical Performance Test",

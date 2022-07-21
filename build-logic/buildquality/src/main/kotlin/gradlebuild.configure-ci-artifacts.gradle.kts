@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.classycle.tasks.Classycle
 import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
@@ -35,7 +34,6 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
 
 fun Task.customReports(): List<File> = when (this) {
     is ValidatePlugins -> listOf(outputFile.get().asFile)
-    is Classycle -> listOf(reportFile.get().asFile)
     is FindBrokenInternalLinks -> listOf(reportFile.get().asFile)
     is DistributionTest -> listOf(
         gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon").get().asFile,

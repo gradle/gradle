@@ -136,5 +136,21 @@ public enum OperationType {
      * @since 7.3
      */
     @Incubating
-    FILE_DOWNLOAD
+    FILE_DOWNLOAD,
+
+
+    /**
+     * Flag for build phase events.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent}</li>
+     * </ul>
+     *
+     * @since 7.6
+     */
+    @Incubating
+    BUILD_PHASE
 }

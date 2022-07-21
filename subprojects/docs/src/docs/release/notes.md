@@ -1,3 +1,4 @@
+
 The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
@@ -21,14 +22,17 @@ We would like to thank the following community members for their contributions t
 [Gabriel Feo](https://github.com/gabrielfeo),
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
-[Karl-Michael Schindler](https://github.com/kamischi)
-[Leonardo Brondani Schenkel](https://github.com/lbschenkel)
+[Joseph Woolf](https://github.com/jsmwoolf),
+[Karl-Michael Schindler](https://github.com/kamischi),
+[Konstantin Gribov](https://github.com/grossws),
+[Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
+[Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
-[Xin Wang](https://github.com/scaventz),
+[Xin Wang](https://github.com/scaventz)
 
 
 ## Upgrade instructions
@@ -197,20 +201,28 @@ can be passed from the command line as follows:
 gradle myCustomTask --integer-option=123
 ```
 
+### JVM language support improvements
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
+#### Java and Groovy incremental compilation after a failure
 
--->
+Gradle already supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile) by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) as an opt-in experimental feature.
+In previous versions after a compilation failure the next compilation was not incremental but a full recompilation instead.
+With this version, Java and Groovy incremental compilation will work incrementally also after a failure.
+This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
 
-### Better test compatibility with Java 9+
+#### Better test compatibility with Java 9+
 
 When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. In some cases, this would cause code to pass during testing but fail at runtime.  
 
 This change may cause new test failures and warnings. When running on Java 16+, code performing reflection on JDK internals will now fail tests. When running on Java 9-15, illegal access warnings will appear in logs. While this change may break some existing builds, most failures are likely to uncover suppressed issues which would have only been detected at runtime.
 
 For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

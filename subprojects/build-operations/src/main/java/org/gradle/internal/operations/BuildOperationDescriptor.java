@@ -146,8 +146,9 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
-        public void totalProgress(int totalProgress) {
+        public Builder totalProgress(int totalProgress) {
             this.totalProgress = totalProgress;
+            return this;
         }
 
         /**
