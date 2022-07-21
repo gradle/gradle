@@ -114,7 +114,13 @@ testLauncher.withTestsFor(spec -> {
 
 Note, that the new test selection interface only works if the target Gradle version is >=7.6.
 
-### Improved Maven Conversion
+### Improvements to the `init` plugin
+
+#### Use included build for convention plugins (incubating)
+
+When generating builds using the `init` task and opting in to using incubating features, convention plugins are now located in an included build under the `gradle/plugins` directory instead of in `buildSrc`.
+
+#### Improved Maven Conversion
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
 
