@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
