@@ -22,13 +22,12 @@ import org.gradle.integtests.fixtures.logging.comparison.ExhaustiveLinesSearcher
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.CollectionUtils.filter;
 import static org.gradle.util.internal.CollectionUtils.join;
 
 public class GroupedTaskFixture {
-    private ComparisonFailureFormat assertionFailureFormat = ComparisonFailureFormat.AUTO;
-
     private final String taskName;
 
     private String taskOutcome;
@@ -37,11 +36,6 @@ public class GroupedTaskFixture {
 
     public GroupedTaskFixture(String taskName) {
         this.taskName = taskName;
-    }
-
-    public GroupedTaskFixture withAssertionFailureFormat(ComparisonFailureFormat assertionFailureFormat) {
-        this.assertionFailureFormat = assertionFailureFormat;
-        return this;
     }
 
     protected void addOutput(String output) {
@@ -78,36 +72,72 @@ public class GroupedTaskFixture {
         return "Output for task: " + taskName + (null != taskOutcome ? " (" + taskOutcome + ")" : "");
     }
 
-    private GroupedTaskFixture assertOutputContains(String text) {
-        String output = getOutput();
-        assert output.contains(text);
-        return this;
+    /**
+     * Given some lines of text, assert that the output of this fixture contains each of them.
+     *
+     * This method behaves differently depending on how many lines are the target of the search.  If a single line is provided,
+     * this method uses the original comparison logic and failure format.  If multiple lines are provided, this method uses the
+     * new {@link ComparisonFailureFormat#LINEWISE} format, which should be easier to read.
+     *
+     * @param text the expected lines of text
+     * @return this fixture
+     */
+    public GroupedTaskFixture assertOutputContains(String... text) {
+        List<String> lines = Arrays.stream(text).collect(Collectors.toList());
+        return assertOutputContains(lines, ComparisonFailureFormat.AUTO);
     }
 
-    public GroupedTaskFixture assertOutputContains2(String... text) {
+    /**
+     * Given some lines of text, assert that the output of this fixture contains each of them.
+     *
+     * This method behaves differently depending on how many lines are the target of the search.  If a single line is provided,
+     * this method uses the original comparison logic and failure format.  If multiple lines are provided, this method uses the
+     * new {@link ComparisonFailureFormat#LINEWISE} format, which should be easier to read.
+     *
+     * @param text the expected lines of text
+     * @return this fixture
+     */
+    public GroupedTaskFixture assertOutputContains(List<String> text) {
+        return assertOutputContains(text, ComparisonFailureFormat.AUTO);
+    }
+
+    /**
+     * Given a list of lines, assert that the output of this fixture contains each of them and reports failures in the given format.
+     *
+     * @param text the expected lines of text
+     * @param assertionFailureFormat the format to use for the failure message, if lines are not found
+     * @return this fixture
+     */
+    public GroupedTaskFixture assertOutputContains(List<String> text, ComparisonFailureFormat assertionFailureFormat) {
         switch (assertionFailureFormat) {
             case LEGACY:
-                return assertOutputContainsLegacyFormat(text);
+                return assertOutputContainsUsingLegacy(text);
             case LINEWISE:
-                return assertOutputContainsUsingSearcher(Arrays.asList(text), new ExhaustiveLinesSearcher());
+                return assertOutputContainsUsingSearcher(text, new ExhaustiveLinesSearcher());
             case UNIFIED:
-                return assertOutputContainsUsingSearcher(Arrays.asList(text), new ExhaustiveLinesSearcher().useUnifiedDiff());
+                return assertOutputContainsUsingSearcher(text, new ExhaustiveLinesSearcher().useUnifiedDiff());
             case AUTO:
-                if (text.length == 1) {
-                    return assertOutputContainsLegacyFormat(text);
+                if (text.size() == 1) {
+                    return assertOutputContainsUsingLegacy(text);
                 } else {
-                    return assertOutputContainsUsingSearcher(Arrays.asList(text), new ExhaustiveLinesSearcher());
+                    return assertOutputContainsUsingSearcher(text, new ExhaustiveLinesSearcher());
                 }
             default:
                 throw new UnsupportedOperationException("Unknown assertion failure format: " + assertionFailureFormat);
         }
     }
 
-//    public GroupedTaskFixture assertOutputContains(List<String> text) {
-//        return assertOutputContains(text.toArray(new String[text.size()]));
-//    }
-
-    private GroupedTaskFixture assertOutputContainsLegacyFormat(String... text) {
+    /**
+     * Given some lines of text, assert that the fixture output contains each of them using the legacy comparison logic.
+     *
+     * This method does <strong>NOT</strong> use the order of the lines when searching for them in the output, each line
+     * is searched for individually.  If any fail, and exception is thrown reporting that line only.  This matches the previous
+     * behavior of the {@link #assertOutputContains(String...)} method.
+     *
+     * @param text the expected lines
+     * @return this fixture
+     */
+    private GroupedTaskFixture assertOutputContainsUsingLegacy(List<String> text) {
         String output = getOutput();
         for (String s : text) {
             assert output.contains(s);
@@ -116,25 +146,23 @@ public class GroupedTaskFixture {
     }
 
     /**
-     * Given a collection of lines checks if the sequence of lines is present in the actual task output.
+     * Given a list of lines checks if the sequence of lines is present and uninterrupted in the actual fixture output.
      * <p>
-     * Will report sequences where some (but not all) of the lines are present in the exception, if the entire expected input is not present.
+     * Will throw an exception given sequences where some (but not all) of the lines are present in the exception, if
+     * the entire expected input is not present.
      *
      * @param expectedLines the expected sequence of lines
      * @param searcher      the searcher to use to find the expected sequence of lines in the actual output
+     * @return this fixture
      */
     private GroupedTaskFixture assertOutputContainsUsingSearcher(List<String> expectedLines, ExhaustiveLinesSearcher searcher) {
-        List<String> actualLines = toLines(getOutput());
+        List<String> actualLines = Arrays.asList(getOutput().split("\\R"));
         searcher.assertLinesContainedIn(expectedLines, actualLines);
         return this;
     }
 
-    private List<String> toLines(String string) {
-        return Arrays.asList(string.split("\\R"));
-    }
-
     /**
-     * Specifies different formats for repoprting a failure of {@link #assertOutputContains(String...)}.
+     * Specifies different formats for reporting a failure of {@link #assertOutputContains(String...)}.
      */
     public enum ComparisonFailureFormat {
         /**
@@ -143,7 +171,9 @@ public class GroupedTaskFixture {
          */
         AUTO,
         /**
-         * The legacy format, which may be difficult to read for comparisons spanning multiple lines.
+         * The legacy format, which may be difficult to read for comparisons spanning multiple lines.  This format also
+         * causes each line to be searched for individually, are succeeds if all lines are found.  The order of the lines
+         * is not considered.
          */
         LEGACY,
         /**
