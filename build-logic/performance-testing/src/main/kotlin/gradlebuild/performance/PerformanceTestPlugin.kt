@@ -26,6 +26,7 @@ import gradlebuild.basics.androidStudioHome
 import gradlebuild.basics.autoDownloadAndroidStudio
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.defaultPerformanceBaselines
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
@@ -329,6 +330,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         determineBaselines.configure {
             configuredBaselines.set(extension.baselines)
+            defaultBaselines.set(project.defaultPerformanceBaselines)
+            logicalBranch.set(project.logicalBranch)
         }
 
         buildCommitDistribution.configure {

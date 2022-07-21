@@ -60,7 +60,7 @@ strictCompile {
     ignoreRawTypes()
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/internal/*")
     excludePatterns.add("org/gradle/plugins/ide/eclipse/internal/*")
     excludePatterns.add("org/gradle/plugins/ide/idea/internal/*")

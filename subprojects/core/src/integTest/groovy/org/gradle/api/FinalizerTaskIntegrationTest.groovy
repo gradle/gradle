@@ -30,33 +30,39 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile '''
             task finalizer {
-                dependsOn 'finalized'
+                dependsOn 'finalizerDep'
             }
-            task finalized {
+            task finalizerDep {
                 dependsOn 'entryPoint'
                 finalizedBy 'finalizer'
             }
             task entryPoint {
+                dependsOn 'entryPointDep'
                 finalizedBy 'finalizer'
+            }
+            task entryPointDep {
             }
         '''
 
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPoint', ':finalized', ':finalizer'
+            result.assertTaskOrder ':entryPointDep', ':entryPoint', ':finalizerDep', ':finalizer'
         }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
-    def "finalizer task can depend on finalized task"() {
+    def "finalizer task can depend on finalized task that is not an entry point task"() {
         given:
         buildFile '''
             task finalizer {
-                dependsOn 'finalized'
+                dependsOn 'finalizerDep'
             }
-            task finalized {
+            task finalizerDep {
+                dependsOn 'finalizerDepDep'
                 finalizedBy 'finalizer'
+            }
+            task finalizerDepDep {
             }
             task entryPoint {
                 finalizedBy 'finalizer'
@@ -66,9 +72,34 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPoint', ':finalized', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
         }
+    }
 
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer task can depend on finalized tasks"() {
+        given:
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalizerDep'
+                dependsOn 'entryPoint'
+            }
+            task finalizerDep {
+                dependsOn 'finalizerDepDep'
+                finalizedBy 'finalizer'
+            }
+            task finalizerDepDep {
+            }
+            task entryPoint {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
@@ -101,18 +132,21 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile '''
             task finalizer1 {
-                dependsOn 'dep1'
+                dependsOn 'finalizerDep1'
             }
             task finalizer2 {
-                dependsOn 'dep1'
+                dependsOn 'finalizerDep1'
             }
-            task dep1 {
-                dependsOn 'dep2'
+            task finalizerDep1 {
+                dependsOn 'finalizerDep2'
                 finalizedBy 'finalizer1'
             }
-            task dep2 {
+            task finalizerDep2 {
+                dependsOn 'finalizerDep3'
                 finalizedBy 'finalizer2'
                 finalizedBy 'finalizer1'
+            }
+            task finalizerDep3 {
             }
             task entryPoint {
                 finalizedBy 'finalizer1'
@@ -123,7 +157,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPoint', ':finalizer2', ':finalizer1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', ':finalizer2', ':finalizer1'
         }
     }
 

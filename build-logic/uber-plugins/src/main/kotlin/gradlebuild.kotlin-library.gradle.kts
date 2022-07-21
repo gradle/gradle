@@ -35,10 +35,6 @@ configurations.transitiveSourcesElements {
 tasks {
     withType<KotlinCompile>().configureEach {
         configureKotlinCompilerForGradleBuild()
-        if (name == "compileTestKotlin") {
-            // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
-            classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
-        }
     }
 
     codeQuality {

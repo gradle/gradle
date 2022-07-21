@@ -41,6 +41,7 @@ import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.function.Supplier
@@ -306,6 +307,30 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         sources.hasBundle('b0Bundle', 'getB0Bundle', "This bundle was declared in ${context}")
         sources.hasVersion('v0Version', 'getV0Version', "This version was declared in ${innerContext}")
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${context}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19752")
+    def "backslashes are escaped when outputting context in javadocs"() {
+        def context = "Windows path: C:\\Users\\user\\Documents\\ultimate plugin"
+        def escapedContext = "Windows path: C:\\Users\\u005cuser\\Documents\\u005cultimate plugin"
+
+        when:
+        generate {
+            description.set("Some description for tests")
+            withContext(context) {
+                library("some-alias", 'g:a:v')
+                bundle("b0Bundle", ["some-alias"])
+                version("v0Version", "1.0")
+                library("other", "g", "a").versionRef("v0Version")
+            }
+        }
+
+        then:
+        sources.assertClass('Generated', 'Some description for tests')
+        sources.hasDependencyAlias('some-alias', 'getAlias', "This dependency was declared in ${escapedContext}")
+        sources.hasBundle('b0Bundle', 'getB0Bundle', "This bundle was declared in ${escapedContext}")
+        sources.hasVersion('v0Version', 'getV0Version', "This version was declared in ${escapedContext}")
+        sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${escapedContext}")
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {

@@ -16,9 +16,7 @@
 
 package gradlebuild.performance.tasks
 
-import gradlebuild.basics.defaultPerformanceBaselines
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.basics.logicalBranch
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
@@ -39,6 +37,12 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     @get:Internal
     abstract val determinedBaselines: Property<String>
 
+    @get:Internal
+    abstract val defaultBaselines: Property<String>
+
+    @get:Internal
+    abstract val logicalBranch: Property<String>
+
     @TaskAction
     fun determineForkPointCommitBaseline() {
         if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
@@ -48,7 +52,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
         } else if (!currentBranchIsMasterOrRelease()) {
             determinedBaselines.set(forkPointCommitBaseline())
         } else {
-            determinedBaselines.set(project.defaultPerformanceBaselines)
+            determinedBaselines.set(defaultBaselines)
         }
 
         println("Determined baseline is: ${determinedBaselines.get()}")
@@ -64,7 +68,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = project.logicalBranch.get() in listOf("master", "release")
+    fun currentBranchIsMasterOrRelease() = logicalBranch.get() in listOf("master", "release")
 
     private
     fun currentCommitBaseline() = commitBaseline(project.execAndGetStdout("git", "rev-parse", "HEAD"))

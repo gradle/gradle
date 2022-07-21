@@ -47,7 +47,7 @@ class DefaultCopySpecCodec(
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         encodePreservingIdentityOf(value) {
-            write(value.destPath)
+            writeNullableString(value.destPath)
             write(value.sourceRootsForThisSpec)
             write(value.patterns)
             writeEnum(value.duplicatesStrategyForThisSpec)
@@ -63,7 +63,7 @@ class DefaultCopySpecCodec(
 
     override suspend fun ReadContext.decode(): DefaultCopySpec {
         return decodePreservingIdentity { id ->
-            val destPath = read() as String?
+            val destPath = readNullableString()
             val sourceFiles = read() as FileCollection
             val patterns = read() as PatternSet
             val duplicatesStrategy = readEnum<DuplicatesStrategy>()

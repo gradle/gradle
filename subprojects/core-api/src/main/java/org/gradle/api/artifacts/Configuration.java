@@ -277,7 +277,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Returns a {@code TaskDependency} object containing all required dependencies to build the local dependencies
-     * (e.g.<!-- --> project dependencies) belonging to this configuration or to one of its super configurations.
+     * (e.g. project dependencies) belonging to this configuration or to one of its super configurations.
      *
      * @return a TaskDependency object
      */
