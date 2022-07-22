@@ -55,7 +55,9 @@ wmic Path win32_process Where "name='java.exe'"
 
 enum class Arch(val suffix: String, val nameOnLinuxWindows: String, val nameOnMac: String) {
     AMD64("64bit", "amd64", "x86_64"),
-    AARCH64("aarch64", "aarch64", "aarch64")
+    AARCH64("aarch64", "aarch64", "aarch64");
+
+    fun asName() = name.lowercase().toCapitalized()
 }
 
 enum class Os(

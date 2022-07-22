@@ -2,12 +2,8 @@
 // tag::task[]
 abstract class GreetingFileTask : DefaultTask() {
 
-    @get:Internal
+    @get:InputFiles
     abstract val source: RegularFileProperty
-
-    @InputFile
-    @Optional
-    protected fun getSourceInternal() = source.map { if (it.asFile.exists()) it else null }
 
     @get:OutputFile
     abstract val destination: RegularFileProperty

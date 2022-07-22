@@ -32,7 +32,7 @@ import java.util.Collections;
  *
  * <p>A node may be included in more than one group, for example when it is reachable from both a requested task and a finalizer.</p>
  *
- * <p>The the groups that the node belongs to can affect how the node is scheduled relative to other nodes in the graph.</p>
+ * <p>The groups that the node belongs to can affect how the node is scheduled relative to other nodes in the graph.</p>
  */
 public abstract class NodeGroup {
     public static final NodeGroup DEFAULT_GROUP = new NodeGroup() {
@@ -69,13 +69,27 @@ public abstract class NodeGroup {
     }
 
     /**
-     * Returns the set of nodes which must complete before any node in this group can start.
+     * Returns the sequence of nodes which must complete before the given node can start. The given node must belong to this group.
+     * The returned sequence is not exhaustive, i.e. it doesn't mean that the given node can start even if all nodes in it are
+     * completed.
+     *
+     * @param node the node to check successors for
      */
-    public Iterable<? extends Node> getSuccessors() {
+    public Iterable<? extends Node> getSuccessorsFor(Node node) {
         return Collections.emptyList();
     }
 
-    public Iterable<? extends Node> getSuccessorsInReverseOrder() {
+    /**
+     * Returns the sequence of nodes which must complete before the given node can start. The given node must belong to this group.
+     * The returned sequence is not exhaustive, i.e. it doesn't mean that the given node can start even if all nodes in it are
+     * completed.
+     *
+     * The returned sequence is a reverse of the result of {@link #getSuccessorsFor(Node)}.
+     *
+     * @param node the node to check successors for
+     * @see #getSuccessorsFor(Node)
+     */
+    public Iterable<? extends Node> getSuccessorsInReverseOrderFor(Node node) {
         return Collections.emptyList();
     }
 

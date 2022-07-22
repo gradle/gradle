@@ -178,14 +178,18 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (isContinue) "--continue" else ""
     )
 
-fun Dependencies.compileAllDependency(compileAllId: String) {
-    // Compile All has to succeed before anything else is started
-    dependency(RelativeId(compileAllId)) {
+fun Dependencies.dependsOn(buildTypeId: RelativeId) {
+    dependency(buildTypeId) {
         snapshot {
             onDependencyFailure = FailureAction.FAIL_TO_START
             onDependencyCancel = FailureAction.FAIL_TO_START
         }
     }
+}
+
+fun Dependencies.compileAllDependency(compileAllId: String) {
+    // Compile All has to succeed before anything else is started
+    dependsOn(RelativeId(compileAllId))
     // Get the build receipt from sanity check to reuse the timestamp
     artifacts(RelativeId(compileAllId)) {
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
@@ -194,9 +198,10 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
-fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: String, testJvmVendor: String): String {
+fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
     val buildScanValues = mapOf(
         "coverageOs" to os.name.lowercase(),
+        "coverageArch" to arch.name.lowercase(),
         "coverageJvmVendor" to testJvmVendor,
         "coverageJvmVersion" to "java$testJvmVersion"
     )

@@ -42,6 +42,7 @@ import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import javax.annotation.Nullable
+import java.util.function.Consumer
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
@@ -55,19 +56,20 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     def setup() {
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), coordinator)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), coordinator)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {
         return new TestPriorityNode(options.failure)
     }
 
-    TaskInternal task(Map<String, ?> options = [:], String name) {
+    TaskInternal task(
+        Map<String, ?> options = [:], String name) {
         def task = createTask(name, options.project ?: this.project, options.type ?: TaskInternal)
         _ * task.taskDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         _ * task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         _ * task.finalizedBy >> taskDependencyResolvingTo(task, options.finalizedBy ?: [])
-        _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
+        _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, options.shouldRunAfter ?: [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
         TaskStateInternal state = Mock()
@@ -76,6 +78,24 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             failure(task, options.failure)
         }
         return task
+    }
+
+    Node node(Map<String, ?> options = [:], String name) {
+        def dependencies = nodes(options.dependsOn)
+        def preExecute = nodes(options.preNodes)
+        def postExecute = nodes(options.postNodes)
+        def node = new TestNode(name, dependencies, preExecute, postExecute, options.failure)
+        return node
+    }
+
+    List<Node> nodes(Object value) {
+        if (value == null) {
+            return []
+        } else if (value instanceof Node) {
+            return [value]
+        } else {
+            return value
+        }
     }
 
     def "runs finalizer and its dependencies after finalized task"() {
@@ -515,6 +535,28 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21125")
+    def "finalizer dependency runs in parallel with finalized task when that dependency is also a dependency of a later entry point task"() {
+        given:
+        Task finalizer = createTask("finalizer")
+        Task finalizerDep = task("finalizerDep", type: Async)
+        Task a = task("a", type: Async, finalizedBy: [finalizer])
+        // Note: this task must be "ordered" greater than the finalizer to trigger the issue
+        Task b = task("zz", type: Async, dependsOn: [finalizerDep])
+        relationships(finalizer, dependsOn: [finalizerDep, b])
+
+        when:
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [a, finalizerDep, b, finalizer]
+        assertTaskReady(a)
+        assertTaskReady(finalizerDep)
+        assertTaskReady(b)
+        assertTaskReadyAndNoMoreToStart(finalizer)
+        assertAllWorkComplete()
+    }
+
     def "finalizer dependency runs even when finalizer does not run when dependency is also an entry point task"() {
         given:
         Task finalizerDepDep = task("finalizerDepDep", type: Async)
@@ -573,6 +615,184 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertTaskReady(finalizer2)
         assertTaskReady(c)
         assertTaskReadyAndNoMoreToStart(finalizer3)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer dependency runs after finalized entry point when the latter is finalizer dependency too"() {
+        given:
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, finalizedBy: [finalizer])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizer])
+        relationships(finalizer, dependsOn: [finalizerDep, entryPoint])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDep)
+        assertTaskReadyAndNoMoreToStart(finalizer)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer dependencies finalized by finalizer of the entry point can run in parallel"() {
+        given:
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizer])
+        TaskInternal finalizerDepB = task("finalizerDepB", type: Async, finalizedBy: [finalizer])
+        relationships(finalizer, dependsOn: [finalizerDepA, finalizerDepB])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizer]
+        assertTaskReady(entryPoint)
+        assertTasksReady(finalizerDepA, finalizerDepB)
+        assertTaskReadyAndNoMoreToStart(finalizer)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer can have overlapping finalized nodes and dependencies"() {
+        given:
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizer])
+        TaskInternal finalizerDepB = task("finalizerDepB", type: Async)
+        relationships(finalizer, dependsOn: [finalizerDepA, finalizerDepB])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizer]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepA)
+        assertTaskReady(finalizerDepB)
+        assertTaskReadyAndNoMoreToStart(finalizer)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "dependency of finalizers finalizing other finalizer do not start before the latter"() {
+        given:
+        TaskInternal finFinalizerA = createTask("finFinalizerA", project, Async)
+        TaskInternal finFinalizerB = createTask("finFinalizerB", project, Async)
+        TaskInternal finalizer = task("finalizer", type: Async, finalizedBy: [finFinalizerA, finFinalizerB])
+        TaskInternal finFinalizerDep = task("finFinalizerDep", type: Async, finalizedBy: [finFinalizerA, finFinalizerB])
+        relationships(finFinalizerA, dependsOn: [finFinalizerDep, finalizer])
+        relationships(finFinalizerB, dependsOn: [finFinalizerDep, finalizer])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizer, finFinalizerDep, finFinalizerB, finFinalizerA]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizer)
+        assertTaskReady(finFinalizerDep)
+        assertTasksReadyAndNoMoreToStart(finFinalizerB, finFinalizerA)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "dependency of finalizers finalizing dependency of other finalizer do not start before this dependency"() {
+        given:
+        TaskInternal finalizerA = createTask("finalizerA", project, Async)
+        TaskInternal finalizerB = createTask("finalizerB", project, Async)
+        TaskInternal finalizerC = createTask("finalizerC", project, Async)
+        TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizerA, finalizerB, finalizerC])
+        TaskInternal finalizerDepBC = task("finalizerDepBC", type: Async, finalizedBy: [finalizerB, finalizerC])
+        relationships(finalizerA, dependsOn: [finalizerDepA])
+        relationships(finalizerB, dependsOn: [finalizerDepA, finalizerDepBC])
+        relationships(finalizerC, dependsOn: [finalizerDepA, finalizerDepBC])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizerA])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepBC, finalizerB, finalizerC, finalizerA]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepA)
+        assertTasksReady(finalizerDepBC, finalizerA)
+        assertTasksReadyAndNoMoreToStart(finalizerB, finalizerC)
+        assertAllWorkComplete()
+    }
+
+    def "dependency of finalizers in chain of finalizers are deferred"() {
+        given:
+        TaskInternal finalizerA = createTask("finalizerA", project, Async)
+        TaskInternal finalizerB = createTask("finalizerB", project, Async)
+        TaskInternal finalizerC = createTask("finalizerC", project, Async)
+        TaskInternal finalizerD = createTask("finalizerD", project, Async)
+        TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizerA, finalizerB])
+        TaskInternal finalizerDepB = task("finalizerDepB", type: Async, finalizedBy: [finalizerB, finalizerC])
+        TaskInternal finalizerDepC = task("finalizerDepC", type: Async, finalizedBy: [finalizerC, finalizerD])
+        TaskInternal finalizerDepD = task("finalizerDepD", type: Async, finalizedBy: [finalizerD])
+        relationships(finalizerA, dependsOn: [finalizerDepA])
+        relationships(finalizerB, dependsOn: [finalizerDepA, finalizerDepB])
+        relationships(finalizerC, dependsOn: [finalizerDepB, finalizerDepC])
+        relationships(finalizerD, dependsOn: [finalizerDepC, finalizerDepD])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizerA])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        // TODO - finalizers are incorrectly ordered
+        executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerDepC, finalizerDepD, finalizerD, finalizerC, finalizerB, finalizerA]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepA)
+        assertTasksReady(finalizerDepB, finalizerA)
+        assertTasksReady(finalizerDepC, finalizerB)
+        assertTasksReady(finalizerDepD, finalizerC)
+        assertTaskReadyAndNoMoreToStart(finalizerD)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer dependencies reachable from entry point and finalized by the finalizer can run in parallel"() {
+        TaskInternal finalizer = createTask("finalizer", project, Async)
+        TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizer])
+        TaskInternal finalizerDepB = task("finalizerDepB", type: Async, finalizedBy: [finalizer])
+        relationships(finalizer, dependsOn: [finalizerDepA, finalizerDepB])
+        TaskInternal entryPoint = task("entryPoint", type: Async, dependsOn: [finalizerDepA, finalizerDepB])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [finalizerDepA, finalizerDepB, finalizer, entryPoint]
+        assertTasksReady(finalizerDepA, finalizerDepB)
+        assertTasksReadyAndNoMoreToStart(finalizer, entryPoint)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21125")
+    def "multiple finalizers can depend on a task that they all finalize"() {
+        TaskInternal finalizerA = createTask("finalizerA", project, Async)
+        TaskInternal finalizerB = createTask("finalizerB", project, Async)
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async, finalizedBy: [finalizerA, finalizerB])
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        relationships(finalizerA, dependsOn: [finalizerDep])
+        relationships(finalizerB, dependsOn: [finalizerDep])
+        TaskInternal entryPoint = task("entryPoint", type: Async, finalizedBy: [finalizerA, finalizerB])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizerB, finalizerA]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepDep)
+        assertTaskReady(finalizerDep)
+        assertTasksReadyAndNoMoreToStart(finalizerB, finalizerA)
         assertAllWorkComplete()
     }
 
@@ -1123,6 +1343,64 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == producer
     }
 
+    def "producer ordered before destroyer on command-line overrides conflicting shouldRunAfter relationship"() {
+        given:
+        Task destroyer = task("destroyer", type: AsyncWithDestroysFile)
+        _ * destroyer.destroysFile >> file("inputDir")
+        Task producer = task("producer", type: AsyncWithOutputDirectory, shouldRunAfter: [destroyer])
+        _ * producer.outputDirectory >> file("inputDir")
+
+        when:
+        addToGraphAndPopulate(producer, destroyer)
+
+        then:
+        // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
+        executionPlan.tasks as List == [destroyer, producer]
+        ordinalGroups == [1, 0]
+        assertLastTaskOfGroupReady(producer)
+        assertLastTaskOfGroupReadyAndNoMoreToStart(destroyer)
+        assertAllWorkComplete()
+    }
+
+    def "destroyer ordered before producer on command-line overrides conflicting shouldRunAfter relationship"() {
+        given:
+        Task producer = task("producer", type: AsyncWithOutputDirectory)
+        _ * producer.outputDirectory >> file("inputDir")
+        Task destroyer = task("destroyer", type: AsyncWithDestroysFile, shouldRunAfter: [producer])
+        _ * destroyer.destroysFile >> file("inputDir")
+
+        when:
+        addToGraphAndPopulate(destroyer, producer)
+
+        then:
+        // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
+        executionPlan.tasks as List == [producer, destroyer]
+        ordinalGroups == [1, 0]
+        assertLastTaskOfGroupReady(destroyer)
+        assertLastTaskOfGroupReadyAndNoMoreToStart(producer)
+        assertAllWorkComplete()
+    }
+
+    def "non-conflicting producers in all later groups can start once destroyer is complete"() {
+        given:
+        Task producer1 = task("producer1", type: AsyncWithOutputDirectory)
+        _ * producer1.outputDirectory >> file("dir1")
+        Task producer2 = task("producer2", type: AsyncWithOutputDirectory)
+        _ * producer2.outputDirectory >> file("dir2")
+        Task destroyer = task("destroyer", type: AsyncWithDestroysFile)
+        _ * destroyer.destroysFile >> file("dir3")
+
+        when:
+        addToGraphAndPopulate(destroyer, producer1, producer2)
+
+        then:
+        executionPlan.tasks as List == [destroyer, producer1, producer2]
+        ordinalGroups == [0, 1, 2]
+        assertLastTaskOfGroupReady(destroyer)
+        assertLastTasksOfGroupReadyAndNoMoreToStart(producer1, producer2)
+        assertAllWorkComplete()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/20559")
     def "a task that destroys the output of a task in another project runs first if it is ordered first"() {
         given:
@@ -1502,6 +1780,166 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
+    def "node can provide additional dependencies immediately before execution"() {
+        def dep = node("dep")
+        def preNode1 = node("pre1")
+        def preNode2 = node("pre2")
+        def target = node("target", dependsOn: dep, preNodes: [preNode1, preNode2])
+        def entry = node("entry", dependsOn: target)
+
+        when:
+        addToGraph(dep, target, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [dep, target, entry]
+        assertNodeReady(dep)
+        assertNodesReady(preNode1, preNode2)
+        assertNodeReady(target)
+        assertNodeReadyAndNoMoreToStart(entry)
+        assertAllWorkComplete()
+    }
+
+    def "node can provide pre-execution dependency that is already scheduled"() {
+        def dep = node("dep")
+        def preNode1 = node("pre1", dependsOn: dep)
+        def preNode2 = node("pre2")
+        def target = node("target", preNodes: [preNode1, preNode2])
+        def entry = node("entry", dependsOn: [preNode1, target])
+
+        when:
+        addToGraph(dep, target, preNode1, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [dep, target, preNode1, entry]
+        assertNodesReady(dep, preNode2)
+        assertNodeReady(preNode1)
+        assertNodeReady(target)
+        assertNodeReadyAndNoMoreToStart(entry)
+        assertAllWorkComplete()
+    }
+
+    def "does not run node whose pre-execution dependency fails"() {
+        def dep = node("dep")
+        def preNode1 = node("pre1")
+        def preNode2 = node("pre2", failure: new RuntimeException())
+        def target = node("target", dependsOn: dep, preNodes: [preNode1, preNode2])
+        def entry = node("entry", dependsOn: target)
+
+        when:
+        executionPlan.continueOnFailure = continueOnFailure
+        addToGraph(dep, target, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [dep, target, entry]
+        assertNodeReady(dep)
+        assertNodesReady(preNode1, preNode2)
+        assertAllWorkComplete(continueOnFailure)
+
+        where:
+        continueOnFailure << [false, true]
+    }
+
+    def "does not run pre-execution dependencies when some other dependency fails"() {
+        def dep = node("dep", failure: new RuntimeException())
+        def preNode1 = node("pre1")
+        def preNode2 = node("pre2")
+        def target = node("target", dependsOn: dep, preNodes: [preNode1, preNode2])
+        def entry = node("entry", dependsOn: target)
+
+        when:
+        executionPlan.continueOnFailure = continueOnFailure
+        addToGraph(dep, target, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [dep, target, entry]
+        assertNodeReady(dep)
+        assertAllWorkComplete(continueOnFailure)
+
+        where:
+        continueOnFailure << [false, true]
+    }
+
+    def "node can provide additional nodes to run immediately after execution"() {
+        def postNode1 = node("post1")
+        def postNode2 = node("post2")
+        def target = node("target", postNodes: [postNode1, postNode2])
+        def entry = node("entry", dependsOn: target)
+
+        when:
+        addToGraph(target, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [target, entry]
+        assertNodeReady(target)
+        assertNodesReady(postNode1, postNode2)
+        assertNodeReadyAndNoMoreToStart(entry)
+        assertAllWorkComplete()
+    }
+
+    def "node can provide post-execution node that is already scheduled"() {
+        def postNode1 = node("post1")
+        def postNode2 = node("post2", dependsOn: postNode1)
+        def target = node("target", postNodes: [postNode1, postNode2])
+        def entry = node("entry", dependsOn: [postNode1, target])
+
+        when:
+        addToGraph(target, postNode1, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [target, postNode1, entry]
+        assertNodesReady(target, postNode1)
+        assertNodeReady(postNode2)
+        assertNodeReadyAndNoMoreToStart(entry)
+        assertAllWorkComplete()
+    }
+
+    def "does not run dependent nodes when post-execution node fails"() {
+        def postNode1 = node("post1")
+        def postNode2 = node("post2", failure: new RuntimeException())
+        def target = node("target", postNodes: [postNode1, postNode2])
+        def entry = node("entry", dependsOn: target)
+
+        when:
+        executionPlan.continueOnFailure = continueOnFailure
+        addToGraph(target, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [target, entry]
+        assertNodeReady(target)
+        assertNodesReady(postNode1, postNode2)
+        assertAllWorkComplete(continueOnFailure)
+
+        where:
+        continueOnFailure << [false, true]
+    }
+
+    def "does not run post-execution nodes when node fails"() {
+        def postNode1 = node("post1")
+        def postNode2 = node("post2")
+        def target = node("target", postNodes: [postNode1, postNode2], failure: new RuntimeException())
+        def entry = node("entry", dependsOn: target)
+
+        when:
+        executionPlan.continueOnFailure = continueOnFailure
+        addToGraph(target, entry)
+        populateGraph()
+
+        then:
+        scheduledNodes == [target, entry]
+        assertNodeReady(target)
+        assertAllWorkComplete(continueOnFailure)
+
+        where:
+        continueOnFailure << [false, true]
+    }
+
     private void tasksAreNotExecutedInParallel(Task first, Task second) {
         addToGraphAndPopulate(first, second)
 
@@ -1616,11 +2054,55 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
+    void assertNodeReady(Node expected, boolean needToSelect = true) {
+        def node = selectNextNode()
+        assert node == expected
+        if (needToSelect) {
+            assertNoWorkReadyToStartAfterSelect()
+        } else {
+            assertNoWorkReadyToStart()
+        }
+        finishedExecuting(node)
+    }
+
+    void assertLastTaskOfGroupReady(Task task, boolean needToSelect = true) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        def ordinalNode = selectNextNode()
+        assert ordinalNode instanceof OrdinalNode
+        if (needToSelect) {
+            assertNoWorkReadyToStartAfterSelect()
+        } else {
+            assertNoWorkReadyToStart()
+        }
+        finishedExecuting(node)
+        assertNoWorkReadyToStart()
+        finishedExecuting(ordinalNode)
+    }
+
     void assertTaskReadyAndNoMoreToStart(Task task, boolean needToSelect = false) {
         def node = selectNextTaskNode()
         assert node.task == task
         assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node)
+    }
+
+    void assertNodeReadyAndNoMoreToStart(Node expected, boolean needToSelect = false) {
+        def node = selectNextNode()
+        assert node == expected
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node)
+    }
+
+    void assertLastTaskOfGroupReadyAndNoMoreToStart(Task task, boolean needToSelect = false) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        def ordinalNode = selectNextNode()
+        assert ordinalNode instanceof OrdinalNode
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node)
+        assertNoMoreWorkToStartButNotAllComplete(false)
+        finishedExecuting(ordinalNode)
     }
 
     void assertTasksReady(Task task1, Task task2, boolean needToSelect = true) {
@@ -1637,6 +2119,20 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node1)
     }
 
+    void assertNodesReady(Node expected1, Node expected2, boolean needToSelect = true) {
+        def node1 = selectNextNode()
+        assert node1 == expected1
+        def node2 = selectNextNode()
+        assert node2 == expected2
+        if (needToSelect) {
+            assertNoWorkReadyToStartAfterSelect()
+        } else {
+            assertNoWorkReadyToStart()
+        }
+        finishedExecuting(node2)
+        finishedExecuting(node1)
+    }
+
     void assertTasksReadyAndNoMoreToStart(Task task1, Task task2, boolean needToSelect = false) {
         def node1 = selectNextTaskNode()
         assert node1.task == task1
@@ -1644,7 +2140,27 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert node2.task == task2
         assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node2)
+        assertNoMoreWorkToStartButNotAllComplete(false)
         finishedExecuting(node1)
+    }
+
+    void assertLastTasksOfGroupReadyAndNoMoreToStart(Task task1, Task task2, boolean needToSelect = false) {
+        def node1 = selectNextTaskNode()
+        assert node1.task == task1
+        def node2 = selectNextTaskNode()
+        assert node2.task == task2
+        def node3 = selectNextNode()
+        assert node3 instanceof OrdinalNode
+        assertNoWorkReadyToStartAfterSelect()
+        finishedExecuting(node2)
+        assertNoWorkReadyToStart()
+        finishedExecuting(node1)
+        assertNoWorkReadyToStart()
+        finishedExecuting(node3)
+        def node4 = selectNextNode()
+        assert node4 instanceof OrdinalNode
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node4)
     }
 
     void assertTasksReadyAndNoMoreToStart(Task task1, Task task2, Task task3, boolean needToSelect = false) {
@@ -1656,7 +2172,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert node3.task == task3
         assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node3)
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node2)
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
         finishedExecuting(node1)
     }
 
@@ -1811,11 +2329,26 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
-    private static class TestPriorityNode extends Node implements SelfExecutingNode {
-        final Throwable failure
+    List<Node> getScheduledNodes() {
+        def result = []
+        executionPlan.scheduledNodes.visitNodes(nodes -> result.addAll(nodes))
+        return result
+    }
 
-        TestPriorityNode(@Nullable Throwable failure) {
+    private static class TestNode extends Node implements SelfExecutingNode {
+        final Throwable failure
+        final String name
+        final List<Node> preExecuteNodes
+        final List<Node> postExecuteNodes
+
+        TestNode(String name, List<Node> dependencies, List<Node> preExecuteNodes, List<Node> postExecuteNodes, @Nullable Throwable failure = null) {
+            this.postExecuteNodes = postExecuteNodes
+            this.preExecuteNodes = preExecuteNodes
+            this.name = name
             this.failure = failure
+            for (final def dependency in dependencies) {
+                addDependencySuccessor(dependency)
+            }
         }
 
         @Override
@@ -1824,8 +2357,17 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
 
         @Override
-        boolean isPriority() {
-            return true
+        void visitPreExecutionNodes(Consumer<? super Node> visitor) {
+            for (final node in preExecuteNodes) {
+                visitor.accept(node)
+            }
+        }
+
+        @Override
+        void visitPostExecutionNodes(Consumer<? super Node> visitor) {
+            for (final node in postExecuteNodes) {
+                visitor.accept(node)
+            }
         }
 
         @Override
@@ -1834,16 +2376,22 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         @Override
         String toString() {
-            return "test node"
-        }
-
-        @Override
-        int compareTo(Node o) {
-            return -1
+            return name
         }
 
         @Override
         void execute(NodeExecutionContext context) {
+        }
+    }
+
+    private static class TestPriorityNode extends TestNode implements SelfExecutingNode {
+        TestPriorityNode(@Nullable Throwable failure) {
+            super("test node", [], [], [], failure)
+        }
+
+        @Override
+        boolean isPriority() {
+            return true
         }
     }
 }

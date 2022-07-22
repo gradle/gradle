@@ -196,7 +196,7 @@ This will cause your build to eagerly create fewer tasks that are registered by 
 
 2. **Migrate tasks configured by name.**
 Similar to the previous point, this will cause your build to eagerly create fewer tasks that are registered by plugins.
-For example, logic that uses `TaskContainer#getByName(String, Closure/Action)` should be converted to `TaskContainer#named(String).configure(Closure/Action)`.
+For example, logic that uses `TaskContainer#getByName(String, Closure)` should be converted to `TaskContainer#named(String, Action)`.
 This also includes <<#task_configuration_avoidance_pitfalls_hidden_eager_task_realization, task configuration via DSL blocks>>.
 
 3. **Migrate tasks creation to `register(...)`.**
@@ -247,7 +247,7 @@ image::taskConfigurationAvoidance-performance-annotated.png[]
 === Pitfalls
 
 * [[task_configuration_avoidance_pitfalls_hidden_eager_task_realization]] **Beware of the hidden eager task realization.**
-There are many ways that a task can be configured eagerly.  For example, configuring a task using the task name and a DSL block will cause the task to immediately be created:
+There are many ways that a task can be configured eagerly.  For example, configuring a task using the task name and a DSL block will cause the task to immediately be created when using the Groovy DSL:
 +
 [source,groovy]
 ----
@@ -264,7 +264,7 @@ Instead use the `named()` method to acquire a reference to the task and configur
 +
 [source,groovy]
 ----
-tasks.named("someTask").configure {
+tasks.named("someTask") {
     // ...
     // Beware of the pitfalls here
 }
@@ -424,7 +424,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 
 | Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-groovy.lang.Closure-[TaskCollection.getByName(java.lang.String, groovy.lang.Closure)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: `named(java.lang.String).configure(Action)`
+| Use: `named(java.lang.String, Action)`
 
 | Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#getByPath-java.lang.String-[TaskContainer.getByPath(java.lang.String)]
 .2+| Accessing tasks from another project requires a specific ordering of project evaluation.

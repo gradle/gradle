@@ -71,7 +71,7 @@ class DefaultPlanExecutorTest extends Specification {
 
         then:
         1 * workerLease.tryLock() >> true
-        2 * workSource.allExecutionComplete() >> true
+        3 * workSource.allExecutionComplete() >> true
         1 * workSource.collectFailures([])
         0 * workSource._
     }
@@ -108,7 +108,7 @@ class DefaultPlanExecutorTest extends Specification {
 
         then:
         1 * workerLease.tryLock() >> true
-        2 * workSource.allExecutionComplete() >> true
+        3 * workSource.allExecutionComplete() >> true
         1 * workSource.collectFailures([])
         0 * workSource._
     }
