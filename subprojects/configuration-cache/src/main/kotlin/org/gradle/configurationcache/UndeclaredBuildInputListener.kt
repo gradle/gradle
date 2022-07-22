@@ -34,4 +34,6 @@ interface UndeclaredBuildInputListener {
     fun fileOpened(file: File, consumer: String?)
 
     fun fileCollectionObserved(fileCollection: FileCollection, consumer: String)
+
+    fun fileObserved(file: File, consumer: String?)
 }

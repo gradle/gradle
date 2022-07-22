@@ -7,6 +7,9 @@ Paths
 Type
      Task (org.gradle.api.Task)
 
+Options
+     --rerun     Causes the task to be re-run even if up-to-date.
+
 Description
      Builds the JAR
 

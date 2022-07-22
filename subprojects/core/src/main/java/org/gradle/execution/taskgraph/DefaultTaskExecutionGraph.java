@@ -138,7 +138,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private ExecutionResult<Void> executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices) {
         return planExecutor.process(
-            executionPlan.finalizePlan(),
+            executionPlan.asWorkSource(),
             new BuildOperationAwareExecutionAction(
                 buildOperationExecutor.getCurrentOperation(),
                 new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)

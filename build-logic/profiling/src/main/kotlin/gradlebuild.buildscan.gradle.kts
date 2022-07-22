@@ -18,13 +18,17 @@ import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
+import gradlebuild.basics.BuildEnvironment.isTeamCity
 import gradlebuild.basics.BuildEnvironment.isTravis
+import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
+import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.logicalBranch
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
 import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -63,14 +67,16 @@ if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
 }
 
+if (project.predictiveTestSelectionEnabled.orNull == true) {
+    buildScan?.tag("PTS")
+}
+
 extractCheckstyleAndCodenarcData()
 
 extractWatchFsData()
 
-project.the<ModuleIdentityExtension>().apply {
-    if (logicalBranch.get() != gradleBuildBranch.get()) {
-        buildScan?.tag("PRE_TESTED_COMMIT")
-    }
+if (logicalBranch.orNull != buildBranch.orNull) {
+    buildScan?.tag("PRE_TESTED_COMMIT")
 }
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
@@ -129,7 +135,17 @@ fun Project.extractCiData() {
             tag("CODEQL")
         }
     }
+    if (isTeamCity && !isKillLeakingProcessesStep() && !isPromotionBuild) {
+        // don't overwrite the nightly version in promotion build
+        buildScan {
+            buildScanPublished {
+                println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
+            }
+        }
+    }
 }
+
+fun Project.isKillLeakingProcessesStep() = gradle.startParameter.taskNames.contains("killExistingProcessesStartedByGradle")
 
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
     val envValue: String? = environmentVariable(envName).orNull

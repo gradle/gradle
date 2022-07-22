@@ -31,13 +31,14 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -85,13 +86,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        if (targetComponent instanceof LenientPlatformResolveMetadata) {
-            LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponent;
-            return Collections.singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState(), platformId));
+    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        if (targetComponentState instanceof LenientPlatformGraphResolveState) {
+            LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponentState.getMetadata();
+            return new VariantSelectionResult(Collections.singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState(), platformId)), false);
         }
         // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override
@@ -189,7 +190,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
                         if (!componentVersion.equals(target)) {
                             // We will only add dependencies to the leaves if there is such a published module
                             PotentialEdge potentialEdge = PotentialEdge.of(resolveState, from, leafId, leafSelector, platformId, platformState.isForced(), false);
-                            if (potentialEdge.metadata != null) {
+                            if (potentialEdge.state != null) {
                                 result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId, platformState.isForced());
                                 break;
                             }

@@ -17,7 +17,6 @@ package org.gradle.scala
 
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
@@ -242,7 +241,6 @@ task someTask
         succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     @Issue("gradle/gradle#19300")
     def 'show that log4j-core, if present, is 2_17_1 at the minimum'() {
         given:
@@ -259,5 +257,37 @@ task someTask
         def matcher = log4jOutput =~ versionPattern
         matcher.find()
         Integer.valueOf(matcher.group(1)) >= 16
+    }
+
+    def "Scala compiler daemon respects keepalive option"() {
+        buildFile << """
+            plugins {
+                id 'scala'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation('org.scala-lang:scala-library:2.12.6')
+            }
+
+            tasks.withType(AbstractScalaCompile) {
+                scalaCompileOptions.keepAliveMode = KeepAliveMode.SESSION
+            }
+        """
+        file('src/main/scala/Foo.scala') << '''
+            class Foo {
+            }
+        '''
+        expect:
+        succeeds(':compileScala', '--info')
+        postBuildOutputContains('Stopped 1 worker daemon')
+
+        when:
+        buildFile.text = buildFile.text.replace('SESSION', 'DAEMON')
+
+        then:
+        succeeds(':compileScala', '--info')
+        postBuildOutputDoesNotContain('Stopped 1 worker daemon')
     }
 }

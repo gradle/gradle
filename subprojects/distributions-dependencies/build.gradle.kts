@@ -19,9 +19,10 @@ val asmVersion = "9.2"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
 val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
-val jacksonVersion = "2.12.1"
+val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
+val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-23"
 val slf4jVersion = "1.7.30"
@@ -30,7 +31,12 @@ val tomljVersion = "1.0.0"
 
 val bytebuddyVersion = "1.10.20"
 
+// For the junit-bom
+javaPlatform.allowDependencies()
+
 dependencies {
+    api(platform("org.junit:junit-bom:${junit5Version}!!"))
+
     constraints {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
@@ -77,7 +83,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.8.6") }}
+        api(libs.gson)                  { version { strictly("2.8.9") }}
         api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
@@ -101,11 +107,12 @@ dependencies {
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.1.55") }}
+        api(libs.jsoup)                 { version { strictly("1.15.1") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
-        api(libs.junit5JupiterApi)      { version { strictly("5.8.2") }}
-        api(libs.junit5Vintage)         { version { strictly("5.8.2") }}
+        api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
+        api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
@@ -156,7 +163,6 @@ dependencies {
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
-        api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
@@ -169,8 +175,8 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
-        api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
-        api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
+        api(libs.spock)                 { version { strictly("2.2-M2-groovy-3.0") }}
+        api(libs.spockJUnit4)           { version { strictly("2.2-M2-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}

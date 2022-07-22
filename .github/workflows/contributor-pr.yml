@@ -21,6 +21,9 @@ env:
   # Enable debug for the `gradle-build-action` cache operations
   GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: "Compile All"

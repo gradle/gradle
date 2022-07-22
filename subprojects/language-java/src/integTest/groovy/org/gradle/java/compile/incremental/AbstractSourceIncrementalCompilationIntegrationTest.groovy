@@ -16,8 +16,12 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
 import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
+
+import static org.junit.Assume.assumeFalse
 
 abstract class AbstractSourceIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
 
@@ -112,10 +116,10 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         skipped(":${language.compileTaskName}")
 
         when:
-        file("src/main/${languageName}/some/dir/B.${languageName}").text = """package some.dir;
+        source( """package some.dir;
         public class B {
             public static class NewInner { }
-        }""" // in B.java/B.groovy
+        }""") // in B.java/B.groovy
         run language.compileTaskName
 
         then:
@@ -410,20 +414,22 @@ sourceSets {
 
     def "recompiles all classes in a package if the package-info file changes"() {
         given:
-        file("src/main/${languageName}/annotations/Anno.${languageName}").text = """
+        source("""
             package annotations;
             import java.lang.annotation.*;
             @Retention(RetentionPolicy.RUNTIME)
             @Target(ElementType.PACKAGE)
             public @interface Anno {}
-        """
+        """)
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated package foo;"""
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -438,11 +444,13 @@ sourceSets {
     def "recompiles all classes in a package if the package-info file is added"() {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -458,11 +466,13 @@ sourceSets {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated package foo;"""
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -508,5 +518,121 @@ sourceSets {
         then:
         outputs.deletedClasses("Class\$Name")
         outputs.recompiledClasses("Class\$Name1", "Main")
+    }
+
+    def "old classes are are restored after the compile failure"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+
+        then:
+        outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
+    def "incremental compilation works after a compile failure"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
+
+        when:
+        source("class A { }")
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A")
+        outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
+    def "incremental compilation works after multiple compile failures"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
+
+        when:
+        source("class A { }")
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A")
+        outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
+    def "nothing is recompiled after a compile failure when file is reverted"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+        outputs.noneRecompiled()
+
+        when:
+        source("class A {}")
+        run language.compileTaskName
+
+        then:
+        outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
+    }
+
+    def "writes relative paths to source-to-class mapping after incremental compilation"() {
+        given:
+        assumeFalse("Source-to-class mapping is not written for CLI compiler", this.class == JavaSourceCliIncrementalCompilationIntegrationTest.class)
+        source("package test.gradle; class A {}", "package test2.gradle; class B {}")
+        outputs.snapshot { run language.compileTaskName }
+        def previousCompilationDataFile = file("build/tmp/${language.compileTaskName}/previous-compilation-data.bin")
+        def previousCompilationAccess = new PreviousCompilationAccess(new StringInterner())
+
+        when:
+        source("package test.gradle; class A { static class C {} }")
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", 'A$C')
+        def previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile)
+        previousCompilationData.compilerApiData.sourceToClassMapping == [
+            ("test/gradle/A.${languageName}" as String): ["test.gradle.A", "test.gradle.A\$C"] as Set,
+            ("test2/gradle/B.${languageName}" as String): ["test2.gradle.B"] as Set
+        ]
+    }
+
+    def "nothing is stashed on full recompilation but it's stashed on incremental compilation"() {
+        given:
+        source("class A {}", "class B {}")
+        def compileTransactionDir = file("build/tmp/${language.compileTaskName}/compileTransaction")
+
+        when: "First compilation is always full compilation"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B")
+        !compileTransactionDir.exists()
+
+        when: "Compilation after failure with clean is full recompilation"
+        source("class A { garbage }")
+        runAndFail language.compileTaskName
+        outputs.snapshot { source("class A { }") }
+        run "clean", language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B")
+        !compileTransactionDir.exists()
+
+        when: "Incremental compilation"
+        outputs.snapshot { source("class A {}") }
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A")
+        compileTransactionDir.exists()
+        compileTransactionDir.file("stash-dir/A.class.uniqueId0").exists()
     }
 }

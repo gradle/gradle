@@ -124,6 +124,32 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath)
     }
 
+    def "allows command line order to override shouldRunAfter relationship"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').outputs('build/foo')
+        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        // conflicts with command line order
+        cleanBar.shouldRunAfter(generateBar)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath)
+    }
+
     def "destroyer task with a dependency in another project followed by a producer task followed by a destroyer task are run in the correct order"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
