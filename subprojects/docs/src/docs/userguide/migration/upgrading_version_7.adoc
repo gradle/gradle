@@ -66,6 +66,49 @@ This can be achieved persistently in the `gradle.properties` file in your build 
 systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 ```
 
+=== Potential breaking changes
+
+[[kotlin_1_7_10]]
+==== Upgrade to Kotlin 1.7.10
+
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.10[Kotlin 1.7.10].
+
+Gradle doesn't ship with the `kotlin-gradle-plugin` but the upgrade to 1.7.10 can bring the new version.
+For example when you use the `kotlin-dsl` plugin.
+
+The `kotlin-gradle-plugin` version 1.7.10 changes the type hierarchy of the `KotlinCompile` task type.
+It doesn't extend from `AbstractCompile` anymore.
+If you used to select Kotlin compilation tasks by `AbstractCompile` you need to change that to `KotlinCompile`.
+
+For example, this
+```kotlin
+tasks.named<AbstractCompile>("compileKotlin")
+```
+
+needs to be changed to
+```kotlin
+tasks.named<KotlinCompile>("compileKotlin")
+```
+
+In the same vein, if you used to filter tasks by `AbstractCompile` you won't obtain the Kotlin compilation tasks anymore:
+
+```kotlin
+tasks.withType<AbstractCompile>().configureEach {
+    // ...
+}
+```
+
+needs to be changed to
+```kotlin
+tasks.withType<AbstractCompile>().configureEach {
+    // ...
+}
+tasks.withType<KotlinCompile>().configureEach {
+    // ...
+}
+```
+
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
