@@ -17,12 +17,14 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
+    @Ignore("Incompatible with Groovy 4: Execution failed for task ':dependencyUpdates'. > groovy/util/XmlSlurper") // TODO Watch for merge and release of https://github.com/ben-manes/gradle-versions-plugin/pull/656
     def 'can check for updated versions'() {
         given:
         buildFile << """
