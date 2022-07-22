@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "download and provisioning works end-to-end"() { //TODO (#21082): this test actually downloads a JDK from Adoptium... can we leave it like that?
         buildFile << """
             apply plugin: "java"
