@@ -1,13 +1,7 @@
 package org.sample;
 
-public class GreetingExtension {
-    private String who;
+import org.gradle.api.provider.Property;
 
-    public String getWho() {
-        return who;
-    }
-
-    public void setWho(String who) {
-        this.who = who;
-    }
+public abstract class GreetingExtension {
+    public abstract Property<String> getWho();
 }
