@@ -358,3 +358,10 @@ val Project.runAndroidStudioInHeadlessMode: Boolean
 
 val Project.androidStudioHome: Provider<String>
     get() = propertyFromAnySource(STUDIO_HOME)
+
+
+/**
+ * Is a promotion build task called?
+ */
+val Project.isPromotionBuild: Boolean
+    get() = gradle.startParameter.taskNames.contains("promotionBuild")
