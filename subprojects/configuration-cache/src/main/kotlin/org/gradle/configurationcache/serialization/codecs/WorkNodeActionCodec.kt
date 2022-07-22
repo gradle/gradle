@@ -16,9 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.Project
 import org.gradle.api.internal.tasks.NodeExecutionContext
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -34,13 +32,6 @@ object WorkNodeActionCodec : Codec<WorkNodeAction> {
     override suspend fun ReadContext.decode(): WorkNodeAction {
         // TODO - should discard from graph instead
         return object : WorkNodeAction {
-            override fun usesMutableProjectState() = false
-
-            override fun getOwningProject(): Project? = null
-
-            override fun visitDependencies(context: TaskDependencyResolveContext) {
-            }
-
             override fun run(context: NodeExecutionContext) {
                 // Ignore
             }

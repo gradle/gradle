@@ -206,9 +206,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        String projectDirName = name.startsWith("kotlin-compiler-embeddable-")
-            ? "kotlin-compiler-embeddable"
-            : projectDirNameFrom(name);
+        String projectDirName = projectDirNameFrom(name);
         List<String> suffixesForProjectDir = getClasspathSuffixesForProjectDir(projectDirName);
         for (File file : classpath) {
             if (file.isDirectory()) {

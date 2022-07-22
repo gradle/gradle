@@ -49,7 +49,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }

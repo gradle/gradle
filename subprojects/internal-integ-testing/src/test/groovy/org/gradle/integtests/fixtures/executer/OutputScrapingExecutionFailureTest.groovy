@@ -296,8 +296,6 @@ Some error
             =======
 
             Some message
-
-            Output:
             '''))
 
         when:
@@ -313,8 +311,6 @@ Some error
             =======
 
             Some error
-
-            Output:
             '''))
     }
 
@@ -373,37 +369,6 @@ Some.Failure
 
         where:
         output << [rawOutput, debugOutput]
-    }
-
-    def "ignores JDK warnings"() {
-        given:
-        def output = """
-FAILURE: broken
-
-* Where: WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by org.codehaus.groovy.reflection.CachedClass (file:/home/tcagent1/agent/work/668602365d1521fc/subprojects/ivy/build/integ%20test/lib/groovy-all-2.4.12.jar) to method java.lang.Object.finalize()
-WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.reflection.CachedClass
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
-Build file 'build.gradle' line: 123
-
-* What went wrong:
-WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by org.codehaus.groovy.reflection.CachedClass (file:/home/tcagent1/agent/work/668602365d1521fc/subprojects/ivy/build/integ%20test/lib/groovy-all-2.4.12.jar) to method java.lang.Object.finalize()
-WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.reflection.CachedClass
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
-  something bad
-* Try:
-  to fix it
-"""
-        when:
-        def failure = OutputScrapingExecutionFailure.from(output, "")
-
-        then:
-        failure.assertHasFileName("Build file 'build.gradle'")
-        failure.assertHasLineNumber(123)
-        failure.assertHasDescription("something bad")
     }
 
     def static getRawOutput() {

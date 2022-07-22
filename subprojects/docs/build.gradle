@@ -76,11 +76,11 @@ asciidoctorj {
 tasks.withType(AsciidoctorTask).configureEach { task ->
     if (task.name == "userguideSinglePagePdf") {
         task.asciidoctorj.docExtensions(
-            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.12.0"),
+            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.13.0"),
         )
     } else {
         task.asciidoctorj.docExtensions(
-            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions:0.12.0"),
+            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions:0.13.0"),
             project.getDependencies().create(project.files("src/main/resources"))
         )
     }
@@ -543,6 +543,13 @@ samples {
             description = "Developing a Gradle plugin in a build without publishing."
             category = "Build organization"
         }
+
+        crossProjectOutputSharing {
+            sampleDirectory = samplesRoot.dir("build-organization/cross-project-output-sharing")
+            displayName = "Sharing task outputs across projects in a multi-project build"
+            description = "Sharing a file made by a task in one Gradle project, with a task in another Gradle project."
+            category = "Build organization"
+        }
     }
 }
 
@@ -592,8 +599,8 @@ tasks.named("docsTest") { task ->
         if (!OperatingSystem.current().macOsX) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-swift-*.sample"
         }
-        // We don't maintain Java 7 on Windows
-        if (OperatingSystem.current().windows) {
+        // We don't maintain Java 7 on Windows and Mac
+        if (OperatingSystem.current().windows || OperatingSystem.current().macOsX) {
             excludeTestsMatching "*java7CrossCompilation.sample"
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output

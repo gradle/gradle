@@ -16,13 +16,12 @@
 
 package gradlebuild.identity.extension
 
-import gradlebuild.basics.toPreTestedCommitBaseBranch
+import gradlebuild.basics.buildCommitId
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.*
 import org.gradle.util.GradleVersion
 
@@ -37,23 +36,6 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
     abstract val snapshot: Property<Boolean>
     abstract val promotionBuild: Property<Boolean>
 
-    /**
-     * The actual build branch.
-     */
-    abstract val gradleBuildBranch: Property<String>
-
-    /**
-     * The logical branch.
-     * For non-pre-tested commit branches this is the same as {@link #gradleBuildBranch}.
-     * For pre-tested commit branches, this is the branch which will be forwarded to the state on this branch when
-     * pre-tested commit passes.
-     *
-     * For example, for the pre-tested commit branch "pre-test/master/queue/alice/personal-branch" the logical branch is "master".
-     */
-    val logicalBranch: Provider<String> = gradleBuildBranch.map(::toPreTestedCommitBaseBranch)
-
-    abstract val gradleBuildCommitId: Property<String>
-
     abstract val releasedVersions: Property<ReleasedVersionsDetails>
 
     fun createBuildReceipt() {
@@ -63,7 +45,7 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
             this.snapshot.set(this@ModuleIdentityExtension.snapshot)
             this.promotionBuild.set(this@ModuleIdentityExtension.promotionBuild)
             this.buildTimestampFrom(this@ModuleIdentityExtension.buildTimestamp)
-            this.commitId.set(this@ModuleIdentityExtension.gradleBuildCommitId)
+            this.commitId.set(project.buildCommitId)
             this.receiptFolder.set(project.layout.buildDirectory.dir("generated-resources/build-receipt"))
         }
         tasks.named<Jar>("jar").configure {

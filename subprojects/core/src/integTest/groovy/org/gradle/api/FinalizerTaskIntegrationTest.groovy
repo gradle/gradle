@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
@@ -27,39 +26,139 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/20800")
-    void 'combination of finalizedBy and mustRunAfter has no misdetected cycle'() {
+    def "finalizer can indirectly depend on the entry point finalized by it"() {
         given:
-        buildKotlinFile << '''
-            tasks {
-                register("dockerTest") {
-                    dependsOn("dockerUp")     // dependsOn createContainer mustRunAfter removeContainer
-                    finalizedBy("dockerStop") // dependsOn removeContainer
-                }
-
-                register("dockerUp") {
-                    dependsOn("createContainer")
-                }
-
-                register("dockerStop") {
-                    dependsOn("removeContainer")
-                }
-
-                register("createContainer") {
-                    mustRunAfter("removeContainer")
-                }
-
-                register("removeContainer") {
-                }
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalizerDep'
+            }
+            task finalizerDep {
+                dependsOn 'entryPoint'
+                finalizedBy 'finalizer'
+            }
+            task entryPoint {
+                dependsOn 'entryPointDep'
+                finalizedBy 'finalizer'
+            }
+            task entryPointDep {
             }
         '''
 
         expect:
-        succeeds 'dockerTest'
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPointDep', ':entryPoint', ':finalizerDep', ':finalizer'
+        }
+    }
 
-        and:
-        result.assertTasksExecutedInOrder ':createContainer', ':dockerUp', ':dockerTest', ':removeContainer', ':dockerStop'
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer task can depend on finalized task that is not an entry point task"() {
+        given:
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalizerDep'
+            }
+            task finalizerDep {
+                dependsOn 'finalizerDepDep'
+                finalizedBy 'finalizer'
+            }
+            task finalizerDepDep {
+            }
+            task entryPoint {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer task can depend on finalized tasks"() {
+        given:
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalizerDep'
+                dependsOn 'entryPoint'
+            }
+            task finalizerDep {
+                dependsOn 'finalizerDepDep'
+                finalizedBy 'finalizer'
+            }
+            task finalizerDepDep {
+            }
+            task entryPoint {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    def "finalizer task can depend on multiple finalized tasks"() {
+        given:
+        buildFile '''
+            task finalizer {
+                dependsOn 'finalized1', 'finalized2'
+            }
+            task finalized1 {
+                finalizedBy 'finalizer'
+            }
+            task finalized2 {
+                finalizedBy 'finalizer'
+            }
+            task entryPoint {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', any(':finalized1', ':finalized2'), ':finalizer'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21125")
+    def "task can be finalized by and dependency of multiple finalizers"() {
+        given:
+        buildFile '''
+            task finalizer1 {
+                dependsOn 'finalizerDep1'
+            }
+            task finalizer2 {
+                dependsOn 'finalizerDep1'
+            }
+            task finalizerDep1 {
+                dependsOn 'finalizerDep2'
+                finalizedBy 'finalizer1'
+            }
+            task finalizerDep2 {
+                dependsOn 'finalizerDep3'
+                finalizedBy 'finalizer2'
+                finalizedBy 'finalizer1'
+            }
+            task finalizerDep3 {
+            }
+            task entryPoint {
+                finalizedBy 'finalizer1'
+                finalizedBy 'finalizer2'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', ':finalizer2', ':finalizer1'
+        }
     }
 
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
@@ -176,13 +275,14 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         taskDisablingStatement << ['a.enabled = false', 'a.onlyIf {false}']
     }
 
-    @Ignore
+    @ToBeImplemented
     void 'requesting to run finalizer task before finalized results in a circular dependency failure'() {
         setupProject()
 
         expect:
         2.times {
-            fails 'b', 'a'
+            // TODO - should fail
+            succeeds 'b', 'a'
         }
     }
 
@@ -316,6 +416,37 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20800")
+    void 'finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints'() {
+        given:
+        buildFile '''
+            task dockerTest {
+                dependsOn 'dockerUp'     // dependsOn createContainer mustRunAfter removeContainer
+                finalizedBy 'dockerStop' // dependsOn removeContainer
+            }
+
+            task dockerUp {
+                dependsOn 'createContainer'
+            }
+
+            task dockerStop {
+                dependsOn 'removeContainer'
+            }
+
+            task createContainer {
+                mustRunAfter 'removeContainer'
+            }
+
+            task removeContainer {
+            }
+        '''
+
+        expect:
+        succeeds 'dockerTest'
+
+        and:
+        result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+    }
 
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile """

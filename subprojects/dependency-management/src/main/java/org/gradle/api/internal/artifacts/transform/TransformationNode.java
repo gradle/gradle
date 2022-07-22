@@ -145,18 +145,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public boolean usesMutableProjectState() {
-                // Transforms do not require access to any mutable model state
-                return false;
-            }
-
-            @Nullable
-            @Override
-            public ProjectInternal getOwningProject() {
-                return null;
-            }
-
-            @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(transformationStep);
                 context.add(upstreamDependencies);
@@ -226,18 +214,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
             public TransformPreviousArtifacts(BuildOperationExecutor buildOperationExecutor) {
                 this.buildOperationExecutor = buildOperationExecutor;
-            }
-
-            @Override
-            public boolean usesMutableProjectState() {
-                // Transforms do not require access to any mutable model state
-                return false;
-            }
-
-            @Nullable
-            @Override
-            public ProjectInternal getOwningProject() {
-                return null;
             }
 
             @Override

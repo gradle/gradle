@@ -58,7 +58,7 @@ dependencies {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/nativeplatform/plugins/**")
     excludePatterns.add("org/gradle/nativeplatform/tasks/**")
     excludePatterns.add("org/gradle/nativeplatform/internal/resolve/**")

@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.performance.results.report.AbstractTablePageGenerator.getTeamCityWebUrlFromBuildId;
+import static org.gradle.util.internal.CollectionUtils.first;
 
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> implements PerformanceExecutionGraphRenderer {
     private final String projectName;
@@ -284,11 +285,16 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
     }
 
     private String getReproductionInstructions(PerformanceTestHistory history) {
+
+        String baseline = history instanceof CrossVersionPerformanceTestHistory
+            ? "-PperformanceBaselines='" + first(first(((CrossVersionPerformanceTestHistory) history).getResults()).getBaselineVersions()).getVersion() + "'"
+            : "";
         PerformanceScenario scenario = history.getExperiment().getScenario();
-        return String.format("To reproduce, run ./gradlew :%s:%sPerformanceAdhocTest --tests '%s' -PperformanceBaselines=force-defaults",
+        return String.format("To reproduce, run ./gradlew :%s:%sPerformanceAdhocTest --tests '%s' %s",
             projectName,
             history.getExperiment().getTestProject(),
-            scenario.getClassName() + "." + scenario.getTestName()
+            scenario.getClassName() + "." + scenario.getTestName(),
+            baseline
         );
     }
 

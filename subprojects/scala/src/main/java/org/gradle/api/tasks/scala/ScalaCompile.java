@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.model.ObjectFactory;
@@ -54,6 +55,11 @@ public class ScalaCompile extends AbstractScalaCompile {
     public ScalaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
+    }
+
+    @Inject
+    protected VersionParser getVersionParser() {
+        throw new UnsupportedOperationException();
     }
 
     @Nested
@@ -96,7 +102,7 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
+        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles(), getVersionParser());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));
