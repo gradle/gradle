@@ -31,7 +31,6 @@ public class PotentialMatch {
     private static final String BEGIN_MATCH_INDICATOR = "[";
     private static final String END_MATCH_INDICATOR = "]";
     private static final String MISMATCHED_LINE_INDICATOR = "X";
-    private static final String EXPECTED_INDICATOR = "expected"; // From the JUnit ComparisonFailure class' message
 
     private final List<String> expectedLines;
     private final List<String> actualLines;
@@ -75,7 +74,7 @@ public class PotentialMatch {
         for (int actualIdx = contextStartActualIdx; actualIdx <= contextEndActualIdx; actualIdx++) {
             int expectedIdx = actualIdx - matchBeginsActualIdx;
 
-            String prefix = buildPrefix(expectedIdx, actualIdx, contextStartActualIdx, contextEndActualIdx, padding);
+            String prefix = buildPrefix(expectedIdx, actualIdx, padding);
             context.append(prefix)
                     .append(actualLines.get(actualIdx))
                     .append('\n');
@@ -89,7 +88,7 @@ public class PotentialMatch {
         return context.toString();
     }
 
-    private String buildPrefix(int expectedIdx, int actualIdx, int contextStartActualIdx, int contextEndActualIdx, int padding) {
+    private String buildPrefix(int expectedIdx, int actualIdx, int padding) {
         String lineNum = StringUtils.leftPad(String.valueOf(toLineNumber(actualIdx)), padding, ' ');
 
         StringBuilder result = new StringBuilder().append(' ');

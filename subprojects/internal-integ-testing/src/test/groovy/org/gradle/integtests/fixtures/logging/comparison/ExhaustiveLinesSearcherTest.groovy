@@ -16,62 +16,28 @@
 
 package org.gradle.integtests.fixtures.logging.comparison
 
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.InsufficientSizeLineListComparisonFailure
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.PotentialMatchesExistComparisonFailure
 import spock.lang.Specification
 import spock.lang.Subject
-import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.DifferentSizesLineListComparisonFailure
-import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.InsufficientSizeLineListComparisonFailure
-import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.NoMatchingLinesExistComparisonFailure
-import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.PotentialMatchesExistComparisonFailure
 
 class ExhaustiveLinesSearcherTest extends Specification {
     @Subject
-    def comparer = new ExhaustiveLinesSearcher()
-
-    // region: assertSameLines
-    def "successful same lines comparisons: #expectedLines vs #actualLines"() {
-        expect:
-        comparer.assertSameLines(expectedLines, actualLines)
-
-        where:
-        expectedLines           | actualLines
-        ["a", "b", "c"]         | ["a", "b", "c"]
-        []                      | []
-    }
-
-    def "failing same lines comparison due to different line counts: #expectedLines vs #actualLines"() {
-        when:
-        comparer.assertSameLines(expectedLines, actualLines)
-
-        then:
-        def e = thrown(exception)
-        e.getMessage().startsWith(message)
-
-        where:
-        expectedLines           | actualLines           || exception                                || message
-        ["a", "b", "c"]         | ["d"]                 || DifferentSizesLineListComparisonFailure  || String.format(DifferentSizesLineListComparisonFailure.HEADER_TEMPLATE, 3, 1)
-        ["a", "b", "c"]         | ["d", "e", "f", "g"]  || DifferentSizesLineListComparisonFailure  || String.format(DifferentSizesLineListComparisonFailure.HEADER_TEMPLATE, 3, 4)
-        ["a", "b", "c"]         | ["a", "b", "c", "d"]  || DifferentSizesLineListComparisonFailure  || String.format(DifferentSizesLineListComparisonFailure.HEADER_TEMPLATE, 3, 4)
-        ["a", "b", "c"]         | []                    || DifferentSizesLineListComparisonFailure  || String.format(DifferentSizesLineListComparisonFailure.HEADER_TEMPLATE, 3, 0)
-        []                      | ["a", "b", "c"]       || DifferentSizesLineListComparisonFailure  || String.format(DifferentSizesLineListComparisonFailure.HEADER_TEMPLATE, 0, 3)
-    }
-
-    def "failing same lines comparison due to mismatched lines: #expectedLines vs #actualLines"() {
-        when:
-        comparer.assertSameLines(expectedLines, actualLines)
-
-        then:
-        def e = thrown(exception)
-        e.getMessage().startsWith(message)
-
-        where:
-        expectedLines           | actualLines           || exception                                || message
-        ["a", "b", "c"]         | ["d", "e", "g"]       || NoMatchingLinesExistComparisonFailure    || NoMatchingLinesExistComparisonFailure.HEADER
-        ["a", "b", "c"]         | ["a", "e", "g"]       || PotentialMatchesExistComparisonFailure   || PotentialMatchesExistComparisonFailure.HEADER
-        ["a", "b", "c"]         | ["a", "b", "g"]       || PotentialMatchesExistComparisonFailure   || PotentialMatchesExistComparisonFailure.HEADER
-    }
-    // endregion assertSameLines
+    def comparer = ExhaustiveLinesSearcher.useLcsDiff()
 
     // region: assertLinesContainedIn
+    def "neither expected or actual lines can be empty"() {
+        when:
+        comparer.assertLinesContainedIn([], ["a"])
+        then:
+        thrown(AssertionError)
+
+        when:
+        comparer.assertLinesContainedIn(["a"], [])
+        then:
+        thrown(AssertionError)
+    }
+
     def "successful lines contained in comparisons: #expectedLines vs #actualLines"() {
         expect:
         comparer.assertLinesContainedIn(expectedLines, actualLines)
@@ -79,12 +45,10 @@ class ExhaustiveLinesSearcherTest extends Specification {
         where:
         expectedLines           | actualLines
         ["a", "b", "c"]         | ["a", "b", "c"]
-        []                      | []
         ["a"]                   | ["a", "b"]
         ["a"]                   | ["b", "a"]
         ["a"]                   | ["b", "a", "c"]
         ["b", "c"]              | ["a", "b", "c", "d"]
-        []                      | ["a", "b", "c", "d"]
         ["b", "c"]              | ["a", "b", "c", "d", "b", "c", "e"]
     }
 
@@ -99,7 +63,6 @@ class ExhaustiveLinesSearcherTest extends Specification {
         where:
         expectedLines           | actualLines           || exception                                    || message
         ["a", "b", "c"]         | ["d"]                 || InsufficientSizeLineListComparisonFailure    || String.format(InsufficientSizeLineListComparisonFailure.HEADER_TEMPLATE, 3, 1);
-        ["a", "b", "c"]         | []                    || InsufficientSizeLineListComparisonFailure    || String.format(InsufficientSizeLineListComparisonFailure.HEADER_TEMPLATE, 3, 0);
     }
 
     def "failing lines contained in comparison due to mismatched lines with single potential match: #expectedLines vs #actualLines"() {
@@ -155,20 +118,6 @@ class ExhaustiveLinesSearcherTest extends Specification {
         ["b", "c", ""]                 | ["a", "b", "c", "x", "y", "z", ""]     || PotentialMatchesExistComparisonFailure   || 1
     }
 
-    def "if requested, matching blank lines should cause a potential match: #expectedLines vs #actualLines"() {
-        when:
-        comparer.matchBlankLines()
-        comparer.assertLinesContainedIn(expectedLines, actualLines)
-
-        then:
-        PotentialMatchesExistComparisonFailure e = thrown(exception)
-        e.getNumPotentialMatches() == numPotentialMatches
-
-        where:
-        expectedLines           | actualLines                                   || exception                                || numPotentialMatches
-        ["b", "c", ""]          | ["a", "b", "c", "x", "b", "z", ""]            || PotentialMatchesExistComparisonFailure   || 2
-    }
-
     def "by default, potential matches should only include those with a minimum number of mismatches: #expectedLines vs #actualLines"() {
         when:
         comparer.assertLinesContainedIn(expectedLines, actualLines)
@@ -183,28 +132,13 @@ class ExhaustiveLinesSearcherTest extends Specification {
         ["a", "b", "d"]         | ["a", "a", "d", "a", "a", "d", "q", "b", "d"] || PotentialMatchesExistComparisonFailure   || 3
     }
 
-    def "if requested, potential matches should include those where any line matches: #expectedLines vs #actualLines"() {
-        when:
-        comparer.showLessLikelyMatches()
-        comparer.assertLinesContainedIn(expectedLines, actualLines)
-
-        then:
-        PotentialMatchesExistComparisonFailure e = thrown(exception)
-        e.getNumPotentialMatches() == numPotentialMatches
-
-        where:
-        expectedLines           | actualLines                                   || exception                                || numPotentialMatches
-        ["a", "b", "d"]         | ["a", "b", "c", "a", "q", "f", "a", "x", "d"] || PotentialMatchesExistComparisonFailure   || 3
-        ["a", "b", "d"]         | ["a", "a", "d", "a", "a", "d", "d", "b", "d"] || PotentialMatchesExistComparisonFailure   || 5
-    }
-
-    def "alternate formatting of potential matches works: #expectedLines vs #actualLines"() {
+    def "unified diff formatting of potential matches works: #expectedLines vs #actualLines"() {
         given:
+        comparer = ExhaustiveLinesSearcher.useUnifiedDiff()
         def expectedLines = ["cat", "bird", "dog"]
         def actualLines = ["kangaroo", "cat", "llama", "dog", "turtle", "cat", "moose", "dog"]
 
         when:
-        comparer.useUnifiedDiff()
         comparer.assertLinesContainedIn(expectedLines, actualLines)
 
         then:
