@@ -16,9 +16,6 @@
 
 package org.gradle.internal.upgrade.report;
 
-import org.objectweb.asm.Type;
-
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -30,8 +27,8 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
 public class MethodReportableApiChange implements ReportableApiChange {
 
-    private final Class<?> type;
-    private final List<Class<?>> parameterTypes;
+    private final String type;
+    private final List<String> parameterTypes;
     private final Set<String> types;
     private final String methodName;
     private final String methodDescriptor;
@@ -40,21 +37,22 @@ public class MethodReportableApiChange implements ReportableApiChange {
     private final List<String> changes;
 
     public MethodReportableApiChange(
-        Class<?> type,
-        List<Class<?>> parameterTypes,
+        String type,
+        List<String> parameterTypes,
         Collection<String> knownSubtypes,
-        Method method,
+        String methodName,
+        String methodDescriptor,
         String displayText,
         String acceptation,
         List<String> changes
     ) {
         this.type = type;
         this.parameterTypes = parameterTypes;
-        this.types = Stream.concat(Stream.of(type.getName()), knownSubtypes.stream())
+        this.types = Stream.concat(Stream.of(type), knownSubtypes.stream())
             .map(className -> className.replace('.', '/'))
             .collect(Collectors.toSet());
-        this.methodName = method.getName();
-        this.methodDescriptor = Type.getMethodDescriptor(method);
+        this.methodName = methodName;
+        this.methodDescriptor = methodDescriptor;
         this.displayText = displayText;
         this.acceptation = acceptation;
         this.changes = changes;

@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,10 +71,10 @@ public class ApiUpgradeReporter implements Closeable {
     }
 
     private Map<ApiMatcher, Set<ReportableApiChange>> toMap(List<ReportableApiChange> changes) {
-        Map<ApiMatcher, Set<ReportableApiChange>> map = new ConcurrentHashMap<>();
+        Map<ApiMatcher, Set<ReportableApiChange>> map = new LinkedHashMap<>();
         for (ReportableApiChange change : changes) {
             for (ApiMatcher matcher : change.getMatchers()) {
-                map.computeIfAbsent(matcher, k -> ConcurrentHashMap.newKeySet()).add(change);
+                map.computeIfAbsent(matcher, k -> new LinkedHashSet<>()).add(change);
             }
         }
         return map;
@@ -84,11 +86,8 @@ public class ApiUpgradeReporter implements Closeable {
             .map(ReportableApiChange::getApiChangeReport)
             .collect(Collectors.toList());
         if (!report.isEmpty()) {
-            if (report.size() == 1) {
-                requiredUpgrades.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report.get(0)));
-            } else {
-                requiredUpgrades.add(String.format("%s: line: %s:\n\t%s", sourceFile, lineNumber, String.join("\n\t", report)));
-            }
+            // Report just first issue for now
+            requiredUpgrades.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report.get(0)));
         }
     }
 
@@ -114,6 +113,6 @@ public class ApiUpgradeReporter implements Closeable {
 
     @Override
     public void close() throws IOException {
-        requiredUpgrades.forEach(System.out::println);
+        requiredUpgrades.stream().sorted().forEach(System.out::println);
     }
 }

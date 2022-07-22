@@ -17,32 +17,40 @@
 package org.gradle.internal.upgrade.report;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatingMetaClass;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.gradle.internal.lazy.Lazy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgradeDecoration {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicGroovyPropertyUpgradeDecoration.class);
     private final ApiUpgradeReporter reporter;
-    private final Class<?> type;
     private final String propertyName;
     private final Lazy<String> changeReport;
+    private final String typeName;
 
-    public DynamicGroovyPropertyUpgradeDecoration(ApiUpgradeReporter reporter, Class<?> type, String propertyName, Supplier<String> changeReport) {
+    public DynamicGroovyPropertyUpgradeDecoration(ApiUpgradeReporter reporter, String typeName, String propertyName, Supplier<String> changeReport) {
         this.reporter = reporter;
-        this.type = type;
+        this.typeName = typeName;
         this.propertyName = propertyName;
         this.changeReport = Lazy.locking().of(changeReport);
-        MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass(type, propertyName, metaClass));
+    }
+
+    private boolean isInstanceOfType(Object receiver) {
+        try {
+            if (receiver == null) {
+                return false;
+            }
+            ClassLoader classLoader = receiver.getClass().getClassLoader();
+            if (classLoader == null) {
+                return Class.forName(typeName).isInstance(receiver);
+            } else {
+                return classLoader.loadClass(typeName).isInstance(receiver);
+            }
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     @Override
@@ -53,7 +61,7 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
                 @Override
                 public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
                     Object typeToCheck = inferReceiverFromCallSiteReceiver(receiver);
-                    if (type.isInstance(typeToCheck)) {
+                    if (isInstanceOfType(typeToCheck)) {
                         Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
                         String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
                         int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
@@ -64,7 +72,7 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
 
                 @Override
                 public Object callGetProperty(Object receiver) throws Throwable {
-                    if (type.isInstance(receiver)) {
+                    if (isInstanceOfType(receiver)) {
                         Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
                         String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
                         int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
@@ -90,24 +98,5 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
         return callSiteReceiver instanceof Closure
             ? ((Closure<?>) callSiteReceiver).getDelegate()
             : callSiteReceiver;
-    }
-
-    private static class PropertySetterMetaClass extends DelegatingMetaClass {
-        private final Class<?> type;
-        private final String propertyName;
-
-        public PropertySetterMetaClass(Class<?> type, String propertyName, MetaClass delegate) {
-            super(delegate);
-            this.type = type;
-            this.propertyName = propertyName;
-        }
-
-        @Override
-        public void setProperty(Object object, String property, Object newValue) {
-            if (property.equals(propertyName)) {
-                LOGGER.info("Calling setter replacement for property {}.{}", type.getName(), propertyName);
-            }
-            super.setProperty(object, property, newValue);
-        }
     }
 }

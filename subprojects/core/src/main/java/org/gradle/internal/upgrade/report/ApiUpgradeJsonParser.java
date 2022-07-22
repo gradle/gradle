@@ -19,17 +19,13 @@ package org.gradle.internal.upgrade.report;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import groovy.json.JsonSlurper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,7 +36,6 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 class ApiUpgradeJsonParser {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiUpgradeJsonParser.class);
 
     private static final Pattern METHOD_PATTERN = Pattern.compile("Method (\\w+(?:\\.\\w+)*) (\\w+(?:\\.\\w+)*)\\.(\\w+)\\((.*)\\)");
     private static final Pattern COMMA_LIST_PATTERN = Pattern.compile(",\\s*");
@@ -449,57 +444,19 @@ class ApiUpgradeJsonParser {
             return Optional.empty();
         }
 
+        String returnTypeName = methodMatcher.group(1);
         String typeName = methodMatcher.group(2);
         String methodName = methodMatcher.group(3);
         String parameters = methodMatcher.group(4);
         List<String> parameterTypeNames = Arrays.stream(COMMA_LIST_PATTERN.split(parameters))
             .filter(split -> !split.isEmpty())
             .collect(Collectors.toList());
-        Optional<Class<?>> typeOptional = getClassForName(typeName);
-        if (!typeOptional.isPresent()) {
-            // This means type is not on a classpath, so it doesn't need upgrade
-            return Optional.empty();
-        }
 
-        List<Class<?>> parameterTypes = parameterTypeNames.stream()
-            .map(name -> getClassForName(name).orElse(null))
-            .collect(Collectors.toList());
-        if (parameterTypes.stream().anyMatch(Objects::isNull)) {
-            LOGGER.error("Cannot find all type parameters {} for upgrade {}", parameterTypeNames, member);
-            return Optional.empty();
-        }
-
-        try {
-            Class<?> type = typeOptional.get();
-            Method method = type.getMethod(methodName, parameterTypes.toArray(new Class[0]));
-            List<String> allKnownSubtypes = ALL_KNOWN_SUBTYPES.getOrDefault(type.getName(), Collections.emptyList());
-            String displayParameters = parameterTypes.stream()
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining(","));
-            String displayText = String.format("%s %s.%s(%s)", method.getReturnType().getSimpleName(), type.getName(), methodName, displayParameters);
-            return Optional.of(new MethodReportableApiChange(type, parameterTypes, allKnownSubtypes, method, displayText, jsonApiChange.acceptation, jsonApiChange.changes));
-        } catch (NoSuchMethodException e) {
-            // This means that method on classpath has different signature, so older/newer version is used, we can't report for
-            LOGGER.error("Cannot find method for upgrade {}", member);
-            return Optional.empty();
-        }
-    }
-
-    private Optional<Class<?>> getClassForName(String name) {
-        try {
-            if (name.endsWith("[]")) {
-                // TODO handle primitives also here
-                String arrayName = "[L" + name.replace("[]", "") + ";";
-                return Optional.of(Class.forName(arrayName));
-            }
-            Class<?> primitiveClass = PRIMITIVE_CLASSES.get(name);
-            if (primitiveClass != null) {
-                return Optional.of(primitiveClass);
-            }
-            return Optional.of(Class.forName(name));
-        } catch (ClassNotFoundException e) {
-            return Optional.empty();
-        }
+        List<String> allKnownSubtypes = ALL_KNOWN_SUBTYPES.getOrDefault(typeName, Collections.emptyList());
+        String displayParameters = String.join(",", parameterTypeNames);
+        String displayText = String.format("%s %s.%s(%s)", returnTypeName, typeName, methodName, displayParameters);
+        String descriptor = getMethodDescriptor(parameterTypeNames, returnTypeName);
+        return Optional.of(new MethodReportableApiChange(typeName, parameterTypeNames, allKnownSubtypes, methodName, descriptor, displayText, jsonApiChange.acceptation, jsonApiChange.changes));
     }
 
     @SuppressWarnings("unchecked")
@@ -518,6 +475,57 @@ class ApiUpgradeJsonParser {
         String acceptation = (String) change.get("acceptation");
         List<String> changes = (List<String>) change.get("changes");
         return new JsonApiChange(type, member, acceptation, changes);
+    }
+
+    private String getMethodDescriptor(List<String> parameterTypeNames, String returnType) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append('(');
+        for (String parameter : parameterTypeNames) {
+            appendDescriptor(parameter, stringBuilder);
+        }
+        stringBuilder.append(')');
+        appendDescriptor(returnType, stringBuilder);
+        return stringBuilder.toString();
+    }
+
+    private void appendDescriptor(String type, final StringBuilder stringBuilder) {
+        String currentType = type;
+        while (currentType.endsWith("[]")) {
+            stringBuilder.append('[');
+            currentType = currentType.substring(0, currentType.length() - 2);
+        }
+        switch (currentType) {
+            case "int":
+                stringBuilder.append("I");
+                break;
+            case "void":
+                stringBuilder.append("V");
+                break;
+            case "boolean":
+                stringBuilder.append("Z");
+                break;
+            case "byte":
+                stringBuilder.append("B");
+                break;
+            case "char":
+                stringBuilder.append("C");
+                break;
+            case "short":
+                stringBuilder.append("S");
+                break;
+            case "double":
+                stringBuilder.append("D");
+                break;
+            case "float":
+                stringBuilder.append("F");
+                break;
+            case "long":
+                stringBuilder.append("J");
+                break;
+            default:
+                stringBuilder.append('L').append(type.replace('.', '/')).append(';');
+                break;
+        }
     }
 
     private static class JsonApiChange {
