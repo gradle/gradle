@@ -20,7 +20,6 @@ package org.gradle.api.plugins
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Ignore
 
 class JvmToolchainsPluginTest extends AbstractProjectBuilderSpec {
 
@@ -38,7 +37,6 @@ class JvmToolchainsPluginTest extends AbstractProjectBuilderSpec {
         project.extensions.getByType(JavaToolchainService) == project.extensions.getByName("javaToolchains")
     }
 
-    @Ignore("TODO: fix before merge")
     def "toolchain service dependencies are satisfied"() {
         expect:
         project.extensions.getByType(JavaToolchainService).launcherFor(new CurrentJvmToolchainSpec(project.objects)).get().executablePath.asFile.isFile()
