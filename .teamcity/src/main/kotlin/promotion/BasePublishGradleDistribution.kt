@@ -16,6 +16,8 @@
 
 package promotion
 
+import common.gradleWrapper
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
@@ -45,5 +47,23 @@ abstract class BasePublishGradleDistribution(
                 synchronizeRevisions = false
             }
         }
+
+        steps {
+            buildStep(
+                this@BasePublishGradleDistribution.extraParameters,
+                this@BasePublishGradleDistribution.gitUserName,
+                this@BasePublishGradleDistribution.gitUserEmail,
+                this@BasePublishGradleDistribution.triggerName,
+                "checkReadyToPromote"
+            )
+        }
+    }
+}
+
+fun BuildSteps.buildStep(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String, prepTask: String, targetTask: String? = null) {
+    gradleWrapper {
+        name = "Promote"
+        tasks = "$prepTask${if (targetTask != null) " $targetTask" else ""}"
+        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" %additional.gradle.parameters% """
     }
 }
