@@ -40,7 +40,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: 'checkstyle'
 
             dependencies { implementation localGroovy() }
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
 
             checkstyle {
                 configProperties["some"] = new URL("https://gradle.org/")
