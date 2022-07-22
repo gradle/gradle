@@ -50,7 +50,10 @@ public class BuildInitPlugin implements Plugin<Project> {
                 File settingsFile = ((ProjectInternal) project).getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
                 FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
 
-                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger()));
+                initBuild.onlyIf(
+                    "There is no build script or settings script",
+                    new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
+                );
                 initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();

@@ -311,20 +311,12 @@ fun configureTests() {
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // Temporary workaround for Gradle Enterprise issue which in 2022.2 and 2022.2.1
-            // only supports tasks of the exact type `org.gradle.api.tasks.testing.Test`.
-            val supportedTask = taskIdentity.taskType == Test::class.java
-
             // GitHub actions for contributor PRs uses public build scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
             (predictiveSelection as PredictiveTestSelectionExtensionInternal).server.set(uri("https://ge.gradle.org"))
             predictiveSelection {
-                enabled.convention(
-                    project.predictiveTestSelectionEnabled.zip(project.rerunAllTests) { enabled, rerunAllTests ->
-                        enabled && !rerunAllTests && supportedTask
-                    }
-                )
+                enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
     }

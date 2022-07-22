@@ -483,4 +483,35 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         fails("taskWithInvalidOutput")
         failure.assertHasCause("Only files and directories can be registered as outputs (was: TAR 'readable resource')")
     }
+
+    def "task with base Java type input property can be up-to-date"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @Input Duration duration
+                @OutputFile File output
+
+                @TaskAction def exec() {
+                    output.text = duration.toString()
+                }
+            }
+
+            task myTask(type: MyTask) {
+                duration = Duration.ofMinutes(1)
+                output = project.file("build/output.txt")
+            }
+        """
+
+        when:
+        run ':myTask'
+
+        then:
+        executedAndNotSkipped ':myTask'
+
+        when:
+        run ':myTask'
+
+        then:
+        skipped ':myTask'
+    }
+
 }

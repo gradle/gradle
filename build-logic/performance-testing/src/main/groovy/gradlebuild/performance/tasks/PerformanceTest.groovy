@@ -245,6 +245,10 @@ abstract class PerformanceTest extends DistributionTest {
     @Input
     abstract Property<String> getProfiler()
 
+    @Option(option = "cross-version-only", description = "Only run cross version performance tests")
+    @Input
+    final Property<Boolean> crossVersionOnly = project.objects.property(Boolean.class).convention(false)
+
     @Optional
     @Input
     String getDatabaseUrl() {
@@ -316,6 +320,7 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios)
             addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProjectName().getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines.getOrNull())
+            addSystemPropertyIfExist(result, "org.gradle.performance.crossVersionOnly", crossVersionOnly.get())
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)
             addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks)

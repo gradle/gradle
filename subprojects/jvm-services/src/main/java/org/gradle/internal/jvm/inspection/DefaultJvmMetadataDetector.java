@@ -76,21 +76,23 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata asMetadata(File javaHome, EnumMap<ProbedSystemProperty, String> metadata) {
-        String implementationVersion = metadata.get(ProbedSystemProperty.VERSION);
-        if (implementationVersion == null) {
+        String javaVersion = metadata.get(ProbedSystemProperty.JAVA_VERSION);
+        if (javaVersion == null) {
             return failure(javaHome, metadata.get(ProbedSystemProperty.Z_ERROR));
         }
         try {
-            JavaVersion.toVersion(implementationVersion);
+            JavaVersion.toVersion(javaVersion);
         } catch (IllegalArgumentException e) {
-            return failure(javaHome, "Cannot parse version number: " + implementationVersion);
+            return failure(javaHome, "Cannot parse version number: " + javaVersion);
         }
+        String javaVendor = metadata.get(ProbedSystemProperty.JAVA_VENDOR);
+        String runtimeName = metadata.get(ProbedSystemProperty.RUNTIME_NAME);
         String runtimeVersion = metadata.get(ProbedSystemProperty.RUNTIME_VERSION);
+        String jvmName = metadata.get(ProbedSystemProperty.VM_NAME);
         String jvmVersion = metadata.get(ProbedSystemProperty.VM_VERSION);
-        String vendor = metadata.get(ProbedSystemProperty.VENDOR);
-        String implementationName = metadata.get(ProbedSystemProperty.VM);
-        String architecture = metadata.get(ProbedSystemProperty.ARCH);
-        return JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName, architecture);
+        String jvmVendor = metadata.get(ProbedSystemProperty.VM_VENDOR);
+        String architecture = metadata.get(ProbedSystemProperty.OS_ARCH);
+        return JvmInstallationMetadata.from(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
     }
 
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {

@@ -1,24 +1,27 @@
 # Execution team
-subprojects/base-annotations/       @gradle/execution
-subprojects/functional/             @gradle/execution @bamboo
-subprojects/build-cache/            @gradle/execution
-subprojects/build-cache-base/       @gradle/execution
-subprojects/build-cache-http/       @gradle/execution
-subprojects/build-cache-packaging/  @gradle/execution
-subprojects/build-operations/       @gradle/execution
-subprojects/execution/              @gradle/execution
-subprojects/file-watching/          @gradle/execution
-subprojects/files/                  @gradle/execution
-subprojects/hashing/                @gradle/execution
-subprojects/normalization-java/     @gradle/execution
-subprojects/snapshots/              @gradle/execution
+subprojects/base-annotations/       @gradle/bt-execution
+subprojects/functional/             @gradle/bt-execution @bamboo
+subprojects/build-cache/            @gradle/bt-execution
+subprojects/build-cache-base/       @gradle/bt-execution
+subprojects/build-cache-http/       @gradle/bt-execution
+subprojects/build-cache-packaging/  @gradle/bt-execution
+subprojects/build-operations/       @gradle/bt-execution
+subprojects/execution/              @gradle/bt-execution
+subprojects/file-watching/          @gradle/bt-execution
+subprojects/files/                  @gradle/bt-execution
+subprojects/hashing/                @gradle/bt-execution
+subprojects/normalization-java/     @gradle/bt-execution
+subprojects/snapshots/              @gradle/bt-execution
 
 # Gradle Enterprise
-subprojects/enterprise/             @ldaley @gradle/ge-test-distribution @gradle/ge-build-insights
-subprojects/enterprise-logging/     @gradle/ge-build-insights @gradle/ge-test-distribution
+subprojects/enterprise/             @ldaley @gradle/ge-testing @gradle/ge-build-insights
+subprojects/enterprise-logging/     @gradle/ge-build-insights @gradle/ge-testing
 subprojects/enterprise-operations/  @gradle/ge-build-insights
 subprojects/enterprise-workers/     @gradle/ge-build-insights
 
 # Testing
-subprojects/testing-junit-platform/ @gradle/ge-test-distribution
-subprojects/testing-jvm/            @gradle/ge-test-distribution
+subprojects/testing-junit-platform/ @gradle/ge-testing
+subprojects/testing-jvm/            @gradle/ge-testing
+
+# Release notes
+subprojects/docs/src/docs/release/notes.md @hythloda

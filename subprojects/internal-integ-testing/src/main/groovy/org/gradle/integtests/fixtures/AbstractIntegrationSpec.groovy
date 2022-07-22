@@ -610,6 +610,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         result.assertHasPostBuildOutput(string.trim())
     }
 
+    void postBuildOutputDoesNotContain(String string) {
+        assertHasResult()
+        result.assertNotPostBuildOutput(string.trim())
+    }
+
     void outputDoesNotContain(String string) {
         assertHasResult()
         result.assertNotOutput(string.trim())

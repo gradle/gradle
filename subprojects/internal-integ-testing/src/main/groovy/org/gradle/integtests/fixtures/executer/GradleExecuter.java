@@ -373,6 +373,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withStackTraceChecksDisabled();
 
     /**
+     * Enables checks for warnings emitted by the JDK itself. Including illegal access warnings.
+     */
+    GradleExecuter withJdkWarningChecksEnabled();
+
+    /**
      * An executer may decide to implicitly bump the logging level, unless this is called.
      */
     GradleExecuter noExtraLogging();

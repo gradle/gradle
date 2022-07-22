@@ -6,6 +6,7 @@ description = "Provides plugins that configures the root Gradle project"
 
 dependencies {
     implementation(project(":idea"))
+    implementation(project(":basics"))
     implementation(project(":profiling"))
 
     implementation(project(":cleanup")) {

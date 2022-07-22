@@ -39,7 +39,6 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
     private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
 
     def setup() {
-        runner.targetVersions = ['7.5-20220406232819+0000']
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
         AndroidTestProject.useLatestAgpVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')

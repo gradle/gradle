@@ -200,10 +200,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         if (getLanguage() == Language.GROOVY) {
             buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", getGroovyDependency(constraintsDefined));
         }
-        if (getLanguage() == Language.KOTLIN) {
-            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
-        }
         if (getLanguage() == Language.SCALA) {
             String scalaVersion = libraryVersionProvider.getVersion("scala");
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -218,10 +214,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
         if (getLanguage() == Language.GROOVY) {
             buildScriptBuilder.implementationDependencyConstraint(null, getGroovyDependency(false));
-        }
-        if (getLanguage() == Language.KOTLIN) {
-            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependencyConstraint(null, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
         }
         if (getLanguage() == Language.SCALA) {
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");

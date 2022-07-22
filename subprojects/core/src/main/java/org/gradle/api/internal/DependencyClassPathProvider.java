@@ -38,7 +38,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "gradle-workers",
         "gradle-dependency-management",
         "gradle-plugin-use",
-        "gradle-tooling-api",
+        "gradle-tooling-api-builders",
         "gradle-configuration-cache"
     );
 
@@ -78,8 +78,9 @@ public class DependencyClassPathProvider implements ClassPathProvider {
 
     private ClassPath initGradleApi() {
         // This gradleApi() method creates a Gradle API classpath based on real jars for embedded test running.
-        // Currently this leaks additional dependencies that may cause unexpected issues.
-        // This method is NOT involved in generating the gradleApi() Jar which is used in a real Gradle run.
+        // Currently, this leaks additional dependencies that may cause unexpected issues.
+        // This method is involved in generating the gradleApi() Jar which is used in a real Gradle run.
+        // See: `org.gradle.api.internal.notations.DependencyClassPathNotationConverter`
         ClassPath classpath = ClassPath.EMPTY;
         for (String moduleName : MODULES) {
             classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());

@@ -26,6 +26,7 @@ import org.gradle.util.internal.VersionNumber
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import static org.junit.Assume.assumeFalse
+import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -72,6 +73,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
+
+        // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
+        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1,7))
+
         given:
         useSample("kotlin-js-sample")
         withKotlinBuildFile()
@@ -150,6 +155,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         assumeFalse(kotlinVersion.startsWith("1.3."))
         assumeFalse(kotlinVersion.startsWith("1.4."))
+        assumeFalse(kotlinVersion.startsWith("1.5."))
 
         given:
         buildFile << """
@@ -215,7 +221,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     @Override
     Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        def androidVersion = TestedVersions.androidGradle.latest()
+        def androidVersion = TestedVersions.androidGradle.latestStable()
         if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
             return ['org.jetbrains.kotlin.jvm': version]
         }
