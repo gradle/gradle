@@ -17,12 +17,17 @@ package org.gradle.api.internal.catalog;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
     protected final DefaultVersionCatalog config;
@@ -52,8 +57,17 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
 
     @Override
     public Provider<MinimalExternalModuleDependency> create(String alias) {
-        return providers.of(DependencyValueSource.class,
-            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)));
+        return providers.of(
+            DependencyValueSource.class,
+            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias))
+        ).map(AbstractExternalDependencyFactory::createMinimalDependency);
+    }
+
+    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data) {
+        ImmutableVersionConstraint version = data.getVersion();
+        return new DefaultMinimalDependency(
+            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
+        );
     }
 
     public static class VersionFactory {
@@ -104,11 +118,18 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         }
 
         protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
-            return providers.of(DependencyBundleValueSource.class,
+            return providers.of(
+                DependencyBundleValueSource.class,
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
                     params.getBundleName().set(name);
-                }));
+                })
+            ).map(dataList -> dataList.stream()
+                .map(AbstractExternalDependencyFactory::createMinimalDependency)
+                .collect(Collectors.toCollection(DefaultBundle::new)));
+        }
+
+        private static class DefaultBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
         }
     }
 

@@ -26,6 +26,23 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
         super(module, versionConstraint);
     }
 
+    @Override
+    public void because(String reason) {
+        validateMutation();
+    }
+
+    @Override
+    protected void validateMutation() {
+        throw new UnsupportedOperationException("Minimal dependencies are immutable.");
+    }
+
+    @Override
+    protected void validateMutation(Object currentValue, Object newValue) {
+        validateMutation();
+    }
+
+    // copy() intentionally not overridden because we use it to go to a mutable version
+
     public String toString() {
         String versionConstraintAsString = getVersionConstraint().toString();
         return versionConstraintAsString.isEmpty()

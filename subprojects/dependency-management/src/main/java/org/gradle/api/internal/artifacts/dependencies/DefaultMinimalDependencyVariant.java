@@ -51,6 +51,21 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     }
 
     @Override
+    public void because(String reason) {
+        validateMutation();
+    }
+
+    @Override
+    protected void validateMutation() {
+        throw new UnsupportedOperationException("Minimal dependencies are immutable.");
+    }
+
+    @Override
+    protected void validateMutation(Object currentValue, Object newValue) {
+        validateMutation();
+    }
+
+    @Override
     public void mutateAttributes(AttributeContainer attributes) {
         if (attributesMutator!= null) {
             attributesMutator.execute(attributes);
