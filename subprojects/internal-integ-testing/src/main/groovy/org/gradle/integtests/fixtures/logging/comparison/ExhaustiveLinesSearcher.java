@@ -28,70 +28,41 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ExhaustiveLinesSearcher {
-    private boolean matchBlankLines = false;
-    private boolean showLessLikelyMatches = false;
-    private boolean useUnifiedDiff = false;
-
-    /**
-     * Instructs empty lines to be considered matches when exhaustively building the list of potential matches.
-     * <p>
-     * Enabling this option could really explode the number of potential matches for common output cases
-     * where blank lines exist in both the expected and actual lines.
-     *
-     * @return {@code this)
-     */
-    public ExhaustiveLinesSearcher matchBlankLines() {
-        matchBlankLines = true;
-        return this;
+    private boolean useUnifiedDiff;
+    private ExhaustiveLinesSearcher(boolean useUnifiedDiff) {
+        this.useUnifiedDiff = useUnifiedDiff;
     }
 
     /**
-     * Show potential matches which don't match as many expected lines as the best match.
-     *
-     * @return {@code this)
-     */
-    public ExhaustiveLinesSearcher showLessLikelyMatches() {
-        showLessLikelyMatches = true;
-        return this;
-    }
-
-    /**
-     * Display the most likely potential match according to the git diff algorithm.
+     * Uses the git diff algorithm for presenting matches.
      * <p>
      * Enabling this option will only show a single match, regardless of how many potential matches
      * containing the same number of matching lines are found.
      *
-     * @return {@code this}
+     * @return searcher that uses a unified diff output
      */
-    public ExhaustiveLinesSearcher useUnifiedDiff() {
-        useUnifiedDiff = true;
-        return this;
+    public static ExhaustiveLinesSearcher useUnifiedDiff() {
+        return new ExhaustiveLinesSearcher(true);
+    }
+
+    /**
+     * Uses the LCS (longest common subsequence) algorithm for presenting matches.
+     *
+     * @return searcher that uses a unified diff output
+     */
+    public static ExhaustiveLinesSearcher useLcsDiff() {
+        return new ExhaustiveLinesSearcher(false);
     }
 
     public void assertLinesContainedIn(List<String> expectedLines, List<String> actualLines) throws LineSearchFailures.AbstractLineListComparisonFailure {
-        if (expectedLines.isEmpty() && actualLines.isEmpty()) {
-            return;
-        }
+        assert !expectedLines.isEmpty() : "there must be expected text";
+        assert !actualLines.isEmpty() : "there must be output text";
 
         if (actualLines.size() < expectedLines.size()) {
             LineSearchFailures.insufficientSize(expectedLines, actualLines);
         }
 
         if (!findFirstCompleteMatch(expectedLines, actualLines).isPresent()) {
-            exhaustiveSearch(expectedLines, actualLines);
-        }
-    }
-
-    public void assertSameLines(List<String> expectedLines, List<String> actualLines) {
-        if (expectedLines.isEmpty() && actualLines.isEmpty()) {
-            return;
-        }
-
-        if (expectedLines.size() != actualLines.size()) {
-            LineSearchFailures.differentSizes(expectedLines, actualLines);
-        }
-
-        if (findFirstCompleteMatch(expectedLines, actualLines).orElse(-1) != 0) {
             exhaustiveSearch(expectedLines, actualLines);
         }
     }
@@ -141,7 +112,7 @@ public class ExhaustiveLinesSearcher {
             String expectedLine = expectedLines.get(expectedIdx);
             for (int actualIdx = 0; actualIdx < actualLines.size(); actualIdx++) {
                 String actualLine = actualLines.get(actualIdx);
-                if (Objects.equals(expectedLine, actualLine) && (matchBlankLines || !StringUtils.isEmpty(expectedLine))) {
+                if (Objects.equals(expectedLine, actualLine) && !StringUtils.isEmpty(expectedLine)) {
                     result.computeIfAbsent(expectedIdx, matches -> new ArrayList<>()).add(actualIdx);
                 }
             }
@@ -155,9 +126,7 @@ public class ExhaustiveLinesSearcher {
         if (matchingLines.isEmpty()) {
             LineSearchFailures.noMatchingLines(expectedLines, actualLines);
         } else {
-            if (!showLessLikelyMatches) {
-                filterLessLikelyMatches(potentialMatches);
-            }
+            filterLessLikelyMatches(potentialMatches);
             LineSearchFailures.potentialMatchesExist(expectedLines, actualLines, potentialMatches, useUnifiedDiff);
         }
     }

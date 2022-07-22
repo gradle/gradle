@@ -24,19 +24,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class LineSearchFailures {
-    public static DifferentSizesLineListComparisonFailure differentSizes(List<String> expected, List<String> actual) {
-        throw new DifferentSizesLineListComparisonFailure(expected, actual);
-    }
 
-    public static InsufficientSizeLineListComparisonFailure insufficientSize(List<String> expected, List<String> actual) {
+    public static void insufficientSize(List<String> expected, List<String> actual) {
         throw new InsufficientSizeLineListComparisonFailure(expected, actual);
     }
 
-    public static PotentialMatchesExistComparisonFailure potentialMatchesExist(List<String> expected, List<String> actual, Collection<PotentialMatch> potentialMatches, boolean useUnifiedDiff) {
+    public static void potentialMatchesExist(List<String> expected, List<String> actual, Collection<PotentialMatch> potentialMatches, boolean useUnifiedDiff) {
         throw new PotentialMatchesExistComparisonFailure(expected, actual, potentialMatches, useUnifiedDiff);
     }
 
-    public static NoMatchingLinesExistComparisonFailure noMatchingLines(List<String> expected, List<String> actual) {
+    public static void noMatchingLines(List<String> expected, List<String> actual) {
         throw new NoMatchingLinesExistComparisonFailure(expected, actual);
     }
 
@@ -84,8 +81,6 @@ public final class LineSearchFailures {
     }
 
     /**
-     *
-     *
      * This exception may be thrown containing 0 potential matches, if a matching line at the end/beginning of the actual lines would begin a potential match group
      * that would extend beyond the end of the given actual lines.
      */
@@ -93,28 +88,25 @@ public final class LineSearchFailures {
         @VisibleForTesting
         /* package */ static final String HEADER = "Lines not found.  Similar sections:";
         private static final int DEFAULT_LEADING_CONTEXT_LINES = 3;
-        private static final int DEFAULT_TRAILING_CONTEXT_LINES = 3;
         private final Collection<PotentialMatch> potentialMatches;
         private final int maxLeadingContextLines;
-        private final int maxTrailingContextLines;
         private final boolean useUnifiedDiff;
 
         public PotentialMatchesExistComparisonFailure(List<String> expectedLines, List<String> actualLines, Collection<PotentialMatch> potentialMatches, boolean useUnifiedDiff) {
-            this(expectedLines, actualLines, potentialMatches, DEFAULT_LEADING_CONTEXT_LINES, DEFAULT_TRAILING_CONTEXT_LINES, useUnifiedDiff);
+            this(expectedLines, actualLines, potentialMatches, DEFAULT_LEADING_CONTEXT_LINES, useUnifiedDiff);
         }
 
-        public PotentialMatchesExistComparisonFailure(List<String> expectedLines, List<String> actualLines, Collection<PotentialMatch> potentialMatches, int maxLeadingContextLines, int maxTrailingContextLines, boolean useUnifiedDiff) {
+        public PotentialMatchesExistComparisonFailure(List<String> expectedLines, List<String> actualLines, Collection<PotentialMatch> potentialMatches, int maxLeadingContextLines, boolean useUnifiedDiff) {
             super(expectedLines, actualLines);
             this.potentialMatches = potentialMatches;
             this.maxLeadingContextLines = maxLeadingContextLines;
-            this.maxTrailingContextLines = maxTrailingContextLines;
             this.useUnifiedDiff = useUnifiedDiff;
         }
 
         @Override
         public String getMessage() {
             if (useUnifiedDiff) {
-                return HEADER + "\n\n" + DiffUtils.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines).stream().collect(Collectors.joining("\n"));
+                return HEADER + "\n\n" + String.join("\n", DiffUtils.generateUnifiedDiff(expectedLines, actualLines, maxLeadingContextLines));
             } else {
                 return HEADER + "\n\n" + potentialMatches.stream().map(pm -> pm.buildContext(maxLeadingContextLines)).collect(Collectors.joining("\n"));
             }
