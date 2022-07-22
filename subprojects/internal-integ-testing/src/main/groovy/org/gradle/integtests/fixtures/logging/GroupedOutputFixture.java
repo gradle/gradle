@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.logging;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.integtests.fixtures.executer.LogContent;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -126,8 +127,9 @@ public class GroupedOutputFixture {
         return strippedOutput;
     }
 
+    @Override
     public String toString() {
-        return originalOutput.withNormalizedEol();
+        return "Output for tasks: " + Arrays.deepToString(tasks.keySet().stream().sorted().toArray());
     }
 
     private void consumeTaskOutput(Matcher matcher) {
