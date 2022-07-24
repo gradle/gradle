@@ -1,4 +1,0 @@
-tasks.register('download', Download) {
-    resource.hostName = "gradle.org"
-    resource.path =  "training"
-}

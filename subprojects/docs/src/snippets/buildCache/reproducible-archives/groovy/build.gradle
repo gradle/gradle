@@ -1,5 +1,0 @@
-tasks.register('createZip', Zip) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-    // ...
-}

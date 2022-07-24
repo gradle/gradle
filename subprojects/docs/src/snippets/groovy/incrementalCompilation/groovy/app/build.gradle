@@ -1,7 +1,0 @@
-plugins {
-    id 'myproject.groovy-conventions'
-}
-
-dependencies {
-    implementation project(":library")
-}

@@ -1,2 +1,0 @@
-group = "com.acme"
-version = "1.0"

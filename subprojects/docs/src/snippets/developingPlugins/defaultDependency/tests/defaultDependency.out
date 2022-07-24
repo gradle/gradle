@@ -1,9 +1,0 @@
-
-------------------------------------------------------------
-Root project 'default-dependency'
-------------------------------------------------------------
-
-dataFiles - The data artifacts to be processed for this plugin.
-\--- org.myorg:more-data:2.6 FAILED
-
-A web-based, searchable dependency report is available by adding the --scan option.

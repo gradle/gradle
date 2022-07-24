@@ -1,9 +1,0 @@
-tasks.register('myCopy', Copy)
-
-// tag::configure[]
-tasks.named('myCopy') {
-    from 'resources'
-    into 'target'
-    include('**/*.txt', '**/*.xml', '**/*.properties')
-}
-// end::configure[]

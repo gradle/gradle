@@ -1,4 +1,0 @@
-apply plugin: InhouseConventionJavaPlugin
-apply plugin: InhouseStrongOpinionConventionJavaPlugin
-apply plugin: InhouseConventionWarPlugin
-apply plugin: 'war'

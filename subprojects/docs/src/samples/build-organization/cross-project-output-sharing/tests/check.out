@@ -1,4 +1,0 @@
-> Task :producer:makeFile
-
-> Task :consumer:showFile
-Shared file contains the text: 'This file is shared across Gradle subprojects.'

@@ -1,5 +1,0 @@
-tasks.register('compileTest') {
-    doLast {
-        println 'compiling unit tests'
-    }
-}

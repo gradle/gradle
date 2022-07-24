@@ -1,3 +1,0 @@
-@MyAnnotation
-class Main {
-}

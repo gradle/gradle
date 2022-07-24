@@ -1,2 +1,0 @@
-rootProject.name = 'multi-project'
-include "exe", "lib"

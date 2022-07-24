@@ -1,2 +1,0 @@
-rootProject.name = "ivy-publish-java"
-include("project1", "project2")

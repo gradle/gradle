@@ -1,6 +1,0 @@
-def jdkVariables = ["JDK_8", "JDK_11", "JDK_17"]
-def jdkLocations = jdkVariables.findAll { v ->
-    System.getenv(v) != null
-}.collectEntries { v ->
-    [v, System.getenv(v)]
-}

@@ -1,9 +1,0 @@
-// tag::using-root-dir-property[]
-File configFile = file("$rootDir/shared/config.xml")
-// end::using-root-dir-property[]
-
-tasks.register('checkConfigFile') {
-    doLast {
-        assert configFile.exists()
-    }
-}

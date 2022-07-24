@@ -1,5 +1,0 @@
-tasks.register('sayHello') {
-    doLast {
-        ant.echo message: 'Hello!'
-    }
-}

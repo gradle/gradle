@@ -1,2 +1,0 @@
-// Using the Java API
-println System.getenv('ENVIRONMENTAL')

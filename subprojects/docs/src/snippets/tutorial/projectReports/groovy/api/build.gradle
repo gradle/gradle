@@ -1,6 +1,0 @@
-description = 'The shared API for the application'
-
-tasks.register('libs') {
-    group = 'build'
-    description = 'Builds the JAR'
-}

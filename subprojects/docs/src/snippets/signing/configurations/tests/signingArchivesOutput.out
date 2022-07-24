@@ -1,8 +1,0 @@
-> Task :compileJava
-> Task :processResources
-> Task :classes
-> Task :jar
-> Task :signArchives
-
-BUILD SUCCESSFUL in 0s
-4 actionable tasks: 4 executed

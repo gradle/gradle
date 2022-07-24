@@ -1,4 +1,0 @@
-tasks.register('libs'){
-    group = 'build'
-    description = 'Builds the JAR'
-}

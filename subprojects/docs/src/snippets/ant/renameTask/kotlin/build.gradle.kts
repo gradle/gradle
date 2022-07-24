@@ -1,3 +1,0 @@
-ant.importBuild("build.xml") { antTargetName ->
-    "a-" + antTargetName
-}
