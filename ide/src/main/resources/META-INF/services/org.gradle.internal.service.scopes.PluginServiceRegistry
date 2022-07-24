@@ -1,0 +1,2 @@
+org.gradle.plugins.ide.internal.tooling.ToolingModelServices
+org.gradle.plugins.ide.internal.IdeServices

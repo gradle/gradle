@@ -1,0 +1,8 @@
+rootProject.name = '${rootProjectName}'
+<%
+subprojects.each { subproject ->
+    out.println "include '$subproject'"
+}
+%>
+
+include 'googleTest'

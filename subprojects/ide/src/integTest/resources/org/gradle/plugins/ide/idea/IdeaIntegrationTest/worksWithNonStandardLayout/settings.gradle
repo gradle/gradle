@@ -1,6 +1,0 @@
-include 'a_child', 'top-level'
-
-rootProject.name = 'root'
-rootProject.projectDir = file('root')
-project(':top-level').projectDir = settingsDir
-project(':a_child').projectDir = file('a child project')

@@ -1,5 +1,0 @@
-[libraries]
-guava = { group = "com.google.guava", name = "guava" }
-guava.invalid = '18'
-guava.extra = { value = 'oh noes' }
-

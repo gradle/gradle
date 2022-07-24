@@ -1,0 +1,7 @@
+apply plugin: 'java'
+repositories { mavenCentral() }
+dependencies { testImplementation 'junit:junit:4.13'}
+test {
+    include '**/ASuite.class'
+    exclude '**/*Test.class'
+}

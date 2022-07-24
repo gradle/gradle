@@ -1,9 +1,0 @@
-println 'external QUIET message'
-logging.captureStandardOutput LogLevel.INFO
-println 'external INFO message'
-
-System.err.println 'external ERROR error message'
-logging.captureStandardError LogLevel.LIFECYCLE
-System.err.println 'external LIFECYCLE error message'
-
-logger.lifecycle 'external LIFECYCLE log message'

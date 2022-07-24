@@ -1,0 +1,10 @@
+apply plugin: 'war'
+
+dependencies {
+    runtimeOnly "commons-lang:commons-lang:2.5"
+    testImplementation 'junit:junit:4.7'
+}
+
+eclipse {
+    pathVariables GRADLE_USER_HOME: file("${gradle.gradleUserHomeDir}/caches")
+}

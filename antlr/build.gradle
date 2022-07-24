@@ -1,0 +1,16 @@
+plugins {
+    id 'java-library'
+}
+
+description = "A set of generic services and utilities."
+
+dependencies {
+    
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+

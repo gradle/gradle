@@ -1,8 +1,0 @@
-include 'project1', 'project2'
-
-println 'settings quiet out'
-logging.captureStandardOutput(LogLevel.INFO)
-println 'settings info out'
-
-logger.lifecycle('settings lifecycle log')
-logger.info('settings info log')

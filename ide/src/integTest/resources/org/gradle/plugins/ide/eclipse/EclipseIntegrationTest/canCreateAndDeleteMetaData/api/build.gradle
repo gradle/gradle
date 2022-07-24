@@ -1,0 +1,18 @@
+apply plugin: 'java'
+
+dependencies {
+    runtimeOnly 'commons-collections:commons-collections:3.2.2@jar'
+    testImplementation 'junit:junit:4.7'
+}
+
+sourceSets {
+    integTest {
+        java.srcDirs = ['src/integTest/java']
+    }
+    main {
+        java.srcDir 'src/main/testbutnottest'
+    }
+    test {
+        java.srcDir 'src/test/t_e_s_t'
+    }
+}

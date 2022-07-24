@@ -1,0 +1,113 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+repositories {
+<% if (repository) { %>
+    maven {
+        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
+    }
+<% } %>
+    mavenCentral()
+}
+
+<% if (binding.hasVariable("projectDependencies")) { %>
+    configurations {
+        compile.extendsFrom projectsConfiguration
+    }
+<% } %>
+
+<% if (binding.hasVariable("springDmPluginVersion")) {%>
+apply plugin: "io.spring.dependency-management"
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:1.3.5.RELEASE'
+        mavenBom 'io.spring.platform:platform-bom:2.0.5.RELEASE'
+    }
+}
+<% } %>
+
+dependencies {
+    implementation 'commons-lang:commons-lang:2.5'
+    implementation "commons-httpclient:commons-httpclient:3.0"
+    implementation "commons-codec:commons-codec:1.2"
+    implementation "org.slf4j:jcl-over-slf4j:1.7.10"
+    implementation "org.codehaus.groovy:groovy:2.4.15"
+    testImplementation 'junit:junit:4.13'
+    runtimeOnly 'com.googlecode:reflectasm:1.01'
+
+    <% if (dependencies) { dependencies.each { %>
+        implementation "${it.shortNotation()}" <% } %>
+    <% } %>
+    <% if (binding.hasVariable("projectDependencies")) { %>
+        <% if (subprojectNumber != null && subprojectNumber - 3 > 0) { %>
+            projectsConfiguration project(":project${subprojectNumber - 3 }")
+            <% } %>
+    <% } %>
+}
+
+test {
+    if (!JavaVersion.current().java8Compatible) {
+        jvmArgs '-XX:MaxPermSize=512m'
+    }
+    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+    <% if (binding.hasVariable("fullTestLogging")) { %>
+        testLogging {
+            events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
+        }
+    <% } %>
+}
+
+String compilerMemory = getProperty('compilerMemory')
+String testRunnerMemory = getProperty('testRunnerMemory')
+int testForkEvery = getProperty('testForkEvery') as Integer
+
+tasks.withType(JavaCompile) {
+    options.fork = true
+    options.forkOptions.memoryInitialSize=compilerMemory
+    options.forkOptions.memoryMaximumSize=compilerMemory
+}
+tasks.withType(Test) {
+    minHeapSize = testRunnerMemory
+    maxHeapSize = testRunnerMemory
+    maxParallelForks = 4
+    forkEvery = testForkEvery
+}
+
+<% if (groovyProject) { %>
+apply plugin: 'groovy'
+dependencies {
+    implementation 'org.codehaus:groovy:groovy-all:2.4.15'
+}
+<% } %>
+
+<% if (scalaProject) { %>
+apply plugin: 'scala'
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.9.2'
+}
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        useAnt = false
+        fork = true
+        if (!JavaVersion.current().java8Compatible) {
+            forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+        }
+    }
+}
+<% } %>
+
+<% if (binding.hasVariable("resolveDependenciesTask")) { %>
+task resolveDependencies {
+    dependsOn configurations.testRuntimeClasspath
+    // Need this to ensure that configuration is actually resolved
+    doLast {
+        configurations.testRuntimeClasspath.files.size()
+    }
+}
+<% } %>
+
+task dependencyReport(type: DependencyReportTask) {
+    outputs.upToDateWhen { false }
+    outputFile = new File(buildDir, "dependencies.txt")
+}

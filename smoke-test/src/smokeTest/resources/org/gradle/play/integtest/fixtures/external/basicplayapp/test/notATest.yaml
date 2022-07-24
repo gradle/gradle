@@ -1,0 +1,7 @@
+name: Test
+number: 1234
+items:
+    - name: item1
+      description: first item
+    - name: item2
+      description: second item

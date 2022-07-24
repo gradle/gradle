@@ -1,9 +1,0 @@
-plugins {
-    id 'org.gradle.playframework' version 'PLUGIN_VERSION'
-}
-
-// repositories added in PlayApp class
-dependencies {
-    implementation "com.typesafe.play:play-guice_2.13:2.7.9"
-    implementation "ch.qos.logback:logback-classic:1.2.3"
-}

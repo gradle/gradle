@@ -1,0 +1,21 @@
+import org.gradle.api.tasks.options.Option
+import org.gradle.api.tasks.options.OptionValues
+
+subprojects{
+    task hello(type: CustomTask)
+}
+
+class CustomTask extends DefaultTask {
+    @TaskAction
+    void doSomething() {
+    }
+
+    @Option(option = "stringValue", description = "Configures a string value in CustomTask.")
+    public void setStringValue(String value) {
+    }
+
+    @OptionValues("stringValue")
+    public List<String> possibleValues(){
+        return Arrays.asList("optionA", "optionB", "optionC", "$path")
+    }
+}

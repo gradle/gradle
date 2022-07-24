@@ -1,9 +1,0 @@
-apply plugin: "groovy"
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation "com.google.guava:guava:11.0.2"
-}

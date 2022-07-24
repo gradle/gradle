@@ -1,0 +1,7 @@
+allprojects {
+    apply plugin: "idea"
+
+    idea {
+       targetVersion = '13'
+    }
+}

@@ -1,7 +1,0 @@
-<%
-    def i = 0
-    def groups = subprojects.collect { "'$it'" }.groupBy { i++ % 100 }
-    groups.each {
-        println "include " + it.value.join(", ")
-    }
-%>

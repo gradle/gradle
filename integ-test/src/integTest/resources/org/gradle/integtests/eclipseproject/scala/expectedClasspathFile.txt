@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<classpath>
+  <classpathentry kind="output" path="build/classes/main"/>
+  <classpathentry kind="src" path="src/main/scala"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="src" path="src/test/scala" output="build/classes/test"/>
+  <classpathentry kind="lib" path="$cachePath/commons-collections/commons-collections/jars/commons-collections-3.2.2.jar"/>
+  <classpathentry kind="lib" path="$cachePath/junit/junit/jars/junit-4.7.jar"/>
+  <classpathentry kind="lib" path="$cachePath/org.scala-lang/scala-library/jars/scala-library-2.9.2.jar"/>
+</classpath>

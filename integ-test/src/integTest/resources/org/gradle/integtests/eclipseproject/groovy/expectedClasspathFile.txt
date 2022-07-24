@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<classpath>
+  <classpathentry kind="output" path="build/classes/main"/>
+  <classpathentry kind="src" path="src/main/groovy"/>
+  <classpathentry kind="src" path="src/main/resources"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="src" path="src/test/groovy" output="build/classes/test"/>
+  <classpathentry kind="src" path="src/test/resources" output="build/classes/test"/>
+  <classpathentry kind="lib" path="$cachePath/antlr/antlr/jars/antlr-2.7.7.jar"/>
+  <classpathentry kind="lib" path="$cachePath/asm/asm-analysis/jars/asm-analysis-3.2.jar"/>
+  <classpathentry kind="lib" path="$cachePath/asm/asm-commons/jars/asm-commons-3.2.jar"/>
+  <classpathentry kind="lib" path="$cachePath/asm/asm-tree/jars/asm-tree-3.2.jar"/>
+  <classpathentry kind="lib" path="$cachePath/asm/asm-util/jars/asm-util-3.2.jar"/>
+  <classpathentry kind="lib" path="$cachePath/asm/asm/jars/asm-3.2.jar"/>
+  <classpathentry kind="lib" path="$cachePath/jline/jline/jars/jline-0.9.94.jar"/>
+  <classpathentry kind="lib" path="$cachePath/junit/junit/jars/junit-4.7.jar"/>
+  <classpathentry kind="lib" path="$cachePath/org.codehaus.groovy/groovy/jars/groovy-1.7.0.jar"/>
+</classpath>

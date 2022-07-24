@@ -1,0 +1,16 @@
+<projectDescription>
+	<name>javabaseproject</name>
+	<comment/>
+	<projects/>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments/>
+		</buildCommand>
+	</buildSpec>
+	<linkedResources/>
+	<filteredResources/>
+</projectDescription>
