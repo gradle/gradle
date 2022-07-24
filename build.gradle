@@ -1,0 +1,39 @@
+buildscript {
+repositories {
+maven { url 'https://maven.aliyun.com/repository/public/' }
+maven { url 'https://maven.aliyun.com/repository/google/' }
+maven { url 'https://maven.aliyun.com/repository/gradle-plugin/' }
+maven { url 'https://dl.bintray.com/ppartisan/maven/' }
+maven { url "https://clojars.org/repo/" }
+maven { url "https://jitpack.io" }
+maven { url 'https://repo.jenkins-ci.org/public/'}
+google()
+mavenLocal()
+mavenCentral()
+}
+dependencies {
+classpath 'com.android.tools.build:gradle:7.4.0-alpha08'  // AAP2 Plugin
+//classpath 'com.google.gms:google-services:4.3.8'  // Google Services Plugin
+
+}
+
+}
+allprojects {
+repositories {
+maven { url 'https://maven.aliyun.com/repository/public/' }
+maven { url 'https://maven.aliyun.com/repository/google/' }
+maven { url 'https://maven.aliyun.com/repository/gradle-plugin/' }
+maven { url 'https://dl.bintray.com/ppartisan/maven/' }
+maven { url "https://clojars.org/repo/" }
+maven { url "https://jitpack.io" }
+maven { url 'https://repo.jenkins-ci.org/public/'}
+
+mavenLocal()
+mavenCentral()
+google()
+}
+}
+
+task clean(type: Delete) {
+delete rootProject.buildDir
+}
