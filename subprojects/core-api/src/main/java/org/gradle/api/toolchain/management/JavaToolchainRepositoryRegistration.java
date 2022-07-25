@@ -22,6 +22,8 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Toolchain management extensions created when a setting plugin registers JavaToolchainRepository build services.
  * //TODO (#21082): more/better docs
+ *
+ * @since 7.6
  */
 @Incubating
 @HasInternalProtocol

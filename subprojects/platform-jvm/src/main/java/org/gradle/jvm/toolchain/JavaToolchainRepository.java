@@ -25,7 +25,9 @@ import java.util.Optional;
 
 /**
  * Interface that needs to be implemented by Toolchain SPI plugins, in order to
- * extend Gradle with their spec --> URI logic. //TODO (#21082): more/better docs
+ * extend Gradle with their spec-to-URI logic.
+ *
+ * //TODO (#21082): more/better docs
  *
  * @since 7.6
  */
