@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.api.toolchain.management;
 
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.util.List;
-
-public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
-
-    boolean hasExplicitRequests();
-
-    List<JavaToolchainRepository> requestedRepositories();
-
+/**
+ * Toolchain management extensions created when a setting plugin registers JavaToolchainRepository build services.
+ * //TODO (#21082): more/better docs
+ */
+@Incubating
+@HasInternalProtocol
+public interface JavaToolchainRepositoryRegistration {
 }

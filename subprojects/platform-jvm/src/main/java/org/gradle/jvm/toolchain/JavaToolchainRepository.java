@@ -24,7 +24,8 @@ import java.net.URI;
 import java.util.Optional;
 
 /**
- * Java Toolchain Download SPI.
+ * Interface that needs to be implemented by Toolchain SPI plugins, in order to
+ * extend Gradle with their spec --> URI logic. //TODO (#21082): more/better docs
  *
  * @since 7.6
  */

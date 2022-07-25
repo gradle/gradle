@@ -50,7 +50,7 @@ import org.gradle.api.tasks.Internal;
  * project.custom.extensions.create("nested", MyExtension, "baz")
  * assert project.custom.nested.foo == "baz"
  *
- * // All extension aware objects have a special “ext” extension of type ExtraPropertiesExtension
+ * // All extension aware objects have a special “ext” extension of type ExtraPropertiesExtension
  * assert project.hasProperty("myProperty") == false
  * project.ext.myProperty = "myValue"
  *
