@@ -28,7 +28,7 @@ group = "gradlebuild"
 
 dependencies {
     compileOnly(localGroovy())
-    compileOnly("org.codenarc:CodeNarc:3.0.1") {
-        exclude(group = "org.codehaus.groovy")
+    compileOnly("org.codenarc:CodeNarc:3.0.1") { // TODO bump to org.codenarc:CodeNarc-Groovy4:3.1.0
+        exclude(group = "org.codehaus.groovy") // TODO change to org.apache.groovy
     }
 }

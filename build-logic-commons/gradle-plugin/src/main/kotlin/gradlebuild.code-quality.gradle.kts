@@ -49,11 +49,11 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:3.0.1")
+    codenarc("org.codenarc:CodeNarc:3.0.1") // TODO bump to org.codenarc:CodeNarc-Groovy4:3.1.0
     codenarc(embeddedKotlin("stdlib"))
 
     components {
-        withModule<CodeNarcRule>("org.codenarc:CodeNarc")
+        withModule<CodeNarcRule>("org.codenarc:CodeNarc") // TODO bump to org.codenarc:CodeNarc-Groovy4
     }
 }
 
