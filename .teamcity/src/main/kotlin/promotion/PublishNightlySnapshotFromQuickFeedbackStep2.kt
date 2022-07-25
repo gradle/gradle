@@ -21,6 +21,7 @@ import vcsroots.gradlePromotionBranches
 
 class PublishNightlySnapshotFromQuickFeedbackStep2(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
     promotedBranch = branch.branchName,
+    prepTask = branch.prepNightlyTaskName(),
     triggerName = "QuickFeedback",
     vcsRootId = gradlePromotionBranches,
     cleanCheckout = false
