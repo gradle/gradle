@@ -60,7 +60,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         mavenRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes empty pom when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
