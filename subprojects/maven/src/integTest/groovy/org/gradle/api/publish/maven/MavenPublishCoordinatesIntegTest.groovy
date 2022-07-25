@@ -74,7 +74,6 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can produce multiple separate publications for single project"() {
         given:
         def module = mavenRepo.module('org.custom', 'custom', '2.2').withModuleMetadata()
