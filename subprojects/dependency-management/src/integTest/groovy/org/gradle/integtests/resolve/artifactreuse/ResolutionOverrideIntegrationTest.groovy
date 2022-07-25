@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "will refresh non-changing module when run with --refresh-dependencies"() {
@@ -99,7 +98,6 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     public void "will recover from missing artifact when run with --refresh-dependencies"() {
         given:
         buildFile << """
