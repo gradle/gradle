@@ -16,15 +16,24 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 
-import java.util.List;
+public class DefaultJavaToolchainRepositoryRegistration implements JavaToolchainRepositoryRegistrationInternal {
 
-public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
+    private final String name;
+    private final Provider<? extends JavaToolchainRepository> provider;
 
-    boolean hasExplicitRequests();
+    public DefaultJavaToolchainRepositoryRegistration(String name, Provider<? extends JavaToolchainRepository> provider) {
+        this.name = name;
+        this.provider = provider;
+    }
 
-    List<JavaToolchainRepository> requestedRepositories();
+    public String getName() {
+        return name;
+    }
 
+    public Provider<? extends JavaToolchainRepository> getProvider() {
+        return provider;
+    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.toolchain.management;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * TODO (#21082)
@@ -24,8 +25,11 @@ import org.gradle.api.Incubating;
  * @since 7.6
  */
 @Incubating
+@HasInternalProtocol
 public interface ToolchainManagementSpec { //TODO (#21082): far from final version!
 
-    void jdks(String... registryNames);
+    void jdks(String... registrationNames);
+
+    void jdks(JavaToolchainRepositoryRegistration... registrations);
 
 }

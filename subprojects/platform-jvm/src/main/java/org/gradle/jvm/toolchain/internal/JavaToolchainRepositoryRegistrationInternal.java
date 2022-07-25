@@ -16,15 +16,19 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 
-import java.util.List;
+/**
+ * //TODO (#21082): docs
+ */
+@Incubating
+public interface JavaToolchainRepositoryRegistrationInternal extends JavaToolchainRepositoryRegistration {
 
-public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
+    String getName();
 
-    boolean hasExplicitRequests();
-
-    List<JavaToolchainRepository> requestedRepositories();
+    Provider<? extends JavaToolchainRepository> getProvider();
 
 }

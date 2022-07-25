@@ -16,15 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 
-import java.util.List;
-
-public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
-
-    boolean hasExplicitRequests();
-
-    List<JavaToolchainRepository> requestedRepositories();
-
+public interface ToolchainManagementSpecInternal extends ToolchainManagementSpec, ExtensionAware {
 }

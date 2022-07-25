@@ -16,19 +16,15 @@
 
 package org.gradle.jvm.internal.services;
 
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainManagementSpec;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
@@ -50,23 +46,10 @@ import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     @Override
-    public void registerSettingsServices(ServiceRegistration registration) {
-        registration.addProvider(new SettingsServices());
-    }
-
-    protected static class SettingsServices {
-
-        protected ToolchainManagementSpec createToolchainManagementSpec(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
-            return objectFactory.newInstance(DefaultToolchainManagementSpec.class, registry);
-        }
-
-    }
-
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(JdkCacheDirectory.class);
         registration.add(JavaInstallationRegistry.class);
-        registration.add(DefaultJavaToolchainRepositoryRegistry.class);
+        registration.add(DefaultToolchainManagementSpec.class);
         registerJavaInstallationSuppliers(registration);
         registerInvalidJavaInstallationsCacheInvalidator(registration);
     }

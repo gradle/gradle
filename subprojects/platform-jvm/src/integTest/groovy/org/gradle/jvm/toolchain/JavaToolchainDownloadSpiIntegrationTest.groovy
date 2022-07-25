@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry
+import org.gradle.jvm.toolchain.internal.DefaultToolchainManagementSpec
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,6 +31,46 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             
             toolchainManagement {
                 jdks("customRegistry")
+            }
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                    vendor = JvmVendorSpec.matching("exotic")
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDetectionEnabled()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: https://exoticJavaToolchain.com/java-99")
+                .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    //@Ignore //TODO (#21082): something is not right with the dynamic extensions I'm adding
+    def "registering a custom toolchain registry adds dynamic extension"() {
+        settingsFile << """
+            ${customToolchainRegistryPluginCode()}            
+            apply plugin: CustomToolchainRegistryPlugin
+            
+            toolchainManagement {
+                jdks(toolchainManagement.customRegistry)
             }
         """
 
@@ -135,9 +175,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     def "it is possible to explicitly request the default registry"() {
         settingsFile << """
             toolchainManagement {
-                jdks("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")
+                jdks("${DefaultToolchainManagementSpec.DEFAULT_REGISTRY_NAME}")
             }
-        """
+        """ //TODO (#21082): the default registration could be a hardwired extension, ie. use the other "jdks" method here
 
         buildFile << """
             apply plugin: "java"
