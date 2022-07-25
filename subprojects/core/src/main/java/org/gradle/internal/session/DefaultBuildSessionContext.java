@@ -20,7 +20,7 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.upgrade.report.ApiUpgradeReporter;
+import org.gradle.internal.upgrade.report.ApiUpgradeProblemCollector;
 import org.gradle.internal.upgrade.report.TransformApiUpgradeCollectorProvider;
 
 class DefaultBuildSessionContext implements BuildSessionContext {
@@ -46,10 +46,10 @@ class DefaultBuildSessionContext implements BuildSessionContext {
             BuildSessionLifecycleListener sessionLifecycleListener = sessionScopeServices.get(ListenerManager.class).getBroadcaster(BuildSessionLifecycleListener.class);
             sessionLifecycleListener.afterStart();
             try {
-                apiUpgradeCollectorProvider.set(sessionScopeServices.get(ApiUpgradeReporter.class));
+                apiUpgradeCollectorProvider.set(sessionScopeServices.get(ApiUpgradeProblemCollector.class));
                 return sessionScopeServices.get(BuildSessionActionExecutor.class).execute(action, this);
             } finally {
-                apiUpgradeCollectorProvider.set(ApiUpgradeReporter.noUpgrades());
+                apiUpgradeCollectorProvider.set(ApiUpgradeProblemCollector.noUpgrades());
                 sessionLifecycleListener.beforeComplete();
             }
         } finally {

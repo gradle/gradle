@@ -24,7 +24,7 @@ public interface ReportableApiChange {
     String getApiChangeReport();
 
     List<ApiMatcher> getMatchers();
-    Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeReporter reporter);
+    Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector);
 
     class ApiMatcher {
         private final int opcode;

@@ -80,7 +80,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.upgrade.report.ApiUpgradeReporter;
+import org.gradle.internal.upgrade.report.ApiUpgradeProblemCollector;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.ExecFactory;
@@ -124,7 +124,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
         registration.add(DefaultAsyncWorkTracker.class);
-        registration.add(ApiUpgradeReporter.class);
+        registration.add(ApiUpgradeProblemCollector.class);
 
         // Must be no higher than this scope as needs cache repository services.
         registration.addProvider(new ScopeIdsServices());

@@ -25,13 +25,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgradeDecoration {
-    private final ApiUpgradeReporter reporter;
+    private final ApiUpgradeProblemCollector reporter;
     private final String propertyName;
     private final Lazy<String> changeReport;
     private final String typeName;
 
-    public DynamicGroovyPropertyUpgradeDecoration(ApiUpgradeReporter reporter, String typeName, String propertyName, Supplier<String> changeReport) {
-        this.reporter = reporter;
+    public DynamicGroovyPropertyUpgradeDecoration(ApiUpgradeProblemCollector problemCollector, String typeName, String propertyName, Supplier<String> changeReport) {
+        this.reporter = problemCollector;
         this.typeName = typeName;
         this.propertyName = propertyName;
         this.changeReport = Lazy.locking().of(changeReport);

@@ -24,13 +24,13 @@ import java.util.concurrent.atomic.AtomicReference;
 @ServiceScope(Scopes.UserHome.class)
 public class TransformApiUpgradeCollectorProvider {
 
-    private final AtomicReference<ApiUpgradeReporter> apiUpgradeReporter = new AtomicReference<>(ApiUpgradeReporter.noUpgrades());
+    private final AtomicReference<ApiUpgradeProblemCollector> apiUpgradeReporter = new AtomicReference<>(ApiUpgradeProblemCollector.noUpgrades());
 
-    public void set(ApiUpgradeReporter apiUpgradeReporter) {
-        this.apiUpgradeReporter.set(apiUpgradeReporter);
+    public void set(ApiUpgradeProblemCollector apiUpgradeProblemCollector) {
+        this.apiUpgradeReporter.set(apiUpgradeProblemCollector);
     }
 
-    public ApiUpgradeReporter getApiUpgrader() {
+    public ApiUpgradeProblemCollector getApiUpgrader() {
         return apiUpgradeReporter.get();
     }
 }

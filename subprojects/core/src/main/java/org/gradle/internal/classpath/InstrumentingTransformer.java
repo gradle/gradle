@@ -25,7 +25,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.upgrade.report.ApiUpgradeReporter;
+import org.gradle.internal.upgrade.report.ApiUpgradeProblemCollector;
 import org.gradle.internal.upgrade.report.DynamicGroovyApiUpgradeDecorator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -193,26 +193,26 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
 
     private static final String[] NO_EXCEPTIONS = new String[0];
-    private final ApiUpgradeReporter apiUpgradeReporter;
+    private final ApiUpgradeProblemCollector apiUpgradeProblemCollector;
 
-    public InstrumentingTransformer(ApiUpgradeReporter apiUpgradeReporter) {
-        this.apiUpgradeReporter = apiUpgradeReporter;
+    public InstrumentingTransformer(ApiUpgradeProblemCollector apiUpgradeProblemCollector) {
+        this.apiUpgradeProblemCollector = apiUpgradeProblemCollector;
     }
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
         hasher.putInt(DECORATION_FORMAT);
-        apiUpgradeReporter.applyConfigurationTo(hasher);
+        apiUpgradeProblemCollector.applyConfigurationTo(hasher);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgradeReporter));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), apiUpgradeProblemCollector));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
-        private final ApiUpgradeReporter apiUpgradeReporter;
+        private final ApiUpgradeProblemCollector apiUpgradeProblemCollector;
         String className;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
         private boolean hasGroovyCallSites;
@@ -220,9 +220,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private boolean isInterface;
         private String sourceName;
 
-        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgradeReporter apiUpgradeReporter) {
+        public InstrumentingVisitor(ClassVisitor visitor, ApiUpgradeProblemCollector apiUpgradeProblemCollector) {
             super(ASM_LEVEL, visitor);
-            this.apiUpgradeReporter = apiUpgradeReporter;
+            this.apiUpgradeProblemCollector = apiUpgradeProblemCollector;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -245,7 +245,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgradeReporter, sourceName);
+            return new InstrumentingMethodVisitor(this, methodVisitor, apiUpgradeProblemCollector, sourceName);
         }
 
         @Override
@@ -331,15 +331,15 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private final InstrumentingVisitor owner;
         private final String className;
-        private final ApiUpgradeReporter apiUpgradeReporter;
+        private final ApiUpgradeProblemCollector apiUpgradeProblemCollector;
         private final String sourceName;
         private int lineNumber;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgradeReporter apiUpgradeReporter, String sourceName) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, ApiUpgradeProblemCollector apiUpgradeProblemCollector, String sourceName) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
-            this.apiUpgradeReporter = apiUpgradeReporter;
+            this.apiUpgradeProblemCollector = apiUpgradeProblemCollector;
             this.sourceName = sourceName;
         }
 
@@ -484,7 +484,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             String fullSourceName = lastIndexOfSlash > -1
                 ? className.substring(0, lastIndexOfSlash) + "/" + sourceName
                 : sourceName;
-            apiUpgradeReporter.collectStaticApiChangesReport(INVOKEVIRTUAL, fullSourceName, lineNumber, owner, name, descriptor);
+            apiUpgradeProblemCollector.collectStaticApiChangesReport(INVOKEVIRTUAL, fullSourceName, lineNumber, owner, name, descriptor);
         }
 
         @Override

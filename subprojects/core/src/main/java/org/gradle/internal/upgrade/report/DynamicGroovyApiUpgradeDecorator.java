@@ -29,23 +29,23 @@ public class DynamicGroovyApiUpgradeDecorator {
 
     private static final AtomicReference<DynamicGroovyApiUpgradeDecorator> registry = new AtomicReference<>();
 
-    private final ApiUpgradeReporter reporter;
+    private final ApiUpgradeProblemCollector collector;
     private final Lazy<List<DynamicGroovyUpgradeDecoration>> decorations;
 
-    private DynamicGroovyApiUpgradeDecorator(ApiUpgradeReporter reporter) {
-        this.reporter = reporter;
-        this.decorations = Lazy.locking().of(() -> initDecorations(reporter.getApiUpgrades()));
+    private DynamicGroovyApiUpgradeDecorator(ApiUpgradeProblemCollector collector) {
+        this.collector = collector;
+        this.decorations = Lazy.locking().of(() -> initDecorations(collector.getApiUpgrades()));
     }
 
     private List<DynamicGroovyUpgradeDecoration> initDecorations(List<ReportableApiChange> changes) {
         return changes.stream()
-            .map(change -> change.mapToDynamicGroovyDecoration(reporter))
+            .map(change -> change.mapToDynamicGroovyDecoration(collector))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(ImmutableList.toImmutableList());
     }
 
-    public static void init(ApiUpgradeReporter reporter) {
+    public static void init(ApiUpgradeProblemCollector reporter) {
         registry.set(new DynamicGroovyApiUpgradeDecorator(reporter));
     }
 

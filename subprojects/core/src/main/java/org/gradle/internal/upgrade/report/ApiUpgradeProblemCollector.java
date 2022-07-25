@@ -22,10 +22,9 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.upgrade.report.ReportableApiChange.ApiMatcher;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -39,30 +38,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.BuildSession.class)
-public class ApiUpgradeReporter implements Closeable {
+public class ApiUpgradeProblemCollector {
 
     private static final String BINARY_UPGRADE_JSON_PATH = "org.gradle.binary.upgrade.report.json";
 
     private final List<ReportableApiChange> apiUpgrades;
     private final Map<ApiMatcher, Set<ReportableApiChange>> apiUpgradeMap;
-    private final Set<String> requiredUpgrades;
+    private final Set<String> detectedProblems;
     private final String randomHash;
 
     @Inject
-    public ApiUpgradeReporter(StartParameter startParameter) {
-        this(getApiUpgradesFromFile(startParameter));
-    }
-
-    private ApiUpgradeReporter(List<ReportableApiChange> apiUpgrades) {
-        this.apiUpgrades = apiUpgrades;
+    public ApiUpgradeProblemCollector(@Nullable StartParameter startParameter) {
+        this.apiUpgrades = getApiUpgradesFromFile(startParameter);
         this.apiUpgradeMap = toMap(apiUpgrades);
-        this.requiredUpgrades = ConcurrentHashMap.newKeySet();
+        this.detectedProblems = ConcurrentHashMap.newKeySet();
         this.randomHash = UUID.randomUUID().toString();
         DynamicGroovyApiUpgradeDecorator.init(this);
     }
 
-    private static List<ReportableApiChange> getApiUpgradesFromFile(StartParameter startParameter) {
-        String path = startParameter.getSystemPropertiesArgs().get(BINARY_UPGRADE_JSON_PATH);
+    private static List<ReportableApiChange> getApiUpgradesFromFile(@Nullable StartParameter startParameter) {
+        String path = startParameter != null
+            ? startParameter.getSystemPropertiesArgs().get(BINARY_UPGRADE_JSON_PATH)
+            : null;
         if (path == null || !Files.exists(Paths.get(path))) {
             return Collections.emptyList();
         }
@@ -87,16 +84,20 @@ public class ApiUpgradeReporter implements Closeable {
             .collect(Collectors.toList());
         if (!report.isEmpty()) {
             // Report just first issue for now
-            requiredUpgrades.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report.get(0)));
+            detectedProblems.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report.get(0)));
         }
     }
 
     public void collectDynamicApiChangesReport(String sourceFile, int lineNumber, String report) {
-        requiredUpgrades.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report));
+        detectedProblems.add(String.format("%s: line: %s: %s", sourceFile, lineNumber, report));
     }
 
     public List<ReportableApiChange> getApiUpgrades() {
         return apiUpgrades;
+    }
+
+    public Set<String> getDetectedProblems() {
+        return detectedProblems;
     }
 
     public void applyConfigurationTo(Hasher hasher) {
@@ -107,12 +108,7 @@ public class ApiUpgradeReporter implements Closeable {
         }
     }
 
-    public static ApiUpgradeReporter noUpgrades() {
-        return new ApiUpgradeReporter(Collections.emptyList());
-    }
-
-    @Override
-    public void close() throws IOException {
-        requiredUpgrades.stream().sorted().forEach(System.out::println);
+    public static ApiUpgradeProblemCollector noUpgrades() {
+        return new ApiUpgradeProblemCollector(null);
     }
 }
