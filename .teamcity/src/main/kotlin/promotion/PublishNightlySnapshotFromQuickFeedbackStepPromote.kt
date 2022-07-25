@@ -19,7 +19,7 @@ package promotion
 import common.VersionedSettingsBranch
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshotFromQuickFeedbackStep2(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
+class PublishNightlySnapshotFromQuickFeedbackStepPromote(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
     promotedBranch = branch.branchName,
     prepTask = branch.prepNightlyTaskName(),
     triggerName = "QuickFeedback",
@@ -27,16 +27,16 @@ class PublishNightlySnapshotFromQuickFeedbackStep2(branch: VersionedSettingsBran
     cleanCheckout = false
 ) {
     init {
-        id("Promotion_SnapshotFromQuickFeedbackStep2")
-        name = "Nightly Snapshot (from QuickFeedback) - Step 2"
+        id("Promotion_SnapshotFromQuickFeedbackStepPromote")
+        name = "Nightly Snapshot (from QuickFeedback) - Promote"
         description = "Promotes a previously built distribution on this agent on '${branch.branchName}' from Quick Feedback as a new nightly snapshot"
 
         steps {
             buildStep(
-                this@PublishNightlySnapshotFromQuickFeedbackStep2.extraParameters,
-                this@PublishNightlySnapshotFromQuickFeedbackStep2.gitUserName,
-                this@PublishNightlySnapshotFromQuickFeedbackStep2.gitUserEmail,
-                this@PublishNightlySnapshotFromQuickFeedbackStep2.triggerName,
+                this@PublishNightlySnapshotFromQuickFeedbackStepPromote.extraParameters,
+                this@PublishNightlySnapshotFromQuickFeedbackStepPromote.gitUserName,
+                this@PublishNightlySnapshotFromQuickFeedbackStepPromote.gitUserEmail,
+                this@PublishNightlySnapshotFromQuickFeedbackStepPromote.triggerName,
                 branch.prepNightlyTaskName(),
                 branch.promoteNightlyTaskName()
             )

@@ -20,7 +20,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionBranches
 
-object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionBothSteps(
+object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBuild(
     promotedBranch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
     prepTask = "prepSnapshot",

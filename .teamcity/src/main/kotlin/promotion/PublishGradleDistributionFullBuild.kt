@@ -18,7 +18,7 @@ package promotion
 
 import vcsroots.gradlePromotionMaster
 
-abstract class PublishGradleDistributionBothSteps(
+abstract class PublishGradleDistributionFullBuild(
     // The branch to be promoted
     promotedBranch: String,
     prepTask: String,

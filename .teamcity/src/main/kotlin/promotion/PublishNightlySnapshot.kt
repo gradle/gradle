@@ -21,7 +21,7 @@ import configurations.branchFilter
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionBothSteps(
+class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
     promotedBranch = branch.branchName,
     prepTask = branch.prepNightlyTaskName(),
     promoteTask = branch.promoteNightlyTaskName(),
