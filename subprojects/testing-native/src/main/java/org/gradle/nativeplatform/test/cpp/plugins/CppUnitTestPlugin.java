@@ -111,9 +111,9 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                 return getAllBuildableTestExecutable()
                         .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
                         .findFirst()
-                        .orElse(
-                                getAllBuildableTestExecutable().findFirst().orElse(
-                                        getAllTestExecutable().findFirst().orElse(null)));
+                        .orElseGet(
+                                () -> getAllBuildableTestExecutable().findFirst().orElseGet(
+                                        () -> getAllTestExecutable().findFirst().orElse(null)));
             }
 
             private boolean isCurrentArchitecture(NativePlatform targetPlatform) {
