@@ -994,7 +994,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
