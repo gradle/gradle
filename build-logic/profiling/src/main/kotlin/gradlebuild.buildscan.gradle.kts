@@ -18,9 +18,11 @@ import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
+import gradlebuild.basics.BuildEnvironment.isTeamCity
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
+import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
@@ -133,7 +135,17 @@ fun Project.extractCiData() {
             tag("CODEQL")
         }
     }
+    if (isTeamCity && !isKillLeakingProcessesStep() && !isPromotionBuild) {
+        // don't overwrite the nightly version in promotion build
+        buildScan {
+            buildScanPublished {
+                println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
+            }
+        }
+    }
 }
+
+fun Project.isKillLeakingProcessesStep() = gradle.startParameter.taskNames.contains("killExistingProcessesStartedByGradle")
 
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
     val envValue: String? = environmentVariable(envName).orNull

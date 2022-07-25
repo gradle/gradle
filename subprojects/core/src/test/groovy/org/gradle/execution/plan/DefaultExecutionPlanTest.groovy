@@ -1065,6 +1065,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     private Node node(Node... dependencies) {
         def action = Stub(WorkNodeAction)
         _ * action.owningProject >> null
+        _ * action.preExecutionNode >> null
         def node = new ActionNode(action)
         dependencies.each {
             node.addDependencySuccessor(it)

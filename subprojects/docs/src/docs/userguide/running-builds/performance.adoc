@@ -116,7 +116,7 @@ In addition to the top-level performance summary of your build execution, you ca
 
 == Configuration
 
-As describes in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through 3 phases: initialization, configuration, and execution.
+As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through 3 phases: initialization, configuration, and execution.
 The important thing to understand here is that configuration code always executes regardless of which tasks will run.
 That means any expensive work performed during configuration will slow every invocation down, even simple ones like `gradle help` and `gradle tasks`.
 

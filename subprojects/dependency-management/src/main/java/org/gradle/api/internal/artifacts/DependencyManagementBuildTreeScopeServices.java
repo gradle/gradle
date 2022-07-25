@@ -18,9 +18,12 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
@@ -29,6 +32,11 @@ import java.io.File;
  * The set of dependency management services that are created per build tree.
  */
 class DependencyManagementBuildTreeScopeServices {
+    void configure(ServiceRegistration registration) {
+        registration.add(ProjectArtifactResolver.class);
+        registration.add(ProjectArtifactSetResolver.class);
+    }
+
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
         return new BuildCommencedTimeProvider(startParameter);
     }

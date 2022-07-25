@@ -335,7 +335,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         Mock(JvmInstallationMetadata) {
             getLanguageVersion() >> JavaVersion.toVersion(javaHome.location.name)
             getJavaHome() >> javaHome.location.absoluteFile.toPath()
-            getImplementationVersion() >> javaHome.location.name.replace("zzz", "999")
+            getJavaVersion() >> javaHome.location.name.replace("zzz", "999")
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
             hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
