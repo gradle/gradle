@@ -23,16 +23,16 @@ import java.util.Optional;
 public interface ReportableApiChange {
     String getApiChangeReport();
 
-    List<ApiMatcher> getMatchers();
+    List<ApiChangeId> getMatchers();
     Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector);
 
-    class ApiMatcher {
+    class ApiChangeId {
         private final int opcode;
         private final String owner;
         private final String name;
         private final String desc;
 
-        public ApiMatcher(int opcode, String owner, String name, String desc) {
+        public ApiChangeId(int opcode, String owner, String name, String desc) {
             this.opcode = opcode;
             this.owner = owner;
             this.name = name;
@@ -63,7 +63,7 @@ public interface ReportableApiChange {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            ApiMatcher that = (ApiMatcher) o;
+            ApiChangeId that = (ApiChangeId) o;
             return opcode == that.opcode
                 && Objects.equals(owner, that.owner)
                 && Objects.equals(name, that.name)

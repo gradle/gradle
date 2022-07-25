@@ -64,9 +64,9 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public List<ApiMatcher> getMatchers() {
+    public List<ApiChangeId> getMatchers() {
         return types.stream()
-            .map(type -> new ApiMatcher(INVOKEVIRTUAL, type, methodName, methodDescriptor))
+            .map(type -> new ApiChangeId(INVOKEVIRTUAL, type, methodName, methodDescriptor))
             .collect(Collectors.toList());
     }
 

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.upgrade.report;
 
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.StartParameter;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.upgrade.report.ReportableApiChange.ApiMatcher;
+import org.gradle.internal.upgrade.report.ReportableApiChange.ApiChangeId;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -28,10 +30,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +42,7 @@ public class ApiUpgradeProblemCollector {
     private static final String BINARY_UPGRADE_JSON_PATH = "org.gradle.binary.upgrade.report.json";
 
     private final List<ReportableApiChange> apiUpgrades;
-    private final Map<ApiMatcher, Set<ReportableApiChange>> apiUpgradeMap;
+    private final Multimap<ApiChangeId, ReportableApiChange> apiUpgradeMap;
     private final Set<String> detectedProblems;
     private final String randomHash;
 
@@ -67,19 +66,19 @@ public class ApiUpgradeProblemCollector {
         return new ApiUpgradeJsonParser().parseAcceptedApiChanges(file);
     }
 
-    private Map<ApiMatcher, Set<ReportableApiChange>> toMap(List<ReportableApiChange> changes) {
-        Map<ApiMatcher, Set<ReportableApiChange>> map = new LinkedHashMap<>();
+    private Multimap<ApiChangeId, ReportableApiChange> toMap(List<ReportableApiChange> changes) {
+        ImmutableSetMultimap.Builder<ApiChangeId, ReportableApiChange> map = ImmutableSetMultimap.builder();
         for (ReportableApiChange change : changes) {
-            for (ApiMatcher matcher : change.getMatchers()) {
-                map.computeIfAbsent(matcher, k -> new LinkedHashSet<>()).add(change);
+            for (ApiChangeId matcher : change.getMatchers()) {
+                map.put(matcher, change);
             }
         }
-        return map;
+        return map.build();
     }
 
     public void collectStaticApiChangesReport(int opcode, String sourceFile, int lineNumber, String owner, String name, String desc) {
-        ApiMatcher matcher = new ApiMatcher(opcode, owner, name, desc);
-        List<String> report = apiUpgradeMap.getOrDefault(matcher, Collections.emptySet()).stream()
+        ApiChangeId matcher = new ApiChangeId(opcode, owner, name, desc);
+        List<String> report = apiUpgradeMap.get(matcher).stream()
             .map(ReportableApiChange::getApiChangeReport)
             .collect(Collectors.toList());
         if (!report.isEmpty()) {
