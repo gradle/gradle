@@ -81,7 +81,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails single application dependency resolution if #protocol connection exceeds timeout (retries = #maxRetries)"() {
         maxHttpRetries = maxRetries
 
@@ -177,7 +176,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         output.contains "Resolved: [a-1.0.jar] [] []"
     }
 
-    @ToBeFixedForConfigurationCache
     def "repository is disabled only for the current build execution"() {
         given:
 
@@ -204,7 +202,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
