@@ -150,11 +150,9 @@ public class ProjectBuilderImpl {
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
         BuildOperationRunner buildOperationRunner = buildServices.get(BuildOperationRunner.class);
-        BuildOperationDescriptor.Builder rootBuildOperationDescriptor = BuildOperationDescriptor
-            .displayName(TestBuildRootBuildOperationType.DISPLAY_NAME)
-            .details(TestBuildRootBuildOperationType.Details.INSTANCE);
+        BuildOperationDescriptor.Builder rootBuildOperationDescriptor = BuildOperationDescriptor.displayName("Build in progress for ProjectBuilder");
         BuildOperationContext rootBuildOperationContext = buildOperationRunner.start(rootBuildOperationDescriptor);
-        Stoppable stopRootBuildOperation = () -> rootBuildOperationContext.setResult(TestBuildRootBuildOperationType.Result.INSTANCE);
+        Stoppable stopRootBuildOperation = () -> rootBuildOperationContext.setResult(null);
 
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
