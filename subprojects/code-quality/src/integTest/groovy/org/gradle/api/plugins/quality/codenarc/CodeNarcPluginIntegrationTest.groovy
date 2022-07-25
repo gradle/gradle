@@ -171,7 +171,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'help'
     }
 
-    def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
+    def "allows configuring tool dependencies explicitly via #method"() {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")
         output.contains "org.codenarc:CodeNarc-Groovy4:${CodeNarcPlugin.DEFAULT_CODENARC_VERSION}"
@@ -187,7 +187,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         where:
         method         | buildScriptSnippet
         'dependencies' | "dependencies { codenarc 'org.codenarc:CodeNarc:0.17' }"
-        'toolVersion'  | "codenarc { toolVersion '0.17' } "
+        //'toolVersion'  | "codenarc { toolVersion '0.17' } " // FIXME no longer relevant as there is only a single version of CodeNarc compatible with Groovy 4, as of July 2022
     }
 
     private void writeBuildFile() {
