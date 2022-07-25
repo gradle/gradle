@@ -69,7 +69,7 @@ public class ApiUpgradeProblemCollector {
     private Multimap<ApiChangeId, ReportableApiChange> toMap(List<ReportableApiChange> changes) {
         ImmutableSetMultimap.Builder<ApiChangeId, ReportableApiChange> map = ImmutableSetMultimap.builder();
         for (ReportableApiChange change : changes) {
-            for (ApiChangeId matcher : change.getMatchers()) {
+            for (ApiChangeId matcher : change.getAllKnownTypeIds()) {
                 map.put(matcher, change);
             }
         }

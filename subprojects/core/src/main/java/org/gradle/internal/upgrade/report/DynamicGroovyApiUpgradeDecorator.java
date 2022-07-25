@@ -17,12 +17,17 @@
 package org.gradle.internal.upgrade.report;
 
 import com.google.common.collect.ImmutableList;
+import groovy.lang.DelegatingMetaClass;
+import groovy.lang.GroovySystem;
+import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.internal.lazy.Lazy;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DynamicGroovyApiUpgradeDecorator {
@@ -67,6 +72,67 @@ public class DynamicGroovyApiUpgradeDecorator {
             for (DynamicGroovyUpgradeDecoration change : registry.get().decorations.get()) {
                 change.decorateCallSite(callSite).ifPresent(decorated -> callSites.array[callSite.getIndex()] = decorated);
             }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static void decorateMetaClass(Class<?> type) {
+        Set<String> typeHierarchy = getTypeHierarchy(type);
+        ApiUpgradeProblemCollector problemCollector = registry.get().collector;
+        problemCollector.getApiUpgrades().stream()
+            .filter(upgrade -> upgrade.getId().getName().startsWith("set") && typeHierarchy.contains(upgrade.getId().getOwner()))
+            .forEach(upgrade -> registerMetaClass(type, upgrade, problemCollector));
+    }
+
+    private static void registerMetaClass(Class<?> type, ReportableApiChange apiUpgrade, ApiUpgradeProblemCollector problemCollector) {
+        MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
+        String propertyName = apiUpgrade.getId().getName().replace("set", "");
+        propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass(propertyName, apiUpgrade, problemCollector, metaClass));
+    }
+
+    private static Set<String> getTypeHierarchy(Class<?> clazz) {
+        Set<String> classes = new LinkedHashSet<>();
+        while (clazz != null) {
+            classes.add(clazz.getName());
+            for (Class<?> anInterface : clazz.getInterfaces()) {
+                classes.add(anInterface.getName());
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return classes;
+    }
+
+    private static class PropertySetterMetaClass extends DelegatingMetaClass {
+        private final String propertyName;
+        private final ReportableApiChange apiUpgrade;
+        private final ApiUpgradeProblemCollector problemCollector;
+
+        public PropertySetterMetaClass(String propertyName, ReportableApiChange apiUpgrade, ApiUpgradeProblemCollector problemCollector, MetaClass delegate) {
+            super(delegate);
+            this.propertyName = propertyName;
+            this.apiUpgrade = apiUpgrade;
+            this.problemCollector = problemCollector;
+        }
+
+        @Override
+        public void setProperty(Object object, String property, Object newValue) {
+            if (property.equals(propertyName)) {
+                Optional<StackTraceElement> element = getOwnerStackTraceElement();
+                String sourceFile = element.map(StackTraceElement::getFileName).orElse("Unknown");
+                int lineNumber = element.map(StackTraceElement::getLineNumber).orElse(-1);
+                problemCollector.collectDynamicApiChangesReport(sourceFile, lineNumber, apiUpgrade.getApiChangeReport());
+            }
+            super.setProperty(object, property, newValue);
+        }
+
+        private Optional<StackTraceElement> getOwnerStackTraceElement() {
+            for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+                if (element.getLineNumber() >= 0) {
+                    return Optional.of(element);
+                }
+            }
+            return Optional.empty();
         }
     }
 }

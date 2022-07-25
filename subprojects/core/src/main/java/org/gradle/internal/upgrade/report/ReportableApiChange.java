@@ -22,8 +22,8 @@ import java.util.Optional;
 
 public interface ReportableApiChange {
     String getApiChangeReport();
-
-    List<ApiChangeId> getMatchers();
+    ApiChangeId getId();
+    List<ApiChangeId> getAllKnownTypeIds();
     Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector);
 
     class ApiChangeId {

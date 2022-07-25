@@ -35,6 +35,7 @@ public class MethodReportableApiChange implements ReportableApiChange {
     private final String displayText;
     private final String acceptation;
     private final List<String> changes;
+    private final ApiChangeId id;
 
     public MethodReportableApiChange(
         String type,
@@ -56,6 +57,7 @@ public class MethodReportableApiChange implements ReportableApiChange {
         this.displayText = displayText;
         this.acceptation = acceptation;
         this.changes = changes;
+        this.id = new ApiChangeId(INVOKEVIRTUAL, type, methodName, methodDescriptor);
     }
 
     @Override
@@ -64,7 +66,12 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public List<ApiChangeId> getMatchers() {
+    public ApiChangeId getId() {
+        return id;
+    }
+
+    @Override
+    public List<ApiChangeId> getAllKnownTypeIds() {
         return types.stream()
             .map(type -> new ApiChangeId(INVOKEVIRTUAL, type, methodName, methodDescriptor))
             .collect(Collectors.toList());
