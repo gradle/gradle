@@ -17,15 +17,19 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
+import org.gradle.configurationcache.serialization.ownerService
 import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
 import org.gradle.execution.plan.FinalizerGroup
 import org.gradle.execution.plan.Node
@@ -61,10 +65,11 @@ class WorkNodeCodec(
         writeSmallInt(nodeCount)
         val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
         nodes.forEachIndexed { nodeId, node ->
-            writeNode(node, scheduledNodeIds)
+            write(node)
             scheduledNodeIds[node] = nodeId
         }
         nodes.forEach { node ->
+            writeSuccessorReferencesOf(node, scheduledNodeIds)
             writeNodeGroup(node.group, scheduledNodeIds)
         }
     }
@@ -75,29 +80,20 @@ class WorkNodeCodec(
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
         for (nodeId in 0 until nodeCount) {
-            val node = readNode(nodesById)
+            val node = readNode()
             nodesById[nodeId] = node
             nodes.add(node)
         }
         nodes.forEach { node ->
+            readSuccessorReferencesOf(node, nodesById)
             node.group = readNodeGroup(nodesById)
         }
         return nodes
     }
 
     private
-    suspend fun WriteContext.writeNode(
-        node: Node,
-        scheduledNodeIds: Map<Node, Int>
-    ) {
-        write(node)
-        writeSuccessorReferencesOf(node, scheduledNodeIds)
-    }
-
-    private
-    suspend fun ReadContext.readNode(nodesById: Map<Int, Node>): Node {
+    suspend fun ReadContext.readNode(): Node {
         val node = readNonNull<Node>()
-        readSuccessorReferencesOf(node, nodesById)
         node.require()
         if (node !is TaskInAnotherBuild) {
             // we want TaskInAnotherBuild dependencies to be processed later, so that the node is connected to its target task
@@ -162,7 +158,20 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: Map<Node, Int>) {
-        writeSuccessorReferences(node.dependencySuccessors, scheduledNodeIds)
+        var successors = node.dependencySuccessors
+        if (node is ActionNode) {
+            val setupNode = node.action?.preExecutionNode
+            // Could probably add some abstraction for nodes that can be executed eagerly and discarded
+            if (setupNode is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies) {
+                setupNode.run(object : NodeExecutionContext {
+                    override fun <T : Any> getService(type: Class<T>): T {
+                        return ownerService(type)
+                    }
+                })
+                successors = successors + setupNode.postExecutionNodes
+            }
+        }
+        writeSuccessorReferences(successors, scheduledNodeIds)
         when (node) {
             is TaskNode -> {
                 writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)

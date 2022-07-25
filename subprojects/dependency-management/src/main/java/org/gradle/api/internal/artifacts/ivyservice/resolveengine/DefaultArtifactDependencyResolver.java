@@ -94,21 +94,23 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
-                                             List<ResolverProviderFactory> resolverFactories,
-                                             ProjectDependencyResolver projectDependencyResolver,
-                                             ResolveIvyFactory ivyFactory,
-                                             DependencyDescriptorFactory dependencyDescriptorFactory,
-                                             VersionComparator versionComparator,
-                                             ModuleExclusions moduleExclusions,
-                                             ComponentSelectorConverter componentSelectorConverter,
-                                             ImmutableAttributesFactory attributesFactory,
-                                             VersionSelectorScheme versionSelectorScheme,
-                                             VersionParser versionParser,
-                                             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                             InstantiatorFactory instantiatorFactory,
-                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                             CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultArtifactDependencyResolver(
+        BuildOperationExecutor buildOperationExecutor,
+        List<ResolverProviderFactory> resolverFactories,
+        ProjectDependencyResolver projectDependencyResolver,
+        ResolveIvyFactory ivyFactory,
+        DependencyDescriptorFactory dependencyDescriptorFactory,
+        VersionComparator versionComparator,
+        ModuleExclusions moduleExclusions,
+        ComponentSelectorConverter componentSelectorConverter,
+        ImmutableAttributesFactory attributesFactory,
+        VersionSelectorScheme versionSelectorScheme,
+        VersionParser versionParser,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+        InstantiatorFactory instantiatorFactory,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
         this.ivyFactory = ivyFactory;
@@ -135,7 +137,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ComponentResolversChain resolvers = createResolvers(resolveContext, repositories, metadataHandler, artifactTypeRegistry, consumerSchema);
         DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions, buildOperationExecutor);
 
-        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector());
+        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector(), artifactTypeRegistry);
 
         // Resolve the dependency graph
         builder.resolve(resolveContext, new CompositeDependencyGraphVisitor(graphVisitor, artifactsGraphVisitor), includeSyntheticDependencies);
@@ -156,13 +158,15 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     }
 
-    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource,
-                                                                ResolutionStrategyInternal resolutionStrategy,
-                                                                GlobalDependencyResolutionRules globalRules,
-                                                                Spec<? super DependencyMetadata> edgeFilter,
-                                                                AttributesSchemaInternal attributesSchema,
-                                                                ModuleExclusions moduleExclusions,
-                                                                BuildOperationExecutor buildOperationExecutor) {
+    private DependencyGraphBuilder createDependencyGraphBuilder(
+        ComponentResolversChain componentSource,
+        ResolutionStrategyInternal resolutionStrategy,
+        GlobalDependencyResolutionRules globalRules,
+        Spec<? super DependencyMetadata> edgeFilter,
+        AttributesSchemaInternal attributesSchema,
+        ModuleExclusions moduleExclusions,
+        BuildOperationExecutor buildOperationExecutor
+    ) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
@@ -198,7 +202,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private ResolveContextToComponentResolver createResolveContextConverter() {
-        return new DefaultResolveContextToComponentResolver();
+        return new DefaultResolveContextToComponentResolver(projectDependencyResolver);
     }
 
     private ModuleConflictHandler createModuleConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
@@ -218,9 +222,15 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
+        private final ProjectDependencyResolver projectDependencyResolver;
+
+        public DefaultResolveContextToComponentResolver(ProjectDependencyResolver projectDependencyResolver) {
+            this.projectDependencyResolver = projectDependencyResolver;
+        }
+
         @Override
         public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
-            result.resolved(resolveContext.toRootComponentMetaData());
+            result.resolved(projectDependencyResolver.resolveStateFor(resolveContext.toRootComponentMetaData()));
         }
     }
 

@@ -1,3 +1,4 @@
+
 The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
@@ -11,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [altrisi](https://github.com/altrisi),
+[Rob Bavey](https://github.com/robbavey),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
 [BJ Hargrave](https://github.com/bjhargrave),
@@ -21,7 +23,9 @@ We would like to thank the following community members for their contributions t
 [Gabriel Feo](https://github.com/gabrielfeo),
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
+[Joseph Woolf](https://github.com/jsmwoolf),
 [Karl-Michael Schindler](https://github.com/kamischi),
+[Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Sam Snyder](https://github.com/sambsnyd),
@@ -111,7 +115,13 @@ testLauncher.withTestsFor(spec -> {
 
 Note, that the new test selection interface only works if the target Gradle version is >=7.6.
 
-### Improved Maven Conversion
+### Improvements to the `init` plugin
+
+#### Use included build for convention plugins (incubating)
+
+When generating builds using the `init` task and opting in to using incubating features, convention plugins are now located in an included build under the `gradle/plugins` directory instead of in `buildSrc`.
+
+#### Improved Maven Conversion
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
 
@@ -214,6 +224,44 @@ When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `j
 This change may cause new test failures and warnings. When running on Java 16+, code performing reflection on JDK internals will now fail tests. When running on Java 9-15, illegal access warnings will appear in logs. While this change may break some existing builds, most failures are likely to uncover suppressed issues which would have only been detected at runtime.
 
 For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
+
+### Options for debugging the JVM over network with Java 9+
+
+A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
+connections over the network.
+If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
+they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
+
+In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
+On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
+one of the addresses of the current machine's network interfaces.
+
+Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
+accepting connections via network on Java 9+.
+
+### Reason messages in task predicates
+
+It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
+```groovy
+tasks.named("slowBenchmark") {
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
+        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
+    }
+}
+```
+
+These reason messages are reported in the console with the `--info` logging level.
+This might be helpful in finding out why a particular task is skipped.
+
+```
+gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
+```
+
+```
+> Task :slowBenchmark SKIPPED
+Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
+:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

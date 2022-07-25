@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.component.model.ComponentArtifacts;
-import org.gradle.internal.resolve.ArtifactResolveException;
+package org.gradle.execution.plan;
 
-public interface BuildableComponentArtifactsResolveResult extends ResolveResult, BuildableTypedResolveResult<ComponentArtifacts, ArtifactResolveException> {
-    boolean isSuccessful();
+import org.gradle.api.internal.tasks.WorkNodeAction;
+
+import java.util.List;
+
+public interface PostExecutionNodeAwareActionNode extends WorkNodeAction {
+    List<? extends Node> getPostExecutionNodes();
 }
