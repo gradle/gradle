@@ -96,12 +96,15 @@ abstract class CodeNarcRule : ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 removeAll { it.group == "org.codehaus.groovy" }
-                add("org.codehaus.groovy:groovy") {
-                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                val groovyVersion = groovy.lang.GroovySystem.getVersion()
+                val isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(groovyVersion).major >= 4
+                val groovyGroup = if(isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+                add("$groovyGroup:groovy") {
+                    version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
                 }
-                add("org.codehaus.groovy:groovy-templates") {
-                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                add("$groovyGroup:groovy-templates") {
+                    version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
                 }
             }
