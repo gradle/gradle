@@ -29,6 +29,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
     def setup() {
         server.start()
 
+        // Ensure that in case errors happen then are printed to the error stream by java.net.HttpURLConnection
+        System.setProperty("sun.net.http.errorstream.enableBuffering", "true")
+
         setupBuild(new BuildTestFile(testDirectory, "root"))
 
         executer.beforeExecute {
