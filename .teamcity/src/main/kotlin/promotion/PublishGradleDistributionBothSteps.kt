@@ -16,9 +16,6 @@
 
 package promotion
 
-import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class PublishGradleDistributionBothSteps(
@@ -37,13 +34,5 @@ abstract class PublishGradleDistributionBothSteps(
             buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, "uploadAll")
             buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, step2TargetTask)
         }
-    }
-}
-
-fun BuildSteps.buildStep(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String, prepTask: String, targetTask: String) {
-    gradleWrapper {
-        name = "Promote"
-        tasks = "$prepTask $targetTask"
-        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" %additional.gradle.parameters% """
     }
 }

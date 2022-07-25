@@ -4,8 +4,7 @@ import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.Stage
-import model.StageNames
-import model.StageNames.READY_FOR_RELEASE
+import model.StageName
 import model.TestCoverage
 import model.TestType
 
@@ -38,7 +37,9 @@ class FunctionalTest(
     }
 
     applyTestDefaults(
-        model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
+        model, this, testTasks,
+        dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
+        os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
         arch = testCoverage.arch,
         extraParameters = (
@@ -62,9 +63,9 @@ class FunctionalTest(
 })
 
 private fun determineFlakyTestStrategy(stage: Stage): String {
-    val stageName = StageNames.values().first { it.stageName == stage.stageName.stageName }
+    val stageName = StageName.values().first { it.stageName == stage.stageName.stageName }
     // See gradlebuild.basics.FlakyTestStrategy
-    return if (stageName.ordinal < READY_FOR_RELEASE.ordinal) "exclude" else "include"
+    return if (stageName < StageName.READY_FOR_RELEASE) "exclude" else "include"
 }
 
 fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): String {
