@@ -16,22 +16,15 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
-import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     private final static String CONFIG_FILE_PATH = 'config/codenarc/rulesets.groovy'
-    private final static String MIN_SUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.27.0'
-    private final static String UNSUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.26.0'
 
     private static String supportedCompilationClasspathVersion() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return "1.6"
-        }
-        return MIN_SUPPORTED_COMPILATION_CLASSPATH_VERSION
+        return CodeNarcPlugin.DEFAULT_CODENARC_VERSION
     }
 
     def "compilation classpath can be specified for a CodeNarc task"() {
@@ -45,20 +38,6 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
         then:
         failure.assertHasCause('CodeNarc rule violations were found')
-    }
-
-    @Requires(TestPrecondition.JDK15_OR_EARLIER)
-    def "an informative error is shown when a compilation classpath is specified on a CodeNarc task when using an incompatible CodeNarc version"() {
-        given:
-        buildFileWithCodeNarcAndCompilationClasspath(UNSUPPORTED_COMPILATION_CLASSPATH_VERSION)
-        cloneWithoutCloneableRuleEnabled()
-        codeViolatingCloneWithoutCloneableRule()
-
-        when:
-        fails("codenarcMain")
-
-        then:
-        failure.assertHasCause("The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc $MIN_SUPPORTED_COMPILATION_CLASSPATH_VERSION or newer.")
     }
 
     private void buildFileWithCodeNarcAndCompilationClasspath(String codeNarcVersion) {
