@@ -13,7 +13,7 @@ import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import model.CIBuildModel
 import model.Stage
-import model.StageNames
+import model.StageName
 
 class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : BaseGradleBuildType(stage = stage, init = {
     id("${model.projectId}_FlakyQuarantine_${os.asName()}_${arch.asName()}")
@@ -24,10 +24,10 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
 
     val testsWithOs = model.stages.filter {
         it.stageName in listOf(
-            StageNames.QUICK_FEEDBACK_LINUX_ONLY,
-            StageNames.QUICK_FEEDBACK,
-            StageNames.PULL_REQUEST_FEEDBACK,
-            StageNames.READY_FOR_NIGHTLY,
+            StageName.QUICK_FEEDBACK_LINUX_ONLY,
+            StageName.QUICK_FEEDBACK,
+            StageName.PULL_REQUEST_FEEDBACK,
+            StageName.READY_FOR_NIGHTLY,
         )
     }.flatMap { it.functionalTests }.filter { it.os == os }
 
