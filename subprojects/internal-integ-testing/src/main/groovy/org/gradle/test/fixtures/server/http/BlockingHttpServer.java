@@ -130,12 +130,14 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         String connectionVar = "connection" + count;
         String urlVar = "url" + count;
         String streamVar = "inputStream" + count;
+        String errStreamVar = "errorStream" + count;
         StringWriter result = new StringWriter();
         PrintWriter writer = new PrintWriter(result);
         writer.println("String " + urlVar + " = " + uriExpression + ";");
         writer.println("System.out.println(\"[G] calling \" + " + urlVar + ");");
+        writer.println("java.net.HttpURLConnection "+ connectionVar +" = null;");
         writer.println("try {");
-        writer.println("  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
+        writer.println("  " + connectionVar + " = (java.net.HttpURLConnection) new java.net.URL(" + urlVar + ").openConnection();");
         writer.println("  " + connectionVar + ".setReadTimeout(0);"); // to avoid silent retry
         writer.println("  " + connectionVar + ".connect();");
         writer.println("  java.io.InputStream " + streamVar + " = " + connectionVar + ".getInputStream();");
@@ -145,6 +147,15 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         writer.println("    " + streamVar + ".close();");
         writer.println("  }");
         writer.println("} catch(Exception e) {");
+        writer.println("  if (" + connectionVar + " != null) {");
+        writer.println("    java.io.InputStream " + errStreamVar + " = " + connectionVar + ".getErrorStream();");
+        writer.println("    if (" + errStreamVar + " != null) {");
+        writer.println("      System.err.println(\"----- response error body -----\");");
+        writer.println("      " + errStreamVar + ".transferTo(System.err);");
+        writer.println("      System.err.println(\"----- response error body -----\");");
+        writer.println("      " + errStreamVar + ".close();");
+        writer.println("    }");
+        writer.println("  }");
         writer.println("  System.out.println(\"[G] error response received for \" + " + urlVar + ");");
         writer.println("  throw new RuntimeException(\"Received error response from \" + " + urlVar + ", e);");
         writer.println("};");
