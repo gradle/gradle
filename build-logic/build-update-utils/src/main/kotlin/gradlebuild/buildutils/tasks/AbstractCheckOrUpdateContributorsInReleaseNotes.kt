@@ -65,41 +65,43 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
 
     @Internal
     protected
-    fun getContributorsInReleaseNotes(): Set<GitHubUser> {
-        val (_, contributorLines, _) = parseReleaseNotes()
-        return contributorLines
+    fun getContributorsInReleaseNotes(): List<GitHubUser> {
+        val releaseNotesLines = parseReleaseNotes()
+        return releaseNotesLines.contributorLines
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .onEach { if (!contributorLineRegex.containsMatchIn(it)) throw IllegalStateException("Invalid contributor line: $it") }
+            .onEach { check(contributorLineRegex.containsMatchIn(it)) { "Invalid contributor line: $it" } }
             .map { GitHubUser(contributorLineRegex.find(it)!!.groupValues[2], contributorLineRegex.find(it)!!.groupValues[1]) }
-            .toSet()
     }
 
     /**
      * Parses the release notes file and returns the triple: (linesBeforeContributors, contributorLines, linesAfterContributors)
      */
     protected
-    fun parseReleaseNotes(): Triple<List<String>, List<String>, List<String>> {
+    fun parseReleaseNotes(): ReleaseNotesLines {
         val releaseNotesLines: List<String> = releaseNotes.asFile.get().readLines()
         val contributorSectionBeginIndex = releaseNotesLines.indexOfFirst { it.startsWith("We would like to thank the following community members for their contributions to this release of Gradle:") } + 1
 
-        if (contributorSectionBeginIndex == 0) {
-            throw IllegalStateException("Can't find the contributors section in the release notes $releaseNotes.")
-        }
+        check(contributorSectionBeginIndex != 0) { "Can't find the contributors section in the release notes $releaseNotes." }
 
         val contributorSectionEndIndex = (contributorSectionBeginIndex until releaseNotesLines.size).firstOrNull {
             val line = releaseNotesLines[it].trim()
             line.isNotEmpty() && !line.startsWith("[")
-        } ?: throw IllegalStateException("Can't find the contributors section end in the release notes $releaseNotes.")
-        return Triple(releaseNotesLines.subList(0, contributorSectionBeginIndex), releaseNotesLines.subList(contributorSectionBeginIndex, contributorSectionEndIndex), releaseNotesLines.subList(contributorSectionEndIndex, releaseNotesLines.size))
+        } ?: error("Can't find the contributors section end in the release notes $releaseNotes.")
+
+        return ReleaseNotesLines(
+            releaseNotesLines.subList(0, contributorSectionBeginIndex).toList(),
+            releaseNotesLines.subList(contributorSectionBeginIndex, contributorSectionEndIndex).toList(),
+            releaseNotesLines.subList(contributorSectionEndIndex, releaseNotesLines.size).toList()
+        )
     }
 
     @Internal
     protected
     fun getContributorsFromPullRequests(): Set<GitHubUser> {
-        if (!milestone.isPresent) {
-            throw IllegalStateException("Milestone not set: please rerun the task with `--milestone <milestone>`")
-        }
+        check(milestone.isPresent) { "Milestone not set: please rerun the task with `--milestone <milestone>`" }
+        val milestone = milestone.get()
+
         val prs: MutableList<GitHubPullRequest> = mutableListOf()
         (1..10).forEach { page ->
             val prPage = getMergedContributorPullRequests(page)
@@ -108,8 +110,9 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
                 return@forEach
             }
         }
+
         return prs
-            .filter { it.milestone?.title?.startsWith(milestone.get()) == true }
+            .filter { it.milestone?.title?.startsWith(milestone) == true }
             .map { it.user.login }
             .toSet()
             .map { getUserInfo(it) }
@@ -143,5 +146,36 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
     fun getMergedContributorPullRequests(pageNumber: Int): List<GitHubPullRequest> {
         val uri = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:gradle/gradle+label:%22from:contributor%22&sort=updated&order=desc&per_page=$pageSize&page=$pageNumber"
         return invokeGitHubApi(uri, GitHubPullRequestSearchResult::class.java).items
+    }
+
+    protected data class ReleaseNotesLines(
+        val linesBeforeContributors: List<String>,
+        val contributorLines: List<String>,
+        val linesAfterContributors: List<String>,
+    )
+
+    companion object {
+
+        @JvmStatic
+        protected
+        val GitHubUser.displayName: String get() = name ?: login
+
+        /**
+         * Names in the release notes could have been manually entered for attribution.
+         */
+        @JvmStatic
+        protected
+        fun Collection<GitHubUser>.overrideNames(others: Collection<GitHubUser>): List<GitHubUser> {
+            val displayNameFromReleaseNotesByLogin = others.associate { it.login to it.name }
+            return map { it.copy(name = displayNameFromReleaseNotesByLogin[it.login] ?: it.name) }
+        }
+
+
+        /**
+         * Contributors list should be alphabetized by the resulting visible name.
+         */
+        @JvmStatic
+        protected
+        fun Collection<GitHubUser>.sortedForReleaseNotes(): List<GitHubUser> = sortedBy { it.displayName }
     }
 }
