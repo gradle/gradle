@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.toolchain.management;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
-/**
- * TODO (#21082)
- *
- * @since 7.6
- */
-@Incubating
-@HasInternalProtocol
-public interface ToolchainManagementSpec {
+@EventScope(Scopes.Build.class)
+public interface JavaToolchainRepositoryRegistrationListener {
 
-    //TODO (#21082): jdks needs to be a block and needs to be dynamically added by a new Java settings plugin
-
-    void jdks(String... registrationNames);
-
-    void jdks(JavaToolchainRepositoryRegistration... registrations);
+    void onRegister(JavaToolchainRepositoryRegistrationInternal registration);
 
 }

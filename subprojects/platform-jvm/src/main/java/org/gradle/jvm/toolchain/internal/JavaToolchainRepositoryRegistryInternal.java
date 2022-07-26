@@ -16,12 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 
 import java.util.List;
 
 public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
+
+    void request(String... registrationNames);
+
+    void request(JavaToolchainRepositoryRegistration... registrations);
 
     boolean hasExplicitRequests();
 

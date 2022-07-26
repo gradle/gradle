@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":native"))
     implementation(project(":normalization-java"))

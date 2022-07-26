@@ -19,8 +19,7 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.internal.DefaultToolchainManagementSpec
-import spock.lang.Ignore
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -61,12 +60,11 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore //TODO (#21082): something is not right with the dynamic extensions I'm adding
     def "registering a custom toolchain registry adds dynamic extension"() {
         settingsFile << """
             ${toolchainRegistryPluginCode("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}            
             toolchainManagement {
-                jdks(toolchainManagement.customRegistry)
+                jdks(customRegistry)
             }
         """
 
@@ -166,9 +164,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     def "it is possible to explicitly request the default registry"() {
         settingsFile << """
             toolchainManagement {
-                jdks("${DefaultToolchainManagementSpec.DEFAULT_REGISTRY_NAME}")
+                jdks("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")
             }
-        """ //TODO (#21082): the default registration could be a hardwired extension, ie. use the other "jdks" method here
+        """
 
         buildFile << """
             apply plugin: "java"
