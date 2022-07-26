@@ -90,6 +90,11 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                     canBeResolved = true
                     attributes {
                         attribute(Attribute.of("test", String), "test")
+                        ${plugin == 'codenarc' ?
+                        """
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                        """ : ""
+                        }
                     }
                 }
             }

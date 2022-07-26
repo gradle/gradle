@@ -59,12 +59,11 @@ class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegra
                 reports.text.required = true
             }
 
-            ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
-            """
             configurations.codenarc {
-                resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
+                attributes {
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                }
             }
-            """ : ""}
         """
     }
 
