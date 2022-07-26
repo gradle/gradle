@@ -198,7 +198,7 @@ You’ll also get auto-completion, which is always handy.
 This feature is currently *_incubating_* and not enabled by default. The configuration cache does not support all core Gradle plugins and features. IDE imports and syncs do not use the configuration cache.
 ====
 
-You can cache the result of the configuration phase by enabling the <<configuration_cache.adoc#config_cache,Configuration Cache>>. When build configuration input remains the same across builds, the configuration cache allows Gradle to skip the configuration phase entirely.
+You can cache the result of the configuration phase by enabling the <<configuration_cache.adoc#config_cache,Configuration Cache>>. When build configuration inputs remain the same across builds, the configuration cache allows Gradle to skip the configuration phase entirely.
 
 Build configuration inputs include:
 
