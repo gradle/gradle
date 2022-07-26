@@ -72,8 +72,4 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         return defaultPort;
     }
 
-    private static String getAndTrimSystemProperty(String key) {
-        String value = System.getProperty(key);
-        return value != null ? value.trim() : null;
-    }
 }
