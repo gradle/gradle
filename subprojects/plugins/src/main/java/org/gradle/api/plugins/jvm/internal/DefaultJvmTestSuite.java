@@ -52,7 +52,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JUNIT4("junit:junit", "4.13.2"),
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.8.2"),
         SPOCK("org.spockframework:spock-core", "2.2-M3-groovy-4.0"),
-        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.7.10"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit5", "1.7.10"),
         TESTNG("org.testng:testng", "7.5"),
         NONE(null, null);
 
