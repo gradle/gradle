@@ -18,6 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -98,6 +100,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         ]
     }
 
+    @Requires(TestPrecondition.JDK11_OR_LATER) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         initGitDir()
