@@ -228,8 +228,6 @@ public class Foo {
         javaClassFile("Foo.class").exists()
     }
 
-
-    @ToBeFixedForConfigurationCache(because = "Storing the configuration causes the execution exception to be triggered")
     def 'cannot configure both toolchain and source and target compatibility at project level'() {
         def jdk = Jvm.current()
         buildFile << """

@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
@@ -74,7 +74,6 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can produce multiple separate publications for single project"() {
         given:
         def module = mavenRepo.module('org.custom', 'custom', '2.2').withModuleMetadata()
