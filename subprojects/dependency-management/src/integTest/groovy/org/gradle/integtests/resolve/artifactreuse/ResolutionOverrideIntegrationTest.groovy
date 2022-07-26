@@ -16,10 +16,9 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    public void "will refresh non-changing module when run with --refresh-dependencies"() {
+    void "will refresh non-changing module when run with --refresh-dependencies"() {
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 
@@ -65,7 +64,7 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.2.jar').assertIsCopyOf(module.artifactFile).assertHasChangedSince(snapshot)
     }
 
-    public void "will recover from missing module when run with --refresh-dependencies"() {
+    void "will recover from missing module when run with --refresh-dependencies"() {
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
         def artifact = module.artifact
@@ -99,8 +98,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
-    public void "will recover from missing artifact when run with --refresh-dependencies"() {
+    void "will recover from missing artifact when run with --refresh-dependencies"() {
         given:
         buildFile << """
 repositories {
@@ -140,7 +138,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
-    public void "will not expire cache entries when run with offline flag"() {
+    void "will not expire cache entries when run with offline flag"() {
 
         given:
         def module = mavenHttpRepo.module("org.name", "unique", "1.0-SNAPSHOT").publish()
@@ -186,7 +184,7 @@ task retrieve(type: Sync) {
         file('libs/unique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot)
     }
 
-    public void "does not attempt to contact server when run with offline flag"() {
+    void "does not attempt to contact server when run with offline flag"() {
         given:
         buildFile << """
 repositories {

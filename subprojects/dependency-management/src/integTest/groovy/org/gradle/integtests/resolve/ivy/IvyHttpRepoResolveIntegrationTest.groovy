@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -33,7 +34,6 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         return server
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "fails when configured with AwsCredentials"() {
         given:
         def remoteIvyRepo = server.remoteIvyRepo
@@ -63,14 +63,14 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
 
         fails 'retrieve'
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
 
     @ToBeFixedForConfigurationCache
-    public void "can resolve and cache dependencies with missing status and publication date"() {
+    void "can resolve and cache dependencies with missing status and publication date"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         module.withXml({
@@ -152,7 +152,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         module1.ivy.expectGetBlocking()
 
         then:
-        fails'listJars'
+        fails 'listJars'
         failureHasCause("Could not resolve group:projectA:1.0")
         failureHasCause("Could not GET '$repo1.uri/group/projectA/1.0/ivy-1.0.xml'")
         failureHasCause('Read timed out')

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.override
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 /**
@@ -223,7 +222,6 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "clashing client modules fail the build"() {
         given:
         buildFile << """

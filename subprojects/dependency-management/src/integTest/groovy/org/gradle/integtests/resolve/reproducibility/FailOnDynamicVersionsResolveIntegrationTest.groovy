@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.reproducibility
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -73,7 +72,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails to resolve a direct dependency using a dynamic version"() {
         buildFile << """
             dependencies {
@@ -100,7 +98,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         failure.assertHasCause("Could not resolve org:test:1.+: Resolution strategy disallows usage of dynamic versions")
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails to resolve a transitive dependency which uses a dynamic version"() {
         buildFile << """
             dependencies {
@@ -134,7 +131,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         failure.assertHasCause("Could not resolve org:transitive:1.+: Resolution strategy disallows usage of dynamic versions")
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails if a transitive dynamic selector participates in selection"() {
         buildFile << """
             dependencies {
@@ -287,7 +283,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails if exact selector is below the range"() {
         buildFile << """
             dependencies {
@@ -317,7 +312,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         failure.assertHasCause("Could not resolve org:test:[1.2, 2.0[: Resolution strategy disallows usage of dynamic versions")
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails with combination of selectors (#selector1 and #selector2)"() {
         buildFile << """
             dependencies {
