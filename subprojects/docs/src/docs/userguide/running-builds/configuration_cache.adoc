@@ -102,10 +102,10 @@ BUILD SUCCESSFUL in 4s
 Configuration cache entry stored.
 ----
 
-Running this for the first time, the configuration phase is executed, calculating the task graph.
+Running this for the first time, the configuration phase executes, calculating the task graph.
 
 Then, run the same command again.
-This will reuse the cached configuration:
+This reuses the cached configuration:
 
 ----
 ❯ gradle --configuration-cache help
@@ -129,21 +129,21 @@ Keep reading to learn how to tweak the configuration cache, manually invalidate 
 [[config_cache:usage:enable]]
 === Enabling the configuration cache
 
-By default, the configuration cache is not enabled.
-It can be enabled from the command line:
+By default, Gradle does not use the configuration cache.
+To enable the cache at build time, use the `configuration-cache` flag:
 
 ----
 ❯ gradle --configuration-cache
 ----
 
-It can also be enabled persistently in a `gradle.properties` file:
+You can also enable the cache persistently in a `gradle.properties` file using the `org.gradle.unsafe.configuration-cache` property:
 
 [source,properties]
 ----
 org.gradle.unsafe.configuration-cache=true
 ----
 
-If it is enabled in a `gradle.properties` file, it can be disabled on the command line for one build invocation:
+If enabled in a `gradle.properties` file, you can override that setting and disable the cache at build time with the `no-configuration-cache` flag:
 
 ----
 ❯ gradle --no-configuration-cache
