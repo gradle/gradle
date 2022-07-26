@@ -20,16 +20,18 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "toolchain usage events are emitted for java compilation"() {
+    def "toolchain usage events are emitted for java compilation in a build with toolchains"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
         buildscriptWithToolchain(jdkMetadata)
 
@@ -41,7 +43,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         events.size() > 0
         events.each { usageEvent ->
-            assertToolchainUsage("javac", jdkMetadata, usageEvent)
+            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
         }
 
         when:
@@ -51,11 +53,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         skipped(":compileJava")
         events.size() > 0
         events.each { usageEvent ->
-            assertToolchainUsage("javac", jdkMetadata, usageEvent)
+            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
         }
     }
 
-    def "toolchain usage events are emitted for test"() {
+    def "toolchain usage events are emitted for test in a build with toolchains"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
         buildscriptWithToolchain(jdkMetadata)
 
@@ -73,15 +75,42 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         compileTestEvents.size() > 0
         compileTestEvents.each { usageEvent ->
-            assertToolchainUsage("javac", jdkMetadata, usageEvent)
+            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
         }
         testEvents.size() > 0
         testEvents.each { usageEvent ->
-            assertToolchainUsage("java", jdkMetadata, usageEvent)
+            assertToolchainUsage("JavaLauncher", jdkMetadata, usageEvent)
         }
     }
 
-    def "toolchain usage events are emitted for javadoc"() {
+    @Ignore
+    def "toolchain usage events are emitted for test in a build without toolchains"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        buildscriptWithoutToolchain()
+
+        file("src/test/java/FooTest.java") << """
+            public class FooTest {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        when:
+        runWithToolchainConfigured(jdkMetadata, "check")
+        def compileTestEvents = eventsFor(":compileTestJava")
+        def testEvents = eventsFor(":test")
+        then:
+        compileTestEvents.size() > 0
+        compileTestEvents.each { usageEvent ->
+            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
+        }
+        testEvents.size() > 0
+        testEvents.each { usageEvent ->
+            assertToolchainUsage("JavaLauncher", jdkMetadata, usageEvent)
+        }
+    }
+
+    def "toolchain usage events are emitted for javadoc in a build with toolchains"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
         buildscriptWithToolchain(jdkMetadata)
 
@@ -98,7 +127,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         events.size() > 0
         events.each { usageEvent ->
-            assertToolchainUsage("javadoc", jdkMetadata, usageEvent)
+            assertToolchainUsage("JavadocTool", jdkMetadata, usageEvent)
         }
     }
 
@@ -143,6 +172,17 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
                 }
+            }
+        """
+    }
+
+    private TestFile buildscriptWithoutToolchain() {
+        buildFile << """
+            apply plugin: "java"
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:4.13'
             }
         """
     }

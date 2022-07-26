@@ -17,6 +17,9 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails;
 
 public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUsageProgressDetails {
@@ -82,9 +85,9 @@ public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUs
     }
 
     public enum JavaTool {
-        COMPILER("javac"),
-        LAUNCHER("java"),
-        JAVADOC("javadoc");
+        COMPILER(JavaCompiler.class.getSimpleName()),
+        LAUNCHER(JavaLauncher.class.getSimpleName()),
+        JAVADOC(JavadocTool.class.getSimpleName());
 
         private final String toolName;
 
