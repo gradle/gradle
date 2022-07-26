@@ -44,6 +44,7 @@ import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -71,13 +72,14 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -274,7 +276,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutablePath());
     }
 
     /**
@@ -283,8 +285,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     @Internal
     public String getExecutable() {
-        return forkOptions.getExecutable();
+        // The value returned by this method could be nullable,
+        // but it is not possible to mark it as such on the ProcessForkOptions interface
+        // due to Kotlin not being able to infer correct nullability for the setter `setExecutable(String)`.
+        return getExecutablePath();
     }
+
 
     /**
      * {@inheritDoc}
@@ -617,7 +623,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private void copyToolchainAsExecutable(ProcessForkOptions target) {
-        target.setExecutable(getEffectiveExecutable());
+        target.setExecutable(getEffectiveExecutablePath());
     }
 
     /**
@@ -649,7 +655,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private void validateToolchainConfiguration() {
         if (javaLauncher.isPresent()) {
-            checkState(forkOptions.getExecutable() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
+            checkState(getExecutablePath() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
         }
     }
 
@@ -1048,8 +1054,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
-     * @since 4.6
      * @see #useJUnitPlatform(org.gradle.api.Action) Configure JUnit Platform specific options.
+     * @since 4.6
      */
     public void useJUnitPlatform() {
         useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
@@ -1251,13 +1257,38 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return javaLauncher;
     }
 
-    private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
-            return javaLauncher.get().getExecutablePath().toString();
-        }
-        final String executable = getExecutable();
-        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+    /**
+     * Fixes nullability for the implementation until it is fixed on the interface.
+     */
+    @Nullable
+    private String getExecutablePath() {
+        return forkOptions.getExecutable();
     }
 
+    private String getEffectiveExecutablePath() {
+        String executable = getExecutablePath();
+        if (executable != null) {
+            return executable;
+        }
+
+        return getLauncher().get().getExecutablePath().toString();
+    }
+
+    private Provider<JavaLauncher> getLauncher() {
+        if (getExecutablePath() != null) {
+            throw new IllegalStateException("Explicit executable cannot be resolved into a toolchain");
+        }
+
+        if (javaLauncher.isPresent()) {
+            return this.javaLauncher;
+        }
+
+        CurrentJvmToolchainSpec currentToolchainSpec = new CurrentJvmToolchainSpec(getObjectFactory());
+        return getJavaToolchainService().launcherFor(currentToolchainSpec);
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
 }

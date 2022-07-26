@@ -25,92 +25,14 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
+import org.gradle.util.internal.ToBeImplemented
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "toolchain usage events are emitted for java compilation in a build with toolchains"() {
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
-        buildscriptWithToolchain(jdkMetadata)
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        runWithToolchainConfigured(jdkMetadata, "compileJava")
-        def events = eventsFor(":compileJava")
-        then:
-        events.size() > 0
-        events.each { usageEvent ->
-            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
-        }
-
-        when:
-        runWithToolchainConfigured(jdkMetadata, "compileJava")
-        events = eventsFor(":compileJava")
-        then:
-        skipped(":compileJava")
-        events.size() > 0
-        events.each { usageEvent ->
-            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
-        }
-    }
-
-    def "toolchain usage events are emitted for test in a build with toolchains"() {
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
-        buildscriptWithToolchain(jdkMetadata)
-
-        file("src/test/java/FooTest.java") << """
-            public class FooTest {
-                @org.junit.Test
-                public void test() {}
-            }
-        """
-
-        when:
-        runWithToolchainConfigured(jdkMetadata, "check")
-        def compileTestEvents = eventsFor(":compileTestJava")
-        def testEvents = eventsFor(":test")
-        then:
-        compileTestEvents.size() > 0
-        compileTestEvents.each { usageEvent ->
-            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
-        }
-        testEvents.size() > 0
-        testEvents.each { usageEvent ->
-            assertToolchainUsage("JavaLauncher", jdkMetadata, usageEvent)
-        }
-    }
-
-    @Ignore
-    def "toolchain usage events are emitted for test in a build without toolchains"() {
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
-        buildscriptWithoutToolchain()
-
-        file("src/test/java/FooTest.java") << """
-            public class FooTest {
-                @org.junit.Test
-                public void test() {}
-            }
-        """
-
-        when:
-        runWithToolchainConfigured(jdkMetadata, "check")
-        def compileTestEvents = eventsFor(":compileTestJava")
-        def testEvents = eventsFor(":test")
-        then:
-        compileTestEvents.size() > 0
-        compileTestEvents.each { usageEvent ->
-            assertToolchainUsage("JavaCompiler", jdkMetadata, usageEvent)
-        }
-        testEvents.size() > 0
-        testEvents.each { usageEvent ->
-            assertToolchainUsage("JavaLauncher", jdkMetadata, usageEvent)
-        }
-    }
-
-    def "toolchain usage events are emitted for javadoc in a build with toolchains"() {
+    @ToBeImplemented("All cases are supported except up-to-dateness for the javadoc task")
+    def "emit toolchain usages for a build with a configured toolchain for '#task' task"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
         buildscriptWithToolchain(jdkMetadata)
 
@@ -121,14 +43,90 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             public class Foo {}
         """
 
+        file("src/test/java/FooTest.java") << """
+            public class FooTest {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        def taskPath = ":$task"
+
         when:
-        runWithToolchainConfigured(jdkMetadata, "javadoc")
-        def events = eventsFor(":javadoc")
+        runWithInstallation(jdkMetadata, task)
+        def events = eventsFor(taskPath)
         then:
         events.size() > 0
         events.each { usageEvent ->
-            assertToolchainUsage("JavadocTool", jdkMetadata, usageEvent)
+            assertToolchainUsage(tool, jdkMetadata, usageEvent)
         }
+
+        when:
+        runWithInstallation(jdkMetadata, task)
+        events = eventsFor(taskPath)
+        then:
+        skipped(taskPath)
+        if (emitsWhenUpToDate) {
+            events.size() > 0
+            events.each { usageEvent ->
+                assertToolchainUsage(tool, jdkMetadata, usageEvent)
+            }
+        }
+
+        where:
+        task          | tool           | emitsWhenUpToDate
+        "compileJava" | "JavaCompiler" | true
+        "test"        | "JavaLauncher" | true
+        "javadoc"     | "JavadocTool"  | false // TODO: this must be fixed
+    }
+
+    @ToBeImplemented("All cases are supported except up-to-dateness for the javadoc task")
+    def "emit toolchain usages for a build without a configured toolchain for '#task' task"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        buildscriptWithoutToolchain()
+
+        file("src/main/java/Foo.java") << """
+            /**
+             * This is a {@code} Foo class.
+             */
+            public class Foo {}
+        """
+
+        file("src/test/java/FooTest.java") << """
+            public class FooTest {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        def taskPath = ":$task"
+
+        when:
+        runWithInstallation(jdkMetadata, task)
+        def events = eventsFor(taskPath)
+        then:
+        events.size() > 0
+        events.each { usageEvent ->
+            assertToolchainUsage(tool, jdkMetadata, usageEvent)
+        }
+
+        when:
+        runWithInstallation(jdkMetadata, task)
+        events = eventsFor(taskPath)
+        then:
+        skipped(taskPath)
+        if (emitsWhenUpToDate) {
+            events.size() > 0
+            events.each { usageEvent ->
+                assertToolchainUsage(tool, jdkMetadata, usageEvent)
+            }
+        }
+
+        where:
+        task          | tool           | emitsWhenUpToDate
+        "compileJava" | "JavaCompiler" | true
+        "test"        | "JavaLauncher" | true
+        "javadoc"     | "JavadocTool"  | false // TODO: this must be fixed
     }
 
     // TODO: test with a custom task that uses a toolchain
@@ -142,6 +140,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     // TODO: javaCompile.options.forkOptions.javaHome = "blah" while using a toolchain
 
     // TODO: test with Kotlin plugin
+
+    // TODO: test that usages are emitted when tasks fail (compilation fails, test fails, javadoc fails)
 
     private void assertToolchainUsage(String toolName, JvmInstallationMetadata jdkMetadata, BuildOperationRecord.Progress usageEvent) {
         assert usageEvent.details.toolName == toolName
@@ -187,7 +187,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    def runWithToolchainConfigured(JvmInstallationMetadata jdkMetadata, String... tasks) {
+    def runWithInstallation(JvmInstallationMetadata jdkMetadata, String... tasks) {
         result = executer
             .withArgument("-Porg.gradle.java.installations.paths=" + jdkMetadata.javaHome.toAbsolutePath())
             .withTasks(tasks)
