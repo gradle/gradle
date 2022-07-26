@@ -32,6 +32,7 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -54,6 +55,7 @@ public class JdkCacheDirectory {
 
     private final JvmMetadataDetector detector;
 
+    @Inject
     public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
         this.operations = operations;
         this.jdkDirectory = new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");

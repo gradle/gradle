@@ -30,7 +30,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface JavaToolchainRepositoryRegistry {
 
     /**
-     * TODO (#21082)
+     * TODO (#21082): docs
      *
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
