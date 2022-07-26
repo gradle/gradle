@@ -16,10 +16,8 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,8 +51,8 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
                 apply plugin: 'codenarc'
 
                 dependencies {
-                    codenarc('org.codenarc:CodeNarc:0.24.1') {
-                        exclude group: 'org.codehaus.groovy'
+                    codenarc('org.codenarc:CodeNarc-Groovy4:3.1.0') {
+                        exclude group: 'org.apache.groovy'
                     }
                     codenarc $groovyVersion
                 }
@@ -81,7 +79,6 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    @Ignore("We need to use a version of CodeNarc compatible with Groovy 4")
     void 'CodeNarc does not fail with PermGen space error'() {
         given:
         withCodenarc(groovyVersion)
@@ -96,26 +93,8 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     private static List<String> groovyVersions() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return [
-                'localGroovy()',
-                "'org.codehaus.groovy:groovy:3.0.5', 'org.codehaus.groovy:groovy-templates:3.0.5'"
-            ]
-        }
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
-            return [
-                'localGroovy()',
-                // Leave this at 2.4.7 even if Groovy is upgraded
-                "'org.codehaus.groovy:groovy-all:2.4.7'",
-            ]
-        }
         return [
-            'localGroovy()',
-            "'org.codehaus.groovy:groovy-all:2.3.10'",
-            "'org.codehaus.groovy:groovy-all:2.2.1'",
-            "'org.codehaus.groovy:groovy-all:2.1.9'",
-            "'org.codehaus.groovy:groovy-all:2.0.4'",
-            "'org.codehaus.groovy:groovy-all:1.8.7'"
+            'localGroovy()' // TODO as of July 2022, we can only test org.codenarc:CodeNarc-Groovy4:3.1.0 with Groovy 4
         ]
     }
 
