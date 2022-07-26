@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.features
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -82,7 +81,6 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reasonable error message when no variant provides required capability"() {
         given:
         repository {
