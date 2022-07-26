@@ -211,14 +211,14 @@ Build configuration inputs include:
 - Configuration files accessed using value suppliers such as providers
 - `buildSrc` inputs and source files.
 
-By default, the configuration cache is not enabled.
-It can be enabled from the command line:
+By default, Gradle does not use the configuration cache.
+To enable the cache at build time, use the `configuration-cache` flag:
 
 ----
 ❯ gradle --configuration-cache
 ----
 
-It can also be enabled persistently in a `gradle.properties` file:
+You can also enable the cache persistently in a `gradle.properties` file using the `org.gradle.unsafe.configuration-cache` property:
 
 [source,properties]
 ----
