@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.dependency-scanner")
 }
 
 description = "Infrastructure that bootstraps a worker process"
