@@ -80,7 +80,9 @@ public class DefaultToolchainManagementSpec implements ToolchainManagementSpecIn
 
     @Override
     public <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType) {
-        //TODO (#21082): make sure there is no name duplication in registrations (and write test for it)
+        if (registrations.containsKey(name)) {
+            throw new GradleException("Duplicate " + JavaToolchainRepository.class.getSimpleName() + " registration under the name '" + name + "'");
+        }
 
         Provider<T> provider = sharedServices.registerIfAbsent(name, implementationType, EMPTY_CONFIGURE_ACTION);
         JavaToolchainRepositoryRegistrationInternal registration = new DefaultJavaToolchainRepositoryRegistration(name, provider);

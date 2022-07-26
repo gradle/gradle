@@ -36,8 +36,6 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
 
     //TODO (#21082): think about build service parameters, we will need them, for example base URI
 
-    //TODO (#21082): instead of having the repository metadata, would be better to probe the freshly downloaded JVM ...
-
     /**
      * Returns the URI from which a Java Toolchain matching the provided specification can be downloaded.
      * The URI must point to either a ZIP or a TAR archive file.

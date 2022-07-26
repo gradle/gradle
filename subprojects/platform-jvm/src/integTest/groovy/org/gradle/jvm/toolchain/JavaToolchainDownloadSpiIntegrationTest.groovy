@@ -20,15 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.DefaultToolchainManagementSpec
+import spock.lang.Ignore
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsFile << """
-            ${customToolchainRegistryPluginCode()}            
-            apply plugin: CustomToolchainRegistryPlugin
-            
+            ${toolchainRegistryPluginCode("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}               
             toolchainManagement {
                 jdks("customRegistry")
             }
@@ -51,7 +50,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
-                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -63,12 +61,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    //@Ignore //TODO (#21082): something is not right with the dynamic extensions I'm adding
+    @Ignore //TODO (#21082): something is not right with the dynamic extensions I'm adding
     def "registering a custom toolchain registry adds dynamic extension"() {
         settingsFile << """
-            ${customToolchainRegistryPluginCode()}            
-            apply plugin: CustomToolchainRegistryPlugin
-            
+            ${toolchainRegistryPluginCode("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}            
             toolchainManagement {
                 jdks(toolchainManagement.customRegistry)
             }
@@ -91,7 +87,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
-                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -120,7 +115,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
-                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -137,9 +131,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "if toolchain registries are explicitly requested, then the default is NOT automatically added to the request"() {
         settingsFile << """
-            ${uselessToolchainRegistryPluginCode()}            
-            apply plugin: UselessToolchainRegistryPlugin
-            
+            ${toolchainRegistryPluginCode("uselessRegistry", "UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
             toolchainManagement {
                 jdks("uselessRegistry")
             }
@@ -161,14 +153,13 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
-                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-                .assertHasCause("No compatible toolchains found for request filter: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)")
+                .assertHasCause("No compatible toolchains found for request filter: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download true)")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -195,7 +186,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
-                .withToolchainDetectionEnabled()
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -207,19 +197,56 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
     }
 
-    private static String customToolchainRegistryPluginCode() {
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "fails on name collision when registering repositories"() {
+        settingsFile << """
+            ${toolchainRegistryPluginCode("uselessRegistry", "UselessToolchainRegistry1", uselessToolchainRegistryCode("UselessToolchainRegistry1"))}            
+            ${toolchainRegistryPluginCode("uselessRegistry", "UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
+            toolchainManagement {
+                jdks("uselessRegistry")
+            }
         """
-            public abstract class CustomToolchainRegistryPlugin implements Plugin<Settings> {
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+
+        failure.assertHasCause("Failed to apply plugin class 'UselessToolchainRegistry2Plugin'.")
+                .assertHasCause("Duplicate JavaToolchainRepository registration under the name 'uselessRegistry'")
+    }
+
+    private static String toolchainRegistryPluginCode(String name, String className, String code) {
+        """
+            public abstract class ${className}Plugin implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
             
                 void apply(Settings settings) {
                     JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-                    registry.register("customRegistry", CustomToolchainRegistry.class)
+                    registry.register("${name}", ${className}.class)
                 }
             }
             
-            ${customToolchainRegistryCode()}
+            ${code}
+
+            apply plugin: ${className}Plugin
         """
     }
 
@@ -242,27 +269,11 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             """
     }
 
-    private static String uselessToolchainRegistryPluginCode() {
-        """
-            public abstract class UselessToolchainRegistryPlugin implements Plugin<Settings> {
-                @Inject
-                protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
-            
-                void apply(Settings settings) {
-                    JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-                    registry.register("uselessRegistry", UselessToolchainRegistry.class)
-                }
-            }
-            
-            ${uselessToolchainRegistryCode()}
-        """
-    }
-
-    private static String uselessToolchainRegistryCode() {
+    private static String uselessToolchainRegistryCode(String className) {
         """
             import java.util.Optional;
 
-            public abstract class UselessToolchainRegistry implements JavaToolchainRepository {
+            public abstract class ${className} implements JavaToolchainRepository {
 
                 @Override
                 public Optional<URI> toUri(JavaToolchainSpec spec) {
@@ -280,13 +291,13 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     private static String os() {
         OperatingSystem os = OperatingSystem.current()
         if (os.isWindows()) {
-            return "windows";
+            return "windows"
         } else if (os.isMacOsX()) {
-            return "mac";
+            return "mac"
         } else if (os.isLinux()) {
-            return "linux";
+            return "linux"
         }
-        return os.getFamilyName();
+        return os.getFamilyName()
     }
 
 }
