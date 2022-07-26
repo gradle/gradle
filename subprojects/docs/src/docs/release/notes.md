@@ -303,6 +303,10 @@ This change may cause new test failures and warnings. When running on Java 16+, 
 
 For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
 
+### Security advisory
+
+[CVE-2022-31156](https://github.com/gradle/gradle/security/advisories/GHSA-j6wc-xfg8-jx2j) - Dependency verification can ignore checksum verification when signature verification cannot be performed.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
