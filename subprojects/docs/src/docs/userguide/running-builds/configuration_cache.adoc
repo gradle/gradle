@@ -59,10 +59,14 @@ If a build configuration input has changed, Gradle will not use the entry and wi
 
 Build configuration inputs include:
 
-- Init scripts, settings scripts, build scripts.
-- System properties, Gradle properties, environment variables used during the configuration phase
+- Init scripts
+- Settings scripts
+- Build scripts
+- System properties
+- Gradle properties
+- Environment variables used during the configuration phase
 - Configuration files accessed using value suppliers such as providers
-- `buildSrc` build configuration inputs and source files.
+- `buildSrc` inputs and source files.
 
 Gradle uses its own optimized serialization mechanism and format to store the configuration cache entries.
 It automatically serializes the state of arbitrary object graphs.
