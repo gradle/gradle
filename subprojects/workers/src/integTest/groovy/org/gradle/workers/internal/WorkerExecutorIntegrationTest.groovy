@@ -23,6 +23,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -227,6 +228,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/10411")
+    @Ignore("Groovy 4 upgrade: causing heap space issues")
     def "does not leak project state across multiple builds"() {
         fixture.withWorkActionClassInBuildSrc()
         executer.withBuildJvmOpts('-Xms256m', '-Xmx512m').requireIsolatedDaemons().requireDaemon()
