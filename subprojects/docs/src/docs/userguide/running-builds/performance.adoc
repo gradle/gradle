@@ -191,6 +191,40 @@ Some collections have dedicated types, `TaskContainer` being one of them, that h
 If you do decide to use static compilation, using an IDE can quickly show errors due to unrecognised types, properties, and methods.
 You’ll also get auto-completion, which is always handy.
 
+=== Enable the configuration cache
+
+[IMPORTANT]
+====
+This feature is currently *_incubating_* and not enabled by default. The configuration cache does not support all core Gradle plugins and features. IDE imports and syncs do not use the configuration cache.
+====
+
+You can cache the result of the configuration phase by enabling the <<configuration_cache.adoc#config_cache,Configuration Cache>>. When build configuration input remains the same across builds, the configuration cache allows Gradle to skip the configuration phase entirely.
+
+Build configuration inputs include:
+
+- Init scripts
+- Settings scripts
+- Build scripts
+- System properties
+- Gradle properties
+- Environment variables used during the configuration phase
+- Configuration files accessed using value suppliers such as providers
+- `buildSrc` inputs and source files.
+
+By default, the configuration cache is not enabled.
+It can be enabled from the command line:
+
+----
+❯ gradle --configuration-cache
+----
+
+It can also be enabled persistently in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache=true
+----
+
 [[dependency_resolution]]
 == Dependency resolution
 
