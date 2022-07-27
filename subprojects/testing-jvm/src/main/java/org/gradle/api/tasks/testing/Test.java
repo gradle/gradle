@@ -1262,6 +1262,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return getLauncher().get().getExecutablePath().toString();
     }
 
+    /**
+     * We create a launcher for the current JVM as well, so the progress event for toolchains is emitted.
+     */
     private Provider<JavaLauncher> getLauncher() {
         if (forkOptions.getExecutable() != null) {
             throw new IllegalStateException("Explicit executable cannot be resolved into a toolchain");
