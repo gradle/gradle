@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
@@ -73,6 +74,45 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
         then:
         outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21353")
+    def "uses current jdk if checkstyle plugin is not applied"() {
+        given:
+        goodCode()
+        writeDummyConfig()
+        setupExecutorForToolchains()
+        writeBuildFileWithoutApplyingCheckstylePlugin()
+        buildFile << """
+            Map<String, String> excludeProperties(String group, String module) {
+                return ["group": group, "module": module]
+            }
+            Configuration configuration = configurations.create("checkstyle")
+            configuration.exclude(excludeProperties("ant", "ant"))
+            configuration.exclude(excludeProperties("org.apache.ant", "ant"))
+            configuration.exclude(excludeProperties("org.apache.ant", "ant-launcher"))
+            configuration.exclude(excludeProperties("org.slf4j", "slf4j-api"))
+            configuration.exclude(excludeProperties("org.slf4j", "jcl-over-slf4j"))
+            configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"))
+            configuration.exclude(excludeProperties("commons-logging", "commons-logging"))
+            configuration.exclude(excludeProperties("log4j", "log4j"))
+            dependencies.add("checkstyle", dependencies.create("com.puppycrawl.tools:checkstyle:$version"))
+            FileCollection checkstyleFileCollection = configuration
+
+            tasks.register("myCheckstyle", Checkstyle) {
+                checkstyleClasspath = checkstyleFileCollection
+                configFile = file("\$projectDir/config/checkstyle/checkstyle.xml")
+                configDirectory = file("\$projectDir/config/checkstyle")
+                source = fileTree("\$projectDir/src/main")
+                classpath = objects.fileCollection().from("\$buildDir/classes")
+            }
+"""
+
+        when:
+        succeeds("myCheckstyle")
+
+        then:
+        outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'.")
     }
 
     def "respects memory options settings"() {
@@ -156,6 +196,23 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
     checkstyle {
         toolVersion = '$version'
+    }
+
+    repositories {
+        ${mavenCentralRepository()}
+    }
+
+    dependencies {
+        implementation localGroovy()
+    }
+"""
+    }
+
+    private void writeBuildFileWithoutApplyingCheckstylePlugin() {
+        buildFile << """
+    plugins {
+        id 'groovy'
+        id 'java'
     }
 
     repositories {
