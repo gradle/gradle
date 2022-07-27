@@ -276,7 +276,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutablePath());
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
     }
 
     /**
@@ -285,12 +285,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     @Internal
     public String getExecutable() {
-        // The value returned by this method could be nullable,
-        // but it is not possible to mark it as such on the ProcessForkOptions interface
-        // due to Kotlin not being able to infer correct nullability for the setter `setExecutable(String)`.
-        return getExecutablePath();
+        return forkOptions.getExecutable();
     }
-
 
     /**
      * {@inheritDoc}
@@ -623,7 +619,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private void copyToolchainAsExecutable(ProcessForkOptions target) {
-        target.setExecutable(getEffectiveExecutablePath());
+        target.setExecutable(getEffectiveExecutable());
     }
 
     /**
@@ -655,7 +651,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private void validateToolchainConfiguration() {
         if (javaLauncher.isPresent()) {
-            checkState(getExecutablePath() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
+            checkState(forkOptions.getExecutable() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
         }
     }
 
@@ -1257,16 +1253,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return javaLauncher;
     }
 
-    /**
-     * Fixes nullability for the implementation until it is fixed on the interface.
-     */
-    @Nullable
-    private String getExecutablePath() {
-        return forkOptions.getExecutable();
-    }
-
-    private String getEffectiveExecutablePath() {
-        String executable = getExecutablePath();
+    private String getEffectiveExecutable() {
+        String executable = forkOptions.getExecutable();
         if (executable != null) {
             return executable;
         }
@@ -1275,7 +1263,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private Provider<JavaLauncher> getLauncher() {
-        if (getExecutablePath() != null) {
+        if (forkOptions.getExecutable() != null) {
             throw new IllegalStateException("Explicit executable cannot be resolved into a toolchain");
         }
 
