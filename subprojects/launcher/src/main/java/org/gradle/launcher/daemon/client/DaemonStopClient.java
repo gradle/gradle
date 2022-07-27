@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  */
 public class DaemonStopClient {
-    private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
+    private static final Logger LOGGER = Logging.getLogger(DaemonStopClient.class);
     private static final int STOP_TIMEOUT_SECONDS = 30;
     private final DaemonConnector connector;
     private final IdGenerator<UUID> idGenerator;
