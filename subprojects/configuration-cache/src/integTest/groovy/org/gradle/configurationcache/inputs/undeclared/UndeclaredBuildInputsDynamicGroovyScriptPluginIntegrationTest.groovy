@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-import spock.lang.Ignore
-
-@Ignore("Fix invokedynamic handling")
 class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     def script = file("plugin.gradle")
 

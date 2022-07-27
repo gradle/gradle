@@ -27,7 +27,6 @@ import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
-@Ignore("Fix invokedynamic handling")
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 

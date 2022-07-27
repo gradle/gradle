@@ -16,15 +16,12 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Ignore
-
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.exec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.javaexec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.processBuilder
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-@Ignore("Fix invokedynamic handling")
 class ConfigurationCacheExternalProcessInBuildScriptIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
     def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"() {
         given:
