@@ -90,24 +90,22 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         events = eventsFor(task)
         then:
         skipped(task)
-        if (emitsWhenUpToDate) {
-            assertToolchainUsages(events, jdkMetadata, tool)
-        }
+        assertToolchainUsages(events, jdkMetadata, tool)
 
         where:
-        task           | tool           | configureToolchain              | emitsWhenUpToDate
-        ":compileJava" | "JavaCompiler" | "with java plugin"              | true
-//        ":compileJava" | "JavaCompiler" | "with per task"                 | true
-//        ":compileJava" | "JavaCompiler" | "with java plugin and per task" | true
-//        ":compileJava" | "JavaCompiler" | "without"                       | true
-//        ":test"        | "JavaLauncher" | "with java plugin"              | true
-//        ":test"        | "JavaLauncher" | "with per task"                 | true
-//        ":test"        | "JavaLauncher" | "with java plugin and per task" | true
-//        ":test"        | "JavaLauncher" | "without"                       | true
-//        ":javadoc"     | "JavadocTool"  | "with java plugin"              | false // TODO: this must be fixed
-//        ":javadoc"     | "JavadocTool"  | "with per task"                 | false // TODO: this must be fixed
-//        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | false // TODO: this must be fixed
-//        ":javadoc"     | "JavadocTool"  | "without"                       | false // TODO: this must be fixed
+        task           | tool           | configureToolchain
+        ":compileJava" | "JavaCompiler" | "with java plugin"
+        ":compileJava" | "JavaCompiler" | "with per task"
+        ":compileJava" | "JavaCompiler" | "with java plugin and per task"
+        ":compileJava" | "JavaCompiler" | "without"
+        ":test"        | "JavaLauncher" | "with java plugin"
+        ":test"        | "JavaLauncher" | "with per task"
+        ":test"        | "JavaLauncher" | "with java plugin and per task"
+        ":test"        | "JavaLauncher" | "without"
+        ":javadoc"     | "JavadocTool"  | "with java plugin"
+        ":javadoc"     | "JavadocTool"  | "with per task"
+        ":javadoc"     | "JavadocTool"  | "with java plugin and per task"
+        ":javadoc"     | "JavadocTool"  | "without"
     }
 
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
