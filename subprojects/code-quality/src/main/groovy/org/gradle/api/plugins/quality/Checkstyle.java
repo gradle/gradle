@@ -28,6 +28,7 @@ import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -44,6 +45,8 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -77,9 +80,16 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     public Checkstyle() {
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
-        this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
         this.minHeapSize = getObjectFactory().property(String.class);
         this.maxHeapSize = getObjectFactory().property(String.class);
+        // Set default JavaLauncher to current JVM in case
+        // CheckstylePlugin that sets Java launcher convention is not applied
+        this.javaLauncher = getCurrentJvmLauncher();
+    }
+
+    private Property<JavaLauncher> getCurrentJvmLauncher() {
+        Provider<JavaLauncher> currentJvmLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjectFactory()));
+        return getObjectFactory().property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     /**
@@ -99,6 +109,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainService getToolchainService() {
         throw new UnsupportedOperationException();
     }
 
