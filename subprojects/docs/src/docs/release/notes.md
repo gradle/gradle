@@ -1,5 +1,13 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 7.5. We recommend users upgrade to 7.5.1 instead of 7.5.
+
+## Fixed issues
+
+[Fixed issues in 7.5](../7.5/release-notes.html#fixed-issues)
+
+----
+
 This release includes [building code and running Gradle with Java 18](#java18), [building code with Groovy 4](#groovy4), [much more responsive continuous builds](#continuous-build), [improved diagnostics for dependency resolution](#dependency-diagnostics), as well as [configuration cache improvements](#configuration-cache-improvements) for better performance, [Adoptium toolchain provisioning](#adoptium-provisioning) for JVM, and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
@@ -295,6 +303,10 @@ This change may cause new test failures and warnings. When running on Java 16+, 
 
 For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
 
+### Security advisory
+
+[CVE-2022-31156](https://github.com/gradle/gradle/security/advisories/GHSA-j6wc-xfg8-jx2j) - Dependency verification can ignore checksum verification when signature verification cannot be performed.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
@@ -302,8 +314,6 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 The following are the features that have been promoted in this Gradle release.
 
 - The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
-
-## Fixed issues
 
 ## Known issues
 
