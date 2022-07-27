@@ -277,15 +277,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         configureToolchainViaJavaPlugin(jdkMetadata)
 
-        buildFile << """
-            javadoc {
-                doLast { throw new IllegalStateException("Oops"); }
-            }
-        """.stripIndent()
-
         file("src/main/java/Foo.java") << """
             /**
-             * This is a {@code} Foo class.
+             * This is a {@link Oops} class.
              */
             public class Foo { }
         """.stripIndent()
@@ -295,7 +289,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def events = eventsFor(taskPath)
         then:
         failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
-        failureHasCause("Oops")
+        failureCauseContains("Javadoc generation failed")
         assertToolchainUsages(events, jdkMetadata, "JavadocTool")
     }
 
