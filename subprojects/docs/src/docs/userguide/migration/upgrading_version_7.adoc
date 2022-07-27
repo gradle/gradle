@@ -209,6 +209,13 @@ The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the 
 
 Since Checkstyle runs as an external process you can control the memory via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle tasks. In case of out of memory errors, increasing the max memory via the `maxHeapSize` property should solve the issue. By default, the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
 
+==== Missing files specified with relative paths when running Checkstyle
+
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`. 
+This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
+
+Previously, the current working directory would depend on how Gradle was executed. When running Gradle from the root directory of a project, this would be the root directory, but when running Gradle from a subproject, the current working directory would be the subproject directory. 
+
 === Deprecations
 
 [[file_collection_to_classpath]]
