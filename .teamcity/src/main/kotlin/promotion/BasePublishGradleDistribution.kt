@@ -56,7 +56,7 @@ abstract class BasePublishGradleDistribution(
                 this@BasePublishGradleDistribution.gitUserEmail,
                 this@BasePublishGradleDistribution.triggerName,
                 this@BasePublishGradleDistribution.prepTask,
-                "checkReadyToPromote"
+                "checkNeedToPromote"
             )
         }
     }
