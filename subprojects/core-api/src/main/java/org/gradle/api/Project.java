@@ -1316,32 +1316,44 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void allprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
-     * Adds an action to execute immediately before this project evaluates.
+     * <p>Adds an action to call immediately before this project is evaluated. Passes the project to the
+     * action as a parameter. Actions passed to this method execute in the same order they were passed.</p>
+     * 
+     * <p>If the project has already been evaluated, the action never executes.</p>
+     * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action executes after all
+     * previously added <code>beforeEvaluate</code> actions finish executing.</p>
      *
      * @param action the action to execute.
      */
     void beforeEvaluate(Action<? super Project> action);
 
     /**
-     * Adds an action to execute immediately after this project evaluates.
+     * <p>Adds an action to call immediately after this project is evaluated. Passes the project to the
+     * action as a parameter. Actions passed to this method execute in the same order they were passed.
+     * A parent project may add an action to its child projects to further configure those projects based
+     * on their state after their build files run.</p>
+     * 
+     * <p>If the project has already been evaluated, this method fails.</p>
+     * <p>If you call this method within an <code>afterEvaluate</code> action, the passed action executes after all
+     * previously added <code>afterEvaluate</code> actions finish executing.</p>
      *
      * @param action the action to execute.
      */
     void afterEvaluate(Action<? super Project> action);
 
     /**
-     * <p>Adds a closure to call immediately before this project evaluates. Passes the project to the
-     * closure as a parameter. Closures passed to this method execute in the same order they were passed.</p>
+     * <p>Adds a closure to call immediately before this project is evaluated.</p>
+     * 
+     * @see Project#beforeEvaluate(Action)
      *
      * @param closure The closure to call.
      */
     void beforeEvaluate(Closure closure);
 
     /**
-     * <p>Adds a closure to call immediately after this project evaluates. Passes the project to the
-     * closure as a parameter. Closures passed to this method execute in the same order they were passed.
-     * A parent project may add a closure to its child projects to further configure those projects based
-     * on their state after their build files run.</p>
+     * <p>Adds a closure to call immediately after this project is evaluated.</p>
+     * 
+     * @see Project#afterEvaluate(Action)
      *
      * @param closure The closure to call.
      */
