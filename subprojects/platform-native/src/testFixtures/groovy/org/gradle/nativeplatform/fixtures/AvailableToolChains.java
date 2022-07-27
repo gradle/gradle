@@ -114,11 +114,8 @@ public class AvailableToolChains {
      * @return A list of all known tool chains for this platform. Includes those tool chains that are not available on the current machine.
      */
     public static List<ToolChainCandidate> getToolChains() {
-        if (MAC_OS_X_M1.isFulfilled()) {
-            return Collections.emptyList();
-        }
         if (toolChains == null) {
-            List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
+            List<ToolChainCandidate> compilers = new ArrayList<>();
             if (OperatingSystem.current().isWindows()) {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
