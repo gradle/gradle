@@ -18,10 +18,13 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.BuildOperationReplayingProvider;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
@@ -41,15 +44,23 @@ public class JavaToolchainQueryService {
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
+    private final BuildOperationListenerManager buildOperationListenerManager;
 
     @Inject
-    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
+    public JavaToolchainQueryService(
+        JavaInstallationRegistry registry,
+        JavaToolchainFactory toolchainFactory,
+        JavaToolchainProvisioningService provisioningService,
+        ProviderFactory factory,
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
+        this.buildOperationListenerManager = buildOperationListenerManager;
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -57,13 +68,14 @@ public class JavaToolchainQueryService {
     }
 
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        return new DefaultProvider<>(() -> {
-            if (((ToolchainSpecInternal) filter).isConfigured()) {
-                return matchingToolchains.computeIfAbsent(filter, k -> query(k));
+        ToolchainSpecInternal internalSpec = (ToolchainSpecInternal) filter;
+        return new BuildOperationReplayingProvider<>(() -> {
+            if (internalSpec.isConfigured()) {
+                return matchingToolchains.computeIfAbsent(internalSpec, k -> query(k));
             } else {
                 return null;
             }
-        });
+        }, buildOperationListenerManager);
     }
 
     private JavaToolchain query(JavaToolchainSpec filter) {

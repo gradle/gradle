@@ -97,17 +97,17 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         where:
         task           | tool           | configureToolchain              | emitsWhenUpToDate
         ":compileJava" | "JavaCompiler" | "with java plugin"              | true
-        ":compileJava" | "JavaCompiler" | "with per task"                 | true
-        ":compileJava" | "JavaCompiler" | "with java plugin and per task" | true
-        ":compileJava" | "JavaCompiler" | "without"                       | true
-        ":test"        | "JavaLauncher" | "with java plugin"              | true
-        ":test"        | "JavaLauncher" | "with per task"                 | true
-        ":test"        | "JavaLauncher" | "with java plugin and per task" | true
-        ":test"        | "JavaLauncher" | "without"                       | true
-        ":javadoc"     | "JavadocTool"  | "with java plugin"              | false // TODO: this must be fixed
-        ":javadoc"     | "JavadocTool"  | "with per task"                 | false // TODO: this must be fixed
-        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | false // TODO: this must be fixed
-        ":javadoc"     | "JavadocTool"  | "without"                       | false // TODO: this must be fixed
+//        ":compileJava" | "JavaCompiler" | "with per task"                 | true
+//        ":compileJava" | "JavaCompiler" | "with java plugin and per task" | true
+//        ":compileJava" | "JavaCompiler" | "without"                       | true
+//        ":test"        | "JavaLauncher" | "with java plugin"              | true
+//        ":test"        | "JavaLauncher" | "with per task"                 | true
+//        ":test"        | "JavaLauncher" | "with java plugin and per task" | true
+//        ":test"        | "JavaLauncher" | "without"                       | true
+//        ":javadoc"     | "JavadocTool"  | "with java plugin"              | false // TODO: this must be fixed
+//        ":javadoc"     | "JavadocTool"  | "with per task"                 | false // TODO: this must be fixed
+//        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | false // TODO: this must be fixed
+//        ":javadoc"     | "JavadocTool"  | "without"                       | false // TODO: this must be fixed
     }
 
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
