@@ -182,7 +182,7 @@ See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more
 
 ### Command-line improvements
 
-#### Tasks can be re-run selectively 
+#### Tasks can be re-run selectively
 
 A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
 ```
@@ -219,7 +219,7 @@ This improves experience with compilation when working iteratively on some Java 
 
 #### Better test compatibility with Java 9+
 
-When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. In some cases, this would cause code to pass during testing but fail at runtime.  
+When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. In some cases, this would cause code to pass during testing but fail at runtime.
 
 This change may cause new test failures and warnings. When running on Java 16+, code performing reflection on JDK internals will now fail tests. When running on Java 9-15, illegal access warnings will appear in logs. While this change may break some existing builds, most failures are likely to uncover suppressed issues which would have only been detected at runtime.
 
@@ -227,16 +227,16 @@ For a detailed description on how to mitigate this change, please see the [upgra
 
 ### Options for debugging the JVM over network with Java 9+
 
-A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
+A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client
 connections over the network.
-If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
+If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is,
 they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
 
-In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
+In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port.
 On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
 one of the addresses of the current machine's network interfaces.
 
-Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
+Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
 accepting connections via network on Java 9+.
 
 ### Reason messages in task predicates
@@ -244,7 +244,7 @@ accepting connections via network on Java 9+.
 It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
 ```groovy
 tasks.named("slowBenchmark") {
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") {
         providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
     }
 }
@@ -274,6 +274,19 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+### Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
+
+The `testResourcesDirs` and `testSourcesDirs` fields, and their getters and setters are now `@Deprecated`.
+Any usages of these elements should be replaced by the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
+These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility in how these collections of files can be used.
+Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 8.0.
+
+### Replacement methods in `org.gradle.api.tasks.testing.TestReport`
+
+The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods are now `@Deprecated`.
+Any usages of them should be replaced by the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
+These deprecated elements will be removed in Gradle 8.0.
 
 <!--
 ### Example promoted
