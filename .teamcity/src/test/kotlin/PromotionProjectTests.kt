@@ -68,7 +68,7 @@ class PromotionProjectTests {
         assertEquals(3, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepReleaseNightly checkReadyToPromote")
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -115,7 +115,7 @@ class PromotionProjectTests {
         assertEquals(3, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepReleaseNightly checkReadyToPromote")
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -136,7 +136,7 @@ class PromotionProjectTests {
         assertEquals(3, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepSnapshot checkReadyToPromote")
+        checkReady.assertTasks("prepSnapshot checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -157,7 +157,7 @@ class PromotionProjectTests {
         assertEquals(2, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepReleaseNightly checkReadyToPromote")
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -174,7 +174,7 @@ class PromotionProjectTests {
         assertEquals(2, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepReleaseNightly checkReadyToPromote")
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -191,7 +191,7 @@ class PromotionProjectTests {
         assertEquals(3, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepFinalRelease checkReadyToPromote")
+        checkReady.assertTasks("prepFinalRelease checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -212,7 +212,7 @@ class PromotionProjectTests {
         assertEquals(3, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepRc checkReadyToPromote")
+        checkReady.assertTasks("prepRc checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
@@ -233,7 +233,7 @@ class PromotionProjectTests {
         assertEquals(3, steps.size)
 
         val checkReady = gradleStep(steps, 0)
-        checkReady.assertTasks("prepMilestone checkReadyToPromote")
+        checkReady.assertTasks("prepMilestone checkNeedToPromote")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
