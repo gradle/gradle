@@ -123,9 +123,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private static SmokeTestGradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(SmokeTestGradleRunner runner) {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
-            runner.withJvmArguments("-Dkotlin.daemon.jvm.options=" +
+            runner.withJvmArguments(EXTRA_MEMORY_JVM_ARGS + [
+                "-Dkotlin.daemon.jvm.options=" +
                 "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
-                "--add-opens=java.base/java.util=ALL-UNNAMED")
+                "--add-opens=java.base/java.util=ALL-UNNAMED"
+            ])
         }
         return runner
     }
@@ -150,7 +152,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             .withProjectDir(new File(testProjectDir, 'consumer'))
             .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
-            runner.withJvmArguments("--add-opens", "java.base/java.io=ALL-UNNAMED")
+            runner.withJvmArguments(EXTRA_MEMORY_JVM_ARGS + ["--add-opens", "java.base/java.io=ALL-UNNAMED"])
         }
         return runner.build()
     }

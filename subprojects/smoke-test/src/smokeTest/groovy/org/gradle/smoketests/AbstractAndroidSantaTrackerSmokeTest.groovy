@@ -87,8 +87,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             .withTestKitDir(homeDir)
             .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
-            runner.withJvmArguments(
-                "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",
+            runner.withJvmArguments(EXTRA_MEMORY_JVM_ARGS + [
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
@@ -97,7 +96,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
-            )
+            ])
         }
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()

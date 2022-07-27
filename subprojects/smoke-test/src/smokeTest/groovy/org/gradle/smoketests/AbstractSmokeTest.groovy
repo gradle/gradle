@@ -52,6 +52,8 @@ abstract class AbstractSmokeTest extends Specification {
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
     protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
+    protected static final List<String> EXTRA_MEMORY_JVM_ARGS = ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
+
     static class TestedVersions {
         /**
          * May also need to update
@@ -265,7 +267,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withArguments(
                 tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
             ) as DefaultGradleRunner
-        gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
+        gradleRunner.withJvmArguments(EXTRA_MEMORY_JVM_ARGS)
         return new SmokeTestGradleRunner(gradleRunner)
     }
 
@@ -350,9 +352,9 @@ abstract class AbstractSmokeTest extends Specification {
             extraArgs += ["-I", init.canonicalPath]
         }
         if (agpVersion.startsWith("7.2") && JavaVersion.current().java9Compatible) {
-            runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
+            runner = runner.withJvmArguments(EXTRA_MEMORY_JVM_ARGS + ['--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED'])
         }
-        return runner.withArguments([runner.arguments, extraArgs].flatten())
+        return runner.withArguments(runner.arguments + extraArgs)
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {
