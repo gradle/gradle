@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Ignore
-
-@Ignore("Fix invokedynamic handling")
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "#usage property from properties file used as build logic input"() {
