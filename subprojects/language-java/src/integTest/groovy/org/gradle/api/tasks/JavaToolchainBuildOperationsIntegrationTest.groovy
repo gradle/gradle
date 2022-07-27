@@ -236,20 +236,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """.stripIndent()
 
         when:
-        /* TODO:
-            The error stream of the build-under-test has an unexpected error:
-            * What went wrong:
-                Execution failed for task ':compileJava'.
-                > Error while evaluating property 'javaCompiler' of task ':compileJava'
-                   > Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
-                      > No compatible toolchains found for request filter: {languageVersion=8, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)
-        */
         runWithInstallationExpectingFailure(jdkMetadata, task)
         def events = eventsFor(taskPath)
         then:
-        fails(taskPath)
-        // TODO: check error message
-//        result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
+        failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
+        failureHasCause("Compilation failed; see the compiler error output for details.")
+        result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }
 
@@ -272,7 +264,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         runWithInstallationExpectingFailure(jdkMetadata, task)
         def events = eventsFor(taskPath)
         then:
-        fails(taskPath)
+        failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
+        failureHasCause("There were failing tests.")
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
@@ -301,7 +294,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         runWithInstallationExpectingFailure(jdkMetadata, task)
         def events = eventsFor(taskPath)
         then:
-        fails(taskPath)
+        failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
+        failureHasCause("Oops")
         assertToolchainUsages(events, jdkMetadata, "JavadocTool")
     }
 
@@ -400,7 +394,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     def runWithInstallationExpectingFailure(JvmInstallationMetadata jdkMetadata, String... tasks) {
-        result = prepareRunWithInstallationPaths(jdkMetadata.javaHome.toAbsolutePath().toString(), tasks)
+        failure = prepareRunWithInstallationPaths(jdkMetadata.javaHome.toAbsolutePath().toString(), tasks)
             .runWithFailure()
     }
 
