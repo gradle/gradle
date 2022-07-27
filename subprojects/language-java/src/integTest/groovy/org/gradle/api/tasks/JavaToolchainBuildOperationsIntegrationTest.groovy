@@ -76,43 +76,40 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
         """.stripIndent()
 
-        def taskPath = ":$task"
-
         when:
         runWithInstallation(jdkMetadata, task)
-        def events = eventsFor(taskPath)
+        def events = eventsFor(task)
         then:
-        executedAndNotSkipped(taskPath)
+        executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, tool)
 
         when:
         runWithInstallation(jdkMetadata, task)
-        events = eventsFor(taskPath)
+        events = eventsFor(task)
         then:
-        skipped(taskPath)
+        skipped(task)
         if (emitsWhenUpToDate) {
             assertToolchainUsages(events, jdkMetadata, tool)
         }
 
         where:
-        task          | tool           | configureToolchain              | emitsWhenUpToDate
-        "compileJava" | "JavaCompiler" | "with java plugin"              | true
-        "compileJava" | "JavaCompiler" | "with per task"                 | true
-        "compileJava" | "JavaCompiler" | "with java plugin and per task" | true
-        "compileJava" | "JavaCompiler" | "without"                       | true
-        "test"        | "JavaLauncher" | "with java plugin"              | true
-        "test"        | "JavaLauncher" | "with per task"                 | true
-        "test"        | "JavaLauncher" | "with java plugin and per task" | true
-        "test"        | "JavaLauncher" | "without"                       | true
-        "javadoc"     | "JavadocTool"  | "with java plugin"              | false // TODO: this must be fixed
-        "javadoc"     | "JavadocTool"  | "with per task"                 | false // TODO: this must be fixed
-        "javadoc"     | "JavadocTool"  | "with java plugin and per task" | false // TODO: this must be fixed
-        "javadoc"     | "JavadocTool"  | "without"                       | false // TODO: this must be fixed
+        task           | tool           | configureToolchain              | emitsWhenUpToDate
+        ":compileJava" | "JavaCompiler" | "with java plugin"              | true
+        ":compileJava" | "JavaCompiler" | "with per task"                 | true
+        ":compileJava" | "JavaCompiler" | "with java plugin and per task" | true
+        ":compileJava" | "JavaCompiler" | "without"                       | true
+        ":test"        | "JavaLauncher" | "with java plugin"              | true
+        ":test"        | "JavaLauncher" | "with per task"                 | true
+        ":test"        | "JavaLauncher" | "with java plugin and per task" | true
+        ":test"        | "JavaLauncher" | "without"                       | true
+        ":javadoc"     | "JavadocTool"  | "with java plugin"              | false // TODO: this must be fixed
+        ":javadoc"     | "JavadocTool"  | "with per task"                 | false // TODO: this must be fixed
+        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | false // TODO: this must be fixed
+        ":javadoc"     | "JavadocTool"  | "without"                       | false // TODO: this must be fixed
     }
 
     def "custom task that uses a toolchain"() {
-        def task = "myToolchainTask"
-        def taskPath = ":$task"
+        def task = ":myToolchainTask"
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
@@ -130,7 +127,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
 
-            tasks.register("$task", ToolchainTask) {
+            tasks.register("myToolchainTask", ToolchainTask) {
                 outputFile = layout.buildDirectory.file("output.txt")
                 launcher1 = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
@@ -140,23 +137,22 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        def events = eventsFor(taskPath)
+        def events = eventsFor(task)
         then:
-        executedAndNotSkipped(taskPath)
+        executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         // TODO: should it work with up-to-date tasks?
 //        when:
 //        runWithInstallation(jdkMetadata, task)
-//        events = eventsFor(taskPath)
+//        events = eventsFor(task)
 //        then:
-//        skipped(taskPath)
+//        skipped(task)
 //        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
     def "custom task that uses two toolchains"() {
-        def task = "myToolchainTask"
-        def taskPath = ":$task"
+        def task = ":myToolchainTask"
 
         JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -178,7 +174,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
 
-            tasks.register("$task", ToolchainTask) {
+            tasks.register("myToolchainTask", ToolchainTask) {
                 outputFile = layout.buildDirectory.file("output.txt")
                 launcher1 = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata1.languageVersion.majorVersion})
@@ -193,11 +189,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationPaths(installationPaths, task)
-        def events = eventsFor(taskPath)
+        def events = eventsFor(task)
         def events1 = filterByJavaVersion(events, jdkMetadata1)
         def events2 = filterByJavaVersion(events, jdkMetadata2)
         then:
-        executedAndNotSkipped(taskPath)
+        executedAndNotSkipped(task)
         events.size() > 0
         assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
@@ -205,11 +201,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // TODO: should it work with up-to-date tasks?
 //        when:
 //        runWithInstallationPaths(installationPaths, task)
-//        events = eventsFor(taskPath)
+//        events = eventsFor(task)
 //        events1 = filterByJavaVersion(events, jdkMetadata1)
 //        events2 = filterByJavaVersion(events, jdkMetadata2)
 //        then:
-//        skipped(taskPath)
+//        skipped(task)
 //        events.size() > 0
 //        assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
 //        assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
@@ -224,8 +220,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     // TODO: test with Kotlin plugin
 
     def "emit toolchain usages when task fails for 'compileJava' task"() {
-        def task = "compileJava"
-        def taskPath = ":$task"
+        def task = ":compileJava"
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
@@ -237,17 +232,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationExpectingFailure(jdkMetadata, task)
-        def events = eventsFor(taskPath)
+        def events = eventsFor(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}'.")
         failureHasCause("Compilation failed; see the compiler error output for details.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }
 
     def "emit toolchain usages when task fails for 'test' task"() {
-        def task = "test"
-        def taskPath = ":$task"
+        def task = ":test"
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
@@ -262,16 +256,15 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationExpectingFailure(jdkMetadata, task)
-        def events = eventsFor(taskPath)
+        def events = eventsFor(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}'.")
         failureHasCause("There were failing tests.")
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
     def "emit toolchain usages when task fails for 'javadoc' task"() {
-        def task = "javadoc"
-        def taskPath = ":$task"
+        def task = ":javadoc"
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
@@ -286,9 +279,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationExpectingFailure(jdkMetadata, task)
-        def events = eventsFor(taskPath)
+        def events = eventsFor(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${taskPath}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}'.")
         failureCauseContains("Javadoc generation failed")
         assertToolchainUsages(events, jdkMetadata, "JavadocTool")
     }
@@ -308,7 +301,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """.stripIndent()
 
         when:
-        runWithInstallation(jdkMetadata, "myTask")
+        runWithInstallation(jdkMetadata, ":myTask")
         def events = eventsFor(":myTask")
 
         then:
