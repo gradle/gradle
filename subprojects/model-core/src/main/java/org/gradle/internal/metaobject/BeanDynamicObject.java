@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link DynamicObject} which uses groovy reflection to provide access to the properties and methods of a bean.
@@ -356,6 +357,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
             MetaClass metaClass = getMetaClass();
             MetaProperty property = lookupProperty(metaClass, name);
+            BeanDynamicObjectCallListenerRegistry.interceptSetter(bean, name, value);
             if (property != null) {
                 if (property instanceof MultipleSetterProperty) {
                     // Invoke the setter method, to pick up type coercion
@@ -657,5 +659,21 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
             return null;
         }
+    }
+
+    public static class BeanDynamicObjectCallListenerRegistry {
+        private static final AtomicReference<BeanDynamicObjectCallListener> listener = new AtomicReference<>((bean, propertyName, value) -> {});
+
+        public static void interceptSetter(Object bean, String propertyName, Object value) {
+            listener.get().onSetProperty(bean, propertyName, value);
+        }
+
+        public static void setBeanDynamicObjectCallListener(BeanDynamicObjectCallListener listener) {
+            BeanDynamicObjectCallListenerRegistry.listener.set(listener);
+        }
+    }
+
+    public interface BeanDynamicObjectCallListener {
+        void onSetProperty(Object bean, String propertyName, Object value);
     }
 }

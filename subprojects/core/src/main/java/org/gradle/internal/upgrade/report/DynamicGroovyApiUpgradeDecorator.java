@@ -17,15 +17,18 @@
 package org.gradle.internal.upgrade.report;
 
 import com.google.common.collect.ImmutableList;
-import groovy.lang.DelegatingMetaClass;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.BeanDynamicObject.BeanDynamicObjectCallListenerRegistry;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,13 +36,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DynamicGroovyApiUpgradeDecorator {
 
     private static final AtomicReference<DynamicGroovyApiUpgradeDecorator> registry = new AtomicReference<>();
-
     private final ApiUpgradeProblemCollector collector;
     private final Lazy<List<DynamicGroovyUpgradeDecoration>> decorations;
 
     private DynamicGroovyApiUpgradeDecorator(ApiUpgradeProblemCollector collector) {
         this.collector = collector;
         this.decorations = Lazy.locking().of(() -> initDecorations(collector.getApiUpgrades()));
+        BeanDynamicObjectCallListenerRegistry.setBeanDynamicObjectCallListener(new SetterBeanDynamicObjectCallListener(collector));
     }
 
     private List<DynamicGroovyUpgradeDecoration> initDecorations(List<ReportableApiChange> changes) {
@@ -65,7 +68,7 @@ public class DynamicGroovyApiUpgradeDecorator {
     public static void decorateCallSiteArray(CallSiteArray callSites) {
         // TODO: It seems like for worker actions the instance may be null (different classloader)
         //       Though we should detect the situation and not silently ignore it.
-        if (registry.get() == null) {
+        if (registry.get() == null || registry.get().collector.getApiUpgrades().isEmpty()) {
             return;
         }
         for (CallSite callSite : callSites.array) {
@@ -75,60 +78,64 @@ public class DynamicGroovyApiUpgradeDecorator {
         }
     }
 
-    @SuppressWarnings("unused")
-    public static void decorateMetaClass(Class<?> type) {
-        Set<String> typeHierarchy = getTypeHierarchy(type);
-        ApiUpgradeProblemCollector problemCollector = registry.get().collector;
-        problemCollector.getApiUpgrades().stream()
-            .filter(upgrade -> upgrade.getId().getName().startsWith("set") && typeHierarchy.contains(upgrade.getId().getOwner()))
-            .forEach(upgrade -> registerMetaClass(type, upgrade, problemCollector));
-    }
-
-    private static void registerMetaClass(Class<?> type, ReportableApiChange apiUpgrade, ApiUpgradeProblemCollector problemCollector) {
-        MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        String propertyName = apiUpgrade.getId().getName().replace("set", "");
-        propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
-        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass(propertyName, apiUpgrade, problemCollector, metaClass));
-    }
-
-    private static Set<String> getTypeHierarchy(Class<?> clazz) {
-        Set<String> classes = new LinkedHashSet<>();
-        while (clazz != null) {
-            classes.add(clazz.getName());
-            for (Class<?> anInterface : clazz.getInterfaces()) {
-                classes.add(anInterface.getName());
+    private static boolean isInstanceOfType(String typeName, Object bean) {
+        try {
+            if (bean == null) {
+                return false;
             }
-            clazz = clazz.getSuperclass();
+            ClassLoader classLoader = bean.getClass().getClassLoader();
+            if (classLoader == null) {
+                return Class.forName(typeName).isInstance(bean);
+            } else {
+                return classLoader.loadClass(typeName).isInstance(bean);
+            }
+        } catch (ClassNotFoundException e) {
+            return false;
         }
-        return classes;
     }
 
-    private static class PropertySetterMetaClass extends DelegatingMetaClass {
-        private final String propertyName;
-        private final ReportableApiChange apiUpgrade;
-        private final ApiUpgradeProblemCollector problemCollector;
+    private static class SetterBeanDynamicObjectCallListener implements BeanDynamicObject.BeanDynamicObjectCallListener {
 
-        public PropertySetterMetaClass(String propertyName, ReportableApiChange apiUpgrade, ApiUpgradeProblemCollector problemCollector, MetaClass delegate) {
-            super(delegate);
-            this.propertyName = propertyName;
-            this.apiUpgrade = apiUpgrade;
-            this.problemCollector = problemCollector;
+        private final ApiUpgradeProblemCollector collector;
+        private final Lazy<Map<String, Set<ReportableApiChange>>> setters;
+
+        public SetterBeanDynamicObjectCallListener(ApiUpgradeProblemCollector collector) {
+            this.collector = collector;
+            this.setters = Lazy.locking().of(() -> initSetterToReportableChange(collector.getApiUpgrades()));
+        }
+
+        private Map<String, Set<ReportableApiChange>> initSetterToReportableChange(List<ReportableApiChange> changes) {
+            Map<String, Set<ReportableApiChange>> map = new LinkedHashMap<>();
+            changes.stream()
+                .filter(change -> change.getId().getName().startsWith("set"))
+                .forEach(change -> {
+                    String propertyName = change.getId().getName().replace("set", "");
+                    propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+                    map.computeIfAbsent(propertyName, k -> new LinkedHashSet<>()).add(change);
+                });
+            return map;
         }
 
         @Override
-        public void setProperty(Object object, String property, Object newValue) {
-            if (property.equals(propertyName)) {
-                Optional<StackTraceElement> element = getOwnerStackTraceElement();
-                String sourceFile = element.map(StackTraceElement::getFileName).orElse("Unknown");
-                int lineNumber = element.map(StackTraceElement::getLineNumber).orElse(-1);
-                problemCollector.collectDynamicApiChangesReport(sourceFile, lineNumber, apiUpgrade.getApiChangeReport());
+        public void onSetProperty(Object bean, String propertyName, Object value) {
+            Set<ReportableApiChange> upgrades = setters.get().getOrDefault(propertyName, Collections.emptySet());
+            if (upgrades.isEmpty()) {
+                return;
             }
-            super.setProperty(object, property, newValue);
+            Optional<ReportableApiChange> matchingChange = upgrades.stream()
+                .filter(change -> isInstanceOfType(change.getId().getOwner(), bean))
+                .findFirst();
+            if (matchingChange.isPresent()) {
+                Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
+                String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
+                int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
+                collector.collectDynamicApiChangesReport(file, lineNumber, matchingChange.get().getApiChangeReport());
+            }
         }
 
         private Optional<StackTraceElement> getOwnerStackTraceElement() {
             for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-                if (element.getLineNumber() >= 0) {
+                if (element.getLineNumber() >= 0 && element.getFileName() != null && element.getFileName().contains(File.separator)) {
                     return Optional.of(element);
                 }
             }
