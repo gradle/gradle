@@ -202,8 +202,9 @@ public class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        testSources.from(project.provider(() -> getTestSourceDirs()));
-        testResources.from(project.provider(() -> getTestResourceDirs()));
+        // TODO: remove this whileDisabled wrapping for Gradle 8
+        testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
+        testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestResourceDirs())));
     }
 
     /**
@@ -413,7 +414,7 @@ public class IdeaModule {
     /**
      * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      *
-     * <strongThis field is {@code @Deprecated}, please use {@link #getTestResources()} instead to access the new collection property.</strong>
+     * <strong>This field is {@code @Deprecated}, please use {@link #getTestResources()} instead to access the new collection property.</strong>
      *
      * @since 4.7
      */
