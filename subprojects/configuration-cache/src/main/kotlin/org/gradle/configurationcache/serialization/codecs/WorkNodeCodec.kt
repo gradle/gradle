@@ -119,6 +119,7 @@ class WorkNodeCodec(
                 }
                 is CompositeNodeGroup -> {
                     writeSmallInt(2)
+                    writeBoolean(group.isReachableFromEntryPoint)
                     writeNodeGroup(group.ordinalGroup, nodesById)
                     writeCollection(group.finalizerGroups) {
                         writeNodeGroup(it, nodesById)
@@ -146,9 +147,10 @@ class WorkNodeCodec(
                     FinalizerGroup(finalizerNode, delegate)
                 }
                 2 -> {
+                    val reachableFromCommandLine = readBoolean()
                     val ordinalGroup = readNodeGroup(nodesById)
                     val groups = readCollectionInto({ c -> HashSet() }) { readNodeGroup(nodesById) as FinalizerGroup }
-                    CompositeNodeGroup(ordinalGroup, groups)
+                    CompositeNodeGroup(reachableFromCommandLine, ordinalGroup, groups)
                 }
                 3 -> NodeGroup.DEFAULT_GROUP
                 else -> throw IllegalArgumentException()
