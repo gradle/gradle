@@ -17,12 +17,14 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ResolveTaskMutationsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
 import org.gradle.test.fixtures.file.TestFile
@@ -44,7 +46,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    @ToBeImplemented("All cases are supported except up-to-dateness for the javadoc task")
+    @ToBeImplemented("All cases are supported except up-to-dateness for the javadoc task when toolchains are not configured")
+    @Issue("https://github.com/gradle/gradle/issues/21386")
     def "emits toolchain usages for a build #configureToolchain configured toolchain for '#task' task"() {
         JvmInstallationMetadata jdkMetadata
         if (configureToolchain == "without") {
@@ -80,14 +83,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, tool)
 
         when:
         runWithInstallation(jdkMetadata, task)
-        events = eventsFor(task)
+        events = toolchainEvents(task)
         then:
         skipped(task)
         if (emitsWhenUpToDate) {
@@ -104,10 +107,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         ":test"        | "JavaLauncher" | "with per task"                 | true
         ":test"        | "JavaLauncher" | "with java plugin and per task" | true
         ":test"        | "JavaLauncher" | "without"                       | true
-        ":javadoc"     | "JavadocTool"  | "with java plugin"              | false // TODO: this must be fixed
-        ":javadoc"     | "JavadocTool"  | "with per task"                 | false // TODO: this must be fixed
-        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | false // TODO: this must be fixed
-        ":javadoc"     | "JavadocTool"  | "without"                       | false // TODO: this must be fixed
+        ":javadoc"     | "JavadocTool"  | "with java plugin"              | true
+        ":javadoc"     | "JavadocTool"  | "with per task"                 | true
+        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | true
+        ":javadoc"     | "JavadocTool"  | "without"                       | false
     }
 
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
@@ -139,18 +142,17 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
-        // TODO: should it work with up-to-date tasks?
-//        when:
-//        runWithInstallation(jdkMetadata, task)
-//        events = eventsFor(task)
-//        then:
-//        skipped(task)
-//        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+        when:
+        runWithInstallation(jdkMetadata, task)
+        events = toolchainEvents(task)
+        then:
+        skipped(task)
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
     def "emits toolchain usages for a custom task that uses two different toolchains"() {
@@ -191,7 +193,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationPaths(installationPaths, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         def events1 = filterByJavaVersion(events, jdkMetadata1)
         def events2 = filterByJavaVersion(events, jdkMetadata2)
         then:
@@ -201,17 +203,17 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
 
-        // TODO: should it work with up-to-date tasks?
-//        when:
-//        runWithInstallationPaths(installationPaths, task)
-//        events = eventsFor(task)
-//        events1 = filterByJavaVersion(events, jdkMetadata1)
-//        events2 = filterByJavaVersion(events, jdkMetadata2)
-//        then:
-//        skipped(task)
-//        events.size() > 0
-//        assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
-//        assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
+        when:
+        runWithInstallationPaths(installationPaths, task)
+        events = toolchainEvents(task)
+        events1 = filterByJavaVersion(events, jdkMetadata1)
+        events2 = filterByJavaVersion(events, jdkMetadata2)
+        then:
+        skipped(task)
+        events.size() > 0
+        events.size() == events1.size() + events2.size() // no events from other toolchains
+        assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
+        assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
     def "emits toolchain usages for custom tasks each using a different toolchain"() {
@@ -233,14 +235,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
 
             tasks.register("myToolchainTask1", ToolchainTask) {
-                outputFile = layout.buildDirectory.file("output.txt")
+                outputFile = layout.buildDirectory.file("output1.txt")
                 launcher1 = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata1.languageVersion.majorVersion})
                 }
             }
 
             tasks.register("myToolchainTask2", ToolchainTask) {
-                outputFile = layout.buildDirectory.file("output.txt")
+                outputFile = layout.buildDirectory.file("output2.txt")
                 launcher1 = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion})
                 }
@@ -251,22 +253,21 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationPaths(installationPaths, ":myToolchainTask1", ":myToolchainTask2")
-        def events1 = eventsFor(":myToolchainTask1")
-        def events2 = eventsFor(":myToolchainTask2")
+        def events1 = toolchainEvents(":myToolchainTask1")
+        def events2 = toolchainEvents(":myToolchainTask2")
         then:
         executedAndNotSkipped(":myToolchainTask1", ":myToolchainTask2")
         assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
 
-        // TODO: should it work with up-to-date tasks?
-//        when:
-//        runWithInstallationPaths(installationPaths, ":myToolchainTask1", ":myToolchainTask2")
-//        events1 = eventsFor(":myToolchainTask1")
-//        events2 = eventsFor(":myToolchainTask2")
-//        then:
-//        skipped(":myToolchainTask1", ":myToolchainTask2")
-//        assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
-//        assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
+        when:
+        runWithInstallationPaths(installationPaths, ":myToolchainTask1", ":myToolchainTask2")
+        events1 = toolchainEvents(":myToolchainTask1")
+        events2 = toolchainEvents(":myToolchainTask2")
+        then:
+        skipped(":myToolchainTask1", ":myToolchainTask2")
+        assertToolchainUsages(events1, jdkMetadata1, "JavaLauncher")
+        assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
     def "emits toolchain usages for compilation that configures java home via fork options"() {
@@ -286,14 +287,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
 
         when:
         runWithInstallation(jdkMetadata, task)
-        events = eventsFor(task)
+        events = toolchainEvents(task)
         then:
         skipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
@@ -317,14 +318,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata1, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
 
         when:
         runWithInstallation(jdkMetadata1, task)
-        events = eventsFor(task)
+        events = toolchainEvents(task)
         then:
         skipped(task)
         assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
@@ -362,7 +363,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-//        def events = eventsFor(task)
+//        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         // TODO: uncomment this when fixed
@@ -370,7 +371,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-//        events = eventsFor(task)
+//        events = toolchainEvents(task)
         then:
         skipped(task)
         // TODO: uncomment this when fixed
@@ -418,7 +419,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         // The tool is a launcher, because kotlin runs own compilation in a Java VM
@@ -426,7 +427,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        events = eventsFor(task)
+        events = toolchainEvents(task)
         then:
         skipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
@@ -450,7 +451,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationExpectingFailure(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
         failureHasCause("Compilation failed; see the compiler error output for details.")
@@ -474,7 +475,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationExpectingFailure(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
         failureHasCause("There were failing tests.")
@@ -497,7 +498,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallationExpectingFailure(jdkMetadata, task)
-        def events = eventsFor(task)
+        def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
         failureCauseContains("Javadoc generation failed")
@@ -520,7 +521,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, ":myTask")
-        def events = eventsFor(":myTask")
+        def events = toolchainEvents(":myTask")
 
         then:
         events.size() == 0
@@ -608,17 +609,21 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             .withTasks(tasks)
     }
 
-    List<BuildOperationRecord.Progress> eventsFor(String taskPath) {
-        def taskRecord = operations.first(ExecuteTaskBuildOperationType) {
+    List<BuildOperationRecord.Progress> toolchainEvents(String taskPath) {
+        return toolchainEventsFor(ResolveTaskMutationsBuildOperationType, taskPath) + toolchainEventsFor(ExecuteTaskBuildOperationType, taskPath)
+    }
+
+    private <T extends BuildOperationType<?, ?>> List<BuildOperationRecord.Progress> toolchainEventsFor(Class<T> buildOperationType, String taskPath) {
+        def taskRecord1 = operations.first(buildOperationType) {
             it.details.taskPath == taskPath
         }
         List<BuildOperationRecord.Progress> events = []
-        operations.walk(taskRecord) {
+        operations.walk(taskRecord1) {
             events.addAll(it.progress.findAll {
                 JavaToolchainUsageProgressDetails.isAssignableFrom(it.detailsType)
             })
         }
-        events
+        return events
     }
 
     List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
