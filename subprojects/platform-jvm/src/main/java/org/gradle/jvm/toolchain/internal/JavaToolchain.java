@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
@@ -43,8 +44,16 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     private final JavaLanguageVersion javaVersion;
     private final JvmInstallationMetadata metadata;
     private final JavaToolchainInput input;
+    private final BuildOperationProgressEventEmitter eventEmitter;
 
-    public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory, JavaToolchainInput input) {
+    public JavaToolchain(
+        JvmInstallationMetadata metadata,
+        JavaCompilerFactory compilerFactory,
+        ToolchainToolFactory toolFactory,
+        FileFactory fileFactory,
+        JavaToolchainInput input,
+        BuildOperationProgressEventEmitter eventEmitter
+    ) {
         this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
         this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
         this.compilerFactory = compilerFactory;
@@ -52,6 +61,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         this.toolchainVersion = VersionNumber.withPatchNumber().parse(metadata.getJavaVersion());
         this.metadata = metadata;
         this.input = input;
+        this.eventEmitter = eventEmitter;
     }
 
     @Nested
@@ -126,8 +136,12 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return javaHome.toString();
     }
 
-    public RegularFile findExecutable(String toolname) {
-        return getInstallationPath().file(getBinaryPath(toolname));
+    public RegularFile findExecutable(String toolName) {
+        return getInstallationPath().file(getBinaryPath(toolName));
+    }
+
+    public void emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool javaTool) {
+        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(javaTool, metadata));
     }
 
     private Path computeEnclosingJavaHome(Path home) {
