@@ -47,6 +47,8 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         }
 
         //when
+        executer.expectDeprecationWarning('The IdeaModule.testSourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testSources property instead.')
+        executer.expectDeprecationWarning('The IdeaModule.testResourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResources property instead.')
         runTask 'idea', '''
 apply plugin: "java"
 apply plugin: "idea"

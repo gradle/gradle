@@ -25,4 +25,12 @@ class AutoTestedSamplesIdeIntegrationTest extends AbstractAutoTestedSamplesTest 
     void runSamples() {
         runSamplesFrom("src/main")
     }
+
+    @Override
+    protected void beforeSample(File file, String tagSuffix) {
+        if (tagSuffix == "WithSourceDirDeprecations") {
+            executer.expectDeprecationWarning('The IdeaModule.testSourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testSources property instead.')
+            executer.expectDeprecationWarning('The IdeaModule.testResourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResources property instead.')
+        }
+    }
 }
