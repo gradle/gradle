@@ -149,6 +149,17 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     @Override
+    public boolean isCanCancel() {
+        for (Node node : getFinalizedNodes()) {
+            // Cannot cancel this node if something it finalizes has started or cannot be cancelled
+            if (node.isExecuting() || node.isExecuted() || !node.isCanCancel()) {
+                return false;
+            }
+        }
+        return delegate.isCanCancel();
+    }
+
+    @Override
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         if (!isFinalizerNode(node) && memberCanStartAtAnyTime(node)) {
             // Is not the finalizer and is reachable from an entry point, so can start
