@@ -133,6 +133,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile '''
             task finalizer1 {
                 dependsOn 'finalizerDep1'
+                mustRunAfter 'finalizer2'
             }
             task finalizer2 {
                 dependsOn 'finalizerDep1'
