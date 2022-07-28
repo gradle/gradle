@@ -7,11 +7,11 @@ repositories {
 }
 
 dependencies {
-    implementation("org.scala-lang:scala-library:2.12.1")
+    implementation("org.scala-lang:scala-library:2.13.8")
 }
 
 // tag::zinc-dependency[]
 scala {
-    zincVersion.set("1.6.1")
+    zincVersion.set("1.7.1")
 }
 // end::zinc-dependency[]

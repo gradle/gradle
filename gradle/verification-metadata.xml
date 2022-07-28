@@ -647,6 +647,11 @@
             <pgp value="ee2cfeb6a2aecf44c781c5c3dcd5181297a43d24"/>
          </artifact>
       </component>
+      <component group="com.swoval" name="file-tree-views" version="2.1.9">
+         <artifact name="file-tree-views-2.1.9.jar">
+            <pgp value="ee2cfeb6a2aecf44c781c5c3dcd5181297a43d24"/>
+         </artifact>
+      </component>
       <component group="com.typesafe" name="config" version="1.2.1">
          <artifact name="config-1.2.1.jar">
             <pgp value="75df525907ff19b0e4aec4c7c550938a54246ad3"/>
