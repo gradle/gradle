@@ -358,6 +358,8 @@ public interface ValueSupplier {
 
     /**
      * Represents either a missing value, a fixed value with fixed contents, a fixed value with changing contents, or a changing value (with changing contents).
+     *
+     * @see ProviderInternal for a discussion of these states.
      */
     abstract class ExecutionTimeValue<T> {
         private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
