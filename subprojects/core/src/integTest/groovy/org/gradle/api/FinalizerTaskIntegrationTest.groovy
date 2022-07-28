@@ -299,7 +299,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizers for finalizers are executed when finalized is executed'() {
+    void 'finalizers for finalizers are executed when finalized task is executed'() {
         buildFile """
             task a {
                 finalizedBy 'b'
@@ -314,6 +314,49 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             succeeds 'a'
             result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21346")
+    void 'finalizers for finalizers are executed when finalized task fails'() {
+        buildFile """
+            task a {
+                finalizedBy 'b'
+                doLast { throw new RuntimeException("broken") }
+            }
+            task b {
+                finalizedBy 'c'
+            }
+            task c
+        """
+
+        expect:
+        2.times {
+            fails 'a'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+    }
+
+    void 'finalizers for finalizers with common dependency are executed when finalized task fails'() {
+        buildFile """
+            task a {
+                finalizedBy 'b'
+                doLast { throw new RuntimeException("broken") }
+            }
+            task b {
+                dependsOn 'd'
+                finalizedBy 'c'
+            }
+            task c {
+                dependsOn 'd'
+            }
+            task d
+        """
+
+        expect:
+        2.times {
+            fails 'a'
+            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
         }
     }
 
