@@ -18,6 +18,47 @@ package org.gradle.configurationcache
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "value source without parameters can be used as task input"() {
+         given:
+         def configurationCache = newConfigurationCacheFixture()
+
+         buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                String obtain() {
+                    return "Hello!"
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getGreeting()
+
+                @TaskAction void run() { println greeting.get() }
+            }
+
+            def greetValueSource = providers.of(GreetValueSource) {}
+            tasks.register("greet", MyTask) {
+                greeting = greetValueSource
+            }
+        """)
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("Hello!")
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateLoaded()
+        output.contains("Hello!")
+    }
+
     def "#usage property from properties file used as build logic input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

@@ -208,9 +208,13 @@ class ValueSourceProviderCodec(
     suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
             value.run {
+                val hasParameters = parametersType != null
                 writeClass(valueSourceType)
-                writeClass(parametersType as Class<*>)
-                write(parameters)
+                writeBoolean(hasParameters)
+                if (hasParameters) {
+                    writeClass(parametersType as Class<*>)
+                    write(parameters)
+                }
             }
         }
     }
@@ -219,13 +223,15 @@ class ValueSourceProviderCodec(
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         decodePreservingSharedIdentity {
             val valueSourceType = readClass()
-            val parametersType = readClass()
-            val parameters = read()!!
+            val hasParameters = readBoolean()
+            val parametersType = if (hasParameters) readClass() else null
+            val parameters = if (hasParameters) read()!! else null
+
             val provider =
                 valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
                     valueSourceType.uncheckedCast(),
-                    parametersType.uncheckedCast(),
-                    parameters.uncheckedCast()
+                    parametersType?.uncheckedCast(),
+                    parameters?.uncheckedCast()
                 )
             provider.uncheckedCast()
         }
