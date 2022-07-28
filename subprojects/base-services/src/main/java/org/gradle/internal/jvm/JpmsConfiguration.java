@@ -19,7 +19,9 @@ package org.gradle.internal.jvm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * These JVM arguments should be passed to any Gradle process that will be running on Java 9+
@@ -39,7 +41,7 @@ public class JpmsConfiguration {
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
     static {
-        List<String> gradleDaemonJvmArgs = new ArrayList<String>();
+        Set<String> gradleDaemonJvmArgs = new LinkedHashSet<String>();
         gradleDaemonJvmArgs.addAll(GROOVY_JPMS_ARGS);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
@@ -50,6 +52,6 @@ public class JpmsConfiguration {
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 
-        GRADLE_DAEMON_JPMS_ARGS = Collections.unmodifiableList(gradleDaemonJvmArgs);
+        GRADLE_DAEMON_JPMS_ARGS = Collections.unmodifiableList(new ArrayList<String>(gradleDaemonJvmArgs));
     }
 }
