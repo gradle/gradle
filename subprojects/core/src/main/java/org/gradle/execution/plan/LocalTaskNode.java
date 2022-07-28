@@ -102,21 +102,6 @@ public class LocalTaskNode extends TaskNode {
         return true;
     }
 
-    @Override
-    public boolean isCanCancel() {
-        FinalizerGroup finalizerGroup = getFinalizerGroup();
-        if (finalizerGroup != null) {
-            // TODO(mlopatkin) what if this node is some dependency of a finalizer and its group is a CompositeNodeGroup and not just a FinalizerGroup?
-            for (Node node : finalizerGroup.getFinalizedNodes()) {
-                // Cannot cancel this node if something it finalizes has started
-                if (node.isExecuting() || node.isExecuted()) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     public TaskProperties getTaskProperties() {
         return taskProperties;
     }
