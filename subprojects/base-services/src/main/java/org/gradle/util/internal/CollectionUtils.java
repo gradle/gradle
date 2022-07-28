@@ -46,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.cast;
@@ -108,6 +109,10 @@ public abstract class CollectionUtils {
 
     public static <T> T first(Iterable<? extends T> source) {
         return source.iterator().next();
+    }
+
+    public static <T> Optional<T> firstOrEmpty(Iterable<? extends T> source) {
+        return source == null || !source.iterator().hasNext() ? Optional.<T>empty() : Optional.of(first(source));
     }
 
     public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
