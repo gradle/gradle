@@ -26,37 +26,39 @@ import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
+import javax.annotation.Nonnull
+
 /**
  * Note that the resolver instance must be closed after use in order to release resources.
  */
 class ToolingApiDistributionResolver implements AutoCloseable {
-    private final ProjectInternal project
-    private final DependencyResolutionServices resolutionServices
+
+    private ProjectInternal project = null
+    private DependencyResolutionServices resolutionServices = null
+
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private boolean useExternalToolingApiDistribution = false
 
-    ToolingApiDistributionResolver() {
-        project = (ProjectInternal) ProjectBuilder.builder().build()
-        resolutionServices = createResolutionServices()
-        def localRepository = buildContext.localRepository
-        if (localRepository) {
-            resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
+    @Override
+    void close() {
+        if (project != null) {
+            ProjectBuilderImpl.stop(project)
         }
     }
 
-    @Override
-    void close() throws Exception {
-        ProjectBuilderImpl.stop(project)
-    }
-
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
-        resolutionServices.resolveRepositoryHandler.maven { url repositoryUrl }
+        getResolutionServices().resolveRepositoryHandler.maven { url repositoryUrl }
         this
     }
 
     ToolingApiDistributionResolver withDefaultRepository() {
         withRepository(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
+    }
+
+    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
+        this.useExternalToolingApiDistribution = true
+        this
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {
@@ -75,8 +77,8 @@ class ToolingApiDistributionResolver implements AutoCloseable {
     }
 
     private Collection<File> resolveDependency(String dependency) {
-        Dependency dep = resolutionServices.dependencyHandler.create(dependency)
-        Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
+        Dependency dep = getResolutionServices().dependencyHandler.create(dependency)
+        Configuration config = getResolutionServices().configurationContainer.detachedConfiguration(dep)
         config.resolutionStrategy.disableDependencyVerification()
         return config.files
     }
@@ -86,12 +88,29 @@ class ToolingApiDistributionResolver implements AutoCloseable {
             toolingApiVersion == buildContext.version.baseVersion.version
     }
 
-    private DependencyResolutionServices createResolutionServices() {
-        return project.services.get(DependencyResolutionServices)
+    @Nonnull
+    private DependencyResolutionServices getResolutionServices() {
+        if (this.resolutionServices == null) {
+            this.resolutionServices = createResolutionServices()
+        }
+        return this.resolutionServices
     }
 
-    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
-        this.useExternalToolingApiDistribution = true
-        this
+    @Nonnull
+    private DependencyResolutionServices createResolutionServices() {
+        def resolutionServices = getProject().services.get(DependencyResolutionServices)
+        def localRepository = buildContext.localRepository
+        if (localRepository) {
+            resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
+        }
+        return resolutionServices
+    }
+
+    @Nonnull
+    private ProjectInternal getProject() {
+        if (project == null) {
+            project = (ProjectInternal) ProjectBuilder.builder().build()
+        }
+        return project
     }
 }
