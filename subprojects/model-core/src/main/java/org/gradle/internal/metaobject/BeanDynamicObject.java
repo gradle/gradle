@@ -662,14 +662,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public static class BeanDynamicObjectCallListenerRegistry {
-        private static final AtomicReference<BeanDynamicObjectCallListener> listener = new AtomicReference<>((bean, propertyName, value) -> {});
+        private static final AtomicReference<BeanDynamicObjectCallListener> REGISTRY = new AtomicReference<>((bean, propertyName, value) -> {});
 
-        public static void interceptSetter(Object bean, String propertyName, Object value) {
-            listener.get().onSetProperty(bean, propertyName, value);
+        private static void interceptSetter(Object bean, String propertyName, Object value) {
+            REGISTRY.get().onSetProperty(bean, propertyName, value);
         }
 
         public static void setBeanDynamicObjectCallListener(BeanDynamicObjectCallListener listener) {
-            BeanDynamicObjectCallListenerRegistry.listener.set(listener);
+            REGISTRY.set(listener);
         }
     }
 

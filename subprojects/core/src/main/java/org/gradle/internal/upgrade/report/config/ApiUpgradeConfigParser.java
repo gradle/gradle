@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.upgrade.report;
+package org.gradle.internal.upgrade.report.config;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -30,26 +30,11 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
-
-class ApiUpgradeJsonParser {
+public class ApiUpgradeConfigParser {
 
     private static final Pattern METHOD_PATTERN = Pattern.compile("Method (\\w+(?:\\.\\w+)*) (\\w+(?:\\.\\w+)*)\\.(\\w+)\\((.*)\\)");
     private static final Pattern COMMA_LIST_PATTERN = Pattern.compile(",\\s*");
-
-    private static final Map<String, Class<?>> PRIMITIVE_CLASSES = Stream.<Class<?>>of(
-        boolean.class,
-        byte.class,
-        short.class,
-        int.class,
-        long.class,
-        float.class,
-        double.class,
-        char.class
-    ).collect(toMap(Class::getName, identity()));
 
     private static final Map<String, List<String>> ALL_KNOWN_SUBTYPES = ImmutableMap.<String, List<String>>builder()
         .put("org.gradle.api.Project", ImmutableList.of(
@@ -428,16 +413,17 @@ class ApiUpgradeJsonParser {
         ))
         .build();
 
-    public ImmutableList<ReportableApiChange> parseAcceptedApiChanges(File apiChangesPath) {
-        List<JsonApiChange> jsonApiChanges = parseApiChangeFile(apiChangesPath);
-        return jsonApiChanges.stream()
+    public ApiUpgradeConfig parseAcceptedApiChanges(File apiChangesFile) {
+        List<JsonApiChange> jsonApiChanges = parseApiChangeFile(apiChangesFile);
+        ImmutableList<ReportableApiUpgrade> apiUpgrades = jsonApiChanges.stream()
             .map(this::mapToApiChange)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(ImmutableList.toImmutableList());
+        return new DefaultApiUpgradeConfig(apiUpgrades);
     }
 
-    private @Nonnull Optional<ReportableApiChange> mapToApiChange(JsonApiChange jsonApiChange) {
+    private @Nonnull Optional<ReportableApiUpgrade> mapToApiChange(JsonApiChange jsonApiChange) {
         String member = jsonApiChange.member;
         Matcher methodMatcher = METHOD_PATTERN.matcher(member);
         if (!methodMatcher.matches()) {
@@ -456,7 +442,7 @@ class ApiUpgradeJsonParser {
         String displayParameters = String.join(",", parameterTypeNames);
         String displayText = String.format("%s %s.%s(%s)", returnTypeName, typeName, methodName, displayParameters);
         String descriptor = getMethodDescriptor(parameterTypeNames, returnTypeName);
-        return Optional.of(new MethodReportableApiChange(typeName, parameterTypeNames, allKnownSubtypes, methodName, descriptor, displayText, jsonApiChange.acceptation, jsonApiChange.changes));
+        return Optional.of(new MethodReportableApiUpgrade(typeName, parameterTypeNames, allKnownSubtypes, methodName, descriptor, displayText, jsonApiChange.acceptation, jsonApiChange.changes));
     }
 
     @SuppressWarnings("unchecked")

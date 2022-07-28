@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.upgrade.report;
+package org.gradle.internal.upgrade.report.problems;
 
+import org.gradle.internal.upgrade.report.ApiUpgradeServiceProvider;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +29,15 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ApiUpgradeProblemReporter implements ProblemReporter {
+public class DefaultApiUpgradeProblemReporter implements ProblemReporter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiUpgradeProblemReporter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultApiUpgradeProblemReporter.class);
 
-    private final ApiUpgradeProblemCollector collector;
+    private final ApiUpgradeServiceProvider serviceProvider;
 
     @Inject
-    public ApiUpgradeProblemReporter(ApiUpgradeProblemCollector collector) {
-        this.collector = collector;
+    public DefaultApiUpgradeProblemReporter(ApiUpgradeServiceProvider serviceProvider) {
+        this.serviceProvider = serviceProvider;
     }
 
     @Override
@@ -46,6 +47,7 @@ public class ApiUpgradeProblemReporter implements ProblemReporter {
 
     @Override
     public void report(File reportDir, Consumer<? super Throwable> validationFailures) {
+        ApiUpgradeProblemCollector collector = serviceProvider.getProblemCollector();
         if (collector.getDetectedProblems().isEmpty()) {
             return;
         }

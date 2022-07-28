@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.upgrade.report;
+package org.gradle.internal.upgrade.report.config;
+
+import org.gradle.internal.upgrade.report.groovy.decorations.CallsiteApiUpgradeDecoration;
+import org.gradle.internal.upgrade.report.problems.ApiUpgradeProblemCollector;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public interface ReportableApiChange {
-    String getApiChangeReport();
-    ApiChangeId getId();
-    List<ApiChangeId> getAllKnownTypeIds();
-    Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector);
+public interface ReportableApiUpgrade {
+    String getApiUpgradeProblem();
+    ApiUpgradeId getId();
+    List<ApiUpgradeId> getAllKnownTypeIds();
+    Optional<CallsiteApiUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector);
 
-    class ApiChangeId {
+    class ApiUpgradeId {
         private final int opcode;
         private final String owner;
         private final String name;
         private final String desc;
 
-        public ApiChangeId(int opcode, String owner, String name, String desc) {
+        public ApiUpgradeId(int opcode, String owner, String name, String desc) {
             this.opcode = opcode;
             this.owner = owner;
             this.name = name;
@@ -63,7 +66,7 @@ public interface ReportableApiChange {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            ApiChangeId that = (ApiChangeId) o;
+            ApiUpgradeId that = (ApiUpgradeId) o;
             return opcode == that.opcode
                 && Objects.equals(owner, that.owner)
                 && Objects.equals(name, that.name)

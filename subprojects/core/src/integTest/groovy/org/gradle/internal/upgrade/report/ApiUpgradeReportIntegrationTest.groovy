@@ -54,8 +54,14 @@ class ApiUpgradeReportIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run("assemble", "-Pkotlin.parallel.tasks.in.project=true", "--info", "-Dorg.gradle.binary.upgrade.report.json=${ACCEPTED_TEST_CHANGES.getAbsolutePath()}")
+
         then:
         executedAndNotSkipped(":assemble")
+        outputContains("build.gradle: line: 11: Method call 'void org.gradle.api.tasks.compile.AbstractCompile.setSourceCompatibility(java.lang.String)'")
+        outputContains("build.gradle: line: 12: Method call 'java.lang.String org.gradle.api.tasks.compile.AbstractCompile.getSourceCompatibility()'")
+        outputContains("build.gradle: line: 12: Method call 'void org.gradle.api.tasks.compile.AbstractCompile.setTargetCompatibility(java.lang.String)'")
+        outputContains("org/jetbrains/kotlin/gradle/internal/Kapt3KotlinGradleSubplugin.kt: line: 519: Method call 'org.gradle.api.file.FileCollection org.gradle.api.tasks.compile.AbstractCompile.getClasspath()'")
+        outputContains("Found 43 API upgrade problems. Report is located in")
     }
 
 }

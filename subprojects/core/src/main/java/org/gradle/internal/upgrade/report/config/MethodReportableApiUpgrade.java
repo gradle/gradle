@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.upgrade.report;
+package org.gradle.internal.upgrade.report.config;
+
+import org.gradle.internal.upgrade.report.groovy.decorations.PropertyCallsiteApiUpgradeDecoration;
+import org.gradle.internal.upgrade.report.groovy.decorations.CallsiteApiUpgradeDecoration;
+import org.gradle.internal.upgrade.report.problems.ApiUpgradeProblemCollector;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,7 +29,7 @@ import java.util.stream.Stream;
 
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
-public class MethodReportableApiChange implements ReportableApiChange {
+public class MethodReportableApiUpgrade implements ReportableApiUpgrade {
 
     private final String type;
     private final List<String> parameterTypes;
@@ -35,9 +39,9 @@ public class MethodReportableApiChange implements ReportableApiChange {
     private final String displayText;
     private final String acceptation;
     private final List<String> changes;
-    private final ApiChangeId id;
+    private final ApiUpgradeId id;
 
-    public MethodReportableApiChange(
+    public MethodReportableApiUpgrade(
         String type,
         List<String> parameterTypes,
         Collection<String> knownSubtypes,
@@ -57,23 +61,23 @@ public class MethodReportableApiChange implements ReportableApiChange {
         this.displayText = displayText;
         this.acceptation = acceptation;
         this.changes = changes;
-        this.id = new ApiChangeId(INVOKEVIRTUAL, type, methodName, methodDescriptor);
+        this.id = new ApiUpgradeId(INVOKEVIRTUAL, type, methodName, methodDescriptor);
     }
 
     @Override
-    public String getApiChangeReport() {
+    public String getApiUpgradeProblem() {
         return getChangeReport();
     }
 
     @Override
-    public ApiChangeId getId() {
+    public ApiUpgradeId getId() {
         return id;
     }
 
     @Override
-    public List<ApiChangeId> getAllKnownTypeIds() {
+    public List<ApiUpgradeId> getAllKnownTypeIds() {
         return types.stream()
-            .map(type -> new ApiChangeId(INVOKEVIRTUAL, type, methodName, methodDescriptor))
+            .map(type -> new ApiUpgradeId(INVOKEVIRTUAL, type, methodName, methodDescriptor))
             .collect(Collectors.toList());
     }
 
@@ -82,14 +86,14 @@ public class MethodReportableApiChange implements ReportableApiChange {
     }
 
     @Override
-    public Optional<DynamicGroovyUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector) {
+    public Optional<CallsiteApiUpgradeDecoration> mapToDynamicGroovyDecoration(ApiUpgradeProblemCollector problemCollector) {
         // TODO, we should probably rather check changes that should say that something is a property upgrade
         if (!"Property upgraded".equals(this.acceptation)) {
             throw new UnsupportedOperationException("Unsupported upgrade: " + this.displayText);
         }
         if ((methodName.startsWith("is") || methodName.startsWith("get")) && parameterTypes.isEmpty()) {
             String propertyName = extractPropertyName(methodName);
-            return Optional.of(new DynamicGroovyPropertyUpgradeDecoration(problemCollector, type, propertyName, this::getChangeReport));
+            return Optional.of(new PropertyCallsiteApiUpgradeDecoration(problemCollector, type, propertyName, this::getChangeReport));
         }
         return Optional.empty();
     }

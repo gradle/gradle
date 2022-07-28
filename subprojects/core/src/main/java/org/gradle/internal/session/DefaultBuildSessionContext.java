@@ -20,8 +20,7 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.upgrade.report.ApiUpgradeProblemCollector;
-import org.gradle.internal.upgrade.report.TransformApiUpgradeCollectorProvider;
+import org.gradle.internal.upgrade.report.ApiUpgradeInitializer;
 
 class DefaultBuildSessionContext implements BuildSessionContext {
     private final ServiceRegistry sessionScopeServices;
@@ -42,14 +41,14 @@ class DefaultBuildSessionContext implements BuildSessionContext {
             throw new IllegalStateException("Cannot run more than one action for a session.");
         }
         try {
-            TransformApiUpgradeCollectorProvider apiUpgradeCollectorProvider = sessionScopeServices.get(TransformApiUpgradeCollectorProvider.class);
+            ApiUpgradeInitializer apiUpgradeInitializer = sessionScopeServices.get(ApiUpgradeInitializer.class);
             BuildSessionLifecycleListener sessionLifecycleListener = sessionScopeServices.get(ListenerManager.class).getBroadcaster(BuildSessionLifecycleListener.class);
             sessionLifecycleListener.afterStart();
             try {
-                apiUpgradeCollectorProvider.set(sessionScopeServices.get(ApiUpgradeProblemCollector.class));
+                apiUpgradeInitializer.maybeEnableReport();
                 return sessionScopeServices.get(BuildSessionActionExecutor.class).execute(action, this);
             } finally {
-                apiUpgradeCollectorProvider.set(ApiUpgradeProblemCollector.noUpgrades());
+                apiUpgradeInitializer.disableReport();
                 sessionLifecycleListener.beforeComplete();
             }
         } finally {

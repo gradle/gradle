@@ -33,8 +33,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.upgrade.report.ApiUpgradeProblemCollector;
-import org.gradle.internal.upgrade.report.ApiUpgradeProblemReporter;
+import org.gradle.internal.upgrade.report.problems.DefaultApiUpgradeProblemReporter;
+import org.gradle.internal.upgrade.report.ApiUpgradeServiceProvider;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.problems.buildtree.ProblemReporter;
 
@@ -88,7 +88,7 @@ public class BuildTreeScopeServices {
         return new DeprecationsReporter();
     }
 
-    protected ProblemReporter createApiUpgradeProblemReporter(ApiUpgradeProblemCollector collector) {
-        return new ApiUpgradeProblemReporter(collector);
+    protected ProblemReporter createApiUpgradeProblemReporter(ApiUpgradeServiceProvider serviceProvider) {
+        return new DefaultApiUpgradeProblemReporter(serviceProvider);
     }
 }

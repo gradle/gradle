@@ -18,19 +18,27 @@ package org.gradle.internal.upgrade.report;
 
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.upgrade.report.config.ApiUpgradeConfig;
+import org.gradle.internal.upgrade.report.problems.ApiUpgradeProblemCollector;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 @ServiceScope(Scopes.UserHome.class)
-public class TransformApiUpgradeCollectorProvider {
+public class ApiUpgradeServiceProvider {
 
-    private final AtomicReference<ApiUpgradeProblemCollector> apiUpgradeReporter = new AtomicReference<>(ApiUpgradeProblemCollector.noUpgrades());
+    private final AtomicReference<ApiUpgradeProblemCollector> apiUpgradeReporter = new AtomicReference<>();
+    private final AtomicReference<ApiUpgradeConfig> apiUpgradeConfig = new AtomicReference<>();
 
-    public void set(ApiUpgradeProblemCollector apiUpgradeProblemCollector) {
+    public void set(ApiUpgradeProblemCollector apiUpgradeProblemCollector, ApiUpgradeConfig config) {
         this.apiUpgradeReporter.set(apiUpgradeProblemCollector);
+        this.apiUpgradeConfig.set(config);
     }
 
-    public ApiUpgradeProblemCollector getApiUpgrader() {
+    public ApiUpgradeProblemCollector getProblemCollector() {
         return apiUpgradeReporter.get();
+    }
+
+    public ApiUpgradeConfig getConfig() {
+        return apiUpgradeConfig.get();
     }
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.upgrade.report;
+package org.gradle.internal.upgrade.report.groovy;
 
-import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.gradle.internal.metaobject.BeanDynamicObject;
 
-import java.util.Optional;
-
-public interface DynamicGroovyUpgradeDecoration {
-    Optional<CallSite> decorateCallSite(CallSite callSite);
+public class NoopSetPropertyApiUpgradeCallListener implements BeanDynamicObject.BeanDynamicObjectCallListener {
+    @Override
+    public void onSetProperty(Object bean, String propertyName, Object value) {
+    }
 }

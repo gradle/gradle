@@ -14,43 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.upgrade.report;
+package org.gradle.internal.upgrade.report.groovy.decorations;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.upgrade.report.problems.ApiUpgradeProblemCollector;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgradeDecoration {
-    private final ApiUpgradeProblemCollector reporter;
+import static org.gradle.internal.upgrade.report.ApiUpgradeUtils.getStackTraceElementForCallSiteOwner;
+import static org.gradle.internal.upgrade.report.ApiUpgradeUtils.isInstanceOfType;
+
+public class PropertyCallsiteApiUpgradeDecoration implements CallsiteApiUpgradeDecoration {
+    private final ApiUpgradeProblemCollector collector;
     private final String propertyName;
     private final Lazy<String> changeReport;
     private final String typeName;
 
-    public DynamicGroovyPropertyUpgradeDecoration(ApiUpgradeProblemCollector problemCollector, String typeName, String propertyName, Supplier<String> changeReport) {
-        this.reporter = problemCollector;
+    public PropertyCallsiteApiUpgradeDecoration(ApiUpgradeProblemCollector problemCollector, String typeName, String propertyName, Supplier<String> changeReport) {
+        this.collector = problemCollector;
         this.typeName = typeName;
         this.propertyName = propertyName;
         this.changeReport = Lazy.locking().of(changeReport);
-    }
-
-    private boolean isInstanceOfType(Object receiver) {
-        try {
-            if (receiver == null) {
-                return false;
-            }
-            ClassLoader classLoader = receiver.getClass().getClassLoader();
-            if (classLoader == null) {
-                return Class.forName(typeName).isInstance(receiver);
-            } else {
-                return classLoader.loadClass(typeName).isInstance(receiver);
-            }
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     @Override
@@ -61,33 +49,24 @@ public class DynamicGroovyPropertyUpgradeDecoration implements DynamicGroovyUpgr
                 @Override
                 public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
                     Object typeToCheck = inferReceiverFromCallSiteReceiver(receiver);
-                    if (isInstanceOfType(typeToCheck)) {
-                        Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
+                    if (isInstanceOfType(typeName, typeToCheck)) {
+                        Optional<StackTraceElement> ownerStacktrace = getStackTraceElementForCallSiteOwner(callSite);
                         String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
                         int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
-                        reporter.collectDynamicApiChangesReport(file, lineNumber, changeReport.get());
+                        collector.collectDynamicApiChangesReport(file, lineNumber, changeReport.get());
                     }
                     return super.callGroovyObjectGetProperty(receiver);
                 }
 
                 @Override
                 public Object callGetProperty(Object receiver) throws Throwable {
-                    if (isInstanceOfType(receiver)) {
-                        Optional<StackTraceElement> ownerStacktrace = getOwnerStackTraceElement();
+                    if (isInstanceOfType(typeName, receiver)) {
+                        Optional<StackTraceElement> ownerStacktrace = getStackTraceElementForCallSiteOwner(callSite);
                         String file = ownerStacktrace.map(StackTraceElement::getFileName).orElse("<Unknown file>");
                         int lineNumber = ownerStacktrace.map(StackTraceElement::getLineNumber).orElse(-1);
-                        reporter.collectDynamicApiChangesReport(file, lineNumber, changeReport.get());
+                        collector.collectDynamicApiChangesReport(file, lineNumber, changeReport.get());
                     }
                     return super.callGetProperty(receiver);
-                }
-
-                private Optional<StackTraceElement> getOwnerStackTraceElement() {
-                    for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-                        if (element.getLineNumber() >= 0 && element.getClassName().equals(callSite.getArray().owner.getName())) {
-                            return Optional.of(element);
-                        }
-                    }
-                    return Optional.empty();
                 }
             });
         }
