@@ -88,7 +88,7 @@ class DaemonParametersTest extends Specification {
     }
 
     private void assertContainsJPMSDefaults(def jvmArgs) {
-        assert Collections.indexOfSubList(jvmArgs, ["--add-opens", "java.base/java.util=ALL-UNNAMED"]) >= 0
+        assert Collections.indexOfSubList(jvmArgs, ["--add-opens=java.base/java.util=ALL-UNNAMED"]) >= 0
         assert Collections.indexOfSubList(jvmArgs, JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS) >= 0
     }
 
