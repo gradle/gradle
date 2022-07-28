@@ -33,5 +33,10 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         // If this suddenly fails without an obvious reason, you likely have added some code
         // that references types that were previously eliminated from gradle-tooling-api.jar.
         resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size() < 2_500_000
+
+        cleanup:
+        if (resolver != null) {
+            resolver.close()
+        }
     }
 }

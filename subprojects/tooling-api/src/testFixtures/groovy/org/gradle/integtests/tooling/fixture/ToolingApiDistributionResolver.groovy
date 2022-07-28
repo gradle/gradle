@@ -24,19 +24,30 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
-class ToolingApiDistributionResolver {
+/**
+ * Note that the resolver instance must be closed after use in order to release resources.
+ */
+class ToolingApiDistributionResolver implements AutoCloseable {
+    private final ProjectInternal project
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private boolean useExternalToolingApiDistribution = false
 
     ToolingApiDistributionResolver() {
+        project = (ProjectInternal) ProjectBuilder.builder().build()
         resolutionServices = createResolutionServices()
         def localRepository = buildContext.localRepository
         if (localRepository) {
             resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
         }
+    }
+
+    @Override
+    void close() throws Exception {
+        ProjectBuilderImpl.stop(project)
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
@@ -76,8 +87,6 @@ class ToolingApiDistributionResolver {
     }
 
     private DependencyResolutionServices createResolutionServices() {
-        // Create a dummy project and use its services
-        ProjectInternal project = ProjectBuilder.builder().build()
         return project.services.get(DependencyResolutionServices)
     }
 
