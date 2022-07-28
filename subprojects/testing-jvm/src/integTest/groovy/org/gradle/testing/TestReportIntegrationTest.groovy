@@ -593,14 +593,14 @@ public class SubClassTests extends SuperClassTests {
 
             // Need a second test task to reportOn
             tasks.register('otherTests', Test) {
-                binaryResultsDirectory = file("bin")
-                testClassesDirs = files("blah")
+                binaryResultsDirectory = file('otherBin')
+                testClassesDirs = files('otherClasses')
             }
 
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
                 testResultDirs = [test.binaryResultsDirectory.asFile.get()]
-                destinationDir reporting.file("tr")
+                destinationDir reporting.file("myTestReports")
             }
         """
 
