@@ -209,7 +209,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isCanCancel() {
-        return true;
+        return group.isCanCancel();
     }
 
     public boolean isInKnownState() {

@@ -90,6 +90,16 @@ public class CompositeNodeGroup extends HasFinalizers {
     }
 
     @Override
+    public boolean isCanCancel() {
+        for (FinalizerGroup group : finalizerGroups) {
+            if (!group.isCanCancel()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         if (ordinalGroup.isReachableFromEntryPoint()) {
             // Reachable from entry point node, can run at any time
