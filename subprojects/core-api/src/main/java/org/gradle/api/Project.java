@@ -1316,19 +1316,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void allprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
-     * <p>Adds an action to call immediately before this project is evaluated. Passes the project to the
-     * action as a parameter. Actions passed to this method execute in the same order they were passed.</p>
+     * <p>Adds an action to call immediately before this project is evaluated.</p>
+     * <p>Passes the project to the action as a parameter. Actions passed to this
+     * method execute in the same order they were passed.</p>
      * 
      * <p>If the project has already been evaluated, the action never executes.</p>
-     * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action executes after all
-     * previously added <code>beforeEvaluate</code> actions finish executing.</p>
+     * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action never executes.</p>
      *
      * @param action the action to execute.
      */
     void beforeEvaluate(Action<? super Project> action);
 
     /**
-     * <p>Adds an action to call immediately after this project is evaluated. Passes the project to the
+     * <p>Adds an action to call immediately after this project is evaluated.</p>
+     * <p>Passes the project to the
      * action as a parameter. Actions passed to this method execute in the same order they were passed.
      * A parent project may add an action to its child projects to further configure those projects based
      * on their state after their build files run.</p>
