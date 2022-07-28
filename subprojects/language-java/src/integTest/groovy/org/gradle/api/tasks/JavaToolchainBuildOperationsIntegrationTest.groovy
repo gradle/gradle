@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.BuildOperationType
@@ -32,6 +33,8 @@ import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+
+    static KGP_LATEST_STABLE_VERSIONS = new KotlinGradlePluginVersions().latests.findAll { !it.contains("-") }
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -363,31 +366,35 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-//        def events = toolchainEvents(task)
+        def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
-        // TODO: uncomment this when fixed
+        // TODO: replace when fixed
+        events.size() == 0
 //        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         when:
         runWithInstallation(jdkMetadata, task)
-//        events = toolchainEvents(task)
+        events = toolchainEvents(task)
         then:
         skipped(task)
-        // TODO: uncomment this when fixed
+        // TODO: replace when fixed
+        events.size() == 0
 //        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
     @ToBeFixedForConfigurationCache(because = "Kotlin plugin extracts metadata from the JavaLauncher and wraps it into a custom property")
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    def "emits toolchain usages when configuring toolchains for Kotlin plugin for '#task' task"() {
+    def "emits toolchain usages when configuring toolchains for Kotlin plugin '#kotlinPlugin' for '#task' task"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+
+        def kotlinPluginVersion = kotlinPlugin == "latest" ? KGP_LATEST_STABLE_VERSIONS.last() : latestKotlinPluginVersion(kotlinPlugin)
 
         // override setup
         buildFile.text = """
             buildscript {
                 ${mavenCentralRepository()}
-                dependencies { classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10" }
+                dependencies { classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinPluginVersion" }
             }
 
             apply plugin: "kotlin"
@@ -433,9 +440,15 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         where:
-        task             | _
-        ":compileKotlin" | _
-        ":test"          | _
+        kotlinPlugin | task
+        "latest"     | ":compileKotlin"
+        "1.7"        | ":compileKotlin"
+        "1.6"        | ":compileKotlin"
+        // Even though we only configure the toolchain within the `kotlin` block,
+        // it actually affects the java launcher selected by the test task.
+        "latest"     | ":test"
+        "1.7"        | ":test"
+        "1.6"        | ":test"
     }
 
     def "emits toolchain usages when task fails for 'compileJava' task"() {
@@ -614,11 +627,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     private <T extends BuildOperationType<?, ?>> List<BuildOperationRecord.Progress> toolchainEventsFor(Class<T> buildOperationType, String taskPath) {
-        def taskRecord1 = operations.first(buildOperationType) {
+        def buildOperationRecord = operations.first(buildOperationType) {
             it.details.taskPath == taskPath
         }
         List<BuildOperationRecord.Progress> events = []
-        operations.walk(taskRecord1) {
+        operations.walk(buildOperationRecord) {
             events.addAll(it.progress.findAll {
                 JavaToolchainUsageProgressDetails.isAssignableFrom(it.detailsType)
             })
@@ -628,5 +641,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
         events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
+    }
+
+    private String latestKotlinPluginVersion(String major) {
+        return KGP_LATEST_STABLE_VERSIONS.findAll { it.startsWith(major) }.last()
     }
 }
