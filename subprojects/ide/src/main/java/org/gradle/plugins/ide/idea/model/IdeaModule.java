@@ -48,7 +48,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithSourceDirDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
