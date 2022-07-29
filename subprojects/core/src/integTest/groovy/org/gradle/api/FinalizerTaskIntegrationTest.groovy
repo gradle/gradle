@@ -161,6 +161,39 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21325")
+    def "finalizer can depend on finalized entry point task and have other dependencies that are finalized by tasks that finalize their own dependencies"() {
+        given:
+        buildFile '''
+            task assemble {
+                dependsOn "classes"
+                doLast { }
+            }
+            task generatePermissions {
+                dependsOn "classes"
+                doLast { }
+            }
+            task classes {
+                finalizedBy "assemble", "generatePermissions"
+                dependsOn "compileJava", "processResources"
+                doLast { }
+            }
+            task compileJava {
+                doLast { }
+            }
+            task processResources {
+                finalizedBy "assemble"
+                doLast { }
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'processResources'
+            result.assertTaskOrder ':processResources', ':compileJava', ':classes', ':generatePermissions', ':assemble'
+        }
+    }
+
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
