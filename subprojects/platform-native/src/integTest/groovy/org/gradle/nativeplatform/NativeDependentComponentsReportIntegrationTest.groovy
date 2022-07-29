@@ -24,7 +24,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
-@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
