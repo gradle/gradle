@@ -25,17 +25,15 @@ import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.HostPlatform
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.junit.Assume.assumeTrue
 
-@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
-class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
+class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     AvailableToolChains.InstalledToolChain toolChain = null
 
     def setup() {
@@ -165,51 +163,54 @@ rootProject.name = "${rootProjectName}"
     void assertTargetIsDynamicLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsDynamicLibrary()
         target.assertProductNameEquals(expectedProductName)
-        target.assertSupportedArchitectures(MachineArchitecture.X86_64)
+        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.ARM64 : MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == sharedLib("build/lib/main/debug/$expectedBinaryName").absolutePath
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
 
+        def expectedArchitecture = archName == 'aarch64' ? 'arm64e' : 'x86_64'
         assert target.buildConfigurationList.buildConfigurations[0].name == DefaultXcodeProject.BUILD_DEBUG
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "x86_64"
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == expectedArchitecture
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
 
         assert target.buildConfigurationList.buildConfigurations[1].name == DefaultXcodeProject.BUILD_RELEASE
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == expectedArchitecture
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/stripped").absolutePath
     }
 
     void assertTargetIsStaticLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsStaticLibrary()
         target.assertProductNameEquals(expectedProductName)
-        target.assertSupportedArchitectures(MachineArchitecture.X86_64)
+        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.ARM64 : MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == staticLib("build/lib/main/debug/$expectedBinaryName").absolutePath
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
 
+        def expectedArchitecture = archName == 'aarch64' ? 'arm64e' : 'x86_64'
         assert target.buildConfigurationList.buildConfigurations[0].name == DefaultXcodeProject.BUILD_DEBUG
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "x86_64"
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == expectedArchitecture
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
 
         assert target.buildConfigurationList.buildConfigurations[1].name == DefaultXcodeProject.BUILD_RELEASE
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == expectedArchitecture
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
     }
 
     void assertTargetIsTool(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsTool()
         target.assertProductNameEquals(expectedProductName)
-        target.assertSupportedArchitectures(MachineArchitecture.X86_64)
+        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.ARM64 : MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == exe("build/install/main/debug/lib/$expectedBinaryName").absolutePath
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
 
+        def expectedArchitecture = archName == 'aarch64' ? 'arm64e' : 'x86_64'
         assert target.buildConfigurationList.buildConfigurations[0].name == DefaultXcodeProject.BUILD_DEBUG
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "x86_64"
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == expectedArchitecture
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/lib").absolutePath
 
         assert target.buildConfigurationList.buildConfigurations[1].name == DefaultXcodeProject.BUILD_RELEASE
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == expectedArchitecture
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/lib").absolutePath
     }
 

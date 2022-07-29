@@ -28,7 +28,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-@Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.NOT_MAC_OS_X_M1])
+@Requires([TestPrecondition.NOT_WINDOWS])
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application"() {
@@ -348,7 +348,7 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires([TestPrecondition.XCODE, TestPrecondition.NOT_MAC_OS_X_M1])
     @ToBeFixedForConfigurationCache
     def "can build C++ executable from Xcode with multiple architecture"() {
         useXcodebuildTool()
@@ -439,7 +439,7 @@ apply plugin: 'cpp-library'
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires([TestPrecondition.XCODE, TestPrecondition.NOT_MAC_OS_X_M1])
     @ToBeFixedForConfigurationCache
     def "can build C++ library from Xcode with multiple architecture"() {
         useXcodebuildTool()
