@@ -22,7 +22,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -98,26 +97,15 @@ public interface WorkSource<T> {
      */
     class Diagnostics {
         private final String displayName;
-        private final boolean canMakeProgress;
+        private final List<String> ordinalGroups;
         private final List<String> queuedItems;
         private final List<String> otherItems;
 
-        public Diagnostics(String displayName, boolean canMakeProgress, List<String> queuedItems, List<String> otherItems) {
+        public Diagnostics(String displayName, List<String> ordinalGroups, List<String> queuedItems, List<String> otherItems) {
             this.displayName = displayName;
-            this.canMakeProgress = canMakeProgress;
+            this.ordinalGroups = ordinalGroups;
             this.queuedItems = queuedItems;
             this.otherItems = otherItems;
-        }
-
-        public Diagnostics(String displayName) {
-            this(displayName, true, Collections.emptyList(), Collections.emptyList());
-        }
-
-        /**
-         * @see WorkSource#canMakeProgress()
-         */
-        public boolean canMakeProgress() {
-            return canMakeProgress;
         }
 
         public void describeTo(TreeFormatter formatter) {
@@ -137,6 +125,12 @@ public interface WorkSource<T> {
                 }
                 formatter.endChildren();
             }
+            formatter.node("Ordinal groups for " + displayName);
+            formatter.startChildren();
+            for (String item : ordinalGroups) {
+                formatter.node(item);
+            }
+            formatter.endChildren();
         }
     }
 
