@@ -113,4 +113,10 @@ public class OrdinalNodeAccess {
             return getOrCreateDestroyableLocationNode(group(ordinal.getOrdinal() - 1));
         }
     }
+
+    public void reset() {
+        groups.clear();
+        destroyerLocationNodes.clear();
+        producerLocationNodes.clear();
+    }
 }

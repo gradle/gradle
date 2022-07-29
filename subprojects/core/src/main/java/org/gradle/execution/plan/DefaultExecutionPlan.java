@@ -165,7 +165,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
         for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
-            node.setGroup(group);
+            node.maybeInheritOrdinalAsDependency(group);
             group.addEntryNode(node);
             entryNodes.add(node);
             queue.add(node);
@@ -382,6 +382,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         filteredNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
+        ordinalNodeAccess.reset();
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
