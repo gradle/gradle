@@ -166,6 +166,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
             node.setGroup(group);
+            group.addEntryNode(node);
             entryNodes.add(node);
             queue.add(node);
         }
@@ -597,7 +598,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public Diagnostics healthDiagnostics() {
         lockCoordinator.assertHasStateLock();
-        boolean canMakeProgress = canMakeProgress();
+
+        List<String> ordinalGroups = new ArrayList<>();
+        for (OrdinalGroup group : ordinalNodeAccess.getAllGroups()) {
+            ordinalGroups.add(group.diagnostics());
+        }
+
         List<String> queuedNodes = new ArrayList<>(executionQueue.size());
         List<String> otherNodes = new ArrayList<>();
         List<Node> queue = new ArrayList<>();
@@ -620,7 +626,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 }
             }
         }
-        return new Diagnostics(displayName, canMakeProgress, queuedNodes, otherNodes);
+
+        return new Diagnostics(displayName, ordinalGroups, queuedNodes, otherNodes);
     }
 
     @Override
