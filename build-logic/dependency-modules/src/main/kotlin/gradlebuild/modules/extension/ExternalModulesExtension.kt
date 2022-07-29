@@ -161,6 +161,7 @@ abstract class ExternalModulesExtension {
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mySqlConnector = "mysql:mysql-connector-java"
+    val piTest = "org.pitest:pitest:1.9.3"
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
@@ -250,6 +251,7 @@ abstract class ExternalModulesExtension {
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
         objenesis to License.Apache2,
+        piTest to License.Apache2,
         plexusCipher to License.Apache2,
         plexusInterpolation to License.Apache2,
         plexusSecDispatcher to License.Apache2,

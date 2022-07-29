@@ -112,6 +112,7 @@
          <trusted-key id="36390de6a0e61ee4c7b4ba02c1d3063467f1ebd1" group="org.asciidoctor"/>
          <trusted-key id="3872ed7d5904493d23d78fa2c4c8cb73b1435348" group="^com[.]android[.]tools($|([.].*))" regex="true"/>
          <trusted-key id="3cac6e7dc43343ff75ecbac27e6eb7bb6a7712dc" group="net.sourceforge.nekohtml" name="nekohtml"/>
+         <trusted-key id="3ffc4182b461eec4cc7753189efc0d96b770eac2" group="org.pitest"/>
          <trusted-key id="4008f9dff7dbc968f35f9e712642156411cce8b3" group="com.vladsch.flexmark"/>
          <trusted-key id="416952b945b78a34c6c7678562ebfc78fe4156d1" group="org.jruby"/>
          <trusted-key id="47063e8ba7a6450e4a52e7ae466caed6e0747d50">
@@ -743,6 +744,11 @@
             <sha256 value="7de9b7ade957c6a1996e9c3d0e1e4d1e1840c081ebf16bbd3c2a6a5b05b88891" origin="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="info.solidsoft.gradle.pitest" name="gradle-pitest-plugin" version="1.7.4">
+         <artifact name="gradle-pitest-plugin-1.7.4.jar">
+            <pgp value="1ab9bdf40ed49debb5caaded5b30d3b10694f057"/>
+         </artifact>
+      </component>
       <component group="io.airlift" name="aircompressor" version="0.8">
          <artifact name="aircompressor-0.8.jar">
             <pgp value="0eb0ecde7ef95741addb05690d9cb5ee96b7bc22"/>
@@ -755,6 +761,7 @@
       </component>
       <component group="io.github.detekt.sarif4k" name="sarif4k" version="0.0.1">
          <artifact name="sarif4k-0.0.1.jar">
+            <pgp value="8569c95cadc508b09fe90f3002216ed811210daa"/>
             <sha256 value="41ec72cf2521783224581c76aaa7e97d4a50f396a66d642500ff4777b395a376" origin="Artifact is not signed"/>
          </artifact>
       </component>
@@ -1367,6 +1374,16 @@
       <component group="org.owasp.encoder" name="encoder" version="1.2.2">
          <artifact name="encoder-1.2.2.jar">
             <pgp value="f9514e84ae3708288374bbbe097586cfea37f9a6"/>
+         </artifact>
+      </component>
+      <component group="org.pitest" name="pitest" version="1.9.3">
+         <artifact name="pitest-1.9.3.jar">
+            <pgp value="3ffc4182b461eec4cc7753189efc0d96b770eac2"/>
+         </artifact>
+      </component>
+      <component group="org.pitest" name="pitest-junit5-plugin" version="1.0.0">
+         <artifact name="pitest-junit5-plugin-1.0.0.jar">
+            <pgp value="0164233820c7981142540b89a8830ca9bdfbe41b"/>
          </artifact>
       </component>
       <component group="org.rnorth.visible-assertions" name="visible-assertions" version="2.1.2">
