@@ -17,7 +17,6 @@
 package org.gradle.composite.internal
 
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
@@ -26,9 +25,9 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
@@ -246,6 +245,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         projectServices.add(Stub(PropertyWalker))
         projectServices.add(Stub(FileCollectionFactory))
         _ * project.services >> projectServices
+        _ * project.pluginManager >> Stub(PluginManagerInternal)
         def lock = Stub(ResourceLock)
         _ * projectState.taskExecutionLock >> lock
         _ * lock.tryLock() >> true
