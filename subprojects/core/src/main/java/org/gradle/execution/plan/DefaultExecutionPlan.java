@@ -165,7 +165,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
         for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
-            node.setGroup(group);
+            node.maybeInheritOrdinalAsDependency(group);
+            group.addEntryNode(node);
             entryNodes.add(node);
             queue.add(node);
         }
@@ -381,6 +382,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         filteredNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
+        ordinalNodeAccess.reset();
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
@@ -589,38 +591,44 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
+    public boolean canMakeProgress() {
+        // If no nodes are ready and nothing is running, then cannot make progress
+        return !(executionState() == State.NoWorkReadyToStart && runningNodes.isEmpty());
+    }
+
+    @Override
     public Diagnostics healthDiagnostics() {
         lockCoordinator.assertHasStateLock();
-        State state = executionState();
-        // If no nodes are ready and nothing is running, then cannot make progress
-        boolean cannotMakeProgress = state == State.NoWorkReadyToStart && runningNodes.isEmpty();
-        if (cannotMakeProgress) {
-            List<String> queuedNodes = new ArrayList<>(executionQueue.size());
-            List<String> otherNodes = new ArrayList<>();
-            List<Node> queue = new ArrayList<>();
-            Set<Node> reported = new HashSet<>();
-            executionQueue.restart();
-            while (executionQueue.hasNext()) {
-                Node node = executionQueue.next();
-                queuedNodes.add(node.healthDiagnostics());
-                reported.add(node);
+
+        List<String> ordinalGroups = new ArrayList<>();
+        for (OrdinalGroup group : ordinalNodeAccess.getAllGroups()) {
+            ordinalGroups.add(group.diagnostics());
+        }
+
+        List<String> queuedNodes = new ArrayList<>(executionQueue.size());
+        List<String> otherNodes = new ArrayList<>();
+        List<Node> queue = new ArrayList<>();
+        Set<Node> reported = new HashSet<>();
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
+            queuedNodes.add(node.healthDiagnostics());
+            reported.add(node);
+            for (Node successor : node.getHardSuccessors()) {
+                queue.add(successor);
+            }
+        }
+        while (!queue.isEmpty()) {
+            Node node = queue.remove(0);
+            if (reported.add(node)) {
+                otherNodes.add(node.healthDiagnostics());
                 for (Node successor : node.getHardSuccessors()) {
                     queue.add(successor);
                 }
             }
-            while (!queue.isEmpty()) {
-                Node node = queue.remove(0);
-                if (reported.add(node)) {
-                    otherNodes.add(node.healthDiagnostics());
-                    for (Node successor : node.getHardSuccessors()) {
-                        queue.add(successor);
-                    }
-                }
-            }
-            return new Diagnostics(displayName, false, queuedNodes, otherNodes);
-        } else {
-            return new Diagnostics(displayName);
         }
+
+        return new Diagnostics(displayName, ordinalGroups, queuedNodes, otherNodes);
     }
 
     @Override

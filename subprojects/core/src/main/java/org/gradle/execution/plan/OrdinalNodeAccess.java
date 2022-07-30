@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
  * A factory for creating and accessing ordinal nodes
  */
 public class OrdinalNodeAccess {
-    private final Map<Integer, OrdinalGroup> groups = Maps.newHashMap();
+    private final List<OrdinalGroup> groups = new ArrayList<>();
     private final Map<OrdinalGroup, OrdinalNode> destroyerLocationNodes = Maps.newHashMap();
     private final Map<OrdinalGroup, OrdinalNode> producerLocationNodes = Maps.newHashMap();
 
@@ -38,6 +39,10 @@ public class OrdinalNodeAccess {
 
     OrdinalNode getOrCreateOutputLocationNode(OrdinalGroup ordinal) {
         return producerLocationNodes.computeIfAbsent(ordinal, i -> createProducerLocationNode(ordinal));
+    }
+
+    List<OrdinalGroup> getAllGroups() {
+        return groups;
     }
 
     List<OrdinalNode> getAllNodes() {
@@ -83,7 +88,12 @@ public class OrdinalNodeAccess {
     }
 
     public OrdinalGroup group(int ordinal) {
-        return groups.computeIfAbsent(ordinal, integer -> new OrdinalGroup(ordinal));
+        if (ordinal > groups.size()) {
+            throw new IllegalArgumentException("Unexpected group requested");
+        } else if (ordinal == groups.size()) {
+            groups.add(new OrdinalGroup(ordinal));
+        }
+        return groups.get(ordinal);
     }
 
     @Nullable
@@ -102,5 +112,11 @@ public class OrdinalNodeAccess {
         } else {
             return getOrCreateDestroyableLocationNode(group(ordinal.getOrdinal() - 1));
         }
+    }
+
+    public void reset() {
+        groups.clear();
+        destroyerLocationNodes.clear();
+        producerLocationNodes.clear();
     }
 }
