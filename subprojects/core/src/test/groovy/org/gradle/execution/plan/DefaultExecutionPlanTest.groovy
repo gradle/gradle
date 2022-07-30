@@ -38,7 +38,6 @@ import static org.gradle.util.internal.WrapUtil.toList
 
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
-    int order = 0
 
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
@@ -1074,7 +1073,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     private void addToGraph(List tasks) {
-        executionPlan.addEntryTasks(tasks, order++)
+        executionPlan.addEntryTasks(tasks)
     }
 
     private void addToGraphAndPopulate(List tasks) {
