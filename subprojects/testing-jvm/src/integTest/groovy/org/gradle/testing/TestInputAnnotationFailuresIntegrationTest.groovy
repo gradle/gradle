@@ -30,8 +30,6 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
             ${mavenCentralRepository()}
 
-            @CacheableTask
-            @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Input
                 $fieldInitialization
@@ -72,8 +70,6 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
             ${mavenCentralRepository()}
 
-            @CacheableTask
-            @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Input
                 $fieldInitialization
@@ -110,8 +106,6 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
             ${mavenCentralRepository()}
 
-            @CacheableTask
-            @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Inject
                 public abstract ObjectFactory getObjectFactory()
@@ -154,8 +148,6 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
             ${mavenCentralRepository()}
 
-            @CacheableTask
-            @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Inject
                 public abstract ObjectFactory getObjectFactory()
@@ -193,8 +185,6 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
             ${mavenCentralRepository()}
 
-            @CacheableTask
-            @CompileStatic
             abstract class MyTask extends DefaultTask {
                 @Input
                 $propertyInitialization
