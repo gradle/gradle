@@ -34,7 +34,7 @@ public interface JavaToolchainRepositoryRegistry {
      *
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
-    //TODO (#21082): do we also need a configure action, like we have in BuildServiceRegistry
-    //TODO (#21082): does this method need to be a "registerIfAbsent" instead
+    //TODO MAJOR (#21082): do we also need a configure action, like we have in BuildServiceRegistry
+    //TODO MAJOR (#21082): does this method need to be a "registerIfAbsent" instead
 
 }
