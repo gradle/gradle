@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -32,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @Contextual
 public class WorkValidationException extends GradleException {
-    public static final int MAX_ERR_COUNT = Integer.getInteger("org.gradle.internal.max.validation.errors", 5);
+    private static final int MAX_ERR_COUNT = Integer.getInteger("org.gradle.internal.max.validation.errors", 5);
 
     private final List<String> problems;
 
@@ -54,7 +57,7 @@ public class WorkValidationException extends GradleException {
         private final int size;
 
         public Builder(Collection<String> problems) {
-            this.problems = ImmutableList.copyOf(problems);
+            this.problems = problems.stream().limit(MAX_ERR_COUNT).collect(ImmutableList.toImmutableList());
             this.size = problems.size();
         }
 
@@ -109,6 +112,43 @@ public class WorkValidationException extends GradleException {
                 formatter.node(explanation);
             }
             return new WorkValidationException(formatter.toString(), ImmutableList.copyOf(problems));
+        }
+    }
+
+    /**
+     * This function can build a formatted String summarizing a list of problems with a
+     * {@link UnitOfWork} or {@link Task}.
+     */
+    public static class ValidationErrorSummarizer implements Function<Builder.SummaryHelper, String> {
+        private final String validatedObjectName;
+        private final WorkValidationContext validationContext;
+
+        public ValidationErrorSummarizer(UnitOfWork work, WorkValidationContext validationContext) {
+            this.validatedObjectName = work.getDisplayName();
+            this.validationContext = validationContext;
+        }
+
+        public ValidationErrorSummarizer(Task task, WorkValidationContext validationContext) {
+            this.validatedObjectName = String.format("task '%s'", task.getPath());
+            this.validationContext = validationContext;
+        }
+
+        @Override
+        public String apply(Builder.SummaryHelper helper) {
+            return String.format("%s found with the configuration of %s (%s).",
+                    helper.size() == 1 ? "A problem was" : "Some problems were",
+                    validatedObjectName,
+                    describeTypesChecked(validationContext.getValidatedTypes()));
+        }
+
+        private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
+            return types.size() == 1
+                    ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
+                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+        }
+
+        private String getTypeDisplayName(Class<?> type) {
+            return ModelType.of(type).getDisplayName();
         }
     }
 }

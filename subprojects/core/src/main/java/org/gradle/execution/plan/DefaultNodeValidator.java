@@ -22,7 +22,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.execution.steps.ValidationErrorSummarizer;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -80,8 +79,7 @@ public class DefaultNodeValidator implements NodeValidator {
                 .collect(ImmutableSet.toImmutableSet());
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
-                    .limitTo(WorkValidationException.MAX_ERR_COUNT)
-                    .withSummary(new ValidationErrorSummarizer(task, validationContext))
+                    .withSummary(new WorkValidationException.ValidationErrorSummarizer(task, validationContext))
                     .get();
         }
     }
