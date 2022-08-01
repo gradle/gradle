@@ -29,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -278,12 +279,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         buildFile << """
             compileJava {
-                options.forkOptions.javaHome = file("${jdkMetadata.javaHome}")
+                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdkMetadata.javaHome.toString())}")
             }
         """
 
         file("src/main/java/Foo.java") << """
-            public class Foo { }
+            public class Foo {}
         """
 
         def task = ":compileJava"
@@ -309,12 +310,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         buildFile << """
             compileJava {
-                options.forkOptions.javaHome = file("${jdkMetadata2.javaHome}")
+                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdkMetadata2.javaHome.toString())}")
             }
         """
 
         file("src/main/java/Foo.java") << """
-            public class Foo { }
+            public class Foo {}
         """
 
         def task = ":compileJava"
@@ -460,7 +461,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         configureToolchainViaJavaPlugin(jdkMetadata)
 
         file("src/main/java/Foo.java") << """
-            public class Foo extends Oops { }
+            public class Foo extends Oops {}
         """
 
         when:
@@ -507,7 +508,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             /**
              * This is a {@link Oops} class.
              */
-            public class Foo { }
+            public class Foo {}
         """
 
         when:
@@ -539,7 +540,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         then:
         events.size() == 0
-        output.contains(jdkMetadata.javaHome.toAbsolutePath().toString())
+        output.contains(jdkMetadata.javaHome.toString())
     }
 
     private TestFile configureToolchainPerTask(JvmInstallationMetadata jdkMetadata) {
