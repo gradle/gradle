@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.execution.WorkValidationException
 
 class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec {
     def "using @Input annotation on #elementType file elements fails validation with helpful error message"() {
@@ -55,6 +56,8 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         result.assertHasErrorOutput("1. Annotate with @InputFile for regular files.")
         result.assertHasErrorOutput("2. Annotate with @InputFiles for collections of files.")
         result.assertHasErrorOutput(". If you want to track the path, return File.absolutePath as a String and keep @Input.")
+        result.assertTaskNotExecuted('myTask')
+        result.assertHasErrorOutput(WorkValidationException.class.getTypeName())
 
         where:
         elementType             | elementName   | elementInitialization                                                             | elementRead
@@ -93,6 +96,8 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         result.assertHasErrorOutput("- Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'.")
         result.assertHasErrorOutput("Reason: A property of type '$elementType' annotated with @Input cannot determine how to interpret the file.")
         result.assertHasErrorOutput("Possible solution: Annotate with @InputDirectory for directories.")
+        result.assertTaskNotExecuted('myTask')
+        result.assertHasErrorOutput(WorkValidationException.class.getTypeName())
 
         where:
         elementType         | elementName   | elementInitialization                                                 | elementRead
