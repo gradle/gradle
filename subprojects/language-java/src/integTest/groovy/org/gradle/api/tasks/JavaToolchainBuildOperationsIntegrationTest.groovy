@@ -34,7 +34,7 @@ import spock.lang.Issue
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
-    static KGP_LATEST_STABLE_VERSIONS = new KotlinGradlePluginVersions().latests.findAll { !it.contains("-") }
+    static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -305,7 +305,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     def "emits toolchain usages for compilation that configures java home via fork options pointing outside installations"() {
         JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
-        JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildFile << """
             compileJava {
@@ -385,10 +385,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     @ToBeFixedForConfigurationCache(because = "Kotlin plugin extracts metadata from the JavaLauncher and wraps it into a custom property")
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    def "emits toolchain usages when configuring toolchains for Kotlin plugin '#kotlinPlugin' for '#task' task"() {
+    def "emits toolchain usages when configuring toolchains for Kotlin plugin '#kotlinPlugin'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
-        def kotlinPluginVersion = kotlinPlugin == "latest" ? KGP_LATEST_STABLE_VERSIONS.last() : latestKotlinPluginVersion(kotlinPlugin)
+        def kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestKotlinPluginVersion(kotlinPlugin)
 
         // override setup
         buildFile.text = """
@@ -425,30 +425,31 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallation(jdkMetadata, task)
-        def events = toolchainEvents(task)
+        runWithInstallation(jdkMetadata, ":compileKotlin", ":test")
+        def eventsOnCompile = toolchainEvents(":compileKotlin")
+        def eventsOnTest = toolchainEvents(":test")
         then:
-        executedAndNotSkipped(task)
+        executedAndNotSkipped(":compileKotlin", ":test")
         // The tool is a launcher, because kotlin runs own compilation in a Java VM
-        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
-
-        when:
-        runWithInstallation(jdkMetadata, task)
-        events = toolchainEvents(task)
-        then:
-        skipped(task)
-        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
-
-        where:
-        kotlinPlugin | task
-        "latest"     | ":compileKotlin"
-        "1.7"        | ":compileKotlin"
-        "1.6"        | ":compileKotlin"
+        assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         // Even though we only configure the toolchain within the `kotlin` block,
         // it actually affects the java launcher selected by the test task.
-        "latest"     | ":test"
-        "1.7"        | ":test"
-        "1.6"        | ":test"
+        assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
+
+        when:
+        runWithInstallation(jdkMetadata, ":compileKotlin", ":test")
+        eventsOnCompile = toolchainEvents(":compileKotlin")
+        eventsOnTest = toolchainEvents(":test")
+        then:
+        skipped(":compileKotlin", ":test")
+        assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
+        assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
+
+        where:
+        kotlinPlugin | _
+        "latest"     | _
+        "1.7"        | _
+        "1.6"        | _
     }
 
     def "emits toolchain usages when task fails for 'compileJava' task"() {
@@ -644,6 +645,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     private String latestKotlinPluginVersion(String major) {
-        return KGP_LATEST_STABLE_VERSIONS.findAll { it.startsWith(major) }.last()
+        return kgpLatestVersions.findAll { it.startsWith(major) }.last()
     }
 }
