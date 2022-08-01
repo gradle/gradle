@@ -218,7 +218,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                 .collect(ImmutableSet.toImmutableSet());
         throw WorkValidationException.forProblems(uniqueErrors)
-                .withSummary(new WorkValidationException.ValidationErrorSummarizer(work, validationContext))
+                .withSummaryForContext(work.getDisplayName(), validationContext)
                 .get();
     }
 

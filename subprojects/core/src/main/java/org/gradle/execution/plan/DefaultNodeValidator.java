@@ -79,7 +79,7 @@ public class DefaultNodeValidator implements NodeValidator {
                 .collect(ImmutableSet.toImmutableSet());
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
-                    .withSummary(new WorkValidationException.ValidationErrorSummarizer(task, validationContext))
+                    .withSummaryForContext(task.toString(), validationContext)
                     .get();
         }
     }

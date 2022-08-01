@@ -19,7 +19,6 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.type.ModelType;
@@ -52,38 +51,70 @@ public class WorkValidationException extends GradleException {
         return new Builder(problems);
     }
 
-    public static class Builder {
+    /**
+     * A Stepwise builder for a {@code WorkValidationException}.
+     *
+     * This class represents step 1, call {@link #withSummaryForContext(String, WorkValidationContext)} or {@link #withSummaryForPlugin()} to return Step 2.
+     */
+    public final static class Builder {
         private final List<String> problems;
-        private final int size;
 
         public Builder(Collection<String> problems) {
             this.problems = problems.stream().limit(MAX_ERR_COUNT).collect(ImmutableList.toImmutableList());
-            this.size = problems.size();
         }
 
         public Builder limitTo(int maxProblems) {
             return new Builder(problems.stream().limit(maxProblems).collect(Collectors.toList()));
         }
 
-        public BuilderWithSummary withSummary(Function<SummaryHelper, String> summaryBuilder) {
-            return new BuilderWithSummary(problems, summaryBuilder.apply(new SummaryHelper()));
+        public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
+            ValidationErrorSummarizer summarizer = new ValidationErrorSummarizer(validatedObjectName, validationContext);
+            return new BuilderWithSummary(problems, summarizer.apply(problems));
         }
 
-        public class SummaryHelper  {
-            public int size() {
-                return size;
+        public BuilderWithSummary withSummaryForPlugin() {
+            String summary = "Plugin validation failed with " + problems.size() + " problem" + (problems.size() == 1 ? "" : "s");
+            return new BuilderWithSummary(problems, summary);
+        }
+
+        /**
+         * This function can build a formatted String summarizing a list of problems.
+         */
+        public static final class ValidationErrorSummarizer implements Function<List<String>, String> {
+            private final String validatedObjectName;
+            private final WorkValidationContext validationContext;
+
+            public ValidationErrorSummarizer(String validatedObjectName, WorkValidationContext validationContext) {
+                this.validatedObjectName = validatedObjectName;
+                this.validationContext = validationContext;
             }
 
-            public String pluralize(String term) {
-                if (size > 1) {
-                    return term + "s";
-                }
-                return term;
+            @Override
+            public String apply(List<String> problems) {
+                return String.format("%s found with the configuration of %s (%s).",
+                        problems.size() == 1 ? "A problem was" : "Some problems were",
+                        validatedObjectName,
+                        describeTypesChecked(validationContext.getValidatedTypes()));
+            }
+
+            private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
+                return types.size() == 1
+                        ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
+                        : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+            }
+
+            private String getTypeDisplayName(Class<?> type) {
+                return ModelType.of(type).getDisplayName();
             }
         }
     }
 
-    public static class BuilderWithSummary {
+    /**
+     * A builder for a {@code WorkValidationException} that has a summary attached.
+     *
+     * The {@link WorkValidationException#Builder} class is a Stepwise builder, this is step 2.
+     */
+    public final static class BuilderWithSummary {
         private final List<String> problems;
         private final String summary;
 
@@ -112,43 +143,6 @@ public class WorkValidationException extends GradleException {
                 formatter.node(explanation);
             }
             return new WorkValidationException(formatter.toString(), ImmutableList.copyOf(problems));
-        }
-    }
-
-    /**
-     * This function can build a formatted String summarizing a list of problems with a
-     * {@link UnitOfWork} or {@link Task}.
-     */
-    public static class ValidationErrorSummarizer implements Function<Builder.SummaryHelper, String> {
-        private final String validatedObjectName;
-        private final WorkValidationContext validationContext;
-
-        public ValidationErrorSummarizer(UnitOfWork work, WorkValidationContext validationContext) {
-            this.validatedObjectName = work.getDisplayName();
-            this.validationContext = validationContext;
-        }
-
-        public ValidationErrorSummarizer(Task task, WorkValidationContext validationContext) {
-            this.validatedObjectName = task.toString(); //String.format("task '%s'", task.getPath());
-            this.validationContext = validationContext;
-        }
-
-        @Override
-        public String apply(Builder.SummaryHelper helper) {
-            return String.format("%s found with the configuration of %s (%s).",
-                    helper.size() == 1 ? "A problem was" : "Some problems were",
-                    validatedObjectName,
-                    describeTypesChecked(validationContext.getValidatedTypes()));
-        }
-
-        private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-            return types.size() == 1
-                    ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
-                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
-        }
-
-        private String getTypeDisplayName(Class<?> type) {
-            return ModelType.of(type).getDisplayName();
         }
     }
 }
