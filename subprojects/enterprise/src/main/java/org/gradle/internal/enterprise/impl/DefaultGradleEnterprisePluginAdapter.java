@@ -72,13 +72,6 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     }
 
     @Override
-    public void executionPhaseStarted() {
-        if (pluginService != null) {
-            pluginService.executionPhaseStarted();
-        }
-    }
-
-    @Override
     public void buildFinished(@Nullable Throwable buildFailure) {
         if (pluginService != null) {
             pluginService.getEndOfBuildListener().buildFinished(new GradleEnterprisePluginEndOfBuildListener.BuildResult() {
