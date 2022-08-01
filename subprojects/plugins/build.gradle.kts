@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("info.solidsoft.pitest").version("1.7.4")
 }
 
 dependencies {
@@ -62,11 +63,15 @@ dependencies {
     testFixturesImplementation(libs.guava)
 
     integTestImplementation(testFixtures(project(":model-core")))
+//    testImplementation(testFixtures(project(":model-core")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+//    testImplementation(project(":distributions-jvm"))
+
+    testImplementation(libs.piTest)
 }
 
 strictCompile {
@@ -82,3 +87,33 @@ integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)
 
 description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""
+
+pitest {
+    verbose.set(true)
+
+    excludedTestClasses.set(setOf(
+            "org.gradle.jvm.GeneratedSourcesDirectorySetContributorIntegrationTest",
+            "org.gradle.java.compile.NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
+            "org.gradle.java.JavaCrossCompilationIntegrationTest"
+    ))
+
+//  It's NOT this    jvmArgs.set(setOf("-Dorg.gradle.integtest.executer=embedded"))
+// or this    mainProcessJvmArgs.set(setOf("-Dorg.gradle.integtest.executer=embedded"))
+    mainProcessJvmArgs.set(setOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"))
+
+    //testSourceSets.set(setOf(sourceSets.getByName("test")))
+    testSourceSets.set(setOf(sourceSets.getByName("integTest")))
+
+    junit5PluginVersion.set("1.0.0")
+    targetClasses.set(setOf("org.gradle.*"))  //by default "${project.group}.*"
+    pitestVersion.set("1.9.3") //not needed when a default PIT version should be used
+    threads.set(8)
+    outputFormats.set(setOf("XML", "HTML"))
+
+    exportLineCoverage.set(true)
+    timestampedReports.set(false) // disable placing PIT reports in time-based subfolders for reproducibility
+
+    // Allows for incrementatlly running mutation testing
+    historyInputLocation.set(project.layout.buildDirectory.file("pit-history"))
+    historyOutputLocation.set(project.layout.buildDirectory.file("pit-history"))
+}
