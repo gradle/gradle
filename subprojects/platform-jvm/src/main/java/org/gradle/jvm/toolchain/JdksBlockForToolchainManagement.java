@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.toolchain.management;
+package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 
 /**
- * TODO (#21082): docs
+ * //TODO (#21082): docs
  *
  * @since 7.6
  */
 @Incubating
-public interface ToolchainManagementSpec extends ExtensionAware {
+public interface JdksBlockForToolchainManagement extends ExtensionAware {
 
-    // TODO (#21082): should this really be empty? feels weird...
+    //TODO (#21082): name is probably not ok
     // TODO (#21082): should it be ExtensionAware or only its implementation do that?
+
+    void request(String... registrationNames); //TODO (#21082): not how it should work in the final version, it should take a configuration block
+
+    void request(JavaToolchainRepositoryRegistration... registrations); //TODO (#21082): not how it should work in the final version, it should take a configuration block
+
 }

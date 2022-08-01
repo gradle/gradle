@@ -19,29 +19,28 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 
-import javax.inject.Inject;
-
-public abstract class DefaultToolchainManagementSpec implements ToolchainManagementSpecInternal, JavaToolchainRepositoryRegistrationListener, Stoppable {
+public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, JavaToolchainRepositoryRegistrationListener, Stoppable {
 
     private final JavaToolchainRepositoryRegistryInternal registry;
 
     private final ListenerManager listenerManager;
 
-    @Inject
-    public DefaultToolchainManagementSpec(JavaToolchainRepositoryRegistryInternal registry, ListenerManager listenerManager) {
-        this.registry = registry;
+    public DefaultJdksBlockForToolchainManagement(JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {
+        this.registry = (JavaToolchainRepositoryRegistryInternal) registry;
         this.listenerManager = listenerManager;
         listenerManager.addListener(this);
     }
 
     @Override
-    public void jdks(String... registrationNames) {
+    public void request(String... registrationNames) { //TODO (#21082): not how it should work in the final version, it should take a configuration block
         registry.request(registrationNames);
     }
 
     @Override
-    public void jdks(JavaToolchainRepositoryRegistration... registrations) {
+    public void request(JavaToolchainRepositoryRegistration... registrations) { //TODO (#21082): not how it should work in the final version, it should take a configuration block
         registry.request(registrations);
     }
 
@@ -52,7 +51,7 @@ public abstract class DefaultToolchainManagementSpec implements ToolchainManagem
 
     @Override
     public void stop() {
-        listenerManager.removeListener(this);
+        listenerManager.removeListener(this); //TODO (#21082): is this being called now, after latest changes?
     }
 
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.FileLockManager;
+import org.gradle.initialization.DefaultToolchainManagementSpec;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
@@ -36,7 +37,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainManagementSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
@@ -50,7 +51,6 @@ import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.ToolchainManagementSpecInternal;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.FileDownloader;
@@ -67,8 +67,8 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, registrationBroadcaster);
         }
 
-        protected ToolchainManagementSpecInternal createToolchainManagementSpecInternal(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {
-            return objectFactory.newInstance(DefaultToolchainManagementSpec.class, registry, listenerManager);
+        protected DefaultJdksBlockForToolchainManagement createToolchainManagementSpecInternal(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {
+            return objectFactory.newInstance(DefaultJdksBlockForToolchainManagement.class, registry, listenerManager);
         }
 
         protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
@@ -77,6 +77,11 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
         protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
             return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, executor, os);
+        }
+
+        protected DefaultToolchainManagementSpec createToolchainManagementSpec(ObjectFactory objectFactory) {
+            return objectFactory.newInstance(DefaultToolchainManagementSpec.class); //TODO (#21082): definitely not the right place to create it, this needs to be in Core
+
         }
 
     }

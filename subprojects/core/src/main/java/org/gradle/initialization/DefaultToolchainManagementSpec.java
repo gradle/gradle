@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.initialization;
 
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 
-public interface ToolchainManagementSpecInternal extends ToolchainManagementSpec, ExtensionAware {
+public abstract class DefaultToolchainManagementSpec implements ToolchainManagementSpec {
 }

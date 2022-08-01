@@ -77,8 +77,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
-    private final ToolchainManagementSpec toolchainManagementSpec;
-
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -99,7 +97,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
-        this.toolchainManagementSpec = services.get(ToolchainManagementSpec.class);
     }
 
     @Override
@@ -390,7 +387,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     @Inject
     public ToolchainManagementSpec getToolchainManagement() {
-        return toolchainManagementSpec;
+        throw new UnsupportedOperationException();
     }
 
     @Override
