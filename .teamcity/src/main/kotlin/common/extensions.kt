@@ -19,11 +19,9 @@ package common
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
-import configurations.checkCleanAndroidUserHomeScriptUnixLike
-import configurations.checkCleanAndroidUserHomeScriptWindows
+import configurations.checkCleanDirUnixLike
+import configurations.checkCleanDirWindows
 import configurations.enablePullRequestFeature
-import configurations.m2CleanScriptUnixLike
-import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -159,7 +157,11 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX) {
     script {
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent = if (os == Os.WINDOWS) m2CleanScriptWindows + checkCleanAndroidUserHomeScriptWindows else m2CleanScriptUnixLike + checkCleanAndroidUserHomeScriptUnixLike
+        scriptContent = if (os == Os.WINDOWS) {
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android")
+        } else {
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android")
+        }
     }
 }
 

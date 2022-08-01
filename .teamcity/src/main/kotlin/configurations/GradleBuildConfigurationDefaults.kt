@@ -24,8 +24,8 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
 
-val m2CleanScriptUnixLike = """
-    REPO=%teamcity.agent.jvm.user.home%/.m2/repository
+fun checkCleanDirUnixLike(dir: String) = """
+    REPO=$dir
     if [ -e ${'$'}REPO ] ; then
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
@@ -37,33 +37,13 @@ val m2CleanScriptUnixLike = """
 
 """.trimIndent()
 
-val m2CleanScriptWindows = """
-    IF exist %teamcity.agent.jvm.user.home%\.m2\repository (
-        TREE %teamcity.agent.jvm.user.home%\.m2\repository
-        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.m2\repository
+fun checkCleanDirWindows(dir: String) = """
+    IF exist $dir (
+        TREE $dir
+        RMDIR /S /Q $dir
         EXIT 1
     )
 
-""".trimIndent()
-
-val checkCleanAndroidUserHomeScriptUnixLike = """
-    ANDROID_USER_HOME=%teamcity.agent.jvm.user.home%/.android
-    if [ -e ${'$'}ANDROID_USER_HOME ] ; then
-        tree ${'$'}ANDROID_USER_HOME
-        rm -rf ${'$'}ANDROID_USER_HOME
-        echo "${'$'}ANDROID_USER_HOME was polluted during the build"
-        # exit 1
-    else
-        echo "${'$'}ANDROID_USER_HOME does not exist"
-    fi
-""".trimIndent()
-
-val checkCleanAndroidUserHomeScriptWindows = """
-    IF exist %teamcity.agent.jvm.user.home%\.android (
-        TREE %teamcity.agent.jvm.user.home%\.android
-        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.android
-        REM EXIT 1
-    )
 """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
