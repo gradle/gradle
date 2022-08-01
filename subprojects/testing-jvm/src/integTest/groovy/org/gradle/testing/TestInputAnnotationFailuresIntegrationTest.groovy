@@ -19,83 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec {
-    def "using @Input annotation on #fieldType file fields fails validation with helpful error message"() {
-        given:
-        buildFile << """
-            import groovy.transform.CompileStatic
-
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            abstract class MyTask extends DefaultTask {
-                @Input
-                $fieldInitialization
-
-                @TaskAction
-                void action() {
-                    logger.warn("Input file: {}", $fieldRead)
-                }
-            }
-
-            tasks.register('myTask', MyTask)
-        """
-
-        expect:
-        fails 'myTask'
-        result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
-        result.assertHasErrorOutput("- Type 'MyTask' property 'myField' has @Input annotation used on property of type '$fieldType'.")
-        result.assertHasErrorOutput("Reason: A property of type '$fieldType' annotated with @Input cannot determine how to interpret the file.")
-        result.assertHasErrorOutput("Possible solutions:")
-        result.assertHasErrorOutput("1. Annotate with @InputFile for regular files.")
-        result.assertHasErrorOutput("2. Annotate with @InputFiles for collections of files.")
-        result.assertHasErrorOutput(". If you want to track the path, return File.absolutePath as a String and keep @Input.")
-
-        where:
-        fieldType       | fieldInitialization                                                               | fieldRead
-        'File'          | "File myField = project.layout.projectDirectory.file('myFile.txt').getAsFile()"   | 'myField.absolutePath'
-        'RegularFile'   | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"        | 'myField.getAsFile().absolutePath'
-    }
-
-    def "using @Input annotation on #fieldType directory fields fails validation with helpful error message"() {
-        given:
-        buildFile << """
-            import groovy.transform.CompileStatic
-
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            abstract class MyTask extends DefaultTask {
-                @Input
-                $fieldInitialization
-
-                @TaskAction
-                void action() {
-                    logger.warn("Input file: {}", $fieldRead)
-                }
-            }
-
-            tasks.register('myTask', MyTask)
-        """
-
-        expect:
-        fails 'myTask'
-        result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
-        result.assertHasErrorOutput("- Type 'MyTask' property 'myField' has @Input annotation used on property of type '$fieldType'.")
-        result.assertHasErrorOutput("Reason: A property of type '$fieldType' annotated with @Input cannot determine how to interpret the file.")
-        result.assertHasErrorOutput("Possible solution: Annotate with @InputDirectory for directories.")
-
-        where:
-        fieldType     | fieldInitialization                                                         | fieldRead
-       'Directory'    | "Directory myField = project.layout.projectDirectory.dir('myDir')"          | 'myField.getAsFile().absolutePath'
-    }
-
-    def "using @Input annotation on #propertyType file property fails validation with helpful error message"() {
+    def "using @Input annotation on #elementType file elements fails validation with helpful error message"() {
         given:
         buildFile << """
             import groovy.transform.CompileStatic
@@ -111,11 +35,11 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
                 public abstract ObjectFactory getObjectFactory()
 
                 @Input
-                $propertyInitialization
+                $elementInitialization
 
                 @TaskAction
                 void action() {
-                    logger.warn("Input file: {}", $propertyRead)
+                    logger.warn("Input file: {}", $elementRead)
                 }
             }
 
@@ -125,16 +49,55 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         expect:
         fails 'myTask'
         result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
-        result.assertHasErrorOutput("- Type 'MyTask' property 'myProp' has @Input annotation used on property of type '$propertyType'.")
-        result.assertHasErrorOutput("Reason: A property of type '$propertyType' annotated with @Input cannot determine how to interpret the file.")
+        result.assertHasErrorOutput("- Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'.")
+        result.assertHasErrorOutput("Reason: A property of type '$elementType' annotated with @Input cannot determine how to interpret the file.")
         result.assertHasErrorOutput("Possible solutions:")
         result.assertHasErrorOutput("1. Annotate with @InputFile for regular files.")
         result.assertHasErrorOutput("2. Annotate with @InputFiles for collections of files.")
         result.assertHasErrorOutput(". If you want to track the path, return File.absolutePath as a String and keep @Input.")
 
         where:
-        propertyType            | propertyInitialization                                                                | propertyRead
-        "RegularFileProperty"   | "abstract RegularFileProperty getMyProp()"                                            | "myProp.getAsFile().get().absolutePath"
+        elementType             | elementName   | elementInitialization                                                             | elementRead
+        'File'                  | 'myField'     | "File myField = project.layout.projectDirectory.file('myFile.txt').getAsFile()"   | 'myField.absolutePath'
+        'RegularFile'           | 'myField'     | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"        | 'myField.getAsFile().absolutePath'
+        'RegularFileProperty'   | 'myProp'      | 'abstract RegularFileProperty getMyProp()'                                        | 'myProp.getAsFile().get().absolutePath'
+    }
+
+    def "using @Input annotation on #elementType directory elements fails validation with helpful error message"() {
+        given:
+        buildFile << """
+            import groovy.transform.CompileStatic
+
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            abstract class MyTask extends DefaultTask {
+                @Input
+                $elementInitialization
+
+                @TaskAction
+                void action() {
+                    logger.warn("Input file: {}", $elementRead)
+                }
+            }
+
+            tasks.register('myTask', MyTask)
+        """
+
+        expect:
+        fails 'myTask'
+        result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
+        result.assertHasErrorOutput("- Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'.")
+        result.assertHasErrorOutput("Reason: A property of type '$elementType' annotated with @Input cannot determine how to interpret the file.")
+        result.assertHasErrorOutput("Possible solution: Annotate with @InputDirectory for directories.")
+
+        where:
+        elementType         | elementName   | elementInitialization                                                 | elementRead
+       'Directory'          | 'myField'     | "Directory myField = project.layout.projectDirectory.dir('myDir')"    | 'myField.getAsFile().absolutePath'
+        "DirectoryProperty" | 'myProp'      | "abstract DirectoryProperty getMyProp()"                              | "myProp.getAsFile().get().absolutePath"
     }
 
     def "using @Input annotation on #propertyType file properties succeeds"() {
@@ -172,41 +135,5 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         where:
         propertyType            | propertyInitialization                                                        | propertyAssignment                                                        | propertyRead
         "Property<File>"        | "final Property<File> myProp = getObjectFactory().property(File.class)"       | "myProp.set(project.layout.projectDirectory.file('myFile').getAsFile())"  | 'myProp.get().absolutePath'
-    }
-
-    def "using @Input annotation on #propertyType directory properties fails with helpful error message"() {
-        given:
-        buildFile << """
-            import groovy.transform.CompileStatic
-
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            abstract class MyTask extends DefaultTask {
-                @Input
-                $propertyInitialization
-
-                @TaskAction
-                void action() {
-                    logger.warn("Input file: {}", $propertyRead)
-                }
-            }
-
-            tasks.register('myTask', MyTask)
-        """
-
-        expect:
-        fails 'myTask'
-        result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
-        result.assertHasErrorOutput("- Type 'MyTask' property 'myProp' has @Input annotation used on property of type '$propertyType'.")
-        result.assertHasErrorOutput("Reason: A property of type '$propertyType' annotated with @Input cannot determine how to interpret the file.")
-        result.assertHasErrorOutput("Possible solution: Annotate with @InputDirectory for directories.")
-
-        where:
-        propertyType            | propertyInitialization                        | propertyRead
-        "DirectoryProperty"     | "abstract DirectoryProperty getMyProp()"      | "myProp.getAsFile().get().absolutePath"
     }
 }
