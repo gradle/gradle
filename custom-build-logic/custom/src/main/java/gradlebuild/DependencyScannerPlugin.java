@@ -16,15 +16,24 @@
 
 package gradlebuild;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.TaskProvider;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 
 public abstract class DependencyScannerPlugin implements Plugin<Project> {
@@ -52,7 +61,7 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
 
         // Per-project config:
         dependencyAnalysis.getDependencies().add(
-            project.getDependencies().project(Collections.singletonMap("path", ":testing-base")));
+            project.getDependencies().project(Collections.singletonMap("path", ":testing-jvm")));
 
         // For some reason the platform dependency isn't inherited from the project dependency.
         dependencyAnalysis.getDependencies().add(project.getDependencies().platform(
@@ -84,6 +93,14 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
         TaskProvider<DependencyScannerTask> scanOutputs = project.getTasks().register("scanOutputs", DependencyScannerTask.class, task -> {
             task.getAnalyzedClasspath().set(dependencyAnalysisClasspath);
         });
+
+        TaskProvider<Exec> viz = project.getTasks().register("graphviz", Exec.class, task -> {
+            task.args("-Tsvg", "-o",
+                project.getLayout().getBuildDirectory().file("graph.svg").get().getAsFile().getAbsolutePath(),
+                scanOutputs.get().getOutputFile().get().getAsFile().getAbsolutePath());
+            task.executable("/opt/homebrew/bin/dot");
+        });
+        viz.get().dependsOn(scanOutputs);
 
 //        scanOutputs.get().dependsOn(main.getCompileTaskName("java"));
     }
