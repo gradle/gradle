@@ -129,7 +129,7 @@ public class WorkValidationException extends GradleException {
         }
 
         public ValidationErrorSummarizer(Task task, WorkValidationContext validationContext) {
-            this.validatedObjectName = String.format("task '%s'", task.getPath());
+            this.validatedObjectName = task.toString(); //String.format("task '%s'", task.getPath());
             this.validationContext = validationContext;
         }
 
