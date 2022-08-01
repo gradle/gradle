@@ -17,18 +17,19 @@
 package org.gradle.api.toolchain.management;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * TODO (#21082)
+ * TODO (#21082): docs
  *
  * @since 7.6
  */
 @Incubating
 @HasInternalProtocol
-public interface ToolchainManagementSpec {
+public interface ToolchainManagementSpec extends ExtensionAware {
 
-    //TODO (#21082): jdks needs to be a block and needs to be dynamically added by a new Java settings plugin
+    // TODO MAJOR (#21082): jdks needs to be a block and needs to be dynamically added by a new Java settings plugin
 
     void jdks(String... registrationNames);
 

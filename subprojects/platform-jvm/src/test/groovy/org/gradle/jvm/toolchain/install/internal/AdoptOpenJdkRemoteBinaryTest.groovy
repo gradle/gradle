@@ -169,7 +169,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         }
     }
 
-    private class TestAdoptOpenJdkRemoteBinary extends AdoptOpenJdkRemoteBinary { //TODO (#21082): yet another temporary hack
+    private class TestAdoptOpenJdkRemoteBinary extends AdoptOpenJdkRemoteBinary { //TODO (#21082): hack!
 
         private final OperatingSystem operatingSystem;
         private final SystemInfo systemInfo;

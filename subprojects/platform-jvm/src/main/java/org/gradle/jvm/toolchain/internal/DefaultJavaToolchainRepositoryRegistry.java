@@ -56,7 +56,7 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
         this.sharedServices = gradle.getSharedServices();
         this.registrationBroadcaster = registrationBroadcaster;
         register(DEFAULT_REGISTRY_NAME, AdoptOpenJdkRemoteBinary.class); //our default implementation, should go away in 8.0
-        //TODO (#21082): this registration call doesn't add its extension properly.... I guess it's too early
+        //TODO (#21082): this registration call doesn't add its extension properly.... I guess it's too early; has failing test in JavaToolchainDownloadSpiIntegrationTest
     }
 
     @Override

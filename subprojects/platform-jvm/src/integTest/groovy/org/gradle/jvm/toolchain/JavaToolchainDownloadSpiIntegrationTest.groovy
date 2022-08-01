@@ -161,10 +161,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def "it is possible to explicitly request the default registry"() {
+    def "it is possible to explicitly request the default registry via name"() {
         settingsFile << """
             toolchainManagement {
-                jdks("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")
+                $jdksRequest
             }
         """
 
@@ -188,11 +188,15 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 .runWithFailure()
 
         then:
-
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
                 .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
+
+        where:
+        jdksRequest | _
+        """jdks("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")""" | _
+        """jdks(${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME})"""   | _
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
