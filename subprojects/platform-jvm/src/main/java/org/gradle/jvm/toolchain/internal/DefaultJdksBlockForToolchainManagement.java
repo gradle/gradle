@@ -35,13 +35,13 @@ public abstract class DefaultJdksBlockForToolchainManagement implements JdksBloc
     }
 
     @Override
-    public void request(String... registrationNames) { //TODO (#21082): not how it should work in the final version, it should take a configuration block
-        registry.request(registrationNames);
+    public void add(String registrationName) {
+        registry.request(registrationName);
     }
 
     @Override
-    public void request(JavaToolchainRepositoryRegistration... registrations) { //TODO (#21082): not how it should work in the final version, it should take a configuration block
-        registry.request(registrations);
+    public void add(JavaToolchainRepositoryRegistration registration) {
+        registry.request(registration);
     }
 
     @Override

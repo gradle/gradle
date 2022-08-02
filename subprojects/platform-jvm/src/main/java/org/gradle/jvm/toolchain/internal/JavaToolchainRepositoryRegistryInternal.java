@@ -24,9 +24,17 @@ import java.util.List;
 
 public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
 
-    void request(String... registrationNames);
+    /**
+     * Look up a registration by name and, if found, add it to the ordered list of explicitly requested registrations.
+     *
+     * If not found, throw a GradleException.
+     */
+    void request(String registrationName);
 
-    void request(JavaToolchainRepositoryRegistration... registrations);
+    /**
+     * Add a registration to the ordered list of explicitly requested ones.
+     */
+    void request(JavaToolchainRepositoryRegistration registration);
 
     boolean hasExplicitRequests();
 
