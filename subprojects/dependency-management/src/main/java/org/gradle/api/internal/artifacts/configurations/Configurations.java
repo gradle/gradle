@@ -47,8 +47,4 @@ public class Configurations {
         }
         return out;
     }
-
-    public static String uploadTaskName(String configurationName) {
-        return "upload" + StringUtils.capitalize(configurationName);
-    }
 }
