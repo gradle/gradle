@@ -391,7 +391,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public void toolchainManagement(Action<? super ToolchainManagementSpec> rule) {
-        rule.execute(getToolchainManagement());
+    public void toolchainManagement(Action<? super ToolchainManagementSpec> toolchainManagementSpecConfiguration) {
+        toolchainManagementSpecConfiguration.execute(getToolchainManagement());
     }
 }

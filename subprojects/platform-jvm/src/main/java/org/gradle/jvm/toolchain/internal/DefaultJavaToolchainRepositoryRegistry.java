@@ -29,7 +29,6 @@ import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -73,18 +72,17 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public void request(String... registrationNames) {
-        validateNames(registrationNames);
-        requests.addAll(Arrays.stream(registrationNames)
-                .map(registrations::get)
-                .collect(Collectors.toList()));
+    public void request(String registrationName) {
+        JavaToolchainRepositoryRegistrationInternal registration = registrations.get(registrationName);
+        if (registration == null) {
+            throw new GradleException("Unknown Java Toolchain registry: " + registrationName);
+        }
+        request(registration);
     }
 
     @Override
-    public void request(JavaToolchainRepositoryRegistration... registrations) {
-        requests.addAll(Arrays.stream(registrations)
-                .map(registration -> (JavaToolchainRepositoryRegistrationInternal) registration)
-                .collect(Collectors.toList()));
+    public void request(JavaToolchainRepositoryRegistration registration) {
+        requests.add((JavaToolchainRepositoryRegistrationInternal) registration);
     }
 
     @Override
@@ -102,14 +100,6 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
                 .map(JavaToolchainRepositoryRegistrationInternal::getProvider)
                 .map(Provider::get)
                 .collect(Collectors.toList());
-    }
-
-    private void validateNames(String... registryNames) {
-        for (String name : registryNames) {
-            if (!registrations.containsKey(name)) {
-                throw new GradleException("Unknown Java Toolchain registry: " + name);
-            }
-        }
     }
 
 }

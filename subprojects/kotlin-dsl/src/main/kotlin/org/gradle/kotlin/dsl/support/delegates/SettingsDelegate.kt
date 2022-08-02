@@ -96,8 +96,8 @@ abstract class SettingsDelegate : Settings {
     override fun getPluginManagement(): PluginManagementSpec =
         delegate.pluginManagement
 
-    override fun toolchainManagement(toolchainManagementSpec: Action<in ToolchainManagementSpec>) =
-        delegate.toolchainManagement(toolchainManagementSpec)
+    override fun toolchainManagement(toolchainManagementSpecConfiguration: Action<in ToolchainManagementSpec>) =
+        delegate.toolchainManagement(toolchainManagementSpecConfiguration)
 
     override fun getToolchainManagement(): ToolchainManagementSpec =
         delegate.toolchainManagement

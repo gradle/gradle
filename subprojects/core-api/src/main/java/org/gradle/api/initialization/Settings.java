@@ -376,7 +376,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 7.6
      */
     @Incubating
-    void toolchainManagement(Action<? super ToolchainManagementSpec> toolchainManagementSpec);
+    void toolchainManagement(Action<? super ToolchainManagementSpec> toolchainManagementSpecConfiguration);
 
     /**
      * Returns the toolchain management configuration.

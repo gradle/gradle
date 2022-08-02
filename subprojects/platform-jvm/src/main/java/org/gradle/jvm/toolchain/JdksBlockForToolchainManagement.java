@@ -31,8 +31,8 @@ public interface JdksBlockForToolchainManagement extends ExtensionAware {
     //TODO (#21082): name is probably not ok
     // TODO (#21082): should it be ExtensionAware or only its implementation do that?
 
-    void request(String... registrationNames); //TODO (#21082): not how it should work in the final version, it should take a configuration block
+    void add(String registrationName);
 
-    void request(JavaToolchainRepositoryRegistration... registrations); //TODO (#21082): not how it should work in the final version, it should take a configuration block
+    void add(JavaToolchainRepositoryRegistration registration);
 
 }

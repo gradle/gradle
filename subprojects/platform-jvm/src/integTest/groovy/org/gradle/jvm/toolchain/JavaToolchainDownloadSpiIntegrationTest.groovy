@@ -29,7 +29,50 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}               
             toolchainManagement {
-                jdks.request("customRegistry")
+                jdks {
+                    add("customRegistry")
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                    vendor = JvmVendorSpec.matching("exotic")
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: https://exoticJavaToolchain.com/java-99")
+                .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "custom toolchain registries are consulted in order"() {
+        settingsFile << """
+            ${applyToolchainManagementBasePlugin()}
+            ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}
+            ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
+            toolchainManagement {
+                jdks {
+                    add("uselessRegistry")
+                    add("customRegistry")
+                }
             }
         """
 
@@ -66,7 +109,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}            
             toolchainManagement {
-                jdks.request(jdks.customRegistry)
+                jdks {
+                    add(jdks.customRegistry)
+                }
             }
         """
 
@@ -134,7 +179,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
             toolchainManagement {
-                jdks.request("uselessRegistry")
+                jdks {
+                    add("uselessRegistry")
+                }
             }
         """
 
@@ -199,8 +246,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         jdksRequest | _
-        """jdks.request("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")""" | _
-        """jdks.request(jdks.${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME})"""   | _
+        """jdks.add("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")""" | _
+        """jdks.add(jdks.${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME})"""   | _
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -210,7 +257,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry1", uselessToolchainRegistryCode("UselessToolchainRegistry1"))}            
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
             toolchainManagement {
-                jdks.request("uselessRegistry")
+                jdks {
+                    add("uselessRegistry")
+                }
             }
         """
 
