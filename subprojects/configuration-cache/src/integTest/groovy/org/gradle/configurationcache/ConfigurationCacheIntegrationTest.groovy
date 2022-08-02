@@ -96,6 +96,19 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateStored()
     }
 
+    def "configuration cache for help --task on empty project"() {
+        given:
+        settingsFile.createFile()
+        buildFile 'task ok'
+        def fixture = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun "help", "--task", "ok"
+
+        then:
+        fixture.assertNoConfigurationCache()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/18064")
     def "can build plugin with project dependencies"() {
         given:

@@ -54,6 +54,13 @@ public abstract class Help extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    {
+        doNotCacheConfigurationIf(
+            "--task requires access to the Gradle model",
+            task -> ((Help) task).taskPath != null
+        );
+    }
+
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();
