@@ -279,7 +279,6 @@ connection.newTestLauncher()
           .run()
 ```
 
-Note, that the task execution only works if the target Gradle version is >=7.6.
 
 #### Introduced `TestLauncher` Fine-grained test execution 
 
@@ -296,7 +295,6 @@ testLauncher.withTestsFor(spec -> {
 }).run();
 ```
 
-Note, that the new test selection interface only works if the target Gradle version is >=7.6.
 
 
 
