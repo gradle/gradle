@@ -180,6 +180,8 @@ networkTimeout=30000
 
 See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
 
+#### TODO: sdkfjjkdsfj @nathan-contino
+
 ### Command-line improvements
 
 #### Tasks can be re-run selectively 
@@ -209,6 +211,16 @@ gradle myCustomTask --integer-option=123
 ```
 
 ### JVM language support improvements
+
+#### TODO: Java Toolchain auto provisioning SPI @ljacomet
+
+Provides a way for plugins to register a provider of Java Toolchain that will allow auto provisioning for any toolchain specification.
+
+Related issues:
+
+[Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
+
+
 
 #### Java and Groovy incremental compilation after a failure
 
