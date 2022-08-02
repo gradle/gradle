@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
@@ -24,7 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
-
+    @Ignore("Spring boot plugin needs to be updated to handle removal of deprecated Upload task")
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
         given:
