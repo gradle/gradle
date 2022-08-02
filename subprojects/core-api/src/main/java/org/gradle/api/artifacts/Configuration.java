@@ -266,16 +266,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns the name of the task that upload the artifacts of this configuration to repositories
-     * declared by the user.
-     *
-     * @return The name of the associated upload task
-     * @see org.gradle.api.tasks.Upload
-     */
-    @Deprecated
-    String getUploadTaskName();
-
-    /**
      * Returns a {@code TaskDependency} object containing all required dependencies to build the local dependencies
      * (e.g. project dependencies) belonging to this configuration or to one of its super configurations.
      *
