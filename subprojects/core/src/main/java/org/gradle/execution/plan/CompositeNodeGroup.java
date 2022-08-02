@@ -33,6 +33,12 @@ public class CompositeNodeGroup extends HasFinalizers {
         this.reachableFromEntryPoint = reachableFromEntryPoint();
     }
 
+    public CompositeNodeGroup(boolean reachableFromEntryPoint, NodeGroup newOrdinal, Set<FinalizerGroup> finalizerGroups) {
+        this.ordinalGroup = newOrdinal;
+        this.finalizerGroups = finalizerGroups;
+        this.reachableFromEntryPoint = reachableFromEntryPoint;
+    }
+
     @Override
     public String toString() {
         return "composite group, entry point: " + isReachableFromEntryPoint() + " groups: " + finalizerGroups;
@@ -46,7 +52,7 @@ public class CompositeNodeGroup extends HasFinalizers {
 
     @Override
     public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
-        return new CompositeNodeGroup(newOrdinal, finalizerGroups);
+        return new CompositeNodeGroup(reachableFromEntryPoint, newOrdinal, finalizerGroups);
     }
 
     public NodeGroup getOrdinalGroup() {
@@ -87,6 +93,16 @@ public class CompositeNodeGroup extends HasFinalizers {
     @Override
     public Set<FinalizerGroup> getFinalizerGroups() {
         return finalizerGroups;
+    }
+
+    @Override
+    public boolean isCanCancel() {
+        for (FinalizerGroup group : finalizerGroups) {
+            if (!group.isCanCancel()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
