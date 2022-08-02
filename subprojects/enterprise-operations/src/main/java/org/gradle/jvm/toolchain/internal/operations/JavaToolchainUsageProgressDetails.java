@@ -42,20 +42,43 @@ public interface JavaToolchainUsageProgressDetails {
         String getJavaVersion();
 
         /**
-         * Display name of the toolchain vendor such as {@code Eclipse Temurin}.
+         * Returns the display name of the toolchain vendor such as {@code Eclipse Temurin}.
+         * <p>
+         * The value could be normalized for uniformity, and does not necessarily correspond to a system property value.
          */
         String getJavaVendor();
 
+        /**
+         * Returns Java runtime name such as {@code OpenJDK Runtime Environment}.
+         */
         String getRuntimeName();
 
+        /**
+         * Returns Java runtime version such as {@code 17.0.3.1+2-LTS}.
+         */
         String getRuntimeVersion();
 
+        /**
+         * Returns Java VM name such as {@code OpenJDK 64-Bit Server VM}.
+         */
         String getJvmName();
 
+        /**
+         * Returns Java VM version such as {@code 17.0.3.1+2-LTS}.
+         * <p>
+         * This value is identical to {@link #getRuntimeVersion()} for most of the vendors,
+         * but could still differ for example by not including the language version.
+         */
         String getJvmVersion();
 
+        /**
+         * Returns Java VM vendor such as {@code Eclipse Adoptium}.
+         */
         String getJvmVendor();
 
+        /**
+         * Returns OS architecture such as {@code amd64}.
+         */
         String getArchitecture();
 
     }
