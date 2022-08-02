@@ -231,7 +231,7 @@ Related issues:
 
 #### TODO: Enhanceced of the plugin declaration DSL from java-gradle-plugin
 
-This is in the public roadmap but not sure it should be?
+<!-- This is in the public roadmap but not sure it should be? -->
 [Modify bits and pieces of Gradle to accommodate Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
 
 <a name="jvm"></a>
@@ -260,9 +260,10 @@ accepting connections via network on Java 9+.
 
 #### Enhanced test events to distinguish between assertion and framework failures
 
-Gradle 7.6 introduces new failure types for the `Failure` interface returned by [`FailureResult.getFailures()`](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure.
-IDEs can now easily distinguish between different failures using standard progress event listeners.
-Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
+Gradle 7.6 introduces new failure types for the `Failure` interface returned by
+[`FailureResult.getFailures()`](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): `TestAssertionFailure` and `TestFrameworkFailure`.
+IDEs can now distinguish between assertion and framework failures using progress event listeners.
+For test frameworks that expose expected and actual values, `TestAssertionFailure` contains those values.
 
 #### Introduced `TestLauncher` task execution 
 
