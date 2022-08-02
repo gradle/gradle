@@ -28,4 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface JavaToolchainRepositoryRegistration {
+
+    //TODO (#21082): move name & getType here from internal, for querying
+
 }

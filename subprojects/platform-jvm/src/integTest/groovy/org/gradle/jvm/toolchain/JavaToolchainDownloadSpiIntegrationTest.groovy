@@ -110,7 +110,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}            
             toolchainManagement {
                 jdks {
-                    add(jdks.customRegistry)
+                    add(customRegistry)
                 }
             }
         """
@@ -247,7 +247,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         where:
         jdksRequest | _
         """jdks.add("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")""" | _
-        """jdks.add(jdks.${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME})"""   | _
+        """jdks.add(${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME})"""   | _
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")

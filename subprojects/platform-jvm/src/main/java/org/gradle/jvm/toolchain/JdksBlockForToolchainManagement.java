@@ -33,6 +33,8 @@ public interface JdksBlockForToolchainManagement extends ExtensionAware {
 
     void add(String registrationName);
 
-    void add(JavaToolchainRepositoryRegistration registration);
+    void add(JavaToolchainRepositoryRegistration registration); // TODO (#21082): hide the accessors for now behind an internal flag
+
+    //TODO (#21082): offer a method to query all added registrations (name + type)x
 
 }
