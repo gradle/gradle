@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.install.internal
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
@@ -38,7 +37,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
         def uri = binary.toUri(spec).get()
@@ -67,7 +66,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
         def providerFactory = providerFactory(Providers.of(customBaseUrl))
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory)
 
         when:
         def uri = binary.toUri(spec).get()
@@ -85,7 +84,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
 
         when:
@@ -105,7 +104,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
         Optional<URI> uri = binary.toUri(spec)
@@ -124,7 +123,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
         Optional<URI> uri = binary.toUri(spec)
@@ -144,7 +143,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new TestAdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, providerFactory())
 
         when:
         Optional<URI> uri = binary.toUri(spec)
@@ -166,33 +165,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         Mock(ProviderFactory) {
             gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri") >> hostnameProvider
             gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri") >> hostnameProvider
-        }
-    }
-
-    private class TestAdoptOpenJdkRemoteBinary extends AdoptOpenJdkRemoteBinary { //TODO (#21082): hack!
-
-        private final OperatingSystem operatingSystem;
-        private final SystemInfo systemInfo;
-
-        TestAdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, ProviderFactory providerFactory) {
-            super(providerFactory)
-            this.operatingSystem = operatingSystem
-            this.systemInfo = systemInfo
-        }
-
-        @Override
-        protected OperatingSystem operatingSystem() {
-            return operatingSystem;
-        }
-
-        @Override
-        protected SystemInfo systemInfo() {
-            return systemInfo
-        }
-
-        @Override
-        BuildServiceParameters.None getParameters() {
-            return null
         }
     }
 }

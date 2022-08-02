@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -57,7 +56,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: https://exoticJavaToolchain.com/java-99")
                 .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
     }
@@ -208,46 +207,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                 .assertHasCause("No compatible toolchains found for request filter: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download true)")
-    }
-
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def "it is possible to explicitly request the default registry via name"() {
-        settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
-            toolchainManagement {
-                $jdksRequest
-            }
-        """
-
-        buildFile << """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(99)
-                }
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        failure = executer
-                .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir()
-                .withToolchainDownloadEnabled()
-                .runWithFailure()
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
-                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
-
-        where:
-        jdksRequest | _
-        """jdks.add("${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME}")""" | _
-        """jdks.add(${DefaultJavaToolchainRepositoryRegistry.DEFAULT_REGISTRY_NAME})"""   | _
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")

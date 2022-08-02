@@ -25,19 +25,15 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaToolchainRepositoryRegistryInternal {
-
-    public static final String DEFAULT_REGISTRY_NAME = "adoptOpenJdk";
 
     private static final Action<BuildServiceSpec<BuildServiceParameters.None>> EMPTY_CONFIGURE_ACTION = buildServiceSpec -> {
     };
@@ -54,8 +50,6 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     public DefaultJavaToolchainRepositoryRegistry(Gradle gradle, JavaToolchainRepositoryRegistrationListener registrationBroadcaster) {
         this.sharedServices = gradle.getSharedServices();
         this.registrationBroadcaster = registrationBroadcaster;
-        register(DEFAULT_REGISTRY_NAME, AdoptOpenJdkRemoteBinary.class); //our default implementation, should go away in 8.0
-        //TODO (#21082): this registration call doesn't add its extension properly.... I guess it's too early; has failing test in JavaToolchainDownloadSpiIntegrationTest
     }
 
     @Override
@@ -86,16 +80,7 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public boolean hasExplicitRequests() {
-        return !requests.isEmpty();
-    }
-
-    @Override
     public List<JavaToolchainRepository> requestedRepositories() {
-        if (requests.isEmpty()) {
-            return Collections.singletonList(registrations.get(DEFAULT_REGISTRY_NAME).getProvider().get());
-        }
-
         return requests.stream()
                 .map(JavaToolchainRepositoryRegistrationInternal::getProvider)
                 .map(Provider::get)
