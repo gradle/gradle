@@ -39,7 +39,7 @@ import java.util.function.BiFunction;
  *
  * <h1>The provider value</h1>
  *
- * The value of a provider may be:</p>
+ * <p>The value of a provider may be:</p>
  *
  * <ul>
  *     <li>"fixed", which means that the value is a function only of configuration time inputs.
@@ -59,9 +59,12 @@ import java.util.function.BiFunction;
  *
  * <p>See {@link org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue}, which represents these states.</p>
  *
- * <p>The value itself might be "missing", which means there is no value available, or "broken", which means the calculation failed with some exception, or some object.</p>
+ * <p>The value itself might be "missing", which means there is no value available, or "broken", which means the calculation failed with some exception, or some object.
+ * Behavior for broken values is currently provider implementation specific. Some implementations collect the failure and rethrow it each time the value is queried, and
+ * some implementations retry the failed calculation.
+ * </p>
  *
- * <p>Currently these "fixed" and "changing" states have definitions that refer to configuration time and execution time.
+ * <p>Currently the "fixed" and "changing" states have definitions that refer to configuration time and execution time.
  * As these phases gradually become more interleaved, we might generalize these states so that the value is "changing" only until its inputs are known and all such inputs have a "fixed" value.
  * A provider whose inputs are only configuration time inputs would become fixed once the configuration of those inputs has completed. A provider whose inputs include a task output would become
  * fixed once the task has executed. It would become an error to query a provider whose value is still "changing".
@@ -83,9 +86,9 @@ import java.util.function.BiFunction;
  *     </li>
  *     <li>"usable". This is currently somewhat vague, but basically means that if the content is built by some work node, then that work node has already executed.
  *     <p>When a provider returns the value in a usable state, then it will carry dependencies on the work nodes that produce the content. When the value also happens to be calculated from work node outputs,
- *     then the provide will also carry dependencies on the work nodes that produce the value.</p>
- *     </li>
+ *     then the provider will also carry dependencies on the work nodes that produce the value.</p>
  *     <p>In general, a provider that returns the value in a usable state will fail when it is queried before the value is known and the content produced. This constraint isn't 100% implemented everywhere yet.</p>
+ *     </li>
  * </ul>
  *
  * <p>Additional states might be added later, for example, there might be provider implementations that return the "destroyed" content (ie after it has been cleaned/deleted/stopped/uninstalled),
