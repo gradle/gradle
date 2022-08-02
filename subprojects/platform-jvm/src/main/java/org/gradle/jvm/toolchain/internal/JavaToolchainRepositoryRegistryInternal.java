@@ -36,6 +36,7 @@ public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRe
      */
     void request(JavaToolchainRepositoryRegistration registration);
 
-    List<JavaToolchainRepository> requestedRepositories();
+    List<? extends JavaToolchainRepository> requestedRepositories();
 
+    List<? extends JavaToolchainRepositoryRegistration> allRegistrations();
 }

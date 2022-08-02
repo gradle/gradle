@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 
+import java.util.List;
+
 /**
  * //TODO (#21082): docs
  *
@@ -28,13 +30,12 @@ import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 @Incubating
 public interface JdksBlockForToolchainManagement extends ExtensionAware {
 
-    //TODO (#21082): name is probably not ok
     // TODO (#21082): should it be ExtensionAware or only its implementation do that?
 
     void add(String registrationName);
 
     void add(JavaToolchainRepositoryRegistration registration); // TODO (#21082): hide the accessors for now behind an internal flag
 
-    //TODO (#21082): offer a method to query all added registrations (name + type)x
+    List<? extends JavaToolchainRepositoryRegistration> getAll();
 
 }

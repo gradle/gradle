@@ -29,6 +29,8 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 public interface JavaToolchainRepositoryRegistration {
 
-    //TODO (#21082): move name & getType here from internal, for querying
+    String getName();
+
+    String getType();
 
 }

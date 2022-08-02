@@ -21,7 +21,8 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The build level object/service provided by Gradle which Java Toolchain SPI plugins can access
- * and register their JavaToolchainRepository implementations/build services into. //TODO (#21082): more/better docs
+ * and register their JavaToolchainRepository implementations/build services into.
+ * //TODO (#21082): more/better docs
  *
  * @since 7.6
  */
@@ -35,6 +36,6 @@ public interface JavaToolchainRepositoryRegistry {
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
     //TODO (#21082): do we also need a configure action, like we have in BuildServiceRegistry
-    //TODO (#21082): does this method need to be a "registerIfAbsent" instead
+    //TODO (#21082): should this be a "registerIfAbsent" instead of throwing an exception on name collisions? I would say not, but let's think about it
 
 }

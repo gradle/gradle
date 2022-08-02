@@ -23,6 +23,7 @@ import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 
 import javax.inject.Inject;
+import java.util.List;
 
 public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, JavaToolchainRepositoryRegistrationListener, Stoppable {
 
@@ -48,13 +49,18 @@ public abstract class DefaultJdksBlockForToolchainManagement implements JdksBloc
     }
 
     @Override
+    public List<? extends JavaToolchainRepositoryRegistration> getAll() {
+        return registry.allRegistrations();
+    }
+
+    @Override
     public void onRegister(JavaToolchainRepositoryRegistrationInternal registration) {
         getExtensions().add(JavaToolchainRepositoryRegistration.class, registration.getName(), registration);
     }
 
     @Override
     public void stop() {
-        listenerManager.removeListener(this); //TODO (#21082): is this being called now, after latest changes?
+        listenerManager.removeListener(this);
     }
 
 }
