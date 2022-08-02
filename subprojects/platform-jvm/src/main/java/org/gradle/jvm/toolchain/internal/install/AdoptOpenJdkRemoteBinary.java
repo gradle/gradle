@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
-import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -24,50 +23,38 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
-import org.gradle.jvm.toolchain.JavaToolchainSpecVersion;
 
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.Optional;
 
-public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepository {
+public class AdoptOpenJdkRemoteBinary {
 
     private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
     private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
 
+    private final SystemInfo systemInfo;
+    private final OperatingSystem operatingSystem;
     private final Provider<String> adoptOpenJdkRootUrl;
     private final Provider<String> adoptiumRootUrl;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(ProviderFactory providerFactory) {
+    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, ProviderFactory providerFactory) {
+        this.systemInfo = systemInfo;
+        this.operatingSystem = operatingSystem;
         this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    protected OperatingSystem operatingSystem() {
-        return OperatingSystem.current(); //TODO (#21082): hack, can't inject it since turning this class into a build service; should be part of the toolchain spec anyways !
-    }
-
-    protected SystemInfo systemInfo() {
-        return Native.get(SystemInfo.class); //TODO (#21082): hack, can't inject it since turning this class into a build service; should be part of the toolchain spec anyways !
-    }
-
-    @Override
     public Optional<URI> toUri(JavaToolchainSpec spec) {
         if (canProvide(spec)) {
             return Optional.of(constructUri(spec));
         } else {
             return Optional.empty();
         }
-    }
-
-    @Override
-    public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
-        return JavaToolchainSpecVersion.V1;
     }
 
     private boolean canProvide(JavaToolchainSpec spec) {
@@ -119,7 +106,7 @@ public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepositor
     }
 
     private String determineArch() {
-        switch (systemInfo().getArchitecture()) {
+        switch (systemInfo.getArchitecture()) {
             case i386:
                 return "x32";
             case amd64:
@@ -127,18 +114,18 @@ public abstract class AdoptOpenJdkRemoteBinary implements JavaToolchainRepositor
             case aarch64:
                 return "aarch64";
         }
-        return systemInfo().getArchitectureName();
+        return systemInfo.getArchitectureName();
     }
 
     private String determineOs() {
-        if (operatingSystem().isWindows()) {
+        if (operatingSystem.isWindows()) {
             return "windows";
-        } else if (operatingSystem().isMacOsX()) {
+        } else if (operatingSystem.isMacOsX()) {
             return "mac";
-        } else if (operatingSystem().isLinux()) {
+        } else if (operatingSystem.isLinux()) {
             return "linux";
         }
-        return operatingSystem().getFamilyName();
+        return operatingSystem.getFamilyName();
     }
 
     private static String determineReleaseState() {
