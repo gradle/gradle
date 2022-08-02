@@ -32,11 +32,7 @@ public class OrdinalGroupFactory {
     private final List<OrdinalGroup> groups = new ArrayList<>();
 
     public final OrdinalGroup group(int ordinal) {
-        if (ordinal > groups.size()) {
-            throw new IllegalArgumentException("Unexpected group requested");
-        } else if (ordinal == groups.size()) {
-            groups.add(new OrdinalGroup(ordinal));
-        }
+        growTo(ordinal);
         return groups.get(ordinal);
     }
 
@@ -46,5 +42,11 @@ public class OrdinalGroupFactory {
 
     public void reset() {
         groups.clear();
+    }
+
+    private void growTo(int ordinal) {
+        for (int i = groups.size(); i <= ordinal; ++i) {
+            groups.add(new OrdinalGroup(i));
+        }
     }
 }
