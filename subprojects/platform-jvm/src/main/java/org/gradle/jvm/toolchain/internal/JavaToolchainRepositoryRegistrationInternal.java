@@ -27,8 +27,6 @@ import org.gradle.jvm.toolchain.JavaToolchainRepository;
 @Incubating
 public interface JavaToolchainRepositoryRegistrationInternal extends JavaToolchainRepositoryRegistration {
 
-    String getName();
-
     Provider<? extends JavaToolchainRepository> getProvider();
 
 }

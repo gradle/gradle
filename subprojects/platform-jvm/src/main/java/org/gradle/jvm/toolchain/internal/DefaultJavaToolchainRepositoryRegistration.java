@@ -33,7 +33,17 @@ public class DefaultJavaToolchainRepositoryRegistration implements JavaToolchain
         return name;
     }
 
+    @Override
+    public String getType() {
+        return provider.get().getClass().getSimpleName(); //TODO (#21082): ok to have a String containing a JavaToolchainRepository implementation class name here?
+    }
+
     public Provider<? extends JavaToolchainRepository> getProvider() {
         return provider;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(name: " + getName() + ", type: " + getType() + ")";
     }
 }

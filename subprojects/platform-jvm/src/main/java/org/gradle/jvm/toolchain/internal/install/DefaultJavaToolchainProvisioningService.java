@@ -86,7 +86,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             return Optional.empty();
         }
 
-        List<JavaToolchainRepository> repositories = toolchainRepositoryRegistry.requestedRepositories();
+        List<? extends JavaToolchainRepository> repositories = toolchainRepositoryRegistry.requestedRepositories();
 
         if (repositories.isEmpty()) {
             DeprecationLogger.warnOfChangedBehaviour("Starting from Gradle 8.0 there will be no default Java Toolchain Registry.",

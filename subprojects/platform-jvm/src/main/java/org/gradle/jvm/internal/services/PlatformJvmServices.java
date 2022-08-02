@@ -81,8 +81,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         }
 
         protected DefaultToolchainManagementSpec createToolchainManagementSpec(ObjectFactory objectFactory) {
-            return objectFactory.newInstance(DefaultToolchainManagementSpec.class); //TODO (#21082): is it ok to create this here?
-
+            return objectFactory.newInstance(DefaultToolchainManagementSpec.class); //TODO (#21082): is it ok to create this here? conceptually it should be in core, but where to put it there?
         }
 
     }

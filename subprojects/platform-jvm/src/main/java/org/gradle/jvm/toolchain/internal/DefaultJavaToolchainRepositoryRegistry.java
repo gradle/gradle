@@ -80,6 +80,11 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
+    public List<? extends JavaToolchainRepositoryRegistration> allRegistrations() {
+        return requests; //TODO (#21082): do we need to create a defensive copy here?
+    }
+
+    @Override
     public List<JavaToolchainRepository> requestedRepositories() {
         return requests.stream()
                 .map(JavaToolchainRepositoryRegistrationInternal::getProvider)

@@ -209,7 +209,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasCause("No compatible toolchains found for request filter: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download true)")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "fails on name collision when registering repositories"() {
         settingsFile << """
             ${applyToolchainManagementBasePlugin()}
@@ -242,9 +241,48 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 .runWithFailure()
 
         then:
-
         failure.assertHasCause("Failed to apply plugin class 'UselessToolchainRegistry2Plugin'.")
                 .assertHasCause("Duplicate JavaToolchainRepository registration under the name 'uselessRegistry'")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "list of requested repositories can be queried"() {
+        settingsFile << """
+            ${applyToolchainManagementBasePlugin()}
+            ${applyToolchainRegistryPlugin("uselessRegistry1", "UselessToolchainRegistry1", uselessToolchainRegistryCode("UselessToolchainRegistry1"))}            
+            ${applyToolchainRegistryPlugin("uselessRegistry2", "UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
+            ${applyToolchainRegistryPlugin("uselessRegistry3", "UselessToolchainRegistry3", uselessToolchainRegistryCode("UselessToolchainRegistry3"))}            
+            toolchainManagement {
+                jdks {
+                    add("uselessRegistry3")
+                    add("uselessRegistry1")
+                }
+            }
+            
+            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jdks.getAll().collect { it.getName() }}\"\"\")
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.getOutput().contains("Explicitly requested toolchains: [uselessRegistry3, uselessRegistry1]")
     }
 
     private static String applyToolchainManagementBasePlugin() {
