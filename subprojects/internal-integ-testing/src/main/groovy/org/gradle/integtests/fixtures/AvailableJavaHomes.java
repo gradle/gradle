@@ -141,6 +141,7 @@ public abstract class AvailableJavaHomes {
         return result;
     }
 
+    @Nullable
     public static Jvm getAvailableJdk(final Spec<? super JvmInstallationMetadata> filter) {
         return Iterables.getFirst(getAvailableJdks(filter), null);
     }
