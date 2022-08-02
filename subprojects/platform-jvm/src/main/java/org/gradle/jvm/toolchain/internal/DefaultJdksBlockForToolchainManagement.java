@@ -22,12 +22,15 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 
+import javax.inject.Inject;
+
 public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, JavaToolchainRepositoryRegistrationListener, Stoppable {
 
     private final JavaToolchainRepositoryRegistryInternal registry;
 
     private final ListenerManager listenerManager;
 
+    @Inject
     public DefaultJdksBlockForToolchainManagement(JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {
         this.registry = (JavaToolchainRepositoryRegistryInternal) registry;
         this.listenerManager = listenerManager;
