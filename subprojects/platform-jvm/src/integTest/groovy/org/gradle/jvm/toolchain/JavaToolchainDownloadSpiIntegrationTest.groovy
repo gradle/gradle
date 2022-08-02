@@ -296,16 +296,11 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
             public abstract class ToolchainManagementBasePlugin implements Plugin<Settings> {
                 @Inject
-                protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
-
-                @Inject
-                protected abstract ListenerManager getListenerManager();
+                protected abstract JdksBlockForToolchainManagement getJdksBlockForToolchainManagement();
 
                 void apply(Settings settings) {
-                    JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-                    ListenerManager listenerManager = getListenerManager();
                     settings.getToolchainManagement().getExtensions()
-                        .create(JdksBlockForToolchainManagement.class, "jdks", DefaultJdksBlockForToolchainManagement.class, registry, listenerManager);
+                        .add(JdksBlockForToolchainManagement.class, "jdks", getJdksBlockForToolchainManagement());
                 }
             }
 
