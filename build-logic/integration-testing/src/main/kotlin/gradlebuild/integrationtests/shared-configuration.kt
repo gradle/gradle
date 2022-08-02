@@ -154,6 +154,19 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
             val samplesDir = layout.projectDirectory.dir("src/main")
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
+
+//        doFirst {
+//            logger.lifecycle("*** ARGUMENTS FOLLOW ***")
+//            jvmArgumentProviders.forEach { p ->
+//                val args = p.asArguments()
+//                args.forEach { a ->
+//                    logger.lifecycle(a)
+//                }
+//            }
+//
+//            throw RuntimeException("I got you! - at runtime")
+//        }
+        //throw RuntimeException("I got you configuring!")
     }
 
 

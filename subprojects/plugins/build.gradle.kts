@@ -99,6 +99,13 @@ pitest {
 
 //  It's NOT this    jvmArgs.set(setOf("-Dorg.gradle.integtest.executer=embedded"))
 // or this    mainProcessJvmArgs.set(setOf("-Dorg.gradle.integtest.executer=embedded"))
+
+    jvmArgs.set(setOf("-Dorg.gradle.integtest.executer=embedded",
+            "-DintegTest.gradleUserHomeDir=/Users/ttresansky/Projects/gradle/intTestHomeDir/distributions-jvm",
+            "-DintegTest.samplesdir=/Users/ttresansky/Projects/gradle/subprojects/docs/src/snippets",
+            "-Dorg.gradle.integtest.daemon.registry=/Users/ttresansky/Projects/gradle/build/daemon/distributions-jvm",
+            "-DintegTest.distZipVersion=7.6-20220801040000+0000"
+    ))
     mainProcessJvmArgs.set(setOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"))
 
     //testSourceSets.set(setOf(sourceSets.getByName("test")))
