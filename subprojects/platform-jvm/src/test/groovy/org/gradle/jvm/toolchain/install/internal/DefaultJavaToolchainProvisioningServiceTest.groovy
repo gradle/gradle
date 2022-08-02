@@ -48,7 +48,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     def archiveFileLock = Mock(FileLock)
 
     def setup() {
-        registry.requestedRepositories() >> Collections.singletonList(binary)
+        registry.requestedRepositories() >> Collections.emptyList()
 
         ExternalResource downloadResource = Mock(ExternalResource)
         downloader.getResourceFor(_ as URI) >> downloadResource
@@ -70,7 +70,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor)
 
         when:
         provisioningService.tryInstall(spec)
@@ -99,7 +99,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor())
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         provisioningService.tryInstall(spec)
@@ -114,7 +114,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.toUri(spec) >> Optional.empty()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor())
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         def result = provisioningService.tryInstall(spec)
@@ -130,7 +130,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor())
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:
         def result = provisioningService.tryInstall(spec)
@@ -147,7 +147,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         binary.toUri(spec) >> Optional.of(DOWNLOAD_URI)
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor)
 
         when:
         provisioningService.tryInstall(spec)
