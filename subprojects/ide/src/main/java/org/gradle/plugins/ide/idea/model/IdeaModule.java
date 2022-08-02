@@ -46,7 +46,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre class='autoTestedWithSourceDirDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -72,13 +72,13 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *     sourceDirs += file('some-extra-source-folder')
  *
  *     //and some extra test source dirs
- *     testSourceDirs += file('some-extra-test-dir')
+ *     testSources.from(file('some-extra-test-dir'))
  *
  *     //and some extra resource dirs
  *     resourceDirs += file('some-extra-resource-dir')
  *
  *     //and some extra test resource dirs
- *     testResourceDirs += file('some-extra-test-resource-dir')
+ *     testResources.from(file('some-extra-test-resource-dir'))
  *
  *     //and hint to mark some of existing source dirs as generated sources
  *     generatedSourceDirs += file('some-extra-source-folder')
