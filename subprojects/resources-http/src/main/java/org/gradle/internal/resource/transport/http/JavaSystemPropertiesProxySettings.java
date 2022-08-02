@@ -29,10 +29,10 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort) {
         this(propertyPrefix, defaultPort,
-                System.getProperty(propertyPrefix + ".proxyHost"),
-                System.getProperty(propertyPrefix + ".proxyPort"),
-                System.getProperty(propertyPrefix + ".proxyUser"),
-                System.getProperty(propertyPrefix + ".proxyPassword"));
+                getAndTrimSystemProperty(propertyPrefix + ".proxyHost"),
+                getAndTrimSystemProperty(propertyPrefix + ".proxyPort"),
+                getAndTrimSystemProperty(propertyPrefix + ".proxyUser"),
+                getAndTrimSystemProperty(propertyPrefix + ".proxyPassword"));
     }
 
     JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort, String proxyHost, String proxyPortString, String proxyUser, String proxyPassword) {
@@ -72,4 +72,8 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         return defaultPort;
     }
 
+    private static String getAndTrimSystemProperty(String key) {
+        String value = System.getProperty(key);
+        return value != null ? value.trim() : null;
+    }
 }

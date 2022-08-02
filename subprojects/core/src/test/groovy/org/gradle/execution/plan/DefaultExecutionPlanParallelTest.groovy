@@ -115,6 +115,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         executionPlan.tasks as List == [dep, finalized, finalizerDep1, finalizerDep2, finalizer, task]
+        ordinalGroups == [0, 0, 0, 0, 0, 0]
+        reachableFromEntryPoint == [true, true, false, false, false, true]
         assertTaskReady(dep)
         assertTaskReady(finalized)
         assertTasksReady(finalizerDep1, finalizerDep2, task)
@@ -302,6 +304,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         executionPlan.tasks as List == [a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        ordinalGroups == [0, null, 0, 0, 1, 1, 1]
+        reachableFromEntryPoint == [true, false, false, false, true, false, false]
         assertTaskReady(a)
         assertTasksReady(finalizerDepDep, b)
         assertTasksReady(finalizerDep1, finalizerDep2)
@@ -396,6 +400,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         executionPlan.tasks as List == [a, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        ordinalGroups == [0, 0, 0, 1, 1, 1]
+        reachableFromEntryPoint == [true, false, false, true, false, false]
         assertTaskReady(a)
         assertTasksReady(finalizerDep1, b)
         assertTaskReady(finalizer1)
@@ -813,6 +819,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [dep, c, finalizerDep, finalizer, a]
         ordinalGroups == [0, 1, 0, 1, 1]
+        reachableFromEntryPoint == [true, true, true, true, true]
         assertTasksReady(dep, c, finalizerDep)
         assertTaskReady(finalizer)
         assertTaskReadyAndNoMoreToStart(a)
@@ -2218,6 +2225,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private List<Integer> getOrdinalGroups() {
         return executionPlan.tasks.collect { taskNodeFactory.getNode(it).group.asOrdinal()?.ordinal }
+    }
+
+    private List<Boolean> getReachableFromEntryPoint() {
+        return executionPlan.tasks.collect { taskNodeFactory.getNode(it).group.reachableFromEntryPoint }
     }
 
     private TaskInternal selectNextTask() {

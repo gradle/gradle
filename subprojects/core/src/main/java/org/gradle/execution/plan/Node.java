@@ -210,7 +210,7 @@ public abstract class Node {
     }
 
     public boolean isCanCancel() {
-        return true;
+        return group.isCanCancel();
     }
 
     public boolean isInKnownState() {
