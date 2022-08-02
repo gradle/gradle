@@ -18,9 +18,10 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.TransformBackedProvider;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 
 /**
@@ -36,9 +37,18 @@ public class JavaToolchainAwareProvider extends DefaultProvider<JavaToolchain> {
         DefaultJavaToolchainUsageProgressDetails.JavaTool tool,
         Transformer<? extends S, ? super JavaToolchain> transformer
     ) {
-        return new MappingProvider<>(null, this, toolchain -> {
-            toolchain.emitUsageEvent(tool);
-            return transformer.transform(toolchain);
-        });
+        return new TransformBackedProvider<S, JavaToolchain>(transformer, this) {
+            @Nonnull
+            @Override
+            protected Value<? extends S> mapValue(Value<? extends JavaToolchain> value) {
+                if (value.isMissing()) {
+                    return value.asType();
+                }
+                JavaToolchain toolchain = value.get();
+                toolchain.emitUsageEvent(tool);
+
+                return super.mapValue(value);
+            }
+        };
     }
 }
