@@ -76,7 +76,186 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ## New features and usability improvements
 
-### Improvements for IDE integrators
+<a name="developer-productivity"></a>
+### Developer Productivity
+
+#### Added support for incremental compilation following a compilation failure
+
+Gradle already supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile) by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) as an opt-in experimental feature.
+
+In previous versions after a compilation failure the next compilation was not incremental but a full recompilation instead.
+
+With this version, Java and Groovy incremental compilation will work incrementally also after a failure.
+
+This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
+
+
+#### Relocated convention plugins in projects generated with `init` (incubating)
+
+When generating builds using the `init` task and opting in to using incubating features, convention plugins are now located in an included build under the `gradle/plugins` directory instead of in `buildSrc`.
+
+Read more on convention plugins here().
+
+
+#### Revised dependencies for Maven conversions from `implementation` to `api`
+
+The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
+
+#### Introduced network timeout configuration for wrapper download 
+
+It is now possible to configure the network timeout for downloading the wrapper files.
+The default value is 10000ms and can be changed in several ways:
+
+From the command line:
+```shell
+gradle wrapper --network-timeout=30000
+```
+
+In your build scripts or convention plugins:
+```kotlin
+tasks.wrapper {
+    networkTimeout.set(30000)
+}
+```
+
+Or in `gradle/wrapper/gradle-wrapper.properties`:
+```properties
+networkTimeout=30000
+```
+
+See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
+
+
+#### Introduced flag for individual task `rerun` 
+
+A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
+```
+gradle test --rerun
+```
+
+See the [documentation](userguide/command_line_interface.html#sec:builtin_task_options) for more information.
+
+
+<a name="configuration"></a>
+### Configuration
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
+
+#### Extendend configuration cache task compatibility
+
+The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
+
+
+#### Clarified attribute ordering for `resolvableConfigurations` reports  
+
+The `resolvableConfigurations` reporting task will now print the order that [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules) will be checked when resolving project dependencies.  These rules are used if multiple variants of a dependency are available with different compatible values for a requested attribute, and no exact match.  Disambiguation rules will be run on all attributes with multiple compatible matches in this order to select a single matching variant.
+
+```
+--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+The following Attributes have disambiguation rules defined.
+
+    - flavor
+    - org.gradle.category (1)
+    - org.gradle.dependency.bundling (5)
+    - org.gradle.jvm.environment (6)
+    - org.gradle.jvm.version (3)
+    - org.gradle.libraryelements (4)
+    - org.gradle.plugin.api-version
+    - org.gradle.usage (2)
+
+(#): Attribute disambiguation precedence
+```
+
+#### TODO: Extendend configuration cache support for external processes 
+[Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
+
+#### TODO: Extendend configuration cache support for internal plugin
+
+[Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
+
+
+<a name="execution"></a>
+### Execution
+
+#### Introduced ability to explain why a task was skipped with a message
+
+It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
+```groovy
+tasks.named("slowBenchmark") {
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
+        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
+    }
+}
+```
+
+These reason messages are reported in the console with the `--info` logging level.
+This might be helpful in finding out why a particular task is skipped.
+
+```
+gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
+```
+
+```
+> Task :slowBenchmark SKIPPED
+Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
+:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
+```
+
+<a name="plugin"></a>
+### Plugin
+
+#### Introduced support for task options of type `Integer`
+
+It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
+
+For example, the following task option:
+```java
+@Option(option = "integer-option", description = "Your description")
+public abstract Property<Integer> getIntegerOption();
+```
+
+can be passed from the command line as follows:
+```shell
+gradle myCustomTask --integer-option=123
+```
+
+#### TODO: Expanded Java Toolchain support for Service Provider Interfaces 
+
+Provides a way for plugins to register a provider of Java Toolchain that will allow auto provisioning for any toolchain specification. Service Provider Interface (SPI) TODO: link and definition.
+
+Related issues:
+
+[Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
+
+#### TODO: Enhancement of the plugin declaration DSL from java-gradle-plugin
+
+[Modify bits and pieces of Gradle to accommodate Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
+
+<a name="jvm"></a>
+### JVM
+
+#### TODO: Introduced support for map notation in JVM `dependancies` block
+
+[Issue](https://github.com/gradle/gradle/issues/19192)
+
+#### Introduced support for Java 9+ network debugging  
+
+A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
+connections over the network.
+If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
+they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
+
+In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
+On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
+one of the addresses of the current machine's network interfaces.
+
+Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
+accepting connections via network on Java 9+.
+
+<a name="ide"></a>
+### IDE
 
 #### Tooling API progress events expose difference between test assertion failures and test framework failures
 
@@ -115,157 +294,8 @@ testLauncher.withTestsFor(spec -> {
 
 Note, that the new test selection interface only works if the target Gradle version is >=7.6.
 
-### Improvements to the `init` plugin
-
-#### Use included build for convention plugins (incubating)
-
-When generating builds using the `init` task and opting in to using incubating features, convention plugins are now located in an included build under the `gradle/plugins` directory instead of in `buildSrc`.
-
-#### Improved Maven Conversion
-
-The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
-
-<a name="configuration-cache-improvements"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
-
-#### New compatible tasks
-
-The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
-
-### Resolvable configurations report displays attribute precedence order
-
-The `resolvableConfigurations` reporting task will now print the order that [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules) will be checked when resolving project dependencies.  These rules are used if multiple variants of a dependency are available with different compatible values for a requested attribute, and no exact match.  Disambiguation rules will be run on all attributes with multiple compatible matches in this order to select a single matching variant.
-
-```
---------------------------------------------------
-Disambiguation Rules
---------------------------------------------------
-The following Attributes have disambiguation rules defined.
-
-    - flavor
-    - org.gradle.category (1)
-    - org.gradle.dependency.bundling (5)
-    - org.gradle.jvm.environment (6)
-    - org.gradle.jvm.version (3)
-    - org.gradle.libraryelements (4)
-    - org.gradle.plugin.api-version
-    - org.gradle.usage (2)
-
-(#): Attribute disambiguation precedence
-```
-
-### Configurable wrapper download network timeout
-
-It is now possible to configure the network timeout for downloading the wrapper files.
-The default value is 10000ms and can be changed in several ways:
-
-From the command line:
-```shell
-gradle wrapper --network-timeout=30000
-```
-
-In your build scripts or convention plugins:
-```kotlin
-tasks.wrapper {
-    networkTimeout.set(30000)
-}
-```
-
-Or in `gradle/wrapper/gradle-wrapper.properties`:
-```properties
-networkTimeout=30000
-```
-
-See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
-
-#### TODO: sdkfjjkdsfj @nathan-contino
-
-### Command-line improvements
-
-#### Tasks can be re-run selectively 
-
-A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
-```
-gradle test --rerun
-```
-
-See the [documentation](userguide/command_line_interface.html#sec:builtin_task_options) for more information.
-
-### Improvements for plugin authors
-
-#### Integer task options
-
-It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
-
-For example, the following task option:
-```java
-@Option(option = "integer-option", description = "Your description")
-public abstract Property<Integer> getIntegerOption();
-```
-
-can be passed from the command line as follows:
-```shell
-gradle myCustomTask --integer-option=123
-```
-
-### JVM language support improvements
-
-#### TODO: Java Toolchain auto provisioning SPI @ljacomet
-
-Provides a way for plugins to register a provider of Java Toolchain that will allow auto provisioning for any toolchain specification.
-
-Related issues:
-
-[Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
 
 
-
-#### Java and Groovy incremental compilation after a failure
-
-Gradle already supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile) by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) as an opt-in experimental feature.
-In previous versions after a compilation failure the next compilation was not incremental but a full recompilation instead.
-With this version, Java and Groovy incremental compilation will work incrementally also after a failure.
-This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
-
-### Options for debugging the JVM over network with Java 9+
-
-A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
-connections over the network.
-If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
-they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
-
-In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
-On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
-one of the addresses of the current machine's network interfaces.
-
-Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
-accepting connections via network on Java 9+.
-
-### Reason messages in task predicates
-
-It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
-```groovy
-tasks.named("slowBenchmark") {
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
-        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
-    }
-}
-```
-
-These reason messages are reported in the console with the `--info` logging level.
-This might be helpful in finding out why a particular task is skipped.
-
-```
-gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
-```
-
-```
-> Task :slowBenchmark SKIPPED
-Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
-:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
-```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
