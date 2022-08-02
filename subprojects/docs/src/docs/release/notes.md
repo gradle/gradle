@@ -229,8 +229,9 @@ Related issues:
 
 [Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
 
-#### TODO: Enhancement of the plugin declaration DSL from java-gradle-plugin
+#### TODO: Enhanceced of the plugin declaration DSL from java-gradle-plugin
 
+This is in the public roadmap but not sure it should be?
 [Modify bits and pieces of Gradle to accommodate Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
 
 <a name="jvm"></a>
@@ -257,15 +258,18 @@ accepting connections via network on Java 9+.
 <a name="ide"></a>
 ### IDE
 
-#### Tooling API progress events expose difference between test assertion failures and test framework failures
+#### Enhanced test events to distinguish between assertion and framework failures
 
-Gradle 7.6 introduces new failure types for the `Failure` interface returned by [FailureResult.getFailures()](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure.
+Gradle 7.6 introduces new failure types for the `Failure` interface returned by [`FailureResult.getFailures()`](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure.
 IDEs can now easily distinguish between different failures using standard progress event listeners.
 Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
 
-#### Task execution with TestLauncher
+#### Introduced `TestLauncher` task execution 
 
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tasks.
+<!-- TODO: CHECK WORDING chanted to test below -->
+<!-- TODO: I am missing the why for this and use case-->
+
+The [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tests.
 
 ```
 ProjectConnection connection = ...
@@ -277,7 +281,7 @@ connection.newTestLauncher()
 
 Note, that the task execution only works if the target Gradle version is >=7.6.
 
-#### Fine-grained test selection with TestLauncher
+#### Introduced `TestLauncher` Fine-grained test execution 
 
 The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
 
