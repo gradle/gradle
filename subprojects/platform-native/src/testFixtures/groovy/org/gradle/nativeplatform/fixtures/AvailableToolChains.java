@@ -742,12 +742,17 @@ public class AvailableToolChains {
         xcodeCandidates.stream().filter(File::exists).forEach(xcodeInstall -> {
             TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
 
-            String output = xcodebuild.execute(Collections.singletonList("-version"), Collections.singletonList("DEVELOPER_DIR=" + xcodeInstall.getAbsolutePath())).getOut();
-            Pattern versionRegex = Pattern.compile("Xcode (\\d+\\.\\d+(\\.\\d+)?)");
-            Matcher matcher = versionRegex.matcher(output);
-            if (matcher.find()) {
-                VersionNumber version = VersionNumber.parse(matcher.group(1));
-                xcodes.add(new InstalledXcode(xcodeInstall, version));
+            try {
+                String output = xcodebuild.execute(Collections.singletonList("-version"), Collections.singletonList("DEVELOPER_DIR=" + xcodeInstall.getAbsolutePath())).getOut();
+                Pattern versionRegex = Pattern.compile("Xcode (\\d+\\.\\d+(\\.\\d+)?)");
+                Matcher matcher = versionRegex.matcher(output);
+                if (matcher.find()) {
+                    VersionNumber version = VersionNumber.parse(matcher.group(1));
+                    xcodes.add(new InstalledXcode(xcodeInstall, version));
+                }
+            } catch (RuntimeException re) {
+                String msg = String.format("Unable to invoke xcodebuild -version for %s%nCause: %s", xcodeInstall.getAbsolutePath(), re.getCause());
+                System.out.println(msg);
             }
         });
 
