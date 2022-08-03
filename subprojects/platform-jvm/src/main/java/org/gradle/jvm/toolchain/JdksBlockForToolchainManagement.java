@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 
 import java.util.List;
@@ -28,9 +27,7 @@ import java.util.List;
  * @since 7.6
  */
 @Incubating
-public interface JdksBlockForToolchainManagement extends ExtensionAware {
-
-    // TODO (#21082): should it be ExtensionAware or only its implementation do that?
+public interface JdksBlockForToolchainManagement {
 
     void add(String registrationName);
 

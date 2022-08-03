@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -25,7 +26,7 @@ import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 import javax.inject.Inject;
 import java.util.List;
 
-public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, JavaToolchainRepositoryRegistrationListener, Stoppable {
+public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, JavaToolchainRepositoryRegistrationListener, ExtensionAware, Stoppable {
 
     private final JavaToolchainRepositoryRegistryInternal registry;
 

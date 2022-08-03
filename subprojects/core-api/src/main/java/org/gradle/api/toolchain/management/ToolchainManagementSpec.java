@@ -17,7 +17,6 @@
 package org.gradle.api.toolchain.management;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.plugins.ExtensionAware;
 
 /**
  * TODO (#21082): docs
@@ -25,8 +24,7 @@ import org.gradle.api.plugins.ExtensionAware;
  * @since 7.6
  */
 @Incubating
-public interface ToolchainManagementSpec extends ExtensionAware {
+public interface ToolchainManagementSpec {
 
     // TODO (#21082): should this really be empty? feels weird...
-    // TODO (#21082): should it be ExtensionAware or only its implementation do that?
 }
