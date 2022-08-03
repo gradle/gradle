@@ -872,6 +872,7 @@ dependencies {
     }
 
     @Test // TODO: remove in Gradle 8.0
+    @ToBeFixedForConfigurationCache(because = "All other tests in this class are not for CC, this new test is temporary, to be removed in Gradle 8.0")
     void "using deprecated IdeaModule properties emits deprecation warnings"() {
         executer.expectDocumentedDeprecationWarning('The IdeaModule.testSourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testSources property instead. See https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.')
         executer.expectDocumentedDeprecationWarning('The IdeaModule.testResourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResources property instead. See https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testResourceDirs for more details.')
