@@ -636,36 +636,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/15875")
-    void 'finalizedBy can not reference tasks from another build'() {
-        given:
-        settingsFile << """
-            includeBuild("producer")
-            rootProject.name = "root"
-        """
-        file("producer").createDir()
-        file("producer/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            group = "org.producer"
-        """
-
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            tasks.register("demo") {
-                finalizedBy gradle.includedBuild("producer").task(":build")
-            }
-        """
-
-        expect:
-        fails "demo"
-        result.hasErrorOutput("Cannot use finalizedBy to reference tasks from another build")
-    }
-
     private void setupProject() {
         buildFile """
             class NotParallel extends DefaultTask {}
