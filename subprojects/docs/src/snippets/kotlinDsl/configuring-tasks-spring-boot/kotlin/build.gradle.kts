@@ -6,6 +6,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     java
     id("org.springframework.boot") version "2.4.5"
+    // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE (direct or transitive dependencies) to fix this snippet
 }
 
 // end::lazy[]
