@@ -29,6 +29,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     // This comes from the BOM
     static springVersion = "5.0.8.RELEASE"
 
+    // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE and restore these tests
     @Ignore("Spring dependency management plugin needs to be updated to handle removal of deprecated Upload task")
     def 'bom support is provided by #bomSupportProvider'() {
         given:
