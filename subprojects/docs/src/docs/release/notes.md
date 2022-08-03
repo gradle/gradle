@@ -128,7 +128,9 @@ See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more
 
 #### Introduced flag for individual task `rerun` 
 
-A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
+Every task can now use the `--rerun` option. This option works like `--rerun-tasks`,
+except `--rerun` only effects a single task. For example, you can force tests to
+ignore up-to-date checks like this:
 ```
 gradle test --rerun
 ```
@@ -148,7 +150,17 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 
 #### Clarified attribute ordering for `resolvableConfigurations` reports  
 
-The `resolvableConfigurations` reporting task will now print the order that [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules) will be checked when resolving project dependencies.  These rules are used if multiple variants of a dependency are available with different compatible values for a requested attribute, and no exact match.  Disambiguation rules will be run on all attributes with multiple compatible matches in this order to select a single matching variant.
+Attribute disambiguation rules control the variant of a dependency selected by
+Gradle when:
+- multiple variants of a dependency exist with different compatible values for a
+  requested attribute
+- no variant exactly matches that attribute
+
+Attribute disambiguation rules select a single matching dependency variant in
+such cases. The `resolvableConfigurations` reporting task now prints the order
+of these rules.
+
+To learn more, see [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules).
 
 ```
 --------------------------------------------------
@@ -181,17 +193,17 @@ The following Attributes have disambiguation rules defined.
 
 #### Introduced ability to explain why a task was skipped with a message
 
-It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
+You can now provide a reason message when conditionally disabling a task using the [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
 ```groovy
-tasks.named("slowBenchmark") {
+tasks.register("slowBenchmark") {
+    def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
     onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
-        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
+        slowBenchmarksEnabled.get()
     }
 }
 ```
 
-These reason messages are reported in the console with the `--info` logging level.
-This might be helpful in finding out why a particular task is skipped.
+The `--info` logging level outputs reason messages in the console.
 
 ```
 gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
