@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
 class AutoTestedSamplesIdeIntegrationTest extends AbstractAutoTestedSamplesTest {
-
     @Test
     void runSamples() {
         runSamplesFrom("src/main")
