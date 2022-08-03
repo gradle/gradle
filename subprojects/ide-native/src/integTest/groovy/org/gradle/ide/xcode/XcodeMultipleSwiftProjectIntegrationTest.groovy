@@ -27,13 +27,10 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-@Requires(TestPrecondition.XCODE)
 class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         settingsFile << """
