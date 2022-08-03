@@ -19,7 +19,6 @@ package org.gradle.api.plugins.quality.internal;
 import org.apache.tools.ant.BuildListener;
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
@@ -39,7 +38,7 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
     @Override
     public void execute() {
         LOGGER.info("Running {} with toolchain '{}'.", getActionName(), Jvm.current().getJavaHome().getAbsolutePath());
-        AntBuilder antBuilder = new BasicAntBuilder();
+        BasicAntBuilder antBuilder = new BasicAntBuilder();
         AntLoggingAdapter antLogger = new AntLoggingAdapter();
         try {
             configureAntBuilder(antBuilder, antLogger);
@@ -54,7 +53,7 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
 
     protected abstract Action<AntBuilderDelegate> getAntAction();
 
-    private void configureAntBuilder(AntBuilder antBuilder, AntLoggingAdapter antLogger) {
+    private void configureAntBuilder(BasicAntBuilder antBuilder, AntLoggingAdapter antLogger) {
         try {
             Project project = getProject(antBuilder);
             Vector<BuildListener> listeners = project.getBuildListeners();
@@ -65,11 +64,11 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
         }
     }
 
-    private void disposeBuilder(Object antBuilder, AntLoggingAdapter antLogger) {
+    private void disposeBuilder(BasicAntBuilder antBuilder, AntLoggingAdapter antLogger) {
         try {
             Project project = getProject(antBuilder);
             project.removeBuildListener(antLogger);
-            antBuilder.getClass().getDeclaredMethod("close").invoke(antBuilder);
+            antBuilder.close();
         } catch (Exception ex) {
             throw new GradleException("Unable to dispose AntBuilder", ex);
         }
