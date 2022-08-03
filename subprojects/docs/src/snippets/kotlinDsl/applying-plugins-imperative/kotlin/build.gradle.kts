@@ -3,10 +3,10 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.4.1")
+        classpath("com.github.ben-manes:gradle-versions-plugin:0.42.0")
     }
 }
 
 apply(plugin = "java")
 apply(plugin = "jacoco")
-apply(plugin = "org.springframework.boot")
+apply(plugin = "com.github.ben-manes.versions")
