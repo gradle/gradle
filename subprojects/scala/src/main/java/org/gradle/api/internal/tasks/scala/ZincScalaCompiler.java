@@ -201,6 +201,9 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         @Override
         public DefinesClass definesClass(VirtualFile classpathEntry) {
+            if (classpathEntry.name().equals("rt.jar")) {
+                return className -> false;
+            }
             return analysis(classpathEntry)
                 .map(a -> a instanceof Analysis ? (Analysis) a : null)
                 .<DefinesClass>map(AnalysisBakedDefineClass::new)
