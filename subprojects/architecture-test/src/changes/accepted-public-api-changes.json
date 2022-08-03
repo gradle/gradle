@@ -42,14 +42,6 @@
         },
         {
             "type": "org.gradle.api.tasks.Upload",
-            "member": "Class org.gradle.api.tasks.Upload",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
-            "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getArtifacts()",
             "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
             "changes": [
@@ -131,14 +123,6 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.setUploadDescriptor(boolean)",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.Upload",
-            "member": "Method org.gradle.api.tasks.Upload.upload()",
             "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
