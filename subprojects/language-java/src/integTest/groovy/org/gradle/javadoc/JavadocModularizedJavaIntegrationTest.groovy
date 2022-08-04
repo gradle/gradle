@@ -16,11 +16,13 @@
 
 package org.gradle.javadoc
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
+@Requires(TestPrecondition.JDK9_OR_LATER)
 class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -50,7 +52,6 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "can build javadoc from modularized java"() {
         buildFile << """
             apply plugin: 'java-library'
@@ -65,7 +66,7 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @NotYetImplemented
     def "can build javadoc from modularized java with exclusions"() {
         buildFile << """
             apply plugin: 'java-library'
