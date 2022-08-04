@@ -209,7 +209,6 @@ The `--info` logging level outputs reason messages in the console.
 #### Tasks can be re-run selectively
 
 ```
-gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
 ```
 
 
