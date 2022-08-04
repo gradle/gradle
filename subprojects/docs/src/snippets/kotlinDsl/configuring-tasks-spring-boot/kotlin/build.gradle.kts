@@ -2,11 +2,11 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 
+// TODO:Finalize Upload Removal - Issue #21439
 // tag::accessors[]
 plugins {
     java
     id("org.springframework.boot") version "2.4.5"
-    // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE (direct or transitive dependencies) to fix this snippet
 }
 
 // end::lazy[]
