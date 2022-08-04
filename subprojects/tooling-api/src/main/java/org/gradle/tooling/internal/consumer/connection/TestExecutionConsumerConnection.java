@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 
 /**
- * <p>Used for providers >= 2.6.</p>
+ * <p>Used for providers &gt;= 2.6.</p>
  */
 public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnection {
 

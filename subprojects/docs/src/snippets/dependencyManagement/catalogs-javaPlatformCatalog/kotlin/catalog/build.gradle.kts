@@ -22,8 +22,8 @@ plugins {
 
 catalog {
     versionCatalog {
-        alias("guava").to("com.google.guava:guava:28.0-jre")
-        alias("myGroovy").to("org.codehaus.groovy:groovy:3.0.5")
+        library("guava", "com.google.guava:guava:28.0-jre")
+        library("myGroovy", "org.codehaus.groovy:groovy:3.0.5")
     }
 }
 

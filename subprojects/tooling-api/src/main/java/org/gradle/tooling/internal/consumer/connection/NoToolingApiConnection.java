@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * A {@code ConsumerConnection} implementation for a Gradle version that does not support the tooling API.
  *
- * <p>Used for versions < 1.0-milestone-3.</p>
+ * <p>Used for versions &lt; 1.0-milestone-3.</p>
  */
 public class NoToolingApiConnection implements ConsumerConnection {
     private final Distribution distribution;

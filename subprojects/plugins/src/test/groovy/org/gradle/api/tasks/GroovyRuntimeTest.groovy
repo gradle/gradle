@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.testing.fixture.GroovyCoverage
 
 class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
 
@@ -42,40 +43,43 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy3 class path uses 'groovy' jars from classpath if all required pieces are found"() {
+    def "inferred Groovy class path uses 'groovy' jars from classpath if all required pieces are found and match the runtime Groovy version #groovyVersion"() {
         when:
         def classpath = project.groovyRuntime.inferGroovyClasspath([
             project.file("other.jar"),
-            project.file("groovy-3.0.7.jar"),
-            project.file("groovy-ant-3.0.7.jar"),
-            project.file("groovy-astbuilder-3.0.7.jar"),
-            project.file("groovy-console-3.0.7.jar"),
-            project.file("groovy-datetime-3.0.7.jar"),
-            project.file("groovy-dateutil-3.0.7.jar"),
-            project.file("groovy-templates-3.0.7.jar"),
-            project.file("groovy-json-3.0.7.jar"),
-            project.file("groovy-xml-3.0.7.jar"),
-            project.file("groovy-groovydoc-3.0.7.jar"),
-            project.file("groovy-nio-3.0.7.jar"),
-            project.file("groovy-sql-3.0.7.jar"),
-            project.file("groovy-test-3.0.7.jar")
+            project.file("groovy-${groovyVersion}.jar"),
+            project.file("groovy-ant-${groovyVersion}.jar"),
+            project.file("groovy-astbuilder-${groovyVersion}.jar"),
+            project.file("groovy-console-${groovyVersion}.jar"),
+            project.file("groovy-datetime-${groovyVersion}.jar"),
+            project.file("groovy-dateutil-${groovyVersion}.jar"),
+            project.file("groovy-templates-${groovyVersion}.jar"),
+            project.file("groovy-json-${groovyVersion}.jar"),
+            project.file("groovy-xml-${groovyVersion}.jar"),
+            project.file("groovy-groovydoc-${groovyVersion}.jar"),
+            project.file("groovy-nio-${groovyVersion}.jar"),
+            project.file("groovy-sql-${groovyVersion}.jar"),
+            project.file("groovy-test-${groovyVersion}.jar")
         ])
 
         then:
         classpath.files.size() == 13
-        classpath.files.contains(project.file("groovy-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-ant-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-astbuilder-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-console-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-datetime-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-dateutil-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-templates-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-json-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-xml-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-groovydoc-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-nio-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-sql-3.0.7.jar"))
-        classpath.files.contains(project.file("groovy-test-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-ant-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-astbuilder-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-console-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-datetime-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-dateutil-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-templates-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-json-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-xml-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-groovydoc-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-nio-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-sql-${groovyVersion}.jar"))
+        classpath.files.contains(project.file("groovy-test-${groovyVersion}.jar"))
+
+        where:
+        groovyVersion << GroovyCoverage.SINCE_3_0
     }
 
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
@@ -92,19 +96,23 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             state == Configuration.State.UNRESOLVED
-            dependencies.size() == expectedJars.size()
-            expectedJars.each { expectedJar ->
-                assert dependencies.any { it.group == "org.codehaus.groovy" && it.name == expectedJar && it.version == groovyVersion } // not sure how to check classifier
+            dependencies.size() == expectedDependencies.size()
+            expectedDependencies.each { expectedJar ->
+                assert dependencies.any {
+                    it.group == expectedGroup && it.name == expectedJar && it.version == groovyVersion
+                } // not sure how to check classifier
             }
         }
 
         where:
-        groovyVersion | classifier | expectedJars
-        "2.1.2"       | ""         | ["groovy", "groovy-ant"]
-        "2.1.2"       | "-indy"    | ["groovy", "groovy-ant"]
-        "2.5.2"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
-        "2.5.2"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.7"       | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        groovyVersion        | classifier | expectedGroup         | expectedDependencies
+        "2.1.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.1.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.5.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "3.0.10"             | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.10"             | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "4.0.0"              | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

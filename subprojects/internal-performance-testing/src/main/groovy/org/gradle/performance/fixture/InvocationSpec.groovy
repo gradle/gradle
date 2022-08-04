@@ -23,7 +23,7 @@ interface InvocationSpec {
 
     List<String> getTasksToRun()
 
-    List<String> getJvmOpts()
+    List<String> getJvmArguments()
 
     List<String> getArgs()
 

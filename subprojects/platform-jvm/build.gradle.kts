@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":diagnostics"))
     implementation(project(":execution"))
@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":process-services"))
     implementation(project(":resources"))
+    implementation(project(":enterprise-operations"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -49,10 +50,12 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-classycle {
+packageCycles {
     // Needed for the factory methods in the interface
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+
+description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""

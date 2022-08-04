@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import java.io.File;
 import java.net.URI;
 import java.util.List;
 
 public interface SignatureVerificationServiceFactory {
-    SignatureVerificationService create(File keyringsFile, List<URI> keyServers);
+    SignatureVerificationService create(BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers);
 }

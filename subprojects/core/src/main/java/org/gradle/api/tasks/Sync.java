@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -63,6 +64,7 @@ import java.io.File;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();

@@ -21,14 +21,13 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class SourceFoldersCreatorTest extends Specification {
 
-    @Rule
-    TemporaryFolder tempFolder;
+    @TempDir
+    File tempFolder;
 
     SourceSet sourceSet;
     SourceDirectorySet java
@@ -49,7 +48,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * sourceSet.allSource >> allSource
         _ * sourceSet.allJava >> java
         _ * sourceSet.resources >> resources
-        projectRootFolder = tempFolder.newFolder("project-root")
+        projectRootFolder = new File(tempFolder, "project-root").tap { mkdirs() }
         defaultOutputFolder = new File(projectRootFolder, 'bin/default')
     }
 
@@ -129,7 +128,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.includes >> resourcesTree.patterns.includes
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> [javaTree, resourcesTree]
-        return new SourceFoldersCreator().projectRelativeFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
+        return new SourceFoldersCreator().configureProjectRelativeFolders([sourceSet], [], { File file -> file.path }, defaultOutputFolder)
     }
 
     private List<SourceFolder> externalSourceFolders(String... paths) {

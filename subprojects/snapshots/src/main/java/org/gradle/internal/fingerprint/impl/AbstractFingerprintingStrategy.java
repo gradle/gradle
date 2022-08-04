@@ -18,14 +18,32 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
+    private final HashCode configurationHash;
 
-    public AbstractFingerprintingStrategy(String identifier) {
+    public AbstractFingerprintingStrategy(
+        String identifier,
+        ConfigurableNormalizer configurableNormalizer
+    ) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
+        Hasher hasher = Hashing.newHasher();
+        hasher.putString(getClass().getName());
+        configurableNormalizer.appendConfigurationToHasher(hasher);
+        this.configurationHash = hasher.hash();
     }
 
     @Override
@@ -36,5 +54,25 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public CurrentFileCollectionFingerprint getEmptyFingerprint() {
         return emptyFingerprint;
+    }
+
+    @Nullable
+    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+        try {
+            return normalizedContentHasher.hash(snapshot);
+        } catch (IOException e) {
+            throw new UncheckedIOException(failedToNormalize(snapshot), e);
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(failedToNormalize(snapshot), e.getCause());
+        }
+    }
+
+    private static String failedToNormalize(FileSystemLocationSnapshot snapshot) {
+        return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
+    }
+
+    @Override
+    public HashCode getConfigurationHash() {
+        return configurationHash;
     }
 }

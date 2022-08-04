@@ -16,10 +16,9 @@
 
 package org.gradle.api
 
-
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
@@ -128,7 +127,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Multiple constructors of type Thing match parameters: ['a', 'b']")
+        failure.assertHasCause("""Multiple constructors for parameters ['a', 'b']:
+  1. candidate: Thing(String, String, ProjectLayout)
+  2. best match: Thing(String, String, ObjectFactory)""")
     }
 
     def "fails when too many construction parameters provided"() {
@@ -147,7 +148,6 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause("Too many parameters provided for constructor for type Thing. Expected 2, received 3.")
     }
 
-    @Unroll
     def "can create instance of interface with mutable property of type #type"() {
         buildFile << """
             interface Thing {
@@ -546,5 +546,27 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         expect:
         succeeds()
         outputContains("display name = <display name> prop=extension 'name' property 'prop'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16936")
+    @NotYetImplemented
+    def "extension can be created on task"() {
+        buildFile """
+            interface MyExtension {
+                Property<String> getProp()
+            }
+
+            tasks.register("mytask") {
+                extensions.create("myext", MyExtension)
+                myext.prop = "foobar"
+                doLast {
+                    println("myext.prop = " + myext.prop.get())
+                }
+            }
+        """
+
+        expect:
+        succeeds("mytask")
+        outputContains("myext.prop = foobar")
     }
 }

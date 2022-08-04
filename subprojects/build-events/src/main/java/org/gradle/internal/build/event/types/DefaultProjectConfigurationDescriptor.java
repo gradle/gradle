@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public class DefaultProjectConfigurationDescriptor extends DefaultOperationDescr
     private final File rootDir;
     private final String projectPath;
 
-    public DefaultProjectConfigurationDescriptor(Object id, String displayName, Object parentId, File rootDir, String projectPath) {
+    public DefaultProjectConfigurationDescriptor(OperationIdentifier id, String displayName, OperationIdentifier parentId, File rootDir, String projectPath) {
         super(id, displayName, displayName, parentId);
         this.rootDir = rootDir;
         this.projectPath = projectPath;

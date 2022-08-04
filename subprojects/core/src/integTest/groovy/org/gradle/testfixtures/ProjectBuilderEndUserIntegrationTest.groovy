@@ -33,10 +33,8 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         dependencies {
             implementation localGroovy()
             implementation gradleApi()
-            testImplementation(platform("org.spockframework:spock-bom:2.0-M5-groovy-3.0"))
+            testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
             testImplementation("org.spockframework:spock-core")
-            testImplementation("org.spockframework:spock-junit4")
-            testImplementation("junit:junit:4.13.1")
         }
 
         ${mavenCentralRepository()}
@@ -46,6 +44,22 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
             testLogging.exceptionFormat = 'full'
         }
 
+        // Needed when using ProjectBuilder
+        class AddOpensArgProvider implements CommandLineArgumentProvider {
+            private final Test test;
+            public AddOpensArgProvider(Test test) {
+                this.test = test;
+            }
+            @Override
+            Iterable<String> asArguments() {
+                return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+                    ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+                    : []
+            }
+        }
+        tasks.withType(Test).configureEach {
+            jvmArgumentProviders.add(new AddOpensArgProvider(it))
+        }
         """
     }
 

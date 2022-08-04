@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class CompositeAwareTaskSelector extends TaskSelector {
@@ -47,7 +48,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
             BuildState build = findIncludedBuild(taskPath);
             // Exclusion was for an included build, use it
             if (build != null) {
-                return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
+                return getSelectorForChildBuild(build).getFilter(taskPath.removeFirstSegments(1).toString());
             }
         }
         // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
@@ -66,7 +67,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
             if (taskPath.isAbsolute()) {
                 BuildState build = findIncludedBuild(taskPath);
                 if (build != null) {
-                    return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
+                    return getSelectorForChildBuild(build).getSelection(taskPath.removeFirstSegments(1).toString());
                 }
             }
         }
@@ -75,17 +76,17 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     }
 
     @Override
-    public TaskSelection getSelection(String projectPath, File root, String path) {
+    public TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path) {
         if (gradle.isRootBuild()) {
             Path taskPath = Path.path(path);
             if (taskPath.isAbsolute()) {
                 BuildState build = findIncludedBuild(taskPath);
                 if (build != null) {
-                    return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
+                    return getSelectorForChildBuild(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
                 }
                 build = findIncludedBuild(root);
                 if (build != null) {
-                    return getSelector(build).getSelection(projectPath, root, path);
+                    return getSelectorForChildBuild(build).getSelection(projectPath, root, path);
                 }
             }
         }
@@ -93,6 +94,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         return getUnqualifiedBuildSelector().getSelection(projectPath, root, path);
     }
 
+    @Nullable
     private BuildState findIncludedBuild(Path taskPath) {
         if (buildStateRegistry.getIncludedBuilds().isEmpty() || taskPath.segmentCount() <= 1) {
             return null;
@@ -108,7 +110,8 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         return null;
     }
 
-    private BuildState findIncludedBuild(File root) {
+    @Nullable
+    private BuildState findIncludedBuild(@Nullable File root) {
         if (root == null) {
             return null;
         }
@@ -123,8 +126,13 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     }
 
 
+    private TaskSelector getSelectorForChildBuild(BuildState buildState) {
+        buildState.ensureProjectsConfigured();
+        return getSelector(buildState);
+    }
+
     private TaskSelector getSelector(BuildState buildState) {
-        return new DefaultTaskSelector(buildState.getBuild(), taskNameResolver, projectConfigurer);
+        return new DefaultTaskSelector(buildState.getMutableModel(), taskNameResolver, projectConfigurer);
     }
 
     private TaskSelector getUnqualifiedBuildSelector() {

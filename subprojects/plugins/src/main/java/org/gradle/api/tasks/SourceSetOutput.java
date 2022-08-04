@@ -54,36 +54,33 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *   id 'java'
  * }
  *
- * def generatedResources = "$buildDir/generated-resources/main"
+ * def generateResourcesTask = tasks.register("generate-resources", GenerateResourcesTask) {
+ *   resourcesDir.set(layout.buildDirectory.dir("generated-resources/main"))
+ * }
  *
+ * // Include all outputs of the `generate-resources` task as outputs of the main sourceSet.
  * sourceSets {
  *   main {
- *     //let's register an output folder on the main SourceSet:
- *     output.dir(generatedResources, builtBy: 'generateMyResources')
- *     //it is now a part of the 'main' classpath and will be a part of the jar
+ *     output.dir(generateResourcesTask)
  *   }
  * }
  *
- * //a task that generates the resources:
- * task generateMyResources {
- *   outputs.dir generatedResources
- *   doLast {
- *     def generated = new File(generatedResources, "myGeneratedResource.properties")
+ * abstract class GenerateResourcesTask extends DefaultTask {
+ *   {@literal @}OutputDirectory
+ *   abstract DirectoryProperty getResourcesDir()
+ *
+ *   {@literal @}TaskAction
+ *   def generateResources() {
+ *     def generated = resourcesDir.file("myGeneratedResource.properties").get().asFile
  *     generated.text = "message=Stay happy!"
  *   }
  * }
- *
- * //Java plugin task 'classes' and 'testClasses' will automatically depend on relevant tasks registered with 'builtBy'
- *
- * //Eclipse/IDEA plugins will automatically depend on 'generateMyResources'
- * //because the output dir was registered with 'builtBy' information
- * apply plugin: 'idea'; apply plugin: 'eclipse'
  * </pre>
  *
- * Find more information in {@link #dir(java.util.Map, Object)} and {@link #getDirs()}
+ * Find more information in {@link #dir(Object)} and {@link #getDirs()}
  */
 public interface SourceSetOutput extends FileCollection {
 

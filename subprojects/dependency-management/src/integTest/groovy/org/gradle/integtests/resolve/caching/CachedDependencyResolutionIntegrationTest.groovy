@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -227,7 +226,7 @@ task retrieve(type: Sync) {
         server.sendLastModified = false
         byte[] jarBytes = [0, 0, 0, 5] // this should produce leading zeros
         module.jarFile.bytes = jarBytes
-        sha1.text = StringUtils.leftPad(HashUtil.sha1(jarBytes).asHexString(), 40, '0')
+        sha1.text = Hashing.sha1().hashBytes(jarBytes).toZeroPaddedString(Hashing.sha1().hexDigits)
         initialResolve()
         expect:
         headThenSha1Requests()

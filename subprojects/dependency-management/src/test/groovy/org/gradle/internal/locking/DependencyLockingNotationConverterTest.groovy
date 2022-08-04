@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DependencyLockingNotationConverterTest extends Specification {
 
@@ -39,7 +38,6 @@ class DependencyLockingNotationConverterTest extends Specification {
         converted.version == '1.1'
     }
 
-    @Unroll
     def "fails to convert an invalid lock notation: #lockEntry"() {
         when:
         def converter = new DependencyLockingNotationConverter()

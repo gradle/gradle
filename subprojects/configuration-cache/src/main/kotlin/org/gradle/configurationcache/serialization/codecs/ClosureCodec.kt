@@ -23,21 +23,17 @@ import org.gradle.configurationcache.serialization.WriteContext
 
 
 object ClosureCodec : Codec<Closure<*>> {
+
     private
     val defaultOwner = Any()
 
-    private
-    val beanCodec = BeanCodec()
-
     override suspend fun WriteContext.encode(value: Closure<*>) {
         // TODO - should write the owner, delegate and thisObject, replacing project and script references
-        beanCodec.run { encode(value.dehydrate()) }
+        BeanCodec.run { encode(value.dehydrate()) }
     }
 
-    override suspend fun ReadContext.decode(): Closure<*>? {
-        return beanCodec.run {
-            val closure = decode() as Closure<*>
-            closure.rehydrate(null, defaultOwner, defaultOwner)
-        }
+    override suspend fun ReadContext.decode(): Closure<*>? = BeanCodec.run {
+        val closure = decode() as Closure<*>
+        closure.rehydrate(null, defaultOwner, defaultOwner)
     }
 }

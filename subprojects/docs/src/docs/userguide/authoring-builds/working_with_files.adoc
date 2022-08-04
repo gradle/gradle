@@ -155,7 +155,7 @@ As you can see, you can have multiple `from()` declarations in a copy specificat
 [[sec:unpacking_archives_example]]
 == Unpacking archives
 
-Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. \
+Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive.
 Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<sec:file_trees,file trees>>).
 
 The two functions of interest are link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[Project.zipTree(java.lang.Object)] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:tarTree(java.lang.Object)[Project.tarTree(java.lang.Object)], which produce a link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
@@ -386,7 +386,7 @@ include::{snippetsPath}/files/fileCollections/tests/fileCollectionsWithClosure.o
 
 The key to lazy creation is passing a closure (in Groovy) or a `Provider` (in Kotlin) to the `files()` method. Your closure/provider simply needs to return a value of a type accepted by `files()`, such as `List<File>`, `String`, `FileCollection`, etc.
 
-_Iterating over a file collection_ can be done through the `each()` method (in Groovy) of `forEach` method (in Kotlin) on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
+_Iterating over a file collection_ can be done through the `each()` method (in Groovy) or `forEach` method (in Kotlin) on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
 
 The following example demonstrates such iteration as well as how you can convert file collections to other types using the `as` operator or supported properties:
 
@@ -495,7 +495,7 @@ You can see a practical example of extracting an archive file <<#sec:unpacking_a
 
 Many objects in Gradle have properties which accept a set of input files.
 For example, the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task has a `source` property that defines the source files to compile.
-You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the api docs.
+You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the API docs.
 This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure or `Provider`.
 
 *This is a feature of specific tasks*!
@@ -754,6 +754,34 @@ include::sample[dir="snippets/files/sync/kotlin",files="build.gradle.kts[tags=co
 ====
 
 You can also perform the same function in your own tasks with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)] method.
+
+[[sec:copy_deploy]]
+=== Deploying single files into application servers
+
+When working with application servers, you can use a `Copy` task to deploy the application archive (e.g. a WAR file).
+Since you are deploying a single file, the destination directory of the `Copy` is the whole deployment directory.
+The deployment directory sometimes does contain unreadable files like named pipes, so Gradle may have problems doing up-to-date checks.
+In order to support this use-case, you can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
+
+.Using Copy to deploy a WAR file
+====
+include::sample[dir="snippets/files/deployWarWithCopy/groovy",files="build.gradle"]
+include::sample[dir="snippets/files/deployWarWithCopy/kotlin",files="build.gradle.kts"]
+====
+
+[[sec:install_executable]]
+=== Installing executables
+
+When you are building a standalone executable, you may want to install this file on your system, so it ends up in your path.
+You can use a `Copy` task to install the executable into shared directories like `/usr/local/bin`.
+The installation directory probably contains many other executables, some of which may even be unreadable by Gradle.
+To support the unreadable files in the `Copy` task's destination directory and to avoid time consuming up-to-date checks, you can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
+
+.Using Copy to install an executable
+====
+include::sample[dir="snippets/files/installExecutable/groovy",files="build.gradle"]
+include::sample[dir="snippets/files/installExecutable/kotlin",files="build.gradle.kts"]
+====
 
 [[sec:archives]]
 == Archive creation in depth

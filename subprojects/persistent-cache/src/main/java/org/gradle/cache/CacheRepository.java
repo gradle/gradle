@@ -15,12 +15,23 @@
  */
 package org.gradle.cache;
 
-import javax.annotation.Nullable;
+import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
 /**
  * A repository of persistent caches. A cache is a store of persistent data backed by a directory.
+ *
+ * This is migrating to become an internal type for the caching infrastructure. Please use
+ * {@link GlobalScopedCache}
+ * or {@link BuildTreeScopedCache}
+ * or {@link BuildScopedCache} instead.
  */
+@ServiceScope(Scopes.UserHome.class)
 public interface CacheRepository {
     /**
      * Returns a builder for the cache with the given key and global scope. Default is a Gradle version-specific cache shared by all builds, though this
@@ -41,12 +52,4 @@ public interface CacheRepository {
      * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
      */
     CacheBuilder cache(File baseDir);
-
-    /**
-     * Returns a builder for the cache with the given key and scope. Scope might be a Gradle, Project or Task.
-     *
-     * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
-     * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
-     */
-    CacheBuilder cache(@Nullable Object scope, String key);
 }

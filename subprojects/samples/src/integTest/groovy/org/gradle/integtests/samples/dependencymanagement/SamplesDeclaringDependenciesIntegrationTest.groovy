@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -31,7 +30,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-concreteVersion")
     def "can use declare and resolve dependency with concrete version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -47,7 +45,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-withoutVersion")
     def "can use declare and resolve dependency without version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -63,7 +60,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-dynamicVersion")
     def "can use declare and resolve dependency with dynamic version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -79,7 +75,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-changingVersion")
     def "can use declare and resolve dependency with changing version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -95,7 +90,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-fileDependencies")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can use declare and resolve file dependencies with #dsl dsl"() {
@@ -116,7 +110,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-artifactOnly")
     def "can resolve dependency with artifact-only declaration with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -132,7 +125,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-artifactOnlyWithClassifier")
     def "can resolve dependency with artifact-only declaration with classifier with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)

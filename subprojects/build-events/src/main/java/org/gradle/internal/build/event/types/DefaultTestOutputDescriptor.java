@@ -16,22 +16,23 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 
 import java.io.Serializable;
 
 public class DefaultTestOutputDescriptor implements Serializable, InternalTestOutputDescriptor {
 
-    private final Object id;
-    private final Object parentId;
+    private final OperationIdentifier id;
+    private final OperationIdentifier parentId;
 
-    public DefaultTestOutputDescriptor(Object id, Object parentId) {
+    public DefaultTestOutputDescriptor(OperationIdentifier id, OperationIdentifier parentId) {
         this.id = id;
         this.parentId = parentId;
     }
 
     @Override
-    public Object getId() {
+    public OperationIdentifier getId() {
         return id;
     }
 
@@ -46,7 +47,7 @@ public class DefaultTestOutputDescriptor implements Serializable, InternalTestOu
     }
 
     @Override
-    public Object getParentId() {
+    public OperationIdentifier getParentId() {
         return parentId;
     }
 }

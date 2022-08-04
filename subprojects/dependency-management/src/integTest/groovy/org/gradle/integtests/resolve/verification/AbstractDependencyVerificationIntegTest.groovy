@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
-class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyResolutionTest {
+abstract class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyResolutionTest {
     @Delegate
     private final DependencyVerificationFixture verificationFile = new DependencyVerificationFixture(
         file("gradle/verification-metadata.xml")

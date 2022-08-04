@@ -16,17 +16,18 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import java.io.Serializable;
 
 public class DefaultOperationDescriptor implements Serializable, InternalOperationDescriptor {
-    private final Object id;
+    private final OperationIdentifier id;
     private final String name;
     private final String displayName;
-    private final Object parentId;
+    private final OperationIdentifier parentId;
 
-    public DefaultOperationDescriptor(Object id, String name, String displayName, Object parentId) {
+    public DefaultOperationDescriptor(OperationIdentifier id, String name, String displayName, OperationIdentifier parentId) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -34,7 +35,7 @@ public class DefaultOperationDescriptor implements Serializable, InternalOperati
     }
 
     @Override
-    public Object getId() {
+    public OperationIdentifier getId() {
         return id;
     }
 
@@ -49,7 +50,7 @@ public class DefaultOperationDescriptor implements Serializable, InternalOperati
     }
 
     @Override
-    public Object getParentId() {
+    public OperationIdentifier getParentId() {
         return parentId;
     }
 }

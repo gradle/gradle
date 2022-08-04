@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -41,16 +40,7 @@ public class FailFastTestListenerInternal implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        TestResult delegateResult = testResult;
-        if (failed) {
-            if (testDescriptor.isComposite()) {
-                delegateResult = new DefaultTestResult(TestResult.ResultType.FAILURE, testResult.getStartTime(), testResult.getEndTime(), testResult.getTestCount(), testResult.getSuccessfulTestCount(), testResult.getFailedTestCount(), testResult.getExceptions());
-            } else {
-                delegateResult = new DefaultTestResult(TestResult.ResultType.SKIPPED, testResult.getStartTime(), testResult.getEndTime(), testResult.getTestCount(), testResult.getSuccessfulTestCount(), testResult.getFailedTestCount(), testResult.getExceptions());
-            }
-        }
-
-        delegate.completed(testDescriptor, delegateResult, completeEvent);
+        delegate.completed(testDescriptor, testResult, completeEvent);
 
         if (!failed && testResult.getResultType() == TestResult.ResultType.FAILURE) {
             failed = true;

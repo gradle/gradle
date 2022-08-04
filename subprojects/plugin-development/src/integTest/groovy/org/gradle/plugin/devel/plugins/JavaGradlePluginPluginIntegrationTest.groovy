@@ -17,7 +17,9 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
@@ -297,6 +299,37 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         """
         expect:
         succeeds("assemble")
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // ProjectBuilder needs full distribution
+    @Issue("https://github.com/gradle/gradle/issues/18647")
+    def "can test plugin with ProjectBuilder without warnings or errors"() {
+        given:
+        applyPlugin()
+        goodPluginDescriptor()
+        buildFile << """
+            ${mavenCentralRepository()}
+            testing.suites.test.useJUnit()
+        """
+        goodPlugin()
+        file("src/test/java/com/xxx/TestPluginTest.java") << """
+            import org.junit.Test;
+            import org.gradle.api.Project;
+            import org.gradle.testfixtures.ProjectBuilder;
+            public class TestPluginTest {
+                @Test
+                public void test() {
+                    Project project = ProjectBuilder.builder().build();
+                    project.getPlugins().apply("test-plugin");
+                }
+            }
+        """
+
+        when:
+        executer.withJdkWarningChecksEnabled()
+
+        then:
+        succeeds "test"
     }
 
     def buildFile() {

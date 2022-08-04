@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))
@@ -36,8 +37,10 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+
+description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""

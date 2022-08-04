@@ -17,56 +17,30 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.specs.Spec;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
+import org.gradle.internal.build.ExecutionResult;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
-     * Sets the filter to use when adding tasks to this graph. Only those tasks which are accepted by the given filter
-     * will be added to this graph.
+     * Attaches the work that this graph will run. Fires events and no further tasks should be added.
      */
-    void useFilter(Spec<? super Task> filter);
+    void populate(ExecutionPlan plan);
 
     /**
-     * Adds the given tasks and their dependencies to this graph. Tasks are executed in an arbitrary order. The tasks
-     * are executed before any tasks from a subsequent call to this method are executed.
+     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(ExecutionPlan)} prior to
+     * calling this method.
      */
-    void addEntryTasks(Iterable<? extends Task> tasks);
-
-    /**
-     * Adds an additional entry task that may be discovered in a composition of task graphs.
-     */
-    void addAdditionalEntryTask(String taskPath);
-
-    /**
-     * Adds the given nodes to this graph.
-     */
-    void addNodes(Collection<? extends Node> nodes);
-
-    /**
-     * Does the work to populate the task graph based on tasks that have been added. Fires events and no further tasks should be added.
-     */
-    void populate();
-
-    /**
-     * Executes the tasks in this graph. Discards the contents of this graph when completed.
-     * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
-     */
-    void execute(Collection<? super Throwable> taskFailures);
+    ExecutionResult<Void> execute(ExecutionPlan plan);
 
     /**
      * Sets whether execution should continue if a task fails.
      */
     void setContinueOnFailure(boolean continueOnFailure);
-
-    /**
-     * Set of requested tasks.
-     */
-    Set<Task> getRequestedTasks();
 
     /**
      * Set of requested tasks.
@@ -79,13 +53,8 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     int size();
 
     /**
-     * Returns all of the work items in this graph scheduled for execution.
-     */
-    List<Node> getScheduledWork();
-
-    /**
      * Returns all of the work items in this graph scheduled for execution plus all
      * dependencies from other builds.
      */
-    List<Node> getScheduledWorkPlusDependencies();
+    void visitScheduledNodes(Consumer<List<Node>> visitor);
 }

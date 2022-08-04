@@ -28,6 +28,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
+import org.gradle.work.DisableCachingByDefault
 
 import javax.inject.Inject
 import java.util.concurrent.Callable
@@ -36,6 +37,7 @@ import java.util.concurrent.Callable
  *
  * @see <a href="https://github.com/adammurdoch/build-builder">build builder</a>
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 class BuildBuilderGenerator extends ProjectGeneratorTask {
     /**
      * Installation directory of the build-builder tool.

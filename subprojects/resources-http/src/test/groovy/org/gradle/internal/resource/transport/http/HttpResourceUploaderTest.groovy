@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ReadableContent
 
 class HttpResourceUploaderTest extends AbstractHttpClientTest {
@@ -26,9 +27,10 @@ class HttpResourceUploaderTest extends AbstractHttpClientTest {
         ReadableContent resource = Mock()
         MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
         def uri = new URI("http://somewhere.org/somehow")
+        def name = new ExternalResourceName(uri)
 
         when:
-        new HttpResourceUploader(client).upload(resource, uri)
+        new HttpResourceUploader(client).upload(resource, name)
 
         then:
         interaction {

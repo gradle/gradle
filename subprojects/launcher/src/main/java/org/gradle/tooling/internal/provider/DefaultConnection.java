@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -40,12 +41,12 @@ import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSyst
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
+import org.gradle.tooling.internal.protocol.InternalStopWhenIdleConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.ShutdownParameters;
-import org.gradle.tooling.internal.protocol.InternalStopWhenIdleConnection;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
@@ -55,7 +56,6 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.IncubationLogger;
 import org.slf4j.Logger;
@@ -112,7 +112,7 @@ public class DefaultConnection implements ConnectionVersion4, org.gradle.tooling
     }
 
     private void initializeServices(File gradleUserHomeDir) {
-        NativeServices.initialize(gradleUserHomeDir);
+        NativeServices.initializeOnClient(gradleUserHomeDir);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         services = ServiceRegistryBuilder.builder()
             .displayName("Connection services")

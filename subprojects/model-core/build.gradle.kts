@@ -2,13 +2,15 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
+
 dependencies {
     api(project(":core-api"))
     api(project(":problems"))
 
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":persistent-cache"))
@@ -56,8 +58,9 @@ tasks.withType<JavaCompile>().configureEach {
     targetCompatibility = "8"
 }
 
+integTest.usesJavadocCodeSnippets.set(true)
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")
     excludePatterns.add("org/gradle/model/internal/inspect/**")
     excludePatterns.add("org/gradle/api/internal/tasks/**")

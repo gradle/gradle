@@ -24,7 +24,7 @@ public interface Scopes {
      * These services are reused across builds in the same process while the Gradle user home directory remains unchanged.
      * The services are closed when the Gradle user home directory changes.
      *
-     * <<p>{@link Scope.Global} and parent scope services are visible to {@link UserHome} scope services, but not vice versa.</p>
+     * <p>{@link Scope.Global} and parent scope services are visible to {@link UserHome} scope services, but not vice versa.</p>
      */
     interface UserHome extends Scope.Global {}
 
@@ -49,7 +49,7 @@ public interface Scopes {
     interface BuildTree extends BuildSession {}
 
     /**
-     * These services are created once per {@link org.gradle.api.initialization.Settings} the beginning of the build invocation
+     * These services are created once per {@code org.gradle.api.initialization.Settings} the beginning of the build invocation
      * These services are closed at the end of the build invocation.
      *
      * <p>{@link BuildTree} and parent scope services are visible to {@link Build} scope services, but not vice versa.</p>
@@ -57,7 +57,7 @@ public interface Scopes {
     interface Build extends BuildTree {}
 
     /**
-     * These services are created once per {@link org.gradle.api.invocation.Gradle} at the beginning of the build invocation.
+     * These services are created once per {@code org.gradle.api.invocation.Gradle} at the beginning of the build invocation.
      * These services are closed at the end of the build invocation.
      *
      * <p>{@link Build} and parent scope services are visible to {@link Gradle} scope services, but not vice versa.</p>

@@ -22,7 +22,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternStep;
 import org.gradle.api.internal.file.pattern.PatternStepFactory;
@@ -76,7 +75,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
+    public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
         visitor.visitFileTree(baseDir, getPatterns(), owner);
     }
 

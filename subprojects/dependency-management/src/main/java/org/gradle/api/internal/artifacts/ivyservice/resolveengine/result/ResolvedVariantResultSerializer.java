@@ -24,7 +24,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -33,16 +32,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
+public class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
     private final Map<ResolvedVariantResult, Integer> written = Maps.newHashMap();
     private final List<ResolvedVariantResult> read = Lists.newArrayList();
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
+    private final CapabilitySerializer capabilitySerializer;
 
-    ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
+    public ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
         this.componentIdentifierSerializer = componentIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
+        this.capabilitySerializer = new CapabilitySerializer();
     }
 
     @Override
@@ -72,10 +73,7 @@ class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResul
         }
         ImmutableList.Builder<Capability> capabilities = ImmutableList.builderWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
-            String group = decoder.readString();
-            String name = decoder.readString();
-            String version = decoder.readNullableString();
-            capabilities.add(new ImmutableCapability(group, name, version));
+            capabilities.add(capabilitySerializer.read(decoder));
         }
         return capabilities.build();
     }
@@ -104,9 +102,7 @@ class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResul
     private void writeCapabilities(Encoder encoder, List<Capability> capabilities) throws IOException {
         encoder.writeSmallInt(capabilities.size());
         for (Capability capability : capabilities) {
-            encoder.writeString(capability.getGroup());
-            encoder.writeString(capability.getName());
-            encoder.writeNullableString(capability.getVersion());
+            capabilitySerializer.write(encoder, capability);
         }
     }
 

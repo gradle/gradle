@@ -118,7 +118,7 @@ include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/G
 <1> Do not implement the `getParameters()` method - Gradle will inject this at runtime.
 
 Now, you should change your custom task class to submit work to the
-{api-reference}org/gradle/workers/WorkerExecutor.html[WorkerExecutor] instead of doing the work itself.
+link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] instead of doing the work itself.
 
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
@@ -218,7 +218,7 @@ You may also want to configure custom settings for the new process.
 include::{snippetsPath}/workerApi/md5ProcessIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> Change the isolation mode to `PROCESS`.
-<2> Set up the {api-reference}org/gradle/process/JavaForkOptions.html[JavaForkOptions] for the new process.
+<2> Set up the link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] for the new process.
 
 Now, you should be able to run your task, and it will work as expected but using worker daemons instead:
 

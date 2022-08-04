@@ -31,10 +31,9 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
-import org.gradle.internal.watch.vfs.WatchMode
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector
+import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,8 +42,10 @@ import spock.lang.Specification
 
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Function
 import java.util.function.Predicate
+import java.util.function.Supplier
+import java.util.stream.Stream
 
 @CleanupTestDirectory
 abstract class AbstractFileWatcherUpdaterTest extends Specification {
@@ -54,8 +55,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def watcher = Mock(FileWatcher)
     def ignoredForWatching = [] as Set<String>
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
-    def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
-    def watchableHiearchies = new WatchableHierarchies(watchableFileSystemDetector, watchFilter)
+    def probeLocationResolver = { hierarchy -> new File(hierarchy, ".gradle/file-watching.probe") } as Function<File, File>
+    def probeRegistry = Stub(FileWatcherProbeRegistry)
+    def watchableHierarchies = new WatchableHierarchies(probeRegistry, watchFilter)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
     FileWatcherUpdater updater
     def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
@@ -63,15 +65,38 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         protected SnapshotHierarchy updateNotifyingListeners(AbstractVirtualFileSystem.UpdateFunction updateFunction) {
             def diffListener = new SnapshotCollectingDiffListener()
             def newRoot = updateFunction.update(diffListener)
-            diffListener.publishSnapshotDiff {removed, added ->
+            diffListener.publishSnapshotDiff { removed, added ->
                 updater.virtualFileSystemContentsChanged(removed, added, newRoot)
             }
             return newRoot
         }
     }
 
+    List<File> movedPaths = []
+    AbstractFileWatcherUpdater.MovedDirectoryHandler movedWatchedDirectoriesSupplier = { SnapshotHierarchy vfsRoot -> movedPaths }
+
     def setup() {
-        updater = createUpdater(watcher, watchableHiearchies)
+        updater = createUpdater(watcher, watchableHierarchies)
+    }
+
+    /**
+     * Returns 1 for non-hierarchical watchers, and 0 for hierarchical watchers.
+     *
+     * For use in interaction tests, when an interaction only happens for non-hierarchical watchers.
+     * E.g.:
+     * ifNonHierarchical * watcher.startWatching(_)
+     */
+    abstract int getIfNonHierarchical()
+
+    /**
+     * Returns 1 for hierarchical watchers, and 0 for non-hierarchical watchers.
+     *
+     * For use in interaction tests, when an interaction only happens for hierarchical watchers.
+     * E.g.:
+     * ifHierarchical * watcher.startWatching(_)
+     */
+    int getIfHierarchical() {
+        return 1 - getIfNonHierarchical()
     }
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies)
@@ -225,16 +250,206 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         vfsHasSnapshotsAt(newestRegisteredWatchableHierarchy)
     }
 
+    def "does not start watching unsupported file system for default watch mode"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+
+        when:
+        buildStarted(WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        then:
+        !vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+    }
+
+    def "starts watching unsupported file system when watching is enabled"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+
+        when:
+        buildStarted(WatchMode.ENABLED)
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(unsupportedFileSystemMountPoint)]) })
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.ENABLED)
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+    }
+
+    def "stops watching unsupported file system"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+
+        when:
+        buildStarted(WatchMode.ENABLED)
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(unsupportedFileSystemMountPoint)]) })
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.ENABLED)
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+
+        when:
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        buildStarted(WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(unsupportedFileSystemMountPoint)]) })
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        then:
+        !vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+    }
+
+    def "starts watching unsupported file system when watching becomes enabled"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+
+        when:
+        buildStarted(WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        then:
+        !vfsHasSnapshotsAt(unwatchableContent)
+
+        when:
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        buildStarted(WatchMode.ENABLED)
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(unsupportedFileSystemMountPoint)]) })
+        0 * _
+    }
+
+    def "watching continues for watched hierarchies that are confirmed by watch probe"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def watchableHierarchyProbeDir = watchableHierarchy.file(".gradle")
+        def fileInWatchableHierarchy = watchableHierarchy.file("file.txt").createFile()
+
+        def notWatchedHierarchy = file("not-watched").createDir()
+        def notWatchedHierarchyProbeDir = notWatchedHierarchy.file(".gradle")
+        def fileInNotWatchedHierarchy = notWatchedHierarchy.file("file.txt").createFile()
+
+        def watchableHierarchies = [watchableHierarchy, notWatchedHierarchy]
+
+        when:
+        registerWatchableHierarchies(watchableHierarchies)
+        addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
+        then:
+        vfsHasSnapshotsAt(watchableHierarchy)
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchyProbeDir]) })
+        _ * probeRegistry.getProbeDirectory(watchableHierarchy) >> watchableHierarchyProbeDir
+        0 * _
+
+        when:
+        addSnapshot(snapshotRegularFile(fileInNotWatchedHierarchy))
+        then:
+        vfsHasSnapshotsAt(notWatchedHierarchy)
+
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchyProbeDir]) })
+        _ * probeRegistry.getProbeDirectory(notWatchedHierarchy) >> notWatchedHierarchyProbeDir
+        0 * _
+
+        when:
+        buildStarted()
+        then:
+        vfsHasSnapshotsAt(watchableHierarchy)
+        !vfsHasSnapshotsAt(notWatchedHierarchy)
+
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchyProbeDir]) })
+        _ * probeRegistry.getProbeDirectory(notWatchedHierarchy) >> notWatchedHierarchyProbeDir
+        _ * probeRegistry.unprovenHierarchies() >> Stream.of(notWatchedHierarchy)
+        0 * _
+    }
+
+    def "watchers are stopped when watched hierarchy is moved"() {
+        def sourceDir = file("to-be-moved").createDir()
+        def targetDir = file("target").createDir()
+        def notMovedDir = file("normal").createDir()
+        _ * probeRegistry.getProbeDirectory(_) >> { File hierarchy -> new File(hierarchy, ".gradle") }
+
+        def watchableHierarchies = [sourceDir, notMovedDir]
+        when:
+        registerWatchableHierarchies(watchableHierarchies)
+        watchableHierarchies.each {
+            addSnapshotInWatchableHierarchy(it)
+        }
+        then:
+        watchableHierarchies.each { watchableHierarchy ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+            ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [directoryContainingSnapshot(watchableHierarchy)]) })
+            ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
+        }
+
+        vfsHasSnapshotsAt(sourceDir)
+        !vfsHasSnapshotsAt(targetDir)
+        vfsHasSnapshotsAt(notMovedDir)
+        0 * _
+
+        updater.triggerWatchProbe(watchProbeFor(sourceDir).absolutePath)
+        updater.triggerWatchProbe(watchProbeFor(notMovedDir).absolutePath)
+
+        when:
+        sourceDir.renameTo(targetDir)
+        movedPaths << sourceDir
+        buildStarted()
+        then:
+        !vfsHasSnapshotsAt(sourceDir)
+        !vfsHasSnapshotsAt(targetDir)
+        vfsHasSnapshotsAt(notMovedDir)
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [sourceDir]) })
+        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [directoryContainingSnapshot(sourceDir)]) })
+        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(sourceDir)]) })
+        0 * _
+    }
+
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
     }
 
     DirectorySnapshot snapshotDirectory(File directory) {
-        directorySnapshotter.snapshot(directory.absolutePath, null, new AtomicBoolean(false)) as DirectorySnapshot
+        directorySnapshotter.snapshot(directory.absolutePath, null) {} as DirectorySnapshot
     }
 
     void addSnapshot(FileSystemLocationSnapshot snapshot) {
-        virtualFileSystem.store(snapshot.absolutePath, snapshot)
+        virtualFileSystem.store(snapshot.absolutePath, { snapshot } as Supplier<FileSystemLocationSnapshot>)
     }
 
     void invalidate(String absolutePath) {
@@ -272,9 +487,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     boolean vfsHasSnapshotsAt(File location) {
-        def visitor = new CheckIfNonEmptySnapshotVisitor()
-        virtualFileSystem.root.visitSnapshotRoots(location.absolutePath, visitor)
-        return !visitor.empty
+        return virtualFileSystem.root.rootSnapshotsUnder(location.absolutePath)
+            .findAny()
+            .present
     }
 
     void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
@@ -283,17 +498,26 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         }
     }
 
-    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE) {
-        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, WatchMode.DEFAULT, maximumNumberOfWatchedHierarchies)
+    File watchProbeFor(File watchableHierarchy) {
+        probeLocationResolver.apply(watchableHierarchy)
     }
 
-    private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
+    SnapshotHierarchy buildStarted(watchMode = WatchMode.DEFAULT, unsupportedFileSystems = []) {
+        virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode, unsupportedFileSystems)
+        return virtualFileSystem.root
+    }
 
-        boolean empty = true
+    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, watchMode = WatchMode.DEFAULT, unsupportedFileSystems = []) {
+        virtualFileSystem.root = updater.updateVfsOnBuildFinished(virtualFileSystem.root, watchMode, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
+    }
 
-        @Override
-        void visitSnapshotRoot(FileSystemLocationSnapshot snapshot) {
-            empty = false
-        }
+    TestFile addSnapshotInWatchableHierarchy(TestFile projectRootDirectory) {
+        def fileInside = directoryContainingSnapshot(projectRootDirectory).file("file.txt").createFile()
+        addSnapshot(snapshotRegularFile(fileInside))
+        return fileInside.parentFile
+    }
+
+    TestFile directoryContainingSnapshot(TestFile projectRootDirectory) {
+        projectRootDirectory.file("some/subdir")
     }
 }

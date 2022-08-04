@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -68,7 +67,6 @@ dependencies {
         assert succeeds('checkDeps')
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses latest version from version range and latest status"() {
         given:
         useRepository ivyHttpRepo
@@ -112,7 +110,6 @@ dependencies {
             "group:projectB:latest.integration": "group:projectB:2.2"
     }
 
-    @Unroll
     def "uses latest version from version range with #identifier characters"() {
         given:
         def name = identifier.safeForFileName().decorate("name")
@@ -380,7 +377,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails on broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -953,7 +949,6 @@ configurations.all {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from no matching version for dynamic version"() {
         def repo2 = ivyHttpRepo("repo-2")
 
@@ -1043,7 +1038,6 @@ Required by:
         checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 3.0, 1.2, 1.1, 4.4"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1089,7 +1083,6 @@ Required by:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing dynamic version when no repositories defined"() {
         given:
         buildFile << """
@@ -1112,7 +1105,6 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from broken directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1144,7 +1136,6 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1179,7 +1170,6 @@ Required by:
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from broken module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1219,7 +1209,6 @@ dependencies {
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
-    @Unroll
     def "finds best matching version in local and remote repository with #order"() {
         given:
         def fileRepo = ivyRepo("fileRepo")
@@ -1237,6 +1226,7 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
+    def moduleName = providers.gradleProperty('moduleName').get()
     compile "group:\$moduleName:1.+"
 }
 configurations.all {
@@ -1271,7 +1261,6 @@ configurations.all {
         "remote first" | false
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "fails with reasonable error message when no cached version list in offline mode"() {
         given:
         useRepository ivyHttpRepo

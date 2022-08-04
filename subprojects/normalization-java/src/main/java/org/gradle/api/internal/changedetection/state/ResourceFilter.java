@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.function.Supplier;

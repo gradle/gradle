@@ -25,7 +25,7 @@ class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends Abst
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         groovyDsl(script, read)
         buildFile << """
             apply from: "plugin.gradle"

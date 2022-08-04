@@ -16,13 +16,17 @@
 
 package org.gradle.performance.results.report;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -30,44 +34,48 @@ import java.util.TreeSet;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.performance.results.ScenarioBuildResultData.FLAKINESS_DETECTION_THRESHOLD;
+import static org.gradle.performance.results.PerformanceTestExecutionResult.FLAKINESS_DETECTION_THRESHOLD;
 
 class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     public static final int MOST_RECENT_EXECUTIONS = 9;
-    private static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR =
-        comparing(ScenarioBuildResultData::isBuildFailed).reversed()
-            .thenComparing(ScenarioBuildResultData::isSuccessful)
-            .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
+    private static final Comparator<PerformanceReportScenario> SCENARIO_COMPARATOR =
+        comparing(PerformanceReportScenario::isBuildFailed).reversed()
+            .thenComparing(PerformanceReportScenario::isSuccessful)
+            .thenComparing(comparing(PerformanceReportScenario::isBuildFailed).reversed())
             .thenComparing(comparing(org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).reversed())
-            .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
-            .thenComparing(ScenarioBuildResultData::getPerformanceExperiment);
+            .thenComparing(comparing(PerformanceReportScenario::getDifferencePercentage).reversed())
+            .thenComparing(PerformanceReportScenario::getName);
 
-    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
-        super(resultsStore, resultJsons);
+    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
+        super(resultsStore, resultJsons, performanceTestBuildIds);
     }
 
     @Override
-    protected TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
-        Set<ScenarioBuildResultData> distinctScenarios = scenarioList
+    protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioList) {
+        Set<PerformanceTestExecutionResult> distinctScenarios = scenarioList
             .stream()
-            .collect(treeSetCollector(comparing(ScenarioBuildResultData::getPerformanceExperiment)));
+            .collect(treeSetCollector(comparing(PerformanceTestExecutionResult::getPerformanceExperiment)));
 
         return distinctScenarios.stream()
             .map(this::queryExecutionData)
             .collect(treeSetCollector(SCENARIO_COMPARATOR));
     }
 
-    private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
-        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
-        List<? extends PerformanceTestExecution> executionsOfSameCommit = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
+    private PerformanceReportScenario queryExecutionData(PerformanceTestExecutionResult execution) {
+        PerformanceTestHistory history = resultsStore.getTestResults(execution.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), ImmutableList.of());
+        List<? extends PerformanceTestExecution> executionsOfSameCommit = history.getExecutions().stream().filter(e -> e.getVcsCommits().contains(commitId)).collect(toList());
         List<? extends PerformanceTestExecution> currentExecutions = executionsOfSameCommit.isEmpty()
             ? history.getExecutions().stream().limit(3).collect(toList())
             : executionsOfSameCommit;
-        scenario.setCurrentBuildExecutions(removeEmptyExecution(currentExecutions));
-        return scenario;
+        return new PerformanceReportScenario(
+            Collections.singletonList(execution),
+            removeEmptyExecution(currentExecutions),
+            history instanceof CrossBuildPerformanceTestHistory,
+            false
+        );
     }
 
-    public static boolean isFlaky(ScenarioBuildResultData scenario) {
-        return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
+    public static boolean isFlaky(PerformanceReportScenario scenario) {
+        return scenario.getCurrentExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }
 }

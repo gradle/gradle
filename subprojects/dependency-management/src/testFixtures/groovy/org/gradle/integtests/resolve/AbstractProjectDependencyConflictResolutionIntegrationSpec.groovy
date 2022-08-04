@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.util.Path
-import spock.lang.Unroll
 
 /**
  * This tests the following scenario with different version settings:
@@ -57,7 +56,6 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
      */
     abstract boolean isAutoDependencySubstitution();
 
-    @Unroll
     def "project (#projectDep) vs external (#transitiveDep) resolves to (#winner), when preferProjectModules=#preferProjectModules and force=#force and depSubstitution=#depSubstitution"() {
         given:
         //required for composite builds
@@ -183,7 +181,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         def projectId(String projectName) {
             def buildId = $buildId
             def projectPath = $projectPath
-            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).getIdentifierForProject(${Path.name}.path(projectPath))
+            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
         }
 """
     }

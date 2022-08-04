@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -40,6 +41,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaExecSpec;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -107,6 +109,7 @@ import java.util.Map;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
@@ -123,7 +126,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
 
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(mainClass);
+        javaExecSpec.getMainClass().convention(
+            getMainClass().orElse(
+                Providers.changing(
+                    // go through 'main' to keep this compatible with existing convention mappings
+                    () -> DeprecationLogger.whileDisabled(this::getMain)
+                )
+            )
+        );
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);

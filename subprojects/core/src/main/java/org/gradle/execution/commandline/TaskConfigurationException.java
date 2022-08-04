@@ -18,10 +18,8 @@ package org.gradle.execution.commandline;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.logging.text.StyledTextOutput;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
@@ -36,10 +34,12 @@ public class TaskConfigurationException extends GradleException implements Failu
     }
 
     @Override
-    public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
-        output.text("Run ");
-        clientMetaData.describeCommand(output.withStyle(UserInput), ProjectInternal.HELP_TASK);
-        output.withStyle(UserInput).format(" --task %s", taskPath);
-        output.text(" to get task usage details.");
+    public void appendResolutions(Context context) {
+        context.appendResolution(output -> {
+            output.text("Run ");
+            context.getClientMetaData().describeCommand(output.withStyle(UserInput), ProjectInternal.HELP_TASK);
+            output.withStyle(UserInput).format(" --task %s", taskPath);
+            output.text(" to get task usage details.");
+        });
     }
 }

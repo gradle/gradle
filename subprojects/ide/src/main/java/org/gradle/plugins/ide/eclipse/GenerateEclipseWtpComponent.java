@@ -21,6 +21,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
@@ -30,6 +31,7 @@ import javax.inject.Inject;
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     private EclipseWtpComponent component;

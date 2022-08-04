@@ -19,12 +19,13 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 class CancellationContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         buildFile.text = "apply plugin: 'java'"
+
+        file("src/main/java/MyClass.java") << "public class MyClass {}"
     }
 
     def "should cancel build when System.in contains EOT"() {
@@ -64,7 +65,6 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
         cancelsAndExits()
     }
 
-    @Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
     @Requires(TestPrecondition.NOT_WINDOWS)
     // GradleHandle.abort() is unsafe on Windows - this is a test infrastructure problem
     def "does not cancel on EOT or by closing System.in when not interactive"() {
@@ -88,7 +88,7 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
         file("src/main/java/Thing.java") << "class Thing {}"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
     }
 
 }

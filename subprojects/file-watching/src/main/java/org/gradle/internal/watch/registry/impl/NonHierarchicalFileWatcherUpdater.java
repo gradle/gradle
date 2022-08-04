@@ -17,10 +17,11 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
@@ -30,98 +31,104 @@ import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisit
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.watch.WatchingNotSupportedException;
-import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
-public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
-    private final Multiset<String> watchedDirectories = HashMultiset.create();
-    private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
+    private final Multiset<String> watchedDirectories = HashMultiset.create();
+    private final Map<String, String> watchedDirectoryForSnapshot = new HashMap<>();
+    private final Set<String> watchedWatchableHierarchies = new HashSet<>();
 
-    private final WatchableHierarchies watchableHierarchies;
-
-    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
+    public NonHierarchicalFileWatcherUpdater(
+        FileWatcher fileWatcher,
+        FileWatcherProbeRegistry probeRegistry,
+        WatchableHierarchies watchableHierarchies,
+        MovedDirectoryHandler movedDirectoryHandler
+    ) {
+        super(probeRegistry, watchableHierarchies, movedDirectoryHandler);
         this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override
-    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+    protected boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
-                ImmutableList<String> previousWatchedRoots = watchedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
-                previousWatchedRoots.forEach(path -> decrement(path, changedWatchedDirectories));
+                String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
+                decrement(previousWatchedRoot, changedWatchedDirectories);
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
-                ImmutableList<String> directoriesToWatchForRoot = ImmutableList.copyOf(SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).stream()
-                    .map(Path::toString).collect(Collectors.toList()));
-                watchedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatchForRoot);
-                directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
+                File directoryToWatchForRoot = SnapshotWatchedDirectoryFinder.getDirectoryToWatch(snapshot);
+                String pathToWatchForRoot = directoryToWatchForRoot.getAbsolutePath();
+                if (!watchableHierarchies.isInWatchableHierarchy(pathToWatchForRoot)) {
+                    return;
+                }
+                watchedDirectoryForSnapshot.put(snapshot.getAbsolutePath(), pathToWatchForRoot);
+                increment(pathToWatchForRoot, changedWatchedDirectories);
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
             });
+        if (changedWatchedDirectories.isEmpty()) {
+            return false;
+        }
         updateWatchedDirectories(changedWatchedDirectories);
+        return true;
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles) {
+        // Most of the changes already happened in `handleVirtualFileSystemContentsChanged`.
+        // Here we only need to update watches for the roots of the hierarchies.
+        Map<String, Integer> changedWatchDirectories = new HashMap<>();
+        watchedWatchableHierarchies.forEach(absolutePath -> decrement(absolutePath, changedWatchDirectories));
+        watchedWatchableHierarchies.clear();
+        newWatchedFiles.visitRoots(absolutePath -> {
+            watchedWatchableHierarchies.add(absolutePath);
+            increment(absolutePath, changedWatchDirectories);
+        });
+        if (!changedWatchDirectories.isEmpty()) {
+            updateWatchedDirectories(changedWatchDirectories);
+        }
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
+    protected WatchableHierarchies.Invalidator createInvalidator() {
+        return (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
             diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
             return invalidatedRoot;
         };
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
-            root,
-            watchMode,
-            hierarchy -> containsSnapshots(hierarchy, root),
-            maximumNumberOfWatchedHierarchies,
-            invalidator
-        );
-        LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
-        return newRoot;
     }
 
     @Override
-    public Collection<Path> getWatchedHierarchies() {
-        return watchableHierarchies.getWatchableHierarchies();
+    protected void startWatchingProbeDirectory(File probeDirectory) {
+        updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
     }
 
-    private boolean containsSnapshots(Path location, SnapshotHierarchy root) {
-        CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-        root.visitSnapshotRoots(location.toString(), checkIfNonEmptySnapshotVisitor);
-        return !checkIfNonEmptySnapshotVisitor.isEmpty();
+    @Override
+    protected void stopWatchingProbeDirectory(File probeDirectory) {
+        updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
-        if (changedWatchDirectories.isEmpty()) {
-            return;
-        }
         Set<File> directoriesToStopWatching = new HashSet<>();
         Set<File> directoriesToStartWatching = new HashSet<>();
         changedWatchDirectories.forEach((absolutePath, value) -> {
@@ -139,13 +146,14 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                 }
             }
         });
-        if (watchedDirectories.isEmpty()) {
-            LOGGER.info("Not watching anything anymore");
-        }
+
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
+
         try {
             if (!directoriesToStopWatching.isEmpty()) {
-                fileWatcher.stopWatching(directoriesToStopWatching);
+                if (!fileWatcher.stopWatching(directoriesToStopWatching)) {
+                    LOGGER.debug("Couldn't stop watching directories: {}", directoriesToStopWatching);
+                }
             }
             if (!directoriesToStartWatching.isEmpty()) {
                 fileWatcher.startWatching(directoriesToStartWatching);
@@ -159,11 +167,20 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     private static void decrement(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> value == null ? -1 : value - 1);
+        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) - 1));
     }
 
     private static void increment(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
+        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) + 1));
+    }
+
+    @Nullable
+    private static Integer zeroToNull(int value) {
+        return value == 0 ? null : value;
+    }
+
+    private static int nullToZero(@Nullable Integer value) {
+        return value == null ? 0 : value;
     }
 
     private class SubdirectoriesToWatchVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {

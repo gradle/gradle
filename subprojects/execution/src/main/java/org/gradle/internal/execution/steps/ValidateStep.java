@@ -18,16 +18,25 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
+import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.problems.BaseProblem;
@@ -39,26 +48,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
-public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
+public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
     private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
-    private final Step<? super ValidationContext, ? extends R> delegate;
+    private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
-        Step<? super ValidationContext, ? extends R> delegate
+        Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
@@ -66,17 +75,19 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
     }
 
     @Override
-    public R execute(UnitOfWork work, AfterPreviousExecutionContext context) {
+    public R execute(UnitOfWork work, C context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
+        context.getBeforeExecutionState()
+            .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        Map<Severity, List<String>> problems = validationContext.getProblems()
+        Map<Severity, List<TypeValidationProblem>> problems = validationContext.getProblems()
             .stream()
             .collect(
                 groupingBy(BaseProblem::getSeverity,
-                mapping(ValidateStep::renderedMessage, toList())));
-        ImmutableCollection<String> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableCollection<String> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
+                    mapping(Function.identity(), toList())));
+        ImmutableCollection<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableCollection<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -84,8 +95,8 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
 
         if (!errors.isEmpty()) {
             int maxErrCount = Integer.getInteger(MAX_NB_OF_ERRORS, 5);
-            ImmutableSortedSet<String> uniqueSortedErrors = ImmutableSortedSet.copyOf(errors);
-            throw WorkValidationException.forProblems(uniqueSortedErrors)
+            ImmutableSet<String> uniqueErrors = errors.stream().map(ValidateStep::renderedErrorMessage).collect(ImmutableSet.toImmutableSet());
+            throw WorkValidationException.forProblems(uniqueErrors)
                 .limitTo(maxErrCount)
                 .withSummary(helper ->
                     String.format("%s found with the configuration of %s (%s).",
@@ -102,7 +113,12 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
             virtualFileSystem.invalidateAll();
         }
 
-        return delegate.execute(work, new ValidationContext() {
+        return delegate.execute(work, new ValidationFinishedContext() {
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+
             @Override
             public Optional<ValidationResult> getValidationProblems() {
                 return warnings.isEmpty()
@@ -111,8 +127,8 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
 
             @Override
@@ -141,8 +157,8 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override
@@ -152,10 +168,66 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         });
     }
 
-    private static String renderedMessage(org.gradle.internal.reflect.validation.TypeValidationProblem p) {
-        if (p.getSeverity().isWarning()) {
-            return convertToSingleLine(renderMinimalInformationAbout(p, true, false));
+    private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
+        MutableReference<Class<?>> workClass = MutableReference.empty();
+        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
+            @Override
+            public void visitImplementation(Class<?> implementation) {
+                workClass.set(GeneratedSubclasses.unpack(implementation));
+            }
+
+            @Override
+            public void visitImplementation(ImplementationSnapshot implementation) {
+            }
+        });
+        // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
+        Class<?> workType = workClass.get();
+        TypeValidationContext workValidationContext = validationContext.forType(workType, true);
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work);
+        beforeExecutionState.getAdditionalImplementations()
+            .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
+        beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
+            if (valueSnapshot instanceof ImplementationSnapshot) {
+                ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) valueSnapshot;
+                validateNestedInput(workValidationContext, propertyName, implementationSnapshot);
+            }
+        });
+    }
+
+    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem ->
+                configureImplementationValidationProblem(problem)
+                    .forProperty(propertyName)
+                    .withDescription(unknownImplSnapshot.getProblemDescription())
+                    .happensBecause(unknownImplSnapshot.getReasonDescription())
+                    .addPossibleSolution(unknownImplSnapshot.getSolutionDescription())
+            );
         }
+    }
+
+    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem ->
+                configureImplementationValidationProblem(problem)
+                    .withDescription(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                    .happensBecause(unknownImplSnapshot.getReasonDescription())
+                    .addPossibleSolution(unknownImplSnapshot.getSolutionDescription())
+            );
+        }
+    }
+
+    private <T extends ValidationProblemBuilder<T>> T configureImplementationValidationProblem(ValidationProblemBuilder<T> problem) {
+        return problem
+            .typeIsIrrelevantInErrorMessage()
+            .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
+            .reportAs(Severity.WARNING)
+            .documentedAt("validation_problems", "implementation_unknown");
+    }
+
+    private static String renderedErrorMessage(TypeValidationProblem p) {
         return renderMinimalInformationAbout(p);
     }
 
@@ -170,6 +242,6 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<String> warnings);
+        void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings);
     }
 }

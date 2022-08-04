@@ -21,14 +21,13 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     def "cache is properly locked around provisioning a jdk"() {
         def cache = Mock(JdkCacheDirectory)
@@ -39,6 +38,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
+        binary.canProvideMatchingJdk(spec) >> true
         binary.toFilename(spec) >> 'jdk-123.zip'
         def downloadLocation = Mock(File)
         downloadLocation.name >> "filename.zip"
@@ -71,9 +71,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
+        binary.canProvideMatchingJdk(spec) >> true
         cache.acquireWriteLock(_, _) >> lock
         binary.toFilename(spec) >> 'jdk-123.zip'
-        def downloadLocation = temporaryFolder.newFile("jdk.zip")
+        def downloadLocation = new File(temporaryFolder, "jdk.zip")
         downloadLocation.createNewFile()
         cache.getDownloadLocation(_ as String) >> downloadLocation
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
@@ -85,6 +86,24 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         0 * binary.download(_, _)
     }
 
+    def "skips downloading if cannot satisfy spec"() {
+        def cache = Mock(JdkCacheDirectory)
+        def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("true")
+
+        given:
+        binary.canProvideMatchingJdk(spec) >> false
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
+
+        when:
+        def result = provisioningService.tryInstall(spec)
+
+        then:
+        !result.isPresent()
+        0 * binary.download(_, _)
+    }
+
     def "auto download can be disabled"() {
         def cache = Mock(JdkCacheDirectory)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
@@ -92,6 +111,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("false")
 
         given:
+        binary.canProvideMatchingJdk(spec) >> true
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:

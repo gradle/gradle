@@ -139,9 +139,11 @@ class ExternalResourceResolverTest extends Specification {
     def "tries to fetch artifact when module metadata file is missing and legacy mode is active"() {
         given:
         def id = Stub(ModuleComponentIdentifier)
+        def metadata = Stub(ComponentOverrideMetadata)
+        metadata.artifact >> null
 
         when:
-        resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
+        resolver.remoteAccess.resolveComponentMetaData(id, metadata, metadataResult)
 
         then:
         1 * metadataSources.sources() >> ImmutableList.of(new DefaultArtifactMetadataSource(Mock(MutableModuleMetadataFactory)))

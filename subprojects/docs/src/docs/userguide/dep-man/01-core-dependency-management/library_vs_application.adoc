@@ -4,7 +4,7 @@
 [[sub:producers-vs-consumers]]
 == Producers vs consumers
 
-A key concept in dependency management with Gradle is making the difference between consumers and producers.
+A key concept in dependency management with Gradle is the difference between consumers and producers.
 
 When you _build_ a library, you are effectively on the _producer_ side: you are producing _artifacts_ which are going to be _consumed_ by someone else, the _consumer_.
 

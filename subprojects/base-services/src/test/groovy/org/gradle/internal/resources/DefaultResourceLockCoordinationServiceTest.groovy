@@ -21,8 +21,12 @@ import org.gradle.api.Transformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.internal.resources.ResourceLockState.Disposition.*
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FAILED
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED
+import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY
 
 class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
@@ -143,11 +147,11 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         }
 
         when:
-        beforeState.eachWithIndex{ boolean locked, int i -> lock[i].lockedState = locked }
+        beforeState.eachWithIndex { boolean locked, int i -> lock[i].lockedState = locked }
         coordinationService.withStateLock(outerAction)
 
         then:
-        afterState.eachWithIndex{ boolean locked, int i -> assert lock[i].lockedState == locked }
+        afterState.eachWithIndex { boolean locked, int i -> assert lock[i].lockedState == locked }
 
         where:
         beforeState                  | afterState
@@ -317,8 +321,90 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         false       | false       | FINISHED
     }
 
-    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
-        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
+    def "notifies listener when lock is released"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1", true, true)
+
+        when:
+        coordinationService.withStateLock { state ->
+            assert lock.isLockedByCurrentThread()
+            lock.unlock()
+            return FINISHED
+        }
+
+        then:
+        1 * listener.execute(lock)
+        0 * listener._
+    }
+
+    def "notifies listener when lock is released in retry"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1")
+
+        when:
+        async {
+            start {
+                coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(lock))
+                coordinationService.withStateLock { state ->
+                    if (lock.isLockedByCurrentThread()) {
+                        instant.unlocked
+                        lock.unlock()
+                        return RETRY
+                    } else {
+                        return FINISHED
+                    }
+                }
+            }
+            thread.blockUntil.unlocked
+            coordinationService.notifyStateChange()
+        }
+
+        then:
+        1 * listener.execute(lock)
+        0 * listener._
+    }
+
+    def "does not notify listener when lock is acquired and released in single action"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1")
+
+        when:
+        coordinationService.withStateLock { state ->
+            assert !lock.isLockedByCurrentThread()
+            lock.tryLock()
+            lock.unlock()
+            return FINISHED
+        }
+
+        then:
+        0 * listener._
+    }
+
+    def "does not notify listener when lock is released due to action failure"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1")
+
+        when:
+        coordinationService.withStateLock { state ->
+            assert !lock.isLockedByCurrentThread()
+            lock.tryLock()
+            return FAILED
+        }
+
+        then:
+        0 * listener._
+    }
+
+    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock = false) {
+        return new TestTrackedResourceLock(displayName, coordinationService, Mock(ResourceLockContainer), locked, hasLock)
     }
 
     TestTrackedResourceLock resourceLock(String displayName) {

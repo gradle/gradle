@@ -52,6 +52,16 @@ class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrder
         source.iterator().collect() == ["foo"]
     }
 
+    def "an element added as both a provider and a realized value has the correct order"() {
+        when:
+        source.addPending(provider("foo"))
+        source.add("bar")
+        source.add("foo")
+
+        then:
+        source.iterator().collect() == ["foo", "bar"]
+    }
+
     def "can add the same element multiple times"() {
         when:
         3.times { source.add("foo") }
@@ -62,6 +72,47 @@ class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrder
 
         and:
         source.iterator().collect() == ["foo", "bar"]
+    }
+
+    def "can re-add an ordinary value after removal"() {
+        when:
+        source.add("a")
+        source.add("b")
+        source.remove("a")
+
+        then:
+        source.iterator().collect() == ["b"]
+
+        when:
+        source.add("a")
+
+        then:
+        source.iterator().collect() == ["b", "a"]
+    }
+
+    def "can re-add an ordinary value after clear"() {
+        when:
+        source.add("a")
+        source.add("b")
+        source.clear()
+
+        then:
+        source.iterator().collect() == []
+
+        when:
+        source.add("a")
+        source.add("b")
+
+        then:
+        source.iterator().collect() == ["a", "b"]
+
+        when:
+        source.clear()
+        source.add("b")
+        source.add("a")
+
+        then:
+        source.iterator().collect() == ["b", "a"]
     }
 
     def "duplicates are handled when values change"() {
@@ -79,5 +130,32 @@ class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrder
 
         then:
         source.iterator().collect() == ["foo", "buzz", "fizz"]
+    }
+
+    def "adding is not ignored when a realized provider currently has the same value"() {
+        def provider1 = setProvider("foo")
+
+        when:
+        source.addPendingCollection(provider1)
+        source.realizePending()
+        boolean addResult = source.add("foo")
+        provider1.value = []
+
+        then:
+        addResult
+        source.iterator().collect() == ["foo"]
+    }
+
+    def "adding is not ignored when an unrealized provider currently has the same value"() {
+        def provider1 = setProvider("foo")
+
+        when:
+        source.addPendingCollection(provider1)
+        boolean addResult = source.add("foo")
+        provider1.value = []
+
+        then:
+        addResult
+        source.iterator().collect() == ["foo"]
     }
 }

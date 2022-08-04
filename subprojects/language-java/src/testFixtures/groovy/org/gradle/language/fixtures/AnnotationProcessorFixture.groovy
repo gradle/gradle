@@ -32,15 +32,26 @@ import org.gradle.test.fixtures.file.TestFile
 @CompileStatic
 abstract class AnnotationProcessorFixture {
     protected final String annotationName
+    protected final String annotationPackageName
+    protected final String fqAnnotationName
     IncrementalAnnotationProcessorType declaredType
 
     AnnotationProcessorFixture(String annotationName) {
+        this('', annotationName)
+    }
+
+    AnnotationProcessorFixture(String annotationPackageName, String annotationName) {
         this.annotationName = annotationName
+        this.annotationPackageName = annotationPackageName
+        this.fqAnnotationName = annotationPackageName.empty ? annotationName : "${annotationPackageName}.${annotationName}"
     }
 
     final void writeApiTo(TestFile projectDir) {
+        def packagePathPrefix = annotationPackageName.empty ? '' : "${annotationPackageName.replace('.', '/')}/"
+        def packageStatement = annotationPackageName.empty ? '' : "package ${annotationPackageName};"
         // Annotation handled by processor
-        projectDir.file("src/main/java/${annotationName}.java").text = """
+        projectDir.file("src/main/java/${packagePathPrefix}${annotationName}.java").text = """
+            ${packageStatement}
             public @interface $annotationName {
             }
 """
@@ -73,6 +84,7 @@ abstract class AnnotationProcessorFixture {
             import javax.lang.model.element.*;
             import javax.lang.model.util.*;
             import javax.tools.*;
+            ${annotationPackageName.empty ? '' : "import ${fqAnnotationName};"}
 
             import static javax.tools.StandardLocation.*;
 
@@ -82,6 +94,8 @@ abstract class AnnotationProcessorFixture {
                 private Elements elementUtils;
                 private Filer filer;
                 private Messager messager;
+
+                ${membersBlock}
 
                 @Override
                 public Set<String> getSupportedAnnotationTypes() {
@@ -105,12 +119,11 @@ abstract class AnnotationProcessorFixture {
 
                 @Override
                 public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    Set<Element> elements = new HashSet<>();
                     for (TypeElement annotation : annotations) {
-                        if (annotation.getQualifiedName().toString().equals(${annotationName}.class.getName())) {
-                            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(annotation);
-                            ${generatorCode}
-                        }
+                         elements.addAll(roundEnv.getElementsAnnotatedWith(annotation));
                     }
+                    ${generatorCode}
                     return true;
                 }
             }
@@ -140,6 +153,9 @@ abstract class AnnotationProcessorFixture {
     protected abstract String getGeneratorCode();
 
     protected String getSupportedOptionsBlock() {
+        ""
+    }
+    protected String getMembersBlock() {
         ""
     }
 }

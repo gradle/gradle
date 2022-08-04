@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -302,7 +301,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':includedBuild:fooJar'
     }
 
-    @Unroll
     def "attribute values are matched across builds - #type"() {
         given:
         file('settings.gradle') << """
@@ -747,8 +745,10 @@ All of them match the consumer attributes:
         """
             $pluginsBlock
 
-            import static com.acme.Flavor.*
-            import static com.acme.BuildType.*
+            import static com.acme.Flavor.free
+            import static com.acme.Flavor.paid
+            import static com.acme.BuildType.debug
+            import static com.acme.BuildType.release
 
             def flavor = Attribute.of(com.acme.Flavor)
             def buildType = Attribute.of(com.acme.BuildType)

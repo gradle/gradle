@@ -16,6 +16,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -29,12 +30,14 @@ import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 
 public class StartParameterConverter {
+    private final BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
     private final BuildOptionBackedConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
     private final BuildOptionBackedConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new ParallelismBuildOptions());
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final BuildOptionBackedConverter<StartParameterInternal> buildOptionsConverter = new BuildOptionBackedConverter<>(new StartParameterBuildOptions());
 
     public void configure(CommandLineParser parser) {
+        welcomeMessageConfigurationCommandLineConverter.configure(parser);
         loggingConfigurationCommandLineConverter.configure(parser);
         parallelConfigurationCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
@@ -45,6 +48,7 @@ public class StartParameterConverter {
     public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, StartParameterInternal startParameter) throws CommandLineArgumentException {
         buildLayout.applyTo(startParameter);
 
+        welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties, startParameter.getWelcomeMessageConfiguration());
         loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties, startParameter);
         parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties, startParameter);
 

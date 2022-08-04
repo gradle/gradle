@@ -8,7 +8,7 @@ dependencies {
     api(project(":snapshots"))
 
     implementation(project(":base-annotations"))
-    implementation(project(":build-operations"))
+    implementation(project(":enterprise-operations"))
 
     implementation(libs.guava)
     implementation(libs.nativePlatform)
@@ -23,6 +23,7 @@ dependencies {
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":tooling-api")))
     testImplementation(testFixtures(project(":launcher")))
+    testImplementation(testFixtures(project(":snapshots")))
 
     testImplementation(libs.commonsIo)
 

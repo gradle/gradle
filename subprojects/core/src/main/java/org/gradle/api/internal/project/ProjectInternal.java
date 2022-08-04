@@ -34,6 +34,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -44,6 +45,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -64,8 +66,13 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal getParent();
 
+    @Nullable
+    ProjectInternal getParent(ProjectInternal referrer);
+
     @Override
     ProjectInternal getRootProject();
+
+    ProjectInternal getRootProject(ProjectInternal referrer);
 
     Project evaluate();
 
@@ -75,8 +82,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();
-
-    void addChildProject(ProjectInternal childProject);
 
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;
@@ -103,7 +108,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     DynamicObject getInheritedScope();
 
     @Override
-    @UsedByScanPlugin("test-distribution, test-retry")
+    @UsedByScanPlugin("test-retry")
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -170,6 +175,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectState getOwner();
 
     @Override
+    InputNormalizationHandlerInternal getNormalization();
+
+    @Override
     ScriptHandlerInternal getBuildscript();
 
     /**
@@ -181,6 +189,16 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * @return a detached resolver
      */
     DetachedResolver newDetachedResolver();
+
+
+    /**
+     * Returns the property that stored {@link Project#getStatus()}.
+     * <p>
+     * By exposing this property, the {@code base} plugin can override the default value without overriding the build configuration.
+     * <p>
+     * See: https://github.com/gradle/gradle/issues/16946
+     */
+    Property<Object> getInternalStatus();
 
     DependencyMetaDataProvider getDependencyMetaDataProvider();
 

@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -30,6 +31,7 @@ import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild
 /**
  * Executes a Gradle build.
  */
+@DisableCachingByDefault(because = "Child Gradle build will do its own caching")
 public class GradleBuild extends ConventionTask {
     private StartParameter startParameter;
     private String buildName;

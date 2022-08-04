@@ -37,11 +37,6 @@ $(function() {
     });
   }
 
-  $('a.incubating-marker').tipTip({
-      maxWidth: '500px',
-      delay: 10
-  });
-
   injectIssues(
     "https://services.gradle.org/fixed-issues/@baseVersion@",
     $("h2#fixed-issues"),

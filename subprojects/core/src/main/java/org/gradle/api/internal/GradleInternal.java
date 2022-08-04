@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,6 +25,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -35,6 +35,8 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
@@ -120,11 +122,11 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     ServiceRegistryFactory getServiceRegistryFactory();
 
-    void setClassLoaderScope(ClassLoaderScope classLoaderScope);
+    void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope);
 
     ClassLoaderScope getClassLoaderScope();
 
-    void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds);
+    void setIncludedBuilds(Collection<? extends IncludedBuildInternal> includedBuilds);
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.
@@ -160,4 +162,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     StartParameterInternal getStartParameter();
 
     ProjectRegistry<ProjectInternal> getProjectRegistry();
+
+    // A separate property, as the public getter does not use a wildcard type and cannot be overridden
+    List<? extends IncludedBuildInternal> includedBuilds();
 }

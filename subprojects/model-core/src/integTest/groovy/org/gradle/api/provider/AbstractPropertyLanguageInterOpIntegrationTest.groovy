@@ -19,7 +19,6 @@ package org.gradle.api.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
 
@@ -31,10 +30,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
 
     abstract void pluginDefinesTask()
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
-    )
     def "can define property and set value from language plugin"() {
         pluginSetsValues()
 
@@ -53,10 +48,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
-    )
     def "can define property and set calculated value using function from language plugin"() {
         pluginSetsCalculatedValuesUsingCallable()
 
@@ -75,10 +66,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
-    )
     def "can define property and set calculated value using mapped provider from language plugin"() {
         pluginSetsCalculatedValuesUsingMappedProvider()
 
@@ -97,10 +84,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
-    )
     def "attaches diagnostic information to property"() {
         pluginDefinesTask()
 
@@ -117,13 +100,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("flag = task ':someTask' property 'flag'")
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = [
-            "PropertyKotlinInterOpIntegrationTest",
-            "ManagedPropertyKotlinInterOpIntegrationTest"
-        ]
-    )
     def "can define property in language plugin and set value from Groovy DSL"() {
         pluginDefinesTask()
 
@@ -169,10 +145,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {3=true}")
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
-    )
     def "can define property in language plugin and set value from Kotlin DSL"() {
         pluginDefinesTask()
 
@@ -221,10 +193,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {3=true}")
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
-    )
     def "can define property in language plugin and set value from Java plugin"() {
         pluginDefinesTask()
 
@@ -288,7 +256,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "can define property in language plugin and set value from Kotlin plugin"() {
         pluginDefinesTask()
 
