@@ -47,6 +47,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVa
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.TransformBackedProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -203,10 +204,14 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Nullable
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
-            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
-                return doAddListProvider(configuration, dependencyNotation, configureClosure);
+        // See AbstractExternalDependencyFactory$BundleFactory#createBundle, it wraps the base provider with a transformed one
+        if (dependencyNotation instanceof TransformBackedProvider) {
+            Provider<?> baseProvider = ((TransformBackedProvider<?, ?>) dependencyNotation).getProvider();
+            if (baseProvider instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
+                Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) baseProvider).getValueSourceType();
+                if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
+                    return doAddListProvider(configuration, dependencyNotation, configureClosure);
+                }
             }
         }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
