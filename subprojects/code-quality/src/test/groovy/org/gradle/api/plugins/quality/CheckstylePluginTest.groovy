@@ -106,6 +106,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.configProperties == [:]
         task.reports.xml.outputLocation.asFile.get() == project.file("build/reports/checkstyle/custom.xml")
         task.reports.html.outputLocation.asFile.get() == project.file("build/reports/checkstyle/custom.html")
+        task.reports.sarif.outputLocation.asFile.get() == project.file("build/reports/checkstyle/custom.sarif")
         !task.ignoreFailures
     }
 
@@ -189,6 +190,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.configProperties == [foo: "foo"]
         task.reports.xml.outputLocation.asFile.get() == project.file("checkstyle-reports/custom.xml")
         task.reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/custom.html")
+        task.reports.sarif.outputLocation.asFile.get() == project.file("checkstyle-reports/custom.sarif")
         task.ignoreFailures
     }
 

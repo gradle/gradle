@@ -48,4 +48,15 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      */
     @Internal
     SingleFileReport getXml();
+
+    /**
+     * The checkstyle SARIF report
+     * <p>
+     * This report IS NOT enabled by default.
+     *
+     * @return The checkstyle SARIF report
+     */
+    @Internal
+    SingleFileReport getSarif();
+
 }
