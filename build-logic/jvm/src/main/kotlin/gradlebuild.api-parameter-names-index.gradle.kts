@@ -32,18 +32,10 @@ val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
     )
     classpath.from(main.compileClasspath)
     classpath.from(tasks.named<JavaCompile>("compileJava"))
+    classpath.from(tasks.named<GroovyCompile>("compileGroovy"))
     destinationFile.set(
         project.layout.buildDirectory.file(moduleIdentity.baseName.map { "generated-resources/$it-parameter-names/$it-parameter-names.properties" })
     )
-}
-
-tasks.withType<GroovyCompile>() {
-    if (name == "compileGroovy") {
-        val compileGroovy = this
-        parameterNamesIndex.configure {
-            classpath.from(compileGroovy)
-        }
-    }
 }
 
 main.output.dir(

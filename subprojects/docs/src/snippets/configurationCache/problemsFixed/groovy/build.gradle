@@ -19,8 +19,6 @@ abstract class MyCopyTask extends DefaultTask { // <1>
 tasks.register('someTask', MyCopyTask) {
     def projectDir = layout.projectDirectory
     source = projectDir.dir('source')
-    destination = projectDir.dir(
-        providers.systemProperty('someDestination').forUseAtConfigurationTime().get() // <4>
-    )
+    destination = projectDir.dir(System.getProperty('someDestination'))
 }
 // end::fixed[]

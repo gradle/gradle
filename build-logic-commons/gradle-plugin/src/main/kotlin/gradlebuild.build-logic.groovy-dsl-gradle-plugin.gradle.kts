@@ -18,20 +18,17 @@ plugins {
     id("java-library")
     id("groovy-gradle-plugin")
     id("gradlebuild.code-quality")
+    id("gradlebuild.ci-reporting")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+java.configureJavaToolChain()
 
 dependencies {
     api(platform(project(":build-platform")))
-    implementation("gradlebuild:code-quality")
+    implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())
     testImplementation("org.spockframework:spock-core")
-    testImplementation("org.spockframework:spock-junit4")
     testImplementation("net.bytebuddy:byte-buddy")
     testImplementation("org.objenesis:objenesis")
 }
@@ -46,8 +43,6 @@ tasks.withType<GroovyCompile>().configureEach {
         encoding = "utf-8"
         compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
     }
-    val vendor = System.getProperty("java.vendor")
-    inputs.property("javaInstallation", "$vendor ${JavaVersion.current()}")
 }
 
 tasks.withType<Test>().configureEach {

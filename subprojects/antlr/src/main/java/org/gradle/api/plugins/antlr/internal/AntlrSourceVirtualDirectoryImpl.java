@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
+import org.gradle.api.plugins.antlr.AntlrSourceDirectorySet;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.util.internal.ConfigureUtil;
@@ -29,35 +29,42 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 /**
  * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
  */
-public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory, HasPublicType {
-    private final SourceDirectorySet antlr;
+@Deprecated
+public class AntlrSourceVirtualDirectoryImpl implements org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory, HasPublicType {
+
+    private final AntlrSourceDirectorySet antlr;
 
     public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, ObjectFactory objectFactory) {
-        antlr = objectFactory.sourceDirectorySet(parentDisplayName + ".antlr", parentDisplayName + " Antlr source");
-        antlr.getFilter().include("**/*.g");
-        antlr.getFilter().include("**/*.g4");
+        antlr = createAntlrSourceDirectorySet(parentDisplayName + ".antlr", parentDisplayName + " Antlr source", objectFactory);
+    }
+
+    private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
+        AntlrSourceDirectorySet antlrSourceSet = new DefaultAntlrSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        antlrSourceSet.getFilter().include("**/*.g");
+        antlrSourceSet.getFilter().include("**/*.g4");
+        return antlrSourceSet;
     }
 
     @Override
-    public SourceDirectorySet getAntlr() {
+    public AntlrSourceDirectorySet getAntlr() {
         return antlr;
     }
 
     @Override
     @SuppressWarnings("rawtypes")
-    public AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
+    public org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getAntlr());
         return this;
     }
 
     @Override
-    public AntlrSourceVirtualDirectory antlr(Action<? super SourceDirectorySet> configureAction) {
+    public org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory antlr(Action<? super SourceDirectorySet> configureAction) {
         configureAction.execute(getAntlr());
         return this;
     }
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(AntlrSourceVirtualDirectory.class);
+        return typeOf(org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory.class);
     }
 }

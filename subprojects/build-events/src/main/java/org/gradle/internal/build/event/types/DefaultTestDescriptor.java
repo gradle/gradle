@@ -16,24 +16,25 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import java.io.Serializable;
 
 public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
 
-    private final Object id;
+    private final OperationIdentifier id;
     private final String name;
     private final String displayName;
     private final String testKind;
     private final String suiteName;
     private final String className;
     private final String methodName;
-    private final Object parentId;
-    private String taskPath;
+    private final OperationIdentifier parentId;
+    private final String taskPath;
 
-    public DefaultTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId, String taskPath) {
+    public DefaultTestDescriptor(OperationIdentifier id, String name, String displayName, String testKind, String suiteName, String className, String methodName, OperationIdentifier parentId, String taskPath) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -46,7 +47,7 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     }
 
     @Override
-    public Object getId() {
+    public OperationIdentifier getId() {
         return id;
     }
 
@@ -81,7 +82,7 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     }
 
     @Override
-    public Object getParentId() {
+    public OperationIdentifier getParentId() {
         return parentId;
     }
 

@@ -110,7 +110,7 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
     }
 
     public GradleConnector useDistributionBaseDir(File distributionBaseDir) {
-        distributionFactory.setDistributionBaseDir(distributionBaseDir);
+        connectionParamsBuilder.setDistributionBaseDir(distributionBaseDir);
         return this;
     }
 

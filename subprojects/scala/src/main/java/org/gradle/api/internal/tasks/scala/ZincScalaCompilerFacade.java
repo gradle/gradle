@@ -20,8 +20,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.DefaultCacheScopeMapping;
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GradleVersion;
 
@@ -34,10 +35,9 @@ public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSp
     private final HashedClasspath scalaClasspath;
 
     @Inject
-    public ZincScalaCompilerFacade(CacheFactory cacheFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider, HashedClasspath scalaClasspath) {
+    public ZincScalaCompilerFacade(CacheFactory cacheFactory, GradleUserHomeDirProvider userHomeDirProvider, HashedClasspath scalaClasspath) {
         // TODO: This should be injectable
-        DefaultCacheScopeMapping cacheScopeMapping = new DefaultCacheScopeMapping(
-                gradleUserHomeDirProvider.getGradleUserHomeDirectory(), null, GradleVersion.current());
+        DefaultCacheScopeMapping cacheScopeMapping = new DefaultCacheScopeMapping(new GlobalCacheDir(userHomeDirProvider).getDir(), GradleVersion.current());
         this.cacheRepository = new DefaultCacheRepository(cacheScopeMapping, cacheFactory);
         this.scalaClasspath = scalaClasspath;
     }

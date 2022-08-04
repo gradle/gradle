@@ -91,6 +91,10 @@ class VariantMetadataSpec {
         artifacts << new FileSpec(name, url)
     }
 
+    void artifact(String name, String url, String publishUrl) {
+        artifacts << new FileSpec(name, url, publishUrl)
+    }
+
     void capability(String group, String name, String version = '1.0') {
         capabilities << new CapabilitySpec(group, name, version)
     }

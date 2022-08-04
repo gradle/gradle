@@ -21,6 +21,8 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -649,7 +651,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     void assertChecksumPublishedFor(TestFile testFile) {
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
-        assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
+        assert HashCode.fromString(sha1File.text) == Hashing.sha1().hashFile(testFile)
     }
 
     void assertNotPublished() {

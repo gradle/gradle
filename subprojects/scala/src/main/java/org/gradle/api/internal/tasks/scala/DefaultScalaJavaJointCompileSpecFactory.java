@@ -20,10 +20,13 @@ import org.gradle.api.internal.tasks.compile.AbstractJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+
+import javax.annotation.Nullable;
 
 public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultScalaJavaJointCompileSpec> {
-    public DefaultScalaJavaJointCompileSpecFactory(CompileOptions compileOptions) {
-        super(compileOptions);
+    public DefaultScalaJavaJointCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata javaInstallationMetadata) {
+        super(compileOptions, javaInstallationMetadata);
     }
 
     @Override

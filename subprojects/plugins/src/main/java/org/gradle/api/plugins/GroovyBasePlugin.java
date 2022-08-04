@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.LibraryElements;
@@ -33,9 +34,11 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.GroovyRuntime;
+import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.api.tasks.javadoc.GroovydocAccess;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -61,7 +64,11 @@ public class GroovyBasePlugin implements Plugin<Project> {
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry, JvmEcosystemUtilities jvmPluginServices) {
+    public GroovyBasePlugin(
+        ObjectFactory objectFactory,
+        ModuleRegistry moduleRegistry,
+        JvmEcosystemUtilities jvmPluginServices
+    ) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
@@ -84,19 +91,25 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults() {
-        project.getTasks().withType(GroovyCompile.class).configureEach(compile -> compile.getConventionMapping().map("groovyClasspath", () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath())));
+        project.getTasks().withType(GroovyCompile.class).configureEach(compile ->
+            compile.getConventionMapping().map(
+                "groovyClasspath",
+                () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath())
+            )
+        );
     }
 
+    @SuppressWarnings("deprecation")
     private void configureSourceSetDefaults() {
-        project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
+        javaPluginExtension().getSourceSets().all(sourceSet -> {
             final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-            new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+            addSourceSetExtension(sourceSet, groovySourceSet);
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
 
             // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
-            final FileCollection groovySourceFiles = groovySource;
+            @SuppressWarnings("UnnecessaryLocalVariable") final FileCollection groovySourceFiles = groovySource;
             sourceSet.getResources().getFilter().exclude(
                 spec(element -> groovySourceFiles.contains(element.getFile()))
             );
@@ -108,20 +121,35 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
                 compile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+                compile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
             });
+
+            String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
             JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, groovySource, project, compileTask, compileTask.map(GroovyCompile::getOptions));
-            jvmPluginServices.useDefaultTargetPlatformInference(project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
-            jvmPluginServices.useDefaultTargetPlatformInference(project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
+            useDefaultTargetPlatformInference(compileTask, compileClasspathConfigurationName);
+            useDefaultTargetPlatformInference(compileTask, sourceSet.getRuntimeClasspathConfigurationName());
 
             // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
             // doesn't need to do this.
             project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(compileTask));
 
             // Explain that Groovy, for compile, also needs the resources (#9872)
-            project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
-                attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.getObjects().named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES))
+            project.getConfigurations().getByName(compileClasspathConfigurationName).attributes(attrs ->
+                attrs.attribute(
+                    LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                    project.getObjects().named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)
+                )
             );
         });
+    }
+
+    private void addSourceSetExtension(org.gradle.api.tasks.SourceSet sourceSet, DefaultGroovySourceSet groovySourceSet) {
+        new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+        sourceSet.getExtensions().add(GroovySourceDirectorySet.class, "groovy", groovySourceSet.getGroovy());
+    }
+
+    private void useDefaultTargetPlatformInference(TaskProvider<GroovyCompile> compileTask, String configurationName) {
+        jvmPluginServices.useDefaultTargetPlatformInference(project.getConfigurations().getByName(configurationName), compileTask);
     }
 
     private void configureGroovydoc() {
@@ -132,15 +160,31 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
-            groovydoc.getConventionMapping().map("destinationDir", () -> project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("groovydoc").get().getAsFile());
-            groovydoc.getConventionMapping().map("docTitle", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            groovydoc.getConventionMapping().map("windowTitle", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension().getDocsDir().dir("groovydoc").get().getAsFile());
+            groovydoc.getConventionMapping().map("docTitle", () -> projectExtension(ReportingExtension.class).getApiDocTitle());
+            groovydoc.getConventionMapping().map("windowTitle", () -> projectExtension(ReportingExtension.class).getApiDocTitle());
+            groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
+            groovydoc.getIncludeAuthor().convention(false);
+            groovydoc.getProcessScripts().convention(true);
+            groovydoc.getIncludeMainForScripts().convention(true);
         });
     }
 
     private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
-        final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        final JavaPluginExtension extension = extensionOf(project, JavaPluginExtension.class);
+        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
         return toolMapper.apply(service, extension.getToolchain());
+    }
+
+    private JavaPluginExtension javaPluginExtension() {
+        return projectExtension(JavaPluginExtension.class);
+    }
+
+    private <T> T projectExtension(Class<T> type) {
+        return extensionOf(project, type);
+    }
+
+    private <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
+        return extensionAware.getExtensions().getByType(type);
     }
 }

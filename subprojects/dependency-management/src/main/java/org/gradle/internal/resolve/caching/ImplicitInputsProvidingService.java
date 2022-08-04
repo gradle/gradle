@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  *
  * In the external resource example, a record may consist of the external resource URI and
  * the external resource text. Then when we need to check if the resource is up-to-date,
- * we can ask the service by calling {@link #isUpToDate(IN, OUT)} with
+ * we can ask the service by calling {@code isUpToDate(IN, OUT)} with
  * the URI as an input.
  *
  * It's up to the service implementation to determine:

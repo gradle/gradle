@@ -34,9 +34,8 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -81,9 +80,10 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(T spec) {
-        ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
-        ScalaForkOptions scalaOptions = spec.getScalaCompileOptions().getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, scalaOptions));
+        MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
+        MinimalScalaCompileOptions compileOptions = spec.getScalaCompileOptions();
+        MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         String javaExecutable = javaOptions.getExecutable();
         if (javaExecutable != null) {
@@ -99,7 +99,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode().name()))
             .build();
     }
 

@@ -30,13 +30,16 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.work.DisableCachingByDefault
 
 @CompileStatic
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindGradleJars implements TransformAction<Parameters> {
 
     @CompileStatic
     interface Parameters extends TransformParameters {
         @InputFiles
+        @PathSensitive(PathSensitivity.NAME_ONLY)
         ConfigurableFileCollection getCurrentJars()
 
         @Input

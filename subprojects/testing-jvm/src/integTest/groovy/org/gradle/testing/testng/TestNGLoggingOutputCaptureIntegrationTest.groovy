@@ -21,24 +21,37 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.util.GradleVersion
+import org.gradle.testing.fixture.TestNGCoverage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
-import static org.gradle.testing.fixture.TestNGCoverage.STANDARD_COVERAGE
+import static org.gradle.testing.fixture.TestNGCoverage.providesClassListener
 import static org.hamcrest.CoreMatchers.is
 
-@TargetCoverage({STANDARD_COVERAGE})
+@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
+@Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
 class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testImplementation "org.testng:testng:$version" }
-            test {
-                useTestNG()
-                reports.junitXml.outputPerTestCase = true
-                onOutput { test, event -> print "\$test -> \$event.message" }
+
+            testing {
+                suites {
+                    test {
+                        useTestNG('$version')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    reports.junitXml.outputPerTestCase = true
+                                    onOutput { test, event -> print "\$test -> \$event.message" }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         """
 
@@ -92,12 +105,15 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         when: succeeds "test"
 
         then:
-        containsLinesThatMatch(result.output,
-            "Gradle Test Executor \\d+ -> static out",
-            "Gradle Test Executor \\d+ -> static err",
-            "Gradle Test Executor \\d+ -> constructor out",
-            "Gradle Test Executor \\d+ -> constructor err"
-        )
+        if (VersionNumber.parse(version.toString()) > VersionNumber.parse('5.12.1')) {
+            // Broken in 5.12.1, fixed in 5.13
+            assert containsLinesThatMatch(result.output,
+                "Gradle Test Executor \\d+ -> static out",
+                "Gradle Test Executor \\d+ -> static err",
+                "Gradle Test Executor \\d+ -> constructor out",
+                "Gradle Test Executor \\d+ -> constructor err"
+            )
+        }
 
         outputContains expectedOutput('The Foo Test')
 
@@ -119,12 +135,15 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         when: succeeds "test"
 
         then:
-        containsLinesThatMatch(result.output,
-            "Gradle Test Executor \\d+ -> static out",
-            "Gradle Test Executor \\d+ -> static err",
-            "Gradle Test Executor \\d+ -> constructor out",
-            "Gradle Test Executor \\d+ -> constructor err"
-        )
+        if (VersionNumber.parse(version.toString()) > VersionNumber.parse('5.12.1')) {
+            // Broken in 5.12.1, fixed in 5.13
+            assert containsLinesThatMatch(result.output,
+                "Gradle Test Executor \\d+ -> static out",
+                "Gradle Test Executor \\d+ -> static err",
+                "Gradle Test Executor \\d+ -> constructor out",
+                "Gradle Test Executor \\d+ -> constructor err"
+            )
+        }
 
         outputContains expectedOutput('Gradle test')
 
@@ -149,7 +168,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
     }
 
     private String expectedOutput(String testSuiteName) {
-        providesClassListener() ? expectedEventOutputWithTestClassListener(testSuiteName) : expectedEventOutputWithoutTestClassListener(testSuiteName)
+        providesClassListener(version) ? expectedEventOutputWithTestClassListener(testSuiteName) : expectedEventOutputWithoutTestClassListener(testSuiteName)
     }
 
     private void assertTestClassExecutionResultOutput(TestClassExecutionResult classResult) {
@@ -158,7 +177,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         classResult.assertTestCaseStdout("m1", is("m1: \u03b1</html>\n"))
         classResult.assertTestCaseStdout("m2", is("m2 out\n"))
 
-        if (providesClassListener()) {
+        if (providesClassListener(version)) {
             classResult.assertStderr(is("beforeClass err\n"))
             classResult.assertStdout(is("beforeClass out\n"))
         } else {
@@ -168,17 +187,13 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
     }
 
     private void assertTestClassExecutionResultReport(TestClassExecutionResult classReport) {
-        if (providesClassListener()) {
+        if (providesClassListener(version)) {
             classReport.assertStdout(is("beforeClass out\nm1: \u03b1</html>\nm2 out\n"))
             classReport.assertStderr(is("beforeClass err\nm1 err\nm2 err\n"))
         } else {
             classReport.assertStdout(is("m1: \u03b1</html>\nm2 out\n"))
             classReport.assertStderr(is("m1 err\nm2 err\n"))
         }
-    }
-
-    static boolean providesClassListener() {
-        GradleVersion.version(version).compareTo(GradleVersion.version(FIXED_ICLASS_LISTENER)) == 1
     }
 
     static String expectedEventOutputWithoutTestClassListener(String testSuiteName) {

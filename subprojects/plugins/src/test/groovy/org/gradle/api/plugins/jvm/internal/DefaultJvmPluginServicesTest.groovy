@@ -178,9 +178,11 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             PublishArtifact artifact = artifacts[0]
             assert artifact.name == 'toto'
         }
+        1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
         1 * output.getClassesContributors() >> Stub(TaskDependency)
+        1 * sourceSet.getName()
         0 * _
     }
 

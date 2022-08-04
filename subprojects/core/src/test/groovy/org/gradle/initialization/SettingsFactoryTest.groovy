@@ -22,15 +22,16 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.util.TestUtil
-import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.instantiatorFactory
 
 class SettingsFactoryTest extends Specification {
 
@@ -38,7 +39,7 @@ class SettingsFactoryTest extends Specification {
         given:
         def settingsDir = new File("settingsDir")
         def scriptSource = Mock(ScriptSource)
-        def expectedGradleProperties = WrapUtil.toMap("key", "myvalue")
+        def gradleProperties = Mock(GradleProperties)
         def startParameter = new StartParameter()
         def serviceRegistryFactory = Mock(ServiceRegistryFactory)
         def settingsServices = Mock(ServiceRegistry)
@@ -46,7 +47,7 @@ class SettingsFactoryTest extends Specification {
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
         def projectDescriptorRegistry = Mock(ProjectDescriptorRegistry)
-        def scope = Mock(ClassLoaderScope)//new ClassLoaderScopeIdentifier(rootScope.id, 'buildSrc'), rootScope, cache)
+        def scope = Mock(ClassLoaderScope)
 
         1 * serviceRegistryFactory.createFor(_ as Settings) >> settingsServices
         1 * settingsServices.get(FileResolver) >> fileResolver
@@ -58,21 +59,29 @@ class SettingsFactoryTest extends Specification {
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
         1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
         1 * scope.createChild(_) >> scope
+        1 * gradleProperties.mergeProperties(_) >> ['myKey': 'myValue']
 
         when:
-        SettingsFactory settingsFactory = new SettingsFactory(TestUtil.instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory)
         GradleInternal gradle = Mock(GradleInternal)
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
-                settingsDir, scriptSource, expectedGradleProperties, startParameter, scope);
+            settingsDir, scriptSource, gradleProperties, startParameter, scope)
 
         then:
         gradle.is(settings.gradle)
         projectDescriptorRegistry.is(settings.projectDescriptorRegistry)
-        expectedGradleProperties.each {
-            settings.properties[it.key] == it.value
-        }
 
+        and: 'Gradle properties are visible through the settings object'
+        settings.myKey == 'myValue'
+
+        and: 'Gradle properties are visible through the ext extension'
+        settings.ext.myKey == 'myValue'
+
+        and: 'Gradle properties are NOT visible through the Groovy properties builtin'
+        'myKey' !in settings.properties
+
+        and:
         settingsDir.is settings.getSettingsDir()
         scriptSource.is settings.getSettingsScript()
         startParameter.is settings.getStartParameter()

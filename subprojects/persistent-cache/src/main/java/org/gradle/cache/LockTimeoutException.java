@@ -21,41 +21,11 @@ import java.io.File;
  * Thrown on timeout acquiring a lock on a file.
  */
 public class LockTimeoutException extends RuntimeException {
-    private final String lockDisplayName;
-    private final String ownerPid;
-    private final String requestingPid;
-    private final String ownerOperation;
-    private final String requestingOperation;
     private final File lockFile;
 
-    public LockTimeoutException(String lockDisplayName, String ownerPid, String requestingPid, String ownerOperation, String requestingOperation, File lockFile) {
-        super(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, ownerPid, requestingPid, ownerOperation, requestingOperation, lockFile));
-        this.lockDisplayName = lockDisplayName;
-        this.ownerPid = ownerPid;
-        this.requestingPid = requestingPid;
-        this.ownerOperation = ownerOperation;
-        this.requestingOperation = requestingOperation;
+    public LockTimeoutException(String message, File lockFile) {
+        super(message);
         this.lockFile = lockFile;
-    }
-
-    public String getLockDisplayName() {
-        return lockDisplayName;
-    }
-
-    public String getOwnerPid() {
-        return ownerPid;
-    }
-
-    public String getRequestingPid() {
-        return requestingPid;
-    }
-
-    public String getOwnerOperation() {
-        return ownerOperation;
-    }
-
-    public String getRequestingOperation() {
-        return requestingOperation;
     }
 
     public File getLockFile() {

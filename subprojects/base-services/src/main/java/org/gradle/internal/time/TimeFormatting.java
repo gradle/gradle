@@ -43,18 +43,24 @@ public class TimeFormatting {
 
     public static String formatDurationTerse(long elapsedTimeInMs) {
         StringBuilder result = new StringBuilder();
-        if (elapsedTimeInMs > MILLIS_PER_HOUR) {
+        if (elapsedTimeInMs >= MILLIS_PER_HOUR) {
             result.append(elapsedTimeInMs / MILLIS_PER_HOUR).append("h ");
         }
-        if (elapsedTimeInMs > MILLIS_PER_MINUTE) {
-            result.append((elapsedTimeInMs % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE).append("m ");
+        if (elapsedTimeInMs >= MILLIS_PER_MINUTE) {
+            long hours = (elapsedTimeInMs % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE;
+            if (hours > 0) {
+                result.append(hours).append("m ");
+            }
         }
         if (elapsedTimeInMs >= MILLIS_PER_SECOND) {
-            result.append((elapsedTimeInMs % MILLIS_PER_MINUTE) / 1000).append("s");
+            long seconds = (elapsedTimeInMs % MILLIS_PER_MINUTE) / 1000;
+            if (seconds > 0) {
+                result.append(seconds).append("s");
+            }
         } else {
             result.append(elapsedTimeInMs).append("ms");
         }
-        return result.toString();
+        return result.toString().trim();
     }
 
     public static String formatDurationVeryTerse(long duration) {

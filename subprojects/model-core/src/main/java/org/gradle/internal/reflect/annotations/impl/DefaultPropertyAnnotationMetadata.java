@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -67,7 +67,7 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
     }
 
     @Override
-    public int compareTo(@NotNull PropertyAnnotationMetadata o) {
+    public int compareTo(@Nonnull PropertyAnnotationMetadata o) {
         return method.getName().compareTo(o.getMethod().getName());
     }
 

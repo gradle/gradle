@@ -16,29 +16,33 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType;
 import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.PluginApplication;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TaskOriginTracker implements BuildOperationListener {
+class TaskOriginTracker implements BuildOperationTracker {
 
     private final Map<Long, InternalPluginIdentifier> origins = new ConcurrentHashMap<>();
     private final PluginApplicationTracker pluginApplicationTracker;
 
     TaskOriginTracker(PluginApplicationTracker pluginApplicationTracker) {
         this.pluginApplicationTracker = pluginApplicationTracker;
+    }
+
+    @Override
+    public List<? extends BuildOperationTracker> getTrackers() {
+        return ImmutableList.of(pluginApplicationTracker);
     }
 
     @Nullable
@@ -62,10 +66,6 @@ class TaskOriginTracker implements BuildOperationListener {
             PluginApplication pluginApplication = pluginApplicationTracker.findRunningPluginApplication(buildOperation.getParentId());
             return pluginApplication == null ? null : pluginApplication.getPlugin();
         });
-    }
-
-    @Override
-    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
     }
 
     @Override

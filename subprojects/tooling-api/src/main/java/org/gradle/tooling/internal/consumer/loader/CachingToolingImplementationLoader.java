@@ -38,7 +38,7 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
 
     @Override
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
-        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters.getGradleUserHomeDir(), cancellationToken);
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {

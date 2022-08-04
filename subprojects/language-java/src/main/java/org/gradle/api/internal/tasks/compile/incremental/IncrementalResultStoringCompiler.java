@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMapping;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMappingMerger;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
@@ -73,38 +74,12 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
         ClassSetAnalysisData outputSnapshot = classpathSnapshotter.analyzeOutputFolder(spec.getDestinationDir());
         ClassSetAnalysisData classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
-        AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
+        AnnotationProcessingData annotationProcessingData = getAnnotationProcessingData(spec, result);
         CompilerApiData compilerApiData = getCompilerApiData(spec, result);
         ClassSetAnalysisData minimizedClasspathSnapshot = classpathSnapshot.reduceToTypesAffecting(outputSnapshot, compilerApiData);
         PreviousCompilationData data = new PreviousCompilationData(outputSnapshot, annotationProcessingData, minimizedClasspathSnapshot, compilerApiData);
         File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
         previousCompilationAccess.writePreviousCompilationData(data, previousCompilationDataFile);
-    }
-
-    private AnnotationProcessingData getAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result) {
-        Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
-        if (processors.isEmpty()) {
-            return new AnnotationProcessingData();
-        }
-        if (result instanceof IncrementalCompilationResult) {
-            result = ((IncrementalCompilationResult) result).getCompilerResult();
-        }
-        if (result instanceof ApiCompilerResult) {
-            AnnotationProcessingResult processingResult = ((ApiCompilerResult) result).getAnnotationProcessingResult();
-            return convertProcessingResult(processingResult);
-        }
-        return new AnnotationProcessingData(ImmutableMap.of(), ImmutableSet.of(), ImmutableSet.of(), ImmutableMap.of(), ImmutableSet.of(), "the chosen compiler did not support incremental annotation processing");
-    }
-
-    private AnnotationProcessingData convertProcessingResult(AnnotationProcessingResult processingResult) {
-        return new AnnotationProcessingData(
-            processingResult.getGeneratedTypesWithIsolatedOrigin(),
-            processingResult.getAggregatedTypes(),
-            processingResult.getGeneratedAggregatingTypes(),
-            processingResult.getGeneratedResourcesWithIsolatedOrigin(),
-            processingResult.getGeneratedAggregatingResources(),
-            processingResult.getFullRebuildCause()
-        );
     }
 
     private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult result) {
@@ -150,6 +125,64 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
             merged.computeIfAbsent(entry.getKey(), key -> new HashSet<>()).addAll(entry.getValue());
         }
         return merged;
+    }
+
+    private AnnotationProcessingData getAnnotationProcessingData(JavaCompileSpec spec, WorkResult result) {
+        Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
+        if (processors.isEmpty()) {
+            return new AnnotationProcessingData();
+        }
+        AnnotationProcessingData previousAnnotationProcessingData = null;
+        RecompilationSpec recompilationSpec = null;
+        if (result instanceof IncrementalCompilationResult) {
+            previousAnnotationProcessingData = ((IncrementalCompilationResult) result).getPreviousCompilationData().getAnnotationProcessingData();
+            recompilationSpec = ((IncrementalCompilationResult) result).getRecompilationSpec();
+            result = ((IncrementalCompilationResult) result).getCompilerResult();
+        }
+        Set<String> changedClasses = recompilationSpec == null ? Collections.emptySet() : recompilationSpec.getClassesToCompile();
+
+        if (result instanceof ApiCompilerResult) {
+            AnnotationProcessingResult processingResult = ((ApiCompilerResult) result).getAnnotationProcessingResult();
+            AnnotationProcessingData newAnnotationProcessingData = new AnnotationProcessingData(
+                processingResult.getGeneratedTypesWithIsolatedOrigin(),
+                processingResult.getAggregatedTypes(),
+                processingResult.getGeneratedAggregatingTypes(),
+                processingResult.getGeneratedResourcesWithIsolatedOrigin(),
+                processingResult.getGeneratedAggregatingResources(),
+                processingResult.getFullRebuildCause()
+            );
+            if (previousAnnotationProcessingData == null) {
+                return newAnnotationProcessingData;
+            }
+            return mergeAnnotationProcessingData(previousAnnotationProcessingData, newAnnotationProcessingData, changedClasses);
+        }
+        return new AnnotationProcessingData(
+            ImmutableMap.of(),
+            ImmutableSet.of(),
+            ImmutableSet.of(),
+            ImmutableMap.of(),
+            ImmutableSet.of(),
+            "the chosen compiler did not support incremental annotation processing"
+        );
+
+    }
+
+    private AnnotationProcessingData mergeAnnotationProcessingData(AnnotationProcessingData oldData, AnnotationProcessingData newData, Set<String> changedClasses) {
+        Map<String, Set<String>> generatedTypesByOrigin = new HashMap<>(oldData.getGeneratedTypesByOrigin());
+        changedClasses.forEach(generatedTypesByOrigin::remove);
+        generatedTypesByOrigin.putAll(newData.getGeneratedTypesByOrigin());
+        Map<String, Set<GeneratedResource>> generatedResourcesByOrigin = new HashMap<>(oldData.getGeneratedResourcesByOrigin());
+        changedClasses.forEach(generatedResourcesByOrigin::remove);
+        generatedResourcesByOrigin.putAll(newData.getGeneratedResourcesByOrigin());
+
+        return new AnnotationProcessingData(
+            generatedTypesByOrigin,
+            newData.getAggregatedTypes(),
+            newData.getGeneratedTypesDependingOnAllOthers(),
+            generatedResourcesByOrigin,
+            newData.getGeneratedResourcesDependingOnAllOthers(),
+            newData.getFullRebuildCause()
+        );
     }
 
 }

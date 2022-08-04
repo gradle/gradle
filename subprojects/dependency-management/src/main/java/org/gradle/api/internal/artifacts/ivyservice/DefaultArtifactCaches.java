@@ -22,8 +22,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
@@ -43,13 +43,12 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private final LateInitWritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
     private final ReadOnlyArtifactCacheLockingManager readOnlyArtifactCacheLockingManager;
 
-    public DefaultArtifactCaches(CacheScopeMapping cacheScopeMapping,
+    public DefaultArtifactCaches(GlobalScopedCache globalScopedCache,
                                  CacheRepository cacheRepository,
-                                 Factory<WritableArtifactCacheLockingParameters> writableArtifactCacheLockingParametersFactory,
+                                 WritableArtifactCacheLockingParameters params,
                                  DocumentationRegistry documentationRegistry) {
-        writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping);
+        writableCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache);
         writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
-            WritableArtifactCacheLockingParameters params = writableArtifactCacheLockingParametersFactory.create();
             return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions());
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
@@ -57,7 +56,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             IncubationLogger.incubatingFeatureUsed("Shared read-only dependency cache");
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
-                readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping, baseDir);
+                readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache, baseDir);
                 readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
                 LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
             } else {

@@ -14,6 +14,6 @@ tasks.named<AbstractCompile>("compileGroovy") {
 tasks.named<AbstractCompile>("compileJava") {
     // Java also depends on the result of Groovy compilation
     // (which automatically makes it depend of compileGroovy)
-    classpath += files(sourceSets.main.get().withConvention(GroovySourceSet::class) { groovy }.classesDirectory)
+    classpath += files(sourceSets.main.get().groovy.classesDirectory)
 }
 // end::compile-task-classpath[]

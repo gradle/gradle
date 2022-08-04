@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -33,14 +32,15 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CallableBuildOperation;
 
+@SuppressWarnings("deprecation")
 public class EventFiringTaskExecuter implements TaskExecuter {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final TaskExecutionListener taskExecutionListener;
+    private final org.gradle.api.execution.TaskExecutionListener taskExecutionListener;
     private final TaskListenerInternal taskListener;
     private final TaskExecuter delegate;
 
-    public EventFiringTaskExecuter(BuildOperationExecutor buildOperationExecutor, TaskExecutionListener taskExecutionListener, TaskListenerInternal taskListener, TaskExecuter delegate) {
+    public EventFiringTaskExecuter(BuildOperationExecutor buildOperationExecutor, org.gradle.api.execution.TaskExecutionListener taskExecutionListener, TaskListenerInternal taskListener, TaskExecuter delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
@@ -64,9 +64,9 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                 try {
                     taskListener.beforeExecute(task.getTaskIdentity());
                     taskExecutionListener.beforeExecute(task);
-                    BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
                     if (logger instanceof ContextAwareTaskLogger) {
                         contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
+                        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
                         contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
                     }
                 } catch (Throwable t) {

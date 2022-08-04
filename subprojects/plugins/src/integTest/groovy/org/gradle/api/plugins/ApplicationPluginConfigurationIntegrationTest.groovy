@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -56,14 +55,13 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         executer.workingDir = testDirectory
         executer.standardOutput = out
         executer.commandLine = "build/install/test/bin/test"
-
+        def result = executer.run()
         then:
-        executer.run().assertNormalExitValue()
+        result.assertNormalExitValue()
         out.toString() == TextUtil.toPlatformLineSeparators("all good\n")
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
     def "can configure using project extension for main class and main module"() {
         settingsFile << """
             rootProject.name = 'test'

@@ -16,11 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
+
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.CoreMatchers.allOf
@@ -36,14 +37,14 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to Groovy build scripts"() {
         when:
-        run ('init', '--type', 'java-library')
+        run ('init', '--type', 'java-library' )
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
         when:
         run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
@@ -53,7 +54,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
-        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
         buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
@@ -66,8 +67,27 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -92,7 +112,6 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
@@ -116,7 +135,6 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source using junit-jupiter instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id)
@@ -140,7 +158,6 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -159,11 +176,41 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
-        [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
+        [scriptDsl, testFramework] << [
+                ScriptDslFixture.SCRIPT_DSLS,
+                [ BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER ]
+        ].combinations()
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
+    def "creates sample source with package and #testFramework and #scriptDsl build scripts with --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("my/lib/LibraryTest.java")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl as BuildInitDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        [scriptDsl, testFramework] << [
+                ScriptDslFixture.SCRIPT_DSLS,
+                [ BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER ]
+        ].combinations()
+    }
+
+    // Spock pulls an old version of Groovy that doesn't work with Java 18
+    @Requires(TestPrecondition.JDK17_OR_EARLIER)
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -185,7 +232,32 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    // Spock pulls an old version of Groovy that doesn't work with Java 18
+    @Requires(TestPrecondition.JDK17_OR_EARLIER)
+    def "creates sample source with package and spock and #scriptDsl build scripts with --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/java/org/acme/SampleMain.java") << """

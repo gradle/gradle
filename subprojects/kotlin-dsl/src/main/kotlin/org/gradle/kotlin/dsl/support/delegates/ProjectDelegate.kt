@@ -37,6 +37,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.SyncSpec
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -81,7 +82,9 @@ abstract class ProjectDelegate : Project {
     override fun getDefaultTasks(): MutableList<String> =
         delegate.defaultTasks
 
+    @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
     override fun getConvention(): Convention =
+        @Suppress("deprecation")
         delegate.convention
 
     override fun getLogger(): Logger =
@@ -186,7 +189,7 @@ abstract class ProjectDelegate : Project {
     override fun exec(action: Action<in ExecSpec>): ExecResult =
         delegate.exec(action)
 
-    override fun sync(action: Action<in CopySpec>): WorkResult =
+    override fun sync(action: Action<in SyncSpec>): WorkResult =
         delegate.sync(action)
 
     override fun configurations(configureClosure: Closure<*>) =

@@ -16,15 +16,14 @@
 
 package org.gradle.integtests.samples.java
 
+import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -32,7 +31,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
     @UsesSample("java/basic")
     def "can execute simple Java tests with #dsl dsl"() {
         given:
@@ -54,7 +52,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/filtering")
     def "can execute a subset of tests with filtering with #dsl dsl"() {
         given:
@@ -80,7 +77,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("java/customDirs")
     def "can change the destination for test results and reports with #dsl dsl"() {
         given:
@@ -105,8 +101,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = "kotlin-dsl plugin applied in buildSrc")
     @UsesSample("testing/testReport")
     def "can create a custom TestReport task with #dsl dsl"() {
         given:
@@ -131,7 +125,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/junit-categories")
     def "can filter tests by JUnit category with #dsl dsl"() {
         given:
@@ -153,7 +146,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/junitplatform-tagging")
     def "can filter tests by JUnit Platform tag with #dsl dsl"() {
         given:
@@ -175,7 +167,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/testng-groups")
     def "can filter tests by TestNG group with #dsl dsl"() {
         given:
@@ -199,7 +190,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/junitplatform-jupiter")
     def "can run tests using JUnit Jupiter with #dsl dsl"() {
         given:
@@ -221,7 +211,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/junitplatform-mix")
     def "can run older JUnit tests with JUnit Jupiter with #dsl dsl"() {
         given:
@@ -249,7 +238,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/junitplatform-engine")
     def "can run JUnit Platform tests with a subset of engines with #dsl dsl"() {
         given:
@@ -272,7 +260,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/testng-preserveorder")
     def "can use the preserveOrder option with TestNG tests with #dsl dsl"() {
         given:
@@ -300,7 +287,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testing/testng-groupbyinstances")
     def "can use the groupByInstances option with TestNG tests with #dsl dsl"() {
         given:
@@ -323,7 +309,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
     @UsesSample("java/basic")
     def "can run simple Java integration tests with #dsl dsl"() {
         given:
@@ -347,7 +332,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
     @UsesSample("java/basic")
     def "can skip the tests with an `onlyIf` condition with #dsl dsl"() {
         given:

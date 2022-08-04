@@ -51,7 +51,8 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('build').build()
+        def result = runner('build')
+            .build()
 
         then:
         result.task(':build').outcome == SUCCESS

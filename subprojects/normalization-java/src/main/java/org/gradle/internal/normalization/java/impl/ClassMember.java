@@ -16,13 +16,17 @@
 
 package org.gradle.internal.normalization.java.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ClassMember extends AnnotatableMember {
 
     private final int version;
     private final String superName;
     private final String[] interfaces;
+
+    private final List<String> permittedSubclasses = new ArrayList<>();
 
     public ClassMember(int version, int access, String name, String signature, String superName, String[] interfaces) {
         super(access, name, signature);
@@ -41,5 +45,9 @@ public class ClassMember extends AnnotatableMember {
 
     public int getVersion() {
         return version;
+    }
+
+    public List<String> getPermittedSubclasses() {
+        return permittedSubclasses;
     }
 }

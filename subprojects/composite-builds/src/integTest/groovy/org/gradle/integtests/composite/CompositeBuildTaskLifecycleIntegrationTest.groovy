@@ -48,7 +48,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
         assertTaskNotExecuted(':buildB', ':c')
     }
 
-    def "mustRunAfter task from included build fails when not explicitly scheduled"() {
+    def "mustRunAfter task from included build is deprecated"() {
         given:
         buildA.buildFile << """
             task a {
@@ -66,13 +66,13 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
 
         when:
         executer.expectDocumentedDeprecationWarning("Using mustRunAfter to reference tasks from another build has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
-        fails(buildA, 'a')
+        execute(buildA, 'a')
 
         then:
-        failureDescriptionContains("Included build task ':b' was never scheduled for execution.")
+        result.assertTasksExecuted(":a")
     }
 
-    def "shouldRunAfter task from included build fails when not explicitly scheduled"() {
+    def "shouldRunAfter task from included build is deprecated"() {
         given:
         buildA.buildFile << """
             task a {
@@ -90,10 +90,10 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
 
         when:
         executer.expectDocumentedDeprecationWarning("Using shouldRunAfter to reference tasks from another build has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
-        fails(buildA, 'a')
+        execute(buildA, 'a')
 
         then:
-        failureDescriptionContains("Included build task ':b' was never scheduled for execution.")
+        result.assertTasksExecuted(":a")
     }
 
     def "finalizedBy is respected within included build"() {

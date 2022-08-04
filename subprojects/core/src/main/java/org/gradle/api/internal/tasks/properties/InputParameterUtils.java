@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import groovy.lang.GString;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.internal.DeferredUtil;
@@ -31,7 +30,7 @@ public class InputParameterUtils {
         try {
             return prepareInputParameterValue(inputProperty.getValue());
         } catch (Exception ex) {
-            throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
+            throw new PropertyEvaluationException(task, propertyName, ex);
         }
     }
 

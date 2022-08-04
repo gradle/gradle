@@ -53,7 +53,7 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
     public SerializeMap newSerializeSession() {
         final SerializeMap delegateSession = delegate.newSerializeSession();
         return new SerializeMap() {
-            Map<Short, ClassLoaderDetails> knownLoaders = new HashMap<Short, ClassLoaderDetails>();
+            final Map<Short, ClassLoaderDetails> knownLoaders = new HashMap<>();
 
             @Override
             public short visitClass(Class<?> target) {

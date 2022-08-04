@@ -17,8 +17,6 @@ package org.gradle.internal.exceptions;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -95,10 +93,10 @@ public class LocationAwareException extends ContextAwareException implements Fai
     }
 
     @Override
-    public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
+    public void appendResolutions(Context context) {
         if (getCause() instanceof FailureResolutionAware) {
             FailureResolutionAware resolutionAware = (FailureResolutionAware) getCause();
-            resolutionAware.appendResolution(output, clientMetaData);
+            resolutionAware.appendResolutions(context);
         }
     }
 

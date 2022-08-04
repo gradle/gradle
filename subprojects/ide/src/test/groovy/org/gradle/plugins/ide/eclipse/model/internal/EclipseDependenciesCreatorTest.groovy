@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
@@ -36,7 +35,6 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
         dependenciesProvider = new EclipseDependenciesCreator(
             eclipseClasspath,
             project.services.get(IdeArtifactRegistry),
-            project.services.get(ProjectStateRegistry),
             NullGradleApiSourcesResolver.INSTANCE,
             false
         )

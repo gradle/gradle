@@ -21,7 +21,9 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.work.DisableCachingByDefault
 
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class TemplateProjectGeneratorTask extends ProjectGeneratorTask {
 
     @OutputDirectory

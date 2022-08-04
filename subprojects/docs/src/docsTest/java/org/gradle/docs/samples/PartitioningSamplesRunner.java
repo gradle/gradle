@@ -16,7 +16,7 @@
 
 package org.gradle.docs.samples;
 
-import org.gradle.samples.model.Sample;
+import org.gradle.exemplar.model.Sample;
 import org.junit.runners.model.InitializationError;
 
 import java.util.List;

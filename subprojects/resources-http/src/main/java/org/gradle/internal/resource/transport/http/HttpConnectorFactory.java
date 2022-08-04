@@ -38,8 +38,8 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
         AllSchemesAuthentication.class
     );
 
-    private SslContextFactory sslContextFactory;
-    private HttpClientHelper.Factory httpClientHelperFactory;
+    private final SslContextFactory sslContextFactory;
+    private final HttpClientHelper.Factory httpClientHelperFactory;
 
     public HttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
         this.sslContextFactory = sslContextFactory;

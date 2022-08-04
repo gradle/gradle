@@ -16,9 +16,6 @@
 
 package org.gradle.integtests.composite.plugins
 
-
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
     def "included plugin builds can contribute settings plugins"() {
@@ -86,7 +83,6 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         pluginBuild.assertProjectPluginApplied()
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can execute a task from included plugin build"() {
         given:
         def pluginBuild = pluginBuild("build-logic")
@@ -196,7 +192,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
             }
         """
         def pluginBuild = pluginBuild("build-logic")
-        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration, null)
 
         when:
         settingsFile << """
@@ -226,7 +222,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
             }
         """
         def pluginBuild = pluginBuild("build-logic")
-        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration, null)
 
         when:
         settingsFile << """
@@ -256,7 +252,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
             }
         """
         def pluginBuild = pluginBuild("build-logic")
-        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration, null)
 
         when:
         settingsFile << """
@@ -354,7 +350,6 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         build.assertProjectPluginApplied()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", iterationMatchers = [".*Kotlin.*"])
     def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles"() {
         given:
         def commonsPluginBuild = pluginBuild("commons-plugin-build", dsl == 'Kotlin')
@@ -578,7 +573,6 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         projectPluginBuild.assertProjectPluginApplied()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", iterationMatchers = [".*Kotlin.*"])
     def "plugin builds can include each other without consequences"() {
         given:
         def settingsPluginBuild = pluginBuild("settings-plugin", dsl == 'Kotlin')

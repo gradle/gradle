@@ -1,4 +1,5 @@
 plugins {
+    id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
 
     id("gradlebuild.lifecycle")                  // CI: Add lifecycle tasks to for the CI pipeline (currently needs to be applied early as it might modify global properties)
@@ -9,3 +10,5 @@ plugins {
     id("gradlebuild.wrapper")                    // Local development: Convenience tasks to update the wrapper (like 'nightlyWrapper')
     id("gradlebuild.quick-check")                // Local development: Convenience task `quickCheck` for running checkstyle/codenarc only on changed files before commit
 }
+
+description = "Adaptable, fast automation for all"

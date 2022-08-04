@@ -28,11 +28,16 @@ public class DefaultStatusEvent extends BaseProgressEvent implements StatusEvent
     private final long progress;
     private final String unit;
 
-    public DefaultStatusEvent(long eventTime, String displayName, OperationDescriptor descriptor, long total, long progress, String unit) {
-        super(eventTime, displayName, descriptor);
+    public DefaultStatusEvent(long eventTime, OperationDescriptor descriptor, long total, long progress, String unit) {
+        super(eventTime, descriptor.getDisplayName(), descriptor);
         this.total = total;
         this.progress = progress;
         this.unit = unit;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getDescriptor().getDisplayName() + " " + progress + "/" + total + " " + unit + " completed";
     }
 
     @Override

@@ -30,14 +30,22 @@ public class DependencyVerificationConfiguration {
     private final boolean verifyMetadata;
     private final boolean verifySignatures;
     private final List<TrustedArtifact> trustedArtifacts;
+    private final boolean useKeyServers;
     private final List<URI> keyServers;
     private final Set<IgnoredKey> ignoredKeys;
     private final List<TrustedKey> trustedKeys;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<IgnoredKey> ignoredKeys, List<TrustedKey> trustedKeys) {
+    public DependencyVerificationConfiguration(boolean verifyMetadata,
+                                               boolean verifySignatures,
+                                               List<TrustedArtifact> trustedArtifacts,
+                                               boolean useKeyServers,
+                                               List<URI> keyServers,
+                                               Set<IgnoredKey> ignoredKeys,
+                                               List<TrustedKey> trustedKeys) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
+        this.useKeyServers = useKeyServers;
         this.keyServers = keyServers;
         this.ignoredKeys = ignoredKeys;
         this.trustedKeys = trustedKeys;
@@ -65,6 +73,10 @@ public class DependencyVerificationConfiguration {
 
     public List<TrustedKey> getTrustedKeys() {
         return trustedKeys;
+    }
+
+    public boolean isUseKeyServers() {
+        return useKeyServers;
     }
 
     public abstract static class TrustCoordinates {
@@ -155,15 +167,40 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + (regex ? 1 : 0);
             return result;
         }
-    }
 
-    public static class TrustedArtifact extends TrustCoordinates {
-        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex);
+        public int internalCompareTo(TrustCoordinates other) {
+            int regexComparison = Boolean.compare(isRegex(), other.isRegex());
+            if (regexComparison != 0) {
+                return regexComparison;
+            }
+            int groupComparison = compareNullableStrings(getGroup(), other.getGroup());
+            if (groupComparison != 0) {
+                return groupComparison;
+            }
+            int nameComparison = compareNullableStrings(getName(), other.getName());
+            if (nameComparison != 0) {
+                return nameComparison;
+            }
+            int versionComparison = compareNullableStrings(getVersion(), other.getVersion());
+            if (versionComparison != 0) {
+                return versionComparison;
+            }
+            return compareNullableStrings(getFileName(), other.getFileName());
         }
     }
 
-    public static class TrustedKey extends TrustCoordinates {
+    public static class TrustedArtifact extends TrustCoordinates implements Comparable<TrustedArtifact> {
+        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+            super(group, name, version, fileName, regex);
+        }
+
+        @Override
+        public int compareTo(DependencyVerificationConfiguration.TrustedArtifact other) {
+            return internalCompareTo(other);
+        }
+    }
+
+    public static class TrustedKey extends TrustCoordinates implements Comparable<TrustedKey> {
         private final String keyId;
 
         TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
@@ -198,5 +235,28 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + keyId.hashCode();
             return result;
         }
+
+        @Override
+        public int compareTo(DependencyVerificationConfiguration.TrustedKey other) {
+            int keyIdComparison = getKeyId().compareTo(other.getKeyId());
+            if (keyIdComparison != 0) {
+                return keyIdComparison;
+            }
+            return internalCompareTo(other);
+        }
+
+    }
+
+    private static int compareNullableStrings(String first, String second) {
+        if (first == null) {
+            if (second == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else if (second == null) {
+            return 1;
+        }
+        return first.compareTo(second);
     }
 }

@@ -23,8 +23,6 @@ public interface HttpProxySettings {
 
     HttpProxy getProxy();
 
-    HttpProxy getProxy(String host);
-
     class HttpProxy {
         public final String host;
         public final int port;

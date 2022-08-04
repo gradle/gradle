@@ -59,7 +59,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
 
     @Nullable
     @Override
-    public ComponentResolveMetadata getMetadata() {
+    public ComponentResolveMetadata getMetadataOrNull() {
         return null;
     }
 

@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.groovy.scripts.Transformer;
 
+@SuppressWarnings("deprecation")
 public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUnitOperation implements Transformer {
     @Override
     public void register(CompilationUnit compilationUnit) {
@@ -25,5 +26,4 @@ public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUn
     }
 
     protected abstract int getPhase();
-
 }

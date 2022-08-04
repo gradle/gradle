@@ -80,4 +80,33 @@ abstract class AbstractClassGeneratorSpec extends Specification {
             return instantiator.newInstanceWithDisplayName(clazz, displayName, args)
         }
     }
+
+
+    static class ManyConstructors {
+        // the exact order of these constructors as they are returned by the JDK is undefined
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4) {}
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9) {}
+        ManyConstructors(int p0, int p1, int p2) {}
+        ManyConstructors() {}
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, boolean p7) {}
+        ManyConstructors(int p0, int p1) {}
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6) {}
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5) {}
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8) {}
+        ManyConstructors(int p0, int p1, boolean p2) {}
+        ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7) {}
+        ManyConstructors(int p0, int p1, int p2, int p3) {}
+        ManyConstructors(int p0) {}
+    }
+
+    def "order of constructors is based on number of parameters"() {
+        // We rely on processing the constructors in a predictable order (fewest parameters -> most)
+        def constructors = generator.generate(ManyConstructors).getConstructors()
+        expect:
+        int count = 0
+        constructors.each { constructor ->
+            assert count <= constructor.parameterTypes.length
+            count = constructor.parameterTypes.length
+        }
+    }
 }

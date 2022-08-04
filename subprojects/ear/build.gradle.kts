@@ -2,11 +2,13 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Adds support for assembling web application EAR files"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
@@ -36,6 +38,6 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/ear/internal/*")
 }

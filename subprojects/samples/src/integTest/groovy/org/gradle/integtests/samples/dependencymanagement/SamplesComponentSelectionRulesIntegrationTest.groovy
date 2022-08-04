@@ -20,14 +20,12 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run resolveConfiguration sample with #dsl dsl"() {
@@ -45,7 +43,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run reject sample with #dsl dsl"() {
@@ -61,7 +58,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run metadata rules sample with #dsl dsl"() {
@@ -78,7 +74,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run targeted rule sample with #dsl dsl"() {

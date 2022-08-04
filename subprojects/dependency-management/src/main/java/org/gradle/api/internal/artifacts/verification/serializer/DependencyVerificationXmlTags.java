@@ -21,6 +21,7 @@ abstract class DependencyVerificationXmlTags {
     static final String COMPONENT = "component";
     static final String COMPONENTS = "components";
     static final String CONFIG = "configuration";
+    static final String ENABLED = "enabled";
     static final String FILE = "file";
     static final String GROUP = "group";
     static final String ID = "id";

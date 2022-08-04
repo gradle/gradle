@@ -21,11 +21,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import javax.annotation.Nullable;
 
 /**
  * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
@@ -43,27 +43,17 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        FileSystemSnapshot roots = fileCollectionSnapshotter.snapshot(files);
-        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
+        FileCollectionSnapshotter.Result snapshotResult = fileCollectionSnapshotter.snapshot(files);
+        return fingerprint(snapshotResult.getSnapshot(), null);
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot roots) {
-        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
-    }
-
-    @Override
-    public String normalizePath(FileSystemLocationSnapshot root) {
-        return fingerprintingStrategy.normalizePath(root);
+    public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint) {
+        return DefaultCurrentFileCollectionFingerprint.from(snapshot, fingerprintingStrategy, previousFingerprint);
     }
 
     @Override
     public CurrentFileCollectionFingerprint empty() {
         return fingerprintingStrategy.getEmptyFingerprint();
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return fingerprintingStrategy.getDirectorySensitivity();
     }
 }
