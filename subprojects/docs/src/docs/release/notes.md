@@ -268,12 +268,6 @@ accepting connections via network on Java 9+.
 
 
 
-- 9-15: illegal access warnings appears in logs.
-- 16+: code performing reflection on JDK internals nows fail tests.
-
-While this change may break some existing builds, most failures are likely to uncover hidden runtime issues.
-
-For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
 
 <a name="ide"></a>
 ### IDE
