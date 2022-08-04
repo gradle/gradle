@@ -266,7 +266,6 @@ one of the addresses of the current machine's network interfaces.
 Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
 accepting connections via network on Java 9+.
 
-#### Improved Java 9+ test compatibility
 
 When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. This can cause code to pass tests but fail at runtime.
 
