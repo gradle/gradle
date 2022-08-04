@@ -143,7 +143,7 @@ See the [documentation](userguide/command_line_interface.html#sec:builtin_task_o
 
 The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
 
-#### Extendend configuration cache task compatibility
+#### Extended configuration cache task compatibility
 
 The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
 
