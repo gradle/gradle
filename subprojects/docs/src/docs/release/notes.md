@@ -205,6 +205,9 @@ tasks.register("slowBenchmark") {
 
 The `--info` logging level outputs reason messages in the console.
 
+
+#### Tasks can be re-run selectively
+
 ```
 gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
 ```
@@ -241,7 +244,7 @@ Related issues:
 
 [Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
 
-#### TODO: Enhanceced of the plugin declaration DSL from java-gradle-plugin
+#### TODO: Enhanced the plugin declaration DSL from java-gradle-plugin
 
 <!-- This is in the public roadmap but not sure it should be? -->
 [Modify bits and pieces of Gradle to accommodate Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
@@ -255,17 +258,30 @@ Related issues:
 
 #### Introduced support for Java 9+ network debugging  
 
-A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
+A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client
 connections over the network.
-If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
+If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is,
 they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
 
-In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
+In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port.
 On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
 one of the addresses of the current machine's network interfaces.
 
-Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
+Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
 accepting connections via network on Java 9+.
+
+#### Improved Java 9+ test compatibility
+
+When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. This can cause code to pass tests but fail at runtime.
+
+This change may cause new test failures and warnings, depending on the Java version:
+
+- 9-15: illegal access warnings appears in logs.
+- 16+: code performing reflection on JDK internals nows fail tests.
+
+While this change may break some existing builds, most failures are likely to uncover hidden runtime issues.
+
+For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
 
 <a name="ide"></a>
 ### IDE
@@ -323,6 +339,19 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+### Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
+
+The `testResourcesDirs` and `testSourcesDirs` fields, and their getters and setters are now `@Deprecated`.
+Any usages of these elements should be replaced by the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
+These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility in how these collections of files can be used.
+Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 8.0.
+
+### Replacement methods in `org.gradle.api.tasks.testing.TestReport`
+
+The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods are now `@Deprecated`.
+Any usages of them should be replaced by the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
+These deprecated elements will be removed in Gradle 8.0.
 
 <!--
 ### Example promoted

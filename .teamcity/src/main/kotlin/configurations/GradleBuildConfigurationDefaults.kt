@@ -24,24 +24,24 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
 
-fun checkCleanDirUnixLike(dir: String) = """
+fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
     REPO=$dir
     if [ -e ${'$'}REPO ] ; then
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
-        exit 1
+        ${if (exitOnFailure) "exit 1" else ""}
     else
         echo "${'$'}REPO does not exist"
     fi
 
 """.trimIndent()
 
-fun checkCleanDirWindows(dir: String) = """
+fun checkCleanDirWindows(dir: String, exitOnFailure: Boolean = true) = """
     IF exist $dir (
         TREE $dir
         RMDIR /S /Q $dir
-        EXIT 1
+        ${if (exitOnFailure) "EXIT 1" else ""}
     )
 
 """.trimIndent()
