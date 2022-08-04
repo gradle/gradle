@@ -508,7 +508,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         continueOnFailure << [true, false]
     }
 
-    def "finalizer dependency runs in parallel with finalized task when that dependency is also an entry point task"() {
+    def "finalizer dependency runs in parallel with finalized task when that dependency is also an entry task"() {
         given:
         Task finalizerDepDep = task("finalizerDepDep", type: Async)
         Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
@@ -526,7 +526,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
-    def "finalizer dependency runs in parallel with finalized task when that dependency is also a later entry point task"() {
+    def "finalizer dependency runs in parallel with finalized task when that dependency is also a later entry task"() {
         given:
         Task finalizerDepDep = task("finalizerDepDep", type: Async)
         Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
@@ -545,7 +545,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21125")
-    def "finalizer dependency runs in parallel with finalized task when that dependency is also a dependency of a later entry point task"() {
+    def "finalizer dependency runs in parallel with finalized task when that dependency is also a dependency of a later entry task"() {
         given:
         Task finalizer = createTask("finalizer")
         Task finalizerDep = task("finalizerDep", type: Async)
@@ -566,7 +566,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
-    def "finalizer dependency runs even when finalizer does not run when dependency is also an entry point task"() {
+    def "finalizer dependency runs even when finalizer does not run when dependency is also an entry task"() {
         given:
         Task finalizerDepDep = task("finalizerDepDep", type: Async)
         Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
@@ -585,7 +585,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete(true)
     }
 
-    def "finalizer and dependencies are executed even if the finalized task did not run when finalizer is also an entry point task"() {
+    def "finalizer and dependencies are executed even if the finalized task did not run when finalizer is also an entry task"() {
         Task finalizerDependency = task("finalizerDependency", type: Async)
         Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDependency])
         Task broken = task("broken", type: Async, failure: new RuntimeException("failure"))
@@ -602,7 +602,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
-    def "finalizer that is a dependency of multiple finalizers and an entry point task"() {
+    def "finalizer that is a dependency of multiple finalizers and an entry task"() {
         given:
         Task finalizerDep = task("finalizerDep", type: Async)
         Task finalizer = task("finalizer", dependsOn: [finalizerDep])
@@ -628,7 +628,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
-    def "finalizer dependency runs after finalized entry point when the latter is finalizer dependency too"() {
+    def "finalizer dependency runs after finalized entry task when the latter is finalizer dependency too"() {
         given:
         TaskInternal finalizer = createTask("finalizer")
         TaskInternal finalizerDep = task("finalizerDep", type: Async, finalizedBy: [finalizer])
@@ -647,7 +647,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
-    def "finalizer dependencies finalized by finalizer of the entry point can run in parallel"() {
+    def "finalizer dependencies finalized by finalizer of the entry task can run in parallel"() {
         given:
         TaskInternal finalizer = createTask("finalizer")
         TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizer])
@@ -766,7 +766,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
-    def "finalizer dependencies reachable from entry point and finalized by the finalizer can run in parallel"() {
+    def "finalizer dependencies reachable from entry task and finalized by the finalizer can run in parallel"() {
         TaskInternal finalizer = createTask("finalizer", project, Async)
         TaskInternal finalizerDepA = task("finalizerDepA", type: Async, finalizedBy: [finalizer])
         TaskInternal finalizerDepB = task("finalizerDepB", type: Async, finalizedBy: [finalizer])
@@ -823,6 +823,28 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertTasksReady(dep, c, finalizerDep)
         assertTaskReady(finalizer)
         assertTaskReadyAndNoMoreToStart(a)
+        assertAllWorkComplete()
+    }
+
+    def "assigns task to first ordinal group it is reachable from when task is entry task multiple times"() {
+        given:
+        Task finalizer1 = task("finalizer1", type: Async)
+        Task finalizer2 = task("finalizer2", type: Async)
+        Task a = task("a", type: Async)
+        Task b = task("a", type: Async, dependsOn: [a], finalizedBy: [finalizer1])
+        Task c = task("c", type: Async, dependsOn: [b], finalizedBy: [finalizer2])
+
+        when:
+        addToGraphAndPopulate(b, c, b, c)
+
+        then:
+        executionPlan.tasks as List == [a, b, finalizer1, c, finalizer2]
+        ordinalGroups == [0, 0, 0, 1, 1]
+        reachableFromEntryPoint == [true, true, false, true, false]
+        assertTaskReady(a)
+        assertTaskReady(b)
+        assertTasksReady(finalizer1, c)
+        assertTaskReadyAndNoMoreToStart(finalizer2)
         assertAllWorkComplete()
     }
 
