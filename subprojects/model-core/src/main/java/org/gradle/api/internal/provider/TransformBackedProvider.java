@@ -42,6 +42,10 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         return transformer;
     }
 
+    public ProviderInternal<? extends IN> getProvider() {
+        return provider;
+    }
+
     @Override
     public ValueProducer getProducer() {
         return provider.getProducer();

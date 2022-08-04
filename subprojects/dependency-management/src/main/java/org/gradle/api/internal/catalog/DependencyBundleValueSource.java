@@ -15,17 +15,10 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
