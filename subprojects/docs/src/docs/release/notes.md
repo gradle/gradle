@@ -252,7 +252,7 @@ Related issues:
 <a name="jvm"></a>
 ### JVM
 
-#### TODO: Introduced support for map notation in JVM `dependancies` block
+#### TODO: Introduced support for map notation in JVM `dependencies` block
 
 [Issue](https://github.com/gradle/gradle/issues/19192)
 
