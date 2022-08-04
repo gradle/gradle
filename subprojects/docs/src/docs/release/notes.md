@@ -212,11 +212,6 @@ The `--info` logging level outputs reason messages in the console.
 gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
 ```
 
-```
-> Task :slowBenchmark SKIPPED
-Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
-:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
-```
 
 <a name="plugin"></a>
 ### Plugin
