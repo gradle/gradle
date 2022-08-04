@@ -148,7 +148,7 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
 
 
-#### Clarified attribute ordering for `resolvableConfigurations` reports  
+#### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports  
 
 Attribute disambiguation rules control the variant of a dependency selected by
 Gradle when:
