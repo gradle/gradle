@@ -53,9 +53,11 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         def configDir = parameters.configDirectory.asFile.getOrNull()
         def isXmlRequired = parameters.isXmlRequired.get()
         def isHtmlRequired = parameters.isHtmlRequired.get()
+        def isSarifRequired = parameters.isSarifRequired.get()
         def xmlOutputLocation = parameters.xmlOuputLocation.asFile.getOrElse(null)
         def stylesheetString = parameters.stylesheetString
         def htmlOutputLocation = parameters.htmlOuputLocation.asFile.getOrElse(null)
+        def sarifOutputLocation = parameters.sarifOutputLocation.asFile.getOrElse(null)
 
         if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
             xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
@@ -89,6 +91,10 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     formatter(type: 'xml', toFile: xmlOutputLocation)
                 }
 
+                if (isSarifRequired) {
+                    formatter(type: 'sarif', toFile: sarifOutputLocation)
+                }
+
                 configProperties.each { key, value ->
                     property(key: key, value: value.toString())
                 }
@@ -117,10 +123,10 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
         def reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation)
         if (ant.project.properties[FAILURE_PROPERTY_NAME] && !ignoreFailures) {
-            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
+            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
         } else {
             if (violationsExist(reportXml)) {
-                LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
+                LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
             }
         }
     }
@@ -129,12 +135,22 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         return isXmlRequired ? new XmlParser().parse(xmlOutputLocation) : null
     }
 
-    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Node reportXml) {
-        return "Checkstyle rule violations were found.${getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation)}${getViolationMessage(reportXml)}"
+    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation, Node reportXml) {
+        return "Checkstyle rule violations were found." +
+            "${getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation)}${getViolationMessage(reportXml)}"
     }
 
-    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation) {
-        def outputLocation = isHtmlRequired ? htmlOutputLocation : isXmlRequired ? xmlOutputLocation : null
+    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation) {
+        File outputLocation
+        if (isHtmlRequired) {
+            outputLocation = htmlOutputLocation
+        } else if (isXmlRequired) {
+            outputLocation = xmlOutputLocation
+        } else if (isSarifRequired) {
+            outputLocation = sarifOutputLocation
+        } else {
+            outputLocation = null
+        }
         return outputLocation ? " See the report at: ${new ConsoleRenderer().asClickableFileUrl(outputLocation)}" : "\n"
     }
 
