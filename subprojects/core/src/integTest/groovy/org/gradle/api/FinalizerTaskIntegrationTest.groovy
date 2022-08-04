@@ -190,7 +190,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'processResources'
-            result.assertTaskOrder ':processResources', ':compileJava', ':classes', ':generatePermissions', ':assemble'
+            result.assertTaskOrder ':processResources', ':compileJava', ':classes', any(':generatePermissions', ':assemble')
         }
     }
 
