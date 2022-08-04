@@ -26,29 +26,45 @@ import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
-import javax.annotation.Nonnull
 
-/**
- * Note that the resolver instance must be closed after use in order to release resources.
- */
-class ToolingApiDistributionResolver implements AutoCloseable {
+class ToolingApiDistributionResolver {
 
-    private ProjectInternal project = null
-    private DependencyResolutionServices resolutionServices = null
+    static interface ResolverAction<T> {
+        T run(ToolingApiDistributionResolver resolver)
+    }
+
+    /**
+     * Executes given {@code block} against a fresh instance of the {@code ToolingApiDistributionResolver}
+     * and returns the result.
+     */
+    static <T> T use(ResolverAction<T> block) {
+        def project = (ProjectInternal) ProjectBuilder.builder().build()
+        try {
+            def resolver = new ToolingApiDistributionResolver(project)
+            return block.run(resolver)
+        } finally {
+            ProjectBuilderImpl.stop(project)
+        }
+    }
+
+    private final ProjectInternal project
+    private final DependencyResolutionServices resolutionServices
 
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private boolean useExternalToolingApiDistribution = false
 
-    @Override
-    void close() {
-        if (project != null) {
-            ProjectBuilderImpl.stop(project)
+    private ToolingApiDistributionResolver(ProjectInternal project) {
+        this.project = project
+        this.resolutionServices = project.services.get(DependencyResolutionServices)
+        def localRepository = buildContext.localRepository
+        if (localRepository) {
+            this.resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
         }
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
-        getResolutionServices().resolveRepositoryHandler.maven { url repositoryUrl }
+        resolutionServices.resolveRepositoryHandler.maven { url repositoryUrl }
         this
     }
 
@@ -77,8 +93,8 @@ class ToolingApiDistributionResolver implements AutoCloseable {
     }
 
     private Collection<File> resolveDependency(String dependency) {
-        Dependency dep = getResolutionServices().dependencyHandler.create(dependency)
-        Configuration config = getResolutionServices().configurationContainer.detachedConfiguration(dep)
+        Dependency dep = resolutionServices.dependencyHandler.create(dependency)
+        Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
         config.resolutionStrategy.disableDependencyVerification()
         return config.files
     }
@@ -86,31 +102,5 @@ class ToolingApiDistributionResolver implements AutoCloseable {
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
         !useExternalToolingApiDistribution &&
             toolingApiVersion == buildContext.version.baseVersion.version
-    }
-
-    @Nonnull
-    private DependencyResolutionServices getResolutionServices() {
-        if (this.resolutionServices == null) {
-            this.resolutionServices = createResolutionServices()
-        }
-        return this.resolutionServices
-    }
-
-    @Nonnull
-    private DependencyResolutionServices createResolutionServices() {
-        def resolutionServices = getProject().services.get(DependencyResolutionServices)
-        def localRepository = buildContext.localRepository
-        if (localRepository) {
-            resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
-        }
-        return resolutionServices
-    }
-
-    @Nonnull
-    private ProjectInternal getProject() {
-        if (project == null) {
-            project = (ProjectInternal) ProjectBuilder.builder().build()
-        }
-        return project
     }
 }
