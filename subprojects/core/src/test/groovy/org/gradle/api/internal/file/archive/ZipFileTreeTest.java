@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.TestUtil;
 import org.gradle.util.internal.Resources;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class ZipFileTreeTest {
     private final TestFile zipFile = tmpDir.getTestDirectory().file("test.zip");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher());
+    private final ZipFileTree tree = new ZipFileTree(TestUtil.providerFactory().provider(()->zipFile), expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher());
 
     @Test
     public void displayName() {

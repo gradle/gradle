@@ -189,10 +189,11 @@ class ToolingApi implements TestRule {
         if (GradleVersion.version(dist.getVersion().version) < GradleVersion.version("6.0")) {
             connector.searchUpwards(false)
         } else {
-            def settingsFile = projectDir.file('settings.gradle')
-            def settingsFileKts = projectDir.file('settings.gradle.kts')
-            if (!settingsFile.exists() && !settingsFileKts.exists()) {
-                settingsFile << ''
+            // buildSrc builds are allowed to be missing their settings file
+            if (projectDir.name != "buildSrc") {
+                def settingsFile = projectDir.file('settings.gradle')
+                def settingsFileKts = projectDir.file('settings.gradle.kts')
+                assert (settingsFile.exists() || settingsFileKts.exists()) : "the build must have a settings file"
             }
         }
         if (useSeparateDaemonBaseDir) {

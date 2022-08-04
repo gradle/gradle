@@ -21,10 +21,12 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * A task used for cleaning up all accepted API changes. The functionality is called whenever the release process initiates "branching".
  */
+@DisableCachingByDefault(because = "Not worth caching")
 class CleanAcceptedApiChanges extends DefaultTask {
 
     @PathSensitive(PathSensitivity.ABSOLUTE)

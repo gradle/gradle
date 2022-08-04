@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -52,7 +53,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         Collection<NodeState> implicitCapabilityProviders = candidate.getImplicitCapabilityProviders();
         nodes.addAll(implicitCapabilityProviders);
         NodeState node = candidate.getNode();
-        if ((nodes.add(node) || implicitCapabilityProviders.contains(node)) && nodes.size() > 1) {
+        if (nodes.add(node) && nodes.size() > 1) {
             // The registered nodes may contain nodes which are no longer selected.
             // We don't remove them from the list in the first place because it proved to be
             // slower than filtering as needed.
@@ -133,6 +134,14 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public boolean hasSeenCapability(Capability capability) {
         return capabilityWithoutVersionToNodes.containsKey(((CapabilityInternal) capability).getCapabilityId());
+    }
+
+    @Override
+    public boolean hasKnownConflictFor(ModuleVersionIdentifier id) {
+        if (conflicts.isEmpty()) {
+            return false;
+        }
+        return conflicts.stream().flatMap(capability -> capability.nodes.stream()).anyMatch(node -> node.getComponent().getId().equals(id));
     }
 
     public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {

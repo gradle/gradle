@@ -19,19 +19,25 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
@@ -39,13 +45,13 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Missing
 
 class IvyResolverTest extends Specification {
     def externalResourceAccessor = Mock(CacheAwareExternalResourceAccessor)
+    def transport = Stub(RepositoryTransport)
 
     static ModuleIdentifier mid(String group, String name) {
         DefaultModuleIdentifier.newId(group, name)
@@ -72,7 +78,6 @@ class IvyResolverTest extends Specification {
         resolver1.id != resolver2.id
     }
 
-    @Unroll
     def "remote access fails directly for module id #moduleId with layout #layoutPattern"() {
         given:
         def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
@@ -102,7 +107,6 @@ class IvyResolverTest extends Specification {
         newId(mid("", "name"), "")      | "([organization])/[module]-[revision]"
     }
 
-    @Unroll
     def "remote access attempts to access metadata for id #moduleId with layout #layoutPattern"() {
         given:
         def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
@@ -159,25 +163,65 @@ class IvyResolverTest extends Specification {
         resolver1.id != resolver2.id
     }
 
-    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false) {
-        def transport = Stub(RepositoryTransport)
+    def "correctly sets caching of component metadata rules depending on ivy repository transport"() {
+        given:
+        transport.isLocal() >> isLocal
+        ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
+        ImmutableMetadataSources metadataSources = mockMetadataSourcesForComponentMetadataRulesCachingTest()
+        def resolver = resolver(null, false, false, metadataSources)
+
+        when:
+        BuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+        resolver.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, Mock(ComponentOverrideMetadata), result)
+
+        then:
+        result.hasResult()
+        result.getMetaData().isComponentMetadataRuleCachingEnabled() == isCachingEnabled
+
+        where:
+        isLocal | isCachingEnabled
+        true    | false
+        false   | true
+    }
+
+    private ImmutableMetadataSources mockMetadataSourcesForComponentMetadataRulesCachingTest() {
+        // By default component metadata rules caching is enabled.
+        boolean isCachingEnabled = true
+        ModuleComponentResolveMetadata immutableMetadata = Mock(ModuleComponentResolveMetadata) {
+            isComponentMetadataRuleCachingEnabled() >> { isCachingEnabled }
+        }
+        MutableModuleComponentResolveMetadata mutableMetadata = Mock(MutableModuleComponentResolveMetadata) {
+            asImmutable() >> immutableMetadata
+            setComponentMetadataRuleCachingEnabled(_) >> { arguments -> isCachingEnabled = arguments[0] }
+        }
+
+        ImmutableMetadataSources metadataSources = Mock(ImmutableMetadataSources) {
+            sources() >> ImmutableList.of(Mock(MetadataSource) {
+                create(_, _, _, _, _, _) >> mutableMetadata
+            })
+        }
+        return metadataSources
+    }
+
+    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false , ImmutableMetadataSources metadataSources = null) {
         transport.resourceAccessor >> externalResourceAccessor
 
         MetadataArtifactProvider metadataArtifactProvider = new IvyMetadataArtifactProvider()
         def fileResourceRepository = Stub(FileResourceRepository)
-        def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
-        ImmutableMetadataSources metadataSources = Stub() {
-            sources() >> {
-                ImmutableList.of(new DefaultIvyDescriptorMetadataSource(
-                    metadataArtifactProvider,
-                    null,
-                    fileResourceRepository,
-                    TestUtil.checksumService
-                ))
-            }
-            appendId(_) >> { args ->
-                args[0].putBoolean(useGradleMetadata)
-                args[0].putBoolean(alwaysProvidesMetadataForModules)
+        if (metadataSources == null) {
+            metadataSources = Stub() {
+                sources() >> {
+                    ImmutableList.of(new DefaultIvyDescriptorMetadataSource(
+                        metadataArtifactProvider,
+                        null,
+                        fileResourceRepository,
+                        TestUtil.checksumService
+                    ))
+                }
+                appendId(_) >> { args ->
+                    args[0].putBoolean(useGradleMetadata)
+                    args[0].putBoolean(alwaysProvidesMetadataForModules)
+                }
             }
         }
 

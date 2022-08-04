@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -56,7 +57,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
     TaskInputFilePropertyBuilder optional(boolean optional);
 
     /**
-     * Sets which part of the path of files should be considered during up-to-date checks.
+     * Sets which part of the path of files should be considered during up-to-date checks and build cache key calculations.
      *
      * @since 3.1
      */
@@ -70,7 +71,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
     TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
 
     /**
-     * Ignore directories during up-to-date checks.  When this is set, only the contents of directories
+     * Ignore directories during up-to-date checks and build cache key calculations.  When this is set, only the contents of directories
      * will be considered, but not the directories themselves.  Changes to empty directories, and directories that
      * contain only empty directories, will be ignored.
      *
@@ -79,11 +80,33 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
     TaskInputFilePropertyBuilder ignoreEmptyDirectories();
 
     /**
-     * Sets whether directories should be considered during up-to-date checks.  Defaults to false.
+     * Sets whether directories should be considered during up-to-date checks and build cache key calculations.  Defaults to false.
      *
      * See {@link #ignoreEmptyDirectories()}.
      *
      * @since 6.8
      */
     TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreEmptyDirectories);
+
+    /**
+     * Normalize line endings in text files during up-to-date checks and build cache key calculations.  This setting will have no effect on binary files.
+     *
+     * Line ending normalization is only supported with ASCII encoding and its supersets (i.e.
+     * UTF-8, ISO-8859-1, etc).  Other encodings (e.g. UTF-16) will be treated as binary files
+     * and will not be subject to line ending normalization.
+     *
+     * @since 7.2
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder normalizeLineEndings();
+
+    /**
+     * Sets whether line endings should be normalized during up-to-date checks and build cache key calculations.  Defaults to false.
+     *
+     * See {@link #normalizeLineEndings()}.
+     *
+     * @since 7.2
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder normalizeLineEndings(boolean ignoreLineEndings);
 }

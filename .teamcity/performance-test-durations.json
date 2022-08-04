@@ -46,6 +46,12 @@
     "linux" : 1586000
   } ]
 }, {
+  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run :module21:module02:assembleDebug --dry-run",
+  "durations" : [ {
+    "testProject" : "largeAndroidBuild2",
+    "linux" : 2395000
+  } ]
+}, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
   "durations" : [ {
     "testProject" : "largeAndroidBuild",
@@ -67,7 +73,7 @@
     "linux" : 261000
   } ]
 }, {
-  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
+  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
   "durations" : [ {
     "testProject" : "largeAndroidBuild",
     "linux" : 1395000
@@ -144,6 +150,15 @@
     "testProject" : "bigNative",
     "linux" : 238000
   } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 368000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 576000
+    } ]
 }, {
   "scenario" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting gzip tar trees",
   "durations" : [ {
@@ -400,6 +415,18 @@
     "linux" : 459000
   } ]
 }, {
+    "scenario" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for Eclipse",
+    "durations" : [ {
+        "testProject" : "largeJavaMultiProject",
+        "linux" : 501000
+    }]
+}, {
+    "scenario" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+    "durations" : [ {
+        "testProject" : "largeJavaMultiProject",
+        "linux" : 474000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for abi change",
   "durations" : [ {
     "testProject" : "largeGroovyMultiProject",
@@ -630,6 +657,33 @@
     "testProject" : "mediumNativeMonolithic",
     "linux" : 275000
   } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.incremental compile",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 280000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 1000
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.up-to-date assemble (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 160000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 233000
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest.clean assemble (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 3125000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 3334000
+    } ]
 }, {
   "scenario" : "org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest.assemble with local cache (build comparison)",
   "durations" : [ {

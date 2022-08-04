@@ -18,8 +18,8 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
@@ -65,7 +65,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         return mapValue(value);
     }
 
-    @NotNull
+    @Nonnull
     private Value<? extends OUT> mapValue(Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();

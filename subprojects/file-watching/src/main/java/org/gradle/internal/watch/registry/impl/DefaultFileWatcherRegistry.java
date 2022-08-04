@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +32,13 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
@@ -49,7 +50,7 @@ import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVE
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
-    private final AbstractFileEventFunctions fileEventFunctions;
+    private final AbstractFileEventFunctions<?> fileEventFunctions;
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
@@ -60,7 +61,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean stopping = false;
 
     public DefaultFileWatcherRegistry(
-        AbstractFileEventFunctions fileEventFunctions,
+        AbstractFileEventFunctions<?> fileEventFunctions,
         FileWatcher watcher,
         ChangeHandler handler,
         FileWatcherUpdater fileWatcherUpdater,
@@ -84,6 +85,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
                                 fileWatchingStatistics.eventReceived();
+                                fileWatcherUpdater.triggerWatchProbe(absolutePath);
                                 handler.handleChange(convertType(type), Paths.get(absolutePath));
                             }
 
@@ -97,10 +99,9 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
-                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched hierarchies", type);
-                                    for (Path watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
-                                        handler.handleChange(OVERFLOW, watchedHierarchy);
-                                    }
+                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched files", type);
+                                    fileWatcherUpdater.getWatchedFiles().visitRoots(watchedRoot ->
+                                        handler.handleChange(OVERFLOW, Paths.get(watchedRoot)));
                                 } else {
                                     LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
                                     handler.handleChange(OVERFLOW, Paths.get(absolutePath));
@@ -138,6 +139,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
+    public boolean isWatchingAnyLocations() {
+        return !fileWatcherUpdater.getWatchedFiles().isEmpty();
+    }
+
+    @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
     }
@@ -148,8 +154,13 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        return fileWatcherUpdater.buildFinished(root, watchMode, maximumNumberOfWatchedHierarchies);
+    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+        return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode, unsupportedFileSystems);
+    }
+
+    @Override
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        return fileWatcherUpdater.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
     }
 
     private static Type convertType(FileWatchEvent.ChangeType type) {
@@ -171,7 +182,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
+        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger(0);
+        fileWatcherUpdater.getWatchedFiles().visitRoots(root -> numberOfWatchedHierarchies.incrementAndGet());
         return new FileWatchingStatistics() {
             @Override
             public Optional<Throwable> getErrorWhileReceivingFileChanges() {
@@ -190,7 +202,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
             @Override
             public int getNumberOfWatchedHierarchies() {
-                return numberOfWatchedHierarchies;
+                return numberOfWatchedHierarchies.get();
             }
         };
     }

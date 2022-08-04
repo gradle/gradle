@@ -35,10 +35,10 @@ import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.locking.NoOpDependencyLockingProvider
 import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsResolver
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -60,7 +60,7 @@ class DefaultResolutionStrategySpec extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null, TestUtil.objectFactory())
 
     def "allows setting forced modules"() {
         expect:
@@ -156,6 +156,16 @@ class DefaultResolutionStrategySpec extends Specification {
         !copy.is(strategy)
         !copy.cachePolicy.is(strategy.cachePolicy)
         !copy.componentSelection.is(strategy.componentSelection)
+    }
+
+    def "use global substitution rules state is not share with copy"() {
+        when:
+        def copy = strategy.copy()
+        strategy.useGlobalDependencySubstitutionRules.set(false)
+
+        then:
+        !strategy.useGlobalDependencySubstitutionRules.get()
+        copy.useGlobalDependencySubstitutionRules.get()
     }
 
     def "provides a copy"() {
@@ -288,7 +298,6 @@ class DefaultResolutionStrategySpec extends Specification {
         then: 0 * validator.validateMutation(_)
     }
 
-    @Unroll
     def 'provides the expected DependencyLockingProvider (#activateLocking)'() {
         when:
         if (activateLocking) {

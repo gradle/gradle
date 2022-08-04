@@ -18,17 +18,9 @@ package org.gradle.api.tasks
 
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
-@Ignore("Need to de-incubate getExecutionResult first")
 class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutionResultExecTaskIntegrationTest {
     TestFile mainJavaFile
-
-    def setup() {
-        executer.beforeExecute {
-            executer.expectDeprecationWarning("The AbstractExecTask.getExecResult() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the AbstractExecTask.getExecutionResult() method instead.")
-        }
-    }
 
     @Override
     protected void makeExecProject() {
@@ -90,6 +82,6 @@ class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutio
 
     @Override
     protected String getExecResultDsl() {
-        return "${taskUnderTestDsl}.execResult"
+        return "${taskUnderTestDsl}.executionResult.getOrNull()"
     }
 }

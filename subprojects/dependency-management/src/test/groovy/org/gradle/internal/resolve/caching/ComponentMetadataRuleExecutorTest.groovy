@@ -31,10 +31,10 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -43,13 +43,14 @@ import org.gradle.internal.component.external.model.VariantDerivationStrategy
 import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.StringValueSnapshot
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -60,7 +61,7 @@ import java.time.Duration
 class ComponentMetadataRuleExecutorTest extends Specification {
     @Subject
     ComponentMetadataRuleExecutor executor
-    CacheRepository cacheRepository
+    GlobalScopedCache cacheRepository
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
     long time = 0
@@ -104,7 +105,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
-        def hashValue = HashCode.fromInt(42)
+        def hashValue = TestHashCodes.hashCodeFrom(42)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
         def hasher = Hashing.newHasher()
@@ -138,14 +139,14 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         if (expired) {
             // should check that the recorded service call returns the same value
             1 * record.getInput() >> '124'
-            1 * record.getOutput() >> HashCode.fromInt(10000)
+            1 * record.getOutput() >> TestHashCodes.hashCodeFrom(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id
             1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
-            1 * someService.isUpToDate('124', HashCode.fromInt(10000)) >> false
+            1 * someService.isUpToDate('124', TestHashCodes.hashCodeFrom(10000)) >> false
         } else {
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id

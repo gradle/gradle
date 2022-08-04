@@ -18,16 +18,18 @@ package org.gradle.internal.resource.transport.gcp.gcs
 
 import com.google.api.client.util.DateTime
 import com.google.api.services.storage.model.StorageObject
+import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
 class GcsResourceConnectorTest extends Specification {
 
-    URI uri = new URI("http://somewhere")
+    def uri = new URI("http://somewhere")
+    def name = new ExternalResourceName(uri)
 
     def "should list resources"() {
         GcsClient gcsClient = Mock()
         when:
-        new GcsResourceConnector(gcsClient).list(uri)
+        new GcsResourceConnector(gcsClient).list(name)
         then:
         1 * gcsClient.list(uri)
     }
@@ -38,7 +40,7 @@ class GcsResourceConnectorTest extends Specification {
         }
 
         when:
-        def gcsResource = new GcsResourceConnector(gcsClient).openResource(uri, false)
+        def gcsResource = new GcsResourceConnector(gcsClient).openResource(name, false)
 
         then:
         gcsResource != null
@@ -61,7 +63,7 @@ class GcsResourceConnectorTest extends Specification {
         }
 
         when:
-        def metaData = new GcsResourceConnector(gcsClient).getMetaData(uri, false)
+        def metaData = new GcsResourceConnector(gcsClient).getMetaData(name, false)
 
         then:
         metaData != null

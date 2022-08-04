@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
@@ -44,18 +45,12 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
 
     def "renders all configurations in the project"() {
         when:
-        task.generate(project)
+        def reportModel = task.calculateReportModelFor(project)
 
-        then: 1 * renderer.startConfiguration(conf1)
-        then: 1 * renderer.render(conf1)
-        then: 1 * renderer.completeConfiguration(conf1)
-
-
-        then: 1 * renderer.startConfiguration(conf2)
-        then: 1 * renderer.render(conf2)
-        then: 1 * renderer.completeConfiguration(conf2)
-
-        0 * renderer._
+        then:
+        reportModel.configurations.size() == 2
+        reportModel.configurations[0].name == conf1.name
+        reportModel.configurations[1].name == conf2.name
     }
 
     def "rendering can be limited to specific configurations"() {
@@ -65,13 +60,11 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
         task.configurations = [bConf] as Set
 
         when:
-        task.generate(project)
+        def reportModel = task.calculateReportModelFor(project)
 
         then:
-        1 * renderer.startConfiguration(bConf)
-        1 * renderer.render(bConf)
-        1 * renderer.completeConfiguration(bConf)
-        0 * renderer._
+        reportModel.configurations.size() == 1
+        reportModel.configurations[0].name == bConf.name
     }
 
     def "rendering can be limited to a single configuration, specified by name"() {
@@ -84,5 +77,47 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         task.configurations == [bConf] as Set
+    }
+
+    def "configuration to render could be specified by camelCase shortcut"() {
+        given:
+        project.configurations.create("confAlpha")
+        def confB = project.configurations.create("confBravo")
+
+        when:
+        task.configuration = "coB"
+
+        then:
+        task.configurations == [confB] as Set
+    }
+
+    def "ambiguous configuration selection by camelCase shortcut fails"() {
+        given:
+        project.configurations.create("confAlpha")
+        project.configurations.create("confAlfa")
+
+        when:
+        task.configuration = "coA"
+
+        then:
+        thrown InvalidUserDataException
+    }
+
+    def "rule-defined configuration should be found"() {
+        given:
+        project.afterEvaluate { p ->
+            p.configurations.addRule("configuration defined by a rule", { s ->
+                if (s == "confBravo") {
+                    p.configurations.create("confBravo")
+                }
+            })
+        }
+
+        when:
+        project.evaluate()
+        task.configuration = "confBravo"
+
+        then:
+        task.configurations == [project.configurations.confBravo] as Set
     }
 }

@@ -33,7 +33,7 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
     register("compileAllBuild") {
         description = "Initialize CI Pipeline by priming the cache before fanning out"
         group = ciGroup
-        dependsOn("compileAll")
+        dependsOn("compileAllProduction")
     }
 
     register("sanityCheck") {

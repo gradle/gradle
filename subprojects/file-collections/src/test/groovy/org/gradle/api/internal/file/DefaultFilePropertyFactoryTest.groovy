@@ -195,6 +195,15 @@ class DefaultFilePropertyFactoryTest extends Specification {
         tree.files == [] as Set
     }
 
+    def "Directory.files are relative to the directory"() {
+        def baseDir = tmpDir.createDir("base")
+        def directory = factory.dir(baseDir)
+
+        expect:
+        directory.files("file1", "file2").files ==~ [baseDir.file("file1"), baseDir.file("file2")]
+        directory.dir("sub-dir").files("file1", "file2").files ==~ [baseDir.file("sub-dir/file1"), baseDir.file("sub-dir/file2")]
+    }
+
     def "cannot query the views of a directory property when the property has no value"() {
         def dirVar = factory.newDirectoryProperty()
         def tree = dirVar.asFileTree

@@ -1,15 +1,13 @@
 import com.google.gson.Gson
+import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
-import gradlebuild.buildutils.tasks.UpdateBranchStatus
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import gradlebuild.buildutils.model.ReleasedVersion
 import java.net.URL
-import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.currentGitBranch
 
 
 tasks.withType<UpdateReleasedVersions>().configureEach {
-    releasedVersionsFile.set(layout.projectDirectory.file("released-versions.json"))
+    releasedVersionsFile.set(releasedVersionsFile())
     group = "Versioning"
 }
 
@@ -33,17 +31,10 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
     )
 }
 
-tasks.register<UpdateBranchStatus>("updateBranchStatus") {
-    gradleBuildBranch.set(
-        providers.environmentVariable(BuildEnvironment.BUILD_BRANCH)
-            .forUseAtConfigurationTime()
-            .orElse(currentGitBranch())
-    )
-}
-
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
     minimumSupportedMinor.set("4.1")
+    fetchNightly.set(false)
     propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
 }
 

@@ -140,7 +140,7 @@ include::sample[dir="snippets/maven-publish/conditional-publishing/kotlin",files
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
 
-Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
+Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
 
 .Configuring which artifacts should be published to which repositories
 ====

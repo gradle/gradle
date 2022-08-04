@@ -33,7 +33,7 @@ class UrlExternalResourceTest extends Specification {
 
         expect:
         def resource = UrlExternalResource.open(file.toURI().toURL())
-        resource.withContentIfPresent(new ExternalResource.ContentAction() {
+        resource.withContentIfPresent(new ExternalResource.ContentAndMetadataAction() {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
                 assert metaData.location == file.toURI()
@@ -44,7 +44,7 @@ class UrlExternalResourceTest extends Specification {
                 return "result"
             }
         })
-        resource.withContent(new ExternalResource.ContentAction() {
+        resource.withContent(new ExternalResource.ContentAndMetadataAction() {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
                 assert metaData.location == file.toURI()
@@ -62,7 +62,7 @@ class UrlExternalResourceTest extends Specification {
 
         expect:
         def resource = UrlExternalResource.open(file.toURI().toURL())
-        resource.withContentIfPresent({} as ExternalResource.ContentAction) == null
+        resource.withContentIfPresent({} as ExternalResource.ContentAndMetadataAction) == null
     }
 
     def "can get metadata of file"() {

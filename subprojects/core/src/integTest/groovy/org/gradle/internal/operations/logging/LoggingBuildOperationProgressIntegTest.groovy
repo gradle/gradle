@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
@@ -49,13 +50,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     MavenHttpRepository mavenHttpRepository = new MavenHttpRepository(server, '/repo', mavenRepo)
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
-
-    def setup() {
-        executer.beforeExecute {
-            // Don't let the incubating message interfere with logging
-            withPartialVfsInvalidation(false)
-        }
-    }
 
     @ToBeFixedForConfigurationCache(because = "different build operation tree")
     def "captures output sources with context"() {
@@ -425,8 +419,12 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .flatten()
             .with { it as List<BuildOperationRecord.Progress> }
             .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
-        assert progressOutputEvents
-            .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+
+        // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
+        // when configuration cache is enabled also "Configuration cache entry reused."
+        def expectedEvents = GradleContextualExecuter.configCache ? 15 : 14
+
+        assert progressOutputEvents.size() == expectedEvents
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {

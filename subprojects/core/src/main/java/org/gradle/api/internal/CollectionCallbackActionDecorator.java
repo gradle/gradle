@@ -17,17 +17,24 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
 
 public interface CollectionCallbackActionDecorator {
-
     <T> Action<T> decorate(@Nullable Action<T> action);
+
+    <T> Spec<T> decorateSpec(Spec<T> spec);
 
     CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
         @Override
         public <T> Action<T> decorate(@Nullable Action<T> action) {
             return action;
+        }
+
+        @Override
+        public <T> Spec<T> decorateSpec(Spec<T> spec) {
+            return spec;
         }
     };
 }

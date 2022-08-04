@@ -16,10 +16,13 @@
 
 package org.gradle.integtests.tooling.r48
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.tooling.fixture.ActionDiscardsConfigurationFailure
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
+import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnsupportedVersionException
@@ -30,6 +33,7 @@ import org.gradle.tooling.events.ProgressListener
 import java.util.regex.Pattern
 
 @ToolingApiVersion(">=4.8")
+@TargetGradleVersion(">=4.8")
 class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """
@@ -49,17 +53,10 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
 
-            task defTask {
-                doLast {
-                    println "default"
-                }
-            }
-            
             allprojects {
                 apply plugin: CustomPlugin
-                defaultTasks 'defTask'
             }
-            
+
             class DefaultCustomModel implements Serializable {
                 private final String value;
                 DefaultCustomModel(String value) {
@@ -74,26 +71,26 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 void setTasks(List<String> tasks);
                 List<String> getTasks();
             }
-            
+
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 CustomPlugin(ToolingModelBuilderRegistry registry) {
                     registry.register(new CustomBuilder());
                 }
-            
+
                 public void apply(Project project) {
                 }
             }
-            
+
             class CustomBuilder implements ParameterizedToolingModelBuilder<CustomParameter> {
                 boolean canBuild(String modelName) {
                     return modelName == '${CustomProjectsLoadedModel.name}' || modelName == '${CustomBuildFinishedModel.name}'
                 }
-                
+
                 Class<CustomParameter> getParameterType() {
                     return CustomParameter.class;
                 }
-                
+
                 Object buildAll(String modelName, Project project) {
                     if (modelName == '${CustomProjectsLoadedModel.name}') {
                         return new DefaultCustomModel('loading');
@@ -103,7 +100,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                     }
                     return null
                 }
-                
+
                 Object buildAll(String modelName, CustomParameter parameter, Project project) {
                     if (modelName == '${CustomProjectsLoadedModel.name}') {
                         StartParameter startParameter = project.getGradle().getStartParameter();
@@ -118,7 +115,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion(">=4.8")
     def "can run phased action"() {
         IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -136,7 +132,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == "build"
     }
 
-    @TargetGradleVersion(">=4.8")
     def "failures from action are received and future actions not run"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -145,7 +140,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { connection ->
             def action = connection.action()
                 .projectsLoaded(new FailAction(), projectsLoadedHandler)
-                .buildFinished(new BrokenAction(), buildFinishedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
 
             collectOutputs(action)
@@ -161,7 +156,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         if (targetDist.toolingApiHasCauseOnPhasedActionFail) {
             failure.assertHasDescription('actionFailure')
         } else {
@@ -170,7 +164,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion(">=4.8")
+    @TargetGradleVersion(">=4.8 <7.3")
     def "actions are not run when configuration fails"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -183,8 +177,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection { connection ->
             def action = connection.action()
-                .projectsLoaded(new BrokenAction(), projectsLoadedHandler)
-                .buildFinished(new BrokenAction(), buildFinishedHandler)
+                .projectsLoaded(new ActionShouldNotBeCalled(), projectsLoadedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
             collectOutputs(action)
             action.run()
@@ -198,12 +192,74 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("A problem occurred evaluating root project")
         assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion(">=4.8")
+    @TargetGradleVersion(">=7.3")
+    def "action receives configuration failure"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        given:
+        buildFile << """
+            throw new RuntimeException("broken")
+        """
+
+        when:
+        withConnection { connection ->
+            def action = connection.action()
+                .projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), projectsLoadedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
+                .build()
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith("The supplied phased action failed with an exception.")
+        e.cause.message.contains("A problem occurred configuring root project")
+        projectsLoadedHandler.getResult() == null
+        buildFinishedHandler.getResult() == null
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=7.3")
+    def "build fails on configuration failure when projects loaded action discards failure"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        given:
+        buildFile << """
+            throw new RuntimeException("broken")
+        """
+
+        when:
+        withConnection { connection ->
+            def action = connection.action()
+                .projectsLoaded(new ActionDiscardsConfigurationFailure(), projectsLoadedHandler)
+                .buildFinished(new ActionQueriesModelThatRequiresConfigurationPhase(), buildFinishedHandler)
+                .build()
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith("The supplied phased action failed with an exception.")
+        e.cause.message.contains("A problem occurred configuring root project")
+        projectsLoadedHandler.getResult() == "result"
+        buildFinishedHandler.getResult() == null
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        assertHasConfigureFailedLogging()
+    }
+
     def "build finished action does not run when build fails"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -216,8 +272,9 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def action = connection.action().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
-                .buildFinished(new BrokenAction(), buildFinishedHandler)
+            def action = connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
             collectOutputs(action)
             action.forTasks("broken")
@@ -232,12 +289,10 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("Execution failed for task ':broken'.")
         assertHasBuildFailedLogging()
     }
 
-    @TargetGradleVersion(">=4.8")
     def "build is interrupted immediately if action fails"() {
         IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def events = ""
@@ -261,7 +316,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         events.empty
     }
 
-    @TargetGradleVersion(">=4.8")
     def "can modify task graph in projects evaluated action"() {
         IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
@@ -280,7 +334,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         stdOut.toString().contains("hello")
     }
 
-    @TargetGradleVersion(">=4.8")
     def "can run pre-defined tasks and build finished action is run after tasks are executed"() {
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
@@ -302,23 +355,112 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         stdOut.toString().contains("bye")
     }
 
-    @TargetGradleVersion(">=4.8")
-    def "default tasks are not run if no tasks are specified"() {
-        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
-        def stdOut = new ByteArrayOutputStream()
+    def "do not run any tasks when none specified and #description"() {
+        file('build.gradle') << """
+            $configuration
+
+            gradle.taskGraph.whenReady {
+                throw new RuntimeException()
+            }
+        """
 
         when:
         withConnection { connection ->
-            connection.action().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+            def builder = connection.action()
+                .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
                 .build()
-                .setStandardOutput(stdOut)
-                .run()
+            collectOutputs(builder)
+            builder.run()
         }
 
         then:
-        buildFinishedHandler.getResult() == "build"
-        stdOut.toString().contains("buildFinishedAction")
-        !stdOut.toString().contains("default")
+        noExceptionThrown()
+        assertHasConfigureSuccessfulLogging()
+
+        where:
+        description                                        | configuration
+        "build logic does not define any additional tasks" | ""
+        "build logic defines default tasks"                | "defaultTasks = ['broken']"
+        "build logic injects tasks into start param"       | "gradle.startParameter.taskNames = ['broken']"
+    }
+
+    def "#description means run help task"() {
+        file('build.gradle') << """
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action()
+                .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
+                .build()
+            action(builder)
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        result.assertTasksExecuted(":help")
+
+        where:
+        description                 | action
+        "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
+        "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
+    }
+
+    def "#description means run default tasks when they are defined"() {
+        file('build.gradle') << """
+            defaultTasks = ["thing"]
+
+            task thing { }
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action()
+                .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
+                .build()
+            action(builder)
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        result.assertTasksExecuted(":thing")
+
+        where:
+        description                 | action
+        "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
+        "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
+    }
+
+    def "#description means run tasks injected by build logic"() {
+        file('build.gradle') << """
+            gradle.startParameter.taskNames = ["thing"]
+
+            task thing { }
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action()
+                .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
+                .build()
+            action(builder)
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        noExceptionThrown()
+        assertHasBuildSuccessfulLogging()
+        result.assertTasksExecuted(":thing")
+
+        where:
+        description                 | action
+        "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
+        "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
     @TargetGradleVersion(">=2.6 <4.8")

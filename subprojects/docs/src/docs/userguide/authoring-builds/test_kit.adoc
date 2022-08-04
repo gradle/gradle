@@ -118,6 +118,11 @@ include::{snippetsPath}/testKit/automaticClasspathInjectionQuickstart/groovy/src
 
 The following build script demonstrates how to reconfigure the conventions provided by the Java Gradle Plugin Development plugin for a project that uses a custom `Test` source set.
 
+[NOTE]
+====
+A new configuration DSL for modeling the below `functionalTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+====
+
 .Reconfiguring the classpath generation conventions of the Java Gradle Development plugin
 ====
 include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
@@ -134,6 +139,7 @@ The TestKit uses dedicated daemon processes that are automatically shut down aft
 
 The dedicated working directory is not deleted by the runner after the build.
 The TestKit provides two ways to specify a location that is regularly cleaned, such as the project's build folder:
+
 * The `org.gradle.testkit.dir` system property;
 * The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(file testKitDir)] method.
 

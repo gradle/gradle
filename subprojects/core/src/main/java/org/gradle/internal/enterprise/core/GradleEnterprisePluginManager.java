@@ -71,6 +71,12 @@ public class GradleEnterprisePluginManager {
         return adapter != null;
     }
 
+    public void executionPhaseStarted() {
+        if (adapter != null) {
+            adapter.executionPhaseStarted();
+        }
+    }
+
     public void buildFinished(@Nullable Throwable buildFailure) {
         if (adapter != null) {
             adapter.buildFinished(buildFailure);

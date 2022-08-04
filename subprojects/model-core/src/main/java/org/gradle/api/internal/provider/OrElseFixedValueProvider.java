@@ -29,6 +29,11 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
         this.fallbackValue = fallbackValue;
     }
 
+    @Override
+    public String toString() {
+        return String.format("or(%s, fixed(%s))", provider, fallbackValue);
+    }
+
     @Nullable
     @Override
     public Class<T> getType() {
@@ -37,15 +42,7 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
-        ValueProducer producer = provider.getProducer();
-        if (producer.isProducesDifferentValueOverTime()) {
-            return producer;
-        }
-        if (provider.isPresent()) {
-            // isPresent() might have side-effects so we ask for the producer again
-            return provider.getProducer();
-        }
-        return ValueProducer.unknown();
+        return new OrElseValueProducer(provider, null, ValueProducer.unknown());
     }
 
     @Override

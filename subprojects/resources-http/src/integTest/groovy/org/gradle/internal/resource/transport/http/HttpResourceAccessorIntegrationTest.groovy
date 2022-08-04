@@ -16,11 +16,13 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Issue
 
 class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
-    URI uri = new URI("http://somewhere")
+    def uri = new URI("http://somewhere")
+    def name = new ExternalResourceName(uri)
 
     @Issue("GRADLE-3574")
     def "should not generate any concurrent exception"() {
@@ -33,7 +35,7 @@ class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
         10.times {
             concurrent.start {
                 100.times {
-                    httpResourceAccessor.openResource(uri, false).close()
+                    httpResourceAccessor.openResource(name, false).close()
                 }
             }
         }

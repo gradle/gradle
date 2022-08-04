@@ -60,8 +60,8 @@ public class ProjectLayoutSetupRegistryFactory {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
         this.workerExecutor = workerExecutor;
-        scriptBuilderFactory = new BuildScriptBuilderFactory();
-        templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", documentationRegistry);
+        this.scriptBuilderFactory = new BuildScriptBuilderFactory(documentationRegistry);
+        this.templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", documentationRegistry);
     }
 
     public ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {

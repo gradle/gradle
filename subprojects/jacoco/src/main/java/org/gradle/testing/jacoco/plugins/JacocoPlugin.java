@@ -16,25 +16,40 @@
 package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.Directory;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.TestSuiteName;
+import org.gradle.api.attributes.TestSuiteTargetName;
+import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.testing.base.TestSuite;
+import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
@@ -56,10 +71,12 @@ public class JacocoPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String DEFAULT_JACOCO_VERSION = "0.8.6";
+    public static final String DEFAULT_JACOCO_VERSION = "0.8.8";
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
+    private static final String COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX = "coverageDataElementsFor";
+
     private final Instantiator instantiator;
     private Project project;
 
@@ -78,7 +95,7 @@ public class JacocoPlugin implements Plugin<Project> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.getReportsDirectory().set(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
+        extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
@@ -86,6 +103,44 @@ public class JacocoPlugin implements Plugin<Project> {
         configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
+        configureCoverageDataElementsVariants(project);
+    }
+
+    private void configureCoverageDataElementsVariants(Project project) {
+        project.getPlugins().withType(JvmTestSuitePlugin.class, p -> {
+            final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+
+            testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
+                suite.getTargets().configureEach(target -> {
+                    createCoverageDataVariant(project, suite, target);
+                });
+            });
+        });
+    }
+
+    private void createCoverageDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+        final Configuration variant = project.getConfigurations().create(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
+        variant.setVisible(false);
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
+                project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
+
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+            attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
+            attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
+            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+        });
+
+        variant.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()), artifact -> {
+            artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE);
+            artifact.builtBy(target.getTestTask());
+        });
     }
 
     /**
@@ -96,12 +151,18 @@ public class JacocoPlugin implements Plugin<Project> {
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
+        deprecateForConsumption(agentConf);
         Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
+        deprecateForConsumption(antConf);
     }
 
+    private static void deprecateForConsumption(Configuration configuration) {
+        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
+            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
+    }
 
     /**
      * Configures the agent dependencies using the 'jacocoAnt' configuration. Uses the version declared in 'toolVersion' of the Jacoco extension if no dependencies are explicitly declared.
@@ -149,14 +210,14 @@ public class JacocoPlugin implements Plugin<Project> {
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
         reportTask.getReports().all(action(report ->
-            report.getRequired().set(report.getName().equals("html"))
+            report.getRequired().convention(report.getName().equals("html"))
         ));
         DirectoryProperty reportsDir = extension.getReportsDirectory();
         reportTask.getReports().all(action(report -> {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                report.setDestination(reportsDir.dir(reportTask.getName() + "/" + report.getName()).map(Directory::getAsFile));
+                ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(reportTask.getName() + "/" + report.getName()));
             } else {
-                report.setDestination(reportsDir.dir(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()).map(Directory::getAsFile));
+                ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()));
             }
         }));
     }
@@ -168,13 +229,17 @@ public class JacocoPlugin implements Plugin<Project> {
      */
     private void addDefaultReportAndCoverageVerificationTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
-            TaskProvider<Task> testTaskProvider = project.getTasks().named(JavaPlugin.TEST_TASK_NAME);
-            addDefaultReportTask(extension, testTaskProvider);
-            addDefaultCoverageVerificationTask(testTaskProvider);
+            TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            JvmTestSuite defaultTestSuite = testing.getSuites().withType(JvmTestSuite.class).getByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
+            defaultTestSuite.getTargets().configureEach(target -> {
+                TaskProvider<Test> testTask = target.getTestTask();
+                addDefaultReportTask(extension, testTask);
+                addDefaultCoverageVerificationTask(testTask);
+            });
         });
     }
 
-    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider) {
+    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<? extends Task> testTaskProvider) {
         final String testTaskName = testTaskProvider.getName();
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskName) + "Report",
@@ -192,15 +257,15 @@ public class JacocoPlugin implements Plugin<Project> {
                     // uses the `reportTask`.
                     // https://github.com/gradle/gradle/issues/6343
                     if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                        report.setDestination(reportsDir.dir(testTaskName + "/" + report.getName()).map(Directory::getAsFile));
+                        ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(testTaskName + "/" + report.getName()));
                     } else {
-                        report.setDestination(reportsDir.dir(testTaskName + "/" + reportTask.getName() + "." + report.getName()).map(Directory::getAsFile));
+                        ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(testTaskName + "/" + reportTask.getName() + "." + report.getName()));
                     }
                 }));
             });
     }
 
-    private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
+    private void addDefaultCoverageVerificationTask(final TaskProvider<? extends Task> testTaskProvider) {
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "CoverageVerification",
             JacocoCoverageVerification.class,

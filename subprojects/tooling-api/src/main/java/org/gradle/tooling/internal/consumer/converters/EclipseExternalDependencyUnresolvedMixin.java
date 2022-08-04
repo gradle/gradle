@@ -20,7 +20,7 @@ import org.gradle.tooling.model.ComponentSelector;
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency;
 
 /**
- * This is used for compatibility with clients <6.7
+ * This is used for compatibility with clients &lt;6.7
  */
 public class EclipseExternalDependencyUnresolvedMixin {
 

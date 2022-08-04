@@ -36,7 +36,7 @@ public interface ExcludeRuleContainer {
      * <li><code>group</code> - The exact name of the organization or group that should be excluded.
      * <li><code>module</code> - The exact name of the module that should be excluded
      * </ul>
-     * 
+     *
      * @param args A map describing the exclude pattern.
      */
     void add(Map<String, String> args);

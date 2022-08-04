@@ -17,17 +17,15 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.junit.Rule
-
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
@@ -36,6 +34,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
+
+    String kotlinVersion = TestedVersions.kotlin.latestStable()
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
@@ -52,18 +52,50 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            }.build()
+    }
+
+    protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
+        return runnerForLocation(location, agpVersion,"assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
+                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            }.build()
+    }
+
+    static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAllFileTreeForEmptySourcesDeprecationWarnings(String agpVersion) {
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
+        }
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "clean").build()
     }
 
-    protected GradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=${TestedVersions.kotlin.latest()}", "--stacktrace"], tasks].flatten())
+    protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
+        def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            // fall back to using Java 11 (LTS) for Android tests
+            // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,
+            // or Java 17 for now: https://youtrack.jetbrains.com/issue/KT-47583
+            // perhaps we should always run Android tests on Java 11 instead of having some of them skipped by a precondition
+            def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+            runnerArgs += "-Dorg.gradle.java.home=${jdk.javaHome}"
+        }
+        def runner = runner(*runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
-            .forwardOutput() as DefaultGradleRunner
+            .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments(
                 "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",

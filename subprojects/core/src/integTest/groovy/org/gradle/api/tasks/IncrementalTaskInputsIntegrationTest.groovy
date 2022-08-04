@@ -16,12 +16,16 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
+
+    def setup() {
+        executer.beforeExecute {
+            expectIncrementalTaskInputsDeprecationWarning()
+        }
+    }
 
     String getTaskAction() {
         """
@@ -77,9 +81,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
         executesNonIncrementally(preexistingInputs + ['new-input.txt'])
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -105,6 +107,9 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
             }
         """
         String myTask = ':myTask'
+        executer.beforeExecute {
+            expectIncrementalTaskInputsDeprecationWarning('MyTask', 'doStuff')
+        }
 
         when:
         file("inputDir1/child") << "inputFile1"
@@ -120,5 +125,10 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
 
         where:
         inputAnnotation << [InputFiles.name, InputDirectory.name]
+    }
+
+    void expectIncrementalTaskInputsDeprecationWarning(String className = 'BaseIncrementalTask', String methodName = 'execute') {
+        String source = "${className}.${methodName}"
+        executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method '$source' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
     }
 }

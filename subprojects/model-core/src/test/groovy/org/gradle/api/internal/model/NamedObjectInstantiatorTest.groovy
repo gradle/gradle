@@ -22,7 +22,6 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.state.Managed
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
-import spock.lang.Ignore
 
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CyclicBarrier
@@ -292,15 +291,11 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         e.cause == BrokenConstructor.failure
     }
 
-    @Ignore
-    def "interface may not have additional methods"() {
-        expect: false
-    }
+    // TODO
+    // Implement:
+    // - interface may not have additional methods
+    // - abstract class may not have additional abstract methods
 
-    @Ignore
-    def "abstract class may not have additional abstract methods"() {
-        expect: false
-    }
 }
 
 class DummyGroovyNamed implements Named {
@@ -316,4 +311,3 @@ abstract class BrokenConstructor implements Named {
         throw failure
     }
 }
-

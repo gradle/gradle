@@ -16,13 +16,10 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.Lists;
-import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
@@ -31,12 +28,12 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.RegistryBuilder;
@@ -81,11 +78,11 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.ProxySelector;
-import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -152,6 +149,7 @@ public class HttpClientConfigurer {
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
+        builder.setConnectionTimeToLive(httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
@@ -291,6 +289,7 @@ public class HttpClientConfigurer {
         RequestConfig config = RequestConfig.custom()
             .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
             .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
+            .setMaxRedirects(httpSettings.getMaxRedirects())
             .build();
         builder.setDefaultRequestConfig(config);
     }
@@ -301,10 +300,21 @@ public class HttpClientConfigurer {
     }
 
     private void configureRedirectStrategy(HttpClientBuilder builder) {
-        if (httpSettings.isFollowRedirects()) {
-            builder.setRedirectStrategy(new DowngradeProtectingRedirectStrategy());
+        if (httpSettings.getMaxRedirects() > 0) {
+            builder.setRedirectStrategy(new RedirectVerifyingStrategyDecorator(getBaseRedirectStrategy(), httpSettings.getRedirectVerifier()));
         } else {
             builder.disableRedirectHandling();
+        }
+    }
+
+    private RedirectStrategy getBaseRedirectStrategy() {
+        switch (httpSettings.getRedirectMethodHandlingStrategy()) {
+            case ALLOW_FOLLOW_FOR_MUTATIONS:
+                return new AllowFollowForMutatingMethodRedirectStrategy();
+            case ALWAYS_FOLLOW_AND_PRESERVE:
+                return new AlwaysFollowAndPreserveMethodRedirectStrategy();
+            default:
+                throw new IllegalArgumentException(httpSettings.getRedirectMethodHandlingStrategy().name());
         }
     }
 
@@ -353,25 +363,4 @@ public class HttpClientConfigurer {
         }
     }
 
-    private class DowngradeProtectingRedirectStrategy extends AlwaysRedirectRedirectStrategy {
-
-        private URI getRedirectLocationURI(final HttpResponse response) throws ProtocolException {
-            //get the location header to find out where to redirect to
-            final Header locationHeader = response.getFirstHeader("location");
-            if (locationHeader == null) {
-                // got a redirect response, but no location header
-                throw new ProtocolException(
-                    "Received redirect response " + response.getStatusLine()
-                        + " but no location header");
-            }
-            final String location = locationHeader.getValue();
-            return createLocationURI(location);
-        }
-
-        @Override
-        public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
-            httpSettings.getRedirectVerifier().validateRedirects(Collections.singletonList(getRedirectLocationURI(response)));
-            return super.getRedirect(request, response, context);
-        }
-    }
 }

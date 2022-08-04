@@ -102,6 +102,22 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         0 * _
     }
 
+    def "flushes events when queue gets too big"() {
+        when:
+        (1..9999).each {
+            renderer.onOutput(event("Event $it"))
+        }
+
+        then:
+        0 * _
+
+        when:
+        renderer.onOutput(event("Event 10_000"))
+
+        then:
+        10_000 * listener.onOutput(_)
+    }
+
     def "background flush does nothing when events already flushed"() {
         def event1 = event('1')
         def event2 = event('2')

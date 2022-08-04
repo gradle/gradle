@@ -23,7 +23,6 @@ import org.gradle.BuildListener;
 import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.configuration.internal.ExecuteListenerBuildOperationType.DetailsImpl;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -128,7 +127,27 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
                 .displayName("Execute " + registrationPoint + " listener")
-                .details(new DetailsImpl(applicationId, registrationPoint));
+                .details(new ExecuteListenerDetails(applicationId, registrationPoint));
+        }
+    }
+
+    private static class ExecuteListenerDetails implements ExecuteListenerBuildOperationType.Details {
+        final UserCodeApplicationId applicationId;
+        final String registrationPoint;
+
+        ExecuteListenerDetails(UserCodeApplicationId applicationId, String registrationPoint) {
+            this.applicationId = applicationId;
+            this.registrationPoint = registrationPoint;
+        }
+
+        @Override
+        public long getApplicationId() {
+            return applicationId.longValue();
+        }
+
+        @Override
+        public String getRegistrationPoint() {
+            return registrationPoint;
         }
     }
 

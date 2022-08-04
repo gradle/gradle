@@ -1,242 +1,168 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[understanding-variant-selection]]
-= Understanding variant selection
+= Understanding variant selection 
 
-Gradle's dependency management engine is known as _variant aware_.
-In a traditional dependency management engine like Apache Maven™, dependencies are bound to components published at GAV coordinates.
-This means that the set of transitive dependencies for a component is solely determined by the GAV coordinates of this component.
-It doesn't matter what _artifact_ is actually resolved, the set of dependencies is _always the same_.
-In addition, selecting a different artifact for a component (for example, using the `jdk7` artifact) is cumbersome as it requires the use of _classifiers_.
-One issue with this model is that it cannot guarantee global graph consistency because there are no common semantics associated with _classifiers_.
-What this means is that there's nothing which prevents from having both the `jdk7` and `jdk8` versions of a single module on classpath, because the engine has no idea what semantics are associated with the classifier name.
+In other dependency management engines, like Apache Maven™, dependencies and artifacts are bound to a component that is published at a particular GAV (group-artifact-version) coordinates.
+The set of dependencies for this component are always the same, regardless of which artifact may be used from the component.
+
+If the component does have multiple artifacts, each one is identified by a cumbersome _classifier_.
+There are no common semantics associated with classifiers and that makes it difficult to guarantee a globally consistent dependency graph.
+This means that nothing prevents multiple artifacts for a single component (e.g., `jdk7` and `jdk8` classifiers) from appearing in a classpath and causing hard to diagnose problems.
+
+== Maven component model
 
 .The Maven component model
 image::component-model-maven.png[]
 
-Gradle, in addition to the concept of a _module_ published at GAV coordinates, introduces the concept of _variants_ of this module.
-Variants correspond to the different "views" of a component that is published at the same GAV coordinates.
-In the Gradle model, artifacts are attached to _variants_, not modules.
-This means, in practice, that different _artifacts_ can have a different set of dependencies:
+== Gradle component model
 
 .The Gradle component model
 image::component-model-gradle.png[]
 
-This intermediate level, which associates artifacts and dependencies to variants instead of directly to the component, allows Gradle to model properly what each artifact is used for.
+Gradle's dependency management engine is _variant aware_.
 
-However, this raises the question about how variants are selected: how does Gradle know which variant to choose when there's more than one?
-In practice, variants are selected thanks to the use of <<variant_attributes.adoc#variant_attributes,attributes>>, which provide semantics to the variants and help the engine in achieving a _consistent resolution result_.
+In addition to a component, Gradle has the concept of _variants_ of a component.
+Variants correspond to the different ways a component can be used, such as for Java compilation or native linking or documentation.
+Artifacts are attached to a _variant_ and each variant can have a different set of dependencies:
 
-For historical reasons, Gradle differentiates between two kind of components:
+How does Gradle know which variant to choose when there's more than one?
+Variants are matched by use of <<variant_attributes.adoc#variant_attributes,attributes>>, which provide semantics to the variants and help the engine to produce a _consistent_ resolution result.
 
-- local components, built from sources, for which <<#sec:abm_configuration_attributes, variants are mapped to outgoing configurations>>
-- external components, published on repositories, in which case either the module was published with Gradle Module Metadata and variants are natively supported, or the module is using Ivy/Maven metadata and <<#sec:mapping-maven-ivy-to-variants,variants are derived from metadata>>.
+Gradle differentiates between two kind of components:
+- local components (like projects), built from sources
+- external components, published to repositories
 
-In both cases, Gradle performs _variant aware selection_.
-
-[[sec:abm_configuration_attributes]]
-== Configuration and variant attributes
-
-Local components expose variants as _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
-When dependency resolution happens, the engine will select one variant of an outgoing component by selecting one of its _consumable configurations_.
-
-[NOTE]
-====
-There are 2 noticeable exception to this rule:
-
-- whenever a producer does _not_ expose any consumable configuration
-- whenever the consumer _explicitly selects a target configuration_
-
-In this case, _variant aware resolution is bypassed_.
-====
-
-Attributes are used on both _resolvable configurations_ (also known as a _consumer_) and _consumable configurations_ (on the _producer_).
-Adding attributes to other kinds of configurations simply has no effect, as attributes are not inherited between configurations.
-
-The role of the dependency resolution engine is to find a suitable _variant_ of a _producer_ given the constraints expressed by a _consumer_.
-
-This is where attributes come into play: their role is to perform the selection of the right _variant_ of a component.
+For local components, <<#sec:abm_configuration_attributes, variants are mapped to consumable configurations>>.
+For external components, variants are defined by published Gradle Module Metadata or <<#sec:mapping-maven-ivy-to-variants,are derived from Ivy/Maven metadata>>.
 
 [NOTE]
 .Variants vs configurations
 ====
-For external components, the terminology is to use the word _variants_, not _configurations_. Configurations are a super-set of variants.
+Variants and configurations are sometimes used interchangeably in the documentation, DSL or API for historical reasons.
 
-This means that an external component provides _variants_, which also have attributes.
-However, sometimes the term _configuration_ may leak into the DSL for historical reasons, or because you use Ivy which also has this concept of _configuration_.
+All components provide _variants_ and those variants may be backed by a consumable configuration.
+Not all configurations are variants because they may be used for declaring or resolving dependencies.
 ====
 
-[[sec:variant-visual]]
-== Visualizing variant information
+[[sec:abm_configuration_attributes]]
+== Variant attributes
 
-Gradle offers a report task called `outgoingVariants` that displays the variants of a project, with their capabilities, attributes and artifacts.
-It is conceptually similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
+<<variant_attributes.adoc#variant_attributes,Attributes>> are type-safe key-value pairs that are defined by the consumer (for a resolvable configuration) and the producer (for each variant).
 
-By default, `outgoingVariants` prints information about all variants.
-It offers the optional parameter `--variant <variantName>` to select a single variant to display.
-It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+The consumer can define any number of attributes.
+Each attribute helps narrow the possible variants that can be selected.
+Attribute values do not need to be exact matches. 
 
-Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
-
-[listing]
-----
-> Task :outgoingVariants
---------------------------------------------------
-Variant apiElements
---------------------------------------------------
-Description = API elements for main.
-
-Capabilities
-    - [default capability]
-Attributes
-    - org.gradle.category            = library
-    - org.gradle.dependency.bundling = external
-    - org.gradle.jvm.version         = 8
-    - org.gradle.libraryelements     = jar
-    - org.gradle.usage               = java-api
-
-Artifacts
-    - build/libs/variant-report.jar (artifactType = jar)
-
-Secondary variants (*)
-    - Variant : classes
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = 8
-          - org.gradle.libraryelements     = classes
-          - org.gradle.usage               = java-api
-       - Artifacts
-          - build/classes/java/main (artifactType = java-classes-directory)
-
---------------------------------------------------
-Variant runtimeElements
---------------------------------------------------
-Description = Elements of runtime for main.
-
-Capabilities
-    - [default capability]
-Attributes
-    - org.gradle.category            = library
-    - org.gradle.dependency.bundling = external
-    - org.gradle.jvm.version         = 8
-    - org.gradle.libraryelements     = jar
-    - org.gradle.usage               = java-runtime
-
-Artifacts
-    - build/libs/variant-report.jar (artifactType = jar)
-
-Secondary variants (*)
-    - Variant : classes
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = 8
-          - org.gradle.libraryelements     = classes
-          - org.gradle.usage               = java-runtime
-       - Artifacts
-          - build/classes/java/main (artifactType = java-classes-directory)
-    - Variant : resources
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = 8
-          - org.gradle.libraryelements     = resources
-          - org.gradle.usage               = java-runtime
-       - Artifacts
-          - build/resources/main (artifactType = java-resources-directory)
-
-
-(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.
-----
-
-From this you can see the two main variants that are exposed by a java library, `apiElements` and `runtimeElements`.
-Notice that the main difference is on the `org.gradle.usage` attribute, with values `java-api` and `java-runtime`.
-As they indicate, this is where the difference is made between what needs to be on the _compile_ classpath of consumers, versus what's needed on the _runtime_ classpath.
-
-It also shows _secondary_ variants, which are exclusive to Gradle projects and not published.
-For example, the secondary variant `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+The variant can also define any number of attributes.
+The attributes should describe how the variant is intended to be used.
+For example, Gradle uses an attribute named `org.gradle.usage` to describe with how a component is used by the consumer (for compilation, for runtime execution, etc). 
+It is not unusual for a variant to have more attributes than the consumer needs to provide to select it.
 
 [[sec:variant-aware-matching]]
-== Variant aware matching
-
-Let's take the example of a `lib` library which exposes 2 variants: its API (via a variant named `exposedApi`) and its runtime (via a variant named `exposedRuntime`).
+== Variant attribute matching
 
 [NOTE]
 .About producer variants
 ====
-The variant _name_ is there mostly for debugging purposes and to get a nicer display in error messages.
-The name, in particular, doesn't participate in the _id_ of a variant: only its attributes do.
-That is to say that to search for a particular variant, one _must_ rely on its attributes, _not_ its name.
-
-There are no restrictions on the number of variants a component can expose.
-Traditionally, a component would expose an API and an implementation, but we may, for example, want to expose the test fixtures of a component too.
-It is also possible to expose _different APIs_ for different consumers (think about different environments, like Linux vs Windows).
+The variant _name_ is mostly for debugging purposes and error messages.
+The name does not participate variant matching--only its attributes do.
 ====
 
-A consumer needs to explain _what_ variant it needs and this is done by setting _attributes_ on the _consumer_.
+There are no restrictions on the number of variants a component can define.
+Usually, a component has at least an implementation variant, but it could also expose test fixtures, documentation or source code.
+A component may also expose _different variants_ for different consumers for the same usage. For example, when compiling, a component could have different headers for Linux vs Windows vs macOS.
 
-Attributes consist of a _name_ and a _value_ pair.
-For example, Gradle comes with a standard attribute named `org.gradle.usage` specifically to deal with the concept of selecting the right variant of a component based on the usage of the consumer (compile, runtime ...).
-It is however possible to define an arbitrary number of attributes.
-As a producer, we can express that a consumable configuration represents the API of a component by attaching the `(org.gradle.usage,JAVA_API)` attribute to the variant.
-As a consumer, we can express that we need the API of the dependencies of a resolvable configuration by attaching the `(org.gradle.usage,JAVA_API)` attribute to it.
-Doing this, Gradle has a way to _automatically select the appropriate variant_ by looking at the configuration attributes:
-
-- the consumer wants `org.gradle.usage=JAVA_API`
-- the producer, `lib` exposes 2 different variants. One with `org.gradle.usage=JAVA_API`, the other with `org.gradle.usage=JAVA_RUNTIME`.
-- Gradle chooses the `org.gradle.usage=JAVA_API` variant of the producer because it _matches the consumer attributes_
-
-In other words: attributes are used to perform the selection based on the values of the attributes.
-
-A more elaborate example involves more than one attribute.
-Typically, a Java Library project in Gradle will involve 4 different attributes, found both on the producer and consumer sides:
-
-- `org.gradle.usage`, explaining if the variant is the API of a component, or its implementation
-- `org.gradle.dependency.bundling`, which declares how the dependencies of the component are bundled (for example, if the artifact is a fat jar, then the bundling is `EMBEDDED`)
-- `org.gradle.libraryelements`, which is used to explain what _parts_ of the library the variant contains (classes, resources or everything)
-- `org.gradle.jvm.version`, which is used to explain what _minimal version_ of Java this variant is targeted at
-
-Now imagine that our library comes in two different flavors:
-
-- one for JDK 8
-- one for JDK 9+
-
-This is typically achieved, in Maven, by producing 2 different artifacts, a "main" artifact and a "classified" one.
-However, in Maven a consumer cannot express the fact it needs the _most appropriate_ version of the library based on the runtime.
-
-With Gradle, this is elegantly solved by having the producer declare 2 variants:
-
-- one with `org.gradle.jvm.version=8`, for consumers _at least running on JDK 8_
-- one with `org.gradle.jvm.version=9`, for consumers starting from JDK 9
-
-Note that the artifacts for both variants will be different, but their dependencies _may_ be different too.
-Typically, the JDK 8 variant may need a "backport" library of JDK 9+ to work, that only consumers running on JDK 8 should get.
-
-On the consumer side, the _resolvable configuration_ will set all four attributes above, and, depending on the runtime, will set its `org.gradle.jvm.version` to 8 or more.
+Gradle performs _variant aware selection_ by matching the attributes requested by the consumer against attributes defined by the producer. The <<variant_attributes.adoc#sec:abm_algorithm, selection algorithm>> is detailed in another section.
 
 [NOTE]
-.A note about compatibility of variants
+====
+There are two exceptions to this rule that bypass variant aware resolution:
+- when a producer has no variants, a default artifact is chosen.
+- when a consumer _explicitly selects a configuration by name_, the artifacts of the configuration are chosen.
+====
+
+== A simple example
+
+Let's consider an example where a consumer is trying to use a library for compilation. 
+
+First, the consumer needs to explain how it's going to use the result of dependency resolution. This is done by setting _attributes_ on the resolvable configuration of the consumer.
+
+The consumer wants to resolve a variant that matches:
+- `org.gradle.usage=JAVA_API`
+
+Second, the producer needs to expose the different variants of the component.
+
+The producer component exposes 2 variants: 
+- its API (named `apiElements`) with attribute `org.gradle.usage=JAVA_API`
+- its runtime (named `runtimeElements`) with attribute `org.gradle.usage=JAVA_RUNTIME`
+
+Finally, Gradle selects the appropriate variant by looking at the variant attributes:
+- the consumer wants a variant with attributes `org.gradle.usage=JAVA_API`
+- the producer has a matching variant (`apiElements`)
+- the producer has a non-matching variant (`runtimeElements`)
+
+Gradle provides the artifacts and dependencies from the `apiElements` variant to the consumer.
+
+== A more complicated example
+
+In the real world, consumers and producers have more than one attribute.
+
+A Java Library project in Gradle will involve several different attributes
+
+- `org.gradle.usage` that describes how the variant is used
+- `org.gradle.dependency.bundling` that describes how the variant handles dependencies (shadow jar vs fat jar vs regular jar)
+- `org.gradle.libraryelements`, that describes the packaging of the variant (classes or jar)
+- `org.gradle.jvm.version` that describes the _minimal version_ of Java this variant targets
+- `org.gradle.jvm.environment` that describes the type of JVM this variant targets
+
+Let's consider an example where the consumer wants to run tests with a library on Java 8 and the producer supports two different Java versions (Java 8 and Java 11).
+
+First, the consumer needs to explain which version of the Java it needs.
+
+The consumer wants to resolve a variant that:
+- can be used at runtime (has `org.gradle.usage=JAVA_RUNTIME`)
+- can be run on _at least_ Java 8 (`org.gradle.jvm.version=8`)
+
+Second, the producer needs to expose the different variants of the component.
+
+Like in the simple example, there is both a API (compilation) and runtime variant. These exist for both the Java 8 and Java 11 version of the component.
+- its API for Java 8 consumers (named `apiJava8Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=8`
+- its runtime for Java 8 consumers (named `runtime8Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
+- its API for Java 11 consumers (named `apiJava11Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=11`
+- its runtime for Java 11 consumers (named `runtime11Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=11`
+
+Finally, Gradle selects the best matching variant by looking at all of the attributes:
+- the consumer wants a variant with compatible attributes to `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
+- the variants `runtime8Elements` and `runtime11Elements` have `org.gradle.usage=JAVA_RUNTIME`
+- the variants `apiJava8Elements` and `apiJava11Elements` are incompatible
+- the variant `runtime8Elements` is compatible because it can run on Java 8
+- the variant `runtime11Elements` is incompatible because it cannot run on Java 8
+
+Gradle provides the artifacts and dependencies from the `runtime8Elements` variant to the consumer.
+
+[NOTE]
+.Compatibility of variants
 ====
 What if the consumer sets `org.gradle.jvm.version` to 7?
 
-Then resolution would _fail_ with an error message explaining that there's no matching variant of the producer.
-This is because Gradle recognizes that the consumer wants a Java 7 compatible library, but the _minimal_ version of Java available on the producer is 8.
-If, on the other hand, the consumer needs _11_, then Gradle knows both the _8_ and _9_ variant would work, but it will select _9_ because it's the highest compatible version.
+Dependency resolution would _fail_ with an error message explaining that there's no suitable variant.
+Gradle recognizes that the consumer wants a Java 7 compatible library and the _minimal_ version of Java available on the producer is 8.
+
+If the consumer requested `org.gradle.jvm.version=15`, then Gradle knows either the Java 8 or Java 11 variants could work. Gradle select the highest compatible Java version (11).
 ====
 
 [[sec:variant-select-errors]]
 == Variant selection errors
 
-In the process of identifying the right variant of a component, two situations will result in a resolution error:
-
-* More than one variant from the producer match the consumer attributes, there is variant ambiguity
-* No variant from the producer match the consumer attributes
+When selecting the most compatible variant of a component, resolution may fail:
+* when more than one variant from the producer matches the consumer attributes (ambiguity error)
+* when no variants from the producer match the consumer attributes (incompatibility error)
 
 [[sub:variant-ambiguity]]
-=== Dealing with ambiguous variant selection errors
+=== Dealing with ambiguity errors
 
-An ambiguous variant selection looks somewhat like the following:
+An ambiguous variant selection looks like the following:
 
 [listing]
 ----
@@ -266,14 +192,11 @@ An ambiguous variant selection looks somewhat like the following:
                   - Provides org.gradle.usage 'java-api'
 ----
 
-As can be seen, all _compatible_ candidate variants are displayed, with their attributes.
-These are then grouped into two sections:
+All _compatible_ candidate variants are displayed with their attributes.
 
 * Unmatched attributes are presented first, as they might be the missing piece in selecting the proper variant.
 * Compatible attributes are presented second as they indicate what the consumer wanted and how these variants do match that request.
-
-There cannot be any mismatched attributes as the variant would not be a candidate then.
-Similarly, the set of displayed variants also excludes the ones that have been disambiguated.
+* There will not be any incompatible attributes as the variant would not be considered a candidate.
 
 In the example above, the fix does not lie in attribute matching but in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capability matching>>, which are shown next to the variant name.
 Because these two variants effectively provide the same attributes and capabilities, they cannot be disambiguated.
@@ -282,7 +205,7 @@ So in this case, the fix is most likely to provide different capabilities on the
 [[sub:variant-no-match]]
 === Dealing with no matching variant errors
 
-A no matching variant error looks somewhat like the following:
+A no matching variant error looks like the following:
 
 [listing]
 ----
@@ -306,39 +229,309 @@ A no matching variant error looks somewhat like the following:
           - Provides usage 'api'
 ----
 
-As can be seen, _all_ candidate variants are displayed, with their attributes.
-These are then grouped into two sections:
+All _compatible_ candidate variants are displayed with their attributes.
 
 * Incompatible attributes are presented first, as they usually are the key in understanding why a variant could not be selected.
 * Other attributes are presented second, this includes _required_ and _compatible_ ones as well as all extra _producer_ attributes that are not requested by the consumer.
 
-Similarly with the ambiguous variant error, the goal is then to understand which variant is to be selected and see which attribute or capability can be tweaked on the consumer for this to happen.
+Similar to the ambiguous variant error, the goal is to understand which variant should be selected. In some cases, there may not be any compatible variants from the producer (e.g., trying to run on Java 8 with a library built for Java 11). 
+
+[[sec:variant-visual]]
+== Visualizing variant information
+
+=== Outgoing variants report
+
+The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant. 
+
+This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
+
+By default, `outgoingVariants` prints information about all variants.
+It offers the optional parameter `--variant <variantName>` to select a single variant to display.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+
+Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
+
+[listing]
+----
+> Task :outgoingVariants
+--------------------------------------------------
+Variant apiElements
+--------------------------------------------------
+Description = API elements for main.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - build/libs/lib.jar (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes
+    --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-api
+        Artifacts
+            - build/classes/java/main (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src/main/java (artifactType = directory)
+    - src/main/resources (artifactType = directory)
+
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Description = Elements of runtime for main.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Artifacts
+    - build/libs/lib.jar (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes
+    --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-runtime
+        Artifacts
+            - build/classes/java/main (artifactType = java-classes-directory)
+
+    --------------------------------------------------
+    Secondary Variant resources
+    --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = resources
+            - org.gradle.usage               = java-runtime
+        Artifacts
+            - build/resources/main (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+Artifacts
+    - build/test-results/test/binary (artifactType = directory)
+
+(i) Configuration uses incubating attributes such as Category.VERIFICATION.
+(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.
+----
+
+From this you can see the two main variants that are exposed by a java library, `apiElements` and `runtimeElements`.
+Notice that the main difference is on the `org.gradle.usage` attribute, with values `java-api` and `java-runtime`.
+As they indicate, this is where the difference is made between what needs to be on the _compile_ classpath of consumers, versus what's needed on the _runtime_ classpath.
+
+It also shows _secondary_ variants, which are exclusive to Gradle projects and not published.
+For example, the secondary variant `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+
+=== Resolvable configurations report
+
+Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.adoc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
+
+By default, `resolvableConfigurations` prints information about all purely resolvable configurations.
+These are configurations that are marked resolvable but *not* marked consumable.
+Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
+This report offers the optional parameter `--configuration <configurationName>` to select a single configuration to display.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+Finally, it accepts the `--recursive` flag to list in the extended configurations section those configurations which are extended _transitively_ rather than directly.
+
+Here is the output of the `resolvableConfigurations` task on a freshly generated `java-library` project:
+
+[listing]
+----
+> Task :resolvableConfigurations
+--------------------------------------------------
+Configuration annotationProcessor
+--------------------------------------------------
+Description = Annotation processors and their dependencies for source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration compileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+Extended Configurations
+    - compileOnly
+    - implementation
+
+--------------------------------------------------
+Configuration runtimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Extended Configurations
+    - implementation
+    - runtimeOnly
+
+--------------------------------------------------
+Configuration testAnnotationProcessor
+--------------------------------------------------
+Description = Annotation processors and their dependencies for source set 'test'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration testCompileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'test'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+Extended Configurations
+    - testCompileOnly
+    - testImplementation
+
+--------------------------------------------------
+Configuration testRuntimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'test'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Extended Configurations
+    - testImplementation
+    - testRuntimeOnly
+
+--------------------------------------------------
+Compatibility Rules
+--------------------------------------------------
+Description = The following Attributes have compatibility rules defined.
+
+    - org.gradle.dependency.bundling
+    - org.gradle.jvm.environment
+    - org.gradle.jvm.version
+    - org.gradle.libraryelements
+    - org.gradle.plugin.api-version
+    - org.gradle.usage
+
+--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+Description = The following Attributes have disambiguation rules defined.
+
+    - org.gradle.category
+    - org.gradle.dependency.bundling
+    - org.gradle.jvm.environment
+    - org.gradle.jvm.version
+    - org.gradle.libraryelements
+    - org.gradle.plugin.api-version
+    - org.gradle.usage
+----
+
+From this you can see the two main configurations used to resolve dependencies, `compileClasspath` and `runtimeClasspath`, as well as their corresponding test configurations.
 
 [[sec:mapping-maven-ivy-to-variants]]
-== Mapping from Maven/Ivy to variants
+== Mapping from Maven/Ivy to Gradle variants
 
 Neither Maven nor Ivy have the concept of _variants_, which are only natively supported by Gradle Module Metadata.
-However, it doesn't prevent Gradle from working with them thanks to different strategies.
+Gradle can still work with Maven and Ivy by using different variant derivation strategies.
 
 [NOTE]
 .Relationship with Gradle Module Metadata
 ====
-Gradle Module Metadata is a metadata format for modules published on Maven, Ivy or other kind of repositories.
-It is similar to `pom.xml` or `ivy.xml` files, but this format is _aware of variants_.
-This means that if your project produces additional variants, those are available and published as part of the module metadata, which greatly improves the user experience.
+Gradle Module Metadata is a metadata format for modules published on Maven, Ivy and other kinds of repositories.
+It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format contains details about variants.
 
 See the {metadata-file-spec}[Gradle Module Metadata specification] for more information.
 ====
 
 [[sub:maven-mapping-to-variants]]
-=== Mapping of POM files to variants
+=== Mapping of Maven POM metadata to variants
 
-Modules published on a Maven repository are converted into variant-aware modules.
-A particularity of Maven modules is that there is no way to know what kind of component is published.
-In particular, there's no way to make the difference between a BOM representing a _platform_, and a BOM used as a super-POM.
-Sometimes, it is even possible for a POM file to act both as a platform _and_ a library.
+Modules published on a Maven repository are automatically converted into variant-aware modules.
 
-As a consequence, Maven modules are derived into 6 distinct variants, which allows Gradle users to explain precisely what they depend on:
+There is no way for Gradle to know which kind of component was published:
+- a BOM that represents a Gradle platform
+- a BOM used as a super-POM
+- a POM that is both a platform _and_ a library
+
+The default strategy used by Java projects in Gradle is to derive 8 different variants:
 
 * 2 "library" variants (attribute `org.gradle.category` = `library`)
 ** the `compile` variant maps the `<scope>compile</scope>` dependencies.
@@ -348,6 +541,8 @@ All dependencies of this scope are considered _API dependencies_.
 This variant is equivalent to the `runtimeElements` variant of the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
 All dependencies of those scopes are considered _runtime dependencies_.
 - in both cases, the `<dependencyManagement>` dependencies are _not converted to constraints_
+* a "sources" variant that represents the sources jar for the component
+* a "javadoc" variant that represents the javadoc jar for the component
 * 4 "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):
 ** the `platform-compile` variant maps the  `<scope>compile</scope>` dependency management dependencies as _dependency constraints_.
 ** the `platform-runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependency management dependencies as _dependency constraints_.
@@ -361,15 +556,12 @@ However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looki
 [[sub:ivy-mapping-to-variants]]
 === Mapping of Ivy files to variants
 
-Contrary to <<#sub:maven-mapping-to-variants, Maven>>, there is no derivation strategy implemented for Ivy files by default.
-The reason fo this is that, contrary to pom, Ivy is a flexible format that allows you to publish arbitrary many and customized _configurations_.
-So there is no notion of compile/runtime scope or compile/runtime variants in Ivy in general.
-Only if you use the <<publishing_ivy.adoc#publishing_ivy,ivy-publish plugin>> to publish ivy files with Gradle, you get a structure that follows a similar pattern as pom files.
-But since there is not guarantee that *all* ivy metadata files consumed by a build follow this pattern, Gradle cannot enforce a derivation strategy based on it.
+Gradle has no built-in derivation strategy implemented for Ivy files.
+Ivy is a flexible format that allows you to publish arbitrary files and can be heavily customized.
 
-However, if you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rule>>.
-The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component_metadata_rules_details,access ivy configurations>> and create variants based on them.
-If you know that all the ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
+If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rule>>.
+The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component_metadata_rules_details,access Ivy configurations>> and create variants based on them.
+If you know that all the Ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
 
 .Deriving compile and runtime variants for Ivy metadata
 ====
@@ -380,9 +572,6 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMeta
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.
 For each variant, it sets the corresponding <<#sec:variant-aware-matching,Java ecosystem attributes>>.
 Dependencies and artifacts of the variants are taken from the underlying configurations.
-If not all consumed ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
+If not all consumed Ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
 
-For all ivy modules without variants, Gradle falls back to legacy configuration selection (i.e. Gradle does _not_ perform variant aware resolution for these modules).
-This means either the `default` configuration or the configuration explicitly defined in the dependency to the corresponding module is selected.
-(Note that explicit configuration selection is only possible from build scripts or ivy metadata, and should be avoided in favor of variant selection.)
-
+For all Ivy modules without variants, Gradle has a fallback selection method. Gradle does _not_ perform variant aware resolution and instead selects either the `default` configuration or an explicitly named configuration.

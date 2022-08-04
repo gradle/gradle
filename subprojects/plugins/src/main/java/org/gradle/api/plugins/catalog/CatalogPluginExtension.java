@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.catalog;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -25,7 +24,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 7.0
  */
-@Incubating
 @HasInternalProtocol
 public interface CatalogPluginExtension {
     /**

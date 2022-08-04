@@ -162,5 +162,6 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * @param validValues the list of accepted values
      * @param <T> the type of the attribute
      */
+    @SuppressWarnings("unchecked")
     <T> void onlyForAttribute(Attribute<T> attribute, T... validValues);
 }

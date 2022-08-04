@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -28,6 +28,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Transient;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -37,7 +38,6 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
-import static org.gradle.api.specs.Specs.satisfyNone;
 import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
@@ -45,14 +45,31 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 6.9
  */
-@Incubating
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
     private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));
+    private final DirectoryProperty reportDir;
     private File outputFile;
 
+    /**
+     * Returns the project report directory.
+     * <p>
+     * The {@code project-report} plugin sets the default value for all tasks of this type to {@code buildDir/project}.
+     * <p>
+     * Note, that if the {@code project-report} plugin is not applied then this property is ignored.
+     *
+     * @return the directory to store project reports
+     * @since 7.1
+     */
+    @Internal
+    public DirectoryProperty getProjectReportDirectory() {
+        return reportDir;
+    }
+
     protected ConventionReportTask() {
-        getOutputs().upToDateWhen(satisfyNone());
+        reportDir = getProject().getObjects().directoryProperty();
+        doNotTrackState("Uses the whole project state as an input");
     }
 
     @Internal

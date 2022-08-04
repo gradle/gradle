@@ -24,9 +24,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
@@ -36,19 +39,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 /**
  * Wraps another CopySpec impl, only exposing the CopySpec API.
  *
  * Prevents users from accessing "internal" methods on implementations.
  */
 @NonExtensible
-public class CopySpecWrapper implements CopySpec {
+public class CopySpecWrapper implements SyncSpec {
 
     @VisibleForTesting
-    final CopySpec delegate;
+    final SyncSpec delegate;
 
     @Inject
-    public CopySpecWrapper(CopySpec delegate) {
+    public CopySpecWrapper(SyncSpec delegate) {
         this.delegate = delegate;
     }
 
@@ -206,11 +211,11 @@ public class CopySpecWrapper implements CopySpec {
 
     @Override
     public CopySpec rename(final Closure closure) {
-        delegate.rename(s -> {
+        delegate.rename(transformer(s -> {
             Object res = closure.call(s);
             //noinspection ConstantConditions
             return res == null ? null : res.toString();
-        });
+        }));
         return this;
     }
 
@@ -259,6 +264,12 @@ public class CopySpecWrapper implements CopySpec {
     @Override
     public CopySpec expand(Map<String, ?> properties) {
         delegate.expand(properties);
+        return this;
+    }
+
+    @Override
+    public CopySpec expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
+        delegate.expand(properties, action);
         return this;
     }
 
@@ -314,5 +325,15 @@ public class CopySpecWrapper implements CopySpec {
     @Override
     public void setFilteringCharset(String charset) {
         delegate.setFilteringCharset(charset);
+    }
+
+    @Override
+    public PatternFilterable getPreserve() {
+        return delegate.getPreserve();
+    }
+
+    @Override
+    public SyncSpec preserve(Action<? super PatternFilterable> action) {
+        return delegate.preserve(action);
     }
 }

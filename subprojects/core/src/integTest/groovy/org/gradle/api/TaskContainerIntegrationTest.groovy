@@ -16,16 +16,15 @@
 
 package org.gradle.api
 
-
+import groovy.transform.SelfType
 import spock.lang.Issue
 
-class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Override
+@SelfType(AbstractDomainObjectContainerIntegrationTest)
+trait AbstractTaskContainerIntegrationTest {
     String makeContainer() {
         return "tasks"
     }
 
-    @Override
     String getContainerStringRepresentation() {
         return "task set"
     }
@@ -33,6 +32,9 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
     static String getContainerType() {
         return "DefaultTaskContainer"
     }
+}
+
+class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
 
     def "chained lookup of tasks.withType.matching"() {
         buildFile """

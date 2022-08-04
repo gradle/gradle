@@ -200,6 +200,26 @@ public class TreeFormatter implements DiagnosticsVisitor {
         return this;
     }
 
+    /**
+     * Appends some user provided values to the current node.
+     */
+    public TreeFormatter appendTypes(Type... types) {
+        // Implementation is currently dumb, can be made smarter
+        append("(");
+        for (int i = 0; i < types.length; i++) {
+            Type type = types[i];
+            if (type == null) {
+                throw new IllegalStateException("type cannot be null");
+            }
+            if (i > 0) {
+                append(", ");
+            }
+            appendType(type);
+        }
+        append(")");
+        return this;
+    }
+
     public TreeFormatter startNumberedChildren() {
         startChildren();
         prefixer = new NumberedPrefixer();

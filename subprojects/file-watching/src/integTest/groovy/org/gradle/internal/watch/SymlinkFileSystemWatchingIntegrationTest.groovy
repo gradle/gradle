@@ -18,11 +18,8 @@ package org.gradle.internal.watch
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."
@@ -129,56 +126,6 @@ class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         withWatchFs().run "myTask"
         then:
         executedAndNotSkipped ":myTask"
-
-        when:
-        withWatchFs().run "myTask"
-        then:
-        skipped(":myTask")
-
-        when:
-        file(fileToChange).text = "changed"
-        waitForChangesToBePickedUp()
-        withWatchFs().run "myTask"
-        then:
-        executedAndNotSkipped ":myTask"
-    }
-
-    @Ignore("We are only watching project directories, and those are canonicalized")
-    def "disable file system watching when trying to watch symlinked directory"() {
-        def actualDir = file("parent/inputDir")
-        def symlink = file("symlinkedParent")
-        symlink.createLink(file("parent"))
-        def projectDir = file("projectDir")
-
-        def fileToChange = actualDir.file("actualFile")
-        fileToChange.createFile()
-
-        projectDir.file("build.gradle") << """
-            task myTask {
-                def outputFile = file("build/output.txt")
-                inputs.file("../symlinkedParent/inputDir/actualFile")
-                outputs.file(outputFile)
-
-                doLast {
-                    outputFile.text = "Hello world"
-                }
-            }
-        """
-        projectDir.file("settings.gradle").createFile()
-        executer.beforeExecute {
-            inDirectory(projectDir)
-        }
-
-        when:
-        withWatchFs().run "myTask"
-        then:
-        executedAndNotSkipped ":myTask"
-        if (OperatingSystem.current().macOsX) {
-            outputContains(UNABLE_TO_WATCH_MESSAGE)
-            outputContains("Unable to watch '${new File(symlink, "inputDir").absolutePath}' since itself or one of its parent is a symbolic link (canonical path: '${actualDir.absolutePath}')")
-        } else {
-            outputDoesNotContain(UNABLE_TO_WATCH_MESSAGE)
-        }
 
         when:
         withWatchFs().run "myTask"

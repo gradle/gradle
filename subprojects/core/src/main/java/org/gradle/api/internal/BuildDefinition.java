@@ -118,7 +118,11 @@ public class BuildDefinition {
     }
 
     public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
-        return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
+        return fromStartParameter(startParameter, null, fromBuild);
+    }
+
+    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable File rootBuildDir, @Nullable PublicBuildPath fromBuild) {
+        return new BuildDefinition(null, rootBuildDir, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
     }
 
     private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, File buildRootDir) {

@@ -20,7 +20,7 @@ import com.google.gson.Gson
 import gradlebuild.identity.model.ReleasedVersions
 import org.gradle.api.file.RegularFile
 import org.gradle.util.GradleVersion
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 
 class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersionsFile: RegularFile) {
@@ -41,7 +41,7 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
         }
 
         val latestFinalRelease = releasedVersions.finalReleases.first()
-        val latestRelease = listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc).filter { it.gradleVersion() > latestFinalRelease.gradleVersion() }.maxBy { it.buildTimeStamp() } ?: latestFinalRelease
+        val latestRelease = listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc).filter { it.gradleVersion() > latestFinalRelease.gradleVersion() }.maxByOrNull { it.buildTimeStamp() } ?: latestFinalRelease
         val previousVersions = (listOf(latestRelease) + releasedVersions.finalReleases).filter { it.gradleVersion() >= lowestInterestingVersion && it.gradleVersion().baseVersion < currentBaseVersion }.distinct()
         allPreviousVersions = previousVersions.map { it.gradleVersion() }
         mostRecentRelease = previousVersions.first().gradleVersion()
@@ -51,12 +51,12 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
         // Only use latest patch release of each Gradle version
         allTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
             .groupBy { "${it.major}.${it.minor}" }
-            .map { (_, v) -> v.max()!!.format() }
+            .map { (_, v) -> v.maxOrNull()!!.format() }
 
         // Limit to first and last release of each major version
         mainTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
             .groupBy { it.major }
-            .map { (_, v) -> listOf(v.min()!!.format(), v.max()!!.format()) }.flatten()
+            .map { (_, v) -> listOf(v.minOrNull()!!.format(), v.maxOrNull()!!.format()) }.flatten()
     }
 
     private

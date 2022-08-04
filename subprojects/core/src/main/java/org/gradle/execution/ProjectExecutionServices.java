@@ -17,9 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
@@ -30,9 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
-import org.gradle.api.internal.tasks.execution.DefaultEmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.execution.EmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
@@ -49,7 +44,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -62,8 +56,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
-import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
+import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -73,14 +66,15 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     public ProjectExecutionServices(ProjectInternal project) {
         super("Configured project services for '" + project.getPath() + "'", project.getServices());
     }
 
-    TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
-        return listenerManager.getBroadcaster(TaskActionListener.class);
+    org.gradle.api.execution.TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class);
     }
 
     TaskCacheabilityResolver createTaskCacheabilityResolver(RelativeFilePathResolver relativeFilePathResolver) {
@@ -89,20 +83,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
-    }
-
-    EmptySourceTaskSkipper createEmptySourceTaskSkipper(
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
-        Deleter deleter,
-        OutputChangeListener outputChangeListener,
-        TaskInputsListeners taskInputsListeners
-    ) {
-        return new DefaultEmptySourceTaskSkipper(
-            buildOutputCleanupRegistry,
-            deleter,
-            outputChangeListener,
-            taskInputsListeners
-        );
     }
 
     ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy createInputNodeAccessHierarchy(ExecutionNodeAccessHierarchies hierarchies) {
@@ -117,7 +97,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations,
@@ -125,10 +104,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskExecutionGraphInternal taskExecutionGraph,
-        TaskExecutionListener taskExecutionListener,
+        org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
         TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
@@ -151,7 +130,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            emptySourceTaskSkipper,
             fileCollectionFactory,
             fileOperations
         );
@@ -172,27 +150,32 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return executer;
     }
 
-    // Overrides the global ClasspathFingerPrinter, currently need to have the parent parameter
-    ClasspathFingerprinter createClasspathFingerprinter(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
-        return new DefaultClasspathFingerprinter(
-            resourceSnapshotterCacheService,
+    FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
+        StringInterner stringInterner,
+        FileCollectionSnapshotter fileCollectionSnapshotter,
+        ResourceSnapshotterCacheService resourceSnapshotterCacheService,
+        InputNormalizationHandlerInternal inputNormalizationHandler
+    ) {
+        return new FileCollectionFingerprinterRegistrations(
+            stringInterner,
             fileCollectionSnapshotter,
+            resourceSnapshotterCacheService,
             inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
-            inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
-            stringInterner
+            inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters()
         );
     }
 
-    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
-        return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
+        return new DefaultFileCollectionFingerprinterRegistry(fileCollectionFingerprinterRegistrations.getRegistrants());
     }
 
     InputFingerprinter createInputFingerprinter(
+        FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ValueSnapshotter valueSnapshotter
     ) {
-        return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
+        return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(

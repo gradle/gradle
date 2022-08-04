@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
@@ -77,7 +76,6 @@ class DefaultModuleComponentSelectorTest extends Specification {
         noSelector.toString() == "some-group:some-name"
     }
 
-    @Unroll
     def "is instantiated with null constructor parameter values (#group, #name, #version, #attrs, #caps)"() {
         when:
         DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version, attrs, caps)
@@ -95,7 +93,6 @@ class DefaultModuleComponentSelectorTest extends Specification {
         'some-group' | 'some-name' | v('1.0') | attributes(custom: 'foo') | null | 'capabilities cannot be null'
     }
 
-    @Unroll
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
         def selector1 = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
@@ -190,7 +187,6 @@ class DefaultModuleComponentSelectorTest extends Specification {
         assert !matches
     }
 
-    @Unroll
     def "matches id (#group, #name, #version)"() {
         expect:
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))

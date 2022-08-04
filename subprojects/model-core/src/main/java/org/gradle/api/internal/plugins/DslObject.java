@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
@@ -39,7 +38,8 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * object does not have that functionality. For example, calling {@link #getConventionMapping()} will fail
  * if the backing object does not implement {@link IConventionAware}.
  */
-public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware, HasConvention {
+@SuppressWarnings("deprecation")
+public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware, org.gradle.api.internal.HasConvention {
 
     private DynamicObject dynamicObject;
     private ExtensionContainer extensionContainer;
@@ -61,9 +61,10 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     }
 
     @Override
+    @Deprecated
     public Convention getConvention() {
         if (convention == null) {
-            this.convention = toType(object, HasConvention.class).getConvention();
+            this.convention = toType(object, org.gradle.api.internal.HasConvention.class).getConvention();
         }
         return convention;
     }

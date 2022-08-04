@@ -21,6 +21,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
@@ -37,27 +38,32 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
         + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
 
-    private static final String BUILD_SCRIPT_BASENAME = "build";
+    public static final String BUILD_SCRIPT_BASENAME = "build";
 
     private String name;
+    private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
     private File canonicalDir;
-    private DefaultProjectDescriptor parent;
-    private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
+    private final DefaultProjectDescriptor parent;
+    private final Set<DefaultProjectDescriptor> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName;
 
-    public DefaultProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir,
-                                    ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver) {
+    public DefaultProjectDescriptor(
+        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
+    ) {
         this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
     }
 
-    public DefaultProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir,
-                                    ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
-                                    @Nullable ScriptFileResolver scriptFileResolver) {
+    public DefaultProjectDescriptor(
+        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
+        @Nullable ScriptFileResolver scriptFileResolver
+    ) {
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
@@ -101,6 +107,11 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
             INVALID_NAME_IN_INCLUDE_HINT);
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
+        this.nameExplicitlySet = true;
+    }
+
+    public boolean isExplicitName() {
+        return nameExplicitlySet;
     }
 
     @Override
@@ -129,6 +140,10 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
     @Override
     public Set<ProjectDescriptor> getChildren() {
+        return Cast.uncheckedCast(children);
+    }
+
+    public Set<? extends DefaultProjectDescriptor> children() {
         return children;
     }
 

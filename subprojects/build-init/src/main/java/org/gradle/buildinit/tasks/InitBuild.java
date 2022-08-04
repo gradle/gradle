@@ -18,6 +18,7 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.InitSettings;
@@ -37,9 +39,12 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.lang.model.SourceVersion;
 import java.util.List;
+import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
@@ -47,14 +52,17 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 /**
  * Generates a Gradle project structure.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
+    private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
     private String testFramework;
     private String projectName;
     private String packageName;
+    private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -97,6 +105,25 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
+     * Can the generated build use new and unstable features?
+     *
+     * When enabled, the generated build will use new patterns, APIs or features that
+     * may be unstable between minor releases. Use this if you'd like to try out the
+     * latest features of Gradle.
+     *
+     * By default, init will generate a build that uses stable features and behavior.
+     *
+     * @since 7.3
+     */
+    @Input
+    @Optional
+    @Incubating
+    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
+    public Property<Boolean> getUseIncubating() {
+        return useIncubatingAPIs;
+    }
+
+    /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
      *
      * This property can be set via command-line option '--project-name'.
@@ -130,6 +157,20 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getTestFramework() {
         return testFramework;
+    }
+
+    /**
+     * How to handle insecure (http) URLs used for Maven Repositories.
+     *
+     * This property can be set via command-line option '--insecure-protocol'.  The default value is 'warn'.
+     *
+     * @since 7.3
+     */
+    @Input
+    @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
+    @Incubating
+    public Property<InsecureProtocolOption> getInsecureProtocol() {
+        return insecureProtocol;
     }
 
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
@@ -196,6 +237,13 @@ public class InitBuild extends DefaultTask {
             }
         }
 
+        boolean useIncubatingAPIs;
+        if (this.useIncubatingAPIs.isPresent()) {
+            useIncubatingAPIs = this.useIncubatingAPIs.get();
+        } else {
+            useIncubatingAPIs = inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+        }
+
         BuildInitTestFramework testFramework = null;
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
             // currently we only support JUnit5 tests for this combination
@@ -236,15 +284,21 @@ public class InitBuild extends DefaultTask {
         String packageName = this.packageName;
         if (initDescriptor.supportsPackage()) {
             if (isNullOrEmpty(packageName)) {
-                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName));
+                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName).toLowerCase(Locale.US));
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
+        if (!isNullOrEmpty(packageName)) {
+            if (!SourceVersion.isName(packageName)) {
+                throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+            }
+        }
+
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
-        InitSettings settings = new InitSettings(projectName, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, projectDir);
+        InitSettings settings = new InitSettings(projectName, useIncubatingAPIs, subprojectNames,
+            modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));

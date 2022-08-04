@@ -31,7 +31,7 @@ public class MaximumHeapHelper {
      * Get the default maximum heap.
      *
      * Different JVMs on different systems may use a different default for maximum heap when unset.
-     * This method implements a best effort approximation, omitting rules for low memory systems (<192MB total RAM).
+     * This method implements a best effort approximation, omitting rules for low memory systems (&lt;192MB total RAM).
      *
      * See <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size">Oracle</a>
      * and <a href="http://www.ibm.com/support/knowledgecenter/SSYKE2_8.0.0/com.ibm.java.lnx.80.doc/diag/appendixes/defaults.html">IBM</a>

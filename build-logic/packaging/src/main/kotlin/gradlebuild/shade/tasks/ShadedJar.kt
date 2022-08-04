@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -38,6 +39,7 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class ShadedJar : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles

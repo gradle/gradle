@@ -23,6 +23,7 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -37,7 +38,6 @@ import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
@@ -53,29 +53,23 @@ import java.util.HashSet;
 import java.util.Set;
 
 @CacheableTask
-abstract class GeneratePluginAdaptersTask extends DefaultTask {
-    private final ScriptCompilationHandler scriptCompilationHandler;
-    private final CompileOperationFactory compileOperationFactory;
-    private final ServiceRegistry serviceRegistry;
-    private final FileSystemOperations fileSystemOperations;
-    private final ClassLoaderScope classLoaderScope;
+public abstract class GeneratePluginAdaptersTask extends DefaultTask {
+    @Inject
+    abstract protected FileSystemOperations getFileSystemOperations();
 
     @Inject
-    public GeneratePluginAdaptersTask(ScriptCompilationHandler scriptCompilationHandler,
-                                      ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                      CompileOperationFactory compileOperationFactory,
-                                      ServiceRegistry serviceRegistry,
-                                      FileSystemOperations fileSystemOperations) {
-        this.scriptCompilationHandler = scriptCompilationHandler;
-        this.compileOperationFactory = compileOperationFactory;
-        this.serviceRegistry = serviceRegistry;
-        this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
-        this.fileSystemOperations = fileSystemOperations;
-    }
+    abstract protected ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
 
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Inject
+    abstract protected ScriptCompilationHandler getScriptCompilationHandler();
+
+    @Inject
+    abstract protected CompileOperationFactory getCompileOperationFactory();
+
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract DirectoryProperty getExtractedPluginRequestsClassesDirectory();
 
     @OutputDirectory
@@ -86,7 +80,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     @TaskAction
     void generatePluginAdapters() {
-        fileSystemOperations.delete(spec -> spec.delete(getPluginAdapterSourcesOutputDirectory()));
+        getFileSystemOperations().delete(spec -> spec.delete(getPluginAdapterSourcesOutputDirectory()));
         getPluginAdapterSourcesOutputDirectory().get().getAsFile().mkdirs();
 
         // TODO: Use worker API?
@@ -138,7 +132,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         try {
             PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
             pluginsAwareScript.setScriptSource(scriptPlugin.getBodySource());
-            pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), serviceRegistry);
+            pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), getServices());
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -147,9 +141,10 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     }
 
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
-        CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
+        ClassLoaderScope classLoaderScope = getClassLoaderScopeRegistry().getCoreAndPluginsScope();
+        CompileOperation<?> pluginsCompileOperation = getCompileOperationFactory().getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
-        return scriptCompilationHandler.loadFromDir(scriptPlugin.getFirstPassSource(), scriptPlugin.getContentHash(),
+        return getScriptCompilationHandler().loadFromDir(scriptPlugin.getFirstPassSource(), scriptPlugin.getContentHash(),
             classLoaderScope, DefaultClassPath.of(compiledPluginRequestsDir), compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 

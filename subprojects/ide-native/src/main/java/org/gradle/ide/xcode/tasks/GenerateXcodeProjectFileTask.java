@@ -47,6 +47,7 @@ import org.gradle.internal.Cast;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -69,6 +70,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
  * @since 4.2
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<XcodeProjectFile> {
     private static final String PRODUCTS_GROUP_NAME = "Products";
     private static final String UNBUILDABLE_BUILD_CONFIGURATION_NAME = "unbuildable";

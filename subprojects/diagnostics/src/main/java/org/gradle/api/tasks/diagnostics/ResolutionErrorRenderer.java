@@ -30,13 +30,15 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 class ResolutionErrorRenderer implements Action<Throwable> {
     private final Spec<DependencyResult> dependencySpec;
     private final List<Action<StyledTextOutput>> errorActions = Lists.newArrayListWithExpectedSize(1);
 
-    public ResolutionErrorRenderer(Spec<DependencyResult> dependencySpec) {
+    public ResolutionErrorRenderer(@Nullable Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
     }
 
@@ -104,6 +106,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     private boolean hasVersionConflictOnRequestedDependency(final List<? extends ModuleVersionIdentifier> versionIdentifiers) {
+        Objects.requireNonNull(dependencySpec, "Dependency spec must be specified");
         for (final ModuleVersionIdentifier versionIdentifier : versionIdentifiers) {
             if (dependencySpec.isSatisfiedBy(asDependencyResult(versionIdentifier))) {
                 return true;

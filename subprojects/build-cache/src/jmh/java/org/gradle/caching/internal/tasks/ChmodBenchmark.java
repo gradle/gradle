@@ -40,7 +40,14 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.nio.file.attribute.PosixFilePermission.*;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 
 @Fork(1)
 @Warmup(iterations = 10)
@@ -67,7 +74,7 @@ public class ChmodBenchmark {
     @Setup(Level.Trial)
     public void setupTrial() throws IOException {
         this.tempRootDir = Files.createTempDirectory("chmod-benchmark");
-        NativeServices.initialize(tempRootDir.toFile());
+        NativeServices.initializeOnDaemon(tempRootDir.toFile());
         this.fileSystem = FileSystems.getDefault();
     }
 

@@ -75,7 +75,7 @@ public class BuildLayoutParameters {
         return null;
     }
 
-    public BuildLayoutParameters setProjectDir(File projectDir) {
+    public BuildLayoutParameters setProjectDir(@Nullable File projectDir) {
         this.projectDir = projectDir;
         return this;
     }

@@ -27,7 +27,7 @@ import java.util.regex.Pattern
 class GpgCmdFixture {
     private static final Random RANDOM = new Random()
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36
-    private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX)
+    private static final int MAX_RANDOM_PART_VALUE = Integer.parseInt("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX)
     private static final Pattern GPG_VERSION_REGEX = Pattern.compile(/(?s).*gpg \(GnuPG\) (\d).\d+.\d+.*/)
 
     static String createRandomPrefix() {
@@ -35,7 +35,7 @@ class GpgCmdFixture {
     }
 
     static GpgCmdAndVersion getAvailableGpg() {
-        return tryRun("gpg2") ?: tryRun("gpg")
+        return tryRun("gpg")
     }
 
     static GpgCmdAndVersion tryRun(String cmd) {

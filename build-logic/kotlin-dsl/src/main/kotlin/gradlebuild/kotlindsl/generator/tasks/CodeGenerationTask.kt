@@ -20,10 +20,12 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 import java.io.File
 
 
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class CodeGenerationTask : DefaultTask() {
 
     @get:OutputDirectory

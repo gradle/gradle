@@ -141,7 +141,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
         withKotlinBuildSrc()
@@ -200,13 +199,12 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
         assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
-        val differentKotlinVersion = "1.3.72"
-        val expectedKotlinCompilerVersionString = "1.3.72"
+        val differentKotlinVersion = "1.6.0"
+        val expectedKotlinCompilerVersionString = "1.6.0"
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
@@ -229,12 +227,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 kotlinOptions.suppressWarnings = true
             }
 
-            task("print-kotlin-version") {
+            tasks.register("print-kotlin-version") {
+                val kotlinCompilerVersion = KotlinCompilerVersion.VERSION
+                val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
+                    it.name + "=" + it.kotlinOptions.suppressWarnings
+                }
                 doLast {
-                    val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
-                        it.name + "=" + it.kotlinOptions.suppressWarnings
-                    }
-                    println(KotlinCompilerVersion.VERSION + compileOptions)
+                    println(kotlinCompilerVersion + compileOptions)
                 }
             }
             """
@@ -247,7 +246,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply base plugin via plugins block`() {
 
         withBuildScript(
@@ -257,8 +255,9 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             task("plugins") {
+                val appliedPlugins = plugins.map { "*" + it::class.simpleName + "*" }
                 doLast {
-                    println(plugins.map { "*" + it::class.simpleName + "*" })
+                    println(appliedPlugins)
                 }
             }
             """
@@ -271,7 +270,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     fun `can use Closure only APIs`() {
 
         withBuildScript(
@@ -868,7 +867,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `given generic extension types they can be accessed and configured`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -943,14 +941,14 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     fun `can use kotlin java8 inline-only methods`() {
 
         withBuildScript(
             """
             task("test") {
+                val v = project.properties.getOrDefault("non-existent-property", "default-value")
                 doLast {
-                    println(project.properties.getOrDefault("non-existent-property", "default-value"))
+                    println(v)
                 }
             }
             """

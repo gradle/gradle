@@ -17,13 +17,12 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.GUtil
 import org.junit.Assume
 
 import java.util.regex.Pattern
 
-abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
+abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)
@@ -43,7 +42,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
         "BuildDashboardPluginIntegrationTest",
-        "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
@@ -75,7 +73,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
         "BuildDashboardPluginIntegrationTest",
-        "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
@@ -132,7 +129,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'ivy-publish', 'maven-publish', 'publishing',
             'eclipse', 'idea', 'version-catalog'
         ])
-        if (GradleContextualExecuter.isConfigCache() && appliesBasePlugin) {
+        if (appliesBasePlugin) {
             assert output.count("configuring :") == 2
             outputContains("configuring :help")
             // because capturing registered outputs for stale output cleanup forces configuring clean

@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 import com.nhaarman.mockitokotlin2.mock
-import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectState
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -115,12 +115,12 @@ class FillTheProjectGapsTest {
 
     @Suppress("ClassName")
     private
-    class projectMock(private val parent: Project?) {
+    class projectMock(private val parent: ProjectState?) {
 
         private
-        lateinit var memoizedMock: Project
+        lateinit var memoizedMock: ProjectState
 
-        operator fun getValue(thisRef: Project?, property: KProperty<*>): Project {
+        operator fun getValue(thisRef: ProjectState?, property: KProperty<*>): ProjectState {
             if (!this::memoizedMock.isInitialized) {
                 memoizedMock = mock {
                     on(mock.parent).thenReturn(parent)

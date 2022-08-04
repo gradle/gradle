@@ -27,6 +27,8 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.execution.ProjectExecutionServices
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -76,9 +78,10 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         def taskExecutionContext = new DefaultTaskExecutionContext(
             null,
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
-            new DefaultWorkValidationContext(documentationRegistry),
+            new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP),
             { historyMaintained, context -> }
         )
+        project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
         task.state.rethrowFailure()
     }

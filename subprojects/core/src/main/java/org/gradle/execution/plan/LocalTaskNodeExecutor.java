@@ -58,11 +58,6 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             LocalTaskNode localTaskNode = (LocalTaskNode) node;
             TaskInternal task = localTaskNode.getTask();
             TaskStateInternal state = task.getState();
-            if (state.getExecuted()) {
-                // Task has already been run. This can happen when the owning build is used both at configuration time and execution time
-                // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
-                return true;
-            }
             ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy = context.getService(ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy.class);
             TaskExecutionContext ctx = new DefaultTaskExecutionContext(
                 localTaskNode,
@@ -72,7 +67,6 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
-            localTaskNode.getPostAction().execute(task);
             return true;
         } else {
             return false;
@@ -210,7 +204,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         node.getHardSuccessors().forEach(successor -> {
             // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
             // For example we can skip all the transform nodes between two task nodes.
-            if (successor instanceof TaskNode) {
+            if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
                 }

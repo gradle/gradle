@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * An adapter for {@link InternalInvalidatableVirtualFileSystemConnection}.
  *
- * <p>Used for providers >= 6.1.</p>
+ * <p>Used for providers &gt;= 6.1.</p>
  */
 public class NotifyDaemonsAboutChangedPathsConsumerConnection extends PhasedActionAwareConsumerConnection {
     public NotifyDaemonsAboutChangedPathsConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {

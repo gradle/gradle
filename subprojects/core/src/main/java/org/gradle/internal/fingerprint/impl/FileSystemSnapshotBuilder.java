@@ -22,6 +22,7 @@ import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -33,7 +34,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
 public class FileSystemSnapshotBuilder {
 
@@ -93,7 +94,7 @@ public class FileSystemSnapshotBuilder {
         if (rootDirectoryBuilder == null) {
             return FileSystemSnapshot.EMPTY;
         }
-        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
+        DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
         rootDirectoryBuilder.accept(rootPath, rootName, builder);
         return Preconditions.checkNotNull(builder.getResult());
     }
@@ -141,7 +142,7 @@ public class FileSystemSnapshotBuilder {
             return subDir;
         }
 
-        public void accept(String directoryPath, String directoryName, MerkleDirectorySnapshotBuilder builder) {
+        public void accept(String directoryPath, String directoryName, DirectorySnapshotBuilder builder) {
             builder.enterDirectory(determineAccessTypeForLocation(directoryPath), directoryPath, directoryName, INCLUDE_EMPTY_DIRS);
             for (Map.Entry<String, DirectoryBuilder> entry : subDirs.entrySet()) {
                 String subDirName = entry.getKey();

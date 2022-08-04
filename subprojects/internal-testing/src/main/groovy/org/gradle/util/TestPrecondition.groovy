@@ -19,8 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
-import javax.tools.ToolProvider
-
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SYMLINKS({
@@ -56,19 +54,17 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     MAC_OS_X({
         OperatingSystem.current().macOsX
     }),
+    MAC_OS_X_M1({
+        OperatingSystem.current().macOsX && OperatingSystem.current().toString().contains("aarch64")
+    }),
+    NOT_MAC_OS_X_M1({
+        !MAC_OS_X_M1.fulfilled
+    }),
     NOT_MAC_OS_X({
         !OperatingSystem.current().macOsX
     }),
     LINUX({
         OperatingSystem.current().linux
-    }),
-    HAS_DOCKER({
-        try {
-            DockerClientFactory.instance().client()
-        } catch (Exception ex) {
-            return false
-        }
-        return true
     }),
     NOT_LINUX({
         !LINUX.fulfilled
@@ -79,14 +75,13 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
     }),
-    JDK7({
-        JavaVersion.current() == JavaVersion.VERSION_1_7
-    }),
-    JDK7_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_1_7
-    }),
-    JDK8({
-        JavaVersion.current() == JavaVersion.VERSION_1_8
+    HAS_DOCKER({
+        try {
+            DockerClientFactory.instance().client()
+        } catch (Exception ex) {
+            return false
+        }
+        return true
     }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8
@@ -109,9 +104,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK11_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_11
     }),
-    JDK12_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_12
-    }),
     JDK12_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_12
     }),
@@ -121,27 +113,31 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK13_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_13
     }),
-    JDK14_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_14
-    }),
     JDK14_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_14
     }),
     JDK15_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_15
     }),
-    JDK15_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_15
-    }),
     JDK16_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_16
+    }),
+    JDK16_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_16
+    }),
+    JDK17_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_17
+    }),
+    JDK17_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_17
+    }),
+    JDK18_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_18
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
-    JDK({
-        ToolProvider.systemJavaCompiler != null
-    }),
+
     ONLINE({
         try {
             new URL("http://google.com").openConnection().getInputStream().close()
@@ -156,18 +152,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),
-    PULL_REQUEST_BUILD({
-        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
-            return true
-        }
-        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
-            return true
-        }
-        return false
-    }),
-    NOT_PULL_REQUEST_BUILD({
-        !PULL_REQUEST_BUILD.fulfilled
-    }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
         MAC_OS_X.fulfilled
@@ -177,6 +161,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         WINDOWS.fulfilled && "embedded" != System.getProperty("org.gradle.integtest.executer")
     }),
     SUPPORTS_TARGETING_JAVA6({ !JDK12_OR_LATER.fulfilled }),
+    // Currently JDK 18 has a bug that prevents UTF-8 standard output on Windows.
+    // https://bugs.openjdk.java.net/browse/JDK-8283620
+    SUPPORTS_UTF8_STDOUT({ !(JDK18_OR_LATER.fulfilled && WINDOWS.fulfilled) }),
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({

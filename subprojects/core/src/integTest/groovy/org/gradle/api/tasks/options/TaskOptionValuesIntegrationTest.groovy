@@ -17,11 +17,9 @@
 package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class TaskOptionValuesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "can accept valid option value '#optionValue'"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOptionAndPredefinedValues()

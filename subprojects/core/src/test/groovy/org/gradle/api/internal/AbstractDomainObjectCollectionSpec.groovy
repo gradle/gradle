@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
@@ -30,11 +29,10 @@ import org.gradle.internal.Actions
 import org.gradle.internal.DisplayName
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.internal.WrapUtil.toList
@@ -244,6 +242,27 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * provider.size() >> 2
         1 * provider.calculateValue(_) >> ValueSupplier.Value.of([a, d])
         0 * _
+    }
+
+    def "provider for iterable of elements is queried when .all configuration is added first"() {
+        containerAllowsExternalProviders()
+        def provider = Mock(CollectionProviderInternal)
+        def seen = []
+
+        given:
+        addToContainer(b)
+        container.all {
+            seen << it
+        }
+
+        when:
+        container.addAllLater(provider)
+
+        then:
+        _ * provider.getElementType() >> getType()
+        _ * provider.get() >> [a, d]
+        0 * _
+        seen == [b, a, d]
     }
 
     def "can get all domain objects ordered by order added"() {
@@ -1608,7 +1627,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     void setupContainerDefaults() {}
 
-    @Unroll
     def "disallow mutating from common methods when #mutatingMethods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1678,7 +1696,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         assertThat(causes, CoreMatchers.hasItem(hasMessage(startsWith(message))))
     }
 
-    @Unroll
     def "allow common querying methods when #queryMethods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1703,7 +1720,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         queryMethods << getQueryMethods()
     }
 
-    @Unroll
     def "allow common querying and mutating methods when #methods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1718,7 +1734,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
     def "allow common querying and mutating methods when #methods.key on filtered container by type"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1733,7 +1748,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
     def "allow common querying and mutating methods when #methods.key on filtered container by spec"() {
         setupContainerDefaults()
         addToContainer(a)

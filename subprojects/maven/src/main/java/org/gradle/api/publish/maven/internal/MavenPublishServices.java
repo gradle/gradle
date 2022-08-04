@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
-import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.dependencies.MavenVersionRangeMapper;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
@@ -38,11 +37,16 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new ComponentRegistrationAction());
     }
 
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(MavenDuplicatePublicationTracker.class);
+    }
+
     private static class ComponentRegistrationAction {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
-                    .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
+                .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }
 
         public VersionRangeMapper createVersionRangeMapper(VersionSelectorScheme versionSelectorScheme) {
@@ -51,10 +55,6 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
 
         public MavenPublishers createMavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
             return new MavenPublishers(timeProvider, repositoryTransportFactory, mavenRepositoryLocator);
-        }
-
-        public MavenDuplicatePublicationTracker createDuplicatePublicationTracker(DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-            return new MavenDuplicatePublicationTracker(duplicatePublicationTracker, mavenRepositoryLocator);
         }
     }
 }

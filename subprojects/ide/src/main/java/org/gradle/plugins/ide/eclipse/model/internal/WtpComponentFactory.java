@@ -130,7 +130,7 @@ public class WtpComponentFactory {
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean asJavaModule) {
+        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);

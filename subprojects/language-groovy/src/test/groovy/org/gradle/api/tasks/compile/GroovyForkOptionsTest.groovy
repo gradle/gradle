@@ -35,15 +35,6 @@ public class GroovyForkOptionsTest {
         assertTrue(forkOptions.jvmArgs.empty)
     }
 
-    @Test public void testOptionMap() {
-        Map optionMap = forkOptions.optionMap()
-        assertEquals(0, optionMap.size())
-        PROPS.keySet().each { forkOptions."$it" = "${it}Value" }
-        optionMap = forkOptions.optionMap()
-        assertEquals(2, optionMap.size())
-        PROPS.keySet().each {assertEquals("${it}Value" as String, optionMap[PROPS[it]])}
-    }
-
     @Test public void testDefine() {
         forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
             map[prop] = "${prop}Value" as String

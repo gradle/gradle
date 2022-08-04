@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r16
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnknownModelException
@@ -37,7 +37,6 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         e.message == "No model of type 'CustomModel' is available in this build."
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("No builders are available to build a model of type 'org.gradle.integtests.tooling.r16.CustomModel'.")
         assertHasConfigureFailedLogging()
     }
