@@ -267,9 +267,6 @@ Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [r
 accepting connections via network on Java 9+.
 
 
-When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. This can cause code to pass tests but fail at runtime.
-
-This change may cause new test failures and warnings, depending on the Java version:
 
 - 9-15: illegal access warnings appears in logs.
 - 16+: code performing reflection on JDK internals nows fail tests.
