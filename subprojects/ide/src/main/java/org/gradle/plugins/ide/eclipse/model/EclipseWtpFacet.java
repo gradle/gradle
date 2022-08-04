@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
@@ -26,6 +27,8 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
@@ -43,7 +46,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * eclipse {
  *   wtp {
  *     facet {
- *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *       //you can add some extra wtp facets or update existing ones; mandatory keys: 'name', 'version':
  *       facet name: 'someCoolFacet', version: '1.3'
  *
  *       file {
@@ -100,7 +103,7 @@ public class EclipseWtpFacet {
      *
      * For example see docs for {@link EclipseWtpFacet}
      */
-    public void file(Closure closure) {
+    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, file);
     }
 
@@ -133,15 +136,19 @@ public class EclipseWtpFacet {
     /**
      * Adds a facet.
      * <p>
+     * If a facet already exists with the given name then its version will be updated.
+     * <p>
      * For examples see docs for {@link EclipseWtpFacet}
      *
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
     public void facet(Map<String, ?> args) {
+        Facet newFacet = ConfigureUtil.configureByMap(args, new Facet());
         facets = Lists.newArrayList(Iterables.concat(
-            getFacets(),
-            Collections.singleton(ConfigureUtil.configureByMap(args, new Facet()))
-        ));
+            getFacets().stream()
+                       .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
+                       .collect(Collectors.toList()),
+            Collections.singleton(newFacet)));
     }
 
     @SuppressWarnings("unchecked")

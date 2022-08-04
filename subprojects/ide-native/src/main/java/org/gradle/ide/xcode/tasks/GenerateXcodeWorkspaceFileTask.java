@@ -23,6 +23,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
@@ -33,6 +34,7 @@ import java.io.File;
  * @since 4.2
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
     private FileCollection xcodeProjectLocations;
 

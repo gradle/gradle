@@ -103,7 +103,7 @@ class ModuleMetadataSpecBuilder {
 
         SoftwareComponent owner = owners.get(component);
         ComponentData ownerData = owner == null ? null : componentCoordinates.get(owner);
-        ComponentData componentData = componentCoordinates.get(component);
+        ComponentData componentData = new ComponentData(publication.getCoordinates(), publication.getAttributes());
 
         return ownerData != null
             ? identityFor(ownerData, relativeUrlTo(componentData.coordinates, ownerData.coordinates))
@@ -183,8 +183,7 @@ class ModuleMetadataSpecBuilder {
     }
 
     private boolean shouldNotBePublished(PublishArtifact artifact) {
-        return artifact instanceof PublishArtifactInternal
-            && !((PublishArtifactInternal) artifact).shouldBePublished();
+        return !PublishArtifactInternal.shouldBePublished(artifact);
     }
 
     private ModuleMetadataSpec.AvailableAt availableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates) {

@@ -16,24 +16,32 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
-@UsedByScanPlugin
+@ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
 
     private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
+    private final DefaultScriptFileResolver scriptFileResolver = new DefaultScriptFileResolver();
 
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
-    public BuildLayout getLayoutFor(File currentDir, boolean searchUpwards) {
+    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
+        boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+    }
+
+    private boolean isBuildSrc(File currentDir) {
+        return currentDir.getName().equals(SettingsInternal.BUILD_SRC);
     }
 
     /**
@@ -51,18 +59,16 @@ public class BuildLayoutFactory {
             return buildLayoutFrom(configuration, explicitSettingsFile);
         }
 
-        File currentDir = configuration.getCurrentDir();
-        boolean searchUpwards = configuration.isSearchUpwards();
-        return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+        return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 
     private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
-        return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile);
+        return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile, scriptFileResolver);
     }
 
     @Nullable
     public File findExistingSettingsFileIn(File directory) {
-        return new DefaultScriptFileResolver().resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
+        return scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
@@ -80,6 +86,6 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout layout(File rootDir, File settingsFile) {
-        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile));
+        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
     }
 }

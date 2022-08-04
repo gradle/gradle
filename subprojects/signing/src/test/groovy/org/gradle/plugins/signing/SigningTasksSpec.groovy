@@ -75,8 +75,9 @@ class SigningTasksSpec extends SigningProjectSpec {
         Sign signTask = signing.sign(jar).first()
 
         then:
-        def libsDir = jar.outputs.files.singleFile.parentFile
-        signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
+        def outputPath = jar.outputs.files.singleFile.toPath().toAbsolutePath().toString()
+        signTask.signaturesByKey.containsKey(outputPath)
+        signTask.signaturesByKey.get(outputPath) == signTask.singleSignature
     }
 
     def "files to sign that do not exist are ignored"() {
@@ -107,7 +108,10 @@ class SigningTasksSpec extends SigningProjectSpec {
         then:
         signTask.signatures.size() == 2
         noExceptionThrown()
-        signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
+        signTask.signaturesByKey.size() == 1
+        def outputPath = jar.outputs.files.singleFile.toPath().toAbsolutePath().toString()
+        signTask.signaturesByKey.containsKey(outputPath)
+        signTask.signaturesByKey.get(outputPath) == signTask.singleSignature
     }
 
     def "sign task has description"() {

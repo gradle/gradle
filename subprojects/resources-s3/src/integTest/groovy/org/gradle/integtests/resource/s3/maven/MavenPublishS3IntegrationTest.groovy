@@ -24,6 +24,7 @@ import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Requires
 
@@ -39,9 +40,9 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     }
 
     @ToBeFixedForConfigurationCache
-    def "can publish to a S3 Maven repository"() {
+    def "can publish to a S3 Maven repository bucket=#bucket"() {
         given:
-        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
+        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", bucket)
         buildFile << publicationBuild(mavenRepo.uri, """
             credentials(AwsCredentials) {
                 accessKey "someKey"
@@ -62,6 +63,9 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         then:
         module.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
+
+        where:
+        bucket << ["tests3Bucket", "tests-3-Bucket-1.2.3" ]
     }
 
     @ToBeFixedForConfigurationCache
@@ -124,6 +128,9 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.expectDownloadMissing()
         expectPublish(module.rootMetaData)
 
+        if (TestPrecondition.MAC_OS_X_M1.fulfilled) {
+            executer.withStackTraceChecksDisabled()
+        }
         succeeds 'publish'
 
         then:

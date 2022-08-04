@@ -16,30 +16,28 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.UserHome.class)
 public class ClassLoaderScopeRegistryListenerManager {
-
-    private final ListenerManager manager;
-    private final ClassLoaderScopeRegistryListener listener;
+    private final AnonymousListenerBroadcast<ClassLoaderScopeRegistryListener> broadcaster;
 
     public ClassLoaderScopeRegistryListenerManager(ListenerManager manager) {
-        this.manager = manager;
-        this.listener = manager.getBroadcaster(ClassLoaderScopeRegistryListener.class);
+        broadcaster = manager.createAnonymousBroadcaster(ClassLoaderScopeRegistryListener.class);
     }
 
     public ClassLoaderScopeRegistryListener getBroadcaster() {
-        return listener;
+        return broadcaster.getSource();
     }
 
     public void add(ClassLoaderScopeRegistryListener listener) {
-        manager.addListener(listener);
+        broadcaster.add(listener);
     }
 
     public void remove(ClassLoaderScopeRegistryListener listener) {
-        manager.removeListener(listener);
+        broadcaster.remove(listener);
     }
 }

@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.tasks.testing.TestFailure;
+
 public interface TestClassExecutionListener {
     void testClassStarted(String testClassName);
 
-    void testClassFinished(Throwable failure);
+    void testClassFinished(TestFailure failure);
 }

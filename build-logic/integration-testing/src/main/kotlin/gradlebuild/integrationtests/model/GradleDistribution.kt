@@ -27,7 +27,7 @@ import java.util.SortedSet
 open class GradleDistribution(private val gradleHomeDir: FileCollection) {
 
     /**
-     * Make sure this stays type FileCollection (lazy) to not loose dependency information.
+     * Make sure this stays type FileCollection (lazy) to avoid losing dependency information.
      */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)

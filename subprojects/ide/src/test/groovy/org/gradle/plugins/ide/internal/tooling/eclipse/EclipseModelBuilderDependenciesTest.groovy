@@ -17,11 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.api.internal.composite.CompositeBuildContext
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
@@ -46,6 +42,8 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child4
 
     def setup() {
+        // Without this file, the build layout finds the one from Gradle itself and causes dependency verification to be enabled
+        temporaryFolder.testDirectory.createFile("settings.gradle")
         project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
@@ -189,14 +187,10 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
 
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = new GradleProjectBuilder()
-        def serviceRegistry = new DefaultServiceRegistry()
         def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
             getUniqueName(_ as Project) >> { Project p -> p.name }
         }
-        serviceRegistry.add(LocalComponentRegistry, Stub(LocalComponentRegistry))
-        serviceRegistry.add(CompositeBuildContext, Stub(CompositeBuildContext))
-        serviceRegistry.add(ProjectStateRegistry, Stub(ProjectStateRegistry))
-        new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry, uniqueProjectNameProvider)
+        new EclipseModelBuilder(gradleProjectBuilder, uniqueProjectNameProvider)
     }
 
     EclipseRuntime eclipseRuntime(List<EclipseWorkspaceProject> projects) {

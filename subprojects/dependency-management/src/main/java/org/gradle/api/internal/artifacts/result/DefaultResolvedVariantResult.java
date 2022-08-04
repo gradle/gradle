@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -38,12 +39,12 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     public DefaultResolvedVariantResult(ComponentIdentifier owner,
                                         DisplayName displayName,
                                         AttributeContainer attributes,
-                                        List<Capability> capabilities,
+                                        List<? extends Capability> capabilities,
                                         @Nullable ResolvedVariantResult externalVariant) {
         this.owner = owner;
         this.displayName = displayName;
         this.attributes = attributes;
-        this.capabilities = capabilities;
+        this.capabilities = ImmutableList.copyOf(capabilities);
         this.externalVariant = externalVariant;
         this.hashCode = computeHashCode();
     }

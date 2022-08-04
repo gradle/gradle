@@ -39,8 +39,8 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
             }
 
             repositories {
-                jcenter()
                 google()
+                mavenCentral()
             }
 
             dependencies {

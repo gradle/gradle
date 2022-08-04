@@ -60,6 +60,8 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
+    ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier);
+
     /**
      * Returns the variants of this component
      */
@@ -73,4 +75,13 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     VariantDerivationStrategy getVariantDerivationStrategy();
 
     boolean isExternalVariant();
+
+    /*
+     * When set to false component metadata rules are not cached.
+     * Currently, we disable it just for local maven/ivy repository.
+     *
+     * Default value is true.
+     */
+    boolean isComponentMetadataRuleCachingEnabled();
+
 }

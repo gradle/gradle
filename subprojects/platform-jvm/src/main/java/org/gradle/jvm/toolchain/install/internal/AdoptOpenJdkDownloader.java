@@ -80,9 +80,11 @@ public class AdoptOpenJdkDownloader {
                 LOGGER.info("Downloading {} to {}", resource.getDisplayName(), targetFile);
                 copyIntoFile(source, inputStream, downloadFile);
             });
-            moveFile(targetFile, downloadFile);
-        } catch (IOException e) {
-            throw new GradleException("Unable to move downloaded toolchain to target destination", e);
+            try {
+                moveFile(targetFile, downloadFile);
+            } catch (IOException e) {
+                throw new GradleException("Unable to move downloaded toolchain to target destination", e);
+            }
         } finally {
             downloadFile.delete();
         }

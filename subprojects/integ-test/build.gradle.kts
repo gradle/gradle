@@ -2,8 +2,11 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Integration tests which don't fit anywhere else - should probably be split up"
+
 dependencies {
     integTestImplementation(project(":base-services"))
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":process-services"))
@@ -19,7 +22,7 @@ dependencies {
     integTestImplementation(libs.ant)
     integTestImplementation(libs.jsoup)
 
-    integTestImplementation(libs.sampleCheck) {
+    integTestImplementation(libs.samplesCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }

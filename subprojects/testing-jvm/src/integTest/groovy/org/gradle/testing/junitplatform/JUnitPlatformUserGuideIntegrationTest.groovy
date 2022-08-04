@@ -17,7 +17,6 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -118,7 +117,6 @@ public class LifecycleTest {
         'annotations' | ''                                                         | '@TestInstance(Lifecycle.PER_CLASS)'
     }
 
-    @Unroll
     def 'can perform nested tests with #maxParallelForks'() {
         given:
         buildFile << """
@@ -252,7 +250,7 @@ class TestInfoDemo {
 
     def 'can use custom Extension'() {
         given:
-        file('src/main/java/org/gradle/MyExtension.java') << '''
+        file('src/test/java/org/gradle/MyExtension.java') << '''
 package org.gradle;
 import org.junit.jupiter.api.extension.*;
 

@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resources
 
-import org.gradle.api.Action
-import spock.lang.Specification
 
+import spock.lang.Specification
 
 class AbstractResourceLockRegistryTest extends Specification {
     def coordinationService = Stub(ResourceLockCoordinationService)
@@ -78,8 +77,8 @@ class AbstractResourceLockRegistryTest extends Specification {
         def getResourceLock(String displayName) {
             return getOrRegisterResourceLock(displayName, new AbstractResourceLockRegistry.ResourceLockProducer<String, ResourceLock>() {
                 @Override
-                ResourceLock create(String name, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new TestTrackedResourceLock(name, coordinationService, lockAction, unlockAction)
+                ResourceLock create(String name, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
+                    return new TestTrackedResourceLock(name, coordinationService, owner)
                 }
             })
         }

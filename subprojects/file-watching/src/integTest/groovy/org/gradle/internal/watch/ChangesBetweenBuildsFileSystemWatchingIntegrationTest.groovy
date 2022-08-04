@@ -16,9 +16,11 @@
 
 package org.gradle.internal.watch
 
-import spock.lang.Unroll
+import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.watch.registry.impl.WatchableHierarchies
+import spock.lang.Issue
 
-@Unroll
 class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def "source file changes are recognized"() {
@@ -33,7 +35,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withWatchFs().run "run"
+        runWithWatchingEnabled("run")
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -41,7 +43,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
         waitForChangesToBePickedUp()
-        withWatchFs().run "run"
+        runWithWatchingEnabled "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -56,14 +58,14 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         """
 
         when:
-        withWatchFs().run "hello"
+        runWithWatchingEnabled "hello"
         then:
         outputContains "Hello from original task!"
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
         waitForChangesToBePickedUp()
-        withWatchFs().run "hello"
+        runWithWatchingEnabled "hello"
         then:
         outputContains "Hello from modified task!"
     }
@@ -73,7 +75,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile.text = """
             println "Hello from the build!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the build!"
 
@@ -81,7 +83,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile.text = """
             println "Hello from the modified build!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -91,7 +93,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildKotlinFile.text = """
             println("Hello from the build!")
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the build!"
 
@@ -99,7 +101,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildKotlinFile.text = """
             println("Hello from the modified build!")
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -109,7 +111,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         settingsFile.text = """
             println "Hello from settings!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from settings!"
 
@@ -117,7 +119,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         settingsFile.text = """
             println "Hello from modified settings!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from modified settings!"
     }
@@ -133,14 +135,14 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withoutWatchFs().run "run"
+        runWithWatchingDisabled "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withWatchFs().run "run"
+        runWithWatchingEnabled "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -157,16 +159,104 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withWatchFs().run "run"
+        runWithWatchingEnabled "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withoutWatchFs().run "run"
+        runWithWatchingDisabled "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17865")
+    def "#description directory moved is handled properly"() {
+        def buildCache = new TestBuildCache(temporaryFolder.file("cache-dir").deleteDir().createDir())
+        def buildFileContents = """
+            apply plugin: "base"
+
+            @CacheableTask
+            abstract class CustomTask extends DefaultTask {
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                abstract RegularFileProperty getSource()
+
+                @OutputFile
+                abstract RegularFileProperty getTarget()
+
+                @TaskAction
+                def execute() {
+                    target.get().asFile.text = source.get().asFile.text
+                }
+            }
+
+            tasks.register("run", CustomTask) {
+                source = file("source.txt")
+                target = file("build/target.txt")
+            }
+        """
+
+        def originalDir = file("original")
+        def renamedDir = file("renamed")
+        def projectDir = originalDir.file(*projectDirPath)
+        def settingsFile = projectDir.file("settings.gradle")
+        def buildFile = projectDir.file("build.gradle")
+        def sourceFile = projectDir.file("source.txt")
+        def targetFile = projectDir.file("build/target.txt")
+
+        executer.beforeExecute {
+            inDirectory(projectDir)
+            enableVerboseVfsLogs()
+            withBuildCache()
+            withWatchFs()
+        }
+
+        settingsFile.text = buildCache.localCacheConfiguration()
+        buildFile.text = buildFileContents
+        sourceFile.text = "Hello Old World!"
+
+        when:
+        runWithWatchingEnabled "run"
+        then:
+        targetFile.text == "Hello Old World!"
+        executedAndNotSkipped ":run"
+
+        expect:
+        succeeds "clean"
+
+        when:
+        originalDir.renameTo(renamedDir)
+        settingsFile.text = buildCache.localCacheConfiguration()
+        buildFile.text = buildFileContents
+        sourceFile.text = "Hello New World!"
+
+        runWithWatchingEnabled "run"
+        then:
+        targetFile.text == "Hello New World!"
+        executedAndNotSkipped ":run"
+
+        where:
+        description      | projectDirPath
+        'project'        | []
+        'parent project' | ['my/project/dir']
+    }
+
+    ExecutionResult runWithWatchingEnabled(String... tasks) {
+        def result = withWatchFs().run tasks
+        assertOutputContainsNoInvalidation()
+        return result
+    }
+
+    ExecutionResult runWithWatchingDisabled(String... tasks) {
+        def result = withoutWatchFs().run tasks
+        assertOutputContainsNoInvalidation()
+        return result
+    }
+
+    void assertOutputContainsNoInvalidation() {
+        outputDoesNotContain(WatchableHierarchies.INVALIDATING_HIERARCHY_MESSAGE)
     }
 }

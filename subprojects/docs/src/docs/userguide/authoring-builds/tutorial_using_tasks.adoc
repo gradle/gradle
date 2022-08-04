@@ -154,7 +154,7 @@ Task dependencies are discussed in more detail in <<more_about_tasks.adoc#sec:ad
 [[sec:dynamic_tasks]]
 == Flexible task registration
 
-The power of Groovy or Kotlin can be used for more than defining what a task does
+The power of Groovy or Kotlin can be used for more than defining what a task does.
 For example, you can use it to register multiple tasks of the same type in a loop.
 
 .Flexible registration of a task

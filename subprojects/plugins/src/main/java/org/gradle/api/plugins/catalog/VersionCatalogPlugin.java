@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.catalog;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -23,8 +22,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
@@ -40,10 +37,7 @@ import javax.inject.Inject;
  *
  * @since 7.0
  */
-@Incubating
 public class VersionCatalogPlugin implements Plugin<Project> {
-    private final static Logger LOGGER = Logging.getLogger(VersionCatalogPlugin.class);
-
     public static final String GENERATE_CATALOG_FILE_TASKNAME = "generateCatalogAsToml";
     public static final String GRADLE_PLATFORM_DEPENDENCIES = "versionCatalog";
     public static final String VERSION_CATALOG_ELEMENTS = "versionCatalogElements";

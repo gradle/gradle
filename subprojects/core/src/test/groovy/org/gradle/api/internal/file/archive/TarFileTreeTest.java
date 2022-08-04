@@ -19,10 +19,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.TestUtil;
 import org.gradle.util.internal.Resources;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,7 +54,11 @@ public class TarFileTreeTest {
     private final TestFile tarFile = tmpDir.getTestDirectory().file("test.tar");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile))), expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+    private final TarFileTree tree = new TarFileTree(asProvider(tarFile), asProvider(new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile)))), expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+
+    private static <T> Provider<T> asProvider(T object) {
+        return TestUtil.providerFactory().provider(() -> object);
+    }
 
     @Test
     public void displayName() {
@@ -78,7 +84,7 @@ public class TarFileTreeTest {
         rootDir.tgzTo(tgz);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz)));
-        TarFileTree tree = new TarFileTree(tgz, resource, expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+        TarFileTree tree = new TarFileTree(asProvider(tgz), asProvider(resource), expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -93,7 +99,7 @@ public class TarFileTreeTest {
         rootDir.tbzTo(tbz2);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tbz2)));
-        TarFileTree tree = new TarFileTree(tbz2, resource, expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+        TarFileTree tree = new TarFileTree(asProvider(tbz2), asProvider(resource), expandDir, fileSystem(), directoryFileTreeFactory(), streamHasher(), fileHasher());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));

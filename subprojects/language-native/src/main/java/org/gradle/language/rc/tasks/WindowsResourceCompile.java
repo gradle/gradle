@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -47,6 +48,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -60,6 +62,7 @@ import java.util.concurrent.Callable;
  * Compiles Windows Resource scripts into .res files.
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class WindowsResourceCompile extends DefaultTask {
 
     private final Property<NativePlatform> targetPlatform;
@@ -180,9 +183,10 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
-    @SkipWhenEmpty
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }

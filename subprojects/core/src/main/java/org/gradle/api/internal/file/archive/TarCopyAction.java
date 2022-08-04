@@ -74,6 +74,7 @@ public class TarCopyAction implements CopyAction {
                     throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
                 }
                 tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
+                tarOutStr.setBigNumberMode(TarOutputStream.BIGNUMBER_STAR);
                 stream.process(new StreamAction(tarOutStr));
                 tarOutStr.close();
             }

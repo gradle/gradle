@@ -28,16 +28,17 @@ public interface BuildTreeModelControllerServices {
      *
      * <p>Contributes the following services:</p>
      * <ul>
-     *     <li>{@link org.gradle.api.internal.BuildType}</li>.
-     *     <li>{@link BuildModelParameters}</li>.
-     * <ul>
+     *     <li>{@link org.gradle.api.internal.BuildType}</li>
+     *     <li>{@link BuildModelParameters}</li>
+     *     <li>{@link BuildActionModelRequirements}</li>
+     * </ul>
      */
-    Supplier servicesForBuildTree(boolean runsTasks, boolean createsModel, StartParameterInternal startParameter);
+    Supplier servicesForBuildTree(BuildActionModelRequirements actionModelRequirements);
 
     /**
      * Creates a {@link Supplier} that will contribute the services required for the model of a nested build tree with the given parameters.
      *
-     * <p>Contributes the same services as {@link #servicesForBuildTree(boolean, boolean, StartParameterInternal)}.</p>
+     * <p>Contributes the same services as {@link #servicesForBuildTree(BuildActionModelRequirements)}.</p>
      */
     Supplier servicesForNestedBuildTree(StartParameterInternal startParameter);
 

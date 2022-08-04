@@ -16,8 +16,10 @@
 package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -526,11 +528,28 @@ public class SigningExtension {
      * @param closure The configuration of the {@link SignOperation sign operation}.
      * @return The executed {@link SignOperation sign operation}.
      */
-    public SignOperation sign(Closure closure) {
+    public SignOperation sign(@DelegatesTo(SignOperation.class) Closure closure) {
         return doSignOperation(closure);
     }
 
-    protected SignOperation doSignOperation(final Closure setup) {
+    /**
+     * Creates a new {@link SignOperation sign operation} using the given action to configure it before executing it.
+     *
+     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature. The returned {@link SignOperation sign
+     * operation} gives access to the created signature files. <p> If there is no configured default signatory available (and one is not explicitly specified in this operation's configuration), the
+     * sign operation will fail.
+     *
+     * @param setup The configuration action of the {@link SignOperation sign operation}.
+     * @return The executed {@link SignOperation sign operation}.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public SignOperation sign(Action<SignOperation> setup) {
+        return doSignOperation(setup);
+    }
+
+    protected SignOperation doSignOperation(@DelegatesTo(SignOperation.class) final Closure setup) {
         return doSignOperation(new Action<SignOperation>() {
             @Override
             public void execute(SignOperation operation) {

@@ -26,6 +26,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -37,6 +38,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
@@ -44,7 +46,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
+import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -53,7 +55,6 @@ import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, ValidationMessageChecker {
 
-    @Unroll
     def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -96,7 +97,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     output.text = "ok"
                 }
             }
-"""
+        """
 
         when:
         if (expectedDeprecation) {
@@ -115,7 +116,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
-    @Unroll
     def "transform can receive parameter of type #type"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -154,7 +154,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     assert parameters.otherProp.getOrNull() == ${expectedNullValue}
                 }
             }
-"""
+        """
+
         when:
         run("a:resolve")
 
@@ -164,9 +165,58 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         where:
         type                          | value          | expected     | expectedNullValue
         "Property<String>"            | "'value'"      | 'value'      | null
+        "Property<Boolean>"           | "true"         | 'true'       | null
         "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"     | "[]"
         "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"     | "[] as Set"
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16982")
+    def "transform can set convention on parameter of type #type"() {
+        given:
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+
+                abstract static class Parameters extends TransformParameters {
+
+                    { prop.convention($value) }
+
+                    @Input
+                    abstract ${type} getProp()
+                }
+
+                void transform(TransformOutputs outputs) {
+                    println "processing using prop: \${parameters.prop.get()}"
+                }
+            }
+        """
+
+        when:
+        run("a:resolve")
+
+        then:
+        outputContains("processing using prop: ${expected}")
+
+        where:
+        type                          | value            | expected
+        "Property<Byte>"              | '42.byteValue()' | '42'
+        "Property<Boolean>"           | 'true'           | 'true'
+        "Property<String>"            | "'value'"        | 'value'
+        "ListProperty<String>"        | "['a', 'b']"     | "[a, b]"
+        "SetProperty<String>"         | "['a', 'b']"     | "[a, b]"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]"   | "[a:1, b:2]"
     }
 
     def "transform can receive a build service as a parameter"() {
@@ -223,7 +273,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [out-1.txt]")
     }
 
-    @Unroll
     def "transform can receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -266,7 +315,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @Unroll
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -385,7 +433,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -436,7 +484,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     println getParameters()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -447,7 +495,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
@@ -477,7 +525,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -499,7 +547,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -530,7 +577,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -547,7 +594,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
-    @Unroll
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -578,7 +624,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -645,7 +691,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -669,9 +715,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
-    def "transform action type cannot use cacheable task annotation"() {
+    def "transform action type cannot use @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -684,13 +730,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
 
-            @CacheableTask
+            @${ann.simpleName}
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -699,14 +745,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         failure.assertHasCause(invalidUseOfCacheableAnnotation {
-            type('MakeGreen').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+            type('MakeGreen').invalidAnnotation(ann.simpleName).onlyMakesSenseOn('Task').includeLink()
         })
+
+        where:
+        ann << [CacheableTask, UntrackedTask]
     }
 
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -738,7 +786,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-"""
+        """
 
         when:
         fails(":a:resolve")
@@ -752,40 +800,37 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
-    @Unroll
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransformAction()
         buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+            project(':b') {
+                dependencies {
+                    implementation project(':c')
+                }
+            }
 
-project(':a') {
-    dependencies {
-        implementation project(':b')
-    }
-}
-project(':b') {
-    dependencies {
-        implementation project(':c')
-    }
-}
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifactDependencies
+                abstract ${targetType} getDependencies()
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
 
-abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-    @InputArtifactDependencies
-    abstract ${targetType} getDependencies()
-    @InputArtifact
-    abstract Provider<FileSystemLocation> getInputArtifact()
-
-    void transform(TransformOutputs outputs) {
-        def input = inputArtifact.get().asFile
-        println "received dependencies files \${dependencies*.name} for processing \${input.name}"
-        def output = outputs.file(input.name + ".green")
-        output.text = "ok"
-    }
-}
-
-"""
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "received dependencies files \${dependencies*.name} for processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = "ok"
+                }
+            }
+        """
 
         when:
         run(":a:resolve")
@@ -799,45 +844,44 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    @Unroll
     def "old style transform cannot use @#annotation.name"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorAttributes()
         buildFile << """
-allprojects {
-    dependencies {
-        registerTransform {
-            from.attribute(color, 'blue')
-            to.attribute(color, 'green')
-            artifactTransform(MakeGreen)
-        }
-    }
-}
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                        artifactTransform(MakeGreen)
+                    }
+                }
+            }
 
-project(':a') {
-    dependencies {
-        implementation project(':b')
-        implementation project(':c')
-    }
-}
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
 
-abstract class MakeGreen extends ArtifactTransform {
-    @${annotation.name}
-    abstract File getInputFile()
+            abstract class MakeGreen extends ArtifactTransform {
+                @${annotation.name}
+                abstract File getInputFile()
 
-    List<File> transform(File input) {
-        println "processing \${input.name}"
-        def output = new File(outputDirectory, input.name + ".green")
-        output.text = "ok"
-        return [output]
-    }
-}
-
-"""
+                List<File> transform(File input) {
+                    println "processing \${input.name}"
+                    def output = new File(outputDirectory, input.name + ".green")
+                    output.text = "ok"
+                    return [output]
+                }
+            }
+        """
 
         when:
+        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
         fails(":a:resolve")
 
         then:
@@ -881,13 +925,12 @@ abstract class MakeGreen extends ArtifactTransform {
                 void transform(TransformOutputs outputs) {
                 }
             }
-"""
+        """
 
         expect:
         succeeds(":a:resolve")
     }
 
-    @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -895,23 +938,22 @@ abstract class MakeGreen extends ArtifactTransform {
         setupBuildWithColorTransformAction()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
         buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
 
-project(':a') {
-    dependencies {
-        implementation project(':b')
-    }
-}
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract ${typeName} getInput()
 
-abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-    @InputArtifact
-    abstract ${typeName} getInput()
-
-    void transform(TransformOutputs outputs) {
-        input
-        throw new RuntimeException("broken")
-    }
-}
-"""
+                void transform(TransformOutputs outputs) {
+                    input
+                    throw new RuntimeException("broken")
+                }
+            }
+        """
 
         when:
         fails(":a:resolve")
@@ -925,30 +967,28 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
-    @Unroll
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
         """
         setupBuildWithColorTransformAction()
         buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
 
-project(':a') {
-    dependencies {
-        implementation project(':b')
-    }
-}
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @${annotation.name}
+                abstract ${propertyType.name} getDependencies()
 
-abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-    @${annotation.name}
-    abstract ${propertyType.name} getDependencies()
-
-    void transform(TransformOutputs outputs) {
-        dependencies
-        throw new RuntimeException("broken")
-    }
-}
-"""
+                void transform(TransformOutputs outputs) {
+                    dependencies
+                    throw new RuntimeException("broken")
+                }
+            }
+        """
 
         when:
         fails(":a:resolve")
@@ -970,23 +1010,22 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         """
         setupBuildWithColorTransformAction()
         buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
 
-project(':a') {
-    dependencies {
-        implementation project(':b')
-    }
-}
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @Inject
+                abstract File getWorkspace()
 
-abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-    @Inject
-    abstract File getWorkspace()
-
-    void transform(TransformOutputs outputs) {
-        workspace
-        throw new RuntimeException("broken")
-    }
-}
-"""
+                void transform(TransformOutputs outputs) {
+                    workspace
+                    throw new RuntimeException("broken")
+                }
+            }
+        """
 
         when:
         fails(":a:resolve")
@@ -999,7 +1038,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "task implementation cannot use cacheable transform annotation"() {
         expectReindentedValidationMessage()
@@ -1021,7 +1060,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "task @Nested bean cannot use cacheable annotations"() {
         expectReindentedValidationMessage()
@@ -1053,7 +1092,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         }))
     }
 
-    @Unroll
     def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
             class MyTask extends DefaultTask {

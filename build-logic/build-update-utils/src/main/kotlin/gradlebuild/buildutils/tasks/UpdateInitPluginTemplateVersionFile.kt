@@ -25,10 +25,12 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
+import org.gradle.work.DisableCachingByDefault
 import java.util.Properties
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
 
     private
@@ -69,7 +71,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
         findLatest("scalatestplus-junit", "org.scalatestplus:junit-4-12_${versionProperties["scala"]}:(3.1,)", versionProperties)
 
         val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-        versionProperties["spock"] = "2.0-M5-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+        versionProperties["spock"] = "2.1-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
         findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
         findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)

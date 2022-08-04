@@ -23,6 +23,7 @@ import org.gradle.performance.results.ResultsStore;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersionResultsStore> {
     public static void main(String[] args) {
@@ -30,8 +31,8 @@ public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersi
     }
 
     @Override
-    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons) {
-        return new FlakinessDetectionPerformanceExecutionDataProvider(store, resultJsons);
+    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons, Set<String> teamCityBuildIds) {
+        return new FlakinessDetectionPerformanceExecutionDataProvider(store, resultJsons, teamCityBuildIds);
     }
 
     @Override

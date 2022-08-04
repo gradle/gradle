@@ -32,6 +32,7 @@ public class WrapperPlugin implements Plugin<Project> {
             project.getTasks().register("wrapper", Wrapper.class, wrapper -> {
                 wrapper.setGroup("Build Setup");
                 wrapper.setDescription("Generates Gradle wrapper files.");
+                wrapper.getNetworkTimeout().convention(10000);
             });
         }
     }

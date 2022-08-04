@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
@@ -39,7 +40,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
-import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -143,8 +143,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                hierarchy, artifacts, ImmutableList.of(), attributes, capabilities,
-                artifacts.stream().noneMatch(a -> a instanceof UrlBackedArtifactMetadata), false, isExternalVariant);
+                hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, false, isExternalVariant);
             ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata, deduplicationDependencyCache);
             configurationMetadata.setDependencies(dependencies);
             configurations.put(configurationName, configurationMetadata);
@@ -220,7 +219,6 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableList.copyOf(excludeMetadata),
             attributes,
             immutableCapabilities,
-            artifacts.stream().noneMatch(a -> a instanceof UrlBackedArtifactMetadata),
             false,
             isExternalVariant
         );
@@ -234,7 +232,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         int mapping = decoder.readSmallInt();
         if (mapping == deduplicationDependencyCache.size()) {
             ModuleComponentSelector requested = getComponentSelectorSerializer().read(decoder);
-            IvyArtifactName artifactName = readNullableArtifact(decoder);
+            IvyArtifactName artifactName = IvyArtifactNameSerializer.INSTANCE.readNullable(decoder);
             List<ExcludeMetadata> mavenExcludes = readMavenExcludes(decoder);
             MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
             MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
@@ -256,7 +254,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         } else {
             encoder.writeSmallInt(nextMapping);
             getComponentSelectorSerializer().write(encoder, mavenDependency.getSelector());
-            writeNullableArtifact(encoder, mavenDependency.getDependencyArtifact());
+            IvyArtifactNameSerializer.INSTANCE.writeNullable(encoder, mavenDependency.getDependencyArtifact());
             writeMavenExcludeRules(encoder, mavenDependency.getAllExcludes());
             encoder.writeSmallInt(mavenDependency.getScope().ordinal());
             encoder.writeSmallInt(mavenDependency.getType().ordinal());

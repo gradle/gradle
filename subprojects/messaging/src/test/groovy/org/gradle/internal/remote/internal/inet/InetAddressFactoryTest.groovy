@@ -16,10 +16,10 @@
 
 package org.gradle.internal.remote.internal.inet
 
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class InetAddressFactoryTest extends Specification {
+
     def factory = new InetAddressFactory()
     InetAddresses addresses = Mock()
 
@@ -92,16 +92,6 @@ class InetAddressFactoryTest extends Specification {
 
         then:
         factory.localBindingAddress == new InetSocketAddress(0).address
-    }
-
-    @Ignore("Cannot set environment variables, yet")
-    def "Openshift IP is used when available"() {
-        when:
-        System.getenv().put('OPENSHIFT_JENKINS_IP', '134.12.45.15')
-        defaultAddresses()
-
-        then:
-        factory.communicationAddresses == [ip(134, 12, 45, 15)]
     }
 
     def "Always returns some communication address"() {

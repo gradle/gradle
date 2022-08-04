@@ -16,6 +16,7 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import spock.lang.Specification
 
 class DefaultCollectionEventRegisterSpec extends Specification {
@@ -35,7 +36,7 @@ class DefaultCollectionEventRegisterSpec extends Specification {
                     callback.execute(charSequence)
                 }
             }
-        })
+        } as CollectionCallbackActionDecorator)
     }
 
     def "actions do nothing when none registered"() {

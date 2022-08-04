@@ -19,11 +19,11 @@ import org.testng.ITestResult;
 
 /**
  * Our version of TestNG's IConfigurationListener. Can be adapted to
- * org.testng.internal.IConfigurationListener (from TestNG < 6.2) or
- * org.testng.IConfigurationListener2 (from TestNG >= 6.2). Became
+ * org.testng.internal.IConfigurationListener (from TestNG &lt; 6.2) or
+ * org.testng.IConfigurationListener2 (from TestNG &gt;= 6.2). Became
  * necessary because TestNG 6.2 changed the package name of the former
  * interface from org.testng.internal to org.testng.
- * 
+ *
  * @see TestNGListenerAdapterFactory
  */
 public interface TestNGConfigurationListener {
@@ -42,8 +42,8 @@ public interface TestNGConfigurationListener {
      */
     void onConfigurationSkip(ITestResult itr);
     /**
-     * Invoked before a configuration method is invoked. 
-     * 
+     * Invoked before a configuration method is invoked.
+     *
      * Note: This method is only invoked for TestNG 6.2 or higher.
      */
     void beforeConfiguration(ITestResult tr);

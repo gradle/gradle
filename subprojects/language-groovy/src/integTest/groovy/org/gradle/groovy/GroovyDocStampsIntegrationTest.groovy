@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({GroovyCoverage.SUPPORTS_TIMESTAMP})
 class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -35,7 +37,7 @@ class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.codehaus.groovy:groovy:${version}"
+                implementation "${groovyModuleDependency("groovy", versionNumber)}"
             }
         """
 

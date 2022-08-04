@@ -114,7 +114,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM());
+        configureAttributes(
+            configuration,
+            details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM()
+        );
     }
 
     @Override
@@ -185,6 +188,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
+        variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(new Factory<List<PublishArtifact>>() {
             @Nullable

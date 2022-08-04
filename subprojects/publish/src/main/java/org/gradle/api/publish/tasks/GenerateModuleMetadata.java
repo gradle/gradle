@@ -56,6 +56,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -79,6 +80,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @since 4.3
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
@@ -100,7 +102,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
-        setOnlyIf(spec(task -> hasAttachedComponent()));
+        setOnlyIf("The publication is attached to a component", spec(task -> hasAttachedComponent()));
     }
 
     // TODO - this should be an input

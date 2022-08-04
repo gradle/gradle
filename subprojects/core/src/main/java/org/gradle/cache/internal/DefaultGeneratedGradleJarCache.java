@@ -17,11 +17,10 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 
 import java.io.Closeable;
 import java.io.File;
@@ -31,25 +30,15 @@ import java.util.List;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable, GlobalCache {
-
-    public static final String BASE_DIR_OVERRIDE_PROPERTY = "org.gradle.cache.internal.generatedGradleJarCacheBaseDir";
-
     private final PersistentCache cache;
     private final String gradleVersion;
 
-    public DefaultGeneratedGradleJarCache(CacheRepository cacheRepository, String gradleVersion) {
-        this.cache = cacheBuilderFor(cacheRepository)
+    public DefaultGeneratedGradleJarCache(GlobalScopedCache cacheRepository, String gradleVersion) {
+        this.cache = cacheRepository.cache(CACHE_KEY)
             .withDisplayName(CACHE_DISPLAY_NAME)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .open();
         this.gradleVersion = gradleVersion;
-    }
-
-    private CacheBuilder cacheBuilderFor(CacheRepository cacheRepository) {
-        String baseDirOverride = System.getProperty(BASE_DIR_OVERRIDE_PROPERTY);
-        return baseDirOverride != null
-            ? cacheRepository.cache(new File(baseDirOverride))
-            : cacheRepository.cache(CACHE_KEY);
     }
 
     @Override

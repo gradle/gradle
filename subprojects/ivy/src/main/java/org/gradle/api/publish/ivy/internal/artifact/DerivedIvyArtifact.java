@@ -16,9 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
@@ -59,8 +59,8 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return (TaskDependencyInternal) original.getBuildDependencies();
+    protected TaskDependency getDefaultBuildDependencies() {
+        return original.getBuildDependencies();
     }
 
     @Override

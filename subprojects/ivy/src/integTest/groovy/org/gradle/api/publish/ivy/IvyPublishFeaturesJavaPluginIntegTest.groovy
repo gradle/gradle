@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
     @ToBeFixedForConfigurationCache
@@ -76,7 +75,6 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         }
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can update #prop after feature has been registered"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()

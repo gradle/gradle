@@ -16,10 +16,12 @@
 package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.base.Strings;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
@@ -34,6 +36,7 @@ import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Try;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -51,10 +54,13 @@ import static java.util.Collections.emptyList;
  * tasks. Tasks which have not been assigned to a task group, so-called <i>hidden</i> tasks, can be included in the report
  * by enabling the command line option {@code --all}.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
+    private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
     private String group;
+    private List<String> groups;
     private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
     private transient TaskReportRenderer renderer;
 
@@ -70,6 +76,11 @@ public class TaskReportTask extends ConventionReportTask {
         this.renderer = renderer;
     }
 
+    /**
+     * Sets whether to show "invisible" tasks without a group or dependent tasks.
+     *
+     * This property can be set via command-line option '--all'.
+     */
     @Option(option = "all", description = "Show additional tasks and detail.")
     public void setShowDetail(boolean detail) {
         this.detail = detail;
@@ -92,13 +103,57 @@ public class TaskReportTask extends ConventionReportTask {
     }
 
     /**
-     * Get the task group to be displayed.
+     * Returns the task group to be displayed.
+     *
+     * This property can be set via command-line option '--group'.
      *
      * @since 5.1
      */
     @Console
     public String getDisplayGroup() {
         return group;
+    }
+
+    /**
+     * Add a specific task group to be displayed.
+     * Same functionality as the '--group' option, but unlike '--group', '--groups' can be chained.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
+    public void setDisplayGroups(List<String> groups) {
+        if (this.groups == null) {
+            this.groups = new ArrayList<>();
+        }
+        this.groups.addAll(groups);
+    }
+
+    /**
+     * Returns the task groups to be displayed.
+     *
+     * Task groups can be added via command-line option '--groups'.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Console
+    public List<String> getDisplayGroups() {
+        return groups == null ? new ArrayList<>() : groups;
+    }
+
+    /**
+     * Whether to show the task types next to their names in the output.
+     *
+     * This property can be set via command-line option '--types'.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    @Console
+    @Option(option = "types", description = "Show task class types")
+    public Property<Boolean> getShowTypes() {
+        return showTypes;
     }
 
     @TaskAction
@@ -157,12 +212,13 @@ public class TaskReportTask extends ConventionReportTask {
             ProjectDetails.of(project),
             project.getDefaultTasks(),
             taskReportModelFor(project, isDetail()),
-            Strings.isNullOrEmpty(group) ? ruleDetailsFor(project) : emptyList()
+            (Strings.isNullOrEmpty(group) && (groups == null || groups.isEmpty())) ? ruleDetailsFor(project) : emptyList()
         );
     }
 
     private void render(ProjectReportModel reportModel) {
         renderer.showDetail(isDetail());
+        renderer.showTypes(getShowTypes().get());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;
@@ -184,7 +240,7 @@ public class TaskReportTask extends ConventionReportTask {
     }
 
     private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
-        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup());
+        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup(), getDisplayGroups());
         final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         final SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);

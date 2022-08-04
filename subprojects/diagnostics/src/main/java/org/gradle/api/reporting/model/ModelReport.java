@@ -29,6 +29,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
@@ -37,6 +38,7 @@ import javax.inject.Inject;
  * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class ModelReport extends DefaultTask {
 
     /**

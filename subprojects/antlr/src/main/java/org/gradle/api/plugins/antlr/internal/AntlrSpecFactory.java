@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.antlr.AntlrTask;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +42,13 @@ public class AntlrSpecFactory {
         if (antlrTask.isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
             arguments.add("-traceTreeWalker");
         }
+        Set<File> sourceSetDirectoriesFiles;
+        if (sourceSetDirectories == null) {
+            sourceSetDirectoriesFiles = Collections.emptySet();
+        } else {
+            sourceSetDirectoriesFiles = sourceSetDirectories.getFiles();
+        }
 
-        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectories.getFiles(), antlrTask.getOutputDirectory(), antlrTask.getMaxHeapSize());
+        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, antlrTask.getOutputDirectory(), antlrTask.getMaxHeapSize());
     }
 }

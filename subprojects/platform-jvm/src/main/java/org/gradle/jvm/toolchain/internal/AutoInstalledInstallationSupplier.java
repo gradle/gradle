@@ -33,7 +33,7 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     public AutoInstalledInstallationSupplier(ProviderFactory factory, JdkCacheDirectory cacheDirProvider) {
         super(factory);
         this.cacheDirProvider = cacheDirProvider;
-        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
     }
 
     @Override

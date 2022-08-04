@@ -41,7 +41,7 @@ class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
     public static final StructBindingsStore STRUCT_BINDINGS_STORE
 
     @ClassRule
-    public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance(getClass())
+    public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance(ProjectRegistrySpec.class)
 
     static {
         def services = TestUtil.create(SERVICES_TEST_DIRECTORY.testDirectory).rootProject().services
@@ -50,6 +50,9 @@ class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
         MODEL_RULE_EXTRACTOR = services.get(ModelRuleExtractor)
         STRUCT_BINDINGS_STORE = services.get(StructBindingsStore)
         NODE_INITIALIZER_REGISTRY = new DefaultNodeInitializerRegistry(SCHEMA_STORE, STRUCT_BINDINGS_STORE)
+
+        // Class rule does not always clean this up, so clean it up now
+        SERVICES_TEST_DIRECTORY.testDirectory.deleteDir()
     }
 
     ModelRegistry registry = createModelRegistry()

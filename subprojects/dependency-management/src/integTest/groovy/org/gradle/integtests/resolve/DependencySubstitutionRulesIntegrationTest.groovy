@@ -17,13 +17,9 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
     def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
@@ -429,7 +425,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped ":api:build"
     }
 
-    @Unroll
     void "can replace project dependency #projectGroup:api:#projectVersion with external dependency org.utils:api:1.5"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
@@ -695,7 +690,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'depsub'.")
-        failure.assertHasCause("Project :doesnotexist not found.")
+        failure.assertHasCause("Project with path ':doesnotexist' not found in build ':'.")
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"() {
@@ -998,7 +993,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -1502,7 +1496,6 @@ configurations.all {
 
     }
 
-    @Unroll
     def "can substitute a classified dependency with a non classified version"() {
         def v1 = mavenRepo.module("org", "lib", "1.0")
             .artifact(classifier: 'classy')
@@ -1642,15 +1635,7 @@ configurations.all {
     def "constraint shouldn't be converted to hard dependency when a dependency subsitution applies on an external module"() {
         def fooModule = mavenRepo.module("org", "foo", "1.0")
         mavenRepo.module("org", "platform", "1.0")
-            .withModuleMetadata()
-            .adhocVariants()
-            .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
-                useDefaultArtifacts = false
-            }
-            .dependencyConstraint(fooModule)
-            .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
-                useDefaultArtifacts = false
-            }
+            .asGradlePlatform()
             .dependencyConstraint(fooModule)
             .publish()
 

@@ -122,13 +122,29 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
     val functionFqName = "$qualifiedBaseName.${method.name}"
 
     return collectDescendantsOfType { ktFunction ->
-        if (ktFunction.fqName?.asString() != functionFqName) false
-        else if (
-            couldBeExtensionFunction && ktFunction.receiverTypeReference != null &&
+        // Name check
+        if (ktFunction.fqName?.asString() != functionFqName) {
+            return@collectDescendantsOfType false
+        }
+
+        // Preliminary extension function check
+        val extensionCandidate = couldBeExtensionFunction && ktFunction.receiverTypeReference != null &&
             method.firstParameterMatches(ktFunction.receiverTypeReference!!) &&
             ktFunction.valueParameters.size == paramCountWithReceiver
-        ) true
-        else ktFunction.valueParameters.size == paramCount
+        if (!(extensionCandidate || ktFunction.valueParameters.size == paramCount)) {
+            return@collectDescendantsOfType false
+        }
+
+        // Parameter type check
+        method.parameterTypes
+            .asSequence()
+            // Drop the receiver if present
+            .drop(if (extensionCandidate) 1 else 0)
+            .withIndex()
+            .all<IndexedValue<CtClass>> {
+                val ktParamType = ktFunction.valueParameters[it.index].typeReference!!
+                it.value.isLikelyEquivalentTo(ktParamType)
+            }
     }
 }
 
@@ -240,7 +256,17 @@ val CtClass.isKotlinFileFacadeClass: Boolean
 
 private
 fun CtBehavior.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean =
-    parameterTypes.isNotEmpty() && (primitiveTypeStrings[parameterTypes.first().name] ?: parameterTypes.first().name).endsWith(ktTypeReference.text)
+    parameterTypes.firstOrNull()?.isLikelyEquivalentTo(ktTypeReference) ?: false
+
+
+private
+fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference): Boolean {
+    if (ktTypeReference.text.contains(" -> ")) {
+        // This is a function of some sort
+        return name.startsWith("kotlin.jvm.functions.Function")
+    }
+    return (primitiveTypeStrings[name] ?: name).endsWith(ktTypeReference.text.substringBefore('<'))
+}
 
 
 private

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.GradleVersion
@@ -118,7 +117,6 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "failing builds are not handled properly")
     def "project local repositories override whatever is in settings"() {
         repository {
             'org:module:1.0'()
@@ -573,7 +571,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         pluginPortal.start()
         withSettingsPlugin()
         def plugin = new PluginBuilder(file("settings-plugin"))
-            .addPluginId("org.gradle.repo-conventions", "org.gradle.test.RepoConventionPlugin")
+            .addPluginId("org.gradle.repo-conventions", "RepoConventionPlugin")
             .publishAs("g", "a", "1.0", pluginPortal, createExecuter())
 
         // make sure we don't use the default fixture which already adds repositories
@@ -741,7 +739,6 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15336")
-    @ToBeFixedForConfigurationCache(because = "Decorated exception is not recognized by the configuration cache")
     def "reasonable error message if a dependency cannot be resolved because local repositories differ"() {
         buildFile << """
             repositories {
@@ -802,20 +799,6 @@ settingsEvaluated {
     }
 
     void withSettingsPlugin() {
-        file("settings-plugin/build.gradle") << """
-            plugins {
-                id 'java-gradle-plugin'
-            }
-
-            gradlePlugin {
-                plugins {
-                    settingsPlugin {
-                        id = 'org.gradle.repo-conventions'
-                        implementationClass = 'org.gradle.test.RepoConventionPlugin'
-                    }
-                }
-            }
-        """
         file("settings-plugin/src/main/java/org/gradle/test/RepoConventionPlugin.java") << """package org.gradle.test;
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;

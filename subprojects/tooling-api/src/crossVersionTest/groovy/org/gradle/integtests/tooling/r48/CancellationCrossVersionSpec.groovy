@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r48
 
 import org.gradle.integtests.tooling.CancellationSpec
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -36,7 +37,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         when:
         withConnection { ProjectConnection connection ->
             def action = connection.action()
-            action.projectsLoaded(new BrokenAction(), Stub(IntermediateResultHandlerCollector))
+            action.projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), Stub(IntermediateResultHandlerCollector))
             def build = action.build()
             build.withCancellationToken(cancel.token())
             collectOutputs(build)

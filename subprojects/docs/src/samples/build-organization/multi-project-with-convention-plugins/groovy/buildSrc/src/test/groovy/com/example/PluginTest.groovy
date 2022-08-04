@@ -1,24 +1,23 @@
 package com.example
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 abstract class PluginTest extends Specification {
-    @Rule
-    TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir
+    File testProjectDir
     File settingsFile
     File buildFile
 
     def setup() {
-        settingsFile = testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
-        buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle').tap { it << "rootProject.name = 'test'" }
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     def runTask(String task) {
         return GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withArguments(task, '--stacktrace')
                 .withPluginClasspath()
                 .build()
@@ -26,7 +25,7 @@ abstract class PluginTest extends Specification {
 
     def runTaskWithFailure(String task) {
         return GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withArguments(task, '--stacktrace')
                 .withPluginClasspath()
                 .buildAndFail()

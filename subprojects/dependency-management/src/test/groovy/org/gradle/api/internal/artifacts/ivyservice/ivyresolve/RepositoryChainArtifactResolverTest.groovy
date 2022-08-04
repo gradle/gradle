@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
-import org.gradle.api.internal.attributes.ImmutableAttributes
+
 import org.gradle.internal.component.model.ComponentArtifactMetadata
-import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
@@ -51,56 +46,6 @@ class RepositoryChainArtifactResolverTest extends Specification {
     def setup() {
         resolver.add(repo1)
         resolver.add(repo2)
-    }
-
-    def "uses module artifacts from local access to repository defined by module source"() {
-        def artifacts = Mock(ComponentArtifacts)
-        def configuration = Stub(ConfigurationMetadata)
-        def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
-        def exclusion = Stub(ExcludeSpec)
-        def artifactSet = Stub(ArtifactSet)
-
-        when:
-        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY)
-
-        then:
-        result == artifactSet
-
-        and:
-        _ * component.getSources() >> ImmutableModuleSources.of(repo2Source)
-        1 * repo2.artifactCache >> [:]
-        1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveArtifacts(component, configuration, _) >> {
-            it[2].resolved(artifacts)
-        }
-        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY, _) >> artifactSet
-        0 * _._
-    }
-
-    def "uses module artifacts from remote access to repository defined by module source"() {
-        def artifacts = Mock(ComponentArtifacts)
-        def configuration = Stub(ConfigurationMetadata)
-        def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
-        def exclusion = Stub(ExcludeSpec)
-        def artifactSet = Stub(ArtifactSet)
-
-        when:
-        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY)
-
-        then:
-        result == artifactSet
-
-        and:
-        _ * component.getSources() >> ImmutableModuleSources.of(repo2Source)
-        1 * repo2.artifactCache >> [:]
-        1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveArtifacts(component, configuration, _)
-        1 * repo2.getRemoteAccess() >> remoteAccess2
-        1 * remoteAccess2.resolveArtifacts(component, configuration, _) >> {
-            it[2].resolved(artifacts)
-        }
-        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY, _) >> artifactSet
-        0 * _._
     }
 
     def "locates artifact with local access in repository defined by module source"() {

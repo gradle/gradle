@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
@@ -39,8 +38,7 @@ class LazyConsumerActionExecutorTest extends Specification {
     final FailsafeBuildProgressListenerAdapter buildProgressListener = Mock()
     final BuildCancellationToken cancellationToken = Mock()
 
-    final ExecutorFactory executorFactory = Mock()
-    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, executorFactory, connectionParams)
+    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, connectionParams)
 
     def createsConnectionOnDemandToBuildModel() {
         when:

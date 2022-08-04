@@ -18,7 +18,9 @@ package org.gradle.api.internal.provider.sources;
 
 import javax.annotation.Nullable;
 
-public abstract class SystemPropertyValueSource extends AbstractPropertyValueSource {
+public abstract class SystemPropertyValueSource extends AbstractPropertyValueSource<SystemPropertyValueSource.Parameters> {
+
+    public interface Parameters extends AbstractPropertyValueSource.Parameters {}
 
     @Nullable
     @Override

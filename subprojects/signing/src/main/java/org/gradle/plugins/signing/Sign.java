@@ -39,6 +39,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -56,6 +57,7 @@ import static java.util.stream.Collectors.toMap;
  * <p>The task produces {@link Signature}</p> objects that are publishable artifacts and can be assigned to another configuration. <p> The signature objects are created with defaults and using this
  * tasks signatory and signature type.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class Sign extends DefaultTask implements SignatureSpec {
 
     private SignatureType signatureType;
@@ -66,7 +68,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Inject
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
-        onlyIf(task -> isRequired() || getSignatory() != null);
+        onlyIf("Signing is required, or signatory is set", task -> isRequired() || getSignatory() != null);
     }
 
     /**
@@ -227,7 +229,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
      */
     private Map<String, Signature> sanitizedSignatures() {
-        return signatures.matching(signature -> signature.getToSign().exists()).stream().collect(toMap(Signature::toKey, identity(), (signature, duplicate) -> signature));
+        return signatures.matching(signature -> signature.getToSign().exists())
+            .stream()
+            .collect(
+                toMap(
+                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
+                    identity(),
+                    (signature, duplicate) -> signature
+                )
+            );
     }
 
     /**

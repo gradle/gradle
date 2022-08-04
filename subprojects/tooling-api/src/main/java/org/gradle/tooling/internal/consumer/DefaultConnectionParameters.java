@@ -30,6 +30,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final TimeUnit daemonMaxIdleTimeUnits;
     private final File daemonBaseDir;
     private final boolean verboseLogging;
+    private final File distributionBaseDir;
 
     public static Builder builder() {
         return new Builder();
@@ -44,6 +45,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private boolean verboseLogging;
         private File daemonBaseDir;
         private Boolean searchUpwards;
+        private File distributionBaseDir;
 
         protected Builder() {
         }
@@ -88,14 +90,18 @@ public class DefaultConnectionParameters implements ConnectionParameters {
             return this;
         }
 
+        public void setDistributionBaseDir(File distributionBaseDir) {
+            this.distributionBaseDir = distributionBaseDir;
+        }
+
         public DefaultConnectionParameters build() {
-            return new DefaultConnectionParameters(projectDir, gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, searchUpwards);
+            return new DefaultConnectionParameters(projectDir, gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, searchUpwards, distributionBaseDir);
         }
     }
 
     private DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean embedded,
                                         Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                        boolean verboseLogging, Boolean searchUpwards) {
+                                        boolean verboseLogging, Boolean searchUpwards, File distributionBaseDir) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.embedded = embedded;
@@ -104,6 +110,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         this.daemonBaseDir = daemonBaseDir;
         this.verboseLogging = verboseLogging;
         this.searchUpwards = searchUpwards;
+        this.distributionBaseDir = distributionBaseDir;
     }
 
     @Override
@@ -149,5 +156,10 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     @Override
     public Boolean isSearchUpwards() {
         return searchUpwards;
+    }
+
+    @Override
+    public File getDistributionBaseDir() {
+        return distributionBaseDir;
     }
 }

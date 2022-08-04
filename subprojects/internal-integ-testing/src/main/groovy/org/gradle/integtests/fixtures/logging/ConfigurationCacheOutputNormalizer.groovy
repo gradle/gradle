@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.fixtures.logging
 
-import org.gradle.samples.executor.ExecutionMetadata
-import org.gradle.samples.test.normalizer.OutputNormalizer
+import org.gradle.exemplar.executor.ExecutionMetadata
+import org.gradle.exemplar.test.normalizer.OutputNormalizer
 
 class ConfigurationCacheOutputNormalizer implements OutputNormalizer {
     @Override

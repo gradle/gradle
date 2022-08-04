@@ -32,6 +32,14 @@
                 <td>dependencySpec</td>
                 <td>-</td>
             </tr>
+            <tr>
+                <td>showSinglePathToDependency</td>
+                <td>false</td>
+            </tr>
+            <tr>
+                <td>showingAllVariants</td>
+                <td>false</td>
+            </tr>
         </table>
     </section>
     <section>

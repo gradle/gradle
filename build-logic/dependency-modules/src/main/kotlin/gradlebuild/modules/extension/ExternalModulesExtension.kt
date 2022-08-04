@@ -20,8 +20,9 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension {
 
-    val groovyVersion = "3.0.7"
-    val kotlinVersion = "1.4.31"
+    val groovyVersion = "3.0.11"
+    val configurationCacheReportVersion = "1.1"
+    val kotlinVersion = "1.7.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -33,6 +34,7 @@ abstract class ExternalModulesExtension {
     val asmCommons = "org.ow2.asm:asm-commons"
     val asmTree = "org.ow2.asm:asm-tree"
     val asmUtil = "org.ow2.asm:asm-util"
+    val assertj = "org.assertj:assertj-core"
     val awsS3Core = "com.amazonaws:aws-java-sdk-core"
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
@@ -41,12 +43,15 @@ abstract class ExternalModulesExtension {
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
     val bsh = "org.apache-extras.beanshell:bsh"
+    val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
     val commonsIo = "commons-io:commons-io"
     val commonsLang = "commons-lang:commons-lang"
+    val commonsLang3 = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
+    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -82,7 +87,7 @@ abstract class ExternalModulesExtension {
     val jatl = "com.googlecode.jatl:jatl"
     val jaxbCore = "com.sun.xml.bind:jaxb-core"
     val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
-    val jcifs = "org.samba.jcifs:jcifs"
+    val jcifs = "jcifs:jcifs"
     val jclToSlf4j = "org.slf4j:jcl-over-slf4j"
     val jcommander = "com.beust:jcommander"
     val jetbrainsAnnotations = "org.jetbrains:annotations"
@@ -93,6 +98,7 @@ abstract class ExternalModulesExtension {
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
+    val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
@@ -105,7 +111,6 @@ abstract class ExternalModulesExtension {
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
-    val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
@@ -119,9 +124,9 @@ abstract class ExternalModulesExtension {
     val testng = "org.testng:testng"
     val tomlj = "org.tomlj:tomlj"
     val trove4j = "org.jetbrains.intellij.deps:trove4j"
+    val jna = "net.java.dev.jna:jna"
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
-    val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
 
     // Compile only dependencies (dynamically downloaded if needed)
@@ -131,13 +136,12 @@ abstract class ExternalModulesExtension {
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
-    val archunitJunit4 = "com.tngtech.archunit:archunit-junit4"
+    val archunitJunit5 = "com.tngtech.archunit:archunit-junit5"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
-    val flightrecorder = "org.gradle.org.openjdk.jmc:flightrecorder"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
     val httpmime = "org.apache.httpcomponents:httpmime"
@@ -151,15 +155,16 @@ abstract class ExternalModulesExtension {
     val jtar = "org.kamranzafar:jtar"
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
-    val littleproxy = "org.gradle.org.littleshoot:littleproxy"
+    val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mySqlConnector = "mysql:mysql-connector-java"
-    val sampleCheck = "org.gradle:sample-check"
+    val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
+    val socksProxy = "com.github.bbottema:java-socks-proxy-server"
     val spock = "org.spockframework:spock-core"
     val spockJUnit4 = "org.spockframework:spock-junit4"
     val sshdCore = "org.apache.sshd:sshd-core"
@@ -167,6 +172,7 @@ abstract class ExternalModulesExtension {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
+    val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
@@ -178,6 +184,7 @@ abstract class ExternalModulesExtension {
         asmCommons to License.BSD3,
         asmTree to License.BSD3,
         asmUtil to License.BSD3,
+        assertj to License.Apache2,
         awsS3Core to License.Apache2,
         awsS3Kms to License.Apache2,
         awsS3S3 to License.Apache2,
@@ -185,12 +192,15 @@ abstract class ExternalModulesExtension {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
+        capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,
         commonsIo to License.Apache2,
         commonsLang to License.Apache2,
+        commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
@@ -226,6 +236,7 @@ abstract class ExternalModulesExtension {
         julToSlf4j to License.MIT,
         junit to License.EPL,
         junit5Vintage to License.EPL,
+        junit5JupiterApi to License.EPL,
         junitPlatform to License.EPL,
         jzlib to License.BSDStyle,
         kryo to License.BSD3,
@@ -238,7 +249,6 @@ abstract class ExternalModulesExtension {
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
-        nekohtml to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
         plexusInterpolation to License.Apache2,
@@ -253,7 +263,6 @@ abstract class ExternalModulesExtension {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xerces to License.Apache2,
         xmlApis to License.Apache2
     )
 }
