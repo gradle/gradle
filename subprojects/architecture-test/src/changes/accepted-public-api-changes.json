@@ -135,30 +135,6 @@
             "changes": [
                 "Constructor has been removed"
             ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.Configuration",
-            "member": "Method org.gradle.api.artifacts.Configuration.getUploadTaskName()",
-            "acceptation": "Upload task is being removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName(org.gradle.api.NamedDomainObjectProvider)",
-            "acceptation": "Upload task is being removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
-            "acceptation": "Upload task is being removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
         }
     ]
 }

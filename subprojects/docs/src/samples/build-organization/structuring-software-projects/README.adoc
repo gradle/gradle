@@ -15,4 +15,4 @@ There are different ways to work with the sample:
 - You may only build or import a selected component (and its dependencies).
   For example, only import the `user-feature` build in the IDE.
 
-  // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE (direct or transitive dependencies) to fix this sample
+// TODO:Finalize Upload Removal - Issue #21439

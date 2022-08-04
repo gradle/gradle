@@ -276,6 +276,15 @@ val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
 
 
 /**
+ * See [Configuration.getUploadTaskName].
+ */
+@Suppress("DEPRECATION") // TODO:Finalize Upload Removal - Issue #21439
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().uploadTaskName"))
+val <T : Configuration> NamedDomainObjectProvider<T>.uploadTaskName
+    get() = get().uploadTaskName
+
+
+/**
  * See [Configuration.getTaskDependencyFromProjectDependency].
  */
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)"))

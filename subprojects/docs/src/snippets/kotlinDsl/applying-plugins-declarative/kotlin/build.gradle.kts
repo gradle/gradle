@@ -1,6 +1,9 @@
+// TODO:Finalize Upload Removal - Issue #21439
+// tag::script[]
 plugins {
     java
     jacoco
     `maven-publish`
-    id("com.github.ben-manes.versions") version "0.42.0"
+    id("org.springframework.boot") version "2.4.1"
 }
+// end::script[]

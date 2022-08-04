@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
@@ -25,16 +24,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
-    // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE and restore these tests
-    // This plugin is a transitive dep fo the spring-boot-gradle-plugin
-    @Ignore("Spring boot plugin needs to be updated to handle removal of deprecated Upload task")
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
         given:
         buildFile << """
             plugins {
                 id "application"
-                id "org.springframework.boot" version "${TestedVersions.springBoot}"
+                id "org.springframework.boot" version "${TestedVersions.springBoot}" // TODO:Finalize Upload Removal - Issue #21439
             }
 
             bootRun {
@@ -69,8 +65,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            // TODO:Spring-Dependency-Management - update the boot plugin to a version with a transitive dep on this plugin > 1.0.12.RELEASE and restore these tests
-            //'org.springframework.boot': Versions.of(TestedVersions.springBoot)
+            'org.springframework.boot': Versions.of(TestedVersions.springBoot)
         ]
     }
 

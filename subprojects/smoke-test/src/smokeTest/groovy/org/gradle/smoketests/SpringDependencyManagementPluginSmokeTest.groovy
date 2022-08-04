@@ -16,19 +16,16 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-    // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE and restore these tests
-    @Ignore("Spring dependency management plugin needs to be updated to handle removal of deprecated Upload task")
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
     def 'spring dependency management plugin'() {
         given:
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '${TestedVersions.springDependencyManagement}'
+                id 'io.spring.dependency-management' version '${TestedVersions.springDependencyManagement}' // TODO:Finalize Upload Removal - Issue #21439
             }
 
             ${mavenCentralRepository()}
@@ -55,8 +52,7 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            // TODO:Spring-Dependency-Management - update to version > 1.0.12.RELEASE and restore these tests
-            //'io.spring.dependency-management' : Versions.of(TestedVersions.springDependencyManagement)
+            'io.spring.dependency-management' : Versions.of(TestedVersions.springDependencyManagement)
         ]
     }
 }
