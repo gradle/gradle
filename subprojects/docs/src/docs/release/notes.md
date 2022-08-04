@@ -301,7 +301,7 @@ connection.newTestLauncher()
 ```
 
 
-#### Introduced `TestLauncher` Fine-grained test execution 
+#### Introduced class, method, package, and pattern test selection via `TestLauncher`  
 
 The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
 
