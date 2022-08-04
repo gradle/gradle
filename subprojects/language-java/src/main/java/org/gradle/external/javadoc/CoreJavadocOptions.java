@@ -18,6 +18,7 @@ package org.gradle.external.javadoc;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
@@ -783,5 +784,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.stringifyExtraOptionsToMap(knownOptionNames()).entrySet().stream()
                 .map(e -> e.getKey() + ":" + e.getValue())
                 .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Internal access for the option file - do not use as this will be removed in a later version
+     *
+     * @return The {@code JavadocOptionFile}
+     * @since 7.5.1
+     */
+    @Incubating
+    @Internal
+    protected JavadocOptionFile getJavadocOptionFile() {
+        return optionFile;
     }
 }

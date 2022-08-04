@@ -17,19 +17,23 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
+@Requires(TestPrecondition.JDK9_OR_LATER)
 class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
+    TestFile testBuildFile
+
     def setup() {
-        file('src/main/java/module-info.java') << """
+        file('test/src/main/java/module-info.java') << """
             module test {
                 exports test;
             }
         """
-        file("src/main/java/test/Test.java") << """
+        file("test/src/main/java/test/Test.java") << """
             package test;
 
             import test.internal.TestInternal;
@@ -40,19 +44,23 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        file("src/main/java/test/internal/TestInternal.java") << """
+        file("test/src/main/java/test/internal/TestInternal.java") << """
             package test.internal;
 
             public class TestInternal {
                 public static void doSomething() { }
             }
         """
+
+        settingsFile << """
+            include 'test'
+"""
+        testBuildFile = testDirectory.file('test/build.gradle')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "can build javadoc from modularized java"() {
-        buildFile << """
+        testBuildFile << """
             apply plugin: 'java-library'
 
             java {
@@ -65,9 +73,8 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "can build javadoc from modularized java with exclusions"() {
-        buildFile << """
+        testBuildFile << """
             apply plugin: 'java-library'
 
             java {
@@ -83,4 +90,23 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
         succeeds("javadoc")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21399")
+    def "can build javadoc from modularized java with -module-source-path specified"() {
+
+        testBuildFile << """
+            apply plugin: 'java-library'
+
+            java {
+                withJavadocJar()
+            }
+
+            // Module source path needs a folder structure where the module name appears in the hierarchy
+            tasks.withType(Javadoc) {
+                options.addStringOption('-module-source-path', "\$projectDir/../*/src/main/java")
+            }
+"""
+
+        expect:
+        succeeds('javadoc')
+    }
 }

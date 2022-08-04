@@ -136,7 +136,7 @@ public class Javadoc extends SourceTask {
             throw new UncheckedIOException(ex);
         }
 
-        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
+        InternalJavadocDocletOptions options = new InternalJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -153,7 +153,7 @@ public class Javadoc extends SourceTask {
 
         // If modularized JavaDoc is needed, we need to add the source paths - the file listing is not enough alone
         // See #19726 for more
-        if (isModule) {
+        if (isModule && !options.getJavadocOptionFile().getOptions().containsKey("-module-source-path") && options.getSourcePath().isEmpty()) {
             List<File> sourceDirectories = getSource()
                 .getFiles()
                 .stream()
