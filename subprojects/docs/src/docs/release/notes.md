@@ -180,7 +180,7 @@ The following Attributes have disambiguation rules defined.
 (#): Attribute disambiguation precedence
 ```
 
-#### TODO: Extendend configuration cache support for external processes 
+#### TODO: Extended configuration cache support for external processes 
 [Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
 
 #### TODO: Extendend configuration cache support for internal plugin
