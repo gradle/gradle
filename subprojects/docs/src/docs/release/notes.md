@@ -90,7 +90,10 @@ With this version, Java and Groovy incremental compilation will work incremental
 This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
 
 
-#### Relocated convention plugins in projects generated with `init` (incubating)
+#### Relocated convention plugins in projects generated with `init`
+
+> 🐣 *This feature is incubating*.
+
 
 When generating builds using the `init` task and opting in to using incubating features, convention plugins are now located in an included build under the `gradle/plugins` directory instead of in `buildSrc`.
 
