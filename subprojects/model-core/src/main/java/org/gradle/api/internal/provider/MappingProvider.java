@@ -56,7 +56,12 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
         if (value.isMissing()) {
             return value.asType();
         }
-        return Value.of(transformer.transform(value.get()));
+
+        Value<OUT> result = value.transform(transformer);
+        if (result.isMissing()) {
+            throw new IllegalStateException("The transformer in MappingProvider must always return a value");
+        }
+        return result;
     }
 
     @Override

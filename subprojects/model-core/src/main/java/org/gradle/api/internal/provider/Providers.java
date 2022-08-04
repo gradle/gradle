@@ -47,7 +47,11 @@ public class Providers {
                 return new NoValueProvider<>(value);
             }
         } else {
-            return of(value.get());
+            if (value instanceof ValueSupplier.PresentWithSideEffect) {
+                return withSideEffect(value.get(), ((ValueSupplier.PresentWithSideEffect<?>) value).getSideEffect());
+            } else {
+                return of(value.get());
+            }
         }
     }
 
@@ -60,6 +64,13 @@ public class Providers {
             throw new IllegalArgumentException();
         }
         return new FixedValueProvider<>(value);
+    }
+
+    public static <T> ProviderInternal<T> withSideEffect(T value, Runnable sideEffect) {
+        if (value == null) {
+            throw new IllegalArgumentException();
+        }
+        return new FixedValueWithSideEffectProvider<>(value, sideEffect);
     }
 
     public static <T> ProviderInternal<T> internal(final Provider<T> value) {
@@ -112,6 +123,22 @@ public class Providers {
         @Override
         public String toString() {
             return String.format("fixed(%s, %s)", getType(), value);
+        }
+    }
+
+    public static class FixedValueWithSideEffectProvider<T> extends FixedValueProvider<T> {
+
+        private final Runnable sideEffect;
+
+        FixedValueWithSideEffectProvider(T value, Runnable sideEffect) {
+            super(value);
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            sideEffect.run();
+            return super.calculateOwnValue(consumer);
         }
     }
 

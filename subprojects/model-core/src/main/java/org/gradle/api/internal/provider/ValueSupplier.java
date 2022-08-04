@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
@@ -221,12 +222,21 @@ public interface ValueSupplier {
             return SUCCESS;
         }
 
+        static <T> Value<T> withSideEffect(T value, Runnable sideEffect) {
+            if (value == null) {
+                throw new IllegalArgumentException();
+            }
+            return new PresentWithSideEffect<>(value, sideEffect);
+        }
+
         T get() throws IllegalStateException;
 
         @Nullable
         T orNull();
 
         <S> S orElse(S defaultValue);
+
+        <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
         // Only populated when value is missing
         List<DisplayName> getPathToOrigin();
@@ -238,6 +248,51 @@ public interface ValueSupplier {
         Value<T> pushWhenMissing(@Nullable DisplayName displayName);
 
         Value<T> addPathsFrom(Value<?> rightValue);
+    }
+
+    class PresentWithSideEffect<T> extends Present<T> {
+
+        private final Runnable sideEffect;
+
+        private PresentWithSideEffect(T result, Runnable sideEffect) {
+            super(result);
+            this.sideEffect = sideEffect;
+        }
+
+        public Runnable getSideEffect() {
+            return sideEffect;
+        }
+
+        @Override
+        public T get() throws IllegalStateException {
+            runSideEffect();
+            return super.get();
+        }
+
+        @Override
+        public T orNull() {
+            runSideEffect();
+            return super.orNull();
+        }
+
+        @Override
+        public <S> S orElse(S defaultValue) {
+            runSideEffect();
+            return super.orElse(defaultValue);
+        }
+
+        @Override
+        public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
+            R result = transformer.transform(get());
+            if (result == null) {
+                return Value.missing();
+            }
+            return new PresentWithSideEffect<>(result, sideEffect);
+        }
+
+        private void runSideEffect() {
+            sideEffect.run();
+        }
     }
 
     class Present<T> implements Value<T> {
@@ -265,6 +320,11 @@ public interface ValueSupplier {
         @Override
         public <S> S orElse(S defaultValue) {
             return Cast.uncheckedCast(result);
+        }
+
+        @Override
+        public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
+            return Value.ofNullable(transformer.transform(result));
         }
 
         @Override
@@ -317,6 +377,11 @@ public interface ValueSupplier {
         @Override
         public <S> S orElse(S defaultValue) {
             return defaultValue;
+        }
+
+        @Override
+        public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
+            return asType();
         }
 
         @Override

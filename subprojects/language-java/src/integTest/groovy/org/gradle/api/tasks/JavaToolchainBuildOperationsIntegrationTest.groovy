@@ -97,7 +97,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         events = toolchainEvents(task)
         then:
         skipped(task)
-        assertToolchainUsages(events, jdkMetadata, tool)
+        if (emitsWhenUpToDate) {
+            assertToolchainUsages(events, jdkMetadata, tool)
+        }
 
         where:
         task           | tool           | configureToolchain              | emitsWhenUpToDate

@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.Jvm;
@@ -61,12 +63,13 @@ public class JavaToolchainQueryService {
         Transformer<T, JavaToolchain> toolFunction,
         DefaultJavaToolchainUsageProgressDetails.JavaTool tool
     ) {
-        return findMatchingToolchain(spec).mapTool(tool, toolFunction);
+        ProviderInternal<JavaToolchain> matchingToolchain = findMatchingToolchain(spec);
+        return new JavaToolProvider<>(toolFunction, matchingToolchain, tool);
     }
 
-    JavaToolchainAwareProvider findMatchingToolchain(JavaToolchainSpec filter) {
+    ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         ToolchainSpecInternal internalSpec = (ToolchainSpecInternal) filter;
-        return new JavaToolchainAwareProvider(() -> {
+        return new DefaultProvider<>(() -> {
             if (internalSpec.isConfigured()) {
                 return matchingToolchains.computeIfAbsent(internalSpec, k -> query(k));
             } else {
