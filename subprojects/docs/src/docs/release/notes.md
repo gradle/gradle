@@ -1,10 +1,18 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This is the first patch release for Gradle 7.5. We recommend users upgrade to 7.5.1 instead of 7.5.
+This is the first patch release for Gradle 7.5.
 
-## Fixed issues
+It fixes the following issues:
+* [#21269](https://github.com/gradle/gradle/issues/21269) JavaVersion.VERSION_18 is still marked @Incubating
+* [#21301](https://github.com/gradle/gradle/issues/21301) NullPointerException when passing certain types of config properties to Checkstyle
+* [#21346](https://github.com/gradle/gradle/issues/21346) Finalizers of finalizers no longer execute when upstream task fails
+* [#21353](https://github.com/gradle/gradle/issues/21353) CheckStyle fails because it has no javaLauncher configured
+* [#21365](https://github.com/gradle/gradle/issues/21365) Update upgrading guide to warn about change in Checkstyle working directory
+* [#21374](https://github.com/gradle/gradle/issues/21374) Storing a task property set to a ValueSource provider with ValueSourceParameters.None parameter type into configuration cache fails
+* [#21399](https://github.com/gradle/gradle/issues/21399) Gradle 7.5 Javadoc plugin is broken for multi-module aggregation (due to setting --source-path)
+* [#21400](https://github.com/gradle/gradle/issues/21400) Scala compilation fails with 'rt.jar (class sbt.internal.inc.DummyVirtualFile) is not supported'
 
-[Fixed issues in 7.5](../7.5/release-notes.html#fixed-issues)
+We recommend users upgrade to 7.5.1 instead of 7.5.
 
 ----
 
@@ -314,6 +322,8 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 The following are the features that have been promoted in this Gradle release.
 
 - The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
+
+## Fixed issues
 
 ## Known issues
 
