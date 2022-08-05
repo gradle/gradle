@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
@@ -92,6 +95,46 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         file('remote/remote-1.0.aar').assertIsCopyOf(remote.artifactFile)
     }
 
+    def "can resolve remote module with derived variants and custom packaging"() {
+        def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("notJar").hasPackaging("notJar").publish()
+
+        given:
+        buildScript """
+            plugins {
+                id 'java'
+            }
+            repositories {
+                maven { url "$mavenHttpRepo.uri" }
+            }
+            dependencies {
+                implementation "remote:remote:1.0"
+            }
+            task remote(type: Sync) {
+                into 'remote'
+                from configurations.compileClasspath
+            }
+        """
+
+        when:
+        remote.pom.expectGet()
+        remote.artifact.expectHead()
+        remote.artifact.expectGet()
+
+        run("remote")
+
+        then:
+        file("remote").assertHasDescendants("remote-1.0.notJar")
+        file('remote/remote-1.0.notJar').assertIsCopyOf(remote.artifactFile)
+
+        when:
+        server.resetExpectations()
+        run("remote")
+
+        then: // uses cached stuff
+        file("remote").assertHasDescendants("remote-1.0.notJar")
+        file('remote/remote-1.0.notJar').assertIsCopyOf(remote.artifactFile)
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/4893')
     def "can resolve remote module with custom packaging but default jar artifact"() {
         def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("jar").hasPackaging("hk2-jar").publish()
@@ -131,6 +174,62 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         then: // uses cached stuff
         file("remote").assertHasDescendants("remote-1.0.jar")
         file('remote/remote-1.0.jar').assertIsCopyOf(remote.artifactFile)
+    }
+
+    def "can resolve remote module with custom variant and custom packaging"() {
+        def remote = mavenHttpRepo.module("remote", "remote", "1.0")
+            .hasType("jar")
+            .hasPackaging("hk2-jar")
+            .withVariant('custom-javadoc') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.DOCUMENTATION)
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE.name, DocsType.JAVADOC)
+                artifact('remote-1.0-javadoc.jar')
+            }.withModuleMetadata()
+            .publish()
+
+        given:
+        buildScript """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+                        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.DOCUMENTATION))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, project.objects.named(DocsType, DocsType.JAVADOC))
+                    }
+                }
+            }
+            repositories {
+                maven { url "$mavenHttpRepo.uri" }
+            }
+            dependencies {
+                conf "remote:remote:1.0"
+            }
+            task remote(type: Sync) {
+                into 'remote'
+                from configurations.conf
+            }
+        """
+
+        when:
+        remote.pom.expectGet()
+        remote.moduleMetadata.expectGet()
+        remote.getArtifact('remote-1.0-javadoc.jar').expectGet()
+
+        run("remote")
+
+        then:
+        file("remote").assertHasDescendants("remote-1.0-javadoc.jar")
+        file('remote/remote-1.0-javadoc.jar').assertIsCopyOf(remote.getArtifact('remote-1.0-javadoc.jar').file)
+
+        when:
+        server.resetExpectations()
+        run("remote")
+
+        then: // uses cached stuff
+        file("remote").assertHasDescendants("remote-1.0-javadoc.jar")
+        file('remote/remote-1.0-javadoc.jar').assertIsCopyOf(remote.getArtifact('remote-1.0-javadoc.jar').file)
     }
 
     def "can consume remote module with custom packaging from another module"() {

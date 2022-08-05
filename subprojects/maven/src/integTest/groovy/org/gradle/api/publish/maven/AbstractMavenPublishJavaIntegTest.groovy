@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.maven.MavenJavaModule
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenFileModule module = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
@@ -65,11 +64,15 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "baz", "1.0+10")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "qux", "1.0-latest")).withModuleMetadata().publish()
 
         createBuildScripts("""
             dependencies {
                 api "org.test:foo:1.0"
                 implementation "org.test:bar:1.0"
+                implementation "org.test:baz:1.0+10"
+                implementation "org.test:qux:1.0-latest"
             }
             publishing {
                 publications {
@@ -84,13 +87,14 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         run "publish"
 
         then:
+        outputDoesNotContain(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
         javaLibrary.assertPublished()
         javaLibrary.assertApiDependencies("org.test:foo:1.0")
-        javaLibrary.assertRuntimeDependencies("org.test:bar:1.0")
+        javaLibrary.assertRuntimeDependencies("org.test:bar:1.0", "org.test:baz:1.0+10", "org.test:qux:1.0-latest")
 
         and:
         resolveArtifacts(javaLibrary) {
-            expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            expectFiles "bar-1.0.jar", "baz-1.0+10.jar", "qux-1.0-latest.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
@@ -105,7 +109,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            expectFiles "bar-1.0.jar", "baz-1.0+10.jar", "qux-1.0-latest.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
     }
 
@@ -458,7 +462,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
 
         given:
@@ -503,7 +506,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
 
         where:
-        version << ['1.+', 'latest.milestone']
+        version << ['1.+', 'latest.milestone', '+']
     }
 
     def "can publish java-library with attached artifacts"() {
@@ -542,8 +545,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
-    void "maps dependencies in the correct Maven scope"() {
+    void "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         given:
         createBuildScripts """
             publishing {
@@ -983,7 +985,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
@@ -1145,7 +1146,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         // Sadly this does not take care of the Gradle metadata
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
@@ -1217,7 +1217,6 @@ include(':platform')
 
     }
 
-    @Unroll
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""

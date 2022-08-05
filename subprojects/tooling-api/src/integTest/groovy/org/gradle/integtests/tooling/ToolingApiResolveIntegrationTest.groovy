@@ -16,11 +16,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "can resolve tooling API via #configuration"() {
         given:
         def tapiVersion = distribution.getVersion().baseVersion.version
@@ -33,7 +31,13 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
             }
 
-            configurations { customConf }
+            configurations {
+                customConf {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, "library"))
+                    }
+                }
+            }
 
             dependencies {
                 implementation 'org.gradle:gradle-tooling-api:${tapiVersion}'

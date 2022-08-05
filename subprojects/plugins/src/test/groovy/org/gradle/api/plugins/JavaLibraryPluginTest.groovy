@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
 
 import static org.gradle.util.internal.WrapUtil.toSet
 
@@ -164,7 +163,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
-    @Unroll
     def "can declare API and implementation dependencies [compileClasspathPackaging=#compileClasspathPackaging]"() {
         if (compileClasspathPackaging) {
             System.setProperty(JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY, "true")
@@ -224,13 +222,13 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def apiUsage = javaLibrary.usages.find { it.name == 'apiElements' }
 
         then:
-        runtimeUsage.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtimeUsage.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         runtimeUsage.dependencies.size() == 2
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2
         runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
-        apiUsage.artifacts.collect {it.file} == [jarTask.archivePath]
+        apiUsage.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         apiUsage.dependencies.size() == 1
         apiUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiUsage.dependencyConstraints.size() == 1

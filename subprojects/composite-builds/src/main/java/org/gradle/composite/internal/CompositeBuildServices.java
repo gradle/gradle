@@ -19,11 +19,9 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.build.BuildIncluder;
@@ -31,14 +29,20 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new CompositeBuildSessionScopeServices());
+    }
+
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildTreeScopeServices());
@@ -49,11 +53,17 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new CompositeBuildBuildScopeServices());
     }
 
+    private static class CompositeBuildSessionScopeServices {
+        public ValueSnapshotterSerializerRegistry createCompositeBuildsValueSnapshotterSerializerRegistry() {
+            return new CompositeBuildsValueSnapshotterSerializerRegistry();
+        }
+    }
+
     private static class CompositeBuildTreeScopeServices {
         public void configure(ServiceRegistration serviceRegistration) {
-            serviceRegistration.add(DefaultIncludedBuildControllers.class);
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);
+            serviceRegistration.add(DefaultIncludedBuildTaskGraph.class);
         }
 
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
@@ -73,18 +83,14 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext();
         }
 
-        public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            return new LocalComponentInAnotherBuildProvider(projectRegistry, new IncludedBuildDependencyMetadataBuilder(), calculatedValueContainerFactory);
-        }
-
-        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers, BuildStateRegistry buildRegistry) {
-            return new DefaultIncludedBuildTaskGraph(controllers, buildRegistry);
+        public DefaultLocalComponentInAnotherBuildProvider createLocalComponentProvider() {
+            return new DefaultLocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder());
         }
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
-            return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, currentBuild);
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(BuildTreeWorkGraphController buildTreeWorkGraphController, BuildState currentBuild) {
+            return new CompositeBuildClassPathInitializer(buildTreeWorkGraphController, currentBuild);
         }
 
         public PluginResolverContributor createPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {

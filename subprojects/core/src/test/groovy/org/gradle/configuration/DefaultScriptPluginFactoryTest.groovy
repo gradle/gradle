@@ -21,6 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.project.DefaultCompileOperationFactory
@@ -35,7 +36,7 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -82,7 +83,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
-        classpathHasher.hash(_ as ClassPath) >> HashCode.fromInt(123)
+        classpathHasher.hash(_ as ClassPath) >> TestHashCodes.hashCodeFrom(123)
 
         1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> PluginRequests.EMPTY
     }
@@ -109,7 +110,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with imperative and inheritable code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -133,7 +136,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with imperative code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -156,7 +161,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with inheritable and deferred code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -179,7 +186,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with deferred code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -201,7 +210,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using empty script"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)

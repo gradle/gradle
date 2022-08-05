@@ -16,6 +16,9 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Controls an instance of build operation notifications.
  *
@@ -26,6 +29,7 @@ package org.gradle.internal.operations.notify;
  * The notification listener is effectively of cross build tree scope, which doesn't exist.
  * This is because GradleBuild uses a discrete tree (which is intended to change later).
  */
+@ServiceScope(Scopes.BuildSession.class)
 public interface BuildOperationNotificationValve {
 
     void start();

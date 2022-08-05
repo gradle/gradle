@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
 
 
@@ -257,6 +258,31 @@ private constructor(
      * @param dependency the dependency provider to be added.
      * @param dependencyConfiguration the configuration to be applied to the dependency
      *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 7.4
+     */
+    @Incubating
+    operator fun <T : Any> Configuration.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProviderConvertible(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 7.4
+     */
+    @Incubating
+    operator fun <T : Any> Configuration.invoke(dependency: ProviderConvertible<T>) =
+        addProviderConvertible(name, dependency)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
      * @see [DependencyHandler.addProvider]
      * @since 7.0
      */
@@ -275,6 +301,31 @@ private constructor(
     @Incubating
     operator fun <T : Any> String.invoke(dependency: Provider<T>) =
         addProvider(this, dependency)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 7.4
+     */
+    @Incubating
+    operator fun <T : Any> String.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProviderConvertible(this, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProviderConvertible]
+     * @since 7.4
+     */
+    @Incubating
+    operator fun <T : Any> String.invoke(dependency: ProviderConvertible<T>) =
+        addProviderConvertible(this, dependency)
 
     /**
      * Configures the dependencies.

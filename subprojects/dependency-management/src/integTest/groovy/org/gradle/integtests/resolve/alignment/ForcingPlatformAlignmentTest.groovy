@@ -19,17 +19,35 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
-import spock.lang.IgnoreIf
+import org.junit.Assume
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@IgnoreIf({
-    // This test is very expensive due to the permutation testing.
-    // Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
-    // Se we run the tests only in embedded mode
-    !GradleContextualExecuter.embedded
-})
-class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+class ForcingPlatformAlignmentIvyWithGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+class ForcingPlatformAlignmentIvyWithoutGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+class ForcingPlatformAlignmentMavenWithGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+class ForcingPlatformAlignmentMavenWithoutGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
+
+    def setup() {
+        Assume.assumeTrue(GradleContextualExecuter.embedded)
+        repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
+    }
 
     def "can force a virtual platform version by forcing one of its leaves"() {
         repository {
@@ -194,7 +212,6 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    @Unroll
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -646,7 +663,6 @@ include 'other'
 
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a dependency")
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -698,7 +714,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint")
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -751,7 +766,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -804,10 +818,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-
-
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -852,7 +863,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -970,8 +980,7 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
-    def "force to higher patch version should bring the rest of aligned group up"() {
+    def "force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
             path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
@@ -1026,8 +1035,7 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
-    def "force to lower patch version should bring the rest of aligned group up"() {
+    def "force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
             path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
@@ -1079,10 +1087,6 @@ include 'other'
                 "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
                 "dependencies { conf('org:databind:2.6.7.1') { force = true } }",
         ]
-    }
-
-    def setup() {
-        repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
     }
 
     /**

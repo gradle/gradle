@@ -16,18 +16,14 @@
 
 package org.gradle.internal.hash
 
-import com.google.common.io.Files
-
 class TestFileHasher implements FileHasher {
     @Override
     HashCode hash(File file) {
-        HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
-            Files.copy(file, hashingStream);
+            return Hashing.hashFile(file)
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e)
         }
-        return hashingStream.hash();
     }
 
     @Override

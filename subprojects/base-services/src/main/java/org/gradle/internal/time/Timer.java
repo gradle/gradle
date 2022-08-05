@@ -24,7 +24,7 @@ public interface Timer {
     String getElapsed();
 
     /**
-     * Return the elapsed time in ms. Returned value is always >= 0.
+     * Return the elapsed time in ms. Returned value is always &gt;= 0.
      * @return The elapsed time, in ms.
      */
     long getElapsedMillis();

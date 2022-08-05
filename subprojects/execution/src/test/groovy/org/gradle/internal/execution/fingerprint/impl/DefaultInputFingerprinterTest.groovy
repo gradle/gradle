@@ -19,15 +19,19 @@ package org.gradle.internal.execution.fingerprint.impl
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import spock.lang.Specification
@@ -37,17 +41,19 @@ import java.util.function.Consumer
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 
 class DefaultInputFingerprinterTest extends Specification {
-    def work = Mock(UnitOfWork)
     def fingerprinter = Mock(FileCollectionFingerprinter)
+    def snapshotter = Mock(FileCollectionSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_ as FileNormalizationSpec) >> fingerprinter
     }
     def valueSnapshotter = Mock(ValueSnapshotter)
-    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
 
     def input = Mock(Object)
     def inputSnapshot = Mock(ValueSnapshot)
     def fileInput = Mock(FileCollection)
+    def fileInputSnapshot = Mock(FileSystemSnapshot)
+    def fileInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
     def fileInputFingerprint = Mock(CurrentFileCollectionFingerprint)
 
     def "visits properties"() {
@@ -57,12 +63,16 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, { fileInput }))
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
         }
 
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
-        1 * fingerprinter.fingerprint(fileInput) >> fileInputFingerprint
+        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
+        _ * fileInputSnapshotResult.fileTreeOnly >> false
+        _ * fileInputSnapshotResult.containsArchiveTrees() >> false
+        1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
+        1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
         0 * _
 
         then:
@@ -70,9 +80,52 @@ class DefaultInputFingerprinterTest extends Specification {
         result.fileFingerprints as Map == ["file": fileInputFingerprint]
     }
 
+    def "marks archive trees as properties requiring empty check"() {
+        def archiveTreeInput = Mock(FileCollection)
+        def archiveTreeInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
+        def archiveTreeInputSnapshot = Mock(FileSystemSnapshot)
+        def archiveTreeInputFingerprint = Mock(CurrentFileCollectionFingerprint)
+
+        when:
+        def result = fingerprintInputProperties { visitor ->
+            visitor.visitInputFileProperty(
+                "file",
+                NON_INCREMENTAL,
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+            visitor.visitInputFileProperty(
+                "archiveTree",
+                NON_INCREMENTAL,
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { archiveTreeInput }))
+        }
+
+        then:
+        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
+        _ * fileInputSnapshotResult.fileTreeOnly >> false
+        _ * fileInputSnapshotResult.containsArchiveTrees() >> false
+        1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
+        1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
+
+        then:
+        1 * snapshotter.snapshot(archiveTreeInput) >> archiveTreeInputSnapshotResult
+        _ * archiveTreeInputSnapshotResult.fileTreeOnly >> false
+        _ * archiveTreeInputSnapshotResult.containsArchiveTrees() >> true
+        1 * archiveTreeInputSnapshotResult.snapshot >> archiveTreeInputSnapshot
+        1 * fingerprinter.fingerprint(archiveTreeInputSnapshot, null) >> archiveTreeInputFingerprint
+
+        0 * _
+
+        then:
+        result.fileFingerprints as Map == [
+            "file": fileInputFingerprint,
+            "archiveTree": archiveTreeInputFingerprint
+        ]
+        result.propertiesRequiringIsEmptyCheck == (["archiveTree"] as Set)
+    }
+
     def "ignores already known properties"() {
         when:
         def result = fingerprintInputProperties(
+            ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of("input", inputSnapshot),
             ImmutableSortedMap.of("file", fileInputFingerprint)
@@ -81,7 +134,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
         }
 
         then:
@@ -109,12 +162,54 @@ class DefaultInputFingerprinterTest extends Specification {
         result.fileFingerprints as Map == [:]
     }
 
+    def "reports value snapshotting problem"() {
+        def failure = new RuntimeException("Error")
+        def input = "failing-value"
+
+        when:
+        fingerprintInputProperties { visitor ->
+            visitor.visitInputProperty("input") { input }
+        }
+
+        then:
+        1 * valueSnapshotter.snapshot(input) >> { throw failure }
+        0 * _
+
+        then:
+        def ex = thrown InputFingerprinter.InputFingerprintingException
+        ex.message == "Cannot fingerprint input property 'input': value 'failing-value' cannot be serialized."
+        ex.propertyName == "input"
+        ex.cause == failure
+    }
+
+    def "reports file snapshotting problem"() {
+        def failure = new UncheckedIOException(new IOException("Error"))
+        when:
+        fingerprintInputProperties { visitor ->
+            visitor.visitInputFileProperty(
+                "file",
+                NON_INCREMENTAL,
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+        }
+
+        then:
+        1 * snapshotter.snapshot(fileInput) >> { throw failure }
+        0 * _
+
+        then:
+        def ex = thrown InputFingerprinter.InputFileFingerprintingException
+        ex.message == "Cannot fingerprint input file property 'file': java.io.IOException: Error"
+        ex.propertyName == "file"
+        ex.cause == failure
+    }
+
     private Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, FileCollectionFingerprint> previousFingerprints = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, knownValueSnapshots, knownFingerprints, inputs)
+        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs)
     }
 }

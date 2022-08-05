@@ -21,11 +21,9 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import org.gradle.test.fixtures.file.TestFile;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -40,7 +38,6 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWher
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
-@RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = "org.gradle")
 public class TempDirectoryCreationControlTest {
 

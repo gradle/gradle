@@ -41,7 +41,6 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
@@ -87,7 +86,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
-    private final ProjectAccessListener projectAccessListener;
     private final BuildOperationExecutor buildOperationExecutor;
 
     private final TaskStatistics statistics;
@@ -98,7 +96,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     public DefaultTaskContainer(final ProjectInternal project,
                                 Instantiator instantiator,
                                 final ITaskFactory taskFactory,
-                                ProjectAccessListener projectAccessListener,
                                 TaskStatistics statistics,
                                 BuildOperationExecutor buildOperationExecutor,
                                 CrossProjectConfigurator crossProjectConfigurator,
@@ -106,7 +103,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator), callbackDecorator);
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskFactory, project);
-        this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationExecutor = buildOperationExecutor;
@@ -474,7 +470,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (project == null) {
             return null;
         }
-        projectAccessListener.beforeRequestingTaskByPath(project);
+        project.getOwner().ensureTasksDiscovered();
 
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }

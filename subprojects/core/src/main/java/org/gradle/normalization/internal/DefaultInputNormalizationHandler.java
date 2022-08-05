@@ -35,4 +35,31 @@ public class DefaultInputNormalizationHandler implements InputNormalizationHandl
     public void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration) {
         configuration.execute(getRuntimeClasspath());
     }
+
+    @Override
+    public CachedState computeCachedState() {
+        RuntimeClasspathNormalizationInternal.CachedState runtimeClasspathState = runtimeClasspathNormalization.computeCachedState();
+        if (runtimeClasspathState == null) {
+            return null;
+        }
+        return new DefaultCachedState(runtimeClasspathState);
+    }
+
+    @Override
+    public void configureFromCachedState(CachedState state) {
+        runtimeClasspathNormalization.configureFromCachedState(state.getRuntimeClasspathState());
+    }
+
+    private static class DefaultCachedState implements CachedState {
+        private final RuntimeClasspathNormalizationInternal.CachedState runtimeClasspathState;
+
+        public DefaultCachedState(RuntimeClasspathNormalizationInternal.CachedState runtimeClasspathState) {
+            this.runtimeClasspathState = runtimeClasspathState;
+        }
+
+        @Override
+        public RuntimeClasspathNormalizationInternal.CachedState getRuntimeClasspathState() {
+            return runtimeClasspathState;
+        }
+    }
 }

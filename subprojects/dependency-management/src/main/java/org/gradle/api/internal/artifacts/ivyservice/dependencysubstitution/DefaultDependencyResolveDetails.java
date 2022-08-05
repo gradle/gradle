@@ -32,10 +32,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.Actions;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
 
 public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
+
+    private static final NotationParser<Object, ModuleVersionSelector> USE_TARGET_NOTATION_PARSER = ModuleVersionSelectorParsers.parser("useTarget()");
 
     private final DependencySubstitutionInternal delegate;
     private final ModuleVersionSelector requested;
@@ -75,7 +78,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
 
     @Override
     public void useTarget(Object notation) {
-        ModuleVersionSelector newTarget = ModuleVersionSelectorParsers.parser().parseNotation(notation);
+        ModuleVersionSelector newTarget = USE_TARGET_NOTATION_PARSER.parseNotation(notation);
         useVersion = null;
         useSelector = DefaultModuleComponentSelector.newSelector(newTarget);
         dirty = true;

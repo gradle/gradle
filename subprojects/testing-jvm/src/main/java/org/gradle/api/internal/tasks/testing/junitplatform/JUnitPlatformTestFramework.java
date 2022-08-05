@@ -35,6 +35,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.List;
@@ -82,6 +83,11 @@ public class JUnitPlatformTestFramework implements TestFramework {
     @Override
     public TestFrameworkDetector getDetector() {
         return null;
+    }
+
+    @Override
+    public void close() throws IOException {
+        // this test framework doesn't hold any state
     }
 
     static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {

@@ -26,22 +26,18 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         setupProjectInDirectory(temporaryFolder.testDirectory)
     }
 
-    def expectDeprecationWarnings() { }
-
     abstract setupProjectInDirectory(TestFile project)
     abstract String getCompilationTask()
     abstract String getCompiledFile()
 
     def 'compilation can be cached'() {
         when:
-        expectDeprecationWarnings()
         withBuildCache().run compilationTask
 
         then:
         compileIsNotCached()
 
         when:
-        expectDeprecationWarnings()
         withBuildCache().succeeds 'clean', compilationTask
 
         then:
@@ -54,7 +50,6 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         buildFile << '''
             version = '1.0-a'
         '''
-        expectDeprecationWarnings()
         withBuildCache().run compilationTask
 
         then:
@@ -64,7 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         buildFile << '''
             version = '1.0-b'
         '''
-        expectDeprecationWarnings()
+
         withBuildCache().succeeds 'clean', compilationTask
 
         then:
@@ -77,7 +72,6 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         setupProjectInDirectory(remoteProjectDir)
 
         when:
-        expectDeprecationWarnings()
         executer.inDirectory(remoteProjectDir)
         withBuildCache().run compilationTask
         then:
@@ -88,7 +82,6 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
-        expectDeprecationWarnings()
         // Move the dependencies around by using a new Gradle user home
         executer.requireOwnGradleUserHomeDir()
         withBuildCache().run compilationTask

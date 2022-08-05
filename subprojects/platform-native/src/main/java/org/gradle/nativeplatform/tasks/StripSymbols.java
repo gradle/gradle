@@ -40,12 +40,14 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Strips the debug symbols from a binary
  *
  * @since 4.5
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class StripSymbols extends DefaultTask {
     private final RegularFileProperty binaryFile;
     private final RegularFileProperty outputFile;

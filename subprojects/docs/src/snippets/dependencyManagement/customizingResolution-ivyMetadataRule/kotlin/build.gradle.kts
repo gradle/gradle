@@ -9,8 +9,18 @@ repositories {
 }
 
 // tag::ivy-component-metadata-rule[]
-abstract class IvyVariantDerivationRule : ComponentMetadataRule {
-    @Inject abstract fun getObjects(): ObjectFactory
+abstract class IvyVariantDerivationRule @Inject internal constructor(objectFactory: ObjectFactory) : ComponentMetadataRule {
+    private val jarLibraryElements: LibraryElements
+    private val libraryCategory: Category
+    private val javaRuntimeUsage: Usage
+    private val javaApiUsage: Usage
+
+    init {
+        jarLibraryElements = objectFactory.named(LibraryElements.JAR)
+        libraryCategory = objectFactory.named(Category.LIBRARY)
+        javaRuntimeUsage = objectFactory.named(Usage.JAVA_RUNTIME)
+        javaApiUsage = objectFactory.named(Usage.JAVA_API)
+    }
 
     override fun execute(context: ComponentMetadataContext) {
         // This filters out any non Ivy module
@@ -20,16 +30,16 @@ abstract class IvyVariantDerivationRule : ComponentMetadataRule {
 
         context.details.addVariant("runtimeElements", "default") {
             attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements.JAR))
-                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage.JAVA_RUNTIME))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarLibraryElements)
+                attribute(Category.CATEGORY_ATTRIBUTE, libraryCategory)
+                attribute(Usage.USAGE_ATTRIBUTE, javaRuntimeUsage)
             }
         }
         context.details.addVariant("apiElements", "compile") {
             attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements.JAR))
-                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage.JAVA_API))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarLibraryElements)
+                attribute(Category.CATEGORY_ATTRIBUTE, libraryCategory)
+                attribute(Usage.USAGE_ATTRIBUTE, javaApiUsage)
             }
         }
     }

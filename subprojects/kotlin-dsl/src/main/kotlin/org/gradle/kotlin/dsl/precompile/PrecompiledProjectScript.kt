@@ -17,9 +17,12 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
 
 
@@ -49,9 +52,20 @@ open class PrecompiledProjectScript(
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit) {
         block(
-            PluginDependenciesSpec { pluginId ->
-                project.pluginManager.apply(pluginId)
-                NullPluginDependencySpec
+            object : PluginDependenciesSpec {
+                override fun id(id: String): PluginDependencySpec {
+                    project.pluginManager.apply(id)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
+                    project.pluginManager.apply(notation.get().pluginId)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
+                    return alias(notation.asProvider())
+                }
             }
         )
     }

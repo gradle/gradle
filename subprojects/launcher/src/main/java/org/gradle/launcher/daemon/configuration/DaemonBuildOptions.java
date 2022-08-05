@@ -47,6 +47,10 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         options.add(new JvmArgsOption());
         options.add(new JavaHomeOption());
         options.add(new DebugOption());
+        options.add(new DebugHostOption());
+        options.add(new DebugPortOption());
+        options.add(new DebugServerOption());
+        options.add(new DebugSuspendOption());
         options.add(new DaemonOption());
         options.add(new ForegroundOption());
         options.add(new StopOption());
@@ -74,7 +78,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setIdleTimeout(Integer.valueOf(value));
+                settings.setIdleTimeout(Integer.parseInt(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
@@ -91,7 +95,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setPeriodicCheckInterval(Integer.valueOf(value));
+                settings.setPeriodicCheckInterval(Integer.parseInt(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
@@ -160,11 +164,74 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
     }
 
+    public static class DebugHostOption extends StringBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.host";
+
+        public DebugHostOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            settings.setDebugHost(value);
+        }
+    }
+
+    public static class DebugPortOption extends StringBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.port";
+
+        public DebugPortOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            String hint = "must be a number between 1 and 65535";
+            int port = 0;
+            try {
+                port = Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                origin.handleInvalidValue(value, hint);
+            }
+            if (port < 1 || port > 65535) {
+                origin.handleInvalidValue(value, hint);
+            } else {
+                settings.setDebugPort(port);
+            }
+        }
+    }
+
+    public static class DebugSuspendOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.suspend";
+
+        public DebugSuspendOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
+            settings.setDebugSuspend(value);
+        }
+    }
+
+    public static class DebugServerOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.server";
+
+        public DebugServerOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
+            settings.setDebugServer(value);
+        }
+    }
+
     public static class DaemonOption extends BooleanBuildOption<DaemonParameters> {
         public static final String GRADLE_PROPERTY = "org.gradle.daemon";
 
         public DaemonOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running.", "Do not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default."));
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("daemon", "Uses the Gradle daemon to run the build. Starts the daemon if not running.", "Do not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default."));
         }
 
         @Override
@@ -175,7 +242,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
     public static class ForegroundOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public ForegroundOption() {
-            super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground."));
+            super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle daemon in the foreground."));
         }
 
         @Override
@@ -186,7 +253,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
     public static class StopOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StopOption() {
-            super(null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle Daemon if it is running."));
+            super(null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle daemon if it is running."));
         }
 
         @Override
@@ -197,7 +264,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
     public static class StatusOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StatusOption() {
-            super(null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle Daemon(s)."));
+            super(null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle daemon(s)."));
         }
 
         @Override

@@ -23,10 +23,10 @@ import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -37,8 +37,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.StringValueSnapshot
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -46,7 +46,7 @@ import javax.inject.Inject
 
 class CrossBuildCachingRuleExecutorTest extends Specification {
 
-    CacheRepository cacheRepository = Mock()
+    GlobalScopedCache cacheRepository = Mock()
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory = Mock()
     ValueSnapshotter valueSnapshotter = Mock()
     BuildCommencedTimeProvider timeProvider = Stub()

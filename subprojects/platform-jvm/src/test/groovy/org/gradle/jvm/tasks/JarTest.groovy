@@ -39,7 +39,7 @@ class JarTest extends AbstractArchiveTaskTest {
 
     def "test Jar"() {
         expect:
-        jar.extension == Jar.DEFAULT_EXTENSION
+        jar.archiveExtension.get() == Jar.DEFAULT_EXTENSION
         jar.manifest != null
         jar.metaInf != null
     }
@@ -86,6 +86,6 @@ class JarTest extends AbstractArchiveTaskTest {
         execute(jar)
 
         then:
-        new JarTestFixture(jar.archivePath).assertContainsFile('META-INF/file.txt')
+        new JarTestFixture(jar.archiveFile.get().asFile).assertContainsFile('META-INF/file.txt')
     }
 }

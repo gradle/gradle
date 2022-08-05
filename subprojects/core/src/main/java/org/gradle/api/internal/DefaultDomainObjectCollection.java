@@ -25,6 +25,8 @@ import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.DefaultListProperty;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -83,15 +85,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected CollectionFilter<T> createFilter(Spec<? super T> filter) {
-        return createFilter(getType(), filter);
+        return new CollectionFilter<>(type, eventRegister.getDecorator().decorateSpec(filter));
     }
 
     protected <S extends T> CollectionFilter<S> createFilter(Class<S> type) {
-        return new CollectionFilter<S>(type);
-    }
-
-    protected <S extends T> CollectionFilter<S> createFilter(Class<? extends S> type, Spec<? super S> spec) {
-        return new CollectionFilter<S>(type, spec);
+        return new CollectionFilter<>(type);
     }
 
     protected <S extends T> DefaultDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
@@ -117,7 +115,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public DomainObjectCollection<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
+        return matching(Specs.convertClosureToSpec(spec));
     }
 
     @Override
@@ -293,7 +291,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     public void addAllLater(Provider<? extends Iterable<T>> provider) {
         assertMutable("addAllLater(Provider)");
         assertMutableCollectionContents();
-        CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
+        final CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal;
+        if (provider instanceof CollectionProviderInternal) {
+            providerInternal = Cast.uncheckedCast(provider);
+        } else {
+            // We don't know the type of element in the provider, so we assume it's the type of the collection
+            DefaultListProperty<T> defaultListProperty = new DefaultListProperty<T>(PropertyHost.NO_OP, Cast.uncheckedCast(getType()));
+            defaultListProperty.convention(provider);
+            providerInternal = defaultListProperty;
+        }
         store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
             for (T value : provider.get()) {

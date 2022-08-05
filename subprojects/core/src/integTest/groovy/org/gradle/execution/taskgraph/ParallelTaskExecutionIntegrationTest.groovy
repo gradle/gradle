@@ -17,11 +17,13 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 import spock.lang.Timeout
 
@@ -90,8 +92,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             }
 
             allprojects {
+                def pingEndings = ['FailingPing', 'PingWithCacheableWarnings', 'SerialPing', 'InvalidPing']
+
                 tasks.addRule("<>Ping") { String name ->
-                    if (name.endsWith("Ping") && name.size() == 5) {
+                    if (name.endsWith("Ping") && pingEndings.every { !name.endsWith(it) }) {
                         tasks.create(name, Ping)
                     }
                 }
@@ -149,8 +153,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         """
         expect:
         2.times {
-            blockingServer.expect(":aPing")
-            blockingServer.expect(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -259,6 +262,47 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
+    def "tasks from same project do not run in parallel even when tasks do undeclared dependency resolution"() {
+        given:
+        executer.beforeExecute {
+            withArgument("--parallel")
+        }
+        withParallelThreads(3)
+
+        buildFile("""
+            allprojects {
+                apply plugin: 'java-library'
+            }
+            project(":b") {
+                dependencies {
+                    implementation project(":a")
+                }
+
+                task undeclared {
+                    doLast {
+                        ${blockingServer.callFromBuild("before-resolve")}
+                        configurations.runtimeClasspath.files.each { }
+                        ${blockingServer.callFromBuild("after-resolve")}
+                    }
+                }
+                task other {
+                    doLast {
+                        ${blockingServer.callFromBuild("other")}
+                    }
+                }
+            }
+        """)
+
+        when:
+        blockingServer.expect("before-resolve")
+        blockingServer.expect("after-resolve")
+        blockingServer.expect("other")
+        run("undeclared", "other")
+
+        then:
+        noExceptionThrown()
+    }
+
     def "tasks are not run in parallel if there are tasks without async work running in a different project without --parallel"() {
         given:
         withParallelThreads(3)
@@ -288,8 +332,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -307,8 +350,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":a:aPing")
-            blockingServer.expectConcurrent(":b:bPing")
+            blockingServer.expectConcurrent(1, ":a:aPing", ":b:bPing")
             run ":a:aPing", ":b:bPing"
         }
     }
@@ -320,21 +362,21 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         buildFile << """
             def foo = file("foo")
 
-            aPing.destroyables.register foo
+            destroyerPing.destroyables.register foo
 
-            bPing.outputs.file foo
-            bPing.doLast { foo << "foo" }
+            producerPing.outputs.file foo
+            producerPing.doLast { foo << "foo" }
 
-            cPing.inputs.file foo
-            cPing.dependsOn bPing
+            consumerPing.inputs.file foo
+            consumerPing.dependsOn producerPing
         """
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
-            blockingServer.expectConcurrent(":cPing")
-            run ":aPing", ":cPing"
+            blockingServer.expectConcurrent(":destroyerPing")
+            blockingServer.expectConcurrent(":producerPing")
+            blockingServer.expectConcurrent(":consumerPing")
+            run ":destroyerPing", ":consumerPing"
         }
     }
 
@@ -488,7 +530,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expect(":aInvalidPing")
             blockingServer.expectConcurrent(":bPing", ":cPing")
@@ -514,11 +556,116 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expectConcurrent(":aPing", ":bPing")
             blockingServer.expect(":cInvalidPing")
             run ":aPing", ":bPing", ":cInvalidPing"
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17013")
+    def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
+        buildFile("""
+            import org.gradle.util.internal.GFileUtils
+
+            abstract class OutputDeadlockTask extends DefaultTask {
+                @Inject
+                abstract ProjectLayout getProjectLayout()
+
+                @InputFiles
+                abstract ConfigurableFileCollection getInputFiles()
+
+                @OutputFiles
+                List<RegularFile> getOutputFiles() {
+                    def buildDirectory = projectLayout.buildDirectory
+                    return inputFiles.collect { buildDirectory.file(it.name + ".out").get() }
+                }
+
+                @TaskAction
+                void execute() {
+                    def buildDirectory = projectLayout.buildDirectory
+                    inputFiles.files.each { File inputFile ->
+                        def outputFile = buildDirectory.file(inputFile.name + ".out").get().asFile
+                        GFileUtils.copyFile(inputFile, outputFile)
+                    }
+                }
+            }
+            allprojects {
+                apply plugin: 'java-library'
+
+                tasks.register("outputDeadlock", OutputDeadlockTask) {
+                    inputFiles.from(configurations.compileClasspath)
+                }
+
+                ${RepoScriptBlockUtil.mavenCentralRepository()}
+
+                dependencies {
+                    api 'org.apache.commons:commons-math3:3.6.1'
+                    api 'org.apache.commons:commons-io:1.3.2'
+                }
+            }
+        """)
+        withParallelThreads(3)
+        executer.beforeExecute {
+            withArgument("--parallel")
+        }
+
+        expect:
+        succeeds("outputDeadlock")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17905")
+    def "does not fail when outputs requires resolving configurations"() {
+        buildFile("""
+            abstract class OutputsAsMappedInputs extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getInput()
+
+                @OutputFiles
+                List<File> getOutputFiles() {
+                    return input.files.collect { project.file("build/outputs/\${it.name}") }
+                }
+
+                @TaskAction
+                void exec() {}
+            }
+
+            abstract class BasicTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void exec() {}
+            }
+            subprojects {
+                configurations.create("myconfig1") {
+                    canBeResolved = true
+                    canBeConsumed = false
+                }
+                configurations.create("myconfig2") {
+                    canBeResolved = true
+                    canBeConsumed = false
+                }
+
+                def problematic = tasks.register("problematicTask", OutputsAsMappedInputs) {
+                    input.from(configurations.myconfig1)
+                }
+                def basic = tasks.register("basicTask", BasicTask) {
+                    input.from(configurations.myconfig2)
+                    outputFile.set(project.layout.buildDirectory.file("output.txt"))
+                }
+                tasks.register("runAll") {
+                    dependsOn(problematic, basic)
+                }
+            }
+        """)
+        withParallelThreads(3)
+
+        expect:
+        succeeds "runAll", "--parallel"
     }
 }

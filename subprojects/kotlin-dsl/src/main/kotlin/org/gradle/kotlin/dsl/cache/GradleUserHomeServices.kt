@@ -17,10 +17,10 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 
 
 internal
@@ -28,18 +28,18 @@ object GradleUserHomeServices {
 
     @Suppress("unused")
     fun createKotlinDslWorkspaceProvider(
-        cacheRepository: CacheRepository,
-        cacheScopeMapping: CacheScopeMapping,
+        cacheRepository: GlobalScopedCache,
         fileAccessTimeJournal: FileAccessTimeJournal,
         inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
-        stringInterner: StringInterner
+        stringInterner: StringInterner,
+        classLoaderHasher: ClassLoaderHierarchyHasher
     ): KotlinDslWorkspaceProvider {
         return KotlinDslWorkspaceProvider(
             cacheRepository,
-            cacheScopeMapping,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
-            stringInterner
+            stringInterner,
+            classLoaderHasher
         )
     }
 }

@@ -61,13 +61,14 @@ class ValidationProblemPropertyAnnotationHandler implements PropertyAnnotationHa
                 .withId(ValidationProblemId.TEST_PROBLEM)
                 .reportAs(annotationValue(propertyMetadata))
                 .withDescription("test problem")
+                .documentedAt("id", "section")
                 .happensBecause("this is a test")
         );
     }
 
     private Severity annotationValue(PropertyMetadata propertyMetadata) {
         return Optional.ofNullable((ValidationProblem) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE))
-            .map(ValidationProblem::getValue)
+            .map(ValidationProblem::value)
             .orElse(Severity.WARNING);
     }
 }

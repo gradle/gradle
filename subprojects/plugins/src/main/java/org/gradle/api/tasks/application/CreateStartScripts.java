@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.application;
 
+import org.gradle.work.DisableCachingByDefault;
+
 /**
  * Creates start scripts for launching JVM applications.
  * <p>
@@ -79,5 +81,6 @@ package org.gradle.api.tasks.application;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class CreateStartScripts extends org.gradle.jvm.application.tasks.CreateStartScripts {
 }

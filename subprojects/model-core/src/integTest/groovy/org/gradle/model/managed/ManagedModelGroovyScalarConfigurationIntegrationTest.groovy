@@ -18,7 +18,6 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -134,7 +133,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         apply type: RulePlugin
         '''
 
-    @Unroll
     void 'only CharSequence input values are supported - #varname'() {
         when:
         buildFile << CLASSES
@@ -188,7 +186,6 @@ The following types/formats are supported:
         value << ["12", "false"]
     }
 
-    @Unroll
     void 'number types require stringified numeric inputs - #varname'() {
         when:
         buildFile << CLASSES
@@ -226,7 +223,6 @@ The following types/formats are supported:
         'theByte'       | Byte
     }
 
-    @Unroll
     void 'primitive types cannot accept null values'() {
         when:
         buildFile << CLASSES
@@ -260,7 +256,6 @@ The following types/formats are supported:
         'thechar'   | char
     }
 
-    @Unroll
     void 'non-primitive types can accept null values'() {
         when:
         buildFile << CLASSES
@@ -321,7 +316,6 @@ The following types/formats are supported:
         failure.assertHasCause("Cannot convert string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'")
     }
 
-    @Unroll
     void 'boolean types are only true for the literal string "true"'() {
         when:
         buildFile << CLASSES

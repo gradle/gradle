@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.scripts;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.scripts.ScriptingLanguage;
 
 import java.io.File;
@@ -26,6 +28,7 @@ import javax.annotation.Nullable;
  *
  * @since 4.0
  */
+@ServiceScope(Scope.Global.class)
 public interface ScriptFileResolver {
 
     /**

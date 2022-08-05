@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileMetadata.AccessType;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
     private final String absolutePath;
@@ -60,8 +61,8 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor) {
-        snapshotVisitor.visitSnapshotRoot(this);
+    public Stream<FileSystemLocationSnapshot> rootSnapshots() {
+        return Stream.of(this);
     }
 
     @Override
@@ -89,11 +90,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return getChildNode(relativePath, caseSensitivity);
+    public Optional<FileSystemNode> getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return Optional.of(getChildNode(relativePath, caseSensitivity));
     }
 
-    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    protected FileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return missingSnapshotForAbsolutePath(relativePath.getAbsolutePath());
     }
 

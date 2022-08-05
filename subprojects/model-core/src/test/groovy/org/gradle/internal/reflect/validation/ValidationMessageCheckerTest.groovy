@@ -236,9 +236,35 @@ Possible solutions:
     }
 
     @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
+    def "tests output of modifierAnnotationInvalidInContext"() {
+        when:
+        render modifierAnnotationInvalidInContext {
+            type('SomeType').property('prop')
+            annotation('Invalid')
+            validAnnotations = "@Classpath, @CompileClasspath or @PathSensitive"
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'SomeType' property 'prop' is annotated with invalid modifier @Invalid.
+
+Reason: The '@Invalid' annotation cannot be used in this context.
+
+Possible solutions:
+  1. Remove the annotation.
+  2. Use a different annotation, e.g one of @Classpath, @CompileClasspath or @PathSensitive.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#annotation_invalid_in_context for more details about this problem.
+"""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.MISSING_ANNOTATION
     )
-    def "tests ouput of missingAnnotationMessage"() {
+    def "tests output of missingAnnotationMessage"() {
         when:
         render missingAnnotationMessage {
             type('Task').property('prop')
@@ -537,7 +563,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
         def ancestor = dummyLocation('/tmp/foo')
 
         when:
-        render cannotWriteToFile {
+        render cannotWriteFileToDirectory {
             type('Writer').property('output')
             file(location)
             isNotFile()
@@ -550,13 +576,15 @@ Type 'Writer' property 'output' is not writable because '${location}' is not a f
 
 Reason: Cannot write a file to a location pointing at a directory.
 
-Possible solution: Configure 'output' to point to a file, not a directory.
+Possible solutions:
+  1. Configure 'output' to point to a file, not a directory.
+  2. Annotate 'output' with @OutputDirectory instead of @OutputFiles.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
 """
 
         when:
-        render cannotWriteToFile {
+        render cannotCreateParentDirectories {
             type('Writer').property('output')
             file(location)
             ancestorIsNotDirectory(ancestor)
@@ -567,9 +595,9 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
         outputEquals """
 Type 'Writer' property 'output' is not writable because '${location}' ancestor '${ancestor}' is not a directory.
 
-Reason: Cannot write a file to a location pointing at a directory.
+Reason: Cannot create parent directories that are existing as file.
 
-Possible solution: Configure 'output' to point to a file, not a directory.
+Possible solution: Configure 'output' to point to the correct location.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
 """
@@ -601,6 +629,31 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    def "tests output of cannotCreateRootOfFileTree"() {
+        def location = dummyLocation('/tmp/foo/bar')
+
+        when:
+        render cannotCreateRootOfFileTree {
+            type('Writer').property('output')
+            dir(location)
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'Writer' property 'output' is not writable because '${location}' is not a directory.
+
+Reason: Expected the root of the file tree '${location}' to be a directory but it's a file.
+
+Possible solution: Make sure that the root of the file tree 'output' is configured to a directory.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+"""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.UNSUPPORTED_NOTATION
     )
     def "tests output of unsupportedNotation"() {
@@ -628,7 +681,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "tests output of invalidUseOfCacheableAnnotation"() {
         when:
@@ -746,6 +799,121 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation of nested property implemented by lambda"() {
+        when:
+        render implementationUnknown(true) {
+            nestedProperty('action')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Property 'action' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'.
+
+Reason: Using Java lambdas is not supported as task inputs.
+
+Possible solution: Use an (anonymous inner) class instead.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation of additional task action implemented by lambda"() {
+        when:
+        render implementationUnknown(true) {
+            additionalTaskAction(':myTask')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Additional action of task ':myTask' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'.
+
+Reason: Using Java lambdas is not supported as task inputs.
+
+Possible solution: Use an (anonymous inner) class instead.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation with unknown classloader"() {
+        when:
+        render implementationUnknown(true) {
+            implementationOfTask(':myTask')
+            unknownClassloader('Unknown')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Implementation of task ':myTask' was loaded with an unknown classloader (class 'Unknown').
+
+Reason: Gradle cannot track the implementation for classes loaded with an unknown classloader.
+
+Possible solution: Load your class by using one of Gradle's built-in ways.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    )
+    def "tests output of task without non-cacheable reason"() {
+        when:
+        render notCacheableWithoutReason {
+            type("MyTask")
+            noReasonOnTask()
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
+
+Reason: The task author should make clear why a task is not cacheable.
+
+Possible solutions:
+  1. Add @DisableCachingByDefault(because = ...).
+  2. Add @CacheableTask.
+  3. Add @UntrackedTask(because = ...).
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    )
+    def "tests output of transform action without non-cacheable reason"() {
+        when:
+        render notCacheableWithoutReason {
+            type("MyTransform")
+            noReasonOnArtifactTransform()
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'MyTransform' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
+
+Reason: The transform action author should make clear why a transform action is not cacheable.
+
+Possible solutions:
+  1. Add @DisableCachingByDefault(because = ...).
+  2. Add @CacheableTransform.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     def "tests output of dummyValidationProblem"() {
@@ -755,6 +923,27 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
         then:
         outputEquals """
 Type 'Foo' property 'Bar' with some description.
+
+Reason: Some reason.
+"""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
+    def "displays plugin id when available"() {
+        when:
+        render dummyValidationProblem {
+            inPlugin 'com.foo.bar'
+            type 'Foo'
+            property 'bar'
+            description 'with some description'
+            reason 'some reason'
+        }
+
+        then:
+        outputEquals """
+In plugin 'com.foo.bar' type 'Foo' property 'bar' with some description.
 
 Reason: Some reason.
 """

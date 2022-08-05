@@ -20,8 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -60,6 +60,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.VerificationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
@@ -79,6 +80,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -99,6 +101,7 @@ import java.util.Map;
  *
  * @since 4.4
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask, Reporting<TestTaskReports> {
     private final DefaultTestFilter filter;
     private final TestTaskReports reports;
@@ -416,7 +419,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure configure closure
      */
-    public void testLogging(Closure closure) {
+    public void testLogging(@DelegatesTo(TestLoggingContainer.class) Closure closure) {
         ConfigureUtil.configure(closure, testLogging);
     }
 
@@ -646,7 +649,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (getIgnoreFailures()) {
             getLogger().warn(message);
         } else {
-            throw new GradleException(message);
+            throw new VerificationException(message);
         }
     }
 

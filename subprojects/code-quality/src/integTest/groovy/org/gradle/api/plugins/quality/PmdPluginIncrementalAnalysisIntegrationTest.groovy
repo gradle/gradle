@@ -19,7 +19,6 @@ import org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTes
 import org.gradle.util.Matchers
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -92,7 +91,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         file("build/reports/pmd/main.xml").assertContents(CoreMatchers.not(containsString('BadClass')))
     }
 
-    @Unroll
     def 'incremental analysis invalidated when #reason'() {
         given:
         Assume.assumeTrue(supportIncrementalAnalysis())

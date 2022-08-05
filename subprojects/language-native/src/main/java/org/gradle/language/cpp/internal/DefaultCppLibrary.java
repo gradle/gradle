@@ -25,7 +25,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -75,11 +74,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        apiElements.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
 
         AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        publicationAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.ZIP_TYPE);
+        publicationAttributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.ZIP_TYPE);
         mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, objectFactory);
     }
 

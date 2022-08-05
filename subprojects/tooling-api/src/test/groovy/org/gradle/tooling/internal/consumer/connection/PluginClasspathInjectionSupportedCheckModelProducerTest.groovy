@@ -21,7 +21,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PluginClasspathInjectionSupportedCheckModelProducerTest extends Specification {
 
@@ -43,7 +42,6 @@ class PluginClasspathInjectionSupportedCheckModelProducerTest extends Specificat
         thrown UnsupportedVersionException
     }
 
-    @Unroll
     def "does not fail when version is #version and classpath is empty = #empty"() {
         when:
         run(version, empty)

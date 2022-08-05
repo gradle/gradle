@@ -39,7 +39,7 @@ import org.gradle.util.internal.ClosureBackedAction
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
-abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> extends ProjectRegistrySpec {
+abstract class NodeBackedModelMapSpec<T extends Named, S extends Special & T> extends ProjectRegistrySpec {
     abstract Class<T> getItemClass()
     abstract Class<S> getSpecialItemClass()
     ModelType<T> getItemType() { ModelType.of(itemClass) }

@@ -17,9 +17,8 @@
 package gradlebuild.buildutils.tasks
 
 import gradlebuild.buildutils.model.ReleasedVersion
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import java.text.SimpleDateFormat
 
@@ -27,8 +26,8 @@ class UpdateReleasedVersionsIntegrationTest extends Specification {
 
     def format = new SimpleDateFormat('yyyyMMddHHmmssZ')
 
-    @Rule
-    TemporaryFolder tmpDir
+    @TempDir
+    File tmpDir
 
     def setup() {
         format.timeZone = TimeZone.getTimeZone("UTC")
@@ -36,7 +35,7 @@ class UpdateReleasedVersionsIntegrationTest extends Specification {
 
     def "updated released version file has expected format"() {
         given:
-        def releasedVersionsFile = tmpDir.newFile("released-versions.json")
+        def releasedVersionsFile = new File(tmpDir, "released-versions.json")
         releasedVersionsFile << '''{
   "latestReleaseSnapshot": {
     "version": "6.6-20200702230251+0000",

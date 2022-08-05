@@ -21,9 +21,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -39,7 +37,6 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         """
     }
 
-    @Unroll
     def "defaults to the external dependencies variant (#bundling)"() {
         given:
         repository {
@@ -103,8 +100,6 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         bundling << [Bundling.EMBEDDED, Bundling.SHADOWED]
     }
 
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*selected=null.*"])
-    @Unroll
     def "selects the appropriate variant (producer=#bundling, requested=#requested, selected=#selected)"() {
         given:
         repository {

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of types that represent containers of files"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
@@ -40,7 +42,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     // Some cycles have been inherited from the time these classes were in :core
-    excludePatterns.add("org/gradle/api/internal/file/collections/")
+    excludePatterns.add("org/gradle/api/internal/file/collections/**")
 }

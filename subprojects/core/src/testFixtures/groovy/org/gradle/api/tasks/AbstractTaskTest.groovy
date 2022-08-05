@@ -184,6 +184,25 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         !task.getOnlyIf().isSatisfiedBy(task)
     }
 
+    def "can specify onlyIf predicate using description and spec"() {
+        given:
+        final task = getTask()
+        final Spec<Task> spec = Mock(Spec.class)
+        spec.isSatisfiedBy(task) >> false
+
+        expect:
+        task.getOnlyIf().isSatisfiedBy(task)
+
+        when:
+        task.onlyIf("Always false", spec)
+
+        then:
+        !task.getOnlyIf().isSatisfiedBy(task)
+        def foundSpec = task.getOnlyIf().findUnsatisfiedSpec(task)
+        foundSpec != null
+        foundSpec.displayName == "Always false"
+    }
+
     def "onlyIf predicate is true when task is enabled and all predicates are true"() {
         given:
         final MutableBoolean condition1 = new MutableBoolean(true)
@@ -196,7 +215,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
             }
         })
 
-        task.onlyIf(new Spec<Task>() {
+        task.onlyIf("Condition 2 was not met", new Spec<Task>() {
             boolean isSatisfiedBy(Task element) {
                 return condition2.get()
             }
@@ -210,6 +229,9 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         !task.getOnlyIf().isSatisfiedBy(task)
+        def disabledSpec = task.getOnlyIf().findUnsatisfiedSpec(task)
+        disabledSpec != null
+        disabledSpec.displayName == "Task is enabled"
 
         when:
         task.setEnabled(true)
@@ -217,6 +239,9 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         !task.getOnlyIf().isSatisfiedBy(task)
+        def condition1Spec = task.getOnlyIf().findUnsatisfiedSpec(task)
+        condition1Spec != null
+        condition1Spec.displayName == "Task satisfies onlyIf spec"
 
         when:
         condition1.set(true)
@@ -224,6 +249,9 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         !task.getOnlyIf().isSatisfiedBy(task)
+        def condition2Spec = task.getOnlyIf().findUnsatisfiedSpec(task)
+        condition2Spec != null
+        condition2Spec.displayName == "Condition 2 was not met"
 
         when:
         condition2.set(true)

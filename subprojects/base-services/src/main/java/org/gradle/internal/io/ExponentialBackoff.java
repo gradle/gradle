@@ -18,7 +18,6 @@ package org.gradle.internal.io;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -59,20 +58,18 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     }
 
     /**
-     * Retries the given query until it returns a non-null value.
+     * Retries the given query until it returns a 'sucessful' result.
      *
      * @param query which returns non-null value when successful.
      * @param <T> the result type.
-     *
      * @return the last value returned by the query.
      * @throws IOException thrown by the query.
      * @throws InterruptedException if interrupted while waiting.
      */
-    @Nullable
     public <T> T retryUntil(IOQuery<T> query) throws IOException, InterruptedException {
         int iteration = 0;
-        T result;
-        while ((result = query.run()) == null) {
+        IOQuery.Result<T> result;
+        while (!(result = query.run()).isSuccessful()) {
             if (timer.hasExpired()) {
                 break;
             }
@@ -81,7 +78,7 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
                 iteration = 0;
             }
         }
-        return result;
+        return result.getValue();
     }
 
     long backoffPeriodFor(int iteration) {

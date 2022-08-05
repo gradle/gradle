@@ -18,11 +18,10 @@ package org.gradle.internal.nativeintegration.filesystem.services
 
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.file.Files
-import org.gradle.api.JavaVersion
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.UsesNativeServices
+import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
 
 import java.nio.file.LinkOption
 import java.nio.file.attribute.BasicFileAttributeView
@@ -38,14 +37,6 @@ class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataA
     @Override
     void assertSameLastModified(FileMetadata fileMetadata, File file) {
         assert maybeRoundLastModified(fileMetadata.lastModified) == maybeRoundLastModified(lastModifiedViaJavaNio(file))
-    }
-
-    private static maybeRoundLastModified(long lastModified) {
-        // Some Java 8 versions on Unix only capture the seconds in lastModified, so we cut off the milliseconds returned from the filesystem as well.
-        // For example, Oracle JDK 1.8.0_181-b13 does not capture milliseconds, while OpenJDK 1.8.0_242-b08 does.
-        return (JavaVersion.current().java9Compatible || OperatingSystem.current().windows)
-            ? lastModified
-            : lastModified.intdiv(1000) * 1000
     }
 
     private static long lastModifiedViaJavaNio(File file) {

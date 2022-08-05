@@ -23,9 +23,8 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
-import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.CollectionUtils;
-import org.junit.ComparisonFailure;
+import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +36,12 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
+    // This monster is to find lines in our logs that look like stack traces
+    // We want to match lines that contain just packages and classes:
+    // at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:145)
+    // and with module names:
+    // at java.base/java.lang.Thread.dumpStack(Thread.java:1383)
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[a-zA-Z_][\\w.$]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private static final String TASK_PREFIX = "> Task ";
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
@@ -46,7 +50,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
     private static final Pattern TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("(BUILD|CONFIGURE) (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
 
     private final LogContent output;
     private final LogContent error;
@@ -70,7 +74,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      */
     public static OutputScrapingExecutionResult from(String output, String error) {
         // Should provide a Gradle version as parameter so this check can be more precise
-        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED")) {
+        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED") || error.contains("CONFIGURE FAILED")) {
             return new OutputScrapingExecutionFailure(output, error, true);
         }
         return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error), true);
@@ -164,15 +168,25 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
                 i+=4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
-                result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
+                result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
                 i++;
             } else {
-                result.add(line);
+                result.add(normalizeLambdaIds(line));
                 i++;
             }
         }
 
         return LogContent.of(result).withNormalizedEol();
+    }
+
+    /**
+     * Normalize the non-deterministic part of lambda class name.
+     *
+     * Lambdas do have some non-deterministic class names, depending on when they are loaded.
+     * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
+     */
+    private String normalizeLambdaIds(String line) {
+        return line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
     @Override
@@ -376,7 +390,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        throw new ComparisonFailure(unexpectedOutputMessage(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual)), expected, actual);
+        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
     }
 
     protected void failureOnUnexpectedOutput(String message) {

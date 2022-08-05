@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * <p>A command-line parser which supports a command/sub-command style command-line interface. Supports the following
  * syntax:</p>
  * <pre>
- * &lt;option>* (&lt;sub-command> &lt;sub-command-option>*)*
+ * &lt;option&gt;* (&lt;sub-command&gt; &lt;sub-command-option&gt;*)*
  * </pre>
  *
  * <ul> <li>Short options are a '-' followed by a single character. For example: {@code -a}.</li>

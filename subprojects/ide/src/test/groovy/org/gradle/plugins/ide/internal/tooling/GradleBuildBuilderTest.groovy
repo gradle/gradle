@@ -16,27 +16,29 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-
-import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
-@UsesNativeServices
+import java.util.function.Consumer
+
 @CleanupTestDirectory
 class GradleBuildBuilderTest extends Specification {
     @Shared
     @ClassRule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    def builder = new GradleBuildBuilder()
     @Shared
     def project = TestUtil.builder(temporaryFolder).withName("root").build()
     @Shared
@@ -45,6 +47,8 @@ class GradleBuildBuilderTest extends Specification {
     def child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 
     def "builds model"() {
+        def builder = new GradleBuildBuilder(project.services.get(BuildStateRegistry))
+
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject)
         model.rootProject.path == ":"
@@ -65,9 +69,16 @@ class GradleBuildBuilderTest extends Specification {
     }
 
     def "builds model for included builds"() {
-        def rootProject = Mock(ProjectInternal)
-        def project1 = Mock(ProjectInternal)
-        def project2 = Mock(ProjectInternal)
+        def buildRegistry = Mock(BuildStateRegistry)
+
+        def rootProject = Mock(ProjectState)
+        rootProject.projectPath >> Path.ROOT
+
+        def includeProject1 = Mock(ProjectState)
+        includeProject1.projectPath >> Path.ROOT
+
+        def includedProject2 = Mock(ProjectState)
+        includedProject2.projectPath >> Path.ROOT
 
         def rootDir = temporaryFolder.createDir("root")
         def dir1 = temporaryFolder.createDir("dir1")
@@ -77,39 +88,67 @@ class GradleBuildBuilderTest extends Specification {
         def build1 = Mock(GradleInternal)
         def build2 = Mock(GradleInternal)
 
-        def includedBuild1 = Mock(TestIncludedBuild)
-        def includedBuild2 = Mock(TestIncludedBuild)
+        def rootProjects = Mock(BuildProjectRegistry)
+        def projects1 = Mock(BuildProjectRegistry)
+        def projects2 = Mock(BuildProjectRegistry)
 
-        rootProject.gradle >> rootBuild
-        rootProject.rootDir >> rootDir
-        rootProject.childProjects >> [:]
-        rootProject.allprojects >> [rootProject]
+        def rootBuildState = Mock(BuildState)
+        def includedBuildState1 = Mock(IncludedBuildState)
+        def includedBuildState2 = Mock(IncludedBuildState)
 
-        project1.rootDir >> dir1
-        project1.childProjects >> [:]
-        project1.allprojects >> [project1]
+        def includedBuild1 = Mock(IncludedBuildInternal)
+        def includedBuild2 = Mock(IncludedBuildInternal)
 
-        project2.rootDir >> dir2
-        project2.childProjects >> [:]
-        project2.allprojects >> [project2]
+        rootProject.childProjects >> [].toSet()
+        includeProject1.childProjects >> [].toSet()
+        includedProject2.childProjects >> [].toSet()
 
-        rootBuild.rootProject >> rootProject
-        rootBuild.includedBuilds >> [includedBuild1]
+        rootBuild.includedBuilds() >> [includedBuild1]
 
-        includedBuild1.configuredBuild >> build1
+        rootBuildState.mutableModel >> rootBuild
+        rootBuildState.buildRootDir >> rootDir
+        rootBuildState.projects >> rootProjects
 
-        build1.includedBuilds >> [includedBuild2]
-        build1.rootProject >> project1
+        includedBuild1.target >> includedBuildState1
+        includedBuild2.target >> includedBuildState2
+
+        includedBuildState1.projects >> projects1
+        includedBuildState1.buildRootDir >> dir1
+        includedBuildState1.importableBuild >> true
+
+        rootProjects.allProjects >> [rootProject].toSet()
+        rootProjects.rootProject >> rootProject
+
+        projects1.allProjects >> [includeProject1].toSet()
+        projects1.rootProject >> includeProject1
+
+        projects2.allProjects >> [includeProject1].toSet()
+        projects2.rootProject >> includedProject2
+
+        build1.includedBuilds() >> [includedBuild2]
         build1.parent >> rootBuild
 
-        includedBuild2.configuredBuild >> build2
+        includedBuildState1.mutableModel >> build1
 
-        build2.includedBuilds >> []
-        build2.rootProject >> project2
+        includedBuildState2.projects >> projects2
+        includedBuildState2.buildRootDir >> dir2
+        includedBuildState2.importableBuild >> true
+
+        build2.includedBuilds() >> []
         build2.parent >> rootBuild
 
+        includedBuildState2.mutableModel >> build2
+
+        buildRegistry.visitBuilds(_) >> { Consumer consumer ->
+            consumer.accept(rootBuildState)
+            consumer.accept(includedBuildState1)
+            consumer.accept(includedBuildState2)
+        }
+
+        def builder = new GradleBuildBuilder(buildRegistry)
+
         expect:
-        def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", rootProject)
+        def model = builder.create(rootBuildState)
         model.includedBuilds.size() == 1
 
         def model1 = model.includedBuilds[0]
@@ -126,8 +165,5 @@ class GradleBuildBuilderTest extends Specification {
 
         model1.editableBuilds.empty
         model2.editableBuilds.empty
-    }
-
-    interface TestIncludedBuild extends IncludedBuild, IncludedBuildState {
     }
 }

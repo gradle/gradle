@@ -234,8 +234,7 @@ public class AntlrTask extends SourceTask {
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
         AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceSetDirectories);
-        File projectDir = getProjectLayout().getProjectDirectory().getAsFile();
-        AntlrResult result = manager.runWorker(projectDir, getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
+        AntlrResult result = manager.runWorker(projectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluate(result);
     }
 
@@ -250,6 +249,10 @@ public class AntlrTask extends SourceTask {
                 + errorCount
                 + " errors during grammar generation", result.getException());
         }
+    }
+
+    private File projectDir() {
+        return getProjectLayout().getProjectDirectory().getAsFile();
     }
 
     /**
@@ -290,7 +293,7 @@ public class AntlrTask extends SourceTask {
      * {@inheritDoc}
      */
     @Override
-    @Internal
+    @Internal("tracked via stableSources")
     public FileTree getSource() {
         return super.getSource();
     }

@@ -15,13 +15,13 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -29,24 +29,18 @@ import java.util.Date;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
-public class ReportGeneratingProfileListener extends InternalBuildAdapter implements ProfileListener {
+@ServiceScope(Scopes.BuildTree.class)
+public class ReportGeneratingProfileListener {
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private final StyledTextOutputFactory textOutputFactory;
-    private File buildDir;
 
     public ReportGeneratingProfileListener(StyledTextOutputFactory textOutputFactory) {
         this.textOutputFactory = textOutputFactory;
     }
 
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-        buildDir = gradle.getRootProject().getBuildDir();
-    }
-
-    @Override
     public void buildFinished(BuildProfile buildProfile) {
         ProfileReportRenderer renderer = new ProfileReportRenderer();
-        File file = new File(buildDir, "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");
+        File file = new File(buildProfile.getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");
         renderer.writeTo(buildProfile, file);
         renderReportUrl(file);
     }

@@ -37,8 +37,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         def jansiLibraryLocator = new JansiStorageLocator()
         def jansiStorage = jansiLibraryLocator.locate(nativeDir)
         library = jansiStorage.targetLibFile
-
-        executer.withNoExplicitTmpDir()
     }
 
     def "native services libs are unpacked to gradle user home dir"() {

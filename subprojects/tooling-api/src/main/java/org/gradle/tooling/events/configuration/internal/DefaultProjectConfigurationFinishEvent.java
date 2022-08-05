@@ -21,15 +21,9 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDesc
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 
-public class DefaultProjectConfigurationFinishEvent extends DefaultFinishEvent implements ProjectConfigurationFinishEvent {
+public class DefaultProjectConfigurationFinishEvent extends DefaultFinishEvent<ProjectConfigurationOperationDescriptor, ProjectConfigurationOperationResult> implements ProjectConfigurationFinishEvent {
 
     public DefaultProjectConfigurationFinishEvent(long eventTime, String displayName, ProjectConfigurationOperationDescriptor descriptor, ProjectConfigurationOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
-
-    @Override
-    public ProjectConfigurationOperationDescriptor getDescriptor() {
-        return (ProjectConfigurationOperationDescriptor) super.getDescriptor();
-    }
-
 }

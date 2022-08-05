@@ -19,7 +19,6 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import spock.lang.Issue
@@ -55,7 +54,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
                 reports {
                     xml.required = true
                     csv.required = true
-                    html.destination file("\${buildDir}/jacocoHtml")
+                    html.outputLocation.set(file("\${buildDir}/jacocoHtml"))
                 }
             }
             """
@@ -195,7 +194,6 @@ public class ThingTest {
     }
 
     @Issue("GRADLE-2917")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "configures default jacoco dependencies even if the configuration was resolved before"() {
         expect:
         //dependencies task forces resolution of the configurations
@@ -217,7 +215,7 @@ public class ThingTest {
             reports {
                 xml.required = false
                 csv.required = false
-                html.destination file("\${buildDir}/reports/jacoco/integ")
+                html.outputLocation.set(file("\${buildDir}/reports/jacoco/integ"))
             }
             executionData test
         }
@@ -246,7 +244,7 @@ public class ThingTest {
         skipped ':jacocoTestReport'
     }
 
-    def "fails report task if only some of the execution data files do not exist"() {
+    def "does not fail report task if some of the execution data files do not exist"() {
         given:
         def execFileName = 'unknown.exec'
         buildFile << """
@@ -256,12 +254,12 @@ public class ThingTest {
         """
 
         when:
-        fails 'test', 'jacocoTestReport'
+        succeeds 'test', 'jacocoTestReport'
 
         then:
         executedAndNotSkipped(':test')
         executed(':jacocoTestReport')
-        failure.assertHasCause("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+        htmlReport().exists()
     }
 
     def "coverage data is aggregated from many tests"() {

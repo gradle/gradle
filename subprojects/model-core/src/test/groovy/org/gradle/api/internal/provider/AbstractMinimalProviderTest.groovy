@@ -130,6 +130,11 @@ class AbstractMinimalProviderTest extends ProviderSpec<String> {
         e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
+    def "toString() displays nice things"() {
+        expect:
+        new TestProvider().toString() == "provider(java.lang.String)"
+    }
+
     static class TestProvider extends AbstractMinimalProvider {
         @Nullable
         String value

@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import groovy.ant.AntBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -84,7 +85,7 @@ class MavenInstallationDownloader {
 
     private static String fetchPreferredUrl(String mavenVersion) {
         // Use ASF preferred mirror resolution
-        def url = "http://www.apache.org/dyn/closer.cgi/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip?as_json=1"
+        def url = "https://www.apache.org/dyn/closer.cgi/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip?as_json=1"
         def parsed = new JsonSlurper().parse(new URL(url))
         parsed.preferred + parsed.path_info
     }

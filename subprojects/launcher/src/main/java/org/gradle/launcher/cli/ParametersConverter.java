@@ -71,7 +71,7 @@ public class ParametersConverter {
     public Parameters convert(ParsedCommandLine args, @Nullable File currentDir) throws CommandLineArgumentException {
         InitialProperties initialProperties = initialPropertiesConverter.convert(args);
         BuildLayoutResult buildLayout = buildLayoutConverter.convert(initialProperties, args, currentDir);
-        AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout, args.getExtraArguments());
+        AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameterConverter.convert(args, buildLayout, properties, startParameter);

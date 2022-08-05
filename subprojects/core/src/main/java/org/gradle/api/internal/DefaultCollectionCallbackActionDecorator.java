@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.internal.UserCodeApplicationId;
 import org.gradle.internal.InternalListener;
@@ -47,6 +48,20 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
             return action;
         }
         return new BuildOperationEmittingAction<>(application.getId(), application.reapplyLater(action));
+    }
+
+    @Override
+    public <T> Spec<T> decorateSpec(Spec<T> spec) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        if (application == null) {
+            return spec;
+        }
+        return new Spec<T>() {
+            @Override
+            public boolean isSatisfiedBy(T element) {
+                return application.reapply(() -> spec.isSatisfiedBy(element));
+            }
+        };
     }
 
     private static abstract class Operation implements RunnableBuildOperation {

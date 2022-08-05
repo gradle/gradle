@@ -35,30 +35,37 @@ import java.util.Map;
 
 public class KeyringFilePublicKeyService implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(KeyringFilePublicKeyService.class);
-
-    private final Map<Fingerprint, PGPPublicKeyRing> keyToKeyring;
-    private final Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys;
+    private final File keyRingFile;
+    private LoadedKeys keys;
 
     public KeyringFilePublicKeyService(File keyRingFile) {
-        try {
-            List<PGPPublicKeyRing> keyrings = SecuritySupport.loadKeyRingFile(keyRingFile);
-            Map<Fingerprint, PGPPublicKeyRing> keyToKeyringBuilder = Maps.newHashMap();
-            ImmutableMultimap.Builder<Long, PGPPublicKeyRing> longIdLongPGPPublicKeyBuilder = ImmutableListMultimap.builder();
+        this.keyRingFile = keyRingFile;
+    }
 
-            for (PGPPublicKeyRing keyring : keyrings) {
-                Iterator<PGPPublicKey> it = keyring.getPublicKeys();
-                while (it.hasNext()) {
-                    PGPPublicKey key = it.next();
-                    Fingerprint fingerprint = Fingerprint.of(key);
-                    keyToKeyringBuilder.put(fingerprint, keyring);
-                    longIdLongPGPPublicKeyBuilder.put(key.getKeyID(), keyring);
+    private LoadedKeys load() {
+        synchronized (this) {
+            if (keys == null) {
+                try {
+                    List<PGPPublicKeyRing> keyrings = SecuritySupport.loadKeyRingFile(keyRingFile);
+                    Map<Fingerprint, PGPPublicKeyRing> keyToKeyringBuilder = Maps.newHashMap();
+                    ImmutableMultimap.Builder<Long, PGPPublicKeyRing> longIdLongPGPPublicKeyBuilder = ImmutableListMultimap.builder();
+
+                    for (PGPPublicKeyRing keyring : keyrings) {
+                        Iterator<PGPPublicKey> it = keyring.getPublicKeys();
+                        while (it.hasNext()) {
+                            PGPPublicKey key = it.next();
+                            Fingerprint fingerprint = Fingerprint.of(key);
+                            keyToKeyringBuilder.put(fingerprint, keyring);
+                            longIdLongPGPPublicKeyBuilder.put(key.getKeyID(), keyring);
+                        }
+                    }
+                    keys = new LoadedKeys(ImmutableMap.copyOf(keyToKeyringBuilder), longIdLongPGPPublicKeyBuilder.build());
+                    LOGGER.info("Loaded {} keys from {}", keys.keyToKeyring.size(), keyRingFile);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
             }
-            keyToKeyring = ImmutableMap.copyOf(keyToKeyringBuilder);
-            longIdToPublicKeys = longIdLongPGPPublicKeyBuilder.build();
-            LOGGER.info("Loaded {} keys from {}", keyToKeyring.size(), keyRingFile);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return keys;
         }
     }
 
@@ -69,7 +76,7 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
 
     @Override
     public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
-        for (PGPPublicKeyRing keyring : longIdToPublicKeys.get(keyId)) {
+        for (PGPPublicKeyRing keyring : load().longIdToPublicKeys.get(keyId)) {
             builder.keyRing(keyring);
             Iterator<PGPPublicKey> pkIt = keyring.getPublicKeys();
             while (pkIt.hasNext()) {
@@ -84,7 +91,7 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
     @Override
     public void findByFingerprint(byte[] bytes, PublicKeyResultBuilder builder) {
         Fingerprint fingerprint = Fingerprint.wrap(bytes);
-        PGPPublicKeyRing keyring = keyToKeyring.get(fingerprint);
+        PGPPublicKeyRing keyring = load().keyToKeyring.get(fingerprint);
         if (keyring != null) {
             builder.keyRing(keyring);
             Iterator<PGPPublicKey> pkIt = keyring.getPublicKeys();
@@ -94,6 +101,16 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
                     builder.publicKey(key);
                 }
             }
+        }
+    }
+
+    private static class LoadedKeys {
+        private final Map<Fingerprint, PGPPublicKeyRing> keyToKeyring;
+        private final Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys;
+
+        public LoadedKeys(Map<Fingerprint, PGPPublicKeyRing> keyToKeyring, Multimap<Long, PGPPublicKeyRing> longIdToPublicKeys) {
+            this.keyToKeyring = keyToKeyring;
+            this.longIdToPublicKeys = longIdToPublicKeys;
         }
     }
 }

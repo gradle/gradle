@@ -19,21 +19,17 @@ package org.gradle.scala.compile
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
-import spock.lang.Unroll
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-@Unroll
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file('src/main/scala/Person.scala') << "class Person(name: String)"
     }
 
-    @ToBeFixedForConfigurationCache
     def "compile is out of date when changing the #changedVersion version"() {
         buildScript(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
@@ -58,15 +54,14 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         newScalaVersion | newZincVersion
-        '2.11.12'       | '1.2.0'
-        '2.12.6'        | '1.2.5'
+        '2.11.12'       | '1.6.0'
+        '2.12.6'        | '1.6.1'
         defaultScalaVersion = '2.11.12'
         defaultZincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_11) })
-    @ToBeFixedForConfigurationCache
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_11)

@@ -23,7 +23,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
 class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
 

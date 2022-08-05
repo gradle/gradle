@@ -26,6 +26,8 @@ dependencies {
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":messaging")))
 
+    testFixturesApi(testFixtures(project(":hashing")))
+
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":file-collections"))

@@ -17,9 +17,9 @@
 package org.gradle.performance.results
 
 import com.google.common.base.Strings
-import groovy.transform.CompileStatic
 
-@CompileStatic
+// https://issues.apache.org/jira/browse/GROOVY-10055
+//@CompileStatic
 class DefaultOutputDirSelector implements OutputDirSelector {
     private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory"
 
