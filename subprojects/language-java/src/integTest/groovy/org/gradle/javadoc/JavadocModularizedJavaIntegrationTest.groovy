@@ -16,7 +16,7 @@
 
 package org.gradle.javadoc
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,6 +26,11 @@ import spock.lang.Issue
 class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+        """
         file('src/main/java/module-info.java') << """
             module test {
                 exports test;
@@ -53,35 +58,27 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
     def "can build javadoc from modularized java"() {
-        buildFile << """
-            apply plugin: 'java-library'
-
-            java {
-                withJavadocJar()
-            }
-        """
-
-        expect:
+        when:
         succeeds("javadoc")
+        then:
+        file("build/docs/javadoc/test/test/Test.html").assertExists()
+        file("build/docs/javadoc/test/test/internal/TestInternal.html").assertExists()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @NotYetImplemented
     def "can build javadoc from modularized java with exclusions"() {
         buildFile << """
-            apply plugin: 'java-library'
-
-            java {
-                withJavadocJar()
-            }
-
             tasks.withType(Javadoc) {
                 exclude("test/internal")
+                // This shouldn't be necessarily, but is a workaround for now
+                options.addPathOption('-source-path').value.add(file('src/main/java'))
             }
         """
 
-        expect:
+        when:
         succeeds("javadoc")
+        then:
+        file("build/docs/javadoc/test/test/Test.html").assertExists()
+        file("build/docs/javadoc/test/test/internal/TestInternal.html").assertDoesNotExist()
     }
-
 }
