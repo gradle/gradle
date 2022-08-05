@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
+import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "dependency declared using task provider implies dependency on task"() {
@@ -244,6 +244,27 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksExecuted(":b", ":c")
     }
 
+    def "dependency declared using orElse provider whose original value is missing and alternative value is missing task output file property doesn't imply dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                // no output value
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                // no output value
+            }
+            tasks.register("c") {
+                dependsOn taskA.output.orElse(taskB.output)
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":c")
+    }
+
     def "dependency declared using orElse provider whose original value is missing and alternative value is constant does not imply task dependency"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
@@ -294,7 +315,6 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksExecuted(":a", ":b")
     }
 
-    @Unroll
     def "dependency declared using #value fails"() {
         buildFile << """
             tasks.register("b") {
@@ -327,7 +347,6 @@ The following types/formats are supported:
         "[false]" | "false"
     }
 
-    @Unroll
     def "dependency declared using file #value fails"() {
         buildFile << """
             tasks.register("b") {
@@ -368,7 +387,6 @@ The following types/formats are supported:
         "layout.buildDirectory.dir('123')"                | 'build/123'
     }
 
-    @Unroll
     def "dependency declared using provider that returns #value fails"() {
         buildFile << """
             def provider = provider { $value }
@@ -402,7 +420,6 @@ The following types/formats are supported:
         "[false]" | "false"
     }
 
-    @Unroll
     def "dependency declared using file provider with value #value fails"() {
         buildFile << """
             def provider = provider { $value }
@@ -838,7 +855,6 @@ The following types/formats are supported:
         file("out.txt").text == "content"
     }
 
-    @Unroll
     def "input file collection containing provider that returns #value does not imply task dependency"() {
         taskTypeWithInputFileCollection()
         buildFile << """
@@ -876,6 +892,30 @@ The following types/formats are supported:
             }
             tasks.register("b", InputTask) {
                 inValue = task.output.map { it.asFile.text as Integer }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "22"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19252")
+    @ToBeFixedForConfigurationCache
+    def "input property with value of mapped task provider output implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithIntInputProperty()
+        buildFile << """
+            def taskProvider = tasks.register("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b", InputTask) {
+                inValue = taskProvider.map { it.output.get().asFile.text as Integer }
                 outFile = file("out.txt")
             }
         """

@@ -18,28 +18,22 @@ package org.gradle.execution;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.util.internal.CollectionUtils;
+import org.gradle.execution.plan.ExecutionPlan;
 
 import java.util.List;
 
 public class DefaultBuildConfigurationActionExecuter implements BuildConfigurationActionExecuter {
-    private final List<BuildConfigurationAction> configurationActions;
     private List<? extends BuildConfigurationAction> taskSelectors;
-    private final ProjectStateRegistry projectStateRegistry;
 
-    public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildConfigurationAction> defaultTaskSelectors, ProjectStateRegistry projectStateRegistry) {
+    public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> defaultTaskSelectors) {
         this.taskSelectors = Lists.newArrayList(defaultTaskSelectors);
-        this.configurationActions = Lists.newArrayList(configurationActions);
-        this.projectStateRegistry = projectStateRegistry;
     }
 
     @Override
-    public void select(final GradleInternal gradle) {
+    public void select(GradleInternal gradle, ExecutionPlan plan) {
         // We know that we're running single-threaded here, so we can use coarse grained locks
-        projectStateRegistry.withMutableStateOfAllProjects(() -> {
-            List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);
-            configure(processingBuildActions, gradle, 0);
+        gradle.getOwner().getProjects().withMutableStateOfAllProjects(() -> {
+            configure(taskSelectors, gradle, plan, 0);
         });
     }
 
@@ -48,7 +42,7 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
         this.taskSelectors = taskSelectors;
     }
 
-    private void configure(final List<BuildConfigurationAction> processingConfigurationActions, final GradleInternal gradle, final int index) {
+    private void configure(final List<? extends BuildConfigurationAction> processingConfigurationActions, final GradleInternal gradle, final ExecutionPlan plan, final int index) {
         if (index >= processingConfigurationActions.size()) {
             return;
         }
@@ -59,8 +53,13 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
             }
 
             @Override
+            public ExecutionPlan getExecutionPlan() {
+                return plan;
+            }
+
+            @Override
             public void proceed() {
-                configure(processingConfigurationActions, gradle, index + 1);
+                configure(processingConfigurationActions, gradle, plan, index + 1);
             }
 
         });

@@ -19,7 +19,7 @@ package configurations
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
-import common.checkCleanM2
+import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
@@ -45,13 +45,14 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
     fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
         gradleStep(
             listOf(
-                "-PperformanceBaselines=force-defaults",
                 "clean",
                 "performance:${testProject}PerformanceAdHocTest",
                 tests.map { """--tests "$it"""" }.joinToString(" "),
                 """--warmups 2 --runs 2 --checks none""",
                 "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
                 "-PtestJavaVendor=${os.perfTestJavaVendor}",
+                "-PautoDownloadAndroidStudio=true",
+                "-PrunAndroidStudioInHeadlessMode=true",
                 os.javaInstallationLocations()
             )
         )
@@ -78,7 +79,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             )
         )
 
-        checkCleanM2(os)
+        checkCleanM2AndAndroidUserHome(os)
     }
 
     applyDefaultDependencies(model, this, true)

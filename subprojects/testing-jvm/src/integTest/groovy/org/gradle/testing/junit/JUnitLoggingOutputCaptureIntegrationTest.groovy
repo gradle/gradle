@@ -16,10 +16,13 @@
 
 package org.gradle.testing.junit
 
+
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
@@ -45,6 +48,7 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrat
         """
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "captures logging output events"() {
         file("src/test/java/OkTest.java") << """
 public class OkTest {

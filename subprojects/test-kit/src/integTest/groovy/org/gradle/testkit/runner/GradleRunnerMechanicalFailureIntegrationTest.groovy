@@ -21,6 +21,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.testkit.runner.fixtures.HideEnvVariableValuesInDaemonLog
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.NoDebug
@@ -146,6 +147,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
     }
 
     @NoDebug
+    @HideEnvVariableValuesInDaemonLog
     def "daemon dies during build execution"() {
         given:
         buildFile << """

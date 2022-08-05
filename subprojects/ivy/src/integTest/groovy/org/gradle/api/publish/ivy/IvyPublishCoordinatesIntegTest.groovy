@@ -191,7 +191,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         succeeds 'publish'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications 'main' in root project 'duplicate-publications' and 'other' in root project 'duplicate-publications' will overwrite each other!")
     }
 
     @ToBeFixedForConfigurationCache
@@ -227,7 +227,7 @@ include 'projectB'
         succeeds 'publish'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications 'main' in project ':projectA' and 'main' in project ':projectB' will overwrite each other!")
     }
 
     @ToBeFixedForConfigurationCache

@@ -23,14 +23,10 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
 
 import javax.annotation.Nullable;
@@ -39,23 +35,14 @@ import java.io.File;
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
     private final TextFileResourceLoader textFileResourceLoader;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
-    private final BuildState owner;
-    private final ProjectStateRegistry projectStateRegistry;
 
-    public ProjectFactory(Instantiator instantiator, TextFileResourceLoader textFileResourceLoader, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry) {
+    public ProjectFactory(Instantiator instantiator, TextFileResourceLoader textFileResourceLoader) {
         this.instantiator = instantiator;
         this.textFileResourceLoader = textFileResourceLoader;
-        this.projectRegistry = projectRegistry;
-        this.owner = owner;
-        this.projectStateRegistry = projectStateRegistry;
     }
 
     @Override
-    public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, @Nullable ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-        Path projectPath = ((DefaultProjectDescriptor) projectDescriptor).path();
-        ProjectState projectContainer = projectStateRegistry.stateFor(owner.getBuildIdentifier(), projectPath);
-
+    public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
         TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
@@ -66,44 +53,18 @@ public class ProjectFactory implements IProjectFactory {
             buildFile,
             source,
             gradle,
-            projectContainer,
+            owner,
             gradle.getServiceRegistryFactory(),
             selfClassLoaderScope,
             baseClassLoaderScope
         );
         project.beforeEvaluate(p -> {
-            nagUserAboutDeprecatedFlatProjectLayout(project);
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
             gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
         });
 
-        if (parent != null) {
-            parent.addChildProject(project);
-        }
-        projectRegistry.addProject(project);
-        projectContainer.attachMutableModel(project);
+        gradle.getProjectRegistry().addProject(project);
         return project;
-    }
-
-    private void nagUserAboutDeprecatedFlatProjectLayout(DefaultProject project) {
-        File rootDir = FileUtils.canonicalize(project.getRootProject().getProjectDir());
-        File projectDir = FileUtils.canonicalize(project.getProjectDir());
-        if (!isParentDir(rootDir, projectDir)) {
-            DeprecationLogger.deprecateBehaviour(String.format("Subproject '%s' has location '%s' which is outside of the project root.", project.getPath(), project.getProjectDir().getAbsolutePath()))
-                .willBeRemovedInGradle8()
-                .withUpgradeGuideSection(7, "deprecated_flat_project_structure")
-                .nagUser();
-        }
-    }
-
-    private static boolean isParentDir(File parent, File f) {
-        if (f == null) {
-            return false;
-        } else if (f.equals(parent)) {
-            return true;
-        } else {
-            return isParentDir(parent, f.getParentFile());
-        }
     }
 }

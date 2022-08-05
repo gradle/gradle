@@ -17,16 +17,14 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecutor {
     private final BuildWorkExecutor delegate;
@@ -38,27 +36,26 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
     }
 
     @Override
-    public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
-        buildOperationExecutor.run(new ExecuteTasks(gradle, failures));
+    public ExecutionResult<Void> execute(GradleInternal gradle, ExecutionPlan plan) {
+        return buildOperationExecutor.call(new ExecuteTasks(gradle, plan));
     }
 
-    private class ExecuteTasks implements RunnableBuildOperation {
+    private class ExecuteTasks implements CallableBuildOperation<ExecutionResult<Void>> {
         private final GradleInternal gradle;
-        private final Collection<? super Throwable> taskFailures;
+        private final ExecutionPlan plan;
 
-        public ExecuteTasks(GradleInternal gradle, Collection<? super Throwable> taskFailures) {
+        public ExecuteTasks(GradleInternal gradle, ExecutionPlan plan) {
             this.gradle = gradle;
-            this.taskFailures = taskFailures;
+            this.plan = plan;
         }
 
         @Override
-        public void run(BuildOperationContext context) {
-            List<Throwable> failures = new ArrayList<Throwable>();
-            delegate.execute(gradle, failures);
-            if (!failures.isEmpty()) {
-                context.failed(failures.get(0));
+        public ExecutionResult<Void> call(BuildOperationContext context) throws Exception {
+            ExecutionResult<Void> result = delegate.execute(gradle, plan);
+            if (!result.getFailures().isEmpty()) {
+                context.failed(result.getFailure());
             }
-            taskFailures.addAll(failures);
+            return result;
         }
 
         @Override

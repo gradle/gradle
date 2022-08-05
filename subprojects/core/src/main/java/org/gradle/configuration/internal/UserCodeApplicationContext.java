@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 /**
  * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
@@ -35,6 +36,11 @@ public interface UserCodeApplicationContext {
      * @param action The action to run to apply the user code.
      */
     void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
+
+    /**
+     * Runs some Gradle runtime code.
+     */
+    void gradleRuntime(Runnable runnable);
 
     /**
      * Returns an action that represents some deferred execution of the current user code. While the returned action is running, the details of the current application are restored.
@@ -68,5 +74,10 @@ public interface UserCodeApplicationContext {
          * Runs an action that represents some deferred execution of the user code. While the action is running, the details of this application are restored.
          */
         void reapply(Runnable runnable);
+
+        /**
+         * Runs an action that represents some deferred execution of the user code. While the action is running, the details of this application are restored.
+         */
+        <T> T reapply(Supplier<T> action);
     }
 }

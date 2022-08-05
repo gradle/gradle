@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskCollection
@@ -28,14 +29,18 @@ import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelector
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
-import spock.lang.Unroll
+
+import java.util.function.Consumer
 
 class TestExecutionBuildConfigurationActionTest extends Specification {
 
@@ -43,26 +48,27 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     public static final String TEST_METHOD_NAME = "testMethod"
     public static final String TEST_TASK_NAME = ":test"
 
-    ProjectInternal projectInternal
+    ProjectInternal projectInternal = Mock()
+    ProjectState projectState = Mock()
     ServiceRegistry serviceRegistry = Mock()
     TaskSelector taskSelector = Mock()
     Test testTask
     TaskContainerInternal tasksContainerInternal
     TestFilter testFilter
     TaskOutputsInternal outputsInternal
-    GradleInternal gradleInternal
+    GradleInternal gradleInternal = Mock()
+    BuildState buildState = Mock()
+    BuildProjectRegistry buildProjectRegistry = Mock()
     BuildExecutionContext buildContext
-    TaskExecutionGraphInternal taskGraph
+    ExecutionPlan executionPlan
     TestExecutionRequestAction testExecutionRequest
     InternalDebugOptions debugOptions
 
     def setup() {
         outputsInternal = Mock()
-        projectInternal = Mock()
-        gradleInternal = Mock()
         buildContext = Mock()
         tasksContainerInternal = Mock()
-        taskGraph = Mock()
+        executionPlan = Mock()
         testExecutionRequest = Mock()
         testTask = Mock()
         testFilter = Mock()
@@ -70,15 +76,19 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         debugOptions = Mock()
         debugOptions.isDebugMode() >> false
         testExecutionRequest.getDebugOptions() >> debugOptions
+        testExecutionRequest.getTestPatternSpecs() >> []
 
         setupProject()
         setupTestTask()
     }
 
     private void setupProject() {
-        1 * gradleInternal.getTaskGraph() >> taskGraph
+        1 * buildContext.getExecutionPlan() >> executionPlan
         1 * buildContext.getGradle() >> gradleInternal
-        _ * gradleInternal.getRootProject() >> projectInternal
+        _ * gradleInternal.owner >> buildState
+        _ * buildState.projects >> buildProjectRegistry
+        _ * buildProjectRegistry.allProjects >> [projectState]
+        _ * projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(projectInternal) }
         _ * gradleInternal.getServices() >> serviceRegistry
         _ * serviceRegistry.get(TaskSelector) >> taskSelector
     }
@@ -87,24 +97,26 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getInternalJvmTestRequests() >> []
         1 * testExecutionRequest.getTaskAndTests() >> [:]
+        1 * testExecutionRequest.isRunDefaultTasks() >> false
+        1 * testExecutionRequest.getTasks() >> []
 
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
         buildConfigurationAction.configure(buildContext)
         then:
-        0 * projectInternal.getAllprojects() >> [projectInternal]
-        _ * taskGraph.addEntryTasks({ args -> assert args.size() == 0 })
+        0 * buildProjectRegistry.allProjects
+        _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
-    @Unroll
     def "sets test filter with information from #requestType"() {
         setup:
-        _ * projectInternal.getAllprojects() >> [projectInternal]
-
+        _ * buildProjectRegistry.allProjects >> [projectState]
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        1 * testExecutionRequest.isRunDefaultTasks() >> false
+        1 * testExecutionRequest.getTasks() >> []
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
@@ -118,9 +130,9 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests
         "test descriptors" | [testDescriptor()] | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]
-        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null     | [:]
+        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null                 | [:]
         "test methods"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)] | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]
-        "test type"        | []                 | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [':test' : [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)]]
+        "test type"        | []                 | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [':test': [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)]]
     }
 
     InternalJvmTestRequest jvmTestRequest(String className, String methodName) {
@@ -143,7 +155,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     }
 
     private DefaultTestDescriptor testDescriptor() {
-        new DefaultTestDescriptor(1, "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, 0, TEST_TASK_NAME)
+        new DefaultTestDescriptor(Stub(OperationIdentifier), "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, null, TEST_TASK_NAME)
     }
 
 }

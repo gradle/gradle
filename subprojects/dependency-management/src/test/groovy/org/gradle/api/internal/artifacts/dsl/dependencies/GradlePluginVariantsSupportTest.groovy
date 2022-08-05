@@ -24,26 +24,23 @@ import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.internal.component.model.AttributeSelectionSchema
 import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GradlePluginVariantsSupportTest extends Specification {
 
     def attributes = AttributeTestUtil.attributesFactory()
     def objects = TestUtil.objectFactory()
     def matcher = new ComponentAttributeMatcher()
-    def schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter() as IsolatableFactory)
+    def schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def ep = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {
         GradlePluginVariantsSupport.configureSchema(schema)
     }
 
-    @Unroll
     def "Gradle #currentGradleVersion #acceptsOrRejects 7.0 api"() {
         given:
         def accepts = acceptsOrRejects == 'accepts'

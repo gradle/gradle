@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -23,14 +22,19 @@ import java.util.function.BiFunction;
 
 class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
-    private final BiFunction<A, B, R> combiner;
+    private final BiFunction<? super A, ? super B, ? extends R> combiner;
     private final ProviderInternal<A> left;
     private final ProviderInternal<B> right;
 
-    public BiProvider(Provider<A> left, Provider<B> right, BiFunction<A, B, R> combiner) {
+    public BiProvider(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
         this.combiner = combiner;
         this.left = Providers.internal(left);
         this.right = Providers.internal(right);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("and(%s, %s)", left, right);
     }
 
     @Override
@@ -46,16 +50,15 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends A> lv = assertHasValue(left.calculateValue(consumer), left);
-        Value<? extends B> rv = assertHasValue(right.calculateValue(consumer), right);
-        return Value.of(combiner.apply(lv.get(), rv.get()));
-    }
-
-    private <T> Value<? extends T> assertHasValue(Value<? extends T> value, ProviderInternal<?> provider) {
-        if (value.isMissing()) {
-            throw new InvalidUserDataException("Provider has no value: " + provider);
+        Value<? extends A> lv = left.calculateValue(consumer);
+        if (lv.isMissing()) {
+            return lv.asType();
         }
-        return value;
+        Value<? extends B> rv = right.calculateValue(consumer);
+        if (rv.isMissing()) {
+            return rv.asType();
+        }
+        return Value.of(combiner.apply(lv.get(), rv.get()));
     }
 
     @Nullable

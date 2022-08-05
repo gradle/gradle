@@ -18,11 +18,9 @@ package org.gradle.initialization
 
 import org.gradle.api.internal.properties.GradleProperties
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultGradlePropertiesControllerTest extends Specification {
 
-    @Unroll
     def "attached GradleProperties #method fails before loading"() {
 
         given:

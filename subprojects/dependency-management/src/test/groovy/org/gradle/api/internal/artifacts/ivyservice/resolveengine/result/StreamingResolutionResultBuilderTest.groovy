@@ -54,7 +54,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         moduleIdentifierFactory,
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        DependencyManagementTestUtil.componentSelectionDescriptorFactory()
+        DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+        false
     )
 
     def "result can be read multiple times"() {

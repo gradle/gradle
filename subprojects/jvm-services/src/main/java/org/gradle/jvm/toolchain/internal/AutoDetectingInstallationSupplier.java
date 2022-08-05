@@ -31,7 +31,7 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
 
     @Inject
     public AutoDetectingInstallationSupplier(ProviderFactory factory) {
-        this.detectionEnabled = factory.gradleProperty(AUTO_DETECT).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.detectionEnabled = factory.gradleProperty(AUTO_DETECT).map(Boolean::parseBoolean);
         this.factory = factory;
     }
 
@@ -44,11 +44,11 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
     }
 
     protected Provider<String> getEnvironmentProperty(String propertyName) {
-        return factory.environmentVariable(propertyName).forUseAtConfigurationTime();
+        return factory.environmentVariable(propertyName);
     }
 
     protected Provider<String> getSystemProperty(String propertyName) {
-        return factory.systemProperty(propertyName).forUseAtConfigurationTime();
+        return factory.systemProperty(propertyName);
     }
 
     protected abstract Set<InstallationLocation> findCandidates();

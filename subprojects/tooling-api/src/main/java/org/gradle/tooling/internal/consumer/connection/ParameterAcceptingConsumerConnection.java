@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 /**
  * An adapter for {@link InternalParameterAcceptingConnection}.
  *
- * <p>Used for providers >= 4.4.</p>
+ * <p>Used for providers &gt;= 4.4.</p>
  */
 public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerConnection {
     private final ActionRunner actionRunner;

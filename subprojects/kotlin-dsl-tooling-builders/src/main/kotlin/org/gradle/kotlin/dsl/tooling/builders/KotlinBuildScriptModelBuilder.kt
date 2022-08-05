@@ -128,7 +128,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             ?: return projectScriptModelBuilder(null, modelRequestProject)
 
         modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
-            return projectScriptModelBuilder(scriptFile, buildFileProject)
+            return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal)
         }
 
         modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
@@ -226,9 +226,7 @@ fun precompiledScriptPluginModelBuilder(
 
 private
 val Project.precompiledScriptPluginsMetadataDir: File
-    get() = buildDir.resolve("kotlin-dsl/precompiled-script-plugins-metadata").apply {
-        require(isDirectory)
-    }
+    get() = buildDir.resolve("kotlin-dsl/precompiled-script-plugins-metadata")
 
 
 private
@@ -244,7 +242,7 @@ fun hashOf(scriptFile: File) =
 private
 fun projectScriptModelBuilder(
     scriptFile: File?,
-    project: Project
+    project: ProjectInternal
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = project,
@@ -427,6 +425,7 @@ data class KotlinScriptTargetModelBuilder(
     fun gradleSource() =
         SourcePathProvider.sourcePathFor(
             scriptClassPath,
+            scriptFile,
             rootDir,
             gradleHomeDir,
             SourceDistributionResolver(project)

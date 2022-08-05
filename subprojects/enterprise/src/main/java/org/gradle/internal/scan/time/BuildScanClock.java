@@ -16,8 +16,6 @@
 
 package org.gradle.internal.scan.time;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * A view of the Gradle runtime's clock used by build scans.
  *
@@ -25,7 +23,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.2
  */
-@UsedByScanPlugin
 public interface BuildScanClock {
 
     /**

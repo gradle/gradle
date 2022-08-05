@@ -87,6 +87,6 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     }
 
     def logStatement() {
-        "worker(s) in use"
+        "compiler daemon"
     }
 }

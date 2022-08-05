@@ -25,20 +25,22 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.specs.Spec
 import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -52,14 +54,12 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
-    private ProjectAccessListener projectAccessListener = Mock()
     private LocalComponentMetadataBuilder metaDataBuilder = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
     private VcsMappingsStore vcsMappingsInternal = Mock()
     private BuildOperationExecutor buildOperationExecutor = Mock()
-    private TaskResolver taskResolver = Mock()
     private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
@@ -72,13 +72,45 @@ class DefaultConfigurationContainerSpec extends Specification {
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
 
-    private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock()
+    private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock() {
+        decorateSpec(_) >> { Spec spec -> spec }
+    }
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
-        projectAccessListener, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, calculatedValueContainerFactory, documentationRegistry,
-        domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext, TestUtil.domainObjectCollectionFactory(), Mock(NotationParser), TestUtil.objectFactory())
+    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
+        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+    }
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+        instantiator,
+        resolver,
+        listenerManager,
+        metaDataProvider,
+        domainObjectContext,
+        fileCollectionFactory,
+        buildOperationExecutor,
+        Stub(PublishArtifactNotationParserFactory),
+        immutableAttributesFactory,
+        documentationRegistry,
+        userCodeApplicationContext,
+        projectStateRegistry,
+        Mock(WorkerThreadRegistry),
+        TestUtil.domainObjectCollectionFactory(),
+        calculatedValueContainerFactory
+    )
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
+        instantiator,
+        globalSubstitutionRules,
+        vcsMappingsInternal,
+        componentIdentifierFactory,
+        immutableAttributesFactory,
+        moduleIdentifierFactory,
+        componentSelectorConverter,
+        dependencyLockingProvider,
+        domainObjectCollectionCallbackActionDecorator,
+        Mock(NotationParser),
+        TestUtil.objectFactory(),
+        rootComponentMetadataBuilderFactory,
+        configurationFactory
+    )
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

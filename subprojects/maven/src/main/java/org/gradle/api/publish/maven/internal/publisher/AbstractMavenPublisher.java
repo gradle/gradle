@@ -26,8 +26,9 @@ import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperation
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.HashFunction;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 abstract class AbstractMavenPublisher implements MavenPublisher {
@@ -234,34 +236,39 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         private void publishChecksums(ExternalResourceName destination, File content) {
-            publishChecksum(destination, content, "sha1", 40);
-            publishChecksum(destination, content, "md5", 32);
+            publishChecksum(destination, content, Hashing.sha1());
+            publishChecksum(destination, content, Hashing.md5());
             if (!ExternalResourceResolver.disableExtraChecksums()) {
-                publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
-                publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+                publishPossiblyUnsupportedChecksum(destination, content, Hashing.sha256());
+                publishPossiblyUnsupportedChecksum(destination, content, Hashing.sha512());
             }
         }
 
-        private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+        private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, HashFunction hashFunction) {
             try {
-                publishChecksum(destination, content, algorithm, length);
+                publishChecksum(destination, content, hashFunction);
             } catch (Exception ex) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.", ex);
+                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + hashFunction + ". This will not fail the build.", ex);
                 } else {
-                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.");
+                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + hashFunction + ". This will not fail the build.");
                 }
             }
         }
 
-        private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
-            byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
-            putResource(destination.append("." + algorithm.replaceAll("-", "")), new ByteArrayReadableContent(checksum));
+        private void publishChecksum(ExternalResourceName destination, File content, HashFunction hashFunction) {
+            byte[] checksum = createChecksumFile(content, hashFunction);
+            putResource(destination.append("." + hashFunction.getAlgorithm().toLowerCase(Locale.ROOT).replaceAll("-", "")), new ByteArrayReadableContent(checksum));
         }
 
-        private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
-            HashValue hash = HashUtil.createHash(src, algorithm);
-            String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
+        private byte[] createChecksumFile(File src, HashFunction hashFunction) {
+            HashCode hash;
+            try {
+                hash = hashFunction.hashFile(src);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            String formattedHashString = hash.toZeroPaddedString(hashFunction.getHexDigits());
             return formattedHashString.getBytes(StandardCharsets.US_ASCII);
         }
 

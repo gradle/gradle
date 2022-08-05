@@ -38,7 +38,7 @@ import java.io.File;
 /**
  * An adapter for {@link InternalPhasedActionConnection}.
  *
- * <p>Used for providers >= 4.8.</p>
+ * <p>Used for providers &gt;= 4.8.</p>
  */
 public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsumerConnection {
 

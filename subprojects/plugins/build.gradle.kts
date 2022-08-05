@@ -74,9 +74,11 @@ strictCompile {
     ignoreDeprecations() // uses deprecated software model types
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)
+
+description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""

@@ -67,8 +67,8 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
  * </ul>
  * <p>
  * If this is the Lock Requester:
- *     <li>the message is interpreted as confirmation and stored. No further messages are sent to the Lock Owner via
- *    {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.</li>
+ *    the message is interpreted as confirmation and stored. No further messages are sent to the Lock Owner via
+ *    {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.
  * <p>
  * As Lock Requester, the state of the request is always stored per lock (lockId) and Lock Holder (port). The Lock Holder
  * for a lock might change without acquiring the lock if several Lock Requester compete for the same lock.

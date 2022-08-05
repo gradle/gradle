@@ -156,7 +156,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         buildSrcTasks.child("Task :buildSrc:a:compileJava").descendant("Resolve dependencies :buildSrc:a:compileClasspath", "Resolve dependencies of :buildSrc:a:compileClasspath")
         buildSrcTasks.child("Task :buildSrc:b:compileJava").descendant("Resolve dependencies :buildSrc:b:compileClasspath", "Resolve dependencies of :buildSrc:b:compileClasspath")
 
-        buildSrcTasks.child("Task :buildSrc:a:test").descendant("Gradle Test Run :buildSrc:a:test")
+        buildSrcTasks.child("Task :buildSrc:a:test").descendant("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
         buildSrcTasks.child("Task :buildSrc:b:test")
 
         when:
@@ -189,9 +189,8 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
 
         then:
         events.tests.size() == events.operations.size()
-        events.operation("Gradle Test Run :buildSrc:a:test")
-        events.operation("Test ok(Test)")
-        events.operation("Gradle Test Run :test")
+        events.operation("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
+        events.operation("Gradle Test Run :test").descendant("Test ok(ThingTest)")
     }
 
     def javaProjectWithTests() {
@@ -225,8 +224,8 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
             }
 """
         file("buildSrc/a/src/main/java/A.java") << "public class A {}"
-        file("buildSrc/a/src/test/java/Test.java") << "public class Test { @org.junit.Test public void ok() { } }"
+        file("buildSrc/a/src/test/java/ATest.java") << "public class ATest { @org.junit.Test public void ok() { } }"
         file("buildSrc/b/src/main/java/B.java") << "public class B {}"
-        file("buildSrc/b/src/test/java/Test.java") << "public class Test { @org.junit.Test public void ok() { } }"
+        file("buildSrc/b/src/test/java/BTest.java") << "public class BTest { @org.junit.Test public void ok() { } }"
     }
 }

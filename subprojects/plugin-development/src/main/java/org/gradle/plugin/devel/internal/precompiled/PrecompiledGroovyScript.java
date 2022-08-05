@@ -110,6 +110,10 @@ class PrecompiledGroovyScript {
         return scriptSource.getResource().getContentHash();
     }
 
+    String getFileName() {
+        return firstPassSource.getFileName();
+    }
+
     ScriptSource getFirstPassSource() {
         return firstPassSource;
     }

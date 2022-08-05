@@ -16,12 +16,9 @@
 
 package org.gradle.internal.snapshot
 
-import spock.lang.Unroll
-
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 
-@Unroll
 class CaseSensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
 
     def "finds right entry in sorted list with only case differences"() {

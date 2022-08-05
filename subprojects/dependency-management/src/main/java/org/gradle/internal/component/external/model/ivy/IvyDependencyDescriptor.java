@@ -27,12 +27,15 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -115,16 +118,17 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      * Choose a set of configurations from the target component.
      * The set chosen is based on a) the name of the configuration that declared this dependency and b) the {@link #confs} mapping for this dependency.
      *
-     * The `confs` mapping is structured as `fromConfiguration -> [targetConf...]`. Targets are collected for all configurations in the `fromConfiguration` hierarchy.
+     * The `confs` mapping is structured as `fromConfiguration -&gt; [targetConf...]`. Targets are collected for all configurations in the `fromConfiguration` hierarchy.
      *   - '*' is a wildcard key, that matches _all_ `fromConfiguration values.
      *       - '*, !A' is a key that matches _all_ `fromConfiguration values _except_ 'A'.
      *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     @Override
-    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState) {
+        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        List<ConfigurationMetadata> targets = Lists.newLinkedList();
+        List<ConfigurationGraphResolveMetadata> targets = Lists.newLinkedList();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {
@@ -161,15 +165,15 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
 
-        return targets;
+        return new VariantSelectionResult(ImmutableList.copyOf(targets), false);
     }
 
-    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationMetadata> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveMetadata> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
                 String preferred = targetPattern.substring(0, startFallback);
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(preferred);
+                ConfigurationGraphResolveMetadata configuration = targetComponent.getConfiguration(preferred);
                 if (configuration != null) {
                     maybeAddConfiguration(targetConfigurations, configuration);
                     return;
@@ -180,7 +184,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         if (targetPattern.equals("*")) {
             for (String targetName : targetComponent.getConfigurationNames()) {
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
+                ConfigurationGraphResolveMetadata configuration = targetComponent.getConfiguration(targetName);
                 if (configuration.isVisible()) {
                     maybeAddConfiguration(targetConfigurations, configuration);
                 }
@@ -194,17 +198,17 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             targetPattern = fromConfiguration;
         }
 
-        ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
+        ConfigurationGraphResolveMetadata configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
             throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }
 
-    private void maybeAddConfiguration(List<ConfigurationMetadata> configurations, ConfigurationMetadata toAdd) {
-        Iterator<ConfigurationMetadata> iter = configurations.iterator();
+    private void maybeAddConfiguration(List<ConfigurationGraphResolveMetadata> configurations, ConfigurationGraphResolveMetadata toAdd) {
+        Iterator<ConfigurationGraphResolveMetadata> iter = configurations.iterator();
         while (iter.hasNext()) {
-            ConfigurationMetadata configuration = iter.next();
+            ConfigurationGraphResolveMetadata configuration = iter.next();
             if (configuration.getHierarchy().contains(toAdd.getName())) {
                 // this configuration is a child of toAdd, so no need to add it
                 return;

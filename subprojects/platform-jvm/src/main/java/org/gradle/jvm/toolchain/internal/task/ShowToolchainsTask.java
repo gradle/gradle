@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -35,10 +36,12 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
+@UntrackedTask(because = "Produces only non-cacheable console output")
 public class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
@@ -48,7 +51,7 @@ public class ShowToolchainsTask extends DefaultTask {
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
     public ShowToolchainsTask() {
-        getOutputs().upToDateWhen(element -> false);
+        getOutputs().upToDateWhen(spec(element -> false));
     }
 
     @TaskAction
@@ -76,7 +79,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private Boolean getBooleanProperty(String propertyKey) {
-        return getProviderFactory().gradleProperty(propertyKey).forUseAtConfigurationTime().map(Boolean::parseBoolean).getOrElse(true);
+        return getProviderFactory().gradleProperty(propertyKey).map(Boolean::parseBoolean).getOrElse(true);
     }
 
     private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {
@@ -98,7 +101,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location.getLocation());
+        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location);
         return new ReportableToolchain(metadata, location);
     }
 

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugin and integration with JaCoCo code coverage"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -26,6 +28,7 @@ dependencies {
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.jsoup)
+    testFixturesImplementation(libs.groovyXml)
 
     testImplementation(project(":internal-testing"))
     testImplementation(project(":resources"))
@@ -43,7 +46,7 @@ strictCompile {
     ignoreRawTypes()
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/internal/jacoco/*")
     excludePatterns.add("org/gradle/testing/jacoco/plugins/*")
 }

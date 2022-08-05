@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
 class MavenDependencyKeyTest extends Specification {
-    @Unroll
     def "can compare with other instance (#groupId, #artifactId, #type, #classifier)"() {
         expect:
         MavenDependencyKey key1 = new MavenDependencyKey('group-one', 'artifact-one', 'jar', 'sources')
@@ -37,7 +35,6 @@ class MavenDependencyKeyTest extends Specification {
         'group-one' | 'artifact-one' | 'jar' | 'sources'  | true     | true     | true
     }
 
-    @Unroll
     def "builds String representation (#groupId, #artifactId, #type, #classifier)"() {
         expect:
         MavenDependencyKey key = new MavenDependencyKey(groupId, artifactId, type, classifier)

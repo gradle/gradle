@@ -17,14 +17,9 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreRest
-import spock.lang.Unroll
-
 
 class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreRest
-    @Unroll
     def "can read #archiveType resources in task action"() {
 
         given:
@@ -60,8 +55,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         archiveType << ['gzip', 'bzip2']
     }
 
-    @IgnoreRest
-    @Unroll
     def "can read #archiveType resources in #isolation isolation worker action"() {
 
         given:
@@ -133,7 +126,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def "can create readonly FileTree for #archiveType archive in task action"() {
 
         given:
@@ -174,7 +166,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         archiveType << ['zip', 'tar']
     }
 
-    @Unroll
     def "can create readonly FileTree for #archiveType archive in #isolation isolation worker action"() {
 
         given:

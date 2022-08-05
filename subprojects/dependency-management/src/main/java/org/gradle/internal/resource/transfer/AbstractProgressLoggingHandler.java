@@ -16,30 +16,27 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
 public class AbstractProgressLoggingHandler {
-    protected final ProgressLoggerFactory progressLoggerFactory;
-
-    public AbstractProgressLoggingHandler(ProgressLoggerFactory progressLoggerFactory) {
-        this.progressLoggerFactory = progressLoggerFactory;
+    protected ResourceOperation createResourceOperation(BuildOperationContext context, ResourceOperation.Type operationType) {
+        return new ResourceOperation(context, operationType);
     }
 
-    protected ResourceOperation createResourceOperation(URI resource, ResourceOperation.Type operationType, Class<?> loggingClazz, long contentLength) {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClazz != null ? loggingClazz : getClass());
-        String description = createDescription(operationType, resource);
-        progressLogger.setDescription(description);
-        progressLogger.started();
-        return new ResourceOperation(progressLogger, operationType, contentLength);
-    }
+    protected static class LocationDetails {
+        private final URI location;
 
-    private String createDescription(ResourceOperation.Type operationType, URI resource) {
-        return operationType.getCapitalized() + " " + resource.toString();
+        LocationDetails(URI location) {
+            this.location = location;
+        }
+
+        public String getLocation() {
+            return location.toASCIIString();
+        }
     }
 
     protected static class ProgressLoggingInputStream extends InputStream {
@@ -58,11 +55,7 @@ public class AbstractProgressLoggingHandler {
 
         @Override
         public int read() throws IOException {
-            int result = inputStream.read();
-            if (result >= 0) {
-                doLogProgress(1);
-            }
-            return result;
+            throw new UnsupportedOperationException("Reading from a remote resource should be buffered.");
         }
 
         @Override

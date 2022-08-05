@@ -23,7 +23,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -41,7 +40,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
     @Override
     public CacheBuilder cache(String key) {
-        return new PersistentCacheBuilder(null, key);
+        return new PersistentCacheBuilder(key);
     }
 
     @Override
@@ -49,13 +48,7 @@ public class DefaultCacheRepository implements CacheRepository {
         return new PersistentCacheBuilder(baseDir);
     }
 
-    @Override
-    public CacheBuilder cache(@Nullable Object scope, String key) {
-        return new PersistentCacheBuilder(scope, key);
-    }
-
     private class PersistentCacheBuilder implements CacheBuilder {
-        final Object scope;
         final String key;
         final File baseDir;
         Map<String, ?> properties = Collections.emptyMap();
@@ -66,14 +59,12 @@ public class DefaultCacheRepository implements CacheRepository {
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
         LockTarget lockTarget = LockTarget.DefaultTarget;
 
-        PersistentCacheBuilder(@Nullable Object scope, String key) {
-            this.scope = scope;
+        PersistentCacheBuilder(String key) {
             this.key = key;
             this.baseDir = null;
         }
 
         PersistentCacheBuilder(File baseDir) {
-            this.scope = null;
             this.key = null;
             this.baseDir = baseDir;
         }
@@ -121,7 +112,7 @@ public class DefaultCacheRepository implements CacheRepository {
             if (baseDir != null) {
                 cacheBaseDir = baseDir;
             } else {
-                cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
+                cacheBaseDir = cacheScopeMapping.getBaseDirectory(null, key, versionStrategy);
             }
             return factory.open(cacheBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cleanup);
         }

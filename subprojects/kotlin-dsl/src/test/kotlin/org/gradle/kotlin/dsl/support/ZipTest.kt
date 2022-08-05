@@ -26,7 +26,6 @@ import org.junit.Test
 
 import java.io.File
 import java.util.zip.ZipEntry
-import java.util.zip.ZipException
 import java.util.zip.ZipOutputStream
 
 
@@ -47,8 +46,8 @@ class ZipTest : TestWithTempFiles() {
         try {
             unzipTo(file("output/directory"), maliciousZip)
             fail()
-        } catch (ex: ZipException) {
-            assertThat(ex.message, equalTo("Zip entry 'path/../../traversal.txt' is outside of the output directory".replace('/', File.separatorChar)))
+        } catch (ex: IllegalArgumentException) {
+            assertThat(ex.message, equalTo("'path/../../traversal.txt' is not a safe zip entry name.".replace('/', File.separatorChar)))
         }
         assertFalse(file("output").exists())
     }

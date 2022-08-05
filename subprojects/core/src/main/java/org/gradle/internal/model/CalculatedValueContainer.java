@@ -147,7 +147,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     public ModelContainer<?> getResourceToLock() {
         CalculationState<T, S> calculationState = this.calculationState;
         if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
-            return calculationState.supplier.getOwningProject().getMutationState();
+            return calculationState.supplier.getOwningProject().getOwner();
         } else {
             return RootScriptDomainObjectContext.INSTANCE.getModel();
         }
@@ -162,6 +162,17 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         if (calculationState != null) {
             calculationState.supplier.visitDependencies(context);
         } // else, already calculated so has no dependencies
+    }
+
+    @Nullable
+    @Override
+    public WorkNodeAction getPreExecutionNode() {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            return calculationState.supplier.getPreExecutionAction();
+        } else {
+            return null;
+        }
     }
 
     /**

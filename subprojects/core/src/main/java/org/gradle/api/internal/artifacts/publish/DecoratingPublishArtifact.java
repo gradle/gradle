@@ -102,10 +102,6 @@ public class DecoratingPublishArtifact extends AbstractPublishArtifact implement
 
     @Override
     public boolean shouldBePublished() {
-        if (publishArtifact instanceof PublishArtifactInternal) {
-            return ((PublishArtifactInternal) publishArtifact).shouldBePublished();
-        }
-        // This can happen for custom publish artifacts
-        return true;
+        return PublishArtifactInternal.shouldBePublished(publishArtifact);
     }
 }

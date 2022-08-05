@@ -103,6 +103,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         then: "only the matching progress events must be forwarded to the attached listener"
         !events.tests.empty
         events.operations == events.tests
+        events.trees.size() == 1
     }
 
     def goodCode() {

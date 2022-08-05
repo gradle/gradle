@@ -16,18 +16,26 @@
 
 package org.gradle.configurationcache.fixtures
 
-
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 
 abstract class AbstractOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
-    static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
-    static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
+    static final String WARN_PROBLEMS_CLI_OPT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
     protected ConfigurationCacheProblemsFixture problems
 
     def setup() {
+        // Verify that the previous test cleaned up state correctly
+        assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
+        assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
         problems = new ConfigurationCacheProblemsFixture(executer, testDirectory)
+    }
+
+    def cleanup() {
+        // Verify that the test (or fixtures) has cleaned up state correctly
+        assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
+        assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
     }
 
     abstract void configurationCacheRun(String... tasks)

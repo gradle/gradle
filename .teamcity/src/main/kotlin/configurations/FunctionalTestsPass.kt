@@ -18,11 +18,13 @@ package configurations
 
 import common.applyDefaultSettings
 import model.CIBuildModel
+import model.TestCoverage
 import projects.FunctionalTestProject
 
 class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: FunctionalTestProject) : BaseGradleBuildType(init = {
-    id("${functionalTestProject.testConfig.asId(model)}_Trigger")
+    id("${functionalTestProject.testCoverage.asId(model)}_Trigger")
     name = functionalTestProject.name + " (Trigger)"
+    type = Type.COMPOSITE
 
     applyDefaultSettings()
 
@@ -33,4 +35,6 @@ class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: Functional
     dependencies {
         snapshotDependencies(functionalTestProject.functionalTests)
     }
-})
+}) {
+    val testCoverage: TestCoverage = functionalTestProject.testCoverage
+}

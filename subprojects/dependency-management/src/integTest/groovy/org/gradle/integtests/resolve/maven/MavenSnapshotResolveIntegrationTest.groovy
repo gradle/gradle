@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class MavenSnapshotResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -316,7 +315,6 @@ task retrieve(type: Sync) {
         run 'retrieve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         given:
         buildFile << """
@@ -601,7 +599,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
     }
 
     @Issue("GRADLE-3017")
-    @ToBeFixedForConfigurationCache
     def "resolves changed metadata in snapshot dependency"() {
         given:
         def projectB1 = publishModule('group', 'projectB', '1.0')
@@ -687,7 +684,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing snapshot"() {
         given:
         def projectA = createModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -727,7 +723,6 @@ Required by:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports missing unique snapshot artifact"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -771,7 +766,6 @@ Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -977,7 +971,6 @@ dependencies {
         file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def projectA = createModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
@@ -1010,7 +1003,6 @@ Required by:
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll
     def "can resolve unique and non-unique snapshots using Gradle Module Metadata (redirection = #redirection, metadata sources=#metadataSources)"() {
         given:
         buildFile << """

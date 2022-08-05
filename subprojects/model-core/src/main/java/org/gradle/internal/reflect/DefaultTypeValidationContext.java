@@ -23,28 +23,29 @@ import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
-    private final boolean cacheable;
+    private final boolean reportCacheabilityProblems;
     private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
 
     public static DefaultTypeValidationContext withRootType(DocumentationRegistry documentationRegistry, Class<?> rootType, boolean cacheable) {
         return new DefaultTypeValidationContext(documentationRegistry, rootType, cacheable);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(DocumentationRegistry documentationRegistry, boolean cacheable) {
-        return new DefaultTypeValidationContext(documentationRegistry, null, cacheable);
+    public static DefaultTypeValidationContext withoutRootType(DocumentationRegistry documentationRegistry, boolean reportCacheabilityProblems) {
+        return new DefaultTypeValidationContext(documentationRegistry, null, reportCacheabilityProblems);
     }
 
-    private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean cacheable) {
-        super(documentationRegistry, rootType);
-        this.cacheable = cacheable;
+    private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
+        super(documentationRegistry, rootType, Optional::empty);
+        this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
     @Override
     protected void recordProblem(TypeValidationProblem problem) {
-        boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
-        if (cacheableProblemOnly && !cacheable) {
+        boolean onlyAffectsCacheableWork = problem.isOnlyAffectsCacheableWork();
+        if (onlyAffectsCacheableWork && !reportCacheabilityProblems) {
             return;
         }
         problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
@@ -53,6 +54,4 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     public ImmutableMap<String, Severity> getProblems() {
         return problems.build();
     }
-
-
 }

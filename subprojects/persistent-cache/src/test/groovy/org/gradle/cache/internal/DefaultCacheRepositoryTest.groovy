@@ -58,15 +58,6 @@ class DefaultCacheRepositoryTest extends Specification {
         1 * cacheFactory.open(sharedCacheDir, null, properties, CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
     }
 
-    void createsScopedCache() {
-        when:
-        repository.cache("scope", "a/b/c").open()
-
-        then:
-        1 * scopeMapping.getBaseDirectory("scope", "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
-    }
-
     void createsCacheWithBaseDirectory() {
         when:
         repository.cache(sharedCacheDir).open()
@@ -77,10 +68,10 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void createsCrossVersionCache() {
         when:
-        repository.cache("scope", "a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile).open()
+        repository.cache("a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory("scope", "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.CachePropertiesFile, mode(Shared), null, null) >> cache
     }
 

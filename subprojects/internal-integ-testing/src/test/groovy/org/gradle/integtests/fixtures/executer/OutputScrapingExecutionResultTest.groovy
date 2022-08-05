@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT
 
 class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
     def "can have empty output"() {
@@ -50,6 +51,38 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
         result.error == error
     }
 
+    def "finds stack traces when present"() {
+        def output = '''
+* What went wrong:
+A problem occurred evaluating root project '4j0h2'.
+org.gradle.api.GradleScriptException: A problem occurred evaluating root project '4j0h2'.
+	at org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java:93)
+	at org.gradle.configuration.DefaultScriptPluginFactory$ScriptPluginImpl.lambda$apply$0(DefaultScriptPluginFactory.java:133)
+	at org.gradle.configuration.ProjectScriptTarget.addConfiguration(ProjectScriptTarget.java:79)
+	at org.gradle.configuration.DefaultScriptPluginFactory$ScriptPluginImpl.apply(DefaultScriptPluginFactory.java:136)
+	at org.gradle.configuration.BuildOperationScriptPlugin$1.run(BuildOperationScriptPlugin.java:65)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+'''
+        def matches = output.readLines().grep(line -> STACK_TRACE_ELEMENT.matcher(line).matches())
+        expect:
+        matches.size() == 6
+        matches[0] == '\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java:93)'
+    }
+
+    def "does not find things that might look like stack traces"() {
+        def output = """
+* What went wrong:
+A problem occurred evaluating root project '4j0h2'.
+> Could not create an instance of type Thing.
+   > Multiple constructors for parameters ['a', 'b']:
+       1. candidate: Thing(String, String, ProjectLayout)
+       2. best match: Thing(String, String, ObjectFactory)
+"""
+        def matches = output.readLines().grep(line -> STACK_TRACE_ELEMENT.matcher(line).matches())
+        expect:
+        matches.empty
+    }
+
     def "can assert build output is present in main content"() {
         def output = """message
 message 2
@@ -75,13 +108,11 @@ post build
         error(e).startsWith(error('''
             Did not find expected text in build output.
             Expected: missing
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -92,13 +123,11 @@ post build
         error(e2).startsWith(error('''
             Did not find expected text in build output.
             Expected: post build
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -109,13 +138,11 @@ post build
         error(e3).startsWith(error('''
             Did not find expected text in build output.
             Expected: BUILD
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -126,13 +153,11 @@ post build
         error(e4).startsWith(error('''
             Did not find expected text in build output.
             Expected: message extra
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -143,15 +168,13 @@ post build
         error(e6).startsWith(error('''
             Did not find expected text in build output.
             Expected: message
-            
-            
-            
+
+
+
             Build output:
             =======
             message
             message 2
-            
-            Output:
             '''))
     }
 
@@ -182,14 +205,12 @@ more post build
         error(e).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: missing
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -200,14 +221,12 @@ more post build
         error(e2).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: message
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -218,14 +237,12 @@ more post build
         error(e3).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: BUILD
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -236,14 +253,12 @@ more post build
         error(e4).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: post build extra
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -256,18 +271,15 @@ more post build
             Expected: post build
 
 
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
     }
 
-    @Unroll
     def "can assert output is not present = #text"() {
         def output = """
 message

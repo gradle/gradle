@@ -17,11 +17,15 @@
 package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
-import spock.lang.Unroll
+import org.gradle.internal.watch.registry.WatchMode
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
-    private static final String ENABLED_MESSAGE = "Watching the file system is enabled"
-    private static final String DISABLED_MESSAGE = "Watching the file system is disabled"
+    private static final String ENABLED_MESSAGE = "Watching the file system is configured to be enabled"
+    private static final String ENABLED_IF_AVAILABLE_MESSAGE = "Watching the file system is configured to be enabled if available"
+    private static final String DISABLED_MESSAGE = "Watching the file system is configured to be disabled"
+
+    private static final String ACTIVE_MESSAGE = "File system watching is active"
+    private static final String INACTIVE_MESSAGE = "File system watching is inactive"
 
     def "is enabled by default"() {
         buildFile << """
@@ -31,10 +35,10 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         when:
         run("assemble", "--info")
         then:
-        outputContains(ENABLED_MESSAGE)
+        outputContains(ENABLED_IF_AVAILABLE_MESSAGE)
+        outputContains(ACTIVE_MESSAGE)
     }
 
-    @Unroll
     def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
@@ -44,15 +48,15 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         file("gradle.properties") << "${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=${enabled}"
         run("assemble", "--info")
         then:
-        outputContains(expectedMessage)
+        outputContains(expectedEnabledMessage)
+        outputContains(expectedActiveMessage)
 
         where:
-        enabled | expectedMessage
-        true    | ENABLED_MESSAGE
-        false   | DISABLED_MESSAGE
+        enabled | expectedEnabledMessage | expectedActiveMessage
+        true    | ENABLED_MESSAGE        | ACTIVE_MESSAGE
+        false   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "can be enabled via system property (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
@@ -61,15 +65,15 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         when:
         run("assemble", "-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=${enabled}", "--info")
         then:
-        outputContains(expectedMessage)
+        outputContains(expectedEnabledMessage)
+        outputContains(expectedActiveMessage)
 
         where:
-        enabled | expectedMessage
-        true    | ENABLED_MESSAGE
-        false   | DISABLED_MESSAGE
+        enabled | expectedEnabledMessage | expectedActiveMessage
+        true    | ENABLED_MESSAGE        | ACTIVE_MESSAGE
+        false   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "can be enabled via #commandLineOption"() {
         buildFile << """
             apply plugin: "java"
@@ -78,11 +82,64 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         when:
         run("assemble", commandLineOption, "--info")
         then:
-        outputContains(expectedMessage)
+        outputContains(expectedEnabledMessage)
+        outputContains(expectedActiveMessage)
 
         where:
-        commandLineOption | expectedMessage
-        "--watch-fs"      | ENABLED_MESSAGE
-        "--no-watch-fs"   | DISABLED_MESSAGE
+        commandLineOption | expectedEnabledMessage | expectedActiveMessage
+        "--watch-fs"      | ENABLED_MESSAGE        | ACTIVE_MESSAGE
+        "--no-watch-fs"   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
+    }
+
+    def "setting to #watchMode via command-line init script has no effect"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        def initScript = file("init.gradle") << """
+            gradle.startParameter.setWatchFileSystemMode(${WatchMode.name}.${watchMode.name()})
+        """
+
+        when:
+        run("assemble", "--info", "--init-script", initScript.absolutePath)
+        then:
+        outputContains(ENABLED_IF_AVAILABLE_MESSAGE)
+        outputContains(ACTIVE_MESSAGE)
+
+        where:
+        watchMode << WatchMode.values()
+    }
+
+    def "setting to #watchMode via init script in user home has no effect"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file("init.d/fsw.gradle") << """
+            gradle.startParameter.setWatchFileSystemMode(${WatchMode.name}.${watchMode.name()})
+        """
+
+        when:
+        run("assemble", "--info")
+        then:
+        outputContains(ENABLED_IF_AVAILABLE_MESSAGE)
+        outputContains(ACTIVE_MESSAGE)
+
+        where:
+        watchMode << WatchMode.values()
+    }
+
+    def "cannot define a custom build scope cache dir when watching is explicitly enabled"() {
+        buildFile << """
+        """
+        file("buildSrc/build.gradle") << """
+        """
+
+        when:
+        fails("help", "--watch-fs", "--project-cache-dir=broken")
+
+        then:
+        failure.assertHasDescription("Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem")
     }
 }

@@ -34,6 +34,7 @@ import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.io.File;
@@ -69,7 +70,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     protected abstract Class<T> getTaskType();
 
     private Class<? extends Task> getCastedTaskType() {
-        return (Class<? extends Task>) getTaskType();
+        return Cast.uncheckedCast(getTaskType());
     }
 
     protected String getTaskBaseName() {
@@ -84,6 +85,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         return getToolName().toLowerCase();
     }
 
+    @SuppressWarnings("rawtypes")
     protected Class<? extends Plugin> getBasePlugin() {
         return JavaBasePlugin.class;
     }
@@ -121,9 +123,10 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     protected abstract CodeQualityExtension createExtension();
 
+    @SuppressWarnings("rawtypes")
     private void configureExtensionRule() {
         final ConventionMapping extensionMapping = conventionMappingOf(extension);
-        extensionMapping.map("sourceSets", Callables.returning(new ArrayList()));
+        extensionMapping.map("sourceSets", Callables.returning(new ArrayList<>()));
         extensionMapping.map("reportsDir", new Callable<File>() {
             @Override
             public File call() {
@@ -143,6 +146,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         });
     }
 
+    @SuppressWarnings("unchecked")
     private void configureTaskRule() {
         project.getTasks().withType(getCastedTaskType()).configureEach(new Action<Task>() {
             @Override
@@ -160,6 +164,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     protected void configureTaskDefaults(T task, String baseName) {
     }
 
+    @SuppressWarnings("rawtypes")
     private void configureSourceSetRule() {
         withBasePlugin(new Action<Plugin>() {
             @Override
@@ -169,6 +174,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         });
     }
 
+    @SuppressWarnings("unchecked")
     private void configureForSourceSets(SourceSetContainer sourceSets) {
         sourceSets.all(new Action<SourceSet>() {
             @Override
@@ -186,6 +192,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     protected void configureForSourceSet(SourceSet sourceSet, T task) {
     }
 
+    @SuppressWarnings("rawtypes")
     private void configureCheckTask() {
         withBasePlugin(new Action<Plugin>() {
             @Override
@@ -200,7 +207,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
-                task.dependsOn(new Callable() {
+                task.dependsOn(new Callable<Object>() {
                     @Override
                     public Object call() {
                         return Iterables.transform(extension.getSourceSets(), new Function<SourceSet, String>() {
@@ -215,6 +222,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         });
     }
 
+    @SuppressWarnings("rawtypes")
     protected void withBasePlugin(Action<Plugin> action) {
         project.getPlugins().withType(getBasePlugin(), action);
     }

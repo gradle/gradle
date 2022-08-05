@@ -18,50 +18,41 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.testkit.runner.GradleRunner
-
-import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3282")
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 200
-    }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidPluginVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
         useSample("android-kotlin-example")
 
         def buildFileName = "build.gradle"
         [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
             replaceVariablesInFile(
-                    file(sampleBuildFileName),
-                    kotlinVersion: kotlinPluginVersion,
-                    androidPluginVersion: androidPluginVersion,
-                    androidBuildToolsVersion: TestedVersions.androidTools)
+                file(sampleBuildFileName),
+                kotlinVersion: kotlinPluginVersion,
+                androidPluginVersion: androidPluginVersion,
+                androidBuildToolsVersion: TestedVersions.androidTools)
         }
 
         when:
-        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
-        def result = useAgpVersion(androidPluginVersion, runner).build()
+        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ":app:testDebugUnitTestCoverage")
+        def result = useAgpVersion(androidPluginVersion, runner)
+            .deprecations(KotlinAndroidDeprecations) {
+                expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
+                expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(androidPluginVersion, "sourceFiles", "sourceDirs")
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinPluginVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(androidPluginVersion)
+            }.build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
-
-        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
-                && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
-            // expectNoDeprecationWarnings(result)
-        }
 
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
@@ -71,14 +62,13 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
 //        workers = false
 
         [kotlinPluginVersion, androidPluginVersion, workers] << [
-                TestedVersions.kotlin.versions,
-                TestedVersions.androidGradle.versions,
-                [true, false],
+            TestedVersions.kotlin.versions,
+            TestedVersions.androidGradle.versions,
+            [true, false],
         ].combinations()
     }
 
-    private GradleRunner createRunner(boolean workers, String... tasks) {
-        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-                .forwardOutput()
+    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String... tasks) {
+        return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
     }
 }

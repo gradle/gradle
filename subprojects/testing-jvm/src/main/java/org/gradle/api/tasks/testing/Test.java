@@ -18,8 +18,10 @@ package org.gradle.api.tasks.testing;
 
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -42,9 +44,11 @@ import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -64,15 +68,18 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -106,9 +113,13 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  * }
  *
  * test {
- *   // enable TestNG support (default is JUnit)
+ *   // Discover and execute JUnit4-based tests
+ *   useJUnit()
+ *
+ *   // Discover and execute TestNG-based tests
  *   useTestNG()
- *   // enable JUnit Platform (a.k.a. JUnit 5) support
+ *
+ *   // Discover and execute JUnit Platform-based tests
  *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
@@ -160,7 +171,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final PatternFilterable patternSet;
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
-    private TestFramework testFramework;
+    private final Property<TestFramework> testFramework;
+    private boolean userHasConfiguredTestFramework;
+    private boolean optionsAccessed;
+
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -182,6 +196,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
     }
 
     @Inject
@@ -254,7 +269,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     * Returns the version of Java used to run the tests based on the {@link JavaLauncher} specified by {@link #getJavaLauncher()},
+     * or the executable specified by {@link #getExecutable()} if the {@code JavaLauncher} is not present.
      *
      * @since 3.3
      */
@@ -664,6 +680,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
+        if (!javaVersion.isJava8Compatible() && testFramework.get() instanceof JUnitPlatformTestFramework) {
+            throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
+        }
 
         if (getDebug()) {
             getLogger().info("Running tests for remote debugging.");
@@ -673,7 +692,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         try {
             super.executeTests();
         } finally {
-            testFramework = null;
+            CompositeStoppable.stoppable(getTestFramework());
         }
     }
 
@@ -681,7 +700,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
         if (testExecuter == null) {
             return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseRegistry.class),
+                getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
                 getServices().get(DocumentationRegistry.class),
@@ -880,17 +899,53 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return this;
     }
 
+    /**
+     * Returns the chosen {@link TestFramework}.
+     *
+     * @since 7.3
+     */
+    @Incubating
+    @Nested
+    public Property<TestFramework> getTestFrameworkProperty() {
+        return testFramework;
+    }
+
     @Internal
     public TestFramework getTestFramework() {
         return testFramework(null);
     }
 
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        if (testFramework == null) {
+        if (!testFramework.isPresent()) {
             useJUnit(testFrameworkConfigure);
         }
 
-        return testFramework;
+        // To maintain backwards compatibility with builds that may configure the test framework
+        // multiple times for a single task--either switching between frameworks or overwriting
+        // the existing configuration for a test framework--we need to keep track if the user has
+        // explicitly set a test framework
+        // With test suites, users should never need to call the useXXX methods, so we can warn if
+        // them from doing something like this (for now, in order to preserve existing builds).
+        // This behavior should be restored to fail fast once again with the next major version.
+        //
+        // testTask.configure {
+        //      options {
+        //          /* configure JUnit Platform */
+        //      }
+        // }
+        // testTask.configure {
+        //      useJUnit()
+        //      options {
+        //          /* configure JUnit */
+        //      }
+        // }
+
+        // TODO: Test Framework Selection - Restore this to re-enable fail-fast behavior for Gradle 8
+//        if (!userHasConfiguredTestFramework) {
+//            testFramework.finalizeValue();
+//        }
+
+        return testFramework.get();
     }
 
     /**
@@ -900,15 +955,19 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Nested
     public TestFrameworkOptions getOptions() {
+        optionsAccessed = true;
         return getTestFramework().getOptions();
     }
 
     /**
      * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * <p>
+     * Any previous option configuration will be <strong>DISCARDED</strong> upon changing the test framework.  Accessing options prior to setting the test framework will be
+     * deprecated in Gradle 8.
      *
      * @return The test framework options.
      */
-    public TestFrameworkOptions options(Closure testFrameworkConfigure) {
+    public TestFrameworkOptions options(@DelegatesTo(TestFrameworkOptions.class) Closure testFrameworkConfigure) {
         return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
     }
 
@@ -929,41 +988,54 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
-        if (testFramework == null) {
-            throw new IllegalArgumentException("testFramework is null!");
+        if (optionsAccessed) {
+            DeprecationLogger.deprecateAction("Accessing test options prior to setting test framework")
+                .withContext("\nTest options have already been accessed for task: '" + getProject().getName() + ":" + getName() + "' prior to setting the test framework to: '" + testFramework.getClass().getSimpleName() + "'. Any previous configuration will be discarded.\n")
+                .willBeRemovedInGradle8()
+                .withDslReference(Test.class, "options")
+                .nagUser();
+
+            if (!this.testFramework.get().getClass().equals(testFramework.getClass())) {
+                getLogger().warn("Test framework is changing from '{}', previous option configuration would not be applicable.", this.testFramework.get().getClass().getSimpleName());
+            }
         }
 
-        this.testFramework = testFramework;
+        userHasConfiguredTestFramework = true;
+        this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.getOptions()));
+            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.get().getOptions()));
         }
 
-        return this.testFramework;
+        return this.testFramework.get();
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
+     * Specifies that JUnit4 should be used to discover and execute the tests.
+     * <p>
+     * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
         useJUnit(Actions.<JUnitOptions>doNothing());
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied closure configures an instance of {@link
-     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
      *
-     * @param testFrameworkConfigure A closure used to configure the JUnit options.
+     * @param testFrameworkConfigure A closure used to configure JUnit4 options.
      */
-    public void useJUnit(@Nullable Closure testFrameworkConfigure) {
+    public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
         useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied action configures an instance of {@link
-     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
      *
-     * @param testFrameworkConfigure An action used to configure the JUnit options.
+     * @param testFrameworkConfigure An action used to configure JUnit4 options.
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
@@ -971,8 +1043,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that JUnit Platform (a.k.a. JUnit 5) should be used to execute the tests. <p> To configure JUnit platform specific options, see {@link #useJUnitPlatform(Action)}.
+     * Specifies that JUnit Platform should be used to discover and execute the tests.
+     * <p>
+     * Use this option if your tests use JUnit Jupiter/JUnit5.
+     * <p>
+     * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
+     * You may need to use this option even if you are not using JUnit directly.
      *
+     * @see #useJUnitPlatform(org.gradle.api.Action) Configure JUnit Platform specific options.
      * @since 4.6
      */
     public void useJUnitPlatform() {
@@ -980,10 +1058,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that JUnit Platform (a.k.a. JUnit 5) should be used to execute the tests, configuring JUnit platform specific options. <p> The supplied action configures an instance of {@link
-     * org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions}, which can be used to configure how JUnit platform runs.
+     * Specifies that JUnit Platform should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * Use this option if your tests use JUnit Jupiter/JUnit5.
+     * <p>
+     * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
+     * You may need to use this option even if you are not using JUnit directly.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions JUnit Platform specific options}.
      *
-     * @param testFrameworkConfigure An action used to configure the JUnit platform options.
+     * @param testFrameworkConfigure A closure used to configure JUnit platform options.
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
@@ -991,27 +1075,31 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useTestNG(Closure)}.
+     * Specifies that TestNG should be used to discover and execute the tests.
+     * <p>
+     * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
         useTestNG(Actions.<TestFrameworkOptions>doNothing());
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied closure configures an instance of {@link
-     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
+     * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
      *
-     * @param testFrameworkConfigure A closure used to configure the TestNG options.
+     * @param testFrameworkConfigure A closure used to configure TestNG options.
      */
-    public void useTestNG(Closure testFrameworkConfigure) {
+    public void useTestNG(@DelegatesTo(TestNGOptions.class) Closure testFrameworkConfigure) {
         useTestNG(configureUsing(testFrameworkConfigure));
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied action configures an instance of {@link
-     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
+     * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
      *
-     * @param testFrameworkConfigure An action used to configure the TestNG options.
+     * @param testFrameworkConfigure An action used to configure TestNG options.
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
@@ -1126,9 +1214,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The candidate class files.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
@@ -1165,12 +1254,32 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
-            return javaLauncher.get().getExecutablePath().toString();
+        String executable = forkOptions.getExecutable();
+        if (executable != null) {
+            return executable;
         }
-        final String executable = getExecutable();
-        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+
+        return getLauncher().get().getExecutablePath().toString();
     }
 
+    /**
+     * We create a launcher for the current JVM as well, so the progress event for toolchains is emitted.
+     */
+    private Provider<JavaLauncher> getLauncher() {
+        if (forkOptions.getExecutable() != null) {
+            throw new IllegalStateException("Explicit executable cannot be resolved into a toolchain");
+        }
+
+        if (javaLauncher.isPresent()) {
+            return this.javaLauncher;
+        }
+
+        CurrentJvmToolchainSpec currentToolchainSpec = new CurrentJvmToolchainSpec(getObjectFactory());
+        return getJavaToolchainService().launcherFor(currentToolchainSpec);
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
 }

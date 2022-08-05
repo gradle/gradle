@@ -26,7 +26,7 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
-@TargetCoverage({ TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER })
+@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
@@ -73,7 +73,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
                     // check other environmental stuff
                     assertEquals("Test worker", Thread.currentThread().getName());
-                    assertNull(System.getSecurityManager());
+                    assertNull(System.console());
                 }
             }
         '''.stripIndent()

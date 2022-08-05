@@ -26,8 +26,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class S3RegionalResource {
+    //https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#virtual-host-style-url-ex
     private static final Pattern REGIONAL_ENDPOINT_PATTERN = Pattern.compile("^s3:\\/\\/(.+)?\\.s3[.-]([a-z0-9-]+)\\.amazonaws\\.com(\\.[a-z]+)?\\/(.+)");
-    private static final Region DEFAULT_REGION = Region.getRegion(Regions.US_EAST_1);
+
+    //https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#accessing-a-bucket-using-S3-format
+    private static final Pattern FALLBACK_ENDPOINT_PATTERN = Pattern.compile("^[a-z0-9]+:\\/\\/([^\\/]+)\\/(.+)");
 
     private final URI uri;
     private Optional<Region> region;
@@ -68,16 +71,20 @@ public class S3RegionalResource {
             this.region = Optional.of(derivedRegion);
             this.bucketName = bucketName;
             this.key = key;
-        } else {
-            this.region = Optional.absent();
-            this.bucketName = getBucketName(uri.getHost());
-            this.key = getS3BucketKey(uri);
-        }
-    }
 
-    private String getS3BucketKey(URI destination) {
-        String path = destination.getPath();
-        return path.startsWith("/") ? path.substring(1) : path;
+            return;
+        }
+
+        matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toString());
+        if (matcher.find()) {
+            this.region = Optional.absent();
+            this.bucketName = getBucketName(matcher.group(1));
+            this.key = matcher.group(2);
+
+            return;
+        }
+
+        throw new RuntimeException(String.format("Can't parse S3 URI '%s'", uri));
     }
 
     private String getBucketName(String bucket) {

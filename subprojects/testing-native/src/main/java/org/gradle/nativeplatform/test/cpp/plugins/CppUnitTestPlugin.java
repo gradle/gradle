@@ -138,8 +138,10 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                 task.setDescription("Executes C++ unit tests.");
 
                 final InstallExecutable installTask = binary.getInstallTask().get();
-                task.onlyIf(element -> binary.getInstallDirectory().get().getAsFile().exists());
-                task.getInputs().dir(binary.getInstallDirectory());
+                task.onlyIf("Test executable installation directory exists", element -> binary.getInstallDirectory().get().getAsFile().exists());
+                task.getInputs()
+                    .dir(binary.getInstallDirectory())
+                    .withPropertyName("installDirectory");
                 task.setExecutable(installTask.getRunScriptFile().get().getAsFile());
                 task.dependsOn(binary.getInstallDirectory());
                 // TODO: Honor changes to build directory

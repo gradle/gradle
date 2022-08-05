@@ -16,14 +16,13 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -37,9 +36,9 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
     private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
     private final PersistentCache cache;
 
-    public DefaultCompilationStateCacheFactory(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultCompilationStateCacheFactory(BuildScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository
-                .cache(gradle, "nativeCompile")
+                .cache("nativeCompile")
                 .withDisplayName("native compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();

@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Assert
+
+import static org.gradle.internal.hash.Hashing.hashFile
+import static org.gradle.internal.hash.Hashing.hashStream
 
 class UrlValidator {
 
@@ -76,10 +78,8 @@ class UrlValidator {
      * Asserts that the binary content at the specified url matches the content in the specified File
      */
     static void assertBinaryUrlContent(URL url, File file) {
-        assert compareHashes(url.openStream(), file.newInputStream())
-    }
-
-    private static boolean compareHashes(InputStream a, InputStream b) {
-        return HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
+        url.withInputStream {urlInput ->
+            assert hashStream(urlInput) == hashFile(file)
+        }
     }
 }

@@ -22,14 +22,13 @@ import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.task.ReportableToolchain
 import org.gradle.jvm.toolchain.internal.task.ToolchainReportRenderer
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class ToolchainReportRendererTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder
+    @TempDir
+    File temporaryFolder
 
     InstallationLocation installation = Mock(InstallationLocation)
 
@@ -37,16 +36,19 @@ class ToolchainReportRendererTest extends Specification {
         given:
         def metadata = JvmInstallationMetadata.from(
             new File("path"),
-            "1.8.0",
-            "vendorName",
-            "")
+            "1.8.0", "vendorName",
+            "runtimeName", "1.8.0-b01",
+            "jvmName", "25.292-b01", "jvmVendor",
+            "myArch"
+        )
         installation.source >> "SourceSupplier"
 
         expect:
-        assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0{normal}
+        assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0-b01{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}vendorName{normal}
+     | Architecture:       {description}myArch{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}SourceSupplier{normal}
 
@@ -55,12 +57,14 @@ class ToolchainReportRendererTest extends Specification {
 
     def "jdk is rendered properly"() {
         given:
-        File javaHome = temporaryFolder.newFolder("javahome")
+        File javaHome = new File(temporaryFolder, "javahome").tap { mkdirs() }
         def metadata = JvmInstallationMetadata.from(
             javaHome,
-            "1.8.0",
-            "adoptopenjdk",
-            "")
+            "1.8.0", "adoptopenjdk",
+            "runtimeName", "1.8.0-b01",
+            "jvmName", "25.292-b01", "jvmVendor",
+            "myArch"
+        )
         installation.source >> "SourceSupplier"
 
         def binDir = new File(javaHome, "bin")
@@ -70,10 +74,11 @@ class ToolchainReportRendererTest extends Specification {
         }
 
         expect:
-        assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0{normal}
-     | Location:           {description}$javaHome{normal}
+        assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0-b01{normal}
+     | Location:           {description}${javaHome}{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
+     | Architecture:       {description}myArch{normal}
      | Is JDK:             {description}true{normal}
      | Detected by:        {description}SourceSupplier{normal}
 

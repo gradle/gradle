@@ -18,11 +18,9 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -34,7 +32,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
     abstract protected String getRepoType()
 
-    @Unroll
     def "resolve with server certificate and #authSchemeName authentication"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
@@ -75,7 +72,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         file('libs').assertHasDescendants('my-module-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "decent error message when client can't authenticate server"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
@@ -92,7 +88,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         failure.assertThatCause(containsText("java.security.cert.CertPathValidatorException"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "build fails when server can't authenticate client"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerAndBadClientCert(server)

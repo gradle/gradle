@@ -65,7 +65,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
 
         then:
         def operation = events.operation("Task :compileJava")
-        operation.task
+        operation.assertIsTask()
         operation.result instanceof JavaCompileTaskOperationResult
         with((JavaCompileTaskOperationResult) operation.result) {
             annotationProcessorResults.size() == 1
@@ -78,7 +78,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
 
         and:
         def processorOperation = events.operation("Task :processor:compileJava")
-        processorOperation.task
+        processorOperation.assertIsTask()
         processorOperation.result instanceof JavaCompileTaskOperationResult
         ((JavaCompileTaskOperationResult) processorOperation.result).annotationProcessorResults.empty
     }
@@ -119,7 +119,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
 
         then:
         def operation = events.operation("Task :compileJava")
-        operation.task
+        operation.assertIsTask()
         operation.result instanceof JavaCompileTaskOperationResult
     }
 
@@ -130,7 +130,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
 
         then:
         def operation = events.operation("Task :compileJava")
-        operation.task
+        operation.assertIsTask()
         operation.result instanceof TaskSuccessResult
         !(operation.result instanceof JavaCompileTaskOperationResult)
     }

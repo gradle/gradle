@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -22,7 +24,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -32,6 +36,9 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -54,9 +61,14 @@ public class ScalaDoc extends SourceTask {
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
     private final Property<String> maxMemory;
+    private final Property<JavaLauncher> javaLauncher;
+    private final ConfigurableFileCollection compilationOutputs;
 
     public ScalaDoc() {
-        this.maxMemory = getObjectFactory().property(String.class);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.maxMemory = objectFactory.property(String.class);
+        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        this.compilationOutputs = objectFactory.fileCollection();
     }
 
     @Inject
@@ -87,12 +99,46 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
+     *
+     * <p>
+     * The {@link PathSensitivity} for the sources is configured to be {@link PathSensitivity#RELATIVE}.
+     * </p>
+     *
+     * @return The source.
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    /**
+     * Returns the compilation outputs needed by Scaladoc filtered to include <a href="https://docs.scala-lang.org/scala3/guides/tasty-overview.html">TASTy</a> files.
+     * <p>
+     * NOTE: This is only useful with Scala 3 or later. Scala 2 only processes source files.
+     * </p>
+     * @return the compilation outputs produced from the sources
+     * @since 7.3
+     */
+    @Incubating
+    @InputFiles
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    protected FileTree getFilteredCompilationOutputs() {
+        return getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
+    }
+
+    /**
+     * Returns the compilation outputs produced by the sources that are generating Scaladoc.
+     *
+     * @return the compilation outputs produced from the sources
+     * @since 7.3
+     */
+    @Incubating
+    @Internal
+    public ConfigurableFileCollection getCompilationOutputs() {
+        return compilationOutputs;
     }
 
     /**
@@ -158,6 +204,16 @@ public class ScalaDoc extends SourceTask {
         return maxMemory;
     }
 
+    /**
+     * Optional JavaLauncher for toolchain support
+     * @since 7.2
+     */
+    @Incubating
+    @Internal
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
     @TaskAction
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
@@ -167,8 +223,13 @@ public class ScalaDoc extends SourceTask {
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
             worker.getClasspath().from(getScalaClasspath());
+            JavaForkOptions forkOptions = worker.getForkOptions();
             if (getMaxMemory().isPresent()) {
-                worker.forkOptions(forkOptions -> forkOptions.setMaxHeapSize(getMaxMemory().get()));
+                forkOptions.setMaxHeapSize(getMaxMemory().get());
+            }
+
+            if(javaLauncher.isPresent()) {
+                forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             }
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
@@ -177,14 +238,20 @@ public class ScalaDoc extends SourceTask {
             parameters.getOptionsFile().set(optionsFile);
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
-            parameters.getSources().from(getSource());
+            boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
+            parameters.getIsScala3().set(isScala3);
+            if (isScala3) {
+                parameters.getSources().from(getFilteredCompilationOutputs());
+            } else {
+                parameters.getSources().from(getSource());
 
-            if (options.isDeprecation()) {
-                parameters.getOptions().add("-deprecation");
-            }
+                if (options.isDeprecation()) {
+                    parameters.getOptions().add("-deprecation");
+                }
 
-            if (options.isUnchecked()) {
-                parameters.getOptions().add("-unchecked");
+                if (options.isUnchecked()) {
+                    parameters.getOptions().add("-unchecked");
+                }
             }
 
             String footer = options.getFooter();
@@ -221,4 +288,5 @@ public class ScalaDoc extends SourceTask {
     private File createOptionsFile() {
         return new File(getTemporaryDir(), "scaladoc.options");
     }
+
 }

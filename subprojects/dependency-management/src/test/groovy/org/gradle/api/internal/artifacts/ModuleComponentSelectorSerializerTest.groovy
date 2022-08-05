@@ -25,7 +25,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.util.AttributeTestUtil.attributes
@@ -36,7 +35,6 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
 
     private serializer = new ModuleComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(attributesFactory(), TestUtil.objectInstantiator()))
 
-    @Unroll
     def "serializes"() {
         when:
         def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")]), serializer)

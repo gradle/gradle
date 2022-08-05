@@ -36,7 +36,7 @@ public class TaskDetailsFactory {
             : task.getPath();
         return TaskDetails.of(
             Path.path(path),
-            task.getDescription()
+            task
         );
     }
 }

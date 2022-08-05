@@ -39,6 +39,13 @@ public interface BuildOutputCleanupRegistry {
     boolean isOutputOwnedByBuild(File file);
 
     /**
+     * Finalizes the registered build outputs.
+     *
+     * After this call, it is impossible to register more outputs.
+     */
+    void resolveOutputs();
+
+    /**
      * Gets the set of registered outputs as file collections.
      */
     Set<FileCollection> getRegisteredOutputs();

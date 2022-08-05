@@ -18,9 +18,10 @@ package org.gradle.internal.execution.fingerprint;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import javax.annotation.Nullable;
 
 public interface FileCollectionFingerprinter {
     /**
@@ -34,22 +35,12 @@ public interface FileCollectionFingerprinter {
     CurrentFileCollectionFingerprint fingerprint(FileCollection files);
 
     /**
-     * Creates a fingerprint of the contents of the given roots.
+     * Creates a fingerprint from the snapshot of a file collection.
      */
-    CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot roots);
+    CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint);
 
     /**
      * Returns an empty fingerprint.
      */
     CurrentFileCollectionFingerprint empty();
-
-    /**
-     * Returns the normalized path to use for the given root
-     */
-    String normalizePath(FileSystemLocationSnapshot root);
-
-    /**
-     * Returns the directory sensitivity associated with this fingerprinter.
-     */
-    DirectorySensitivity getDirectorySensitivity();
 }

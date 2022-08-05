@@ -17,7 +17,7 @@
 package org.gradle.api.file;
 
 /**
- * Strategies for dealing with the potential creation of duplicate files for or archive entries.
+ * Strategies for dealing with the potential creation of duplicate files or archive entries.
  */
 public enum DuplicatesStrategy {
 

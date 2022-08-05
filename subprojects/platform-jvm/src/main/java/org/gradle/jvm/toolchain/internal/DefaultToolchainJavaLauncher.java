@@ -20,6 +20,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails.JavaTool;
 
 public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
@@ -32,11 +33,17 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
     @Override
     @Internal
     public RegularFile getExecutablePath() {
+        emitUsageEvent();
         return javaToolchain.findExecutable("java");
     }
 
     @Override
     public JavaInstallationMetadata getMetadata() {
+        emitUsageEvent();
         return javaToolchain;
+    }
+
+    private void emitUsageEvent() {
+        javaToolchain.emitUsageEvent(JavaTool.LAUNCHER);
     }
 }

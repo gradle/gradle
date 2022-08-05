@@ -20,8 +20,11 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
-import spock.lang.Unroll
+import org.gradle.util.Requires
 
+import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
+
+@Requires(NOT_MAC_OS_X_M1)
 class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "app.cpp"
@@ -31,7 +34,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -60,7 +62,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -89,7 +90,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:

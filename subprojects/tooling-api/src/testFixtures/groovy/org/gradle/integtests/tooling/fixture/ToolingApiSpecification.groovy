@@ -23,8 +23,12 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
@@ -107,6 +111,7 @@ abstract class ToolingApiSpecification extends Specification {
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        settingsFile.touch()
     }
 
     DaemonsFixture getDaemonsFixture() {
@@ -162,7 +167,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -175,7 +180,7 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.connector()
     }
 
-    public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             toolingApi.withConnection(cl)
         } catch (GradleConnectionException e) {
@@ -211,7 +216,9 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("6.8")) {
+        if (targetVersion >= GradleVersion.version("7.5")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
+        } else if (targetVersion >= GradleVersion.version("6.8")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants']
         } else if (targetVersion >= GradleVersion.version("6.5")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants']
@@ -282,15 +289,18 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void assertHasBuildSuccessfulLogging() {
+        assertHasNoDeprecationWarnings()
         assert stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     void assertHasBuildFailedLogging() {
+        assertHasNoDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         assert failureOutput.contains("BUILD FAILED")
     }
 
     void assertHasConfigureSuccessfulLogging() {
+        assertHasNoDeprecationWarnings()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {
@@ -299,6 +309,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void assertHasConfigureFailedLogging() {
+        assertHasNoDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert failureOutput.contains("CONFIGURE FAILED")
@@ -307,8 +318,32 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public <T> T loadToolingModel(Class<T> modelClass) {
-        withConnection { connection -> connection.getModel(modelClass) }
+    private void assertHasNoDeprecationWarnings() {
+        if (targetVersion < GradleVersion.version("6.9")) {
+            // Older versions have deprecations
+            return
+        }
+        assert !stdout.toString()
+            .replace("[deprecated]", "IGNORE") // deprecated command-line argument
+            .containsIgnoreCase("deprecated")
+    }
+
+    ExecutionResult getResult() {
+        return OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString())
+    }
+
+    ExecutionFailure getFailure() {
+        return OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+    }
+
+    def <T> T loadToolingModel(Class<T> modelClass) {
+        def result = withConnection { connection ->
+            def builder = connection.model(modelClass)
+            collectOutputs(builder)
+            builder.get()
+        }
+        assertHasConfigureSuccessfulLogging()
+        return result
     }
 
     protected GradleVersion getTargetVersion() {

@@ -19,15 +19,17 @@ package org.gradle.internal.resource.transport.sftp;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
 import org.gradle.api.credentials.PasswordCredentials;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.net.URI;
 
-public class SftpResourceAccessor implements ExternalResourceAccessor {
+public class SftpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
     private final SftpClientFactory sftpClientFactory;
     private final PasswordCredentials credentials;
@@ -38,16 +40,16 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
     }
 
     @Override
-    public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
-        LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
+        LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(location.getUri(), credentials);
         try {
-            SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
-            return attributes != null ? toMetaData(uri, attributes) : null;
+            SftpATTRS attributes = sftpClient.getSftpClient().lstat(location.getPath());
+            return attributes != null ? toMetaData(location.getUri(), attributes) : null;
         } catch (com.jcraft.jsch.SftpException e) {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw ResourceExceptions.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(location.getUri(), e);
         } finally {
             sftpClientFactory.releaseSftpClient(sftpClient);
         }
@@ -68,8 +70,8 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) {
         ExternalResourceMetaData metaData = getMetaData(location, revalidate);
-        return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;
+        return metaData != null ? new SftpResource(sftpClientFactory, metaData, location.getUri(), credentials) : null;
     }
 }

@@ -47,7 +47,6 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         metadata.contains("gradleVersion=")
         metadata.contains("creationTime=")
         metadata.contains("executionTime=")
-        metadata.contains("rootPath=")
         metadata.contains("operatingSystem=")
         metadata.contains("hostName=")
         metadata.contains("userName=")
@@ -83,7 +82,6 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "task is loaded from cache when returning to already cached state after failure"() {
         buildFile << """
             task foo {

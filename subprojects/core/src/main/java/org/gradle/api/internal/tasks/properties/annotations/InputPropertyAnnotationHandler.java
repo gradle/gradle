@@ -33,6 +33,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -63,6 +64,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)

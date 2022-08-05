@@ -16,16 +16,10 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.StartParameter;
-import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
-import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -38,11 +32,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.io.File;
 
-import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @ServiceScope(Scopes.Build.class)
@@ -69,36 +61,19 @@ public class BuildSourceBuilder {
     }
 
     public ClassPath buildAndGetClassPath(GradleInternal gradle) {
-        SettingsInternal settings = gradle.getSettings();
-        File buildSrcDir = settings.getBuildSrcDir();
-        ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
-
-        return createBuildSourceClasspath(buildSrcDir, gradle.getStartParameter(), parentClassLoaderScope);
+        return createBuildSourceClasspath();
     }
 
-    private ClassPath createBuildSourceClasspath(File buildSrcDir, final StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
-        if (!BuildSrcDetector.isValidBuildSrcBuild(buildSrcDir)) {
+    private ClassPath createBuildSourceClasspath() {
+        StandAloneNestedBuild buildSrcBuild = buildRegistry.getBuildSrcNestedBuild(currentBuild);
+        if (buildSrcBuild == null) {
             return ClassPath.EMPTY;
         }
-
-        final StartParameterInternal buildSrcStartParameter = buildSrcStartParameterFor(buildSrcDir, containingBuildParameters);
-        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
-            buildSrcStartParameter,
-            BUILD_SRC,
-            buildSrcDir,
-            PluginRequests.EMPTY,
-            Actions.doNothing(),
-            publicBuildPath,
-            true
-        );
-        @SuppressWarnings("deprecation")
-        File customBuildFile = buildSrcStartParameter.getBuildFile();
-        assert customBuildFile == null;
 
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override
             public ClassPath call(BuildOperationContext context) {
-                ClassPath classPath = buildBuildSrc(buildDefinition, parentClassLoaderScope);
+                ClassPath classPath = buildBuildSrc(buildSrcBuild);
                 context.setResult(BUILD_BUILDSRC_RESULT);
                 return classPath;
             }
@@ -120,31 +95,18 @@ public class BuildSourceBuilder {
         });
     }
 
-    private StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
-        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
-        buildSrcStartParameter.setCurrentDir(buildSrcDir);
-        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        buildSrcStartParameter.doNotSearchUpwards();
-        buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
-        return buildSrcStartParameter;
-    }
-
     @SuppressWarnings("try")
-    private ClassPath buildBuildSrc(final BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
-        StandAloneNestedBuild nestedBuild = buildRegistry.addBuildSrcNestedBuild(buildDefinition, currentBuild);
-        return nestedBuild.run(buildController -> {
-            // Expose any contributions from the parent's settings
-            buildController.getGradle().setClassLoaderScope(parentClassLoaderScope);
-
-            try (FileLock ignored = buildSrcBuildLockFor(buildDefinition)) {
+    private ClassPath buildBuildSrc(StandAloneNestedBuild buildSrcBuild) {
+        return buildSrcBuild.run(buildController -> {
+            try (FileLock ignored = buildSrcBuildLockFor(buildSrcBuild)) {
                 return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer).create();
             }
         });
     }
 
-    private FileLock buildSrcBuildLockFor(BuildDefinition buildDefinition) {
+    private FileLock buildSrcBuildLockFor(StandAloneNestedBuild build) {
         return fileLockManager.lock(
-            new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc"),
+            new File(build.getBuildRootDir(), ".gradle/noVersion/buildSrc"),
             LOCK_OPTIONS,
             "buildSrc build lock"
         );

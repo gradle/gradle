@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
@@ -32,7 +31,6 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     String getAuthConfig() { '' }
 
-    @Unroll
     def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()

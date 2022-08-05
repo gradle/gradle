@@ -19,51 +19,105 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRelativePath;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
-    protected final VfsRootReference rootReference;
+    private final ReentrantLock updateLock = new ReentrantLock();
 
-    protected AbstractVirtualFileSystem(VfsRootReference rootReference) {
-        this.rootReference = rootReference;
+    // Mutable state, changes need to be guarded by updateLock
+    protected volatile SnapshotHierarchy root;
+    private volatile VersionHierarchyRoot versionHierarchyRoot;
+
+    protected AbstractVirtualFileSystem(SnapshotHierarchy root) {
+        this.root = root;
+        this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
+    }
+
+    protected void underLock(Runnable runnable) {
+        updateLock.lock();
+        try {
+            runnable.run();
+        } finally {
+            updateLock.unlock();
+        }
+    }
+
+    protected void updateRootUnderLock(UnaryOperator<SnapshotHierarchy> updateFunction) {
+        underLock(() -> {
+            SnapshotHierarchy currentRoot = root;
+            root = updateFunction.apply(currentRoot);
+        });
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return rootReference.getRoot().getSnapshot(absolutePath);
+    public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
+        return root.findSnapshot(absolutePath);
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        return rootReference.getRoot().getMetadata(absolutePath);
+    public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
+        return root.findMetadata(absolutePath);
     }
 
     @Override
-    public void store(String absolutePath, FileSystemLocationSnapshot snapshot) {
-        rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+    public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
+        long versionBefore = versionHierarchyRoot.getVersion(absolutePath);
+        FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
+        storeIfUnchanged(absolutePath, versionBefore, snapshot);
+        return snapshot;
+    }
+
+    @Override
+    public <T> T store(String baseLocation, StoringAction<T> storingAction) {
+        long versionBefore = versionHierarchyRoot.getVersion(baseLocation);
+        return storingAction.snapshot(snapshot -> {
+            storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot);
+            return snapshot;
+        });
+    }
+
+    private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
+        long versionAfter = versionHierarchyRoot.getVersion(absolutePath);
+        // Only update VFS if no changes happened in between
+        // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
+        if (versionBefore >= versionAfter) {
+            updateRootUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+        } else {
+            LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
+        }
     }
 
     @Override
     public void invalidate(Iterable<String> locations) {
-        rootReference.update(root -> {
+        LOGGER.debug("Invalidating VFS paths: {}", locations);
+        updateRootUnderLock(root -> {
             SnapshotHierarchy result = root;
+            VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
             for (String location : locations) {
                 SnapshotHierarchy currentRoot = result;
                 result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
+                newVersionHierarchyRoot = newVersionHierarchyRoot.updateVersion(location);
             }
+            versionHierarchyRoot = newVersionHierarchyRoot;
             return result;
         });
     }
 
     @Override
     public void invalidateAll() {
-        rootReference.update(root -> updateNotifyingListeners(diffListener -> {
-            root.visitSnapshotRoots(diffListener::nodeRemoved);
-            return root.empty();
-        }));
+        LOGGER.debug("Invalidating the whole VFS");
+        invalidate(Collections.singletonList(VfsRelativePath.ROOT));
     }
 
     /**

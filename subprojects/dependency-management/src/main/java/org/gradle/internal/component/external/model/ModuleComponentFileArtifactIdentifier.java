@@ -28,9 +28,4 @@ public class ModuleComponentFileArtifactIdentifier extends ComponentFileArtifact
     public ModuleComponentIdentifier getComponentIdentifier() {
         return (ModuleComponentIdentifier) super.getComponentIdentifier();
     }
-
-    @Override
-    public ModuleComponentArtifactIdentifier getSignatureArtifactId() {
-        return new ModuleComponentFileArtifactIdentifier(getComponentIdentifier(), getFileName() + ".asc");
-    }
 }

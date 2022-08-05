@@ -22,6 +22,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.TestActorFactory
@@ -416,19 +417,19 @@ public class ATestNGFactoryClass {
 }
 
 public class ATestNGClassWithBrokenConstructor {
-    static RuntimeException failure = new RuntimeException()
-    def ATestNGClassWithBrokenConstructor() { throw failure }
+    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
+    def ATestNGClassWithBrokenConstructor() { throw failure.rawFailure }
     @org.testng.annotations.Test public void test() {}
 }
 
 public class ATestNGClassWithBrokenSetupMethod {
-    static RuntimeException failure = new RuntimeException()
-    @BeforeMethod public void beforeMethod() { throw failure }
+    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
+    @BeforeMethod public void beforeMethod() { throw failure.rawFailure }
     @org.testng.annotations.Test public void test() {}
 }
 
 public class ATestNGClassWithBrokenDependencyMethod {
-    static RuntimeException failure = new RuntimeException()
-    @org.testng.annotations.Test public void beforeMethod() { throw failure }
+    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
+    @org.testng.annotations.Test public void beforeMethod() { throw failure.rawFailure }
     @org.testng.annotations.Test(dependsOnMethods = 'beforeMethod') public void test() {}
 }

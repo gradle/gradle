@@ -47,6 +47,7 @@ tasks.register("processTemplatesAdHocSkipWhenEmpty") {
         .skipWhenEmpty()
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
+        .ignoreEmptyDirectories()
 
     // ...
 // end::ad-hoc-task-skip-when-empty[]

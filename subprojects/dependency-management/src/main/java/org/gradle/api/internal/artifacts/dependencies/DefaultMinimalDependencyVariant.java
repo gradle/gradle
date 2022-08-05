@@ -86,4 +86,9 @@ public class DefaultMinimalDependencyVariant implements MinimalExternalModuleDep
     public String getArtifactType() {
         return artifactType;
     }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

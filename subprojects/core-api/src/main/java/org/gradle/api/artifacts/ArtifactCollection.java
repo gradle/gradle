@@ -16,8 +16,10 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 import java.util.Set;
@@ -42,6 +44,16 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      * @throws ResolveException On failure to resolve or download any artifact.
      */
     Set<ResolvedArtifactResult> getArtifacts();
+
+    /**
+     * Returns the resolved artifacts as a {@link Provider} of {@link ResolvedArtifactResult} instances.
+     * The returned {@link Provider} is live, and tracks the producer tasks of this artifact collection.
+     * The provider will resolve the artifact metadata and download the artifact files as required.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts();
 
     /**
      * Returns any failures to resolve the artifacts for this collection.

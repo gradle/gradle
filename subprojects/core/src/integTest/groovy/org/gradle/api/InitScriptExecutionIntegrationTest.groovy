@@ -271,6 +271,19 @@ initscript {
         output.contains("Project 'root'")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17555")
+    def "init script file is a dotfile"() {
+        def initScript = file('.empty')
+        initScript << 'println "greetings from empty init script"'
+        executer.withArguments('--init-script', initScript.absolutePath)
+
+        when:
+        run()
+
+        then:
+        output.contains("greetings from empty init script")
+    }
+
     private def createExternalJar() {
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''

@@ -111,7 +111,7 @@ public class IdeaScalaConfigurer {
         for (final Project scalaProject : scalaProjects) {
             final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
-            ProjectLibrary library = ((ProjectInternal) scalaProject).getMutationState().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
+            ProjectLibrary library = ((ProjectInternal) scalaProject).getOwner().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
             if (library != null) {
                 ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
                 scalaCompilerLibraries.put(scalaProject.getPath(), duplicate == null ? library : duplicate);
@@ -138,6 +138,9 @@ public class IdeaScalaConfigurer {
         if (runtime != null) {
             FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
             File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
+            if (compilerJar == null) {
+                compilerJar = runtime.findScalaJar(scalaClasspath, "compiler_3");
+            }
             String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
             return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
         } else {
