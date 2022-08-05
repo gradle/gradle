@@ -204,20 +204,34 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Nullable
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        // See AbstractExternalDependencyFactory$BundleFactory#createBundle, it wraps the base provider with a transformed one
-        if (dependencyNotation instanceof TransformBackedProvider) {
-            Provider<?> baseProvider = ((TransformBackedProvider<?, ?>) dependencyNotation).getProvider();
-            if (baseProvider instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-                Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) baseProvider).getValueSourceType();
-                if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
-                    return doAddListProvider(configuration, dependencyNotation, configureClosure);
-                }
-            }
+        if (isBundle(dependencyNotation)) {
+            return doAddListProvider(configuration, dependencyNotation, configureClosure);
         }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
         return null;
+    }
+
+    /**
+     * Checks if the given provider matches with one produced by {@code org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.BundleFactory#createBundle(String)}.
+     *
+     * <p>
+     *     This is a pretty fragile check, and must be kept in-sync with the aforementioned factory.
+     *     Any additional mapping of the provider will break this check.
+     * </p>
+     * @param dependencyNotation the provider to check
+     * @return true if the provider is a bundle, false otherwise
+     */
+    private static boolean isBundle(Provider<?> dependencyNotation) {
+        if (dependencyNotation instanceof TransformBackedProvider) {
+            Provider<?> baseProvider = ((TransformBackedProvider<?, ?>) dependencyNotation).getProvider();
+            if (baseProvider instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
+                Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) baseProvider).getValueSourceType();
+                return valueSourceType.isAssignableFrom(DependencyBundleValueSource.class);
+            }
+        }
+        return false;
     }
 
     private Dependency doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
