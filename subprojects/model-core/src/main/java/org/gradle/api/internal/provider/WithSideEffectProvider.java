@@ -18,14 +18,13 @@ package org.gradle.api.internal.provider;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Consumer;
 
 public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 
     private final ProviderInternal<T> provider;
-    private final Consumer<? super T> sideEffect;
+    private final SideEffect<? super T> sideEffect;
 
-    public WithSideEffectProvider(ProviderInternal<T> provider, Consumer<? super T> sideEffect) {
+    public WithSideEffectProvider(ProviderInternal<T> provider, SideEffect<? super T> sideEffect) {
         this.provider = provider;
         this.sideEffect = sideEffect;
     }
@@ -59,7 +58,7 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 
 
     @Override
-    public ProviderInternal<T> withSideEffect(Consumer<? super T> sideEffect) {
+    public ProviderInternal<T> withSideEffect(SideEffect<? super T> sideEffect) {
         // TODO: should we chain side effects instead of composing providers here?
         return super.withSideEffect(sideEffect);
     }

@@ -24,7 +24,6 @@ import org.gradle.internal.DisplayName;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
@@ -48,8 +47,8 @@ public class Providers {
                 return new NoValueProvider<>(value);
             }
         } else {
-            ProviderInternal<T> provider = of(value.get());
-            Consumer<?> sideEffect = value.getSideEffect();
+            ProviderInternal<T> provider = of(value.getWithoutSideEffect());
+            ValueSupplier.SideEffect<?> sideEffect = value.getSideEffect();
             return sideEffect == null ? provider : provider.withSideEffect(Cast.uncheckedCast(sideEffect));
         }
     }
