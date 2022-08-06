@@ -25,6 +25,7 @@ import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Encapsulates the production of some value.
@@ -222,7 +223,7 @@ public interface ValueSupplier {
             return SUCCESS;
         }
 
-        static <T> Value<T> withSideEffect(T value, Runnable sideEffect) {
+        static <T> Value<T> withSideEffect(T value, Consumer<? super T> sideEffect) {
             if (value == null) {
                 throw new IllegalArgumentException();
             }
@@ -238,10 +239,15 @@ public interface ValueSupplier {
 
         <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
+        Value<T> withSideEffect(Consumer<? super T> sideEffect);
+
         // Only populated when value is missing
         List<DisplayName> getPathToOrigin();
 
         boolean isMissing();
+
+        @Nullable
+        default Consumer<? super T> getSideEffect() { return null; }
 
         <S> Value<S> asType();
 
@@ -252,14 +258,15 @@ public interface ValueSupplier {
 
     class PresentWithSideEffect<T> extends Present<T> {
 
-        private final Runnable sideEffect;
+        private final Consumer<? super T> sideEffect;
 
-        private PresentWithSideEffect(T result, Runnable sideEffect) {
+        private PresentWithSideEffect(T result, Consumer<? super T> sideEffect) {
             super(result);
             this.sideEffect = sideEffect;
         }
 
-        public Runnable getSideEffect() {
+        @Override
+        public @Nullable Consumer<? super T> getSideEffect() {
             return sideEffect;
         }
 
@@ -281,17 +288,32 @@ public interface ValueSupplier {
             return super.orElse(defaultValue);
         }
 
+        // TODO: do we want to preserve the side effect when transforming? Not needed for the toolchain usage use-case
         @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
-            R result = transformer.transform(get());
+            T value = get();
+            R result = transformer.transform(value);
             if (result == null) {
                 return Value.missing();
             }
-            return new PresentWithSideEffect<>(result, sideEffect);
+            // carry over the side effect with a captured value before transform
+            Consumer<R> parentSideEffect = ignored -> sideEffect.accept(value);
+            return Value.withSideEffect(result, parentSideEffect);
+        }
+
+        @Override
+        public Value<T> withSideEffect(Consumer<? super T> sideEffect) {
+            Consumer<? super T> chainedSideEffect = it -> {
+                this.sideEffect.accept(it);
+                sideEffect.accept(it);
+            };
+
+            return new PresentWithSideEffect<>(get(), chainedSideEffect);
         }
 
         private void runSideEffect() {
-            sideEffect.run();
+            T value = super.get();
+            sideEffect.accept(value);
         }
     }
 
@@ -325,6 +347,11 @@ public interface ValueSupplier {
         @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
             return Value.ofNullable(transformer.transform(result));
+        }
+
+        @Override
+        public Value<T> withSideEffect(Consumer<? super T> sideEffect) {
+            return Value.withSideEffect(result, sideEffect);
         }
 
         @Override
@@ -385,6 +412,12 @@ public interface ValueSupplier {
         }
 
         @Override
+        public Value<T> withSideEffect(Consumer<? super T> sideEffect) {
+            // TODO: consider if we want to extend sideEffect contract to work with missing values
+            return this;
+        }
+
+        @Override
         public List<DisplayName> getPathToOrigin() {
             return path;
         }
@@ -429,7 +462,7 @@ public interface ValueSupplier {
 
         /**
          * Returns {@code true} when the value is <b>definitely</b> missing.
-         *
+         * <p>
          * A {@code false} return value doesn't mean the value is <b>definitely</b> present, it might still be missing at runtime.
          */
         public boolean isMissing() {
@@ -459,6 +492,11 @@ public interface ValueSupplier {
             throw new IllegalStateException();
         }
 
+        @Nullable
+        public Consumer<? super T> getSideEffect() throws IllegalStateException {
+            return null;
+        }
+
         public Value<T> toValue() throws IllegalStateException {
             throw new IllegalStateException();
         }
@@ -466,6 +504,8 @@ public interface ValueSupplier {
         public abstract ProviderInternal<T> toProvider();
 
         public abstract ExecutionTimeValue<T> withChangingContent();
+
+        public abstract ExecutionTimeValue<T> withSideEffect(Consumer<? super T> sideEffect);
 
         public static <T> ExecutionTimeValue<T> missing() {
             return Cast.uncheckedCast(MISSING);
@@ -523,6 +563,11 @@ public interface ValueSupplier {
         public Value<Object> toValue() {
             return Value.missing();
         }
+
+        @Override
+        public ExecutionTimeValue<Object> withSideEffect(Consumer<? super Object> sideEffect) {
+            return this;
+        }
     }
 
     class FixedExecutionTimeValue<T> extends ExecutionTimeValue<T> {
@@ -571,6 +616,55 @@ public interface ValueSupplier {
         public ExecutionTimeValue<T> withChangingContent() {
             return new FixedExecutionTimeValue<>(value, true);
         }
+
+        @Override
+        public ExecutionTimeValue<T> withSideEffect(Consumer<? super T> sideEffect) {
+            return new FixedWithSideEffectExecutionTimeValue<>(value, changingContent, sideEffect);
+        }
+    }
+
+    class FixedWithSideEffectExecutionTimeValue<T> extends FixedExecutionTimeValue<T> {
+
+        private final Consumer<? super T> sideEffect;
+
+        private FixedWithSideEffectExecutionTimeValue(T value, boolean changingContent, Consumer<? super T> sideEffect) {
+            super(value, changingContent);
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Consumer<? super T> getSideEffect() {
+            return sideEffect;
+        }
+
+        @Override
+        public ExecutionTimeValue<T> withSideEffect(Consumer<? super T> sideEffect) {
+            Consumer<? super T> chainedSideEffect = it -> {
+                this.sideEffect.accept(it);
+                sideEffect.accept(it);
+            };
+            return new FixedWithSideEffectExecutionTimeValue<>(getFixedValue(), hasChangingContent(), chainedSideEffect);
+        }
+
+        @Override
+        public ExecutionTimeValue<T> withChangingContent() {
+            return new FixedWithSideEffectExecutionTimeValue<>(getFixedValue(), true, sideEffect);
+        }
+
+        @Override
+        public Value<T> toValue() {
+            return Value.withSideEffect(getFixedValue(), sideEffect);
+        }
+
+        @Override
+        public ProviderInternal<T> toProvider() {
+            return super.toProvider().withSideEffect(sideEffect);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("fixed(%s, sideEffect=%s)", getFixedValue(), sideEffect);
+        }
     }
 
     class ChangingExecutionTimeValue<T> extends ExecutionTimeValue<T> {
@@ -608,6 +702,11 @@ public interface ValueSupplier {
         @Override
         public ExecutionTimeValue<T> withChangingContent() {
             return this;
+        }
+
+        @Override
+        public ExecutionTimeValue<T> withSideEffect(Consumer<? super T> sideEffect) {
+            return new ChangingExecutionTimeValue<>(provider.withSideEffect(sideEffect));
         }
     }
 }

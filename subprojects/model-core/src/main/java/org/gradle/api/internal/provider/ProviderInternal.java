@@ -23,6 +23,7 @@ import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer {
     /**
@@ -67,5 +68,9 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
 
     default <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner) {
         return new BiProvider<>(this, right, combiner);
+    }
+
+    default ProviderInternal<T> withSideEffect(Consumer<? super T> sideEffect) {
+        return new WithSideEffectProvider<>(this, sideEffect);
     }
 }

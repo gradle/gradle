@@ -22,6 +22,7 @@ import org.gradle.api.internal.provider.TransformBackedProvider;
 
 import javax.annotation.Nonnull;
 
+// TODO: most likely needs to be removed, keeping for reference during review and discussion
 public class JavaToolProvider<T> extends TransformBackedProvider<T, JavaToolchain> {
 
     private final DefaultJavaToolchainUsageProgressDetails.JavaTool tool;
@@ -42,12 +43,6 @@ public class JavaToolProvider<T> extends TransformBackedProvider<T, JavaToolchai
             return value.asType();
         }
         JavaToolchain javaToolchain = value.get();
-        Runnable emitUsageRunnable = () -> javaToolchain.emitUsageEvent(tool);
-        emitUsageRunnable.run();
-        Value<? extends T> toolValue = super.mapValue(value);
-        if (toolValue.isMissing()) {
-            return toolValue;
-        }
-        return Value.withSideEffect(toolValue.get(), emitUsageRunnable);
+        return super.mapValue(value).withSideEffect(ignored -> javaToolchain.emitUsageEvent(tool));
     }
 }

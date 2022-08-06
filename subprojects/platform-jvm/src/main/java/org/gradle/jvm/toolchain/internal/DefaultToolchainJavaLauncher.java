@@ -21,7 +21,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
-public class DefaultToolchainJavaLauncher implements JavaLauncher {
+public class DefaultToolchainJavaLauncher implements JavaLauncherInternal {
 
     private final JavaToolchain javaToolchain;
 
@@ -38,5 +38,10 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
     @Override
     public JavaInstallationMetadata getMetadata() {
         return javaToolchain;
+    }
+
+    @Override
+    public void emitUsage() {
+        javaToolchain.emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool.LAUNCHER);
     }
 }

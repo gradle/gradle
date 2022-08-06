@@ -26,10 +26,8 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.internal.VersionNumber;
 
@@ -70,18 +68,18 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     @Internal
-    public JavaCompiler getJavaCompiler() {
+    public JavaCompilerInternal getJavaCompiler() {
         return new DefaultToolchainJavaCompiler(this, compilerFactory);
     }
 
     @Internal
-    public JavaLauncher getJavaLauncher() {
+    public JavaLauncherInternal getJavaLauncher() {
         return new DefaultToolchainJavaLauncher(this);
     }
 
     @Internal
-    public JavadocTool getJavadocTool() {
-        return toolFactory.create(JavadocTool.class, this);
+    public JavadocToolInternal getJavadocTool() {
+        return (JavadocToolInternal) toolFactory.create(JavadocTool.class, this);
     }
 
     @Internal
