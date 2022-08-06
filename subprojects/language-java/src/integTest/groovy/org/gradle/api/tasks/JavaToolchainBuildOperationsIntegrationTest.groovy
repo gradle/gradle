@@ -94,6 +94,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
+        // Find all progress events and their parent build operations for debugging
+        def allEvents = allToolchainEvents()
         events = toolchainEvents(task)
         then:
         skipped(task)
@@ -621,11 +623,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def prepareRunWithInstallationPaths(String installationPaths, String... tasks) {
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+            // .withArgument("--configuration-cache")
             .withTasks(tasks)
     }
 
     List<BuildOperationRecord.Progress> toolchainEvents(String taskPath) {
-        return toolchainEventsFor(ResolveTaskMutationsBuildOperationType, taskPath) + toolchainEventsFor(ExecuteTaskBuildOperationType, taskPath)
+        def resolveMutationEvents = toolchainEventsFor(ResolveTaskMutationsBuildOperationType, taskPath)
+        def executeTaskEvents = toolchainEventsFor(ExecuteTaskBuildOperationType, taskPath)
+        return resolveMutationEvents + executeTaskEvents
     }
 
     private <T extends BuildOperationType<?, ?>> List<BuildOperationRecord.Progress> toolchainEventsFor(Class<T> buildOperationType, String taskPath) {
@@ -641,8 +646,29 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         return events
     }
 
+    private <T extends BuildOperationType<?, ?>> List<ProgressEvent> allToolchainEvents() {
+        List<ProgressEvent> events = []
+        operations.walk { buildOperationRecord ->
+            def found = buildOperationRecord.progress.findAll {
+                JavaToolchainUsageProgressDetails.isAssignableFrom(it.detailsType)
+            }.collect { new ProgressEvent(progress: it, parent: buildOperationRecord) }
+            events.addAll(found)
+        }
+        return events
+    }
+
     List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
         events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
+    }
+
+    class ProgressEvent {
+        BuildOperationRecord.Progress progress
+        BuildOperationRecord parent
+
+        @Override
+        String toString() {
+            return "Progress: parent=$parent event=$progress"
+        }
     }
 
     private String latestKotlinPluginVersion(String major) {
