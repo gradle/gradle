@@ -19,7 +19,6 @@ package org.gradle.api.tasks.javadoc.internal;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavadocToolInternal;

@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
-import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
 public class DefaultToolchainJavaLauncher implements JavaLauncherInternal {

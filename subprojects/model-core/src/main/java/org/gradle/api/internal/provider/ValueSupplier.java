@@ -255,7 +255,9 @@ public interface ValueSupplier {
         boolean isMissing();
 
         @Nullable
-        default SideEffect<? super T> getSideEffect() { return null; }
+        default SideEffect<? super T> getSideEffect() {
+            return null;
+        }
 
         <S> Value<S> asType();
 
