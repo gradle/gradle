@@ -547,7 +547,9 @@ public interface ValueSupplier {
             if (value.isMissing()) {
                 return missing();
             } else {
-                return fixedValue(value.get());
+                SideEffect<? super T> sideEffect = value.getSideEffect();
+                ExecutionTimeValue<T> executionTimeValue = fixedValue(value.getWithoutSideEffect());
+                return sideEffect == null ? executionTimeValue : executionTimeValue.withSideEffect(sideEffect);
             }
         }
 

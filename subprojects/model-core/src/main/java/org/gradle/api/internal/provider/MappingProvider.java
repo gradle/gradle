@@ -28,7 +28,7 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final ProviderInternal<? extends IN> provider;
     private final Transformer<? extends OUT, ? super IN> transformer;
 
-    public MappingProvider(@Nullable Class<OUT> type, ProviderInternal<? extends IN> provider, Transformer<? extends OUT, ? super IN> transformer) {
+    public MappingProvider(Class<OUT> type, ProviderInternal<? extends IN> provider, Transformer<? extends OUT, ? super IN> transformer) {
         this.type = type;
         this.provider = provider;
         this.transformer = transformer;
@@ -72,12 +72,13 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
         } else if (value.isMissing()) {
             return ExecutionTimeValue.missing();
         } else {
-            return ExecutionTimeValue.fixedValue(transformer.transform(value.getFixedValue()));
+            // not calling ExecutionTimeValue.fixedValue() directly, because the value may have a side effect
+            return ExecutionTimeValue.value(value.toValue().transform(transformer));
         }
     }
 
     @Override
     public String toString() {
-        return "map(" + (type == null ? " " : type.getName()) + " " + provider + " " + transformer + ")";
+        return "map(" + type.getName() + " " + provider + " " + transformer + ")";
     }
 }
