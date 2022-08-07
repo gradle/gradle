@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskMutationsBuildOperatio
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -94,8 +93,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         runWithInstallation(jdkMetadata, task)
-        // Find all progress events and their parent build operations for debugging
-        def allEvents = allToolchainEvents()
         events = toolchainEvents(task)
         then:
         skipped(task)
@@ -386,7 +383,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 //        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin plugin extracts metadata from the JavaLauncher and wraps it into a custom property")
     @Issue("https://github.com/gradle/gradle/issues/21368")
     def "emits toolchain usages when configuring toolchains for Kotlin plugin '#kotlinPlugin'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -623,7 +619,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def prepareRunWithInstallationPaths(String installationPaths, String... tasks) {
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-            // .withArgument("--configuration-cache")
             .withTasks(tasks)
     }
 
