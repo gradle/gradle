@@ -39,6 +39,14 @@
             "changes": [
                 "Class is now abstract"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
