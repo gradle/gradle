@@ -53,19 +53,15 @@ class RepoScriptBlockUtil {
         GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
         LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
         LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
-        SPRING_RELEASES('https://maven.springframework.org/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
+        SPRING_RELEASES('https://repo.spring.io/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
         SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
-        RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven'),
         GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven'),
-        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradleplugins'), 'maven'),
+        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradle-prod-plugins'), 'maven'),
         GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
-        KOTLINX('https://kotlin.bintray.com/kotlinx/', System.getProperty('https://kotlin.bintray.com/kotlinx/'), 'maven'),
-        KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven'),
-        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven')
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -122,14 +118,6 @@ class RepoScriptBlockUtil {
                 ${googleRepositoryDefinition(dsl)}
             }
         """
-    }
-
-    static String kotlinxRepositoryDefinition(GradleDsl dsl = GROOVY) {
-        MirroredRepository.KOTLINX.getRepositoryDefinition(dsl)
-    }
-
-    static String kotlinEapRepositoryDefinition(GradleDsl dsl = GROOVY) {
-        MirroredRepository.KOTLIN_EAP.getRepositoryDefinition(dsl)
     }
 
     static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {

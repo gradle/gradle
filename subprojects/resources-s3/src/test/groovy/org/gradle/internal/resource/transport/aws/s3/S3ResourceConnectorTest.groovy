@@ -18,15 +18,17 @@ package org.gradle.internal.resource.transport.aws.s3
 
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.S3Object
+import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
 class S3ResourceConnectorTest extends Specification {
-    URI uri = new URI("http://somewhere")
+    def uri = new URI("http://somewhere")
+    def name = new ExternalResourceName(uri)
 
     def "should list resources"() {
         S3Client s3Client = Mock()
         when:
-        new S3ResourceConnector(s3Client).list(uri)
+        new S3ResourceConnector(s3Client).list(name)
         then:
         1 * s3Client.listDirectChildren(uri)
     }
@@ -40,7 +42,7 @@ class S3ResourceConnectorTest extends Specification {
         }
 
         when:
-        def s3Resource = new S3ResourceConnector(s3Client).openResource(uri, false)
+        def s3Resource = new S3ResourceConnector(s3Client).openResource(name, false)
 
         then:
         s3Resource != null
@@ -61,7 +63,7 @@ class S3ResourceConnectorTest extends Specification {
         }
 
         when:
-        new S3ResourceConnector(s3Client).getMetaData(uri, false)
+        new S3ResourceConnector(s3Client).getMetaData(name, false)
 
         then:
         1 * s3object.close()

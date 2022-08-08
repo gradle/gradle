@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.ExtensionAware
 
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -109,12 +108,16 @@ fun accessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, 
     """
         /**
          * Retrieves the [$original][$type] convention.
+         *
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         val $targetType.`$kotlinIdentifier`: $type get() =
             $thisConvention.getPluginByName<$type>("$stringLiteral")
 
         /**
          * Configures the [$original][$type] convention.
+         *
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             configure.execute(`$stringLiteral`)
@@ -130,6 +133,8 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
          * Retrieves the `$original` convention.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
+         *
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         val $targetType.`$kotlinIdentifier`: Any get() =
             $thisConvention.getPluginByName<Any>("$stringLiteral")
@@ -138,6 +143,8 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
          * Configures the `$original` convention.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
+         *
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         fun $targetType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
             configure(`$stringLiteral`)
@@ -225,9 +232,10 @@ val thisExtensions =
     "(this as ${ExtensionAware::class.java.name}).extensions"
 
 
+@Suppress("deprecation")
 private
 val thisConvention =
-    "((this as? Project)?.convention ?: (this as ${HasConvention::class.java.name}).convention)"
+    "((this as? Project)?.convention ?: (this as ${org.gradle.api.internal.HasConvention::class.java.name}).convention)"
 
 
 internal

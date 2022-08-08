@@ -85,7 +85,8 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     @Override
     public <T> ExtensiblePolymorphicDomainObjectContainer<T> newPolymorphicDomainObjectContainer(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, collectionCallbackActionDecorator));
+        Instantiator elementInstantiator = instantiatorFactory.decorateLenient(servicesToInject);
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, elementInstantiator, collectionCallbackActionDecorator));
     }
 
     @Override

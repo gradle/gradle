@@ -19,18 +19,18 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.inject.Inject;
@@ -41,15 +41,11 @@ import java.io.File;
  *
  * @since 1.4
  */
+@UntrackedTask(because = "Gradle doesn't understand the data structures")
 public class GenerateIvyDescriptor extends DefaultTask {
 
     private IvyModuleDescriptorSpec descriptor;
     private Object destination;
-
-    public GenerateIvyDescriptor() {
-        // Never up to date; we don't understand the data structures.
-        getOutputs().upToDateWhen(Specs.satisfyNone());
-    }
 
     @Inject
     protected PathToFileResolver getFileResolver() {

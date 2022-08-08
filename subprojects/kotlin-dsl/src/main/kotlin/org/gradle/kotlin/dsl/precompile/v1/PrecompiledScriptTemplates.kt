@@ -25,12 +25,15 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
 import org.jetbrains.kotlin.scripting.definitions.getEnvironment
 import kotlin.script.dependencies.Environment
@@ -91,6 +94,32 @@ open class PrecompiledSettingsScript(
     target: Settings
 ) : DefaultKotlinScript(SettingsScriptHost(target)), PluginAware by target {
 
+    /**
+     * Configures the plugin dependencies for this settings script.
+     *
+     * @see [PluginDependenciesSpec]
+     */
+    @Suppress("unused")
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
+        block(
+            object : PluginDependenciesSpec {
+                override fun id(id: String): PluginDependencySpec {
+                    pluginManager.apply(id)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
+                    pluginManager.apply(notation.get().pluginId)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
+                    return alias(notation.asProvider())
+                }
+            }
+        )
+    }
+
     private
     class SettingsScriptHost(val settings: Settings) : Host {
         override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
@@ -150,17 +179,22 @@ open class PrecompiledProjectScript(
     @Suppress("unused")
     fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
-            PluginDependenciesSpec { pluginId ->
-                pluginManager.apply(pluginId)
-                NullPluginDependencySpec
+            object : PluginDependenciesSpec {
+                override fun id(id: String): PluginDependencySpec {
+                    pluginManager.apply(id)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
+                    pluginManager.apply(notation.get().pluginId)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
+                    return alias(notation.asProvider())
+                }
             }
         )
-    }
-
-    private
-    object NullPluginDependencySpec : PluginDependencySpec {
-        override fun apply(apply: Boolean) = this
-        override fun version(version: String?) = this
     }
 }
 
@@ -214,3 +248,10 @@ fun scriptResolverEnvironmentOf(context: ScriptConfigurationRefinementContext): 
         .compilationConfiguration[ScriptCompilationConfiguration.hostConfiguration]
         ?.get(ScriptingHostConfiguration.getEnvironment)
         ?.invoke()
+
+
+private
+object NullPluginDependencySpec : PluginDependencySpec {
+    override fun apply(apply: Boolean) = this
+    override fun version(version: String?) = this
+}

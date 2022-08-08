@@ -16,57 +16,46 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
-    private final IncludedBuildTaskGraph includedBuildTaskGraph;
-    private final BuildIdentifier currentBuild;
+    private final BuildTreeWorkGraphController buildTreeWorkGraphController;
+    private final BuildState currentBuild;
 
-    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
-        this.includedBuildTaskGraph = includedBuildTaskGraph;
-        this.currentBuild = currentBuild.getBuildIdentifier();
+    public CompositeBuildClassPathInitializer(BuildTreeWorkGraphController buildTreeWorkGraphController, BuildState currentBuild) {
+        this.buildTreeWorkGraphController = buildTreeWorkGraphController;
+        this.currentBuild = currentBuild;
     }
 
     @Override
     public void execute(Configuration classpath) {
-        ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
-        boolean found = false;
-        for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
-            ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            found |= build(currentBuild, componentArtifactIdentifier);
-        }
-        if (found) {
-            List<Throwable> taskFailures = new ArrayList<>();
-            includedBuildTaskGraph.awaitTaskCompletion(taskFailures::add);
-            if (!taskFailures.isEmpty()) {
-                throw new MultipleBuildFailures(taskFailures);
+        List<TaskIdentifier> tasksToBuild = new ArrayList<>();
+        for (Task task : classpath.getBuildDependencies().getDependencies(null)) {
+            // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
+            // running tasks at the same time
+            if (!task.getState().getExecuted()) {
+                BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
+                assert targetBuild != currentBuild;
+                tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
             }
         }
-    }
-
-    public boolean build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
-        boolean found = false;
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            BuildIdentifier targetBuild = compositeBuildArtifact.getComponentId().getBuild();
-            assert !requestingBuild.equals(targetBuild);
-            Set<? extends Task> tasks = compositeBuildArtifact.getBuildDependencies().getDependencies(null);
-            for (Task task : tasks) {
-                includedBuildTaskGraph.addTask(requestingBuild, targetBuild, task.getPath());
-            }
-            found = true;
+        if (!tasksToBuild.isEmpty()) {
+            buildTreeWorkGraphController.withNewWorkGraph(graph -> {
+                graph.scheduleWork(builder -> {
+                    for (TaskIdentifier taskIdentifier : tasksToBuild) {
+                        buildTreeWorkGraphController.locateTask(taskIdentifier).queueForExecution();
+                    }
+                });
+                graph.runWork().rethrow();
+                return null;
+            });
         }
-        return found;
     }
 }

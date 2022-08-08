@@ -20,8 +20,7 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
-
+import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 
@@ -34,6 +33,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
 
@@ -47,6 +47,7 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
@@ -68,7 +69,6 @@ import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.S
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
@@ -78,13 +78,19 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 import kotlin.reflect.KClass
+import kotlin.script.experimental.api.KotlinType
 
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
+import kotlin.script.experimental.api.providedProperties
+import kotlin.script.experimental.host.ScriptingHostConfiguration
+import kotlin.script.experimental.host.configurationDependencies
+import kotlin.script.experimental.host.getScriptingClass
+import kotlin.script.experimental.jvm.JvmDependency
+import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
 fun compileKotlinScriptModuleTo(
@@ -108,9 +114,14 @@ fun compileKotlinScriptModuleTo(
 fun scriptDefinitionFromTemplate(
     template: KClass<out Any>,
     implicitImports: List<String>,
-    implicitReceiver: KClass<*>? = null
+    implicitReceiver: KClass<*>? = null,
+    injectedProperties: Map<String, KotlinType> = mapOf(),
+    classPath: List<File> = listOf()
 ): ScriptDefinition {
-    val hostConfiguration = defaultJvmScriptingHostConfiguration
+    val hostConfiguration = ScriptingHostConfiguration {
+        getScriptingClass(JvmGetScriptingClass())
+        configurationDependencies(JvmDependency(classPath))
+    }
     return ScriptDefinition.FromConfigurations(
         hostConfiguration = hostConfiguration,
         compilationConfiguration = ScriptCompilationConfiguration {
@@ -120,6 +131,7 @@ fun scriptDefinitionFromTemplate(
             implicitReceiver?.let {
                 implicitReceivers(it)
             }
+            providedProperties(injectedProperties)
         },
         evaluationConfiguration = null
     )
@@ -158,9 +170,7 @@ fun compileKotlinScriptModuleTo(
     messageCollector: LoggingMessageCollector
 ) {
     withRootDisposable {
-
         withCompilationExceptionHandler(messageCollector) {
-
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
@@ -334,6 +344,8 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVM_TARGET, JVM_1_8)
+        put(JDK_HOME, File(System.getProperty("java.home")))
+        addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
@@ -377,7 +389,7 @@ private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
     return SystemProperties.getInstance().withSystemProperty(
-        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
+        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
         "true"
     ) {
         KotlinCoreEnvironment.createForProduction(
@@ -411,7 +423,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
     }
 
     val firstErrorLine
-        get() = errors.firstNotNullResult { it.location?.line }
+        get() = errors.asSequence().mapNotNull { it.location?.line }.firstOrNull()
 
     override val message: String
         get() = (
@@ -495,6 +507,7 @@ class LoggingMessageCollector(
                 errors += ScriptCompilationError(message, location)
                 log.error { taggedMsg() }
             }
+
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
             CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
             CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }

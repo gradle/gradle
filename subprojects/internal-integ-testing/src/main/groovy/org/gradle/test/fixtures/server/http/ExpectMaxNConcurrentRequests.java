@@ -91,6 +91,16 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
     }
 
     @Override
+    public boolean expecting(HttpExchange exchange) {
+        if (notReceived.isEmpty()) {
+            return false;
+        }
+        String path = exchange.getRequestURI().getPath().substring(1);
+        ResourceHandlerWrapper handler = selectPending(notReceived, path);
+        return handler != null;
+    }
+
+    @Override
     public ResponseProducer selectResponseProducer(int id, HttpExchange exchange) {
         ResourceHandlerWrapper handler;
         lock.lock();

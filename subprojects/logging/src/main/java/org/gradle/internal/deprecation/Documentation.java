@@ -24,7 +24,7 @@ public abstract class Documentation {
 
     static final Documentation NO_DOCUMENTATION = new NullDocumentation();
 
-    static Documentation userManual(String id, String section) {
+    public static Documentation userManual(String id, String section) {
         return new UserGuide(id, section);
     }
 

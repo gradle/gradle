@@ -99,8 +99,7 @@ class MetadataProbe {
     }
 
     private static void createConstructor(ClassWriter cw) {
-        MethodVisitor mv;
-        mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         Label l0 = new Label();
         mv.visitLabel(l0);

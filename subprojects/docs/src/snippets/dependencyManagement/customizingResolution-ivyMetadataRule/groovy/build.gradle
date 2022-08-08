@@ -1,3 +1,4 @@
+
 plugins {
     id 'java-library'
 }
@@ -10,7 +11,18 @@ repositories {
 
 // tag::ivy-component-metadata-rule[]
 abstract class IvyVariantDerivationRule implements ComponentMetadataRule {
-    @Inject abstract ObjectFactory getObjects()
+    final LibraryElements jarLibraryElements
+    final Category libraryCategory
+    final Usage javaRuntimeUsage
+    final Usage javaApiUsage
+
+    @Inject
+    IvyVariantDerivationRule(ObjectFactory objectFactory) {
+        jarLibraryElements = objectFactory.named(LibraryElements, LibraryElements.JAR)
+        libraryCategory = objectFactory.named(Category, Category.LIBRARY)
+        javaRuntimeUsage = objectFactory.named(Usage, Usage.JAVA_RUNTIME)
+        javaApiUsage = objectFactory.named(Usage, Usage.JAVA_API)
+    }
 
     void execute(ComponentMetadataContext context) {
         // This filters out any non Ivy module
@@ -20,16 +32,16 @@ abstract class IvyVariantDerivationRule implements ComponentMetadataRule {
 
         context.details.addVariant("runtimeElements", "default") {
             attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements, LibraryElements.JAR))
-                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category, Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage, Usage.JAVA_RUNTIME))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarLibraryElements)
+                attribute(Category.CATEGORY_ATTRIBUTE, libraryCategory)
+                attribute(Usage.USAGE_ATTRIBUTE, javaRuntimeUsage)
             }
         }
         context.details.addVariant("apiElements", "compile") {
             attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements, LibraryElements.JAR))
-                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category, Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage, Usage.JAVA_API))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarLibraryElements)
+                attribute(Category.CATEGORY_ATTRIBUTE, libraryCategory)
+                attribute(Usage.USAGE_ATTRIBUTE, javaApiUsage)
             }
         }
     }

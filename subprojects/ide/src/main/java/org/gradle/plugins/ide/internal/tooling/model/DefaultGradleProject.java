@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultGradleProject implements Serializable, GradleProjectIdentity {
-    private DefaultGradleScript buildScript = new DefaultGradleScript();
+    private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
     private List<LaunchableGradleTask> tasks = new LinkedList<LaunchableGradleTask>();

@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -25,9 +24,10 @@ import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
-class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
+import java.nio.file.Paths
+
+class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
@@ -396,7 +396,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         noExceptionThrown()
     }
 
-    @Unroll
     def "can depend on #scenario without building the jar"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -446,7 +445,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 ${mavenCentralRepository()}
 
                 dependencies {
-                    ${dependencies.collect { "implementation ${it}"}.join('\n') }
+                    ${dependencies.collect { "implementation ${it}" }.join('\n')}
                 }
             """
         }
@@ -513,7 +512,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1358")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: 'zip END header not found'
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    // Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
@@ -584,7 +584,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains "Malformed archive 'foo.jar'"
+        outputContains "Could not analyze foo.class for incremental compilation"
+        outputContains "Unsupported class file major version"
     }
 
     @Issue("gradle/gradle#1358")
@@ -606,7 +607,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains"Malformed class file 'foo.class' found on compile classpath"
+        outputContains "Malformed class file 'foo.class' found on compile classpath"
     }
 
     @Issue("gradle/gradle#1359")
@@ -655,6 +656,38 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         when:
         file('src/main/java/org/gradle/different').createDir()
+        run('compileJava')
+        then:
+        skipped(':compileJava')
+    }
+
+    def "ignores empty directories within the file collection of the sourcepath compiler option"() {
+        given:
+        def sourcePath = 'src/main/ignoredJava'
+        buildFile << """
+            plugins { id 'java' }
+            compileJava.options.sourcepath = files('$sourcePath')
+        """
+
+        file("${sourcePath}/org/gradle/test/MyOptionalTest.java").text = """
+            package org.gradle.test;
+
+            class MyOptionalTest {}
+        """
+
+        file('src/main/java/org/gradle/test/MyTest.java').text = """
+            package org.gradle.test;
+
+            class MyTest {}
+        """
+
+        when:
+        run('compileJava')
+        then:
+        executedAndNotSkipped(':compileJava')
+
+        when:
+        file("${sourcePath}/empty").createDir()
         run('compileJava')
         then:
         skipped(':compileJava')
@@ -833,7 +866,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled }) // bootclasspath has been removed in Java 9+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled })
+    // bootclasspath has been removed in Java 9+
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.absolutePath) + "/lib/rt.jar"
@@ -843,9 +877,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
 
             compileJava {
-                if (providers.gradleProperty("java7").forUseAtConfigurationTime().isPresent()) {
+                if (providers.gradleProperty("java7").isPresent()) {
                     options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (providers.gradleProperty("java8").forUseAtConfigurationTime().isPresent()) {
+                } else if (providers.gradleProperty("java8").isPresent()) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
                 }
                 options.fork = true
@@ -873,6 +907,30 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         succeeds "-Pjava8", "clean", "compileJava"
     }
 
+    // bootclasspath has been removed in Java 9+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Issue("https://github.com/gradle/gradle/issues/19817")
+    def "nags if bootclasspath is provided as a path instead of a single file"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(JavaCompile) {
+                options.bootstrapClasspath = project.layout.files("$bootClasspath")
+            }
+        """
+        file('src/main/java/Foo.java') << 'public class Foo {}'
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
+            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
+        succeeds "compileJava"
+    }
+
     def "deletes empty packages dirs"() {
         given:
         buildFile << """
@@ -894,7 +952,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         succeeds "compileJava"
 
         then:
-        ! file("build/classes/java/main/com/foo").exists()
+        !file("build/classes/java/main/com/foo").exists()
     }
 
     def "can configure custom header output"() {

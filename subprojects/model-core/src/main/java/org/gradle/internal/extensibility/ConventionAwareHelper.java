@@ -20,37 +20,51 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
-public class ConventionAwareHelper implements ConventionMapping, HasConvention {
+@SuppressWarnings("deprecation")
+public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;
     private final IConventionAware _source;
+    // These are properties that could have convention mapping applied to them
     private final Set<String> _propertyNames;
+    // These are properties that should not be allowed to use convention mapping
+    private final Set<String> _ineligiblePropertyNames;
+
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;
         this._convention = convention;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
+        this._ineligiblePropertyNames = new HashSet<>();
     }
 
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
         if (!_propertyNames.contains(propertyName)) {
             throw new InvalidUserDataException(
                 "You can't map a property that does not exist: propertyName=" + propertyName);
+        }
+
+        if (_ineligiblePropertyNames.contains(propertyName)) {
+            DeprecationLogger.deprecateBehaviour("Using internal convention mapping with a Provider backed property.")
+                    .willBecomeAnErrorInGradle8()
+                    .withUpgradeGuideSection(7, "convention_mapping")
+                    .nagUser();
         }
 
         _mappings.put(propertyName, mapping);
@@ -90,6 +104,11 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         } else {
             throw new MissingPropertyException(name, getClass());
         }
+    }
+
+    @Override
+    public void ineligible(String propertyName) {
+        _ineligiblePropertyNames.add(propertyName);
     }
 
     @Override

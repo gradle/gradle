@@ -18,21 +18,26 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import java.io.Closeable;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
-public interface TestFramework {
+public interface TestFramework extends Closeable {
 
     /**
      * Returns a detector which is used to determine which of the candidate class files correspond to test classes to be
      * executed.
      */
+    @Internal
     TestFrameworkDetector getDetector();
 
+    @Nested
     TestFrameworkOptions getOptions();
 
     /**
@@ -41,16 +46,19 @@ public interface TestFramework {
      * org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory#create(org.gradle.internal.service.ServiceRegistry)}
      * method is called to create the test processor.
      */
+    @Internal
     WorkerTestClassProcessorFactory getProcessorFactory();
 
     /**
      * Returns an action which is used to perform some framework specific worker process configuration. This action is
      * executed before starting each worker process.
      */
+    @Internal
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
     /**
      * Returns a list of modules the test worker requires on the --module-path if it runs as a module.
      */
+    @Internal
     List<String> getTestWorkerImplementationModules();
 }

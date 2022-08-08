@@ -16,19 +16,14 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public interface ChildMap<T> {
 
     boolean isEmpty();
 
-    List<T> values();
-
-    List<Entry<T>> entries();
-
-    void visitChildren(BiConsumer<String, ? super T> visitor);
+    Stream<Entry<T>> stream();
 
     <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler);
 
@@ -77,7 +72,7 @@ public interface ChildMap<T> {
                 if (targetPath.length() == path.length()) {
                     return Optional.of(handler.handleExactMatchWithChild(value));
                 } else {
-                    return Optional.of(handler.handleAsDescendantOfChild(targetPath.fromChild(path), value));
+                    return Optional.of(handler.handleAsDescendantOfChild(targetPath.pathFromChild(path), value));
                 }
             } else if (targetPath.length() < path.length() && targetPath.isPrefixOf(path, caseSensitivity)) {
                 return Optional.of(handler.handleAsAncestorOfChild(path, value));

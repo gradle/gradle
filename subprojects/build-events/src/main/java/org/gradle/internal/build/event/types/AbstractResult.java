@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalFailure;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +44,7 @@ public abstract class AbstractResult implements Serializable {
         return outcomeDescription;
     }
 
-    public List<DefaultFailure> getFailures() {
+    public List<? extends InternalFailure> getFailures() {
         return Collections.emptyList();
     }
 }

@@ -22,17 +22,12 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 
 import java.util.regex.Pattern
 
 @TargetGradleVersion(">=5.6")
 @ToolingApiVersion(">=5.6")
 class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification {
-
-    @Rule
-    TemporaryFolder externalProjectFolder = new TemporaryFolder()
 
     def "will substitute and run build dependencies for closed projects on startup"() {
         setup:

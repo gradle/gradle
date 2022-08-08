@@ -17,11 +17,9 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
 abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractFileSystemNodeWithChildrenTest<T, FileSystemNode> {
 
     abstract protected boolean isSameNodeType(FileSystemNode node)
@@ -238,8 +236,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
     }
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
-        def descendantOffset = selectedChildPath.length() + 1
-        1 * selectedChild.store(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
+        1 * selectedChild.store(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
     }
 
     def "querying the snapshot for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
@@ -261,22 +258,22 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
         then:
-        resultRoot == ReadOnlyFileSystemNode.EMPTY
+        !resultRoot.present
         interaction { noMoreInteractions() }
 
         where:
         vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
-    def "querying for parent of child #vfsSpec.searchedPath finds adapted child (#vfsSpec)"() {
+    def "querying for parent #vfsSpec.searchedPath of child #vfsSpec.selectedChildPath finds adapted child (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
+
         then:
-        resultRoot == selectedChild
+        resultRoot.get() == selectedChild
         interaction {
-//            1 * selectedChild.withPathToParent(selectedChildPathFromCommonPrefix) >> selectedChild
             noMoreInteractions()
         }
 
@@ -324,7 +321,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
         then:
-        resultRoot == selectedChild
+        resultRoot.get() == selectedChild
 
         interaction {
             noMoreInteractions()
@@ -369,12 +366,12 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
 
     def "querying for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def descendantNode = Mock(ReadOnlyFileSystemNode)
+        def descendantNode = Mock(FileSystemNode)
 
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
         then:
-        resultRoot == descendantNode
+        resultRoot.get() == descendantNode
         interaction {
             getDescendantNodeOfSelectedChild(descendantNode)
             noMoreInteractions()

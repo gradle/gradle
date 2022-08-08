@@ -29,9 +29,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * The executor provides several capabilities:
  *
  * <ul>
- *     <p>Fires events via {@link BuildOperationListener}. For example, this means that notification of build operation
- *     execution can be received by tooling API clients.</p>
- *     <p>Generates progress logging events.</p>
+ *     <li>Fires events via {@link BuildOperationListener}. For example, this means that notification of build operation
+ *     execution can be received by tooling API clients.</li>
+ *     <li>Generates progress logging events.</li>
  * </ul>
  */
 @ThreadSafe

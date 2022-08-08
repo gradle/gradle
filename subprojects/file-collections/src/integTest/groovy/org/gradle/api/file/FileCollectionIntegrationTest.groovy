@@ -20,10 +20,10 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-import spock.lang.Unroll
+
+import static org.gradle.util.internal.TextUtil.escapeString
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
-    @Unroll
     def "can use 'as' operator with #type"() {
         buildFile << """
             def fileCollection = files("input.txt")
@@ -311,5 +311,187 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             'one.txt',
             'three.txt'
         )
+    }
+
+    def "can filter a file collection using a closure hitting the filesystem"() {
+        given:
+        file("files/file0.txt") << ""
+        file("files/dir1/file1.txt") << ""
+        file("files/dir2/file2.txt") << ""
+
+        and:
+        buildFile """
+            def files = files("files/file0.txt", "files/dir1", "files/dir2", "files/dir3").filter { file ->
+                file.isDirectory()
+            }
+            tasks.register("sync", Sync) {
+                from files
+                into "output"
+            }
+        """
+
+        when:
+        run "sync"
+
+        then:
+        file("output").assertHasDescendants("file1.txt", "file2.txt")
+
+        when:
+        run "sync"
+
+        then:
+        result.assertTaskSkipped(':sync')
+
+        when:
+        file("files/dir2").deleteDir()
+        file("files/dir3/file3.txt") << ""
+        run "sync"
+
+        then:
+        result.assertTaskNotSkipped(":sync")
+        file("output").assertHasDescendants("file1.txt", "file3.txt")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "provider assumed to be of fixed value but hits the filesystem")
+    def "can filter the elements of a file collection using a closure hitting the filesystem"() {
+        given:
+        file("files/file0.txt") << ""
+        file("files/dir1/file1.txt") << ""
+        file("files/dir2/file2.txt") << ""
+
+        and:
+        buildFile """
+            def files = files("files/file0.txt", "files/dir1", "files/dir2", "files/dir3").elements.map {
+                it.findAll { file ->
+                    file.asFile.isDirectory()
+                }
+            }
+            tasks.register("sync", Sync) {
+                from files
+                into "output"
+            }
+        """
+
+        when:
+        run "sync"
+
+        then:
+        file("output").assertHasDescendants("file1.txt", "file2.txt")
+
+        when:
+        run "sync"
+
+        then:
+        result.assertTaskSkipped(':sync')
+
+        when:
+        file("files/dir2").deleteDir()
+        file("files/dir3/file3.txt") << ""
+        run "sync"
+
+        then:
+        result.assertTaskNotSkipped(":sync")
+        file("output").assertHasDescendants("file1.txt", "file3.txt")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17542")
+    def "can map task generated FC to a filtered List of Directory (#useCase)"() {
+        given:
+        buildFile """
+            import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
+
+            abstract class Producer extends DefaultTask {
+                @OutputDirectory abstract DirectoryProperty getOutputClasses()
+
+                Producer() { outputs.upToDateWhen { false } } // TODO doesn't matter, remove this
+
+                @TaskAction void doStuff() {
+                    File f = outputClasses.get().asFile
+                    f.mkdirs()
+                    new File(f, "some.txt") << "some text"
+                }
+            }
+
+            TaskProvider<Producer> prod = tasks.register("prod", Producer) {
+                outputClasses = layout.buildDirectory.dir("producerOutput")
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Classpath abstract ConfigurableFileCollection getClasses()
+                @Inject abstract ProjectLayout getLayout()
+                @TaskAction void doStuff() {
+                    def root = layout.projectDirectory.asFile
+                    classes.files.each { file ->
+                        println("CONSUMING ${'$'}{normaliseFileSeparators(root.relativePath(file))}")
+                    }
+                }
+            }
+
+            Provider<List<Directory>> dirsFromFilteredFcMappedElements(FileCollection fc, Directory projectDir) {
+                def root = layout.projectDirectory.asFile
+                fc.filter { File f ->
+                    f.isDirectory()
+                }.elements.map {
+                    it.collect { fileSystemLocation ->
+                        projectDir.dir(fileSystemLocation.asFile.absolutePath)
+                    }
+                }
+            }
+
+            Provider<List<Directory>> dirsFromFcElementsSetFiltered(FileCollection fc, Directory projectDir) {
+                fc.elements.map {
+                    it.findAll { FileSystemLocation fsl ->
+                        fsl.asFile.isDirectory()
+                    }.collect { fileSystemLocation ->
+                        projectDir.dir(fileSystemLocation.asFile.absolutePath)
+                    }
+                }
+            }
+
+            FileCollection myFc = project.files(prod.map { it.outputClasses })
+
+            tasks.register("myTask", MyTask.class) {
+                classes.from(
+                    files(${methodName}(myFc, project.layout.buildDirectory.get()))
+                )
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        outputContains("CONSUMING build/producerOutput")
+
+        when:
+        run "myTask"
+
+        then:
+        outputContains("CONSUMING build/producerOutput")
+
+        where:
+        methodName                         | useCase
+        "dirsFromFilteredFcMappedElements" | "dirs from filtered FC elements mapped"
+        "dirsFromFcElementsSetFiltered"    | "dirs from FC elements set filtered"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19817")
+    def "nag user when concatenation of files is used for path instead of single files"() {
+        def path = file("files/file0.txt${File.pathSeparator}files/dir1").path
+        buildFile """
+            def files = files('${escapeString(path)}')
+            tasks.register("getAsPath") {
+                doLast {
+                    println files.asPath
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '$path'." +
+            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
+        succeeds "getAsPath"
     }
 }

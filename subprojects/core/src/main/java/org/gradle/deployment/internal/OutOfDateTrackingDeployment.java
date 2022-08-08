@@ -16,6 +16,8 @@
 
 package org.gradle.deployment.internal;
 
+import javax.annotation.Nullable;
+
 class OutOfDateTrackingDeployment implements DeploymentInternal {
     private boolean changed;
     private Throwable failure;
@@ -34,7 +36,7 @@ class OutOfDateTrackingDeployment implements DeploymentInternal {
     }
 
     @Override
-    public synchronized void upToDate(Throwable failure) {
+    public synchronized void upToDate(@Nullable Throwable failure) {
         this.failure = failure;
     }
 }

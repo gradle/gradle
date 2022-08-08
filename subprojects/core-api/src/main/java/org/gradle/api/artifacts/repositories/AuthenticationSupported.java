@@ -114,6 +114,7 @@ public interface AuthenticationSupported {
      * <ul>
      * <li>{@link org.gradle.api.credentials.PasswordCredentials}</li>
      * <li>{@link org.gradle.api.credentials.AwsCredentials}</li>
+     * <li>{@link org.gradle.api.credentials.HttpHeaderCredentials}</li>
      * </ul>
      *
      * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type

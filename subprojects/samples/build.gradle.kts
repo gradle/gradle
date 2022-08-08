@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Integration tests for our documentation snippets (aka samples)"
+
 dependencies {
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":core-api"))
@@ -11,7 +13,7 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
-    integTestImplementation(libs.sampleCheck) {
+    integTestImplementation(libs.samplesCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }

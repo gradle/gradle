@@ -32,13 +32,15 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
     private final DependencyEdge dependency;
     private final String description;
     private final List<ResolvedVariantResult> selectedVariants;
+    private final List<ResolvedVariantResult> allVariants;
     private final List<Section> extraDetails;
 
-    public DependencyReportHeader(DependencyEdge dependency, @Nullable String description, List<ResolvedVariantResult> resolvedVariants, List<Section> extraDetails) {
+    public DependencyReportHeader(DependencyEdge dependency, @Nullable String description, List<Section> extraDetails) {
         this.dependency = dependency;
         this.description = description;
-        this.selectedVariants = resolvedVariants;
         this.extraDetails = extraDetails;
+        this.selectedVariants = dependency.getSelectedVariants();
+        this.allVariants = dependency.getAllVariants();
     }
 
     @Nonnull
@@ -65,6 +67,11 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
     @Override
     public List<ResolvedVariantResult> getResolvedVariants() {
         return selectedVariants;
+    }
+
+    @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return allVariants;
     }
 
     @Override

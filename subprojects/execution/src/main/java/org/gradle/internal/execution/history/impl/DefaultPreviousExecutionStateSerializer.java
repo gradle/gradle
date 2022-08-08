@@ -20,8 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -32,28 +33,31 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshotSerializer;
 import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
+import java.time.Duration;
 import java.util.Map;
 
-public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<AfterPreviousExecutionState> {
+public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<PreviousExecutionState> {
     private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
-    private final Serializer<ValueSnapshot> valueSnapshotSerializer = new SnapshotSerializer();
+    private final Serializer<ValueSnapshot> valueSnapshotSerializer;
 
     public DefaultPreviousExecutionStateSerializer(
         Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
-        Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer
+        Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.fileSystemSnapshotSerializer = fileSystemSnapshotSerializer;
         this.implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
+        this.valueSnapshotSerializer = new SnapshotSerializer(classLoaderHasher);
     }
 
     @Override
-    public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
+    public PreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             decoder.readString(),
-            decoder.readLong()
+            Duration.ofMillis(decoder.readLong())
         );
 
         ImplementationSnapshot taskImplementation = implementationSnapshotSerializer.read(decoder);
@@ -73,7 +77,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
         boolean successful = decoder.readBoolean();
 
-        return new DefaultAfterPreviousExecutionState(
+        return new DefaultPreviousExecutionState(
             originMetadata,
             taskImplementation,
             taskActionImplementations,
@@ -85,10 +89,10 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     }
 
     @Override
-    public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
+    public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId());
-        encoder.writeLong(originMetadata.getExecutionTime());
+        encoder.writeLong(originMetadata.getExecutionTime().toMillis());
 
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());
         ImmutableList<ImplementationSnapshot> additionalImplementations = execution.getAdditionalImplementations();

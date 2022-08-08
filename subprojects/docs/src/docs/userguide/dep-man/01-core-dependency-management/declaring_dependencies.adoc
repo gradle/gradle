@@ -298,7 +298,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 
 [WARNING]
 ====
-Type-safe dependency accessors are an incubating feature which must be enabled explicitly.
+Type-safe project accessors are an incubating feature which must be enabled explicitly.
 Implementation may change at any time.
 To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file:
 ```
@@ -344,8 +344,8 @@ You can declare a dependency on the API of the current version of Gradle by usin
 
 .Gradle API dependencies
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
-include::sample[dir="snippets/plugins/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=gradle-api-dependencies]"]
 ====
 
 [[sub:testkit_dependencies]]
@@ -368,8 +368,8 @@ You can declare a dependency on the Groovy that is distributed with Gradle by us
 
 .Gradle's Groovy dependencies
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/plugin",files="build.gradle[tags=local-groovy-dependencies]"]
-include::sample[dir="snippets/plugins/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=local-groovy-dependencies]"]
+include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
+include::sample[dir="snippets/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
 ====
 
 [[sec:documenting-dependencies]]

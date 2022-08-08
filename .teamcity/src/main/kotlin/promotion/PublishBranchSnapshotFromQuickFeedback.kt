@@ -17,12 +17,14 @@
 package promotion
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionBranches
 
-object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistribution(
+object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBuild(
     promotedBranch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
-    task = "promoteSnapshot",
+    prepTask = "prepSnapshot",
+    promoteTask = "promoteSnapshot",
     extraParameters = "-PpromotedBranch=%branch.qualifier% ",
     vcsRootId = gradlePromotionBranches
 ) {
@@ -34,7 +36,7 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistribution(
         val triggerName = this.triggerName
 
         params {
-            param("branch.qualifier", "%dep.Gradle_Master_Check_Stage_${triggerName}_Trigger.teamcity.build.branch%")
+            param("branch.qualifier", "%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.teamcity.build.branch%")
             text(
                 "branch.to.promote",
                 "%branch.qualifier%",

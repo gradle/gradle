@@ -46,7 +46,7 @@ public interface IdeDependencyVisitor {
      * The dependency points to an artifact built by another project.
      * The component identifier is guaranteed to be a {@link org.gradle.api.artifacts.component.ProjectComponentIdentifier}.
      */
-    void visitProjectDependency(ResolvedArtifactResult artifact, boolean asJavaModule);
+    void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule);
 
     /**
      * The dependency points to an external module.

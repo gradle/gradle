@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
 import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
@@ -74,7 +73,6 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
         """
     }
 
-    @Unroll
     def "can resolve plugin from Ivy repo with #authSchemeName and #serverAuthScheme"() {
         given:
         def pluginResults = publishTestPlugin(IVY)
@@ -110,7 +108,6 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
-    @Unroll
     def "can resolve plugin from Maven repo with #authSchemeName and #serverAuthScheme"() {
         given:
         def pluginResults = publishTestPlugin(MAVEN)

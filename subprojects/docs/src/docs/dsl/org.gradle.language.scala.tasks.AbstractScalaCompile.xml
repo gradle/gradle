@@ -36,6 +36,10 @@
                 <td>source</td>
                 <td><literal><replaceable>sourceSet</replaceable>.scala</literal></td>
             </tr>
+            <tr>
+                <td>javaLauncher</td>
+                <td><literal>java.toolchain</literal></td>
+            </tr>
         </table>
     </section>
     <section>

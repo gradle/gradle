@@ -26,7 +26,7 @@ import java.util.Collection;
 
 public class LoadCompositeModel<T> implements BuildAction<Collection<T>>, Serializable {
 
-    private Class<T> modelClass;
+    private final Class<T> modelClass;
 
     public LoadCompositeModel(Class<T> modelClass) {
         this.modelClass = modelClass;

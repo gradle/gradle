@@ -68,14 +68,15 @@ public class DesugaredAttributeContainerSerializer extends AbstractSerializer<At
         encoder.writeSmallInt(container.keySet().size());
         for (Attribute<?> attribute : container.keySet()) {
             encoder.writeString(attribute.getName());
-            if (attribute.getType().equals(Boolean.class)) {
+            Class<?> type = attribute.getType();
+            if (type == Boolean.class) {
                 encoder.writeByte(BOOLEAN_ATTRIBUTE);
                 encoder.writeBoolean((Boolean) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(Integer.class)) {
+            } else if (type == Integer.class) {
                 encoder.writeByte(INTEGER_ATTRIBUTE);
                 encoder.writeInt((Integer) container.getAttribute(attribute));
             } else {
-                assert attribute.getType().equals(String.class) : "Unexpected attribute type " + attribute.getType() + " : should be " + String.class.getSimpleName();
+                assert type == String.class : "Unexpected attribute type " + type + " : should be " + String.class.getSimpleName();
                 encoder.writeByte(STRING_ATTRIBUTE);
                 encoder.writeString((String) container.getAttribute(attribute));
             }

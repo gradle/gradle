@@ -31,6 +31,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -38,6 +39,7 @@ import java.io.File;
 /**
  * Compiles native source files into object files.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 

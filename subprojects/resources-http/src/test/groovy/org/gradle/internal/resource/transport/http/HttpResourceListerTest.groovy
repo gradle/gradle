@@ -16,31 +16,33 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 
 class HttpResourceListerTest extends Specification {
     HttpResourceAccessor accessorMock = Mock()
-    HttpResponseResource externalResource = Mock()
     ExternalResourceMetaData metaData = Mock()
     HttpResourceLister lister = new HttpResourceLister(accessorMock)
 
-    def "consumeExternalResource closes resource after reading into stream"() {
+    def "parses resource content"() {
         setup:
-        accessorMock.openResource(new URI("http://testrepo/"), true) >> externalResource;
+        def inputStream = new ByteArrayInputStream("<a href='child'/>".bytes)
+        def name = new ExternalResourceName("http://testrepo/")
+
         when:
-        lister.list(new URI("http://testrepo/"))
+        lister.list(name)
         then:
-        1 * externalResource.openStream() >> new ByteArrayInputStream("<a href='child'/>".bytes)
-        _ * externalResource.metaData >> metaData
-        1 * metaData.getContentType() >> "text/html"
-        1 * externalResource.close()
+        1 * accessorMock.withContent(name, true, _) >> {  uri, revalidate, action ->
+            return action.execute(inputStream, metaData)
+        }
+        _ * metaData.getContentType() >> "text/html"
     }
 
     def "list returns null if HttpAccessor returns null"(){
         setup:
-        accessorMock.openResource(new URI("http://testrepo/"), true)  >> null
+        accessorMock.openResource(new ExternalResourceName("http://testrepo/"), true)  >> null
         expect:
-        null == lister.list(new URI("http://testrepo"))
+        null == lister.list(new ExternalResourceName("http://testrepo"))
     }
 }

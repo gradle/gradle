@@ -487,7 +487,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 String lineSeparator = SystemProperties.getInstance().getLineSeparator();
                 String faultMessage = CollectionUtils.join(lineSeparator, faultMessages);
                 throw new InvalidCacheReuseException(
-                    "The cache couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
+                    "Cache '" + parameters.getCacheName() + "' couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
             }
         }
 

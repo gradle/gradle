@@ -100,6 +100,12 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
                 "${addTo}.setProperty('${escapeString(k)}', '${escapeString(v)}')"
             }.join(";")
         }
+
+        String addAsKotlinPropertiesScript(addTo = "extra", name = null) {
+            asProperties(name).collect { k, v ->
+                "${addTo}[\"${escapeString(k)}\"] = \"${escapeString(v)}\""
+            }.join(System.lineSeparator())
+        }
     }
 
     KeyInfo getKeyInfo(set = "default") {

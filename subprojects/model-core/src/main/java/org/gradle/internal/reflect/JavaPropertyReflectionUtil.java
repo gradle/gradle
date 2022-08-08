@@ -65,6 +65,7 @@ public class JavaPropertyReflectionUtil {
         return readableProperty(targetClass, returnType, property);
     }
 
+    @Nullable
     private static Method findGetterMethod(Class<?> target, String property) {
         Method[] methods = target.getMethods();
         String getter = toMethodName("get", property);
@@ -100,6 +101,7 @@ public class JavaPropertyReflectionUtil {
      *
      * Returns null if no such property exists.
      */
+    @Nullable
     public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
         Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[]{valueType});

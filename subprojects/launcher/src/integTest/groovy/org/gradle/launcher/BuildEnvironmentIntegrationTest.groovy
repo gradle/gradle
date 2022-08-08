@@ -16,7 +16,6 @@
 
 package org.gradle.launcher
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -228,7 +227,6 @@ task check {
 
     @Issue("https://github.com/gradle/gradle/issues/1001")
     @IgnoreIf({ GradleContextualExecuter.embedded })
-    @NotYetImplemented
     def "system properties from gradle.properties are available to init scripts for buildSrc"() {
         given:
         executer.requireOwnGradleUserHomeDir()

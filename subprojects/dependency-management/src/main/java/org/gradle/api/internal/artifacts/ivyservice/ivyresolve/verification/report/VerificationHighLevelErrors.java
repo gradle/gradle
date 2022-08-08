@@ -26,4 +26,6 @@ interface VerificationHighLevelErrors {
     boolean canSuggestWriteMetadata();
 
     Set<String> getAffectedFiles();
+
+    boolean isKeyServersDisabled();
 }

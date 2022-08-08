@@ -16,28 +16,23 @@
 
 package org.gradle.internal.resources
 
-import org.gradle.api.Action
 
 import java.util.concurrent.atomic.AtomicBoolean
-
+import java.util.concurrent.atomic.AtomicReference
 
 class TestTrackedResourceLock extends AbstractTrackedResourceLock {
     final AtomicBoolean lockedState = new AtomicBoolean()
-    final AtomicBoolean hasLock = new AtomicBoolean()
+    final AtomicReference<Thread> owner = new AtomicReference<>()
 
-    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-        super(displayName, coordinationService, lockAction, unlockAction)
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
+        super(displayName, coordinationService, owner)
     }
 
-    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, boolean lockedState) {
-        this(displayName, coordinationService, lockAction, unlockAction, lockedState, false)
-    }
-
-    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, boolean lockedState, boolean hasLock) {
-        super(displayName, coordinationService, lockAction, unlockAction)
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, boolean lockedState, boolean hasLock) {
+        super(displayName, coordinationService, owner)
         this.lockedState.set(lockedState)
-        if (lockedState) {
-            this.hasLock.set(hasLock)
+        if (hasLock) {
+            this.owner.set(Thread.currentThread())
         }
     }
 
@@ -48,13 +43,13 @@ class TestTrackedResourceLock extends AbstractTrackedResourceLock {
 
     @Override
     boolean doIsLockedByCurrentThread() {
-        return hasLock.get()
+        return owner.get() == Thread.currentThread()
     }
 
     @Override
     protected boolean acquireLock() {
         if (!lockedState.get()) {
-            hasLock.set(true)
+            owner.set(Thread.currentThread())
             lockedState.set(true)
             return true
         } else {
@@ -64,7 +59,7 @@ class TestTrackedResourceLock extends AbstractTrackedResourceLock {
 
     @Override
     protected void releaseLock() {
-        hasLock.set(false)
+        owner.set(null)
         lockedState.set(false)
     }
 

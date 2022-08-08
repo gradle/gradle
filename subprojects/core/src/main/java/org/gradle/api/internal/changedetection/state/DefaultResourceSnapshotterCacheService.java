@@ -17,9 +17,17 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.IoSupplier;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
 
 public class DefaultResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private static final HashCode NO_HASH = Hashing.signature(CachingResourceHasher.class.getName() + " : no hash");
@@ -29,9 +37,21 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
         this.persistentCache = persistentCache;
     }
 
+    @Nullable
     @Override
-    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) {
-        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshotContext.getSnapshot().getHash(), configurationHash);
+    public HashCode hashFile(FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher hasher, HashCode configurationHash) throws IOException {
+        return hashFile(snapshot, () -> hasher.hash(snapshot), configurationHash);
+    }
+
+    @Nullable
+    @Override
+    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileSnapshotContextHasher hasher, HashCode configurationHash) throws IOException {
+        return hashFile(fileSnapshotContext.getSnapshot(), () -> hasher.hash(fileSnapshotContext), configurationHash);
+    }
+
+    @Nullable
+    private HashCode hashFile(FileSystemLocationSnapshot snapshot, IoSupplier<HashCode> hashCodeSupplier, HashCode configurationHash) throws IOException {
+        HashCode resourceHashCacheKey = resourceHashCacheKey(snapshot.getHash(), configurationHash);
 
         HashCode resourceHash = persistentCache.getIfPresent(resourceHashCacheKey);
         if (resourceHash != null) {
@@ -41,7 +61,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
             return resourceHash;
         }
 
-        resourceHash = hasher.hash(fileSnapshotContext);
+        resourceHash = hashCodeSupplier.get();
 
         if (resourceHash != null) {
             persistentCache.put(resourceHashCacheKey, resourceHash);

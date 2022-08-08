@@ -32,16 +32,18 @@ class CheckstyleTest extends Specification {
             configFile == null
             config == null
             configProperties == [:]
-            !reports.xml.enabled
-            reports.xml.destination == null
+            !reports.xml.required.get()
+            !reports.xml.outputLocation.isPresent()
             reports.xml.outputType == Report.OutputType.FILE
-            !reports.html.enabled
-            reports.html.destination == null
+            !reports.html.required.get()
+            !reports.html.outputLocation.isPresent()
             reports.html.outputType == Report.OutputType.FILE
             !ignoreFailures
             showViolations
             maxErrors == 0
             maxWarnings == Integer.MAX_VALUE
+            !minHeapSize.isPresent()
+            !maxHeapSize.isPresent()
         }
     }
 

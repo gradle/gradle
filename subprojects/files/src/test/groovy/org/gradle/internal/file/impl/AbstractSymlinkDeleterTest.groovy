@@ -23,7 +23,6 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 abstract class AbstractSymlinkDeleterTest extends Specification {
     static final boolean FOLLOW_SYMLINKS = true
@@ -89,7 +88,6 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.delete()
     }
 
-    @Unroll
     def "does not follow symlink to a file when followSymlinks is #followSymlinks"() {
         Assume.assumeTrue(canCreateSymbolicLinkToFile())
 

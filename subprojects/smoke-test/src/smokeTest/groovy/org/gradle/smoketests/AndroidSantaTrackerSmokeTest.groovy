@@ -18,31 +18,38 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
-
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 150
-    }
-
-    def "plop (agp=#agpVersion)"() {
-        expect:
-        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
-            println("OLD WITH DEPWARN")
-        } else {
-            println("RECENT NO DEPWARN")
+abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
+    static class AndroidLintDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        AndroidLintDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
         }
 
-        where:
-        agpVersion << TESTED_AGP_VERSIONS
+        void expectAndroidLintDeprecations(String agpVersion, List<String> artifacts) {
+            artifacts.each { artifact ->
+                runner.expectLegacyDeprecationWarningIf(
+                    agpVersion.startsWith("4.1"),
+                    "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
+                        "Cannot convert the provided notation to a File or URI: $artifact. " +
+                        "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
+                        "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
+                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details."
+                )
+            }
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs")
+            if (agpVersion.startsWith("7.")) {
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
+            }
+            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+        }
     }
+}
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTest {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -53,26 +60,18 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
 
         then:
-        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
-            expectDeprecationWarnings(result,
-                "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. " +
-                    "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
-        } else {
-            expectNoDeprecationWarnings(result)
-        }
         assertConfigurationCacheStateStored()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
     }
+}
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTrackerSmokeTest {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -88,7 +87,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -97,7 +96,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
-        buildLocation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
         then:
@@ -108,8 +107,10 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         where:
         agpVersion << TESTED_AGP_VERSIONS
     }
+}
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
+class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
@@ -120,15 +121,36 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
+        def runner = runnerForLocation(
+            checkoutDir, agpVersion,
+            "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
+        ).deprecations(AndroidLintDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectAndroidLintDeprecations(agpVersion, [
+                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
+                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
+            ])
+        }
+        // Use --continue so that a deterministic set of tasks runs when some tasks fail
+        runner.withArguments(runner.arguments + "--continue")
+        def result = runner.buildAndFail()
 
         then:
         assertConfigurationCacheStateStored()
         result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
-        runnerForLocation(checkoutDir, agpVersion, "clean").build()
-        result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
+        runner = runnerForLocation(
+            checkoutDir, agpVersion,
+            "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
+        ).deprecations(AndroidLintDeprecations) {
+            expectAndroidLintDeprecations(agpVersion, [
+                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
+                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
+            ])
+        }
+        runner.withArguments(runner.arguments + "--continue")
+        result = runner.buildAndFail()
 
         then:
         assertConfigurationCacheStateLoaded()

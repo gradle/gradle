@@ -18,7 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
@@ -26,10 +26,10 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue
+import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue
-import org.gradle.internal.snapshot.impl.IsolatedSerializedValueSnapshot
 import org.gradle.util.TestUtil
 import org.gradle.workers.fixtures.TestManagedTypes
 import spock.lang.Specification
@@ -37,9 +37,9 @@ import spock.lang.Specification
 class IsolatableSerializerRegistryTest extends Specification {
     def managedFactoryRegistry = TestUtil.managedFactoryRegistry()
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_) >> HashCode.fromInt(123)
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
-    IsolatableFactory isolatableFactory = new DefaultValueSnapshotter(classLoaderHasher, managedFactoryRegistry)
+    IsolatableFactory isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
     InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
     ServiceLookup services = new DefaultServiceRegistry().add(InstantiatorFactory, instantiatorFactory)
 
@@ -210,7 +210,7 @@ class IsolatableSerializerRegistryTest extends Specification {
         SerializableType type1 = new SerializableType("bar")
         SerializableType type2 = new SerializableType("baz")
         Isolatable<?>[] isolatables = [isolatableFactory.isolate(type1), isolatableFactory.isolate(type2)]
-        assert isolatables.every { it instanceof IsolatedSerializedValueSnapshot }
+        assert isolatables.every { it instanceof IsolatedJavaSerializedValueSnapshot }
 
         when:
         serialize(isolatables)

@@ -16,6 +16,8 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
@@ -28,12 +30,30 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
+    private static final String OPTION_OVERVIEW = "overview";
+    private static final String OPTION_MEMBERLEVEL = "memberLevel";
+    private static final String OPTION_DOCLET = "doclet";
+    private static final String OPTION_DOCLETPATH = "docletpath";
+    private static final String OPTION_SOURCE = "source";
+    private static final String OPTION_CLASSPATH = "classpath";
+    private static final String OPTION_MODULE_PATH = "-module-path";
+    private static final String OPTION_BOOTCLASSPATH = "bootclasspath";
+    private static final String OPTION_EXTDIRS = "extdirs";
+    private static final String OPTION_OUTPUTLEVEL = "outputLevel";
+    private static final String OPTION_BREAKITERATOR = "breakiterator";
+    private static final String OPTION_LOCALE = "locale";
+    private static final String OPTION_ENCODING = "encoding";
+
     protected final JavadocOptionFile optionFile;
 
     private final JavadocOptionFileOption<String> overview;
@@ -50,8 +70,16 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<String> locale;
     private final JavadocOptionFileOption<String> encoding;
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
-    private List<String> jFlags = new ArrayList<String>();
-    private List<File> optionFiles = new ArrayList<File>();
+    private List<String> jFlags = new ArrayList<>();
+    private List<File> optionFiles = new ArrayList<>();
+
+    /**
+     * Core options which are known, and have corresponding fields in this class.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    protected final Set<String> knownCoreOptionNames;
 
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
@@ -60,43 +88,58 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 
-        overview = addStringOption("overview");
-        memberLevel = addEnumOption("memberLevel");
-        doclet = addStringOption("doclet");
-        docletpath = addPathOption("docletpath");
-        source = addStringOption("source");
-        classpath = addPathOption("classpath");
-        modulePath = addPathOption("-module-path");
-        bootClasspath = addPathOption("bootclasspath");
-        extDirs = addPathOption("extdirs");
-        outputLevel = addEnumOption("outputLevel", JavadocOutputLevel.QUIET);
-        breakIterator = addBooleanOption("breakiterator");
-        locale = addStringOption("locale");
-        encoding = addStringOption("encoding");
+        overview = addStringOption(OPTION_OVERVIEW);
+        memberLevel = addEnumOption(OPTION_MEMBERLEVEL);
+        doclet = addStringOption(OPTION_DOCLET);
+        docletpath = addPathOption(OPTION_DOCLETPATH);
+        source = addStringOption(OPTION_SOURCE);
+        classpath = addPathOption(OPTION_CLASSPATH);
+        modulePath = addPathOption(OPTION_MODULE_PATH);
+        bootClasspath = addPathOption(OPTION_BOOTCLASSPATH);
+        extDirs = addPathOption(OPTION_EXTDIRS);
+        outputLevel = addEnumOption(OPTION_OUTPUTLEVEL, JavadocOutputLevel.QUIET);
+        breakIterator = addBooleanOption(OPTION_BREAKITERATOR);
+        locale = addStringOption(OPTION_LOCALE);
+        encoding = addStringOption(OPTION_ENCODING);
 
         sourceNames = optionFile.getSourceNames();
+
+        knownCoreOptionNames = Collections.unmodifiableSet(new HashSet<>(optionFile.getOptions().keySet()));
     }
 
     protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 
-        overview = optionFile.getOption("overview");
-        memberLevel = optionFile.getOption("memberLevel");
-        doclet = optionFile.getOption("doclet");
-        docletpath = optionFile.getOption("docletpath");
-        source = optionFile.getOption("source");
-        classpath = optionFile.getOption("classpath");
-        modulePath = optionFile.getOption("-module-path");
-        bootClasspath = optionFile.getOption("bootclasspath");
-        extDirs = optionFile.getOption("extdirs");
-        outputLevel = optionFile.getOption("outputLevel");
-        breakIterator = optionFile.getOption("breakiterator");
-        locale = optionFile.getOption("locale");
-        encoding = optionFile.getOption("encoding");
+        overview = optionFile.getOption(OPTION_OVERVIEW);
+        memberLevel = optionFile.getOption(OPTION_MEMBERLEVEL);
+        doclet = optionFile.getOption(OPTION_DOCLET);
+        docletpath = optionFile.getOption(OPTION_DOCLETPATH);
+        source = optionFile.getOption(OPTION_SOURCE);
+        classpath = optionFile.getOption(OPTION_CLASSPATH);
+        modulePath = optionFile.getOption(OPTION_MODULE_PATH);
+        bootClasspath = optionFile.getOption(OPTION_BOOTCLASSPATH);
+        extDirs = optionFile.getOption(OPTION_EXTDIRS);
+        outputLevel = optionFile.getOption(OPTION_OUTPUTLEVEL);
+        breakIterator = optionFile.getOption(OPTION_BREAKITERATOR);
+        locale = optionFile.getOption(OPTION_LOCALE);
+        encoding = optionFile.getOption(OPTION_ENCODING);
 
         sourceNames = optionFile.getSourceNames();
         jFlags = original.jFlags;
         optionFiles = original.optionFiles;
+
+        knownCoreOptionNames = original.knownCoreOptionNames;
+    }
+
+    /**
+     * Gets a set of all the options that are known to this class and have separate properties.
+     *
+     * @return set of property names
+     * @since 7.5
+     */
+    @Incubating
+    public Set<String> knownOptionNames() {
+        return knownCoreOptionNames;
     }
 
     /**
@@ -700,5 +743,19 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);
+    }
+
+    /**
+     * This method exists so that changing any options to the Javadoc task causes it to be re-run.
+     *
+     * @return the complete list of options, converted to strings
+     * @since 7.5
+     */
+    @Incubating
+    @Input
+    protected String getExtraOptions() {
+        return optionFile.stringifyExtraOptionsToMap(knownOptionNames()).entrySet().stream()
+                .map(e -> e.getKey() + ":" + e.getValue())
+                .collect(Collectors.joining(", "));
     }
 }

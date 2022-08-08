@@ -39,6 +39,7 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.internal.GUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -111,6 +112,7 @@ import java.util.stream.Collectors;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class CreateStartScripts extends ConventionTask {
 
     private File outputDir;

@@ -21,12 +21,34 @@ trait PluginDslSupport {
         withPlugins([(id): null])
     }
 
-    void withPlugins(Map<String, String> plugins) {
+    void withPluginAlias(String alias) {
+        withPlugins([:], [(alias): null])
+    }
+
+    void withPluginAliases(List<String> aliases = []) {
+        withPlugins([:], aliases.collectEntries { [it, null] })
+    }
+
+    void withPluginsBlockContents(String block) {
         def text = buildFile.text
         int idx = text.indexOf('allprojects')
         text = """${text.substring(0, idx)}
             plugins {
-                ${plugins.collect { String v = it.value?" version '${it.value}'":""; "id '$it.key'$v" }.join('\n')}
+                $block
+            }
+
+${text.substring(idx)}
+        """
+        buildFile.text = text
+    }
+
+    void withPlugins(Map<String, String> plugins, Map<String, String> aliases = [:]) {
+        def text = buildFile.text
+        int idx = text.indexOf('allprojects')
+        text = """${text.substring(0, idx)}
+            plugins {
+                ${plugins.collect { String v = it.value?" version \"${it.value}\"":""; "id '$it.key'$v" }.join('\n')}
+                ${aliases.collect { String v = it.value?" version '${it.value}'":""; "alias($it.key)$v" }.join('\n')}
             }
 
 ${text.substring(idx)}

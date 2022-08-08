@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
@@ -44,14 +45,33 @@ internal
 fun <T> T.implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports
 ): List<String> where T : Task, T : SharedAccessorsPackageAware =
-    implicitImports.list + "$sharedAccessorsPackage.*"
+    implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFingerprinter, classPathFiles)
 
 
 internal
 val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
-    get() = "gradle.kotlin.dsl.plugins._$classPathFingerprintHash"
+    get() = classPathFingerprinter.sharedAccessorsPackageFor(classPathFiles)
+
+
+internal
+fun implicitImportsForPrecompiledScriptPlugins(
+    implicitImports: ImplicitImports,
+    classpathFingerprinter: ClasspathFingerprinter,
+    classPathFiles: FileCollection
+): List<String> {
+    return implicitImports.list + "${classpathFingerprinter.sharedAccessorsPackageFor(classPathFiles)}.*"
+}
 
 
 private
-val <T> T.classPathFingerprintHash where T : SharedAccessorsPackageAware
-    get() = classPathFingerprinter.fingerprint(classPathFiles).hash
+fun ClasspathFingerprinter.sharedAccessorsPackageFor(classPathFiles: FileCollection): String =
+    "$sharedAccessorsPackagePrefix${fingerprintHashFor(classPathFiles)}"
+
+
+private
+fun ClasspathFingerprinter.fingerprintHashFor(classPathFiles: FileCollection) =
+    fingerprint(classPathFiles).hash
+
+
+private
+const val sharedAccessorsPackagePrefix = "gradle.kotlin.dsl.plugins._"

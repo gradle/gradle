@@ -25,6 +25,7 @@ class ReportState implements VerificationHighLevelErrors {
     private boolean hasMissing;
     private boolean failedSignatures;
     private boolean hasUntrustedKeys;
+    private boolean keyServersDisabled;
 
     public void maybeCompromised() {
         maybeCompromised = true;
@@ -40,6 +41,10 @@ class ReportState implements VerificationHighLevelErrors {
 
     public void hasUntrustedKeys() {
         hasUntrustedKeys = true;
+    }
+
+    public void keyServersAreDisabled() {
+        keyServersDisabled = true;
     }
 
     @Override
@@ -64,5 +69,10 @@ class ReportState implements VerificationHighLevelErrors {
 
     public void addAffectedFile(String file) {
         affectedFiles.add(file);
+    }
+
+    @Override
+    public boolean isKeyServersDisabled() {
+        return keyServersDisabled;
     }
 }

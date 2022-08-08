@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -42,6 +43,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -52,6 +54,7 @@ import java.util.concurrent.Callable;
  * Translates Assembly language source files into object files.
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class Assemble extends DefaultTask {
     private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;
@@ -113,9 +116,10 @@ public class Assemble extends DefaultTask {
         setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }

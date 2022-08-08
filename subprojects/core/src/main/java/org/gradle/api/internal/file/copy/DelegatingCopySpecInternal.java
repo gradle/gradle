@@ -22,9 +22,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
@@ -218,6 +220,11 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    public CopySpec expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
+        return getDelegateCopySpec().expand(properties, action);
+    }
+
+    @Override
     public CopySpec eachFile(Action<? super FileCopyDetails> action) {
         return getDelegateCopySpec().eachFile(action);
     }
@@ -320,5 +327,15 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action) {
         getDelegateCopySpec().appendCachingSafeCopyAction(action);
+    }
+
+    @Override
+    public PatternFilterable getPreserve() {
+        return getDelegateCopySpec().getPreserve();
+    }
+
+    @Override
+    public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
+        return getDelegateCopySpec().preserve(action);
     }
 }

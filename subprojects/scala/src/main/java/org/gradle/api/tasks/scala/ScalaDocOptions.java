@@ -18,7 +18,6 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
-import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -172,28 +171,6 @@ public class ScalaDocOptions extends AbstractOptions {
      */
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
-    }
-
-    @Override
-    protected String getAntPropertyName(String fieldName) {
-        if (fieldName.equals("additionalParameters")) {
-            return "addparams";
-        }
-        return fieldName;
-    }
-
-    @Override
-    protected Object getAntPropertyValue(String fieldName, Object value) {
-        if (fieldName.equals("deprecation")) {
-            return toOnOffString(deprecation);
-        }
-        if (fieldName.equals("unchecked")) {
-            return toOnOffString(unchecked);
-        }
-        if (fieldName.equals("additionalParameters")) {
-            return CollectionUtils.asCommandLine(getAdditionalParameters());
-        }
-        return value;
     }
 
     private String toOnOffString(boolean value) {

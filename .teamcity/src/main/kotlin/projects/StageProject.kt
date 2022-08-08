@@ -1,19 +1,17 @@
 package projects
 
-import common.failedTestArtifactDestination
+import common.VersionedSettingsBranch
+import common.hiddenArtifactDestination
+import common.toCapitalized
+import configurations.BaseGradleBuildType
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
 import configurations.PartialTrigger
 import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
-import configurations.SanityCheck
 import configurations.SmokeTests
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.FlameGraphGeneration
 import model.FunctionalTestBucketProvider
@@ -22,24 +20,32 @@ import model.PerformanceTestBucketProvider
 import model.PerformanceTestCoverage
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
+import model.StageName
+import model.TestCoverage
 import model.TestType
 
-class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage) : Project({
+class StageProject(
+    model: CIBuildModel,
+    functionalTestBucketProvider: FunctionalTestBucketProvider,
+    performanceTestBucketProvider: PerformanceTestBucketProvider,
+    stage: Stage,
+    previousPerformanceTestPasses: List<PerformanceTestsPass>
+) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
+    this.uuid = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_${model.projectId}_Stage_${stage.stageName.uuid}"
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
-    val specificBuildTypes: List<BuildType>
+    val specificBuildTypes: List<BaseGradleBuildType>
 
     val performanceTests: List<PerformanceTestsPass>
 
-    val functionalTests: List<FunctionalTest>
+    val functionalTests: List<BaseGradleBuildType>
 
     init {
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
-                buildReportTab("API Compatibility Report", "$failedTestArtifactDestination/report-architecture-test-binary-compatibility-report.html")
+                buildReportTab("API Compatibility Report", "$hiddenArtifactDestination/report-architecture-test-binary-compatibility-report.html")
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {
@@ -55,32 +61,23 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         performanceTests = stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) } +
             stage.flameGraphs.map { createFlameGraphs(model, stage, it) }
 
-        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
+        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
         val topLevelFunctionalTests = topLevelCoverage
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
+            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, enableTestDistribution = false) }
         topLevelFunctionalTests.forEach(this::buildType)
 
-        val functionalTestProjects = allCoverage
-            .map { testCoverage ->
-                val functionalTestProject = FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage)
-                if (stage.functionalTestsDependOnSpecificBuilds) {
-                    specificBuildTypes.forEach { specificBuildType ->
-                        functionalTestProject.addDependencyForAllBuildTypes(specificBuildType)
-                    }
-                }
-                if (!(stage.functionalTestsDependOnSpecificBuilds && stage.specificBuilds.contains(SpecificBuild.SanityCheck)) && stage.dependsOnSanityCheck) {
-                    functionalTestProject.addDependencyForAllBuildTypes(RelativeId(SanityCheck.buildTypeId(model)))
-                }
-                functionalTestProject
-            }
+        val functionalTestProjects = allCoverage.map { testCoverage -> FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage) }
 
         functionalTestProjects.forEach { functionalTestProject ->
             this@StageProject.subProject(functionalTestProject)
-            this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
+        }
+        val functionalTestsPass = functionalTestProjects.map { functionalTestProject ->
+            FunctionalTestsPass(model, functionalTestProject).also { this@StageProject.buildType(it) }
         }
 
-        functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests)
-        if (stage.stageName !in listOf(StageNames.QUICK_FEEDBACK_LINUX_ONLY, StageNames.QUICK_FEEDBACK)) {
+        functionalTests = topLevelFunctionalTests + functionalTestsPass
+        val crossVersionTests = topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } + functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
+        if (stage.stageName !in listOf(StageName.QUICK_FEEDBACK_LINUX_ONLY, StageName.QUICK_FEEDBACK)) {
             if (topLevelFunctionalTests.size + functionalTestProjects.size > 1) {
                 buildType(PartialTrigger("All Functional Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_FuncTests", model, functionalTests))
             }
@@ -88,13 +85,12 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             if (smokeTests.size > 1) {
                 buildType(PartialTrigger("All Smoke Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SmokeTests", model, smokeTests))
             }
-            val crossVersionTests = functionalTests.filter { it.testCoverage.testType in setOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion) }
             if (crossVersionTests.size > 1) {
                 buildType(PartialTrigger("All Cross-Version Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_CrossVersionTests", model, crossVersionTests))
             }
 
             // in gradleBuildSmokeTest, most of the tests are for using the configuration cache on gradle/gradle
-            val configCacheTests = (functionalTests + specificBuildTypes).filter { it.name.toLowerCase().contains("configcache") || it.name.contains(GRADLE_BUILD_SMOKE_TEST_NAME) }
+            val configCacheTests = (functionalTests + specificBuildTypes).filter { it.name.lowercase().contains("configcache") || it.name.contains(GRADLE_BUILD_SMOKE_TEST_NAME) }
             if (configCacheTests.size > 1) {
                 buildType(PartialTrigger("All ConfigCache Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_ConfigCacheTests", model, configCacheTests))
             }
@@ -105,7 +101,23 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
                 buildType(PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests))
             }
         }
+
+        stage.performanceTestPartialTriggers.forEach { trigger ->
+            buildType(
+                PartialTrigger(
+                    trigger.triggerName, trigger.triggerId, model,
+                    trigger.dependencies.map { performanceTestCoverage ->
+                        val targetPerformanceTestPassBuildTypeId = "${performanceTestCoverage.asConfigurationId(model)}_Trigger"
+                        (performanceTests + previousPerformanceTestPasses).first { it.id.toString().endsWith(targetPerformanceTestPassBuildTypeId) }
+                    }
+                )
+            )
+        }
     }
+
+    private
+    val TestCoverage.isCrossVersionTest
+        get() = testType in setOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion)
 
     private
     fun createPerformanceTests(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage): PerformanceTestsPass {
@@ -138,15 +150,3 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         )
     }
 }
-
-private fun FunctionalTestProject.addDependencyForAllBuildTypes(dependency: IdOwner) =
-    functionalTests.forEach { functionalTestBuildType ->
-        functionalTestBuildType.dependencies {
-            dependency(dependency) {
-                snapshot {
-                    onDependencyFailure = FailureAction.CANCEL
-                    onDependencyCancel = FailureAction.CANCEL
-                }
-            }
-        }
-    }

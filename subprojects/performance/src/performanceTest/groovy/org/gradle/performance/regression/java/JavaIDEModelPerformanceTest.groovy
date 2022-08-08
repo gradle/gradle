@@ -22,20 +22,17 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"])
 )
-@Ignore("https://github.com/gradle/gradle-private/issues/3284")
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.1-20210427170827+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
@@ -88,7 +85,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference()
     }
 
     def "get IDE model for IDEA"() {
@@ -136,7 +133,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference()
     }
 
     private setupRunner() {

@@ -26,7 +26,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DefaultCompatibilityRuleChainTest extends Specification {
-    def ruleChain = new DefaultCompatibilityRuleChain(TestUtil.instantiatorFactory().inject(), SnapshotTestUtil.valueSnapshotter())
+    def ruleChain = new DefaultCompatibilityRuleChain(TestUtil.instantiatorFactory().inject(), SnapshotTestUtil.isolatableFactory())
 
     static class CompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override

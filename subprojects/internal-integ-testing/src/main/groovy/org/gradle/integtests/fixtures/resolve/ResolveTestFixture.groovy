@@ -853,13 +853,10 @@ allprojects {
         """
     }
 
-    void addJavaEcosystemSchema() {
+    void addJavaEcosystem() {
         buildFile << """
             allprojects {
-                org.gradle.api.internal.artifacts.JavaEcosystemSupport.configureSchema(
-                    dependencies.attributesSchema,
-                    project.objects
-                )
+                apply plugin: 'org.gradle.jvm-ecosystem'
             }
         """
     }

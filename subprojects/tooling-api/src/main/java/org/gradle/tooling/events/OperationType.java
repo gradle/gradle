@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.api.Incubating;
+
 /**
  * Enumerates the different types of operations for which progress events can be received.
  *
@@ -117,5 +119,38 @@ public enum OperationType {
      *
      * @since 6.0
      */
-    TEST_OUTPUT
+    TEST_OUTPUT,
+
+    /**
+     * Flag for file download progress events. This includes various types of files, for example files downloaded during dependency resolution,
+     * Gradle distribution downloads, and Java toolchain downloads.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.download.FileDownloadStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.StatusEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.download.FileDownloadFinishEvent}</li>
+     * </ul>
+     *
+     * @since 7.3
+     */
+    @Incubating
+    FILE_DOWNLOAD,
+
+
+    /**
+     * Flag for build phase events.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent}</li>
+     * </ul>
+     *
+     * @since 7.6
+     */
+    @Incubating
+    BUILD_PHASE
 }

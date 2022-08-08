@@ -18,12 +18,10 @@ package org.gradle.internal.logging.slf4j
 
 import org.gradle.internal.time.Time
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.logging.LogLevel.LIFECYCLE
 import static org.slf4j.Logger.ROOT_LOGGER_NAME
 
-@Unroll
 class OutputEventListenerBackedLoggerContextTest extends Specification {
     OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(Time.clock())
 

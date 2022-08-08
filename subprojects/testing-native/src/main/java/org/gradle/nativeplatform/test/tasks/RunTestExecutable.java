@@ -23,12 +23,14 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
 /**
  * Runs a compiled and installed test executable.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
     /**
      * The directory where the results should be generated.

@@ -48,6 +48,8 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         projectDir = temporaryFolder.testDirectory
         // When adding support for a new JDK version, the previous release might not work with it yet.
         Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
+
+        settingsFile.touch()
     }
 
     def "tooling api uses to the current version of gradle when none has been specified"() {

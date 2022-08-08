@@ -16,17 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.scopes.ScopedCache;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -35,10 +32,9 @@ public class CrossBuildFileHashCache implements Closeable {
     private final PersistentCache cache;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
-    public CrossBuildFileHashCache(@Nullable File cacheDir, CacheRepository repository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
+    public CrossBuildFileHashCache(ScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        CacheBuilder cacheBuilder = cacheDir != null ? repository.cache(cacheDir) : repository.cache(cacheKind.cacheId);
-        cache = cacheBuilder
+        cache = scopedCache.cache(cacheKind.cacheId)
             .withDisplayName(cacheKind.description)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

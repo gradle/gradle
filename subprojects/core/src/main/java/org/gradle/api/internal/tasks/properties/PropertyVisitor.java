@@ -18,16 +18,15 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
 /**
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
  */
-@UsedByScanPlugin("test-distribution")
 public interface PropertyVisitor {
-    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
+    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
 
     void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
 
@@ -37,11 +36,9 @@ public interface PropertyVisitor {
 
     void visitLocalStateProperty(Object value);
 
-    @UsedByScanPlugin("test-distribution")
     class Adapter implements PropertyVisitor {
-        @UsedByScanPlugin("test-distribution")
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }
 
         @Override
@@ -49,7 +46,6 @@ public interface PropertyVisitor {
         }
 
         @Override
-        @UsedByScanPlugin("test-distribution")
         public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         }
 
