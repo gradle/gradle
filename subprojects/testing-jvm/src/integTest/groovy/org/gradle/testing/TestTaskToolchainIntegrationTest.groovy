@@ -16,16 +16,13 @@
 
 package org.gradle.testing
 
-import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
-class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
+class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java test task #jdk"() {
         buildFile << """
@@ -64,7 +61,7 @@ class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
     }
 

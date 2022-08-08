@@ -33,6 +33,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     public static final String DEFAULT_TEST_VARIANT = "test variant";
@@ -70,7 +71,7 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     @Override
     public void visit(ArtifactVisitor visitor) {
         for (final ResolvedArtifact artifact : artifacts) {
-            visitor.visitArtifact(variantName, variant, new Adapter(artifact));
+            visitor.visitArtifact(variantName, variant, Collections.emptyList(), new Adapter(artifact));
         }
     }
 

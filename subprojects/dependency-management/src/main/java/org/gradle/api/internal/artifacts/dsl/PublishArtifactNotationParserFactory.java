@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -43,11 +44,13 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
     private final TaskResolver taskResolver;
+    private final FileResolver fileResolver;
 
-    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver) {
+    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
         this.taskResolver = taskResolver;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -111,7 +114,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     private class FileProviderNotationConverter extends TypedNotationConverter<Provider<?>, ConfigurablePublishArtifact> {
         @SuppressWarnings("unchecked")
         FileProviderNotationConverter() {
-            super((Class)Provider.class);
+            super((Class<Provider<?>>) (Class<?>) Provider.class);
         }
 
         @Override
@@ -124,7 +127,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
             Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, new LazyPublishArtifact(notation, module.getVersion()));
+            return instantiator.newInstance(DecoratingPublishArtifact.class, new LazyPublishArtifact(notation, module.getVersion(), fileResolver));
         }
     }
 

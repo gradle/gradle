@@ -16,10 +16,19 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceLookup
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertTrue
 
 class GroovyCompileOptionsTest {
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
@@ -27,7 +36,8 @@ class GroovyCompileOptionsTest {
     GroovyCompileOptions compileOptions
 
     @Before public void setUp()  {
-        compileOptions = new GroovyCompileOptions()
+        ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory()).add(InstantiatorFactory, TestUtil.instantiatorFactory())
+        compileOptions = TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class)
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as GroovyForkOptions
     }
 
@@ -42,39 +52,6 @@ class GroovyCompileOptionsTest {
         assertNull(compileOptions.configurationScript)
         assertFalse(compileOptions.javaAnnotationProcessing)
         assertFalse(compileOptions.parameters)
-    }
-
-    @Test public void testOptionMapForForkOptions() {
-        Map optionMap = compileOptions.optionMap()
-        assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
-    }
-
-    @Test public void testOptionMapWithTrueFalseValues() {
-        Map booleans = [
-                failOnError: 'failOnError',
-                verbose: 'verbose',
-                listFiles: 'listFiles',
-                fork: 'fork',
-                parameters: 'parameters'
-        ]
-        booleans.keySet().each {compileOptions."$it" = true}
-        Map optionMap = compileOptions.optionMap()
-        booleans.values().each {
-            if (it.equals('nowarn')) {
-                assertEquals(false, optionMap[it])
-            } else {
-                assertEquals(true, optionMap[it])
-            }
-        }
-        booleans.keySet().each {compileOptions."$it" = false}
-        optionMap = compileOptions.optionMap()
-        booleans.values().each {
-            if (it.equals('nowarn')) {
-                assertEquals(true, optionMap[it])
-            } else {
-                assertEquals(false, optionMap[it])
-            }
-        }
     }
 
     @Test public void testFork() {

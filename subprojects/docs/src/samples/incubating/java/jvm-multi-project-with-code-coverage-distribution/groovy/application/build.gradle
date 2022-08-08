@@ -1,0 +1,18 @@
+plugins {
+    id 'myproject.java-conventions'
+    id 'application'
+    id 'jacoco-report-aggregation' // <1>
+}
+
+dependencies {
+    implementation project(':list')
+    implementation project(':utilities')
+}
+
+application {
+    mainClass = 'org.gradle.sample.Main'
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport) // <2>
+}

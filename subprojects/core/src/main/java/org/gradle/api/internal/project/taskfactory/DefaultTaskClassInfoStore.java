@@ -25,8 +25,10 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.work.InputChanges;
 
@@ -35,6 +37,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,6 +58,8 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
+        Optional<String> reasonNotToTrackState = Optional.ofNullable(type.getAnnotation(UntrackedTask.class))
+            .map(UntrackedTask::because);
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
         AbstractIncrementalTaskActionFactory foundIncrementalTaskActionFactory = null;
@@ -101,7 +106,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             taskActionFactoriesBuilder.add(foundIncrementalTaskActionFactory);
         }
 
-        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable);
+        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable, reasonNotToTrackState);
     }
 
     /**
@@ -239,6 +244,13 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
         @Override
         protected Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method) {
+            Class<?> declaringClass = method.getDeclaringClass();
+            DeprecationLogger.deprecateIndirectUsage("IncrementalTaskInputs")
+                .withContext("On method '" + declaringClass.getSimpleName() + "." + method.getName() + "'")
+                .withAdvice("use 'org.gradle.work.InputChanges' instead.")
+                .willBeRemovedInGradle8()
+                .withUpgradeGuideSection(7, "incremental_task_inputs_deprecation")
+                .nagUser();
             return new IncrementalTaskInputsTaskAction(instantiator, taskType, method);
         }
     }

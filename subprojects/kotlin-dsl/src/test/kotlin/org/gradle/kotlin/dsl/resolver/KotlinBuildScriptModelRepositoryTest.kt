@@ -20,7 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -71,11 +71,11 @@ class KotlinBuildScriptModelRepositoryTest {
 
             override fun accept(request: KotlinBuildScriptModelRequest, k: Continuation<KotlinBuildScriptModel?>) {
                 super.accept(request, k)
-                acceptedRequest.sendBlocking(request)
+                acceptedRequest.trySendBlocking(request).getOrThrow()
             }
 
             override fun fetch(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel {
-                pendingRequest.sendBlocking(request)
+                pendingRequest.trySendBlocking(request).getOrThrow()
                 return nextResponse.poll(defaultTestTimeoutMillis, TimeUnit.MILLISECONDS)!!
             }
         }

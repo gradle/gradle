@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -26,6 +25,7 @@ import org.gradle.internal.execution.caching.CachingState;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperationType.Result {
 
@@ -49,6 +49,12 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
         return taskState.getSkipMessage();
     }
 
+    @Nullable
+    @Override
+    public String getSkipReasonMessage() {
+        return taskState.getSkipReasonMessage();
+    }
+
     @Override
     public boolean isActionable() {
         return taskState.isActionable();
@@ -63,25 +69,32 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public Long getOriginExecutionTime() {
-        return originMetadata == null ? null : originMetadata.getExecutionTime();
+        return originMetadata == null ? null : originMetadata.getExecutionTime().toMillis();
     }
 
     @Nullable
     @Override
     public String getCachingDisabledReasonMessage() {
-        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
-        return disabledReasons.isEmpty()
-            ? null
-            : disabledReasons.get(0).getMessage();
+        return getCachingDisabledReason()
+            .map(CachingDisabledReason::getMessage)
+            .orElse(null);
     }
 
     @Nullable
     @Override
     public String getCachingDisabledReasonCategory() {
-        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
-        return disabledReasons.isEmpty()
-            ? null
-            : convertNoCacheReasonCategory(disabledReasons.get(0).getCategory()).name();
+        return getCachingDisabledReason()
+            .map(CachingDisabledReason::getCategory)
+            .map(ExecuteTaskBuildOperationResult::convertNoCacheReasonCategory)
+            .map(Enum::name)
+            .orElse(null);
+    }
+
+    private Optional<CachingDisabledReason> getCachingDisabledReason() {
+        return cachingState
+            .whenDisabled()
+            .map(CachingState.Disabled::getDisabledReasons)
+            .map(reasons -> reasons.get(0));
     }
 
     private static TaskOutputCachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
@@ -104,12 +117,6 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
                 return TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
             case VALIDATION_FAILURE:
                 return TaskOutputCachingDisabledReasonCategory.VALIDATION_FAILURE;
-            case NON_CACHEABLE_IMPLEMENTATION:
-                return TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION;
-            case NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION:
-                return TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION;
-            case NON_CACHEABLE_INPUTS:
-                return TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS;
             default:
                 throw new AssertionError();
         }

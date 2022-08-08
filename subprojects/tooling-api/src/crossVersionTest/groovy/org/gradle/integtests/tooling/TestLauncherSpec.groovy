@@ -28,6 +28,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.JvmTestKind
@@ -35,6 +36,8 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+
+import static org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification.getWaitingMessage
 
 abstract class TestLauncherSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     ProgressEvents events = ProgressEvents.create()
@@ -65,7 +68,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationToken)
-            .addProgressListener(events)
+            .addProgressListener(events, OperationType.TASK, OperationType.TEST)
 
         collectOutputs(testLauncher)
 
@@ -86,7 +89,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
     void waitingForBuild() {
         ConcurrentTestUtil.poll(30) {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
+            assert stdout.toString().contains(getWaitingMessage(targetVersion))
         }
         stdout.reset()
         stderr.reset()
@@ -161,7 +164,12 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         try {
             withConnection {
                 ProjectConnection connection ->
-                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(events).run()
+                    connection.newBuild().forTasks('build')
+                        .withArguments("--continue")
+                        .addProgressListener(events)
+                        .setStandardOutput(System.out)
+                        .setStandardError(System.err)
+                        .run()
             }
         } catch (BuildException e) {
         }
@@ -171,11 +179,12 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         settingsFile << "rootProject.name = 'testproject'\n"
         buildFile.text = simpleJavaProject()
 
+        def classesDir = 'file("build/classes/moreTests")'
         buildFile << """
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    ${separateClassesDirs(targetVersion) ? "java.outputDir" : "output.classesDir"} = file("build/classes/moreTests")
+                    ${destinationDirectoryCode(classesDir)}
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }
@@ -224,6 +233,17 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
     static boolean separateClassesDirs(GradleVersion version) {
         version.baseVersion >= GradleVersion.version("4.0")
+    }
+
+    String destinationDirectoryCode(String destinationDirectory) {
+        //${separateClassesDirs(targetVersion) ? "java.outputDir" : "output.classesDir"} = file("build/classes/moreTests")
+        if (!separateClassesDirs(targetVersion)) {
+            return "output.classesDir = $destinationDirectory"
+        }
+        if (targetVersion.baseVersion < GradleVersion.version("6.1")) {
+            return "java.outputDir = $destinationDirectory"
+        }
+        return "java.destinationDirectory.set($destinationDirectory)"
     }
 
     def changeTestSource() {

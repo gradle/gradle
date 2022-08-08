@@ -56,8 +56,8 @@ project.setProperty("testResultsDirName", "$buildDir/my-test-results")
 
 tasks.register("showDirs") {
     doLast {
-        logger.quiet(rootDir.toPath().relativize((project.properties["reportsDir"] as File).toPath()).toString())
-        logger.quiet(rootDir.toPath().relativize((project.properties["testResultsDir"] as File).toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize((project.property("reportsDir") as File).toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize((project.property("testResultsDir") as File).toPath()).toString())
     }
 }
 // end::custom-report-dirs[]

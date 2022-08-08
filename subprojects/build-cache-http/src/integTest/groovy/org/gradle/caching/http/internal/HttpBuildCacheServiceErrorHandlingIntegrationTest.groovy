@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http.internal
 
+import org.eclipse.jetty.server.Response
 import org.gradle.caching.internal.services.BuildCacheControllerFactory
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -59,8 +60,43 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         """.stripIndent()
     }
 
-    def "build does not fail if connection drops during store"() {
-        httpBuildCacheServer.dropConnectionForPutAfterBytes(1024)
+    def "build does not fail if connection drops during store and server dies"() {
+        // Drop the connection and stop the server after reading 1024 bytes
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT") {
+                1024.times { req.inputStream.read() }
+                httpBuildCacheServer.stop()
+                false
+            } else {
+                true
+            }
+        }
+        settingsFile << withHttpBuildCacheServer()
+
+        // We see connection refused because the first partial request is retried,
+        // then the subsequent is flat refused because we stopped the server.
+        String errorPattern = /(Connect to 127\.0\.0\.1:\d+ \[\/127\.0\.0\.1\] failed: Connection refused|127\.0\.0\.1:\d+ failed to respond|Connection reset)/
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        executer.withStacktraceDisabled()
+        withBuildCache().run "customTask"
+
+        then:
+        output =~ /Could not store entry .* in remote build cache: ${errorPattern}/
+    }
+
+    def "build does not fail if connection repeatedly drops during store"() {
+        // For every write, read some of the data and then close the connection
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT") {
+                1024.times { req.inputStream.read() }
+                (res as Response).httpChannel.connection.close()
+                false
+            } else {
+                true
+            }
+        }
         settingsFile << withHttpBuildCacheServer()
         String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|An established connection was aborted by the software in your host machine|127.0.0.1:.+ failed to respond)/
 
@@ -71,6 +107,54 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
 
         then:
         output =~ /Could not store entry .* in remote build cache: ${errorPattern}/
+    }
+
+    def "dropped connection during write is retried and can subsequently succeed"() {
+        // For the first write, read some of the data and then close the connection.
+        // Subsequent writes succeed.
+        def count = 0
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT" && count++ > 0) {
+                1024.times { req.inputStream.read() }
+                (res as Response).httpChannel.connection.close()
+                false
+            } else {
+                true
+            }
+        }
+        settingsFile << withHttpBuildCacheServer()
+
+        when:
+        withBuildCache().run "customTask"
+
+        then:
+        count == 1
+        httpBuildCacheServer.cacheDir.listFiles().size() == 1
+    }
+
+    def "transient error on read is retried"() {
+        given:
+        settingsFile << withHttpBuildCacheServer()
+        withBuildCache().run "customTask"
+        withBuildCache().run "clean"
+
+        when:
+        def requests = 0
+        httpBuildCacheServer.addResponder { req, res ->
+            if (requests++ == 0) {
+                (res as Response).httpChannel.connection.close()
+                false
+            } else {
+                true
+            }
+        }
+        withBuildCache().run "customTask"
+
+        then:
+        skipped ":customTask"
+
+        and:
+        requests == 2
     }
 
     def "build cache is deactivated for the build if the connection times out"() {

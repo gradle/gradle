@@ -36,7 +36,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
     private final VariantMetadataRules componentMetadataRules;
 
-    private List<ModuleDependencyMetadata> calculatedDependencies;
+    private List<? extends ModuleDependencyMetadata> calculatedDependencies;
     private ImmutableList<? extends ModuleComponentArtifactMetadata> calculatedArtifacts;
 
     // Could be precomputed, but we avoid doing so if attributes are never requested
@@ -50,33 +50,35 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private final DependencyFilter dependencyFilter;
     private ImmutableList<ModuleDependencyMetadata> filteredConfigDependencies;
 
-    public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                        ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                        VariantMetadataRules componentMetadataRules,
-                                        ImmutableList<ExcludeMetadata> excludes,
-                                        ImmutableAttributes componentLevelAttributes,
-                                        boolean mavenArtifactDiscovery,
-                                        boolean externalVariant) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, mavenArtifactDiscovery, externalVariant);
+    public DefaultConfigurationMetadata(
+            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+            ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            VariantMetadataRules componentMetadataRules,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes componentLevelAttributes,
+            boolean externalVariant
+    ) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = DependencyFilter.ALL;
     }
 
-    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId,
-                                         String name,
-                                         boolean transitive,
-                                         boolean visible,
-                                         ImmutableSet<String> hierarchy,
-                                         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                         VariantMetadataRules componentMetadataRules,
-                                         ImmutableList<ExcludeMetadata> excludes,
-                                         ImmutableAttributes attributes,
-                                         Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-                                         DependencyFilter dependencyFilter,
-                                         CapabilitiesMetadata capabilities,
-                                         boolean mavenArtifactDiscovery,
-                                         boolean externalVariant) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), mavenArtifactDiscovery, externalVariant);
+    private DefaultConfigurationMetadata(
+            ModuleComponentIdentifier componentId,
+            String name,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            VariantMetadataRules componentMetadataRules,
+            ImmutableList<ExcludeMetadata> excludes,
+            ImmutableAttributes attributes,
+            Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+            DependencyFilter dependencyFilter,
+            CapabilitiesMetadata capabilities,
+            boolean externalVariant
+    ) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = dependencyFilter;
     }
@@ -144,10 +146,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return computedCapabilities;
     }
 
-    @Override
-    public boolean requiresMavenArtifactDiscovery() {
-        // If artifacts are computed, we opt-out of artifact discovery
-        return super.requiresMavenArtifactDiscovery() && getArtifacts() == getOriginalArtifacts();
+    private CapabilitiesMetadata getRawCapabilities() {
+        // We need the raw capabilities when deriving a variant since we pass down the component metadata rules as well
+        return super.getCapabilities();
     }
 
     private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
@@ -299,8 +300,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     attributes == null ? DefaultConfigurationMetadata.super.getAttributes() : attributes,
                     lazyConfigDependencies(),
                     dependencyFilter,
-                    capabilities == null ? DefaultConfigurationMetadata.this.getCapabilities() : capabilities,
-                    DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery(),
+                    capabilities == null ? DefaultConfigurationMetadata.this.getRawCapabilities() : capabilities,
                     isExternalVariant()
             );
         }

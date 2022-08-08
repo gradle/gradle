@@ -21,17 +21,18 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultProjectDependencyMetadata implements DependencyMetadata {
+public class DefaultProjectDependencyMetadata implements ForcingDependencyMetadata {
     private final ProjectComponentSelector selector;
     private final DependencyMetadata delegate;
     private final boolean isTransitive;
@@ -94,8 +95,8 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        return delegate.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override
@@ -108,4 +109,19 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
         return delegate.withReason(reason);
     }
 
+    @Override
+    public boolean isForce() {
+        if (delegate instanceof ForcingDependencyMetadata) {
+            return ((ForcingDependencyMetadata) delegate).isForce();
+        }
+        return false;
+    }
+
+    @Override
+    public ForcingDependencyMetadata forced() {
+        if (delegate instanceof ForcingDependencyMetadata) {
+            return ((ForcingDependencyMetadata) delegate).forced();
+        }
+        return this;
+    }
 }

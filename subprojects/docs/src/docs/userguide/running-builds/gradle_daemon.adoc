@@ -207,7 +207,7 @@ Therefore, incremental builds can re-use most of the Virtual File System from th
 Gradle uses native operating system features for watching the file system.
 It supports the feature on these operating systems:
 
-- Windows 10 (earlier versions likely work, but are not tested),
+- Windows 10, version 1709 and later,
 - Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2 are tested),
 - macOS 10.14 (Mojave) or later (Intel and ARM Macs included).
 
@@ -215,10 +215,9 @@ The feature supports the following file system types:
 
 - APFS
 - btrfs
-- exFAT
 - ext3
 - ext4
-- FAT32
+- XFS
 - HFS+
 - NTFS
 
@@ -257,7 +256,7 @@ This produces the following output at the start and end of the build:
 +
 ----
 $ gradle assemble --watch-fs -Dorg.gradle.vfs.verbose=true
-Received 3 file system events since last build while watching 1 hierarchies
+Received 3 file system events since last build while watching 1 locations
 Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
 > Task :compileJava NO-SOURCE
 > Task :processResources NO-SOURCE
@@ -267,7 +266,7 @@ Virtual file system retained information about 2 files, 2 directories and 0 miss
 
 BUILD SUCCESSFUL in 58ms
 1 actionable task: 1 up-to-date
-Received 5 file system events during the current build while watching 1 hierarchies
+Received 5 file system events during the current build while watching 1 locations
 Virtual file system retains information about 3 files, 2 directories and 2 missing files until next build
 ----
 +
@@ -313,7 +312,7 @@ To increase the limit to e.g. 512K watches run the following:
 
 [source,bash]
 ----
-echo 524288 | sudo tee -a /etc/sysctl.conf
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p --system
 ----
 

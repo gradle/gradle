@@ -18,11 +18,12 @@ package org.gradle.execution;
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,9 +32,11 @@ import java.util.List;
 public class DefaultTasksBuildExecutionAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildExecutionAction.class);
     private final ProjectConfigurer projectConfigurer;
+    private final List<BuiltInCommand> builtInCommands;
 
-    public DefaultTasksBuildExecutionAction(ProjectConfigurer projectConfigurer) {
+    public DefaultTasksBuildExecutionAction(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands) {
         this.projectConfigurer = projectConfigurer;
+        this.builtInCommands = builtInCommands;
     }
 
     @Override
@@ -55,7 +58,10 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
 
         List<String> defaultTasks = project.getDefaultTasks();
         if (defaultTasks.size() == 0) {
-            defaultTasks = Collections.singletonList(ProjectInternal.HELP_TASK);
+            defaultTasks = new ArrayList<>();
+            for (BuiltInCommand command : builtInCommands) {
+                defaultTasks.addAll(command.asDefaultTask());
+            }
             LOGGER.info("No tasks specified. Using default task {}", GUtil.toString(defaultTasks));
         } else {
             LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));

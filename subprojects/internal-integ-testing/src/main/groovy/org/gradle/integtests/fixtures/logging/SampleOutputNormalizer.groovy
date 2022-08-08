@@ -18,8 +18,8 @@ package org.gradle.integtests.fixtures.logging
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.samples.executor.ExecutionMetadata
-import org.gradle.samples.test.normalizer.OutputNormalizer
+import org.gradle.exemplar.executor.ExecutionMetadata
+import org.gradle.exemplar.test.normalizer.OutputNormalizer
 
 import java.util.regex.Pattern
 

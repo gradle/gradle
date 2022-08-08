@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.RichConsoleStyling;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
@@ -107,6 +108,14 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withGradleUserHomeDir(File userHomeDir);
 
     /**
+     * Sets the Gradle version for executing Gradle.
+     *
+     * This does not actually use a different gradle version,
+     * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
+     */
+    GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
+
+    /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
      */
     GradleExecuter withJavaHome(File userHomeDir);
@@ -188,11 +197,6 @@ public interface GradleExecuter extends Stoppable {
      * @return this executer
      */
     GradleExecuter withBuildCacheEnabled();
-
-    /**
-     * Don't set temp folder explicitly.
-     */
-    GradleExecuter withNoExplicitTmpDir();
 
     /**
      * Don't set native services dir explicitly.
@@ -320,14 +324,6 @@ public interface GradleExecuter extends Stoppable {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Default is enabled = true.
-     *
-     * All our tests should work with partial VFS invalidation.
-     * As soon as partial invalidation is enabled by default, we can remove this method and the field again.
-     */
-    GradleExecuter withPartialVfsInvalidation(boolean enabled);
-
-    /**
      * Expects exactly one deprecation warning in the build output. If more than one warning is produced,
      * or no warning is produced at all, the assertion fails.
      *
@@ -375,6 +371,11 @@ public interface GradleExecuter extends Stoppable {
      * Disables asserting that no unexpected stacktraces are present in the output.
      */
     GradleExecuter withStackTraceChecksDisabled();
+
+    /**
+     * Enables checks for warnings emitted by the JDK itself. Including illegal access warnings.
+     */
+    GradleExecuter withJdkWarningChecksEnabled();
 
     /**
      * An executer may decide to implicitly bump the logging level, unless this is called.
@@ -536,7 +537,7 @@ public interface GradleExecuter extends Stoppable {
      *
      * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
      */
-    GradleExecuter withPluginRepositoryMirror();
+    GradleExecuter withPluginRepositoryMirrorDisabled();
 
     GradleExecuter ignoreMissingSettingsFile();
 

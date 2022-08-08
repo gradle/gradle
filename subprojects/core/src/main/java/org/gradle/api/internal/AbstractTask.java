@@ -44,6 +44,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
@@ -54,7 +55,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
-import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
@@ -68,6 +68,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -76,13 +77,12 @@ import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
-import org.gradle.internal.scripts.ScriptOrigin;
-import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.Path;
+import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
@@ -94,16 +94,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.lambdas.SerializableLambdas.factory;
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
 /**
  * @deprecated This class will be removed in Gradle 8.0. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
@@ -117,6 +118,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private boolean enabled = true;
 
     private final DefaultTaskDependency dependencies;
+
+    /**
+     * "lifecycle dependencies" are dependencies declared via an explicit {@link Task#dependsOn(Object...)}
+     */
+    private final DefaultTaskDependency lifecycleDependencies;
 
     private final DefaultTaskDependency mustRunAfter;
 
@@ -132,7 +138,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final Property<Duration> timeout;
 
-    private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
+    private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
+
+    private String reasonNotToTrackState;
+
+    private String reasonIncompatibleWithConfigurationCache;
 
     private final ServiceRegistry services;
 
@@ -175,6 +185,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.mustRunAfter = new DefaultTaskDependency(tasks);
         this.finalizedBy = new DefaultTaskDependency(tasks);
         this.shouldRunAfter = new DefaultTaskDependency(tasks);
+        this.lifecycleDependencies = new DefaultTaskDependency(tasks);
+
         this.services = project.getServices();
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
@@ -185,7 +197,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
 
-        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs));
+        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs, lifecycleDependencies));
 
         this.timeout = project.getObjects().property(Duration.class);
     }
@@ -285,9 +297,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    public TaskDependencyInternal getLifecycleDependencies() {
+        return lifecycleDependencies;
+    }
+
+    @Internal
+    @Override
     public Set<Object> getDependsOn() {
         notifyTaskDependenciesAccess("Task.dependsOn");
-        return dependencies.getMutableValues();
+        return lifecycleDependencies.getMutableValues();
     }
 
     @Override
@@ -295,7 +313,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setDependsOn(Iterable)", new Runnable() {
             @Override
             public void run() {
-                dependencies.setValues(dependsOn);
+                lifecycleDependencies.setValues(dependsOn);
             }
         });
     }
@@ -305,7 +323,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = onlyIfSpec.and(onlyIfClosure);
+                onlyIfSpec = onlyIfSpec.and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
@@ -315,7 +333,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = onlyIfSpec.and(spec);
+                onlyIfSpec = onlyIfSpec.and(spec, "Task satisfies onlyIf spec");
+            }
+        });
+    }
+
+    @Override
+    public void onlyIf(final String onlyIfReason, final Spec<? super Task> spec) {
+        taskMutator.mutate("Task.onlyIf(String, Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = onlyIfSpec.and(spec, onlyIfReason);
             }
         });
     }
@@ -325,7 +353,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec);
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
+            }
+        });
+    }
+
+    @Override
+    public void setOnlyIf(String onlyIfReason, Spec<? super Task> spec) {
+        taskMutator.mutate("Task.setOnlyIf(String, Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
             }
         });
     }
@@ -335,23 +373,55 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure);
+                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
 
-    private AndSpec<Task> createNewOnlyIfSpec() {
-        return new AndSpec<Task>(new Spec<Task>() {
+    private DescribingAndSpec<Task> createNewOnlyIfSpec() {
+        return new DescribingAndSpec<>(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return element == AbstractTask.this && enabled;
             }
+        }, "Task is enabled");
+    }
+
+    @Override
+    public DescribingAndSpec<? super TaskInternal> getOnlyIf() {
+        return onlyIfSpec;
+    }
+
+    @Override
+    public void doNotTrackState(String reasonNotToTrackState) {
+        if (reasonNotToTrackState == null) {
+            throw new InvalidUserDataException("notTrackingReason must not be null!");
+        }
+        taskMutator.mutate("Task.doNotTrackState(String)",
+            () -> this.reasonNotToTrackState = reasonNotToTrackState
+        );
+    }
+
+    @Override
+    public Optional<String> getReasonNotToTrackState() {
+        return Optional.ofNullable(reasonNotToTrackState);
+    }
+
+    @Override
+    public void notCompatibleWithConfigurationCache(String reason) {
+        taskMutator.mutate("Task.notCompatibleWithConfigurationCache(String)", () -> {
+            reasonIncompatibleWithConfigurationCache = reason;
         });
     }
 
     @Override
-    public Spec<? super TaskInternal> getOnlyIf() {
-        return onlyIfSpec;
+    public boolean isCompatibleWithConfigurationCache() {
+        return reasonIncompatibleWithConfigurationCache == null;
+    }
+
+    @Override
+    public Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache() {
+        return Optional.ofNullable(reasonIncompatibleWithConfigurationCache);
     }
 
     @Internal
@@ -412,7 +482,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.dependsOn(Object...)", new Runnable() {
             @Override
             public void run() {
-                dependencies.add(paths);
+                lifecycleDependencies.add(paths);
             }
         });
         return this;
@@ -512,6 +582,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    @Deprecated
     public Convention getConvention() {
         assertDynamicObject();
         return extensibleDynamicObject.getConvention();
@@ -619,17 +690,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public File getTemporaryDir() {
-        File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
-        GFileUtils.mkdirs(dir);
-        return dir;
+        return getServices().get(TemporaryFileProvider.class).newTemporaryDirectory(getName());
     }
 
     // note: this method is on TaskInternal
     @Override
     public Factory<File> getTemporaryDirFactory() {
-        // Cached during serialization so it can be isolated from this task
-        final Cached<File> temporaryDir = Cached.of(this::getTemporaryDir);
-        return factory(temporaryDir::get);
+        return getServices().get(TemporaryFileProvider.class).temporaryDirectoryFactory(getName());
     }
 
     private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
@@ -643,6 +710,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private InputChangesAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
         if (action instanceof InputChangesAwareTaskAction) {
             return (InputChangesAwareTaskAction) action;
+        }
+        if (action instanceof ConfigureUtil.WrappedConfigureAction) {
+            Closure<?> configureClosure = ((ConfigureUtil.WrappedConfigureAction<?>) action).getConfigureClosure();
+            return convertClosureToAction(configureClosure, actionName);
         }
         return new TaskActionWrapper(action, actionName);
     }
@@ -710,7 +781,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(closure), hasher.getClassLoaderHash(closure.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(closure, hasher);
         }
 
         @Override
@@ -754,7 +825,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
+            return AbstractTask.getActionImplementation(action, hasher);
         }
 
         @Override
@@ -784,13 +855,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static String getActionClassName(Object action) {
-        if (action instanceof ScriptOrigin) {
-            ScriptOrigin origin = (ScriptOrigin) action;
-            return origin.getOriginalClassName() + "_" + origin.getContentHash();
-        } else {
-            return action.getClass().getName();
-        }
+    private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
+        HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
+        String actionClassIdentifier = ScriptOriginUtil.getOriginClassIdentifier(value);
+        return ImplementationSnapshot.of(actionClassIdentifier, value, classLoaderHash);
     }
 
     @Override
@@ -967,6 +1035,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (requiredServices == null) {
                 requiredServices = new HashSet<>();
             }
+            // TODO:configuration-cache assert build service is from the same build as the task
             requiredServices.add(service);
         });
     }
@@ -988,7 +1057,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         for (Provider<? extends BuildService<?>> service : requiredServices) {
             SharedResource resource = serviceRegistry.forService(service);
             if (resource.getMaxUsages() > 0) {
-                locks.add(resource.getResourceLock(1));
+                locks.add(resource.getResourceLock());
             }
         }
         return locks.build();

@@ -18,14 +18,15 @@ package org.gradle.vcs.internal
 
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.internal.hash.Hashing.hashString
 
 @SelfType(AbstractIntegrationSpec)
 trait SourceDependencies {
     TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
         def prefix = repoName.take(9)
-        def hashedCommit = HashUtil.createCompactMD5("${repoId}-${versionId}")
+        def hashedCommit = hashString("${repoId}-${versionId}").toCompactString()
         return baseDir.file(".gradle/vcs-1/${prefix}_${hashedCommit}/${repoName}")
     }
 }

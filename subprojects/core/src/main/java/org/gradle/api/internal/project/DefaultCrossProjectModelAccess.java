@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.UnknownProjectException;
-
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -29,12 +27,13 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public ProjectInternal getProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
-        if (project == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, relativeTo));
-        }
+    public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
         return project;
+    }
+
+    @Override
+    public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
+        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
     }
 
     @Override

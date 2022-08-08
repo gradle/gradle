@@ -468,7 +468,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (fixed) {
                 Map<K, V> entries = new LinkedHashMap<>();
                 for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
-                    entries.putAll(value.getFixedValue());
+                    entryCollector.addAll(value.getFixedValue().entrySet(), entries);
                 }
                 ExecutionTimeValue<Map<K, V>> value = ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
                 if (changingContent) {

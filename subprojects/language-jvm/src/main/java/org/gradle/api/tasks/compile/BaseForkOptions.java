@@ -95,9 +95,4 @@ public class BaseForkOptions extends AbstractOptions {
             .filter(string -> !string.isEmpty())
             .collect(Collectors.toList());
     }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return fieldName.equals("jvmArgs");
-    }
 }

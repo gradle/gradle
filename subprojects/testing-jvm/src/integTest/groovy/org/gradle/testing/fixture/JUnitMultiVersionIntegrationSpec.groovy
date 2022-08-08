@@ -108,6 +108,10 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         Assume.assumeFalse(isJUnitPlatform())
     }
 
+    protected ignoreWhenJUnit4() {
+        Assume.assumeFalse(isJUnit4())
+    }
+
     static String getTestFramework() {
         isJUnitPlatform() ? "JUnitPlatform" : "JUnit"
     }

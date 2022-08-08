@@ -33,6 +33,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -45,6 +46,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  * Displays dependent components.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependentComponentsReport extends DefaultTask {
 
     private boolean showNonBuildable;
@@ -133,11 +135,11 @@ public class DependentComponentsReport extends DefaultTask {
     @TaskAction
     public void report() {
         // Once we are here, the project lock is held. If we synchronize to avoid cross-project operations, we will have a dead lock.
-        getWorkerLeaseService().withoutProjectLock(() -> {
+        getWorkerLeaseService().runAsIsolatedTask(() -> {
             // Output reports per execution, not mixed.
             // Cross-project ModelRegistry operations do not happen concurrently.
             synchronized (DependentComponentsReport.class) {
-                ((ProjectInternal) getProject()).getMutationState().applyToMutableState(project -> {
+                ((ProjectInternal) getProject()).getOwner().applyToMutableState(project -> {
                     ModelRegistry modelRegistry = getModelRegistry();
 
                     DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);

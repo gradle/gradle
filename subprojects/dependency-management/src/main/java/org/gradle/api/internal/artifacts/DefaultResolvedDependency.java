@@ -222,7 +222,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
                 return diff;
             }
             // Use an arbitrary ordering when the artifacts have the same public attributes
-            return artifact1.hashCode() - artifact2.hashCode();
+            return Integer.compare(artifact1.hashCode(), artifact2.hashCode());
         }
     }
 }

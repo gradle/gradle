@@ -63,10 +63,12 @@ class DefaultFileOperationsTest extends Specification {
             fileHasher,
             resourceHandlerFactory,
             fileCollectionFactory,
+            TestUtil.objectFactory(),
             TestFiles.fileSystem(),
             TestFiles.patternSetFactory,
             TestFiles.deleter(),
-            TestFiles.documentationRegistry()
+            TestFiles.documentationRegistry(),
+            TestUtil.providerFactory()
         )
     }
 

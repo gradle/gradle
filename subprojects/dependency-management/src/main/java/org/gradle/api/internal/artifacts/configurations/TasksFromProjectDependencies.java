@@ -22,30 +22,28 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.initialization.ProjectAccessListener;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 class TasksFromProjectDependencies extends AbstractTaskDependency {
     private final String taskName;
-    private final DependencySet dependencies;
-    private final ProjectAccessListener projectAccessListener;
+    private final Supplier<DependencySet> dependencies;
 
-    public TasksFromProjectDependencies(String taskName, DependencySet dependencies, ProjectAccessListener projectAccessListener) {
+    public TasksFromProjectDependencies(String taskName, Supplier<DependencySet> dependencies) {
         this.taskName = taskName;
         this.dependencies = dependencies;
-        this.projectAccessListener = projectAccessListener;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        resolveProjectDependencies(context, dependencies.withType(ProjectDependency.class));
+        resolveProjectDependencies(context, dependencies.get().withType(ProjectDependency.class));
     }
 
     void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies) {
         for (ProjectDependency projectDependency : projectDependencies) {
-            projectAccessListener.beforeResolvingProjectDependency((ProjectInternal) projectDependency.getDependencyProject());
-
+            ProjectInternal dependencyProject = (ProjectInternal) projectDependency.getDependencyProject();
+            dependencyProject.getOwner().ensureTasksDiscovered();
             Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
             if (nextTask != null && context.getTask() != nextTask) {
                 context.add(nextTask);

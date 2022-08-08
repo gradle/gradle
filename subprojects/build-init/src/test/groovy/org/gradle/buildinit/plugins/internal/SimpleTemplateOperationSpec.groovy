@@ -16,13 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class SimpleTemplateOperationSpec extends Specification {
-    @Rule
-    TemporaryFolder temporaryFolder
+    @TempDir
+    File temporaryFolder
 
     def "Template URL must not be null"() {
         when:
@@ -42,7 +41,7 @@ class SimpleTemplateOperationSpec extends Specification {
 
     def "writes file from template with binding support"() {
         setup:
-        def targetFile = temporaryFolder.newFile("test.out")
+        def targetFile = new File(temporaryFolder, "test.out")
         def templateURL = getClass().getResource("SimpleTemplateOperationSpec-binding.template")
         def templateOperation = new SimpleTemplateOperation(templateURL, targetFile, [someBindedValue: new TemplateValue("someTemplateValue")])
 

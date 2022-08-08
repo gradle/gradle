@@ -78,20 +78,34 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> generator) {
-        generator.execute(new TestBuildOperationQueue<O>(log));
+    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
+        runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
+    }
+
+    @Override
+    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+        schedulingAction.execute(new TestBuildOperationQueue<O>(log));
     }
 
     @Override
     public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
+        runAllWithAccessToProjectState(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
+    }
+
+    @Override
+    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
         runAll(schedulingAction);
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        throw new UnsupportedOperationException();
+        runAll(worker, schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }
 
+    @Override
+    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+        throw new UnsupportedOperationException();
+    }
 
     private static class TestBuildOperationContext implements BuildOperationContext {
 
@@ -113,6 +127,14 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
         @Override
         public void setStatus(String status) {
+        }
+
+        @Override
+        public void progress(String status) {
+        }
+
+        @Override
+        public void progress(long progress, long total, String units, String status) {
         }
     }
 
@@ -317,13 +339,23 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 }
 
                 @Override
-                public void setResult(Object result) {
+                public void setResult(@Nullable Object result) {
                     context.setResult(result);
                 }
 
                 @Override
                 public void setStatus(String status) {
                     context.setStatus(status);
+                }
+
+                @Override
+                public void progress(String status) {
+                    context.progress(status);
+                }
+
+                @Override
+                public void progress(long progress, long total, String units, String status) {
+                    context.progress(progress, total, units, status);
                 }
             };
         }

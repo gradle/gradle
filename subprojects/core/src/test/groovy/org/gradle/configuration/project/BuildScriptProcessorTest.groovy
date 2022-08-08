@@ -43,7 +43,7 @@ class BuildScriptProcessorTest extends Specification {
         project.getBuildscript() >> scriptHandler
         project.getClassLoaderScope() >> targetScope
         project.getBaseClassLoaderScope() >> baseScope
-        project.getMutationState() >> projectState
+        project.getOwner() >> projectState
         projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
 

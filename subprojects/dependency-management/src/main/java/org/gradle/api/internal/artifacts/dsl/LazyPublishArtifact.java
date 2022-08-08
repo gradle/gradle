@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
@@ -41,22 +40,37 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private final FileResolver fileResolver;
     private PublishArtifactInternal delegate;
 
+    /**
+     * @deprecated Provide a {@link FileResolver} instead using {@link LazyPublishArtifact#LazyPublishArtifact(Provider, FileResolver)}.
+     */
+    @Deprecated
     public LazyPublishArtifact(Provider<?> provider) {
-        this.provider = Providers.internal(provider);
-        this.version = null;
-        this.fileResolver = null;
+        this(provider, null);
+        // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
+        // https://github.com/spring-projects/spring-boot/issues/29074
+        //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
+        //            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
+        //            .willBeRemovedInGradle8()
+        //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+        //            .nagUser();
     }
 
     public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
-        this.provider = Providers.internal(provider);
-        this.version = null;
-        this.fileResolver = fileResolver;
+        this(provider, null, fileResolver);
     }
 
-    public LazyPublishArtifact(Provider<?> provider, String version) {
+    public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver) {
+        // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
+        // https://github.com/spring-projects/spring-boot/issues/29074
+        //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, FileResolver) or constructor LazyPublishArtifact(Provider<?>, String, FileResolver)"
+        //        + " with a null FileResolver")
+        //            .replaceWith("a non-null FileResolver")
+        //            .willBeRemovedInGradle8()
+        //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+        //            .nagUser();
         this.provider = Providers.internal(provider);
         this.version = version;
-        this.fileResolver = null;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -89,7 +103,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return new Date();
     }
 
-    private PublishArtifact getDelegate() {
+    private PublishArtifactInternal getDelegate() {
         if (delegate == null) {
             Object value = provider.get();
             if (value instanceof FileSystemLocation) {
@@ -101,8 +115,8 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
                 delegate = new ArchivePublishArtifact((AbstractArchiveTask) value);
             } else if (value instanceof Task) {
                 delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
-            } else if (value instanceof CharSequence && fileResolver != null) {
-                delegate = fromFile(fileResolver.resolve(value.toString()));
+            } else if (fileResolver != null) {
+                delegate = fromFile(fileResolver.resolve(value));
             } else {
                 throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
             }
@@ -127,6 +141,6 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
 
     @Override
     public boolean shouldBePublished() {
-        return ((PublishArtifactInternal) getDelegate()).shouldBePublished();
+        return getDelegate().shouldBePublished();
     }
 }

@@ -30,6 +30,6 @@ class Closures {
         @ClosureParams(FirstParam.class) Closure<?> cl) {
         cl.delegate = target
         cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+        cl(target)
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -30,8 +30,8 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.TextUtil
 import org.gradle.util.UsesNativeServices
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -47,7 +47,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
     def hasher = Stub(FileHasher) {
         hash(_, _, _) >> {
-            HashCode.fromInt(1234)
+            TestHashCodes.hashCodeFrom(1234)
         }
     }
 

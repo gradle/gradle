@@ -19,9 +19,11 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -147,8 +149,18 @@ public interface UnitOfWork extends Describable {
         default void visitDestroyable(File destroyableRoot) {}
     }
 
-    default long markExecutionTime() {
-        return 0;
+    /**
+     * Handles when an input cannot be read while fingerprinting.
+     */
+    default void handleUnreadableInputs(InputFileFingerprintingException ex) {
+        throw ex;
+    }
+
+    /**
+     * Handles when an output cannot be read while snapshotting.
+     */
+    default void handleUnreadableOutputs(OutputFileSnapshottingException ex) {
+        throw ex;
     }
 
     /**
@@ -161,15 +173,6 @@ public interface UnitOfWork extends Describable {
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
     default Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-        return Optional.empty();
-    }
-
-    /**
-     * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
-     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
-     * returned depending on whether cleanup of existing outputs had to be performed.
-     */
-    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution) {
         return Optional.empty();
     }
 
@@ -250,4 +253,12 @@ public interface UnitOfWork extends Describable {
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
      */
     default void ensureLegacySnapshottingInputsClosed() {}
+
+    /**
+     * Returns a type origin inspector, which is used for diagnostics (e.g error messages) to provide
+     * more context about the origin of types (for example in what plugin a type is defined)
+     */
+    default WorkValidationContext.TypeOriginInspector getTypeOriginInspector() {
+        return WorkValidationContext.TypeOriginInspector.NO_OP;
+    }
 }

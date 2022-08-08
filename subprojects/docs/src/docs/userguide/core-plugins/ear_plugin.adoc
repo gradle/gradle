@@ -67,7 +67,7 @@ _Depends on_: `ear`.
 The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All dependencies in the `deploy` configuration are placed in the root of the EAR archive, and are _not_ transitive. All dependencies in the `earlib` configuration are placed in the 'lib' directory in the EAR archive and _are_ transitive.
 
 [[sec:ear_convention_properties]]
-== Convention properties
+== Convention properties (ear)
 
 `appDirName` — `String`::
 The name of the application source directory, relative to the project directory. _Default value: `src/main/application`_.
@@ -82,6 +82,8 @@ Metadata to generate a deployment descriptor file, e.g. `application.xml`. _Defa
 Specifies if deploymentDescriptor should be generated. _Default value: `true`_.
 
 These properties are provided by a link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] convention object.
+
+Configuring the ear tasks via the plugin's convention properties is **deprecated**. If you need to change from the default values, configure the appropriate tasks directly. If you want to configure all `Ear` tasks in the project, use  link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)].
 
 [[sec:ear_default_settings]]
 == Ear

@@ -24,7 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Eclipse calls them 'class folders' on java build path->libraries tab
+ * Eclipse calls them 'class folders' on java build path -&gt; libraries tab
  */
 public class ClassFoldersCreator {
     public List<Library> create(EclipseClasspath classpath) {

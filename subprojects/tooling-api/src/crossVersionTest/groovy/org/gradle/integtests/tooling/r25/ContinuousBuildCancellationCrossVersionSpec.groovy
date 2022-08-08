@@ -41,7 +41,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildTooling
 
         then:
         assert buildResult.failure instanceof BuildCancelledException
-        !stdout.toString().contains(WAITING_MESSAGE)
+        !stdout.toString().contains(waitingMessage)
     }
 
     private TestFile setupCancellationBuild() {
@@ -73,7 +73,7 @@ gradle.taskGraph.whenReady {
 
         then:
         !result.output.contains("ctrl-d")
-        result.output.contains(WAITING_MESSAGE)
+        result.output.contains(waitingMessage)
     }
 
     def "after cancelling a continuous build, we can subsequently run another"() {

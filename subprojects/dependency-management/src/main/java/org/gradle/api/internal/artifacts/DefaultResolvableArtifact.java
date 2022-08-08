@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Task;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.tasks.FinalizeAction;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -40,7 +42,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependencyContainer buildDependencies;
     private final CalculatedValue<File> fileSource;
-    private final FinalizeAction resolvedArtifactDependency;
+    private final WorkNodeAction resolvedArtifactDependency;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final PreResolvedResolvableArtifact publicView;
 
@@ -50,28 +52,23 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         this.artifactId = artifactId;
         this.buildDependencies = builtBy;
         this.fileSource = fileSource;
-        this.resolvedArtifactDependency = new FinalizeAction() {
-            @Override
-            public TaskDependencyContainer getDependencies() {
-                return buildDependencies;
-            }
-
-            @Override
-            public void execute(Task task) {
-                // Eagerly calculate the file if this will be used as a dependency of some task
-                // This is to avoid having to lock the project when a consuming task in another project runs
-                if (isResolveSynchronously()) {
-                    fileSource.getResourceToLock().applyToMutableState(o -> fileSource.finalizeIfNotAlready());
-                }
-            }
-        };
+        if (isProjectArtifact()) {
+            // Use a node to eagerly calculate the file if this artifact will be used as a dependency of some other node
+            // This is to avoid having to lock the producing project when a consuming task in another project runs
+            this.resolvedArtifactDependency = new ResolveAction(this);
+        } else {
+            this.resolvedArtifactDependency = null;
+        }
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         publicView = new PreResolvedResolvableArtifact(owner, artifact, artifactId, fileSource, buildDependencies, calculatedValueContainerFactory);
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(resolvedArtifactDependency);
+        context.add(buildDependencies);
+        if (resolvedArtifactDependency != null) {
+            context.add(resolvedArtifactDependency);
+        }
     }
 
     public IvyArtifactName getArtifactName() {
@@ -119,11 +116,15 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
 
     @Override
     public boolean isResolveSynchronously() {
-        if (artifactId.getComponentIdentifier() instanceof ProjectComponentIdentifier) {
+        if (isProjectArtifact()) {
             // Don't bother resolving local components asynchronously
             return true;
         }
         return fileSource.isFinalized();
+    }
+
+    private boolean isProjectArtifact() {
+        return artifactId.getComponentIdentifier() instanceof ProjectComponentIdentifier;
     }
 
     @Override
@@ -135,5 +136,47 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     public File getFile() {
         fileSource.finalizeIfNotAlready();
         return fileSource.get();
+    }
+
+    public static class ResolveAction implements WorkNodeAction {
+        private final DefaultResolvableArtifact artifact;
+
+        public ResolveAction(DefaultResolvableArtifact artifact) {
+            this.artifact = artifact;
+        }
+
+        @Override
+        public String toString() {
+            return "resolve " + artifact.artifactId;
+        }
+
+        public DefaultResolvableArtifact getArtifact() {
+            return artifact;
+        }
+
+        @Override
+        public boolean usesMutableProjectState() {
+            return true;
+        }
+
+        @Nullable
+        @Override
+        public Project getOwningProject() {
+            if (artifact.fileSource.getResourceToLock() instanceof ProjectState) {
+                return ((ProjectState) artifact.fileSource.getResourceToLock()).getMutableModel();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(artifact.buildDependencies);
+        }
+
+        @Override
+        public void run(NodeExecutionContext context) {
+            artifact.fileSource.finalizeIfNotAlready();
+        }
     }
 }

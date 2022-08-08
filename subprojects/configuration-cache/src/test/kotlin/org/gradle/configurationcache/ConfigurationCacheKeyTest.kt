@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
@@ -82,6 +82,34 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
+    fun `cache key honours --offline`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = true
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    isOffline = true
+                }
+            )
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = true
+            },
+            not(equalTo(cacheKeyStringFromStartParameter {
+                isOffline = false
+            }))
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = false
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+    }
+
+    @Test
     fun `sanity check`() {
         assertThat(
             cacheKeyStringFromStartParameter {},
@@ -90,18 +118,21 @@ class ConfigurationCacheKeyTest {
     }
 
     private
-    fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String =
-        ConfigurationCacheKey(
+    fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
+        val startParameter = StartParameterInternal().apply(configure)
+        return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildLayout(
                     file("root"),
                     file("settings"),
+                    null,
                     null
                 ),
-                BuildModelParameters(false, true, false),
-                StartParameterInternal().apply(configure)
-            )
+                startParameter
+            ),
+            RunTasksRequirements(startParameter)
         ).string
+    }
 
     private
     fun file(path: String) =

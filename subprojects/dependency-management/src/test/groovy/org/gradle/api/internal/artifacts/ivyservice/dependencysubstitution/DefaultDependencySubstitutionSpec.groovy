@@ -18,17 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.build.BuildState
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.Path
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
@@ -94,26 +93,24 @@ class DefaultDependencySubstitutionSpec extends Specification {
     }
 
     def "can specify target project"() {
+        def projectState = Mock(ProjectState)
+        projectState.componentIdentifier >> Stub(ProjectComponentIdentifier)
         def project = Mock(ProjectInternal)
         project.identityPath >> Path.path(":id:path")
         project.projectPath >> Path.path(":bar")
         project.name >> "bar"
-
-        def services = new DefaultServiceRegistry()
-        services.add(BuildState, Stub(BuildState))
+        project.owner >> projectState
 
         when:
         details.useTarget(project)
 
         then:
-        project.getServices() >> services
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"
         details.updated
         details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
-    @Unroll
     def "can substitute with a different artifact"() {
         when:
         details.artifactSelection {

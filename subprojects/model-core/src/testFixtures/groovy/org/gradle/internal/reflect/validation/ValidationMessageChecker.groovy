@@ -16,7 +16,6 @@
 
 package org.gradle.internal.reflect.validation
 
-import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -24,7 +23,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
-@CompileStatic
+// https://issues.apache.org/jira/browse/GROOVY-10055
+//@CompileStatic
 trait ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
@@ -50,7 +50,7 @@ trait ValidationMessageChecker {
         config.description("doesn't have a configured value")
             .reason("this property isn't marked as optional and no value has been configured")
             .solution("Assign a value to '${config.property}'")
-            .solution("mark property '${config.property}' as optional")
+            .solution("Mark property '${config.property}' as optional")
             .render()
     }
 
@@ -62,7 +62,7 @@ trait ValidationMessageChecker {
         config.description("$config.kind '$config.method()' should not be annotated with: @$config.annotation")
             .reason("Input/Output annotations are ignored if they are placed on something else than a getter")
             .solution("Remove the annotations")
-            .solution("rename the method")
+            .solution("Rename the method")
             .render()
     }
 
@@ -86,7 +86,7 @@ trait ValidationMessageChecker {
         config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with ${config.alsoAnnotatedWith.collect { "@$it" }.join(", ")}")
             .reason("A property is ignored but also has input annotations")
             .solution("Remove the input annotations")
-            .solution("remove the @${config.ignoringAnnotation} annotation")
+            .solution("Remove the @${config.ignoringAnnotation} annotation")
             .render()
     }
 
@@ -110,7 +110,19 @@ trait ValidationMessageChecker {
         config.description("is annotated with invalid property type @${config.annotation}")
             .reason("The '@${config.annotation}' annotation cannot be used in this context")
             .solution("Remove the property")
-            .solution("use a different annotation, e.g one of ${config.validAnnotations}")
+            .solution("Use a different annotation, e.g one of ${config.validAnnotations}")
+            .render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
+    String modifierAnnotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
+        config.description("is annotated with invalid modifier @${config.annotation}")
+            .reason("The '@${config.annotation}' annotation cannot be used in this context")
+            .solution("Remove the annotation")
+            .solution("Use a different annotation, e.g one of ${config.validAnnotations}")
             .render()
     }
 
@@ -122,7 +134,7 @@ trait ValidationMessageChecker {
         config.description("is missing ${config.kind}")
             .reason("A property without annotation isn't considered during up-to-date checking")
             .solution("Add ${config.kind}")
-            .solution("mark it as @Internal")
+            .solution("Mark it as @Internal")
             .render()
     }
 
@@ -157,8 +169,8 @@ trait ValidationMessageChecker {
         config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
             .solution("Annotate with @InputFile for regular files")
-            .solution("annotate with @InputDirectory for directories")
-            .solution("if you want to track the path, return File.absolutePath as a String and keep @Input")
+            .solution("Annotate with @InputDirectory for directories")
+            .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
             .render()
     }
 
@@ -192,8 +204,8 @@ trait ValidationMessageChecker {
         config.description("Gradle detected a problem with the following location: '${config.location.absolutePath}'")
             .reason("Task '${config.consumer}' uses this output of task '${config.producer}' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed")
             .solution("Declare task '${config.producer}' as an input of '${config.consumer}'")
-            .solution("declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn")
-            .solution("declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter")
+            .solution("Declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn")
+            .solution("Declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter")
             .render(renderSolutions)
     }
 
@@ -205,7 +217,7 @@ trait ValidationMessageChecker {
         config.description("specifies ${config.kind} '${config.file}' which doesn't exist")
             .reason("An input file was expected to be present but it doesn't exist")
             .solution("Make sure the ${config.kind} exists before the task is called")
-            .solution("make sure that the task which produces the ${config.kind} is declared as an input")
+            .solution("Make sure that the task which produces the ${config.kind} is declared as an input")
             .render()
     }
 
@@ -217,7 +229,7 @@ trait ValidationMessageChecker {
         config.description("${config.kind} '${config.file}' is not a ${config.kind}")
             .reason("Expected an input to be a ${config.kind} but it was a ${config.oppositeKind}")
             .solution("Use a ${config.kind} as an input")
-            .solution("declare the input as a ${config.oppositeKind} instead")
+            .solution("Declare the input as a ${config.oppositeKind} instead")
             .render()
     }
 
@@ -235,12 +247,38 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
-    String cannotWriteToFile(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+    String cannotCreateRootOfFileTree(@DelegatesTo(value = CannotWriteToDir, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToDir, 'cannot_write_output', spec)
+        config.isNotDirectory()
+        config.description("is not writable because '${config.dir}' ${config.reason}")
+            .reason("Expected the root of the file tree '${config.problemDir}' to be a directory but it's a file")
+            .solution("Make sure that the root of the file tree '${config.property}' is configured to a directory")
+            .render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    String cannotWriteFileToDirectory(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(CannotWriteToFile, 'cannot_write_output', spec)
-        config.description("is not writable because '${config.file}' ${config.reason}")
+
+        def cannotWriteToFile = config.description("is not writable because '${config.file}' ${config.reason}")
             .reason("Cannot write a file to a location pointing at a directory")
             .solution("Configure '${config.property}' to point to a file, not a directory")
-            .render()
+            .solution("Annotate '${config.property}' with @OutputDirectory instead of @OutputFiles.")
+        cannotWriteToFile.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    String cannotCreateParentDirectories(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToFile, 'cannot_write_output', spec)
+
+        def cannotWriteToFile = config.description("is not writable because '${config.file}' ${config.reason}")
+            .reason("Cannot create parent directories that are existing as file")
+            .solution("Configure '${config.property}' to point to the correct location")
+        cannotWriteToFile.render()
     }
 
     @ValidationTestFor(
@@ -265,7 +303,7 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
@@ -283,7 +321,7 @@ trait ValidationMessageChecker {
         config.description("of type ${config.primitiveType.name} shouldn't be annotated with @Optional")
             .reason("Properties of primitive type cannot be optional")
             .solution("Remove the @Optional annotation")
-            .solution("use the ${config.wrapperType.name} type instead")
+            .solution("Use the ${config.wrapperType.name} type instead")
             .render()
     }
 
@@ -322,6 +360,34 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    String implementationUnknown(boolean renderSolutions = false, @DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnknownImplementation, 'implementation_unknown', spec)
+        config.description("${config.prefix} ${config.postfix}")
+            .reason(config.reason)
+            .solution(config.solution)
+            .render(renderSolutions)
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    )
+    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
+        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
+            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
+            .solution("Add @DisableCachingByDefault(because = ...)")
+            .solution("Add ${config.cacheableAnnotation}.")
+
+        config.otherAnnotations.each { annotation ->
+            config.solution("Add ${annotation}.")
+        }
+
+        config.render()
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
@@ -330,6 +396,43 @@ trait ValidationMessageChecker {
             description(desc)
             reason(testReason)
         }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+        display(SimpleMessage, 'dummy') {
+            type(onType).property(onProperty)
+            description(desc)
+            reason(testReason)
+            includeLink()
+            documentationId("id")
+            documentationSection("section")
+        }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
+    String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        display(SimpleMessage, 'dummy') {
+            type('InvalidTask').property('dummy')
+            description('test problem')
+            reason('this is a test')
+            spec.delegate = delegate
+            spec()
+        }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_VALUE_TYPE
+    )
+    String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnsupportedValueType, "unsupported_value_type", spec)
+        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+        config.render()
     }
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
@@ -768,4 +871,95 @@ trait ValidationMessageChecker {
             inConflict(Arrays.asList(conflicting))
         }
     }
+
+    static class UnknownImplementation extends ValidationMessageDisplayConfiguration<UnknownImplementation> {
+
+        String prefix
+        String postfix
+        String reason
+        String solution
+
+        UnknownImplementation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnknownImplementation nestedProperty(String propertyName) {
+            prefix = "Property '${propertyName}'"
+            this
+        }
+
+        UnknownImplementation implementationOfTask(String taskPath) {
+            prefix = "Implementation of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation additionalTaskAction(String taskPath) {
+            prefix = "Additional action of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation unknownClassloader(String className) {
+            postfix = "was loaded with an unknown classloader (class '${className}')."
+            reason = "Gradle cannot track the implementation for classes loaded with an unknown classloader."
+            solution = "Load your class by using one of Gradle's built-in ways."
+            this
+        }
+
+        UnknownImplementation implementedByLambda(String lambdaPrefix) {
+            postfix = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'."
+            reason = "Using Java lambdas is not supported as task inputs."
+            solution = "Use an (anonymous inner) class instead."
+            this
+        }
+    }
+
+    static class NotCacheableWithoutReason extends ValidationMessageDisplayConfiguration<NotCacheableWithoutReason> {
+        String workType
+        String cacheableAnnotation
+        List<String> otherAnnotations = []
+
+        NotCacheableWithoutReason(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NotCacheableWithoutReason noReasonOnTask() {
+            workType = "task"
+            cacheableAnnotation = "@CacheableTask"
+            otherAnnotations.add("@UntrackedTask(because = ...)")
+            this
+        }
+
+        NotCacheableWithoutReason noReasonOnArtifactTransform() {
+            workType = "transform action"
+            cacheableAnnotation = "@CacheableTransform"
+            this
+        }
+    }
+
+    static class UnsupportedValueType extends ValidationMessageDisplayConfiguration<UnsupportedValueType> {
+
+        String annotationType
+        String propertyType
+        String unsupportedValueType
+
+        UnsupportedValueType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnsupportedValueType annotationType(String annotationType) {
+            this.annotationType = annotationType
+            this
+        }
+
+        UnsupportedValueType propertyType(String propertyType) {
+            this.propertyType = propertyType
+            this
+        }
+
+        UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
+            this.unsupportedValueType = unsupportedValueType
+            this
+        }
+    }
+
 }

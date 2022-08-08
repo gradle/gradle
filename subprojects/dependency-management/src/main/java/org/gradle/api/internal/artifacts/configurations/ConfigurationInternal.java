@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -53,6 +54,10 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     Path getIdentityPath();
 
+    void setReturnAllVariants(boolean returnAllVariants);
+
+    boolean getReturnAllVariants();
+
     /**
      * Runs any registered dependency actions for this Configuration, and any parent Configuration.
      * Actions may mutate the dependency set for this configuration.
@@ -81,7 +86,15 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
+    boolean isCanBeMutated();
+
     void preventFromFurtherMutation();
+
+    /**
+     * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.
+     * @return
+     */
+    boolean isIncubating();
 
     /**
      * Gets the complete set of exclude rules including those contributed by
@@ -109,9 +122,9 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
         void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
 
         // This configuration as a variant. May not always be present
-        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts);
 
         // A child variant. May not always be present
-        void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+        void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts);
     }
 }

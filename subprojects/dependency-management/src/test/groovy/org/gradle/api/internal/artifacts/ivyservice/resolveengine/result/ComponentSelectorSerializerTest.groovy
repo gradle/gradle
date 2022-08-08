@@ -35,7 +35,6 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
 
 import static org.gradle.util.Path.path
 
@@ -93,7 +92,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes other build root ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:someProject"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -121,7 +120,6 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.requestedCapabilities == selector.requestedCapabilities
     }
 
-    @Unroll
     def "serializes ProjectComponentSelector with attributes"() {
         given:
         def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildId), identityPath, projectPath, projectName, AttributeTestUtil.attributes(foo: 'x', bar: 'y'), capabilities())
@@ -175,7 +173,6 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == ':myPath'
     }
 
-    @Unroll
     def "serializes LibraryComponentSelector project #projectPath library #libraryName"() {
         given:
         LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)

@@ -49,9 +49,9 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
  * <h3>State flows</h3>
  *
  * <ul>
- *   <li>INIT -> STARTED -> [SUCCEEDED|FAILED|ABORTED|DETACHED]</li>
- *   <li>INIT -> FAILED</li>
- *   <li>INIT -> STARTED -> DETACHED -> ABORTED</li>
+ *   <li>INIT -&gt; STARTED -&gt; [SUCCEEDED|FAILED|ABORTED|DETACHED]</li>
+ *   <li>INIT -&gt; FAILED</li>
+ *   <li>INIT -&gt; STARTED -&gt; DETACHED -&gt; ABORTED</li>
  * </ul>
  *
  * State is controlled on all control methods:
@@ -263,6 +263,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
+            broadcast.getSource().beforeExecutionStarted(this);
             execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
             executor.execute(new CurrentBuildOperationPreservingRunnable(execHandleRunner));
 

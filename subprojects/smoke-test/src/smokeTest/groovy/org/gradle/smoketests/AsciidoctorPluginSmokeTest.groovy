@@ -18,12 +18,10 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:
@@ -44,7 +42,9 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        runner('asciidoc').build()
+        runner('asciidoc').deprecations(AsciidocDeprecations) {
+            expectAsciiDocDeprecationWarnings()
+        }.build()
 
         then:
         file('build/docs/asciidoc').isDirectory()
@@ -77,6 +77,17 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     void configureValidation(String pluginId, String version) {
         validatePlugins {
             alwaysPasses()
+        }
+    }
+
+    static class AsciidocDeprecations extends BaseDeprecations {
+        AsciidocDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAsciiDocDeprecationWarnings() {
+            runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
+            runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
         }
     }
 }

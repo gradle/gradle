@@ -23,7 +23,7 @@ class UndeclaredBuildInputsKotlinBuildScriptPluginsBlockIntegrationTest extends 
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         buildKotlinFile << """
             plugins {
                 println("apply = " + ${read.kotlinExpression})

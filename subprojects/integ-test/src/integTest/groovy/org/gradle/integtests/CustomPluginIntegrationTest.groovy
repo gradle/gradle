@@ -17,8 +17,6 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
 class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
     void "can reference plugin in buildSrc by id"() {
@@ -122,94 +120,6 @@ buildscript {
 }
 task test
 '''
-
-        expect:
-        succeeds('test')
-    }
-
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
-    def "can integration test plugin"() {
-        given:
-        file('src/main/groovy/CustomPlugin.groovy') << """
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-class CustomPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.ext.custom = 'value'
-    }
-}
-        """
-
-        file("src/main/resources/META-INF/gradle-plugins/custom.properties") << """
-implementation-class=CustomPlugin
-"""
-
-        file('src/test/groovy/CustomPluginTest.groovy') << """
-import org.junit.Test
-import org.gradle.testfixtures.ProjectBuilder
-class CustomPluginTest {
-    @Test
-    public void test() {
-        def project = ProjectBuilder.builder().build()
-
-        project.apply plugin: 'custom'
-
-        assert project.custom == 'value'
-    }
-}
-"""
-
-        buildFile << """
-apply plugin: 'groovy'
-${mavenCentralRepository()}
-dependencies {
-    implementation gradleApi()
-    implementation localGroovy()
-    testImplementation 'junit:junit:4.13'
-}
-"""
-
-        expect:
-        succeeds('test')
-    }
-
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
-    def "can use java plugin from custom plugin and its integration tests"() {
-        given:
-        file('src/main/groovy/CustomPlugin.groovy') << """
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-class CustomPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.apply plugin: 'java'
-    }
-}
-        """
-
-        file('src/test/groovy/CustomPluginTest.groovy') << """
-import org.junit.Test
-import org.gradle.testfixtures.ProjectBuilder
-class CustomPluginTest {
-    @Test
-    public void test() {
-        def project = ProjectBuilder.builder().build()
-
-        project.apply plugin: 'java'
-
-        assert project.sourceSets
-    }
-}
-"""
-
-        buildFile << """
-apply plugin: 'groovy'
-${mavenCentralRepository()}
-dependencies {
-    implementation gradleApi()
-    implementation localGroovy()
-    testImplementation 'junit:junit:4.13'
-}
-"""
 
         expect:
         succeeds('test')

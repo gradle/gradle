@@ -17,15 +17,13 @@
 package org.gradle.testkit.runner
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.junit.Assume.assumeTrue
 
-// There are problems loading the native libraries for FS-watching when using TestKit with debug
-@NoDebug
 @SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -35,9 +33,10 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
                 id('java')
             }
         """
-        assumeTrue("File system watching is enabled by default", gradleVersion >= GradleVersion.version("7.0"))
+        assumeTrue("File system watching is enabled by default", isCompatibleVersion("7.0"))
     }
 
+    @NoDebug
     @Requires(TestPrecondition.WINDOWS)
     def "disables file system watching on Windows"() {
         when:
@@ -46,6 +45,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
         assertFileSystemWatchingDisabled(result)
     }
 
+    @NoDebug
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "file system watching is enabled on non-Windows OSes"() {
         when:
@@ -54,6 +54,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
         assertFileSystemWatchingEnabled(result)
     }
 
+    @NoDebug
     def "can enable file system watching via '#enableFlag'"() {
         when:
         def result = runAssemble(enableFlag)
@@ -62,6 +63,20 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
 
         where:
         enableFlag << ["--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}", "-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true"]
+    }
+
+    @Debug
+    def "file system watching is disabled when using --debug"() {
+        assumeTrue("Do not initialize file system watching in client", isCompatibleVersion("7.2"))
+
+        when:
+        def result = runAssemble(*extraArguments)
+        then:
+        assertFileSystemWatchingDisabled(result)
+        println(result.output)
+
+        where:
+        extraArguments << [[], ["--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}"]]
     }
 
     private BuildResult runAssemble(String... extraArguments) {

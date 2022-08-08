@@ -42,7 +42,7 @@ class EarTest extends AbstractArchiveTaskTest {
 
     def "test Ear"() {
         expect:
-        ear.extension == Ear.EAR_EXTENSION
+        ear.archiveExtension.get() == Ear.EAR_EXTENSION
     }
 
     def "correct default deployment descriptor"() {
@@ -83,8 +83,8 @@ class EarTest extends AbstractArchiveTaskTest {
         execute(ear)
 
         then:
-        ear.archivePath.isFile()
-        new JarTestFixture(ear.archivePath).assertContainsFile('lib/file.txt')
+        ear.archiveFile.get().asFile.isFile()
+        new JarTestFixture(ear.archiveFile.get().asFile).assertContainsFile('lib/file.txt')
     }
 
     private static DeploymentDescriptor makeDeploymentDescriptor(Ear e) {

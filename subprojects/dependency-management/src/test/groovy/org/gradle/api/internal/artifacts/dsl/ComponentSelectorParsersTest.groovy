@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.build.BuildState
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -43,8 +43,8 @@ class ComponentSelectorParsersTest extends Specification {
         v.size() == 1
         v[0] instanceof ModuleComponentSelector
         v[0].group == 'org.foo'
-        v[0].module  == 'bar'
-        v[0].version  == '1.0'
+        v[0].module == 'bar'
+        v[0].version == '1.0'
         v[0].versionConstraint.requiredVersion == '1.0'
         v[0].versionConstraint.preferredVersion == ''
         v[0].versionConstraint.strictVersion == ''
@@ -59,7 +59,7 @@ class ComponentSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0] instanceof ModuleComponentSelector
-        v[0].module  == 'charsequence'
+        v[0].module == 'charsequence'
     }
 
     def "allows exact type on input"() {
@@ -74,7 +74,7 @@ class ComponentSelectorParsersTest extends Specification {
         v[0] instanceof ModuleComponentSelector
         v[0].group == 'org.foo'
         v[0].module == 'bar'
-        v[0].version  == '2.0'
+        v[0].version == '2.0'
         v[0].versionConstraint.requiredVersion == '2.0'
         v[0].versionConstraint.preferredVersion == ''
         v[0].versionConstraint.strictVersion == ''
@@ -86,7 +86,7 @@ class ComponentSelectorParsersTest extends Specification {
         def id = DefaultModuleComponentSelector.newSelector(module, new DefaultMutableVersionConstraint("2.0"))
 
         when:
-        def v = multiParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
+        def v = multiParser().parseNotation([id, ["hey:man:1.0"], [group: 'i', name: 'like', version: 'maps']]) as List
 
         then:
         v.size() == 3
@@ -97,14 +97,14 @@ class ComponentSelectorParsersTest extends Specification {
 
     def "allows map on input"() {
         when:
-        def v = multiParser().parseNotation([group: 'org.foo', name: 'bar', version:'1.0']) as List
+        def v = multiParser().parseNotation([group: 'org.foo', name: 'bar', version: '1.0']) as List
 
         then:
         v.size() == 1
         v[0] instanceof ModuleComponentSelector
         v[0].group == 'org.foo'
-        v[0].module  == 'bar'
-        v[0].version  == '1.0'
+        v[0].module == 'bar'
+        v[0].version == '1.0'
         v[0].versionConstraint.requiredVersion == '1.0'
         v[0].versionConstraint.preferredVersion == ''
         v[0].versionConstraint.strictVersion == ''
@@ -115,15 +115,14 @@ class ComponentSelectorParsersTest extends Specification {
         when:
         def buildId = Stub(BuildIdentifier)
         buildId.name >> "build"
-        def currentBuild = Stub(BuildState)
-        currentBuild.buildIdentifier >> buildId
-        def services = new DefaultServiceRegistry()
-        services.add(BuildState, currentBuild)
+        def projectState = Mock(ProjectState) {
+            getComponentIdentifier() >> new DefaultProjectComponentIdentifier(buildId, Path.path(":id:bar"), Path.path(":bar"), "name")
+        }
         def project = Mock(ProjectInternal) {
             getIdentityPath() >> Path.path(":id:bar")
             getProjectPath() >> Path.path(":bar")
             getName() >> "name"
-            getServices() >> services
+            getOwner() >> projectState
         }
         def v = multiParser().parseNotation(project) as List
 
@@ -197,8 +196,8 @@ class ComponentSelectorParsersTest extends Specification {
         then:
         v instanceof ModuleComponentSelector
         v.group == 'org.foo'
-        v.module  == 'bar'
-        v.version  == '1.0'
+        v.module == 'bar'
+        v.version == '1.0'
         v.versionConstraint.requiredVersion == '1.0'
         v.versionConstraint.preferredVersion == ''
         v.versionConstraint.strictVersion == ''

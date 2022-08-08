@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
-import org.gradle.api.internal.initialization.loadercache.CompileClasspathHasher
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -137,17 +136,18 @@ object BuildServices {
         fileCollectionFactory: FileCollectionFactory,
         classpathFingerprinter: ClasspathFingerprinter
     ) =
-        if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
-            CompileClasspathHasher(
+        DefaultClasspathHasher(
+            if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED) {
                 KotlinCompileClasspathFingerprinter(
                     cacheService,
                     fileCollectionSnapshotter,
                     stringInterner
-                ),
-                fileCollectionFactory
-            )
-        else
-            DefaultClasspathHasher(classpathFingerprinter, fileCollectionFactory)
+                )
+            } else {
+                classpathFingerprinter
+            },
+            fileCollectionFactory
+        )
 
     @Suppress("unused")
     fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =

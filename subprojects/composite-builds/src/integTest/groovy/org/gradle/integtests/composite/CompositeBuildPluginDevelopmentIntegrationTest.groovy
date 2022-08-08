@@ -18,8 +18,9 @@ package org.gradle.integtests.composite
 
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Tests for plugin development scenarios within a composite build.
@@ -39,7 +40,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginBuild = pluginProjectBuild("pluginBuild")
     }
 
-    @Unroll
     def "can co-develop plugin and consumer with plugin as included build withVersion: #withVersion"() {
         given:
         applyPlugin(buildA, true, withVersion)
@@ -63,7 +63,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         withVersion << [true, false]
     }
 
-    @Unroll
     def "can co-develop plugin and consumer with plugin as included library build using 'apply plugin', withVersion: #withVersion"() {
         given:
         applyPlugin(buildA, false, withVersion)
@@ -191,6 +190,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:jar", ":jar"
     }
 
+    @IntegrationTestTimeout(value = 30, onlyIf = { GradleContextualExecuter.embedded })
     def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency using library included build and 'apply plugin'"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -456,12 +456,16 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "tasks")
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:jar"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:classes"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava (*)"))
+        failure.assertHasCause("""
+Circular dependency between the following tasks:
+:pluginDependencyA:compileJava
+\\--- :pluginDependencyB:jar
+     \\--- :pluginDependencyB:classes
+          \\--- :pluginDependencyB:compileJava
+               \\--- :pluginDependencyA:compileJava (*)
+
+(*) - details omitted (listed previously)
+""".trim())
     }
 
     def "can co-develop plugin applied via plugins block with resolution strategy applied"() {

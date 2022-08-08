@@ -16,29 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.FileUtils.hasExtension;
-
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
-    private final boolean incremental;
-    private final Iterable<FileChange> sourceChanges;
 
     public JavaRecompilationSpecProvider(
         Deleter deleter,
@@ -47,144 +33,16 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         boolean incremental,
         Iterable<FileChange> sourceFileChanges
     ) {
-        super(deleter, fileOperations, sourceTree);
-        this.incremental = incremental;
-        this.sourceChanges = sourceFileChanges;
+        super(deleter, fileOperations, sourceTree, sourceFileChanges, incremental);
     }
 
     @Override
-    protected String getFileExtension() {
-        return ".java";
+    protected Set<String> getFileExtensions() {
+        return Collections.singleton(".java");
     }
 
     @Override
-    public boolean isIncremental() {
-        return incremental;
-    }
-
-    @Override
-    public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
-        RecompilationSpec spec = new RecompilationSpec(previous);
-        SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(previous);
-
-        processClasspathChanges(current, previous, spec);
-        processOtherChanges(current, previous, spec, sourceFileClassNameConverter);
-        Set<String> typesToReprocess = previous.getTypesToReprocess();
-        spec.addClassesToProcess(typesToReprocess);
-        return spec;
-    }
-
-    @Override
-    public boolean initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-        if (!recompilationSpec.isBuildNeeded()) {
-            spec.setSourceFiles(ImmutableSet.of());
-            spec.setClasses(Collections.emptySet());
-            return false;
-        }
-        PatternSet classesToDelete = fileOperations.patternSet();
-        PatternSet sourceToCompile = fileOperations.patternSet();
-
-        SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(recompilationSpec.getPreviousCompilation());
-        prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, sourceToCompile, sourceFileClassNameConverter);
-        prepareJavaPatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile);
-        spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
-        includePreviousCompilationOutputOnClasspath(spec);
-        addClassesToProcess(spec, recompilationSpec);
-
-        boolean cleanedAnyOutput = deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
-        cleanedAnyOutput |= deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
-        cleanedAnyOutput |= deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory());
-
-        Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-        cleanedAnyOutput |= deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), spec.getDestinationDir());
-        // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so clean that instead.
-        cleanedAnyOutput |= deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir()));
-        // In the same situation with NATIVE_HEADER_OUTPUT, javac just NPEs.  Don't bother.
-        cleanedAnyOutput |= deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory());
-
-        return cleanedAnyOutput;
-    }
-
-    private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
-        return sourceTree.matching(sourceToCompile);
-    }
-
-    private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, FileOperations fileOperations) {
-        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<>(GeneratedResource.Location.class);
-        for (GeneratedResource.Location location : GeneratedResource.Location.values()) {
-            resourcesByLocation.put(location, fileOperations.patternSet());
-        }
-        for (GeneratedResource resource : staleResources) {
-            resourcesByLocation.get(resource.getLocation()).include(resource.getPath());
-        }
-        return resourcesByLocation;
-    }
-
-    private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        if (spec.isFullRebuildNeeded()) {
-            return;
-        }
-        boolean emptyAnnotationProcessorPath = current.getAnnotationProcessorPath().isEmpty();
-        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
-        for (FileChange fileChange : sourceChanges) {
-            if (spec.isFullRebuildNeeded()) {
-                return;
-            }
-            if (fileChange.getFileType() != FileType.FILE) {
-                continue;
-            }
-
-            File changedFile = fileChange.getFile();
-            if (hasExtension(changedFile, ".java")) {
-                String relativeFilePath = fileChange.getNormalizedPath();
-
-                Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
-                spec.addRelativeSourcePathToCompile(relativeFilePath);
-                sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
-            } else {
-                if (emptyAnnotationProcessorPath) {
-                    continue;
-                }
-                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("resource", fileChange));
-                return;
-            }
-        }
-
-        for (String className : spec.getClassesToCompile()) {
-            if (spec.isFullRebuildNeeded()) {
-                return;
-            }
-
-            Collection<String> sourcePaths = sourceFileClassNameConverter.getRelativeSourcePaths(className);
-            spec.addRelativeSourcePathsToCompile(sourcePaths);
-        }
-    }
-
-    private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        for (String relativeSourcePath : relativeSourcePathsToCompile) {
-            filesToRecompilePatterns.include(relativeSourcePath);
-
-            sourceFileClassNameConverter.getClassNames(relativeSourcePath)
-                .stream()
-                .map(staleClass -> staleClass.replaceAll("\\.", "/").concat(".class"))
-                .forEach(classesToDelete::include);
-        }
-    }
-
-
-    private void prepareJavaPatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
-        for (String staleClass : staleClasses) {
-            String path = staleClass.replaceAll("\\.", "/");
-            String headerPath = staleClass.replaceAll("\\.", "_");
-            filesToDelete.include(path.concat(".class"));
-            filesToDelete.include(path.concat(".java"));
-            filesToDelete.include(headerPath.concat(".h"));
-            filesToDelete.include(path.concat("$*.class"));
-            filesToDelete.include(path.concat("$*.java"));
-            filesToDelete.include(headerPath.concat("_*.h"));
-
-            sourceToCompile.include(path.concat(".java"));
-            sourceToCompile.include(path.concat("$*.java"));
-        }
+    protected boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation) {
+        return currentCompilation.getAnnotationProcessorPath().isEmpty();
     }
 }

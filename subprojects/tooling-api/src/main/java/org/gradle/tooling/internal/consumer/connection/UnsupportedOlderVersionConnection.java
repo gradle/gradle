@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
  *
- * <p>Used for providers >= 1.0-milestone-3 and <= 2.5.</p>
+ * <p>Used for providers &gt;= 1.0-milestone-3 and &lt;= 2.5.</p>
  */
 public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     private final ProtocolToModelAdapter adapter;

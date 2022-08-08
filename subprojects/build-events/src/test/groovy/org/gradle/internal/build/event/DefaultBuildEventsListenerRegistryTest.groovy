@@ -46,7 +46,10 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
     def listenerManager = new DefaultListenerManager(Scopes.Build)
     def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
-    def buildResult = new BuildResult(Mock(GradleInternal), null)
+    def gradle = Stub(GradleInternal) {
+        isRootBuild() >> true
+    }
+    def buildResult = new BuildResult(gradle, null)
     def registry = new DefaultBuildEventsListenerRegistry(factory, listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
@@ -120,6 +123,9 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
 
         then:
         registry.subscriptions.size() == 1
+
+        cleanup:
+        signalBuildFinished()
     }
 
     def "listeners receive events concurrently"() {

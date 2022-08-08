@@ -27,6 +27,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,6 +35,7 @@ import java.util.Properties
 import java.util.TimeZone
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class BuildReceipt : DefaultTask() {
     companion object {
         private

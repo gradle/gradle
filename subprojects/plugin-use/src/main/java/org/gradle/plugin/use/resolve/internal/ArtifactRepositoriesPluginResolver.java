@@ -22,12 +22,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -45,21 +42,10 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     @VisibleForTesting
     static final String SOURCE_NAME = "Plugin Repositories";
 
-    public static ArtifactRepositoriesPluginResolver createWithDefaults(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        RepositoryHandler repositories = dependencyResolutionServices.getResolveRepositoryHandler();
-        if (repositories.isEmpty()) {
-            repositories.gradlePluginPortal();
-        }
-        return new ArtifactRepositoriesPluginResolver(dependencyResolutionServices, versionSelectorScheme);
-    }
+    private final DependencyResolutionServices resolutionServices;
 
-    private final DependencyResolutionServices resolution;
-    private final VersionSelectorScheme versionSelectorScheme;
-
-    public ArtifactRepositoriesPluginResolver(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        this.resolution = dependencyResolutionServices;
-        this.versionSelectorScheme = versionSelectorScheme;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
+    public ArtifactRepositoriesPluginResolver(DependencyResolutionServices resolutionServices) {
+        this.resolutionServices = resolutionServices;
     }
 
     @Override
@@ -86,6 +72,11 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             }
 
             @Override
+            public String getPluginVersion() {
+                return markerDependency.getVersion();
+            }
+
+            @Override
             public void execute(@Nonnull PluginResolveContext context) {
                 context.addLegacy(pluginRequest.getId(), markerDependency);
             }
@@ -94,7 +85,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private void handleNotFound(PluginResolutionResult result, String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolution.getResolveRepositoryHandler().iterator(); it.hasNext();) {
+        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
             if (it.hasNext()) {
                 detail.append("\n");
@@ -107,7 +98,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
      * Checks whether the plugin marker artifact exists in the backing artifacts repositories.
      */
     private boolean exists(ModuleDependency dependency) {
-        ConfigurationContainer configurations = resolution.getConfigurationContainer();
+        ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();
         Configuration configuration = configurations.detachedConfiguration(dependency);
         configuration.setTransitive(false);
         return !configuration.getResolvedConfiguration().hasError();

@@ -19,6 +19,7 @@ package org.gradle.performance.results
 import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 
+import javax.annotation.Nonnull
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
@@ -59,6 +60,16 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         join testExecution on testExecution.id = last.lastId
         order by last.testClass, last.testId, last.testProject, last.os
     """
+
+    @Nonnull
+    static String teamcityBuildIdQueryFor(List<String> teamcityBuildIds) {
+        return teamcityBuildIds.isEmpty() ? '' : " or teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})"
+    }
+
+    @Nonnull
+    static String channelPatternQueryFor(List<String> channelPatterns) {
+        return String.join(' or ', Collections.nCopies(channelPatterns.size(), "channel like ?"))
+    }
 
     @Override
     public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {

@@ -1,5 +1,5 @@
 plugins {
-    id("org.springframework.boot") version("2.2.1.RELEASE")
+    id("org.springframework.boot") version("2.4.5")
     java
 }
 
@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:2.2.1.RELEASE"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:2.4.5"))
 
     implementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

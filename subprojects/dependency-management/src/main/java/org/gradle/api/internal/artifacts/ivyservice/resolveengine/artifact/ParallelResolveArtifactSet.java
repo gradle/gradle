@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -62,7 +63,7 @@ public abstract class ParallelResolveArtifactSet {
         public void visit(ArtifactVisitor visitor) {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);
-            buildOperationProcessor.runAll(visitAction);
+            buildOperationProcessor.runAll(visitAction, BuildOperationConstraint.UNCONSTRAINED);
 
             // Now visit the result in order
             visitAction.visitResults();

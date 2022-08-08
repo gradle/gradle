@@ -24,6 +24,8 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
+import java.util.Optional;
+
 class CCompiler extends VisualCppNativeCompiler<CCompileSpec> {
 
     CCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<CCompileSpec, CCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
@@ -32,8 +34,8 @@ class CCompiler extends VisualCppNativeCompiler<CCompileSpec> {
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
         @Override
-        protected String getLanguageOption() {
-            return "/TC";
+        protected Optional<String> getLanguageOption() {
+            return Optional.of("/TC");
         }
     }
 }

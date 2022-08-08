@@ -26,7 +26,7 @@ import java.io.File;
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
  */
-public class ForkOptions extends BaseForkOptions {
+public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
 
     private String executable;
@@ -102,10 +102,5 @@ public class ForkOptions extends BaseForkOptions {
      */
     public void setTempDir(@Nullable String tempDir) {
         this.tempDir = tempDir;
-    }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return fieldName.equals("jvmArgs");
     }
 }

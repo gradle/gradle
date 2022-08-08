@@ -33,12 +33,7 @@ public abstract class AbstractTaskDependency implements TaskDependencyInternal {
         @Override
         public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
             // Ignore artifact transforms
-            return node instanceof TransformationDependency;
-        }
-
-        @Override
-        public boolean attachActionTo(Task task, Action<? super Task> action) {
-            return false;
+            return node instanceof TransformationDependency || node instanceof WorkNodeAction;
         }
     };
 

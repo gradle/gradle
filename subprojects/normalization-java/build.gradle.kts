@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":hashing"))
     implementation(project(":files"))
     implementation(project(":snapshots"))
+    implementation(project(":functional"))
 
     implementation(libs.asm)
     implementation(libs.guava)
@@ -18,4 +19,5 @@ dependencies {
 
     testImplementation(project(":base-services"))
     testImplementation(project(":internal-testing"))
+    testImplementation(testFixtures(project(":snapshots")))
 }

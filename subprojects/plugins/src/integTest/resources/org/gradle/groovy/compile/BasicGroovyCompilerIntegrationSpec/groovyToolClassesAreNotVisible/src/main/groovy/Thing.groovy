@@ -1,3 +1,3 @@
 class Thing {
-    def builder = new AntBuilder()
+    def builder = new groovy.ant.AntBuilder()
 }
