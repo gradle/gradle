@@ -58,12 +58,15 @@ public class JavaToolchainQueryService {
         this.matchingToolchains = new ConcurrentHashMap<>();
     }
 
-    <T extends JavaToolchainToolInternal> Provider<T> toolFor(
+    <T> Provider<T> toolFor(
         JavaToolchainSpec spec,
-        Transformer<T, JavaToolchain> toolFunction
+        Transformer<T, JavaToolchain> toolFunction,
+        DefaultJavaToolchainUsageProgressDetails.JavaTool requestedTool
     ) {
         ProviderInternal<JavaToolchain> toolchainProvider = findMatchingToolchain(spec);
-        return toolchainProvider.map(toolFunction).withSideEffect(JavaToolchainToolInternal::emitUsage);
+        return toolchainProvider
+            .withSideEffect(toolchain -> toolchain.emitUsageEvent(requestedTool))
+            .map(toolFunction);
     }
 
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
