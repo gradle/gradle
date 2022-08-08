@@ -139,17 +139,6 @@ This can be particularly useful for a transformer task that converts input files
 
 If you'd like to optimize your build so that only out-of-date input files are processed, you can do so with an _incremental task_.
 
-[NOTE]
-====
-There is the link:{javadocPath}/org/gradle/api/tasks/incremental/IncrementalTaskInputs.html[IncrementalTaskInputs] API, which is available in Gradle versions before 5.4.
-When using link:{javadocPath}/org/gradle/api/tasks/incremental/IncrementalTaskInputs.html[IncrementalTaskInputs], it is only possible to query for all file changes of the task inputs.
-It is not possible to query for changes of individual input file properties.
-Moreover, the old API does not distinguish between incremental and non-incremental task inputs, so the task itself needs to determine where the changes originated from.
-Therefore, the usage of this API is deprecated, and it will be removed eventually.
-The new link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] API, which is documented here, replaces the old API and addresses its shortcomings.
-If you need to use the old API, have a look at the documentation in the link:https://docs.gradle.org/5.3.1/userguide/custom_tasks.html#incremental_tasks[user manual for Gradle 5.3.1].
-====
-
 [[sec:implementing_an_incremental_task]]
 === Implementing an incremental task
 
