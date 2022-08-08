@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
@@ -43,7 +44,12 @@ public class JavaToolchainQueryService {
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
 
     @Inject
-    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
+    public JavaToolchainQueryService(
+        JavaInstallationRegistry registry,
+        JavaToolchainFactory toolchainFactory,
+        JavaToolchainProvisioningService provisioningService,
+        ProviderFactory factory
+    ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
@@ -57,12 +63,21 @@ public class JavaToolchainQueryService {
     }
 
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
+        if (!filterInternal.isValid()) {
+            DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
+                .withAdvice("Consider configuring the language version.")
+                .willBecomeAnErrorInGradle8()
+                .withDslReference(JavaToolchainSpec.class, "languageVersion")
+                .nagUser();
+        }
+
         return new DefaultProvider<>(() -> {
-            if (((ToolchainSpecInternal) filter).isConfigured()) {
-                return matchingToolchains.computeIfAbsent(filter, k -> query(k));
-            } else {
+            if (!filterInternal.isConfigured()) {
                 return null;
             }
+
+            return matchingToolchains.computeIfAbsent(filterInternal, this::query);
         });
     }
 
