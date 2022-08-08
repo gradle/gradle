@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.Jvm;
@@ -41,15 +42,23 @@ public class JavaToolchainQueryService {
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
+    public JavaToolchainQueryService(
+        JavaInstallationRegistry registry,
+        JavaToolchainFactory toolchainFactory,
+        JavaToolchainProvisioningService provisioningService,
+        ProviderFactory factory,
+        ObjectFactory objectFactory
+    ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
+        this.objectFactory = objectFactory;
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -57,12 +66,13 @@ public class JavaToolchainQueryService {
     }
 
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
+        if (!filterInternal.isValid()) {
+            // TODO: issue deprecation warning
+        }
         return new DefaultProvider<>(() -> {
-            if (((ToolchainSpecInternal) filter).isConfigured()) {
-                return matchingToolchains.computeIfAbsent(filter, k -> query(k));
-            } else {
-                return null;
-            }
+            JavaToolchainSpecInternal configuredSpec = filterInternal.isConfigured() ? filterInternal : new CurrentJvmToolchainSpec(objectFactory);
+            return matchingToolchains.computeIfAbsent(configuredSpec, this::query);
         });
     }
 

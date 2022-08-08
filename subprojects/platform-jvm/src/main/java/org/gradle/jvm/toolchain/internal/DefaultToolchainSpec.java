@@ -26,7 +26,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 
-public class DefaultToolchainSpec implements ToolchainSpecInternal {
+public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     private final Property<JavaLanguageVersion> languageVersion;
     private final Property<JvmVendorSpec> vendor;
@@ -57,6 +57,15 @@ public class DefaultToolchainSpec implements ToolchainSpecInternal {
     @Override
     public boolean isConfigured() {
         return languageVersion.isPresent();
+    }
+
+    @Override
+    public boolean isValid() {
+        return languageVersion.isPresent() || !isSecondaryPropertySet();
+    }
+
+    private boolean isSecondaryPropertySet() {
+        return vendor.isPresent() || implementation.isPresent();
     }
 
     @Override
