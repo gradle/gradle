@@ -20,6 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-include("code-quality")
 include("code-quality-rules")
 include("gradle-plugin")
+
+rootProject.name = "build-logic-commons"

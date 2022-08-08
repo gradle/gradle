@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.configuration.BuildLayoutResult
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static java.lang.Boolean.parseBoolean
@@ -92,6 +93,20 @@ class DaemonParametersTest extends Specification {
         !parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
     }
 
+    @Issue("20611")
+    def "defaults for Java 9+ contain the --add-opens args in the form that can be matched by a user's GRADLE_OPTS"() {
+        when:
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_9)
+
+        then: "The --add-opens arguments should be in the form that can be matched by user-provided GRADLE_OPTS: --add-opens=x.y/z.a=..."
+        def addOpensArgs = parameters.effectiveJvmArgs.findAll { it.startsWith("--add-opens") }
+        !addOpensArgs.isEmpty()
+        addOpensArgs.every { it.matches("--add-opens=.*?/.*?=ALL-UNNAMED") }
+
+        and: "The required --add-opens args should not contain duplicates"
+        addOpensArgs.toSet().size() == addOpensArgs.size()
+    }
+
     def "can configure debug mode"() {
         when:
         parameters.setDebug(parseBoolean(flag))
@@ -113,6 +128,54 @@ class DaemonParametersTest extends Specification {
 
         where:
         jvmDefault << [JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_9]
+    }
+
+    def "can configure debug port"() {
+        given:
+        parameters.setDebug(true)
+
+        when:
+        parameters.setDebugPort(port)
+
+        then:
+        parameters.effectiveJvmArgs.contains(debugArgument)
+
+        where:
+        port || debugArgument
+        5005 || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        5006 || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006"
+    }
+
+    def "can configure debug suspend"() {
+        given:
+        parameters.setDebug(true)
+
+        when:
+        parameters.setDebugSuspend(suspend)
+
+        then:
+        parameters.effectiveJvmArgs.contains(debugArgument)
+
+        where:
+        suspend || debugArgument
+        true    || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        false   || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+    }
+
+    def "can configure debug server"() {
+        given:
+        parameters.setDebug(true)
+
+        when:
+        parameters.setDebugServer(server)
+
+        then:
+        parameters.effectiveJvmArgs.contains(debugArgument)
+
+        where:
+        server || debugArgument
+        true   || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        false  || "-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5005"
     }
 
     def "can enable the daemon"() {

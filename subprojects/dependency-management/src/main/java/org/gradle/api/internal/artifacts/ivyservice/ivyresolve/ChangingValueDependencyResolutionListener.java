@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
+
+import java.util.Set;
 
 /**
  * Notified of the use of changing values during dependency resolution, so this can be noted in the configuration cache inputs
@@ -29,7 +32,7 @@ import org.gradle.internal.service.scopes.Scopes;
 public interface ChangingValueDependencyResolutionListener {
     ChangingValueDependencyResolutionListener NO_OP = new ChangingValueDependencyResolutionListener() {
         @Override
-        public void onDynamicVersionSelection(ModuleComponentSelector requested, Expiry expiry) {
+        public void onDynamicVersionSelection(ModuleComponentSelector requested, Expiry expiry, Set<ModuleVersionIdentifier> versions) {
         }
 
         @Override
@@ -40,7 +43,7 @@ public interface ChangingValueDependencyResolutionListener {
     /**
      * Called when a dynamic version is selected using the set of candidate versions queried from a repository.
      */
-    void onDynamicVersionSelection(ModuleComponentSelector requested, Expiry expiry);
+    void onDynamicVersionSelection(ModuleComponentSelector requested, Expiry expiry, Set<ModuleVersionIdentifier> versions);
 
     /**
      * Called when a changing artifact is resolved using the artifact state queried from a repository.

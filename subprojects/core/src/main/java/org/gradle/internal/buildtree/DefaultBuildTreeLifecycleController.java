@@ -17,101 +17,103 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
-    private enum State {Created, Running, Completed}
+    private enum State implements StateTransitionController.State {
+        NotStarted, Complete
+    }
 
-    private State state = State.Created;
     private final BuildLifecycleController buildLifecycleController;
-    private final WorkerLeaseService workerLeaseService;
+    private final BuildTreeWorkGraphController taskGraph;
+    private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
-    private final IncludedBuildControllers includedBuildControllers;
-    private final ExceptionAnalyser exceptionAnalyser;
+    private final BuildTreeModelCreator modelCreator;
+    private final BuildTreeFinishExecutor finishExecutor;
+    private final StateTransitionController<State> state;
 
-    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
-                                               WorkerLeaseService workerLeaseService,
-                                               BuildTreeWorkExecutor workExecutor,
-                                               IncludedBuildControllers includedBuildControllers,
-                                               ExceptionAnalyser exceptionAnalyser) {
+    public DefaultBuildTreeLifecycleController(
+        BuildLifecycleController buildLifecycleController,
+        BuildTreeWorkGraphController taskGraph,
+        BuildTreeWorkPreparer workPreparer,
+        BuildTreeWorkExecutor workExecutor,
+        BuildTreeModelCreator modelCreator,
+        BuildTreeFinishExecutor finishExecutor,
+        StateTransitionControllerFactory controllerFactory
+    ) {
         this.buildLifecycleController = buildLifecycleController;
-        this.workerLeaseService = workerLeaseService;
+        this.taskGraph = taskGraph;
+        this.workPreparer = workPreparer;
+        this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
-        this.includedBuildControllers = includedBuildControllers;
-        this.exceptionAnalyser = exceptionAnalyser;
+        this.finishExecutor = finishExecutor;
+        this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
     }
 
     @Override
-    public GradleInternal getGradle() {
-        if (state == State.Completed) {
-            throw new IllegalStateException("Cannot use Gradle object after build has finished.");
-        }
-        return buildLifecycleController.getGradle();
+    public void beforeBuild(Consumer<? super GradleInternal> action) {
+        state.inState(State.NotStarted, () -> action.accept(buildLifecycleController.getGradle()));
     }
 
     @Override
-    public void run() {
-        doBuild((buildController, failures) -> {
-            buildController.scheduleRequestedTasks();
-            workExecutor.execute(failures);
-            return null;
+    public void scheduleAndRunTasks() {
+        runBuild(this::doScheduleAndRunTasks);
+    }
+
+    @Override
+    public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
+        return runBuild(() -> {
+            modelCreator.beforeTasks(action);
+            if (runTasks) {
+                ExecutionResult<Void> result = doScheduleAndRunTasks();
+                if (!result.getFailures().isEmpty()) {
+                    return result.asFailure();
+                }
+            }
+            T model = modelCreator.fromBuildModel(action);
+            return ExecutionResult.succeeded(model);
+        });
+    }
+
+    private ExecutionResult<Void> doScheduleAndRunTasks() {
+        return taskGraph.withNewWorkGraph(graph -> {
+            workPreparer.scheduleRequestedTasks(graph);
+            return workExecutor.execute(graph);
         });
     }
 
     @Override
-    public void configure() {
-        doBuild((buildController, failures) -> buildController.getConfiguredBuild());
+    public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
+        return runBuild(() -> {
+            T result = buildLifecycleController.withSettings(action);
+            return ExecutionResult.succeeded(result);
+        });
     }
 
-    @Override
-    public <T> T withEmptyBuild(Function<SettingsInternal, T> action) {
-        return doBuild((buildController, failures) -> action.apply(buildController.getLoadedSettings()));
-    }
+    private <T> T runBuild(Supplier<ExecutionResult<? extends T>> action) {
+        return state.transition(State.NotStarted, State.Complete, () -> {
+            ExecutionResult<? extends T> result;
+            try {
+                result = action.get();
+            } catch (Throwable t) {
+                result = ExecutionResult.failed(t);
+            }
 
-    private <T> T doBuild(final BuildAction<T> build) {
-        if (state != State.Created) {
-            throw new IllegalStateException("Cannot run more than one action for this build.");
-        }
-        state = State.Running;
-        try {
-            // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
-                List<Throwable> failures = new ArrayList<>();
-                Consumer<Throwable> collector = failures::add;
+            RuntimeException finalReportableFailure = finishExecutor.finishBuildTree(result.getFailures());
+            if (finalReportableFailure != null) {
+                throw finalReportableFailure;
+            }
 
-                T result = null;
-                try {
-                    result = build.run(buildLifecycleController, collector);
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
-
-                includedBuildControllers.finishBuild(collector);
-                RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-                buildLifecycleController.finishBuild(reportableFailure, collector);
-
-                RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
-                if (finalReportableFailure != null) {
-                    throw finalReportableFailure;
-                }
-
-                return result;
-            });
-        } finally {
-            state = State.Completed;
-        }
-    }
-
-    private interface BuildAction<T> {
-        T run(BuildLifecycleController buildLifecycleController, Consumer<Throwable> failures);
+            return result.getValue();
+        });
     }
 }

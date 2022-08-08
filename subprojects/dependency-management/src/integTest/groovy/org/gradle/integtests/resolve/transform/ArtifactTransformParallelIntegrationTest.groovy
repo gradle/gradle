@@ -22,8 +22,9 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
+
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
+    BlockingHttpServer server = new BlockingHttpServer(180_000)
 
     def setup() {
         server.start()

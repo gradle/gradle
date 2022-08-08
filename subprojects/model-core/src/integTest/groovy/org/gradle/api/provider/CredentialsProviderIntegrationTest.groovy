@@ -16,14 +16,13 @@
 
 package org.gradle.api.provider
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -204,7 +203,6 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/13770")
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "missing credentials error messages can be assembled in parallel execution (#credentialsType)"() {
@@ -237,9 +235,10 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        credentialsType       | errorMessage
-        'AwsCredentials'      | "The following Gradle properties are missing for 'test' credentials:\n  - testAccessKey\n  - testSecretKey"
-        'PasswordCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
+        credentialsType         | errorMessage
+        'AwsCredentials'        | "The following Gradle properties are missing for 'test' credentials:\n  - testAccessKey\n  - testSecretKey"
+        'PasswordCredentials'   | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
+        'HttpHeaderCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testAuthHeaderName\n  - testAuthHeaderValue"
     }
 
     @UnsupportedWithConfigurationCache(because = "test checks behavior with and without configuration cache")

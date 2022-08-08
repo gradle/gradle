@@ -18,8 +18,10 @@ package org.gradle.performance.results.report
 
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.PerformanceReportScenario
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution
 import org.gradle.performance.results.ResultsStore
-import org.gradle.performance.results.ScenarioBuildResultData
+import org.gradle.performance.results.PerformanceTestExecutionResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Subject
@@ -36,7 +38,7 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
 
     def setup() {
         resultsJson << '[]'
-        provider = new DefaultPerformanceExecutionDataProvider(mockStore, [resultsJson])
+        provider = new DefaultPerformanceExecutionDataProvider(mockStore, [resultsJson], [] as Set)
     }
 
     def 'can sort scenarios correctly'() {
@@ -54,35 +56,40 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
         buildResults.collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
     }
 
-    private ScenarioBuildResultData createFailedData() {
-        return new ScenarioBuildResultData(scenarioName: 'failed', status: 'FAILURE', currentBuildExecutions: [Mock(ScenarioBuildResultData.ExecutionData)])
+    private PerformanceReportScenario createFailedData() {
+        return new PerformanceReportScenario(
+            [new PerformanceTestExecutionResult(scenarioName: 'failed', status: 'FAILURE')],
+            [Mock(PerformanceReportScenarioHistoryExecution)],
+            false,
+            false
+        )
     }
 
-    private ScenarioBuildResultData createHighConfidenceImprovedData() {
+    private PerformanceReportScenario createHighConfidenceImprovedData() {
         // 95% confidence -50% difference
         return createResult('highConfidenceImproved', [2, 2, 2], [1, 1, 1])
     }
 
-    private ScenarioBuildResultData createLowConfidenceImprovedData() {
+    private PerformanceReportScenario createLowConfidenceImprovedData() {
         // 68% confidence -50% difference
         return createResult('lowConfidenceImproved', [2], [1])
     }
 
-    private ScenarioBuildResultData createLowConfidenceRegressedData() {
+    private PerformanceReportScenario createLowConfidenceRegressedData() {
         // 68% confidence 100% difference
         return createResult("lowConfidenceRegressed", [1], [2])
     }
 
-    private ScenarioBuildResultData createHighConfidenceRegressedData() {
+    private PerformanceReportScenario createHighConfidenceRegressedData() {
         // 91% confidence 100% difference
         return createResult('highConfidenceRegressed', [1, 1, 1, 2], [2, 2, 2, 2])
     }
 
-    private ScenarioBuildResultData createResult(String name, List<Integer> baseVersionResult, List<Integer> currentVersionResult) {
+    private PerformanceReportScenario createResult(String name, List<Integer> baseVersionResult, List<Integer> currentVersionResult) {
         MeasuredOperationList baseVersion = measuredOperationList(baseVersionResult)
         MeasuredOperationList currentVersion = measuredOperationList(currentVersionResult)
-        ScenarioBuildResultData.ExecutionData execution = new ScenarioBuildResultData.ExecutionData(new Date().getTime(), '', baseVersion, currentVersion)
-        return new ScenarioBuildResultData(scenarioName: name, status: 'SUCCESS', currentBuildExecutions: [execution])
+        PerformanceReportScenarioHistoryExecution historyExecution = new PerformanceReportScenarioHistoryExecution(new Date().getTime(), 'teamCityBuild', '', baseVersion, currentVersion)
+        PerformanceTestExecutionResult teamCityExecution = new PerformanceTestExecutionResult(scenarioName: name, status: 'SUCCESS', teamCityBuildId: 'teamCityBuild')
+        return new PerformanceReportScenario([teamCityExecution], [historyExecution], false, false)
     }
-
 }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -49,6 +50,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -59,6 +61,7 @@ import java.util.Map;
 /**
  * Compiles native source files into object files.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -260,8 +263,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
-    @SkipWhenEmpty
     @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;

@@ -225,7 +225,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
       "coverage" : {
@@ -334,6 +334,19 @@
       }
     }, {
       "testProject" : "bigNative",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
@@ -715,6 +728,22 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for Eclipse",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for abi change",
     "groups" : [ {
       "testProject" : "largeGroovyMultiProject",
@@ -1036,6 +1065,45 @@
       "testProject" : "mediumNativeMonolithic",
       "coverage" : {
         "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.incremental compile",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.up-to-date assemble (swift)",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest.clean assemble (swift)",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
       }
     } ]
   } ]

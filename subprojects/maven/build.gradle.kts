@@ -2,12 +2,14 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
     implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
@@ -39,6 +41,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(project(":enterprise-operations"))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
@@ -59,7 +62,7 @@ strictCompile {
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/publication/maven/internal/**")
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }

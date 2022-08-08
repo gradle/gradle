@@ -46,9 +46,12 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
             "org.gradle.api.plugins.JavaBasePlugin": null,
             "org.gradle.api.plugins.JvmEcosystemPlugin": null,
+            "org.gradle.api.plugins.JvmToolchainsPlugin": null,
             "org.gradle.api.plugins.BasePlugin": null,
             "org.gradle.language.base.plugins.LifecycleBasePlugin": null,
             "org.gradle.api.plugins.ReportingBasePlugin": null,
+            "org.gradle.testing.base.plugins.TestSuiteBasePlugin": "org.gradle.test-suite-base",
+            "org.gradle.api.plugins.JvmTestSuitePlugin": "org.gradle.jvm-test-suite",
         ]
 
         pluginIdByClass.size() == expectedPlugins.size() || pluginIdByClass.size() == expectedPlugins.size() + 2 // +2 if we run against the full distribution

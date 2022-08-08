@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -26,7 +25,6 @@ import org.gradle.util.Matchers
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -84,6 +82,35 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             'c.txt',
             'sub/empty'
         )
+    }
+
+    def "is out-of-date when adding an empty directory"() {
+        given:
+        file("files/sub/a.txt").createFile()
+        file("files/sub/dir/b.txt").createFile()
+        file("files/c.txt").createFile()
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+            }
+        '''
+
+        when:
+        run 'copy'
+        then:
+        executedAndNotSkipped(":copy")
+
+        when:
+        file("files/sub/empty").createDir()
+        run 'copy'
+        then:
+        executedAndNotSkipped(":copy")
+
+        when:
+        run 'copy'
+        then:
+        skipped(":copy")
     }
 
     def "single source with include and exclude pattern"() {
@@ -228,6 +255,42 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/a.txt').text == "1 + 2"
     }
 
+    def "can expand tokens with escaped backslash when copying"() {
+        file('files/a.txt').text = "\$one\\n\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2) {
+                    escapeBackslash = true
+                }
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1\\n2"
+    }
+
+    def "can expand tokens but not escape backslash by default when copying"() {
+        file('files/a.txt').text = "\$one\\n\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2)
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1\n2"
+    }
+
     def "can filter content using a filtering Reader when copying"() {
         file('files/a.txt').text = "one"
         file('files/b.txt').text = "two"
@@ -316,7 +379,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
         then:
         failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
-        failure.assertHasCause("Missing property (one) for Groovy template expansion. Defined keys [notused, out].")
+        failure.assertHasCause("Missing property (one) for Groovy template expansion. Defined keys [notused].")
     }
 
     def "useful help message when property cannot be expanded in filter chain"() {
@@ -335,7 +398,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
         then:
         failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
-        failure.assertHasCause("Missing property (two) for Groovy template expansion. Defined keys [notused, out].")
+        failure.assertHasCause("Missing property (two) for Groovy template expansion. Defined keys [notused].")
     }
 
     def "multiple source with inherited include and exclude patterns"() {
@@ -1940,7 +2003,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3418")
-    @Unroll
     def "can copy files with #filePath in path when excluding #pattern"() {
         given:
         file("test/${filePath}/a.txt").touch()
@@ -1970,7 +2032,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript '''
             task (copy, type:Copy) {
-               caseSensitive = providers.systemProperty('case-sensitive').forUseAtConfigurationTime().present
+               caseSensitive = providers.systemProperty('case-sensitive').present
                from 'src'
                into 'dest'
                include '**/sub/**'
@@ -2098,13 +2160,12 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":copy")
     }
 
-    @Unroll
     def "changing spec-level property #property makes task out-of-date"() {
         given:
         buildScript """
             task (copy, type:Copy) {
                from ('src') {
-                  def newValue = providers.systemProperty('new-value').forUseAtConfigurationTime().present
+                  def newValue = providers.systemProperty('new-value').present
                   $property = newValue ? $newValue : $oldValue
                }
                into 'dest'
@@ -2142,7 +2203,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
     }
 
-    @Unroll
     def "null action is forbidden for #method"() {
         given:
         buildScript """
@@ -2161,7 +2221,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         method << ["from", "into"]
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(
         because = "eachFile, expand, filter and rename",
         skip = ToBeFixedForConfigurationCache.Skip.FLAKY

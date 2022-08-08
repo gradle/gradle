@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -28,6 +30,7 @@ import java.util.stream.Stream;
 
 public class ResultsStoreHelper {
     public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
+    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS = "org.gradle.performance.execution.channel.patterns";
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsStoreHelper.class);
 
     public static List<String> split(String string) {
@@ -74,6 +77,16 @@ public class ResultsStoreHelper {
 
     public static String determineChannel() {
         return System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL, "commits");
+    }
+
+    public static List<String> determineChannelPatterns() {
+        List<String> patterns = new ArrayList<>();
+        patterns.add(ResultsStoreHelper.determineChannel());
+        String extraPatterns = System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS, "");
+        if (!extraPatterns.isEmpty()) {
+            patterns.addAll(Arrays.asList(extraPatterns.split(",")));
+        }
+        return patterns;
     }
 
     public static boolean isHistoricalChannel() {

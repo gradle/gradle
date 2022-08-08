@@ -26,10 +26,8 @@ import org.gradle.internal.build.event.types.DefaultBinaryPluginIdentifier;
 import org.gradle.internal.build.event.types.DefaultScriptPluginIdentifier;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
@@ -43,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-class PluginApplicationTracker implements BuildOperationListener {
+class PluginApplicationTracker implements BuildOperationTracker {
 
     private static final String PROJECT_TARGET_TYPE = "project";
 
@@ -105,7 +103,7 @@ class PluginApplicationTracker implements BuildOperationListener {
         PluginApplication pluginApplication = pluginApplicationRegistry.get(applicationId);
         if (pluginApplication != null) {
             track(buildOperation, pluginApplication);
-        }
+        } // else either user code is not a plugin or script or the target is not a project
     }
 
     private void track(BuildOperationDescriptor buildOperation, PluginApplication pluginApplication) {
@@ -113,11 +111,11 @@ class PluginApplicationTracker implements BuildOperationListener {
     }
 
     @Override
-    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+    public void discardState(BuildOperationDescriptor buildOperation) {
         runningPluginApplications.remove(buildOperation.getId());
     }
 

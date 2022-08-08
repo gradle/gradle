@@ -45,7 +45,7 @@ public class WorkerPlugin implements Plugin<Project> {
             @Override
             public void execute(WorkerTask workerTask) {
                 Object maybeOutputSize = project.findProperty("outputSize");
-                int outputSize = Integer.valueOf(maybeOutputSize == null ? "1" : maybeOutputSize.toString());
+                int outputSize = Integer.parseInt(maybeOutputSize == null ? "1" : maybeOutputSize.toString());
                 workerTask.setOutputSize(outputSize);
             }
         });

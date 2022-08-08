@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
 
@@ -38,12 +37,7 @@ public interface FileCollectionFingerprint {
      */
     ImmutableMultimap<String, HashCode> getRootHashes();
 
-    /**
-     * The absolute paths for the roots of this file collection fingerprint.
-     */
-    default ImmutableSet<String> getRootPaths() {
-        return getRootHashes().keySet();
-    }
+    boolean wasCreatedWithStrategy(FingerprintingStrategy strategy);
 
     FileCollectionFingerprint EMPTY = new FileCollectionFingerprint() {
         @Override
@@ -57,8 +51,8 @@ public interface FileCollectionFingerprint {
         }
 
         @Override
-        public ImmutableSet<String> getRootPaths() {
-            return ImmutableSet.of();
+        public boolean wasCreatedWithStrategy(FingerprintingStrategy strategy) {
+            return false;
         }
 
         @Override

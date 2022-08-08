@@ -19,9 +19,8 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-
 /**
  * Tests covering the use of {@link org.gradle.api.provider.Provider} as an argument in the
  * {@link org.gradle.api.artifacts.dsl.DependencyHandler} block.
@@ -137,7 +136,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         }
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/12972")
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/12972")
     def "property has no value"() {
         buildFile << """
         configurations { conf }
@@ -155,11 +154,15 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         }
         """
 
-        when:
-        fails("resolve")
+        expect:
+        succeeds("resolve")
 
-        then:
-        failure.assertHasCause("No value has been specified for this property.")
+        // TODO: the test should indeed fail, as specified above
+
+        // when:
+        // fails("resolve")
+        // then:
+        // failure.assertHasCause("No value has been specified for this property.")
     }
 
     def "provider throws an exception"() {

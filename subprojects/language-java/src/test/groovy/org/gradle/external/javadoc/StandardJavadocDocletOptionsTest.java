@@ -27,7 +27,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class StandardJavadocDocletOptionsTest {
 
@@ -47,6 +52,7 @@ public class StandardJavadocDocletOptionsTest {
         assertEmpty(options.getDocletpath());
         assertNull(options.getSource());
         assertEmpty(options.getClasspath());
+        assertEmpty(options.getSourcePath());
         assertEmpty(options.getBootClasspath());
         assertEmpty(options.getExtDirs());
         assertEquals(options.getOutputLevel(), JavadocOutputLevel.QUIET);
@@ -156,6 +162,13 @@ public class StandardJavadocDocletOptionsTest {
         final File[] classpathValue = new File[]{new File("classpath.jar"), new File("classpath-dir")};
         assertEquals(options, options.classpath(classpathValue));
         assertArrayEquals(classpathValue, options.getClasspath().toArray());
+    }
+
+    @Test
+    public void testFluentSourcepath() {
+        final File[] sourcePathValue = new File[]{new File("sourcepathA"), new File("sourcepathB")};
+        assertEquals(options, options.sourcePath(sourcePathValue));
+        assertArrayEquals(sourcePathValue, options.getSourcePath().toArray());
     }
 
     @Test

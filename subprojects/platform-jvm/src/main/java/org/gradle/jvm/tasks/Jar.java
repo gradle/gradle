@@ -18,6 +18,7 @@ package org.gradle.jvm.tasks;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.nio.charset.Charset;
 
@@ -44,6 +46,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 /**
  * Assembles a JAR archive.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
@@ -68,7 +71,7 @@ public class Jar extends Zip {
         return fileCollectionFactory().generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
-            action(file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath()))),
+            action(file -> outputChangeListener.invalidateCachesFor(ImmutableList.of(file.getAbsolutePath()))),
             action(outputStream -> manifest.get().writeTo(outputStream))
         );
     }
@@ -179,7 +182,7 @@ public class Jar extends Zip {
      * @param configureClosure The closure.
      * @return This.
      */
-    public Jar manifest(Closure<?> configureClosure) {
+    public Jar manifest(@DelegatesTo(Manifest.class) Closure<?> configureClosure) {
         ConfigureUtil.configure(configureClosure, forceManifest());
         return this;
     }
@@ -218,7 +221,7 @@ public class Jar extends Zip {
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
      */
-    public CopySpec metaInf(Closure<?> configureClosure) {
+    public CopySpec metaInf(@DelegatesTo(CopySpec.class) Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
 

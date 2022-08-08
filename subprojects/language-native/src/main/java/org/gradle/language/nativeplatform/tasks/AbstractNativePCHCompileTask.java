@@ -17,10 +17,12 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles native header source files into object files.
  */
 @Incubating
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractNativePCHCompileTask extends AbstractNativeCompileTask {
 }

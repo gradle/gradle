@@ -29,9 +29,11 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class GenerateSample : DefaultTask() {
 
     @get:Input

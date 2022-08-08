@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.internal;
 
+import org.gradle.internal.Cast;
 import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
@@ -23,17 +24,22 @@ import org.gradle.tooling.events.OperationResult;
 /**
  * Base implementation of the {@code FinishEvent} interface.
  */
-public class DefaultFinishEvent extends BaseProgressEvent implements FinishEvent {
+public class DefaultFinishEvent<D extends OperationDescriptor, R extends OperationResult> extends BaseProgressEvent implements FinishEvent {
 
-    private final OperationResult result;
+    private final R result;
 
-    public DefaultFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
+    public DefaultFinishEvent(long eventTime, String displayName, D descriptor, R result) {
         super(eventTime, displayName, descriptor);
         this.result = result;
     }
 
     @Override
-    public OperationResult getResult() {
+    public D getDescriptor() {
+        return Cast.uncheckedCast(super.getDescriptor());
+    }
+
+    @Override
+    public R getResult() {
         return result;
     }
 

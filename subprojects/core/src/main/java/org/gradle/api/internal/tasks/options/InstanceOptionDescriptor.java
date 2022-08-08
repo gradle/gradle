@@ -29,15 +29,21 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     private final Object object;
     private final OptionElement optionElement;
     private final JavaMethod<Object, Collection> optionValueMethod;
+    private final boolean clashing;
 
     InstanceOptionDescriptor(Object object, OptionElement optionElement) {
-        this(object, optionElement, null);
+        this(object, optionElement, null, false);
     }
 
     public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, Collection> optionValueMethod) {
+        this(object, optionElement, optionValueMethod, false);
+    }
+
+    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, Collection> optionValueMethod, boolean clashing) {
         this.object = object;
         this.optionElement = optionElement;
         this.optionValueMethod = optionValueMethod;
+        this.clashing = clashing;
     }
 
     @Override
@@ -71,6 +77,11 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     @Override
     public String getDescription() {
         return optionElement.getDescription();
+    }
+
+    @Override
+    public boolean isClashing() {
+        return clashing;
     }
 
     @Override

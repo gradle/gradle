@@ -89,7 +89,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      *
      * @param name The name of the object.
      * @param configurationAction The action to run to configure the object. This action runs when the object is required.
-     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @return A {@link Provider} whose value will be the object, when queried.
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
@@ -101,7 +101,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the object.
-     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @return A {@link Provider} whose value will be the object, when queried.
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */

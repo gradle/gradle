@@ -17,12 +17,10 @@ package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("gradle/gradle#9872")
-    @Unroll
     def "extension methods should be visible to Groovy library consumers (consumer java lib=#consumerIsJavaLib, producer java library=#producerIsJavaLib, CompileStatic=#cs)"() {
         settingsFile << """
             include 'groovy-lib'

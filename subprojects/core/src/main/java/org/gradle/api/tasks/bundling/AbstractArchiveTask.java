@@ -34,6 +34,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -41,6 +42,7 @@ import java.io.File;
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
@@ -107,11 +109,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFileName")
     public String getArchiveName() {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
-        /*DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archiveName").replaceWith("archiveFileName")
+        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archiveName").replaceWith("archiveFileName")
             .willBeRemovedInGradle8()
             .withDslReference()
-            .nagUser();*/
+            .nagUser();
 
         return archiveName.get();
     }
@@ -297,11 +298,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setAppendix(@Nullable String appendix) {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
-        /*DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "appendix").replaceWith("archiveAppendix")
+        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "appendix").replaceWith("archiveAppendix")
             .willBeRemovedInGradle8()
             .withDslReference()
-            .nagUser();*/
+            .nagUser();
 
         archiveAppendix.convention(appendix);
         archiveAppendix.set(appendix);
@@ -500,10 +500,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
-     * @return <tt>true</tt> if file timestamps should be preserved for archive entries
+     * @return <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
      */
     @Input
@@ -514,10 +514,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
-     * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
+     * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
@@ -532,7 +532,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @return <tt>true</tt> if the files should read from disk in a reproducible order.
+     * @return <code>true</code> if the files should read from disk in a reproducible order.
      * @since 3.4
      */
     @Input
@@ -548,7 +548,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
+     * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.
      * @since 3.4
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
@@ -560,6 +560,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
+        return new CopyActionExecuter(instantiator, getObjectFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
     }
 }

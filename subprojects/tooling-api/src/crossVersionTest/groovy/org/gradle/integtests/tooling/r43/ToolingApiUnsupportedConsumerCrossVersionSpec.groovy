@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
-@ToolingApiVersion("current")
 class ToolingApiUnsupportedConsumerCrossVersionSpec extends ToolingApiVersionSpecification {
     @ToolingApiVersion("<1.2")
     def "provider rejects build request from a tooling API client 1.2 or older"() {

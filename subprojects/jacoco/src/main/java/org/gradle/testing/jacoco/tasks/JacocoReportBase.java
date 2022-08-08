@@ -26,6 +26,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -35,6 +36,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -47,6 +49,7 @@ import java.util.concurrent.Callable;
  *
  * @since 3.4
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoReportBase extends JacocoBase {
 
     private final ConfigurableFileCollection executionData = getProject().files();
@@ -56,7 +59,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
 
     public JacocoReportBase() {
-        onlyIf(new Spec<Task>() {
+        onlyIf("Any of the execution data files exists", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return Iterables.any(getExecutionData(), new Predicate<File>() {
@@ -101,6 +104,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     /**
      * Source sets that coverage should be reported for.
      */
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getSourceDirectories() {
@@ -119,6 +123,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * Additional class dirs that coverage data should be reported for.
      */
     @Optional
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getAdditionalClassDirs() {
@@ -129,6 +134,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * Additional source dirs for the classes coverage data is being reported for.
      */
     @Optional
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getAdditionalSourceDirs() {

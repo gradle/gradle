@@ -15,10 +15,7 @@
  */
 package org.gradle.internal.resource;
 
-import org.gradle.api.Transformer;
-
 import java.io.File;
-import java.io.InputStream;
 
 public abstract class AbstractExternalResource implements ExternalResource {
     @Override
@@ -36,7 +33,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) {
+    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) {
         ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
         if (result == null) {
             throw ResourceExceptions.getMissing(getURI());
@@ -45,7 +42,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) {
+    public <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) {
         ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
         if (result == null) {
             throw ResourceExceptions.getMissing(getURI());

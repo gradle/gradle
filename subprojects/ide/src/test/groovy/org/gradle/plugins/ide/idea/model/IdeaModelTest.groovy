@@ -18,9 +18,12 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -66,7 +69,7 @@ class IdeaModelTest extends Specification {
             getServices() >> Stub(ServiceRegistry) {
                 get(ProjectStateRegistry) >> (ProjectStateRegistry) null
                 get(IdeArtifactRegistry) >> (IdeArtifactRegistry) null
-                get(IncludedBuildTaskGraph) >> (IncludedBuildTaskGraph) null
+                get(BuildTreeWorkGraphController) >> (BuildTreeWorkGraphController) null
             }
         }
         model.project = new IdeaProject(gradleProject, xmlMerger)
@@ -93,9 +96,17 @@ class IdeaModelTest extends Specification {
     def "can configure module with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)
+        def project = Mock(org.gradle.api.Project) {
+            def objectFactory = Mock(ObjectFactory)
+            def fileCollection = Mock(ConfigurableFileCollection)
+            objectFactory.fileCollection() >> fileCollection
+
+            getObjects() >> objectFactory
+            provider(_) >> Mock(Provider)
+        }
         def xmlAction = {} as Action<XmlProvider>
         def moduleIml = Spy(IdeaModuleIml, constructorArgs: [xmlTransformer, null])
-        model.module = new IdeaModule(null, moduleIml)
+        model.module = new IdeaModule(project, moduleIml)
 
         when: "configure module"
         model.module({ mod -> mod.name = 'name' } as Action<IdeaModule>)

@@ -29,6 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
+import org.gradle.wrapper.SystemPropertiesHandler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
 
@@ -37,20 +38,17 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DistributionFactory {
     private final Clock clock;
-    private File distributionBaseDir;
 
     public DistributionFactory(Clock clock) {
         this.clock = clock;
-    }
-
-    public void setDistributionBaseDir(File distributionBaseDir) {
-        this.distributionBaseDir = distributionBaseDir;
     }
 
     /**
@@ -60,7 +58,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration(), distributionBaseDir, clock);
+            return new ZippedDistribution(wrapper.getConfiguration(), clock);
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -86,7 +84,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration, distributionBaseDir, clock);
+        return new ZippedDistribution(configuration, clock);
     }
 
     /**
@@ -104,12 +102,10 @@ public class DistributionFactory {
     private static class ZippedDistribution implements Distribution {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
-        private final File distributionBaseDir;
         private final Clock clock;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, File distributionBaseDir, Clock clock) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Clock clock) {
             this.wrapperConfiguration = wrapperConfiguration;
-            this.distributionBaseDir = distributionBaseDir;
             this.clock = clock;
         }
 
@@ -119,7 +115,7 @@ public class DistributionFactory {
         }
 
         @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final File userHomeDir, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
                 final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener, clock);
                 File installDir;
@@ -130,7 +126,7 @@ public class DistributionFactory {
                             installer.cancel();
                         }
                     });
-                    installDir = installer.install(determineRealUserHomeDir(userHomeDir), wrapperConfiguration);
+                    installDir = installer.install(determineRealUserHomeDir(connectionParameters), determineRootDir(connectionParameters), wrapperConfiguration, determineSystemProperties(connectionParameters));
                 } catch (CancellationException e) {
                     throw new BuildCancelledException(String.format("Distribution download cancelled. Using distribution from '%s'.", wrapperConfiguration.getDistribution()), e);
                 } catch (FileNotFoundException e) {
@@ -140,14 +136,32 @@ public class DistributionFactory {
                 }
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
-            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, userHomeDir, cancellationToken);
+            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         }
 
-        private File determineRealUserHomeDir(final File userHomeDir) {
+        private Map<String, String> determineSystemProperties(ConnectionParameters connectionParameters) {
+            Map<String, String> systemProperties = new HashMap<String, String>();
+            for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+                systemProperties.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
+            }
+            systemProperties.putAll(SystemPropertiesHandler.getSystemProperties(new File(determineRootDir(connectionParameters), "gradle.properties")));
+            systemProperties.putAll(SystemPropertiesHandler.getSystemProperties(new File(determineRealUserHomeDir(connectionParameters), "gradle.properties")));
+            return systemProperties;
+        }
+
+        private File determineRootDir(ConnectionParameters connectionParameters) {
+            return new BuildLayoutFactory().getLayoutFor(
+                connectionParameters.getProjectDir(),
+                connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
+            ).getRootDirectory();
+        }
+
+        private File determineRealUserHomeDir(ConnectionParameters connectionParameters) {
+            File distributionBaseDir = connectionParameters.getDistributionBaseDir();
             if (distributionBaseDir != null) {
                 return distributionBaseDir;
             }
-
+            File userHomeDir = connectionParameters.getGradleUserHomeDir();
             return userHomeDir != null ? userHomeDir : GradleUserHomeLookup.gradleUserHome();
         }
     }
@@ -169,7 +183,7 @@ public class DistributionFactory {
         }
 
         @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             if (!gradleHomeDir.exists()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not exist.", locationDisplayName));
             }
@@ -199,7 +213,7 @@ public class DistributionFactory {
         }
 
         @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
             return registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
         }

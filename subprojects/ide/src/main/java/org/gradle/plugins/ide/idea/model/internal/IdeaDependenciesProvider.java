@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -29,7 +28,6 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -58,9 +56,9 @@ public class IdeaDependenciesProvider {
     private final ProjectComponentIdentifier currentProjectId;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
-        currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
+        currentProjectId = project.getOwner().getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
@@ -109,7 +107,7 @@ public class IdeaDependenciesProvider {
         final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
-        return projectInternal.getMutationState().fromMutableState(p -> {
+        return projectInternal.getOwner().fromMutableState(p -> {
             new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
             return visitor;
         });
@@ -168,7 +166,7 @@ public class IdeaDependenciesProvider {
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean asJavaModule) {
+        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 projectDependencies.add(moduleDependencyBuilder.create(projectId, scope));

@@ -41,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.locking.NoOpDependencyLockingProvider;
@@ -59,6 +60,10 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
+
+    private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
+    private static final NotationParser<Object, Set<ModuleVersionSelector>> FORCED_MODULES_PARSER = ModuleVersionSelectorParsers.multiParser("force()");
+
     private final Set<Object> forcedModules = new LinkedHashSet<>();
     private Set<ModuleVersionSelector> parsedForcedModules;
     private ConflictResolution conflictResolution = ConflictResolution.latest;
@@ -72,6 +77,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final CapabilitiesResolutionInternal capabilitiesResolution;
+    private final ObjectFactory objectFactory;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean dependencyLockingEnabled = false;
@@ -80,8 +86,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean failOnDynamicVersions;
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
+    private final Property<Boolean> useGlobalDependencySubstitutionRules;
 
-    private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules,
                                      VcsResolver vcsResolver,
@@ -95,10 +101,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
                                      ImmutableAttributesFactory attributesFactory,
                                      NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                      NotationParser<Object, Capability> capabilitiesNotationParser) {
-        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilitiesNotationParser), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolution);
+        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilitiesNotationParser), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolution, objectFactory);
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider, CapabilitiesResolutionInternal capabilitiesResolution) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider, CapabilitiesResolutionInternal capabilitiesResolution, ObjectFactory objectFactory) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
@@ -108,6 +114,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.componentSelectorConverter = componentSelectorConverter;
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.capabilitiesResolution = capabilitiesResolution;
+        this.objectFactory = objectFactory;
+        this.useGlobalDependencySubstitutionRules = objectFactory.property(Boolean.class).convention(true);
         // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
@@ -123,7 +131,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public Set<ModuleVersionSelector> getForcedModules() {
         if (parsedForcedModules == null) {
-            parsedForcedModules = ModuleVersionSelectorParsers.multiParser().parseNotation(forcedModules);
+            parsedForcedModules = FORCED_MODULES_PARSER.parseNotation(forcedModules);
         }
         return Collections.unmodifiableSet(parsedForcedModules);
     }
@@ -222,7 +230,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         Set<ModuleVersionSelector> forcedModules = getForcedModules();
         Action<DependencySubstitution> moduleForcingResolveRule = Cast.uncheckedCast(forcedModules.isEmpty() ? Actions.doNothing() : new ModuleForcingResolveRule(forcedModules));
         Action<DependencySubstitution> localDependencySubstitutionsAction = this.dependencySubstitutions.getRuleAction();
-        Action<DependencySubstitution> globalDependencySubstitutionRulesAction = globalDependencySubstitutionRules.getRuleAction();
+        Action<DependencySubstitution> globalDependencySubstitutionRulesAction = (useGlobalDependencySubstitutionRules.get() ?
+           globalDependencySubstitutionRules :  DependencySubstitutionRules.NO_OP).getRuleAction();
         return Actions.composite(moduleForcingResolveRule, localDependencySubstitutionsAction, globalDependencySubstitutionRulesAction);
     }
 
@@ -235,7 +244,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public boolean resolveGraphToDetermineTaskDependencies() {
         return assumeFluidDependencies
                 || dependencySubstitutions.rulesMayAddProjectDependency()
-                || globalDependencySubstitutionRules.rulesMayAddProjectDependency()
+                || useGlobalDependencySubstitutionRules.get() && globalDependencySubstitutionRules.rulesMayAddProjectDependency()
                 || vcsResolver.hasRules();
     }
 
@@ -297,8 +306,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public Property<Boolean> getUseGlobalDependencySubstitutionRules() {
+        return useGlobalDependencySubstitutionRules;
+    }
+
+    @Override
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolution);
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolution, objectFactory);
 
         if (conflictResolution == ConflictResolution.strict) {
             out.failOnVersionConflict();
@@ -321,6 +335,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (!isDependencyVerificationEnabled()) {
             out.disableDependencyVerification();
         }
+        out.getUseGlobalDependencySubstitutionRules().convention(useGlobalDependencySubstitutionRules.get());
         return out;
     }
 

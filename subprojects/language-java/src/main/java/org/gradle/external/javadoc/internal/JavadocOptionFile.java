@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOptionInternal<?>> options;
@@ -35,7 +37,7 @@ public class JavadocOptionFile {
     private final OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        this(new LinkedHashMap<String, JavadocOptionFileOptionInternal<?>>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
+        this(new LinkedHashMap<>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
     }
 
     private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options, OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
@@ -59,7 +61,7 @@ public class JavadocOptionFile {
         return sourceNames;
     }
 
-    Map<String, JavadocOptionFileOptionInternal<?>> getOptions() {
+    public Map<String, JavadocOptionFileOptionInternal<?>> getOptions() {
         return Collections.unmodifiableMap(options);
     }
 
@@ -145,5 +147,11 @@ public class JavadocOptionFile {
 
     public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
         return addOption(new MultilineMultiValueJavadocOptionFileOption(option, Lists.<List<String>>newArrayList(), " "));
+    }
+
+    public Map<String, String> stringifyExtraOptionsToMap(Set<String> optionsToExclude) {
+        return options.entrySet().stream()
+                .filter(entry -> !optionsToExclude.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.valueOf(entry.getValue().getValue())));
     }
 }

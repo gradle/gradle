@@ -74,4 +74,26 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/17179")
+    def "Configuration.copy() should work when platform declares project dependency constraints"() {
+        setup:
+        buildFile << """
+            plugins {
+              id 'java-platform'
+            }
+
+            dependencies {
+                constraints {
+                    api(project(":lib")) { because "platform alignment" }
+                }
+            }
+
+            configurations.api.copy()
+        """
+        settingsFile << "include 'lib'"
+
+        expect:
+        succeeds ":help"
+    }
 }

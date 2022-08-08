@@ -20,6 +20,7 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Module;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -31,6 +32,7 @@ import java.io.File;
  * <p>
  * At this moment nearly all configuration is done via {@link IdeaModule}.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     private IdeaModule module;

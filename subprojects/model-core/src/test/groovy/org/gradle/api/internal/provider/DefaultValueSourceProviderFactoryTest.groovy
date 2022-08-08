@@ -16,15 +16,20 @@
 
 package org.gradle.api.internal.provider
 
+
 import org.gradle.api.Describable
 import org.gradle.api.GradleException
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.state.Managed
-import spock.lang.Unroll
+import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
 
-import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
+import javax.inject.Inject
+
+import static org.gradle.api.internal.provider.ValueSourceProviderFactory.ValueListener.ObtainedValue
 
 class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
@@ -42,29 +47,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         configured
     }
 
-    @Unroll
-    def "obtaining value at configuration time fails with message that includes source #nameKind name"() {
-
-        given:
-        configurationTimeBarrier.atConfigurationTime >> true
-        def provider = createProviderOf(sourceType) {
-            it.parameters.value.set('42')
-        }
-
-        when:
-        provider.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message.startsWith "Cannot obtain value from provider of $displayName at configuration time."
-
-        where:
-        nameKind  | sourceType                     | displayName
-        'type'    | EchoValueSource                | 'DefaultValueSourceProviderFactoryTest.EchoValueSource'
-        'display' | EchoValueSourceWithDisplayName | 'echo(42)'
-    }
-
-    def "provider forUseAtConfigurationTime succeeds at configuration time"() {
+    def "provider forUseAtConfigurationTime is a no-op"() {
 
         given:
         configurationTimeBarrier.atConfigurationTime >> true
@@ -74,16 +57,9 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def configTimeProvider = provider.forUseAtConfigurationTime()
 
         expect:
-        configTimeProvider.get() == '42'
-
-        when: "asking original provider for the value after it has been obtained"
-        provider.get()
-
-        then: "it still fails at configuration time"
-        thrown(IllegalStateException)
+        configTimeProvider === provider
     }
 
-    @Unroll
     def "providers forUseAtConfigurationTime obtain value only once at #time time"() {
 
         given:
@@ -91,18 +67,16 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set('42')
         }
-        def configTimeProvider1 = provider.forUseAtConfigurationTime()
-        def configTimeProvider2 = provider.forUseAtConfigurationTime()
-        def executionTimeProvider = atConfigurationTime ? provider.forUseAtConfigurationTime() : provider
         def obtainedValueCount = 0
-        valueSourceProviderFactory.addListener {
+        valueSourceProviderFactory.addValueListener { value, source ->
+            assert source instanceof EchoValueSource
             obtainedValueCount += 1
         }
 
         expect:
-        configTimeProvider1.get() == '42'
-        configTimeProvider2.get() == '42'
-        executionTimeProvider.get() == '42'
+        provider.get() == '42'
+        provider.get() == '42'
+        provider.get() == '42'
         obtainedValueCount == 1
 
         where:
@@ -117,13 +91,24 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set("42")
         }
+        ValueSourceProviderFactory.ComputationListener computationListener = Mock()
+        valueSourceProviderFactory.addComputationListener(computationListener)
         List<ObtainedValue<?, ValueSourceParameters>> obtainedValues = []
-        valueSourceProviderFactory.addListener { obtainedValues.add(it) }
+        valueSourceProviderFactory.addValueListener { value, source ->
+            assert source instanceof EchoValueSource
+            obtainedValues.add(value)
+        }
 
         when: "value is obtained for the 1st time"
         provider.get()
 
-        then: "listener is notified"
+        then: "beforeValueObtained callback is notified"
+        1 * computationListener.beforeValueObtained()
+
+        then: "afterValueObtained callback is notified"
+        1 * computationListener.afterValueObtained()
+
+        then: "valueObtained is notified"
         obtainedValues.size() == 1
         obtainedValues[0].valueSourceType == EchoValueSource
         obtainedValues[0].valueSourceParametersType == EchoValueSource.Parameters
@@ -134,6 +119,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         provider.get()
 
         then: "no notification is sent"
+        0 * computationListener._
         obtainedValues.size() == 1
     }
 
@@ -180,6 +166,60 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         e.cause.message == 'Value is null'
     }
 
+    def "value source can get ExecOperations injected"() {
+        when:
+        def provider = createProviderOf(ExecValueSource) {
+            it.parameters {
+                it.command = ["echo", "hello"]
+            }
+        }
+        provider.get()
+
+        then:
+        1 * execOperations.exec(_) >> _
+    }
+
+    def "listener calls wrap obtain invocation"() {
+        when:
+        valueSourceProviderFactory.addComputationListener(new ValueSourceProviderFactory.ComputationListener() {
+            @Override
+            void beforeValueObtained() {
+                StatusTrackingValueSource.INSIDE_COMPUTATION.set(true)
+            }
+
+            @Override
+            void afterValueObtained() {
+                StatusTrackingValueSource.INSIDE_COMPUTATION.set(false)
+            }
+        })
+        def provider = createProviderOf(StatusTrackingValueSource) {}
+
+        def result = provider.get()
+
+        then:
+        result
+        !StatusTrackingValueSource.INSIDE_COMPUTATION.get()
+    }
+
+    def "failed value source restores state"() {
+        given:
+        ValueSourceProviderFactory.ComputationListener listener = Mock()
+        valueSourceProviderFactory.addComputationListener(listener)
+
+        when:
+        def provider = createProviderOf(ThrowingValueSource) {}
+        try {
+            provider.get()
+        } catch (UnsupportedOperationException ignored) {
+            // expected
+        }
+
+        then:
+        1 * listener.beforeValueObtained()
+        then:
+        1 * listener.afterValueObtained()
+    }
+
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
 
         interface Parameters extends ValueSourceParameters {
@@ -206,6 +246,46 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         Integer obtain() {
             return 42
+        }
+    }
+
+    static abstract class ExecValueSource implements ValueSource<ExecResult, Parameters> {
+        final ExecOperations execOperations
+        interface Parameters extends ValueSourceParameters {
+            ListProperty<String> getCommand()
+        }
+
+        @Inject
+        ExecValueSource(ExecOperations execOperations) {
+            this.execOperations = execOperations
+        }
+
+        @Override
+        ExecResult obtain() {
+            return execOperations.exec {
+                commandLine(getParameters().command.get())
+            }
+        }
+    }
+
+    static abstract class StatusTrackingValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
+        static final ThreadLocal<Boolean> INSIDE_COMPUTATION = ThreadLocal.withInitial(() -> false)
+
+        private boolean isInsideComputationInConstructor
+        StatusTrackingValueSource() {
+            isInsideComputationInConstructor = INSIDE_COMPUTATION.get()
+        }
+
+        @Override
+        Boolean obtain() {
+            return isInsideComputationInConstructor && INSIDE_COMPUTATION.get()
+        }
+    }
+
+    static abstract class ThrowingValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
+        @Override
+        Boolean obtain() {
+            throw new UnsupportedOperationException("Cannot compute value")
         }
     }
 }

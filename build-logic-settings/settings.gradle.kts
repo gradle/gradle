@@ -22,5 +22,4 @@ dependencyResolutionManagement {
     }
 }
 
-include("allprojects-plugin")
-
+include("build-logic-settings-plugin")

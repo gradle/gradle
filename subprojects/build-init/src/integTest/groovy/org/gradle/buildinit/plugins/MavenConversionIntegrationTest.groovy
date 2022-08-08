@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection HttpUrlsUsage
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+
+import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -32,7 +32,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -46,6 +46,8 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { null }
 
+    abstract BuildInitDsl getScriptDsl()
+
     def setup() {
         /**
          * We need to configure the local maven repository explicitly as
@@ -56,9 +58,8 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
         using m2
     }
 
-    @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModule"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
         def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
@@ -75,7 +76,7 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
         !warSubprojectBuildFile.text.contains("options.encoding")
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
-        conventionPluginScript.text.contains("options.encoding = 'UTF-8'") || conventionPluginScript.text.contains('options.encoding = "UTF-8"')
+        assertContainsEncodingConfig(conventionPluginScript, scriptDsl, 'UTF-8')
         conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
 java {
     withSourcesJar()
@@ -106,14 +107,10 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin") // Kotlin compilation is used for the pre-compiled script plugin
     def "multiModuleWithNestedParent"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -131,16 +128,12 @@ Root project 'webinar-parent'
         targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = ":projects")
     def "flatmultimodule"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
         executer.beforeExecute {
-            executer.inDirectory(targetDir.file("webinar-parent")).withWarningMode(WarningMode.None) // FIXME we cannot assert warnings in this test as withWarningMode is ignored for the Kotlin DSL
+            executer.inDirectory(targetDir.file("webinar-parent"))
         }
 
         when:
@@ -174,13 +167,10 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "singleModule"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -194,12 +184,52 @@ Root project 'webinar-parent'
         fails 'clean', 'build'
 
         then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    def "singleModule - with continue, when tests fail, jar should exist"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+
+        when:
+        fails 'clean', 'build', '--continue'
+
+        then:
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+    }
 
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    private static void assertContainsEncodingConfig(TestFile buildScript, BuildInitDsl dsl, String encoding) {
+        def text = buildScript.text
+        if (dsl == BuildInitDsl.GROOVY) {
+            assert text.contains(TextUtil.toPlatformLineSeparators("""
+tasks.withType(JavaCompile) {
+    options.encoding = '$encoding'
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = '$encoding'
+}"""))
+        } else {
+            assert text.contains(TextUtil.toPlatformLineSeparators("""
+tasks.withType<JavaCompile>() {
+    options.encoding = "$encoding"
+}
+
+tasks.withType<Javadoc>() {
+    options.encoding = "$encoding"
+}"""))
+        }
     }
 
     private static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
@@ -246,22 +276,44 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        dslFixtureFor(scriptDsl as BuildInitDsl).assertGradleFilesGenerated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         fails 'clean', 'build'
 
         then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    def "singleModule with explicit project dir - with continue, when tests fail, jar should exist"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+        def workingDir = temporaryFolder.createDir("workingDir")
+
+        when:
+        executer.beforeExecute {
+            executer.inDirectory(workingDir).usingProjectDirectory(targetDir)
+        }
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        fails 'clean', 'build', '--continue'
+
+        then:
+
+        then:
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'sourcesJar'() {
-        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+        def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
         run 'init', '--dsl', scriptDsl.id as String
@@ -280,13 +332,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then: 'the sources jar is generated'
         targetDir.file('build/libs/util-2.5.jar').exists()
         targetDir.file('build/libs/util-2.5-sources.jar').exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'testsJar'() {
-        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+        def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
         run 'init', '--dsl', scriptDsl.id as String
@@ -311,13 +360,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then: 'the tests jar is generated'
         targetDir.file('build/libs/util-2.5.jar').exists()
         targetDir.file('build/libs/util-2.5-tests.jar').exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'javadocJar'() {
-        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+        def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
         run 'init', '--dsl', scriptDsl.id as String
@@ -336,13 +382,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then: 'the javadoc jar is generated'
         targetDir.file('build/libs/util-2.5.jar').exists()
         targetDir.file('build/libs/util-2.5-javadoc.jar').exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "enforcerplugin"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -368,13 +411,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/enforcerExample-1.0.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "providedNotWar"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -386,11 +426,8 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         run 'clean', 'build'
 
         then:
-        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.10'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.10")')
+        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.13.1'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.13.1")')
         targetDir.file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "provides decent error message when POM is invalid"() {
@@ -406,7 +443,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
     }
 
     def "mavenExtensions"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -419,14 +456,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/testApp-1.0.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2820")
     def "remoteparent"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         setup:
         withSharedResources()
@@ -437,7 +471,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW as String
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -448,14 +482,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2872")
     def "expandProperties"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         setup:
         withSharedResources()
@@ -472,15 +503,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/util-3.2.2.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2819")
-    @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModuleWithRemoteParent"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         given:
         withSharedResources()
@@ -491,7 +518,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -499,10 +526,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         when:
         libRequest(repo, "commons-lang", "commons-lang", 2.6)
         // Required for the 'webinar-impl' project's POM
-        libRequest(repo, "junit", "junit", 4.10)
+        libRequest(repo, "junit", "junit", "4.13.1")
         // Required for the 'webinar-war' project's POM
         libRequest(repo, "junit", "junit", "3.8.1")
-        libRequest(repo, "org.hamcrest", "hamcrest-core", 1.1)
+        libRequest(repo, "org.hamcrest", "hamcrest-core", 1.3)
+        libRequest(repo, "org.apache.commons", "commons-parent", 17)
 
         run 'clean', 'build'
 
@@ -524,14 +552,11 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15827")
     def "compilePluginWithoutConfiguration"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -539,26 +564,146 @@ Root project 'webinar-parent'
         then:
         dsl.assertGradleFilesGenerated()
         succeeds 'build'
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolFail"() {
+        expect:
+        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL as String
+        result.assertHasErrorOutput("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolDefaultHandling"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolWarn"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolAllow"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def localRepoUrl = 'http://www.example.com/maven/repo'
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+
+        // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        def mavenLocalRepoBlock = (isGroovy ? """
+    maven {
+        url = uri('$localRepoUrl')
+        allowInsecureProtocol = true
+    }""" : """
+    maven {
+        url = uri("$localRepoUrl")
+        isAllowInsecureProtocol = true
+    }""")
+
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolUpgrade"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def upgradedRepoUrl = 'https://www.example.com/maven/repo'
+
+        // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        def mavenLocalRepoBlock = (isGroovy ? """
+    maven {
+        url = uri('$upgradedRepoUrl')
+    }""" : """
+    maven {
+        url = uri("$upgradedRepoUrl")
+    }""")
+
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeSingleQuotes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'That\\\'s it\'' : 'description = "That\'s it"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeDoubleQuotes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'"Quoted description"\'' : 'description = "\\"Quoted description\\""')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeBackslashes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? "description = 'A description \\\\ with a backslash'" : 'description = "A description \\\\ with a backslash"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
-    }
-
-    def expectModule(MavenHttpRepository repo, String group, String name, String version) {
-        MavenHttpModule module1 = repo.module(group, name, version).publish()
-        module1.allowAll()
     }
 
     def withSharedResources() {
         resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
     }
 
-    PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
+    static PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
         MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
         module.pom.expectGet()
         module.pom.sha1.expectGet()
@@ -569,4 +714,12 @@ Root project 'webinar-parent'
         server.start()
         new MavenHttpRepository(server, '/maven', maven(file("maven_repo")))
     }
+}
+
+class KotlinDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
+    BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
+}
+
+class GroovyDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
+    BuildInitDsl scriptDsl = BuildInitDsl.GROOVY
 }

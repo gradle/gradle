@@ -28,8 +28,11 @@ Please open Gradle Native-related issues at https://github.com/gradle/gradle-nat
 <!--- Providing context helps us come up with a solution that is most useful in the real world -->
 
 ### Steps to Reproduce 
-<!--- Provide a self-contained example project (as an attached archive or a Github project). -->
-<!--- In the rare cases where this is infeasible, we will also accept a detailed set of instructions. -->
+<!---
+Provide a self-contained example project as an attached archive or a Github project.
+You can use the following template with a Gradle GitHub action set up to showcase your problem: https://github.com/gradle/gradle-issue-reproducer
+In the rare cases where this is infeasible, we will also accept a detailed set of instructions.
+-->
 
 ### Your Environment
 <!--- Include as many relevant details about the environment you experienced the bug in -->

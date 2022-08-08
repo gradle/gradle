@@ -116,7 +116,7 @@ In addition to the top-level performance summary of your build execution, you ca
 
 == Configuration
 
-As describes in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through 3 phases: initialization, configuration, and execution.
+As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through 3 phases: initialization, configuration, and execution.
 The important thing to understand here is that configuration code always executes regardless of which tasks will run.
 That means any expensive work performed during configuration will slow every invocation down, even simple ones like `gradle help` and `gradle tasks`.
 
@@ -186,10 +186,57 @@ project.tasks.register('copyFiles', Copy) { Task t ->
 ----
 
 You can see how this example uses the `register()` and `getByName()` methods, which are available on all Gradle “domain object containers”, like tasks, configurations, dependencies, extensions, etc.
-Some collections have dedicated types, `TaskContainer` being one of them, that have useful extra methods like the `create()` method above that takes a task type.
+Some collections have dedicated types, `TaskContainer` being one of them, that have useful extra methods like the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:create(java.lang.String,%20java.lang.Class)[create] method that takes a task type.
 
 If you do decide to use static compilation, using an IDE can quickly show errors due to unrecognised types, properties, and methods.
 You’ll also get auto-completion, which is always handy.
+
+=== Enable the configuration cache
+
+[IMPORTANT]
+====
+This feature is currently *_incubating_* and not enabled by default. This feature has the following limitations:
+
+- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
+- Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
+- IDE imports and syncs do not use the configuration cache.
+====
+
+You can cache the result of the configuration phase by enabling the <<configuration_cache.adoc#config_cache, Configuration Cache>>. When build configuration inputs remain the same across builds, the configuration cache allows Gradle to skip the configuration phase entirely.
+
+Build configuration inputs include:
+
+- Init scripts
+- Settings scripts
+- Build scripts
+- System properties used during the configuration phase
+- Gradle properties used during the configuration phase
+- Environment variables used during the configuration phase
+- Configuration files accessed using value suppliers such as providers
+- `buildSrc` inputs, including build configuration inputs and source files.
+
+==== Additional configuration cache optimizations
+
+The configuration cache enables additional optimizations as well. When enabled, Gradle:
+
+- executes all tasks in parallel, even those in the same project.
+- caches dependency resolution results.
+
+==== Flags and properties
+
+By default, Gradle does not use the configuration cache.
+To enable the cache at build time, use the `configuration-cache` flag:
+
+----
+❯ gradle --configuration-cache
+----
+
+You can also enable the cache persistently in a `gradle.properties` file using the `org.gradle.unsafe.configuration-cache` property:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache=true
+----
 
 [[dependency_resolution]]
 == Dependency resolution

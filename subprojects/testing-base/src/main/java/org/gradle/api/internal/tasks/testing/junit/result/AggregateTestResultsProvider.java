@@ -17,9 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
@@ -100,27 +98,22 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     @Override
     public boolean hasOutput(long classId, final TestOutputEvent.Destination destination) {
-        return Iterables.any(
-            classOutputProviders.get(classId),
-            new Predicate<DelegateProvider>() {
-                @Override
-                public boolean apply(DelegateProvider delegateProvider) {
-                    return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
-                }
-            });
+        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
+            if (delegateProvider.provider.hasOutput(delegateProvider.id, destination)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean hasOutput(long classId, final long testId, final TestOutputEvent.Destination destination) {
-        return Iterables.any(
-            classOutputProviders.get(classId),
-            new Predicate<DelegateProvider>() {
-                @Override
-                public boolean apply(DelegateProvider delegateProvider) {
-                    return delegateProvider.provider.hasOutput(delegateProvider.id, testId, destination);
-                }
-            });
-
+        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
+            if (delegateProvider.provider.hasOutput(delegateProvider.id, testId, destination)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -170,7 +170,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
     private void addAnchorsForHeadings(Document document) {
         // add anchors for all of the headings
-        for (Element heading : document.body().select("h2,h3")) {
+        for (Element heading : document.body().select("h2,h3,h4")) {
             String anchorName = heading.text().toLowerCase().replaceAll(" ", "-");
             heading.attr("id", anchorName);
         }

@@ -15,7 +15,7 @@
 [[java_library_plugin]]
 = The Java Library Plugin
 
-The Java Library plugin expands the capabilities of the <<java_plugin.adoc#java_plugin,Java plugin>> by providing specific knowledge about Java libraries.
+The Java Library plugin expands the capabilities of the <<java_plugin.adoc#java_plugin,Java Plugin (`java`)>> by providing specific knowledge about Java libraries.
 In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin).
 All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
 
@@ -327,7 +327,7 @@ include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kt
 
 You probably want to use external libraries, like OSS libraries from Maven Central, in your modular Java project.
 Some libraries, in their newer versions, are already full modules with a module descriptor.
-For example, `com.google.code.gson:gson:2.8.6` that has the module name `com.google.gson`.
+For example, `com.google.code.gson:gson:2.8.9` that has the module name `com.google.gson`.
 
 Others, like `org.apache.commons:commons-lang3:3.10`, may not offer a full module descriptor but will at least contain an `Automatic-Module-Name` entry in their manifest file to define the module's name (`org.apache.commons.lang3` in the example).
 Such modules, that only have a name as module description, are called _automatic module_ that export **all** their packages and can read **all** modules on the module path.

@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 /**
- * This is used for compatibility with clients <5.4
+ * This is used for compatibility with clients &lt;5.4
  */
 public class EclipseProjectHasAutoBuildMixin {
 

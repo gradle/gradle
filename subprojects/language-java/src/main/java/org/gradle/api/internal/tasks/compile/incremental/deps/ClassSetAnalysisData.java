@@ -58,8 +58,8 @@ import java.util.function.Supplier;
  */
 public class ClassSetAnalysisData {
 
-    private static final String MODULE_INFO = "module-info";
-    private static final String PACKAGE_INFO = "package-info";
+    static final String MODULE_INFO = "module-info";
+    static final String PACKAGE_INFO = "package-info";
 
     /**
      * Merges the given class sets, applying classpath shadowing semantics. I.e. only the first occurrency of each class will be kept.

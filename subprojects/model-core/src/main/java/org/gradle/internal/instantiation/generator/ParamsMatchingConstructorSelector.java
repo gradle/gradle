@@ -56,11 +56,16 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
         }
 
         ClassGenerator.GeneratedConstructor<?> match = null;
+        // NOTE: this relies on the constructors being in a predictable order
+        // sorted by the number of parameters the constructor requires
         for (ClassGenerator.GeneratedConstructor<?> constructor : constructors) {
             Class<?>[] parameterTypes = constructor.getParameterTypes();
+            // The candidate constructor has fewer parameters than the number of
+            // parameters we were given. This can't be the constructor
             if (parameterTypes.length < params.length) {
                 continue;
             }
+
             int fromParam = 0;
             int toParam = 0;
             for (; fromParam < params.length; fromParam++) {
@@ -80,16 +85,39 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 }
                 toParam++;
             }
+            // The current candidate's parameter types matched the given parameter types
+            // There may be more parameters to the constructor than were given because
+            // we can inject additional services
             if (fromParam == params.length) {
-                if (match == null || parameterTypes.length < match.getParameterTypes().length) {
-                    // Choose the shortest match
+                if (match == null) {
+                    // We had no previous match, so choose this candidate
+                    match = constructor;
+                } else if (parameterTypes.length < match.getParameterTypes().length) {
+                    // We had a previous match, if this candidate has fewer parameters, choose it as the best match
                     match = constructor;
                 } else if (parameterTypes.length == match.getParameterTypes().length) {
+                    // We have a previous match with the same number of parameters as this candidate.
+                    // This means for the given parameters, we've found two constructors that could be used
+                    // Given constructors C1 and C2.
+                    // C1(A, B, C, D)
+                    // C2(A, B, X, D)
+                    // C1 and C2 both accept the parameters A, B and D, but
+                    // C1 accepts a parameter of type C at position 2 and
+                    // C2 accepts a parameter of type X at position 2.
+                    // This will trigger this check because we cannot tell which is the "better"
+                    // constructor assuming that the other parameter could be injected.
+
                     TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Multiple constructors of type ");
-                    formatter.appendType(type);
-                    formatter.append(" match parameters: ");
+                    formatter.node("Multiple constructors for parameters ");
                     formatter.appendValues(params);
+                    formatter.startNumberedChildren();
+                    formatter.node("candidate: ");
+                    formatter.appendType(type);
+                    formatter.appendTypes(parameterTypes);
+                    formatter.node("best match: ");
+                    formatter.appendType(type);
+                    formatter.appendTypes(match.getParameterTypes());
+                    formatter.endChildren();
                     throw new IllegalArgumentException(formatter.toString());
                 }
             }

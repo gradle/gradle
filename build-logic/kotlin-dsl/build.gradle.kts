@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
 }
 
+description = "Provides plugins to configure Kotlin DSL and patch the Kotlin compiler for use in Kotlin subprojects"
+
 dependencies {
     implementation(project(":basics"))
     implementation(project(":dependency-modules"))

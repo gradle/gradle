@@ -9,7 +9,7 @@ plugins {
 
 // tag::jacoco-configuration[]
 jacoco {
-    toolVersion = "0.8.6"
+    toolVersion = "0.8.8"
     reportsDirectory.set(layout.buildDirectory.dir("customJacocoReportDir"))
 }
 // end::jacoco-configuration[]
@@ -45,7 +45,7 @@ tasks.jacocoTestReport {
     reports {
         xml.required.set(false)
         csv.required.set(false)
-        html.destination = layout.buildDirectory.dir("jacocoHtml").get().asFile
+        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
     }
 }
 // end::report-configuration[]
@@ -60,7 +60,7 @@ tasks.jacocoTestCoverageVerification {
         }
 
         rule {
-            enabled = false
+            isEnabled = false
             element = "CLASS"
             includes = listOf("org.gradle.*")
 

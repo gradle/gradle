@@ -16,17 +16,58 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
-import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.util.Path;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 
-public abstract class AbstractBuildState implements BuildState {
+import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.function.Function;
+
+public abstract class AbstractBuildState implements BuildState, Closeable {
+    private final BuildScopeServices buildServices;
+    private final Lazy<BuildLifecycleController> buildLifecycleController;
+    private final Lazy<ProjectStateRegistry> projectStateRegistry;
+    private final Lazy<BuildWorkGraphController> workGraphController;
+
+    public AbstractBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+        // Create the controllers using the services of the nested tree
+        BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
+        BuildModelControllerServices.Supplier supplier = buildModelControllerServices.servicesForBuild(buildDefinition, this, parent);
+        buildServices = prepareServices(buildTree, buildDefinition, supplier);
+        buildLifecycleController = Lazy.locking().of(() -> buildServices.get(BuildLifecycleController.class));
+        projectStateRegistry = Lazy.locking().of(() -> buildServices.get(ProjectStateRegistry.class));
+        workGraphController = Lazy.locking().of(() -> buildServices.get(BuildWorkGraphController.class));
+    }
+
+    protected BuildScopeServices prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+        return new BuildScopeServices(buildTree.getServices(), supplier);
+    }
+
+    protected BuildScopeServices getBuildServices() {
+        return buildServices;
+    }
+
+    @Override
+    public void close() throws IOException {
+        buildServices.close();
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.of(getBuildIdentifier());
+    }
+
     @Override
     public String toString() {
-        return getBuildIdentifier().toString();
+        return getDisplayName().getDisplayName();
     }
 
     @Override
@@ -35,14 +76,45 @@ public abstract class AbstractBuildState implements BuildState {
     }
 
     @Override
-    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-        BuildIdentifier buildIdentifier = getBuildIdentifier();
-        Path identityPath = getIdentityPathForProject(projectPath);
-        DefaultProjectDescriptor project = getLoadedSettings().getProjectRegistry().getProject(projectPath.getPath());
-        if (project == null) {
-            throw new IllegalArgumentException("Project " + projectPath + " not found.");
-        }
-        String name = project.getName();
-        return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, name);
+    public boolean isImportableBuild() {
+        return true;
+    }
+
+    protected ProjectStateRegistry getProjectStateRegistry() {
+        return projectStateRegistry.get();
+    }
+
+    @Override
+    public BuildProjectRegistry getProjects() {
+        return getProjectStateRegistry().projectsFor(getBuildIdentifier());
+    }
+
+    protected BuildLifecycleController getBuildController() {
+        return buildLifecycleController.get();
+    }
+
+    @Override
+    public void ensureProjectsLoaded() {
+        getBuildController().loadSettings();
+    }
+
+    @Override
+    public void ensureProjectsConfigured() {
+        getBuildController().configureProjects();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
+        return getBuildController().getGradle();
+    }
+
+    @Override
+    public BuildWorkGraphController getWorkGraph() {
+        return workGraphController.get();
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return getBuildController().withToolingModels(action);
     }
 }

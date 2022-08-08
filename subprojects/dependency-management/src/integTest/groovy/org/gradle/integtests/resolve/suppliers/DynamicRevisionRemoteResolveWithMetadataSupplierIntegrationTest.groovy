@@ -26,7 +26,28 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 
-class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest implements CachingIntegrationFixture {
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+class DynamicRevisionRemoteResolveWithMetadataSupplierMavenWithoutGradleMetadataIntegrationTest extends DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+class DynamicRevisionRemoteResolveWithMetadataSupplierMavenWithGradleMetadataIntegrationTest extends DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+class DynamicRevisionRemoteResolveWithMetadataSupplierIvyWithoutGradleMetadataIntegrationTest extends DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+class DynamicRevisionRemoteResolveWithMetadataSupplierIvyWithGradleMetadataIntegrationTest extends DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest {
+}
+
+abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest implements CachingIntegrationFixture {
 
     def setup() {
         addDependenciesTo(buildFile)
@@ -124,7 +145,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishing new integration version incurs get status file of new integration version only"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -184,7 +204,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match versions 2.3, 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishing new release version incurs get status file of new release version only"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -293,7 +312,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can recover from --offline mode"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -336,7 +354,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "will not make network requests when run with --offline"() {
         given:
         buildFile << """
@@ -400,7 +417,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         failure.assertHasCause("No cached resource '${server.uri}/repo/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -453,7 +469,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can inject configuration into metadata provider"() {
         given:
         buildFile << """
@@ -507,7 +522,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles and recovers from errors in a custom metadata provider"() {
         given:
         buildFile << """
@@ -557,7 +571,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles failure to create custom metadata provider"() {
         given:
         buildFile << """
@@ -1197,7 +1210,6 @@ group:projectB:2.2;release
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "cross-build caching is resilient to failure"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop

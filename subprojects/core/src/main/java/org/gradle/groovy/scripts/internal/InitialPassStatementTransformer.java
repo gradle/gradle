@@ -48,11 +48,12 @@ public class InitialPassStatementTransformer implements StatementTransformer {
     private boolean seenPluginManagementBlock;
     private boolean seenClasspathBlock;
 
-    public InitialPassStatementTransformer(ScriptTarget scriptTarget, DocumentationRegistry documentationRegistry) {
+    public InitialPassStatementTransformer(ScriptTarget scriptTarget,
+                                           DocumentationRegistry documentationRegistry) {
         this.scriptTarget = scriptTarget;
         this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_MANAGEMENT);
         this.documentationRegistry = documentationRegistry;
-        this.pluginBlockMetadataCompiler = new PluginUseScriptBlockMetadataCompiler(documentationRegistry);
+        this.pluginBlockMetadataCompiler = new PluginUseScriptBlockMetadataCompiler(documentationRegistry, scriptTarget.getPluginsBlockPermits());
     }
 
     @Override
@@ -94,8 +95,8 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
             if (seenNonClasspathStatement) {
                 failMessage = String.format(
-                    pluginBlockMetadataCompiler.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
-                    scriptTarget.getClasspathBlockName(), PLUGINS, PLUGINS
+                    pluginBlockMetadataCompiler.formatErrorMessage("only %s {}, %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
+                    scriptTarget.getClasspathBlockName(), PLUGIN_MANAGEMENT, PLUGINS, PLUGINS
                 );
             } else {
                 pluginBlockMetadataCompiler.compile(sourceUnit, scriptBlock);

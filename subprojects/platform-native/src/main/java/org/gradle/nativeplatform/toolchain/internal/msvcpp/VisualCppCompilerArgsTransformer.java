@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArg;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
@@ -43,7 +44,7 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
     }
 
     protected void addToolSpecificArgs(T spec, List<String> args) {
-        args.add(getLanguageOption());
+        getLanguageOption().ifPresent(args::add);
         args.add("/nologo");
         args.add("/c");
         if (spec.isDebuggable()) {
@@ -71,9 +72,9 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
 
     /**
      * Returns compiler specific language option
-     * @return compiler language option or empty string if the language does not require it
+     * @return compiler language option or an empty Optional if the language does not require it
      */
-    protected String getLanguageOption() {
-        return "";
+    protected Optional<String> getLanguageOption() {
+        return Optional.empty();
     }
 }

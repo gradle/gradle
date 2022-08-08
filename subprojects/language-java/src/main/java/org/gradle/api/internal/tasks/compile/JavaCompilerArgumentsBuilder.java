@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -75,6 +74,12 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
+    /**
+     * Returns a list with all Java compiler arguments as configured in this builder.
+     * Returned arguments are guaranteed not to be null.
+     *
+     * @return a list containing all Java compiler arguments
+     */
     public List<String> build() {
         args = new ArrayList<>();
         // Take a deep copy of the compilerArgs because the following methods mutate it.
@@ -123,7 +128,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getMemoryInitialSize() != null) {
             args.add("-J-Xms" + forkOptions.getMemoryInitialSize().trim());
         }

@@ -17,9 +17,11 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 
@@ -51,6 +53,24 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
      */
     void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction);
+
+    /**
+     * Lazily adds a collection of outgoing artifacts to this configuration. These artifacts are included in all variants.
+     *
+     * @param provider The provider of the artifacts to add.
+     * @since 7.4
+     */
+    @Incubating
+    void artifacts(Provider<? extends Iterable<? extends Object>> provider);
+
+    /**
+     * Lazily adds a collection of outgoing artifacts to this configuration, configuring each artifact using the given action. These artifacts are included in all variants.
+     *
+     * @param provider The provider of the artifacts to add.
+     * @since 7.4
+     */
+    @Incubating
+    void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction);
 
     /**
      * Returns the variants of this configuration, if any.

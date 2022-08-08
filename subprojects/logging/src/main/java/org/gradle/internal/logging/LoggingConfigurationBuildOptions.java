@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
@@ -130,7 +131,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         private LogLevel parseLogLevel(String value) {
             LogLevel logLevel = null;
             try {
-                logLevel = LogLevel.valueOf(value.toUpperCase());
+                logLevel = LogLevel.valueOf(value.toUpperCase(Locale.ENGLISH));
                 if (logLevel == LogLevel.ERROR) {
                     throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
                 }
@@ -142,6 +143,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
     }
 
     public static class StacktraceOption extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
+        public static final String GRADLE_PROPERTY = "org.gradle.logging.stacktrace";
         public static final String STACKTRACE_LONG_OPTION = "stacktrace";
         public static final String STACKTRACE_SHORT_OPTION = "s";
         public static final String FULL_STACKTRACE_LONG_OPTION = "full-stacktrace";
@@ -149,12 +151,24 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         private static final String[] ALL_SHORT_OPTIONS = new String[]{STACKTRACE_SHORT_OPTION, FULL_STACKTRACE_SHORT_OPTION};
 
         public StacktraceOption() {
-            super(null, CommandLineOptionConfiguration.create(STACKTRACE_LONG_OPTION, STACKTRACE_SHORT_OPTION, "Print out the stacktrace for all exceptions."), CommandLineOptionConfiguration.create(FULL_STACKTRACE_LONG_OPTION, FULL_STACKTRACE_SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(STACKTRACE_LONG_OPTION, STACKTRACE_SHORT_OPTION, "Print out the stacktrace for all exceptions."), CommandLineOptionConfiguration.create(FULL_STACKTRACE_LONG_OPTION, FULL_STACKTRACE_SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
         }
 
         @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
-            // not supported
+            String value = properties.get(gradleProperty);
+
+            if (value != null) {
+                if (value.equalsIgnoreCase("internal")) {
+                    settings.setShowStacktrace(ShowStacktrace.INTERNAL_EXCEPTIONS);
+                } else if (value.equalsIgnoreCase("all")) {
+                    settings.setShowStacktrace(ShowStacktrace.ALWAYS);
+                } else if (value.equalsIgnoreCase("full")) {
+                    settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
+                } else {
+                    Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of internal, all, or full");
+                }
+            }
         }
 
         @Override

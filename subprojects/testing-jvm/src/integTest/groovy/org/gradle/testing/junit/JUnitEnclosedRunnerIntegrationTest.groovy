@@ -31,7 +31,7 @@ class JUnitEnclosedRunnerIntegrationTest extends JUnitMultiVersionIntegrationSpe
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testImplementation '${dependencyNotation}' }
-"""
+        """.stripIndent()
     }
 
     @Issue('https://github.com/gradle/gradle/issues/2319')

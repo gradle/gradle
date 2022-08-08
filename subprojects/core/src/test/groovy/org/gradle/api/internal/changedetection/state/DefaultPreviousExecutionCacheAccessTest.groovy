@@ -15,27 +15,26 @@
  */
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.GradleInternal
+
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.scopes.BuildScopedCache
 import spock.lang.Specification
 
 class DefaultPreviousExecutionCacheAccessTest extends Specification {
-    final GradleInternal gradle = Mock()
-    final CacheRepository cacheRepository = Mock()
+    final BuildScopedCache cacheRepository = Mock()
 
     def "opens backing cache on construction"() {
         CacheBuilder cacheBuilder = Mock()
         PersistentCache backingCache = Mock()
 
         when:
-        new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository)
+        new DefaultExecutionHistoryCacheAccess(cacheRepository)
 
         then:
-        1 * cacheRepository.cache(gradle, "executionHistory") >> cacheBuilder
+        1 * cacheRepository.cache("executionHistory") >> cacheBuilder
         1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache

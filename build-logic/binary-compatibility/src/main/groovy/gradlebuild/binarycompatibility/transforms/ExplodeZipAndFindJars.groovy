@@ -26,12 +26,14 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.work.DisableCachingByDefault
 
 import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 @CompileStatic
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class ExplodeZipAndFindJars implements TransformAction<TransformParameters.None> {
 
     @PathSensitive(PathSensitivity.NAME_ONLY)

@@ -67,15 +67,35 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private TaskProvider<?> compileTaskProvider;
 
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
+        this(name, displayName, patternSetFactory.create(), patternSetFactory.create(), fileCollectionFactory, directoryFileTreeFactory, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+    }
+
+    DefaultSourceDirectorySet(String name, String displayName, PatternSet patterns, PatternSet filters, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, DirectoryProperty destinationDirectory, DirectoryProperty classesDirectory) {
         this.name = name;
         this.displayName = displayName;
         this.fileCollectionFactory = fileCollectionFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.patterns = patternSetFactory.create();
-        this.filter = patternSetFactory.create();
+        this.patterns = patterns;
+        this.filter = filters;
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        this.destinationDirectory = objectFactory.directoryProperty();
-        this.classesDirectory = objectFactory.directoryProperty();
+        this.destinationDirectory = destinationDirectory;
+        this.classesDirectory = classesDirectory;
+    }
+
+    public DefaultSourceDirectorySet(SourceDirectorySet sourceSet) {
+        if (!(sourceSet instanceof DefaultSourceDirectorySet)) {
+            throw new RuntimeException("Invalid source set type:" + source.getClass());
+        }
+        DefaultSourceDirectorySet defaultSourceSet = (DefaultSourceDirectorySet) sourceSet;
+        this.name = defaultSourceSet.name;
+        this.displayName = defaultSourceSet.displayName;
+        this.fileCollectionFactory = defaultSourceSet.fileCollectionFactory;
+        this.directoryFileTreeFactory = defaultSourceSet.directoryFileTreeFactory;
+        this.patterns = defaultSourceSet.patterns;
+        this.filter = defaultSourceSet.filter;
+        this.dirs = new FileCollectionAdapter(new SourceDirectories());
+        this.destinationDirectory = defaultSourceSet.destinationDirectory;
+        this.classesDirectory = defaultSourceSet.classesDirectory;
     }
 
     @Override

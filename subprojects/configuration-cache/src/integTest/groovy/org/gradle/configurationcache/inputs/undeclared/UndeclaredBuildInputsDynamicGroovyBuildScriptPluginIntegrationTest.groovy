@@ -23,7 +23,7 @@ class UndeclaredBuildInputsDynamicGroovyBuildScriptPluginIntegrationTest extends
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         dynamicGroovyPlugin(buildFile, read)
         buildFile << """
             apply plugin: SneakyPlugin

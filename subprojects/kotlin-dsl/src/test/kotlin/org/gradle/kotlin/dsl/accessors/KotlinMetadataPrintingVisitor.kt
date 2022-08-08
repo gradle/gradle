@@ -68,7 +68,6 @@ fun Class<*>.readKotlinClassHeader(): KotlinClassHeader =
         KotlinClassHeader(
             kind,
             metadataVersion,
-            bytecodeVersion,
             data1,
             data2,
             extraString,

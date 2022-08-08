@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization
 
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.internal.classpath.ClassPath
@@ -27,6 +28,8 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 
 import java.io.File
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -68,7 +71,7 @@ inline fun <reified T : Any> unsupported(
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
     noinline unsupportedMessage: StructuredMessageBuilder
 ): Codec<T> = codec(
-    encode = { _ ->
+    encode = {
         logUnsupported("serialize", documentationSection, unsupportedMessage)
     },
     decode = {
@@ -89,12 +92,12 @@ fun <T> codec(
 
 
 internal
-inline fun <reified T> ReadContext.ownerService() =
+inline fun <reified T> IsolateContext.ownerService() =
     ownerService(T::class.java)
 
 
 internal
-fun <T> ReadContext.ownerService(serviceType: Class<T>) =
+fun <T> IsolateContext.ownerService(serviceType: Class<T>) =
     isolate.owner.service(serviceType)
 
 
@@ -219,7 +222,7 @@ suspend fun ReadContext.readList(): List<Any?> =
 
 internal
 inline fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
-    readCollectionInto({ size -> ArrayList<T>(size) }) {
+    readCollectionInto({ size -> ArrayList(size) }) {
         readElement()
     }
 
@@ -280,12 +283,14 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 
 
 internal
-fun Decoder.readClassPath(): ClassPath =
-    DefaultClassPath.of(
-        readCollectionInto({ size -> LinkedHashSet<File>(size) }) {
-            readFile()
-        }
-    )
+fun Decoder.readClassPath(): ClassPath {
+    val size = readSmallInt()
+    val builder = DefaultClassPath.builderWithExactSize(size)
+    for (i in 0 until size) {
+        builder.add(readFile())
+    }
+    return builder.build()
+}
 
 
 internal
@@ -405,5 +410,24 @@ fun Decoder.readDouble(): Double =
 
 
 inline
-fun <reified T : Any> ReadContext.readClassOf() =
+fun <reified T : Any> ReadContext.readClassOf(): Class<out T> =
     readClass().asSubclass(T::class.java)
+
+
+/**
+ * Workaround for serializing JDK types with complex/opaque state on Java 17+.
+ *
+ * **IMPORTANT** Should be avoided for composite/container types as all components would be serialized
+ * using Java serialization.
+ */
+internal
+fun WriteContext.encodeUsingJavaSerialization(value: Any) {
+    ObjectOutputStream(outputStream).useToRun {
+        writeObject(value)
+    }
+}
+
+
+internal
+fun ReadContext.decodeUsingJavaSerialization(): Any? =
+    ObjectInputStream(inputStream).readObject()

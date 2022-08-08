@@ -24,12 +24,10 @@ import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
-@Unroll
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Rule

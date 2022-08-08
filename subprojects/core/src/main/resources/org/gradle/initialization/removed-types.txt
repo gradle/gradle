@@ -18,3 +18,4 @@ org.gradle.api.internal.tasks.testing.detection.TestExecuter
 org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 org.gradle.api.internal.tasks.execution.TaskValidator
 org.gradle.api.artifacts.transform.ArtifactTransformDependencies
+org.gradle.internal.filewatch.FileWatcherFactory

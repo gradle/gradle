@@ -26,9 +26,11 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GradleVersion
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class UpdateReleasedVersions : DefaultTask() {
 
     @get:Internal
