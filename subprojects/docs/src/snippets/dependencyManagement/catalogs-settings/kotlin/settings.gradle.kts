@@ -86,7 +86,7 @@ if (providers.systemProperty("create4").getOrNull() != null) {
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                plugin("jmh", "me.champeau.jmh").version("0.6.5")
+                plugin("jmh", "me.champeau.jmh").version("0.6.6")
             }
         }
     }
