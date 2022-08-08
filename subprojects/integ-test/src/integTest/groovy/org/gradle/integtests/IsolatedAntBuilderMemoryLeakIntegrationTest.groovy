@@ -129,7 +129,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
               }
 
               dependencies {
-                classpath "org.ajoberstar.grgit:grgit-gradle:5.0.0"
+                classpath "org.ajoberstar.grgit:grgit-gradle:4.1.1"
               }
             }
 
