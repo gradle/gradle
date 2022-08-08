@@ -48,7 +48,7 @@ public class FinalizerGroup extends HasFinalizers {
 
     @Override
     public String toString() {
-        return "finalizer " + node + " ordinal " + ordinal + ", delegate " + delegate;
+        return "finalizer " + node + " ordinal: " + ordinal + ", delegate: " + delegate;
     }
 
     public TaskNode getNode() {

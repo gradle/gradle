@@ -41,7 +41,7 @@ public class CompositeNodeGroup extends HasFinalizers {
 
     @Override
     public String toString() {
-        return "composite group, entry point: " + isReachableFromEntryPoint() + " groups: " + finalizerGroups;
+        return "composite group, entry point: " + isReachableFromEntryPoint() + ", ordinal: " + ordinalGroup + ", groups: " + finalizerGroups;
     }
 
     @Nullable
