@@ -155,7 +155,7 @@ public class DefaultObjectFactory implements ObjectFactory {
         if (List.class.isAssignableFrom(valueType)) {
             // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
             // Allow this one type to be used with Property until we can fix this elsewhere
-            if (!valueType.isAssignableFrom(ExternalModuleDependencyBundle.class)) {
+            if (!ExternalModuleDependencyBundle.class.isAssignableFrom(valueType)) {
                 throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
             }
         } else if (Set.class.isAssignableFrom(valueType)) {
