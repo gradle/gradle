@@ -51,12 +51,10 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         val scenarios = determineScenariosFor(performanceTestSpec, performanceTestConfigurations)
         val testProjectToScenarioDurations = determineScenarioTestDurations(performanceTestSpec.os, performanceTestDurations)
         val testProjectScenarioDurationsFallback = determineScenarioTestDurations(Os.LINUX, performanceTestDurations)
-        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 2 else 1
         val buckets = splitBucketsByScenarios(
             scenarios,
             testProjectToScenarioDurations,
             testProjectScenarioDurationsFallback,
-            repetitions,
             performanceTestCoverage.numberOfBuckets
         )
         return buckets.mapIndexed { bucketIndex: Int, bucket: PerformanceTestBucket ->
@@ -76,7 +74,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
                 duration.entries
                     .filter { (key, _) -> key != "testProject" }
                     .map { (osString, timeInMs) ->
-                        val os = Os.valueOf(osString.toUpperCase(Locale.US))
+                        val os = Os.valueOf(osString.uppercase(Locale.US))
                         val performanceTestDuration = PerformanceTestDuration(scenario, timeInMs as Int)
                         os to (testProject to performanceTestDuration)
                     }
@@ -99,7 +97,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
                 val coverage = (groupObj["coverage"] as JSONObject).map { entry ->
                     val performanceTestType = PerformanceTestType.valueOf(entry.key as String)
                     performanceTestType to (entry.value as JSONArray).map {
-                        Os.valueOf((it as String).toUpperCase(Locale.US))
+                        Os.valueOf((it as String).uppercase(Locale.US))
                     }.toSet()
                 }.toMap()
                 PerformanceTestGroup(testProject, coverage)
@@ -110,8 +108,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
 }
 
 private
-fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioDurations: Map<String, List<PerformanceTestDuration>>, testProjectScenarioDurationsFallback: Map<String, List<PerformanceTestDuration>>, scenarioRepetitions: Int, numberOfBuckets: Int): List<PerformanceTestBucket> {
-
+fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioDurations: Map<String, List<PerformanceTestDuration>>, testProjectScenarioDurationsFallback: Map<String, List<PerformanceTestDuration>>, numberOfBuckets: Int): List<PerformanceTestBucket> {
     val testProjectDurations = scenarios
         .groupBy({ it.testProject }, { scenario ->
             listOf(testProjectToScenarioDurations, testProjectScenarioDurationsFallback)
@@ -120,7 +117,6 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
         })
         .entries
         .map { TestProjectDuration(it.key, it.value) }
-        .flatMap { testProjectDuration -> generateSequence { testProjectDuration }.take(scenarioRepetitions).toList() }
         .sortedBy { -it.totalTime }
     return splitIntoBuckets(
         LinkedList(testProjectDurations),
@@ -144,9 +140,11 @@ fun determineScenariosFor(performanceTestSpec: PerformanceTestSpec, performanceT
     }
     return performanceTestConfigurations.flatMap { configuration ->
         configuration.groups
-            .filter { group -> performanceTestTypes.any { type ->
-                group.performanceTestTypes[type]?.contains(performanceTestSpec.os) == true
-            } }
+            .filter { group ->
+                performanceTestTypes.any { type ->
+                    group.performanceTestTypes[type]?.contains(performanceTestSpec.os) == true
+                }
+            }
             .map { PerformanceScenario(Scenario.fromTestId(configuration.testId), it.testProject) }
     }
 }
@@ -164,7 +162,7 @@ interface PerformanceTestBucket {
 }
 
 data class TestProjectDuration(val testProject: String, val scenarioDurations: List<PerformanceTestDuration>) {
-    val totalTime: Int = scenarioDurations.sumBy { it.durationInMs }
+    val totalTime: Int = scenarioDurations.sumOf { it.durationInMs }
 
     fun split(expectedBucketNumber: Int): List<PerformanceTestBucket> {
         return if (expectedBucketNumber == 1 || scenarioDurations.size == 1) {
@@ -218,19 +216,19 @@ class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scena
 class MultipleTestProjectBucket(private val projectDurations: List<TestProjectDuration>) : PerformanceTestBucket {
     override
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
-            model,
-            performanceTestCoverage,
-            stage,
-            bucketIndex,
-            "Performance tests for ${projectDurations.joinToString(", ") { it.testProject }}",
-            projectDurationsToScenariosPerTestProject(projectDurations)
-        )
+        model,
+        performanceTestCoverage,
+        stage,
+        bucketIndex,
+        "Performance tests for ${projectDurations.joinToString(", ") { it.testProject }}",
+        projectDurationsToScenariosPerTestProject(projectDurations)
+    )
 }
 
 private
 fun projectDurationsToScenariosPerTestProject(projectDurations: List<TestProjectDuration>): Map<String, List<Scenario>> {
     val durationsPerTestProject = projectDurations.groupBy({ it.testProject }, { it.scenarioDurations })
-    durationsPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than on scenario split for test project $key: $projectDurations") }
+    durationsPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than one scenario split for test project $key: $projectDurations") }
     return durationsPerTestProject
         .mapValues { (_, durations) -> durations.flatten().map { it.scenario } }
 }

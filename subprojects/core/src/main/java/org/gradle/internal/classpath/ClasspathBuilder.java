@@ -16,11 +16,13 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.hash.Hashing;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.internal.classpath.ClasspathEntryVisitor.Entry.CompressionMethod;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -76,7 +78,10 @@ public class ClasspathBuilder {
     }
 
     public interface EntryBuilder {
-        void put(String name, byte[] content) throws IOException;
+        default void put(String name, byte[] content) throws IOException {
+            put(name, content, CompressionMethod.UNDEFINED);
+        }
+        void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException;
     }
 
     private static class ZipEntryBuilder implements EntryBuilder {
@@ -88,9 +93,10 @@ public class ClasspathBuilder {
         }
 
         @Override
-        public void put(String name, byte[] content) throws IOException {
+        public void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException {
             maybeAddParent(name);
             ZipEntry zipEntry = newZipEntryWithFixedTime(name);
+            configureCompression(zipEntry, compressionMethod, content);
             outputStream.setEncoding("UTF-8");
             outputStream.putNextEntry(zipEntry);
             outputStream.write(content);
@@ -124,6 +130,31 @@ public class ClasspathBuilder {
             ZipEntry entry = new ZipEntry(name);
             entry.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
             return entry;
+        }
+
+        private void configureCompression(ZipEntry entry, CompressionMethod compressionMethod, byte[] contents) {
+            if (shouldCompress(compressionMethod)) {
+                entry.setMethod(ZipEntry.DEFLATED);
+            } else {
+                entry.setMethod(ZipEntry.STORED);
+                // A stored ZipEntry requires setting size and CRC32 upfront.
+                // See https://stackoverflow.com/q/1206970.
+                entry.setSize(contents.length);
+                entry.setCompressedSize(contents.length);
+                entry.setCrc(computeCrc32Of(contents));
+            }
+        }
+
+        private static boolean shouldCompress(CompressionMethod compressionMethod) {
+            // Stored files may be used for memory mapping, so it is important to store them uncompressed.
+            // All other files are fine being compressed to reduce on-disk size.
+            // It isn't clear if storing them uncompressed too would bring a performance benefit,
+            // as reading less from the disk may save more time than spent unpacking.
+            return compressionMethod != CompressionMethod.STORED;
+        }
+
+        private static long computeCrc32Of(byte[] contents) {
+            return Hashing.crc32().hashBytes(contents).padToLong();
         }
     }
 }

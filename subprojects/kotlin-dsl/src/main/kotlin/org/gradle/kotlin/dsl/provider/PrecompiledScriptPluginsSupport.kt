@@ -25,6 +25,14 @@ import java.io.File
 import java.util.function.Consumer
 
 
+/**
+ * Protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins`.
+ *
+ * `:kotlin-dsl-plugins` is published to the plugin portal.
+ * `:kotlin-dsl-provider-plugins` is shipped with the distribution.
+ *
+ * This needs to be cross-version compatible.
+ */
 interface PrecompiledScriptPluginsSupport {
 
     @Deprecated("Use enableOn(Target)")
@@ -42,7 +50,9 @@ interface PrecompiledScriptPluginsSupport {
     interface Target {
         val project: Project
         val kotlinSourceDirectorySet: SourceDirectorySet
+        @Deprecated("No longer used.")
         val kotlinCompileTask: TaskProvider<out Task>
+        @Deprecated("No longer used.")
         fun applyKotlinCompilerArgs(args: List<String>)
     }
 }

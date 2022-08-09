@@ -19,9 +19,11 @@ package org.gradle.performance.results.report;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.ResultsStore;
-import org.gradle.performance.results.ScenarioBuildResultData;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.util.Git;
 
 import java.io.File;
@@ -30,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -39,59 +42,57 @@ import static java.util.stream.Collectors.toList;
 
 public abstract class PerformanceExecutionDataProvider {
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 7;
-    protected TreeSet<ScenarioBuildResultData> scenarioExecutionData;
+    protected TreeSet<PerformanceReportScenario> scenarioExecutions;
     protected final ResultsStore resultsStore;
+    protected final Set<String> performanceTestBuildIds;
     private final List<File> resultJsons;
     protected final String commitId = Git.current().getCommitId();
 
-    public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
+    public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
         this.resultJsons = resultJsons;
         this.resultsStore = resultsStore;
+        this.performanceTestBuildIds = performanceTestBuildIds;
     }
 
-    public TreeSet<ScenarioBuildResultData> getScenarioExecutionData() {
-        if (scenarioExecutionData == null) {
-            scenarioExecutionData = readResultJsonAndQueryFromDatabase(resultJsons);
+    public TreeSet<PerformanceReportScenario> getReportScenarios() {
+        if (scenarioExecutions == null) {
+            scenarioExecutions = readResultJsonAndQueryFromDatabase();
         }
 
-        return scenarioExecutionData;
+        return scenarioExecutions;
     }
 
     public String getCommitId() {
         return commitId;
     }
 
-    protected abstract TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList);
+    protected abstract TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioExecutions);
 
-    protected TreeSet<ScenarioBuildResultData> readResultJsonAndQueryFromDatabase(List<File> resultJsons) {
-        List<ScenarioBuildResultData> buildResultData = resultJsons.stream()
+    private TreeSet<PerformanceReportScenario> readResultJsonAndQueryFromDatabase() {
+        List<PerformanceTestExecutionResult> buildResultData = resultJsons.stream()
             .flatMap(PerformanceExecutionDataProvider::parseResultsJson)
             .collect(toList());
         return queryExecutionData(buildResultData);
     }
 
-    private static Stream<ScenarioBuildResultData> parseResultsJson(File resultsJson) {
+    private static Stream<PerformanceTestExecutionResult> parseResultsJson(File resultsJson) {
         try {
-            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<ScenarioBuildResultData>>() { }).stream();
+            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {
+            }).stream();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    protected Collector<ScenarioBuildResultData, ?, TreeSet<ScenarioBuildResultData>> treeSetCollector(Comparator<ScenarioBuildResultData> scenarioComparator) {
+    protected <T> Collector<T, ?, TreeSet<T>> treeSetCollector(Comparator<T> scenarioComparator) {
         return toCollection(() -> new TreeSet<>(scenarioComparator));
     }
 
-    protected boolean sameCommit(ScenarioBuildResultData.ExecutionData execution) {
-        return commitId.equals(execution.getCommitId());
-    }
-
-
-    protected List<ScenarioBuildResultData.ExecutionData> removeEmptyExecution(List<? extends PerformanceTestExecution> executions) {
+    protected List<PerformanceReportScenarioHistoryExecution> removeEmptyExecution(List<? extends PerformanceTestExecution> executions) {
         return executions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList());
     }
 
-    private ScenarioBuildResultData.ExecutionData extractExecutionData(PerformanceTestExecution performanceTestExecution) {
+    private PerformanceReportScenarioHistoryExecution extractExecutionData(PerformanceTestExecution performanceTestExecution) {
         List<MeasuredOperationList> nonEmptyExecutions = performanceTestExecution
             .getScenarios()
             .stream()
@@ -99,12 +100,17 @@ public abstract class PerformanceExecutionDataProvider {
             .collect(toList());
         if (nonEmptyExecutions.size() > 1) {
             int size = nonEmptyExecutions.size();
-            return new ScenarioBuildResultData.ExecutionData(performanceTestExecution.getStartTime(), getCommit(performanceTestExecution), nonEmptyExecutions.get(size - 2), nonEmptyExecutions.get(size - 1));
+            return new PerformanceReportScenarioHistoryExecution(
+                performanceTestExecution.getStartTime(),
+                performanceTestExecution.getTeamCityBuildId(),
+                getCommit(performanceTestExecution),
+                nonEmptyExecutions.get(size - 2),
+                nonEmptyExecutions.get(size - 1)
+            );
         } else {
             return null;
         }
     }
-
 
     private String getCommit(PerformanceTestExecution execution) {
         if (execution.getVcsCommits().isEmpty()) {
@@ -113,5 +119,4 @@ public abstract class PerformanceExecutionDataProvider {
             return execution.getVcsCommits().get(0);
         }
     }
-
 }

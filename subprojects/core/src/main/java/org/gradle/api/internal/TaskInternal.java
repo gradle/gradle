@@ -21,10 +21,11 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
@@ -33,6 +34,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
@@ -49,7 +51,24 @@ public interface TaskInternal extends Task, Configurable<Task> {
     boolean hasTaskActions();
 
     @Internal
-    Spec<? super TaskInternal> getOnlyIf();
+    DescribingAndSpec<? super TaskInternal> getOnlyIf();
+
+    /**
+     * Return the reason for not to track state.
+     *
+     * Gradle considers the task as untracked if the reason is present.
+     * When not tracking state, a reason must be present. Hence the {@code Optional} represents the state of enablement, too.
+     *
+     * @see org.gradle.api.tasks.UntrackedTask
+     */
+    @Internal
+    Optional<String> getReasonNotToTrackState();
+
+    @Internal
+    boolean isCompatibleWithConfigurationCache();
+
+    @Internal
+    Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache();
 
     @Internal
     StandardOutputCapture getStandardOutputCapture();
@@ -97,4 +116,12 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     List<? extends ResourceLock> getSharedResources();
+
+    /**
+     * "Lifecycle dependencies" are dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)} call,
+     * as opposed to the recommended approach of connecting producer tasks' outputs to consumer tasks' inputs.
+     * @return the dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)}
+     */
+    @Internal
+    TaskDependency getLifecycleDependencies();
 }

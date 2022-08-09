@@ -48,14 +48,14 @@ public interface InternalInvalidatableVirtualFileSystemConnection extends Intern
      * by the daemon after it returned. This ensures that for every build started
      * after this method has been called knows about the changed paths.
      *
-     * <p>If the version of Gradle does not support virtual file system retention (i.e. < 6.1),
+     * <p>If the version of Gradle does not support virtual file system retention (i.e. &lt; 6.1),
      * then the operation is a no-op.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 6.1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 6.1.</p>
      *
      * @param changedPaths Absolute paths which have been changed by the external process.
-     * @throws UnsupportedVersionException When the target Gradle version is <= 2.5.
+     * @throws UnsupportedVersionException When the target Gradle version is &lt;= 2.5.
      * @throws GradleConnectionException On some other failure using the connection.
      * @since 6.1
      */

@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -116,6 +115,5 @@ public interface Usage extends Named {
      *
      * @since 7.0
      */
-    @Incubating
     String VERSION_CATALOG = "version-catalog";
 }

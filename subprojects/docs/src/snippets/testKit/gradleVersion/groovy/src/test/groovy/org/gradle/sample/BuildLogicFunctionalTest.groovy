@@ -5,7 +5,6 @@ import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
 import spock.lang.TempDir
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class BuildLogicFunctionalTest extends Specification {
     @TempDir File testProjectDir
@@ -17,7 +16,6 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile = new File(testProjectDir, 'build.gradle')
     }
 
-    @Unroll
     def "can execute hello world task with Gradle version #gradleVersion"() {
         given:
         buildFile << """

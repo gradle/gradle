@@ -158,9 +158,10 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .reportAs(ERROR)
-                            .withDescription(() -> String.format("has invalid annotation @%s", annotationType.getSimpleName()))
-                            .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
-                            .addPossibleSolution("Remove the property")
+                            .withDescription(() -> String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
+                            .happensBecause(() -> "The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
+                            .addPossibleSolution("Remove the annotation")
+                            .addPossibleSolution(() -> "Use a different annotation, e.g one of " + toListOfAnnotations(allowedPropertyModifiers))
                             .documentedAt("validation_problems", "annotation_invalid_in_context")
                     );
                 }

@@ -17,6 +17,8 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
@@ -24,6 +26,7 @@ import java.io.File;
  * Controls the state (not loaded / loaded) of the attached {@link GradleProperties} instance
  * so that the set of Gradle properties is deterministically loaded only once per build.
  */
+@ServiceScope(Scopes.Build.class)
 public interface GradlePropertiesController {
 
     /**
@@ -42,4 +45,10 @@ public interface GradlePropertiesController {
      * @throws IllegalStateException if called with a different argument in the same build
      */
     void loadGradlePropertiesFrom(File settingsDir);
+
+    /**
+     * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File)} would reload them and
+     * re-evaluate any property defining system properties and environment variables.
+     */
+    void unloadGradleProperties();
 }

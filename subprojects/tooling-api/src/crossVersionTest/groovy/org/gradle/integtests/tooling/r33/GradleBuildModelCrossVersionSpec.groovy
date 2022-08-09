@@ -58,10 +58,10 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 rootProject.name = 'root'
-                includeBuild('includedBuild') { 
-                    dependencySubstitution { 
-                        substitute module('group:name') with project(':') 
-                    } 
+                includeBuild('includedBuild') {
+                    dependencySubstitution {
+                        substitute module('group:name') with project(':')
+                    }
                 }
             """
         }

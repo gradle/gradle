@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r22
 
-
 import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.r18.BrokenAction
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -28,10 +27,7 @@ import org.gradle.tooling.model.GradleProject
 class CancellationCrossVersionSpec extends CancellationSpec {
 
     def "can cancel build during settings phase"() {
-        settingsFile << waitForCancel()
-        buildFile << """
-throw new RuntimeException("should not run")
-"""
+        setupCancelInSettingsBuild()
 
         def cancel = GradleConnector.newCancellationTokenSource()
         def sync = server.expectAndBlock("registered")
@@ -109,6 +105,29 @@ throw new RuntimeException("should not run")
         configureOnDemand << [true, false]
     }
 
+    def "can cancel build action execution during settings phase"() {
+        setupCancelInSettingsBuild()
+
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def sync = server.expectAndBlock("registered")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def action = connection.action(new ActionQueriesModelThatRequiresConfigurationPhase())
+            action.withCancellationToken(cancel.token())
+            collectOutputs(action)
+            action.run(resultHandler)
+            sync.waitForAllPendingCalls(resultHandler)
+            cancel.cancel()
+            sync.releaseAll()
+            resultHandler.finished()
+        }
+
+        then:
+        configureWasCancelled(resultHandler, "Could not run build action using")
+    }
+
     def "can cancel build action execution during configuration phase"() {
         file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
         setupCancelInConfigurationBuild()
@@ -119,7 +138,7 @@ throw new RuntimeException("should not run")
 
         when:
         withConnection { ProjectConnection connection ->
-            def action = connection.action(new BrokenAction())
+            def action = connection.action(new ActionQueriesModelThatRequiresConfigurationPhase())
             action.withCancellationToken(cancel.token())
             collectOutputs(action)
             action.run(resultHandler)

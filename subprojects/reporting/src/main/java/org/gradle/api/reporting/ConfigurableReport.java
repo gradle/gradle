@@ -68,6 +68,9 @@ public interface ConfigurableReport extends Report {
      * @param provider The provider of the destination for the report.
      * @see #getOutputLocation()
      * @since 4.0
+     *
+     * @deprecated Use {@link #getOutputLocation()}.set() instead. This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     void setDestination(Provider<File> provider);
 }

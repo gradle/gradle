@@ -60,7 +60,7 @@ public class JavaMethod<T, R> {
     }
 
     public JavaMethod(Class<T> target, Class<R> returnType, String name, boolean allowStatic, Class<?>... paramTypes) {
-        this(returnType, findMethod(target, target, name, allowStatic, paramTypes));
+        this(returnType, findMethod(target, name, allowStatic, paramTypes));
     }
 
     public JavaMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
@@ -73,8 +73,35 @@ public class JavaMethod<T, R> {
         method.setAccessible(true);
     }
 
-    private static Method findMethod(Class<?> origTarget, Class<?> target, String name, boolean allowStatic, Class<?>[] paramTypes) {
-        for (Method method : target.getDeclaredMethods()) {
+    private static Method findMethod(Class<?> target, String name, boolean allowStatic, Class<?>[] paramTypes) {
+        // First try to find a method from all public methods
+        Method method = findMethodFrom(target.getMethods(), name, allowStatic, paramTypes);
+        if (method == null) {
+            // Else search declared methods recursively
+            method = findDeclaredMethod(target, name, allowStatic, paramTypes);
+        }
+        if (method != null) {
+            return method;
+        }
+        throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, StringUtils.join(paramTypes, ", "), target.getSimpleName()));
+    }
+
+    @Nullable
+    private static Method findDeclaredMethod(Class<?> origTarget, String name, boolean allowStatic, Class<?>[] paramTypes) {
+        Class<?> target = origTarget;
+        while (target != null) {
+            Method method = findMethodFrom(target.getDeclaredMethods(), name, allowStatic, paramTypes);
+            if (method != null) {
+                return method;
+            }
+            target = target.getSuperclass();
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Method findMethodFrom(Method[] methods, String name, boolean allowStatic, Class<?>[] paramTypes) {
+        for (Method method : methods) {
             if (!allowStatic && Modifier.isStatic(method.getModifiers())) {
                 continue;
             }
@@ -82,13 +109,7 @@ public class JavaMethod<T, R> {
                 return method;
             }
         }
-
-        Class<?> parent = target.getSuperclass();
-        if (parent == null) {
-            throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, StringUtils.join(paramTypes, ", "), origTarget.getSimpleName()));
-        } else {
-            return findMethod(origTarget, parent, name, allowStatic, paramTypes);
-        }
+        return null;
     }
 
     public boolean isStatic() {

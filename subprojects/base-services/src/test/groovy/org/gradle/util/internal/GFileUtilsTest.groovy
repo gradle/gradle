@@ -115,7 +115,8 @@ three
 
         expect:
         readFileQuietly(temp.file("foo.txt")) == "hey"
-        readFileQuietly(new File("missing")) == "Unable to read file 'missing' due to: org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: File 'missing' does not exist"
+        // end of message is platform specific
+        readFileQuietly(new File("missing")).startsWith "Unable to read file 'missing' due to: org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: missing"
         readFileQuietly(temp.createDir("dir")).startsWith "Unable to read file"
     }
 

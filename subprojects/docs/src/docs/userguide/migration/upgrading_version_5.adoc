@@ -30,7 +30,7 @@ Alternatively, you could run `gradle help --warning-mode=all` to see the depreca
 +
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
-. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Run `gradle wrapper --gradle-version 6.0` to update the project to 6.0.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_6.0]]

@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
-class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
+class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
@@ -221,7 +221,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Issue("https://github.com/gradle/gradle/issues/2552")
-    def "can copy files to output with named pipes"() {
+    def "copying files to a directory with named pipes causes a deprecation warning"() {
         def input = file("input.txt").createFile()
 
         def outputDirectory = file("output").createDir()
@@ -235,9 +235,18 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name
+        executedAndNotSkipped(":copy")
+
+        when:
+        expectUnreadableCopyDestinationDeprecationWarning()
+        run "copy"
+        then:
+        outputDirectory.list().contains input.name
+        executedAndNotSkipped(":copy")
 
         cleanup:
         pipe.delete()

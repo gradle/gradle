@@ -24,13 +24,14 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.PublishArtifactInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -51,7 +52,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultMavenPublicationTest extends Specification {
     @Rule
@@ -183,7 +183,7 @@ class DefaultMavenPublicationTest extends Specification {
     def "artifacts are taken from added component"() {
         given:
         def publication = createPublication()
-        def artifact = Mock(PublishArtifactInternal)
+        def artifact = Mock(PublishArtifact)
         artifact.file >> artifactFile
         artifact.classifier >> ""
         artifact.extension >> "jar"
@@ -215,11 +215,11 @@ class DefaultMavenPublicationTest extends Specification {
     def "multiple usages of a component can provide the same artifact"() {
         given:
         def publication = createPublication()
-        def artifact1 = Mock(PublishArtifactInternal)
+        def artifact1 = Mock(PublishArtifact)
         artifact1.file >> artifactFile
         artifact1.classifier >> ""
         artifact1.extension >> "jar"
-        def artifact2 = Mock(PublishArtifactInternal)
+        def artifact2 = Mock(PublishArtifact)
         artifact2.file >> artifactFile
         artifact2.classifier >> ""
         artifact2.extension >> "jar"
@@ -357,7 +357,6 @@ class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    @Unroll
     def 'adopts platform in #scope declaration from added components'() {
         given:
         def publication = createPublication()
@@ -563,7 +562,8 @@ class DefaultMavenPublicationTest extends Specification {
         def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def objectFactory = TestUtil.objectFactory()
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory()
-            , AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport())
+            , AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
+            Mock(DocumentationRegistry))
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication

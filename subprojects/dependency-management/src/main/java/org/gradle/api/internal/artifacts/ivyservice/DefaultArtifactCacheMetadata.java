@@ -17,9 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.GlobalCache;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CacheVersion;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.GlobalScopedCache;
 
 import java.io.File;
 import java.util.List;
@@ -31,14 +30,14 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Glob
     private final File transformsDir;
     private final File baseDir;
 
-    public DefaultArtifactCacheMetadata(CacheScopeMapping cacheScopeMapping) {
-        this(cacheScopeMapping, null);
+    public DefaultArtifactCacheMetadata(GlobalScopedCache globalScopedCache) {
+        this.baseDir = globalScopedCache.getRootDir();
+        this.cacheDir = globalScopedCache.baseDirForCrossVersionCache(CacheLayout.ROOT.getKey());
+        this.transformsDir = globalScopedCache.baseDirForCrossVersionCache(CacheLayout.TRANSFORMS.getKey());
     }
 
-    public DefaultArtifactCacheMetadata(CacheScopeMapping cacheScopeMapping, File baseDir) {
-        this.baseDir = baseDir;
-        this.cacheDir = cacheScopeMapping.getBaseDirectory(baseDir, CacheLayout.ROOT.getKey(), VersionStrategy.SharedCache);
-        this.transformsDir = cacheScopeMapping.getBaseDirectory(baseDir, CacheLayout.TRANSFORMS.getKey(), VersionStrategy.SharedCache);
+    public DefaultArtifactCacheMetadata(GlobalScopedCache globalScopedCache, File baseDir) {
+        this(globalScopedCache.newScopedCache(baseDir));
     }
 
     @Override

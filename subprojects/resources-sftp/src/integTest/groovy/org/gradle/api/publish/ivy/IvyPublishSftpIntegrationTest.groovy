@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
-import spock.lang.Unroll
 
-@Unroll
 class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
     @Rule

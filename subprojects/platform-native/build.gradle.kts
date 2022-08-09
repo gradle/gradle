@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins, tasks and compiler infrastructure for compiling/linking code"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -56,7 +58,7 @@ dependencies {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/nativeplatform/plugins/**")
     excludePatterns.add("org/gradle/nativeplatform/tasks/**")
     excludePatterns.add("org/gradle/nativeplatform/internal/resolve/**")

@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -65,8 +66,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager,
         moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser,
-        metadataFactory, SnapshotTestUtil.valueSnapshotter(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
-        TestUtil.checksumService, providerFactory
+        metadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
+        TestUtil.checksumService, providerFactory, new VersionParser()
     )
 
     def "default values"() {

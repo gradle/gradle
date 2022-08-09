@@ -181,6 +181,21 @@ include::sample[dir="samples/build-organization/composite-builds/declared-substi
 
 With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "anonymous-library".
 
+[[deactivate_included_build_substitutions]]
+=== Deactivate included build substitutions for a Configuration
+
+If you need to <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolve>> a published version of a module that is also available as part of an included build, you can deactivate the included build substitution rules on the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] of the Configuration that is resolved.
+This is necessary, because the rules are globally applied in the build and Gradle does not consider published versions during resolution by default.
+
+.Deactivate global dependency substitution rules
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/groovy",files="build.gradle[tags=disableGlobalDependencySubstitutionRules]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/kotlin",files="build.gradle.kts[tags=disableGlobalDependencySubstitutionRules]"]
+====
+
+In this example, we create a separate `publishedRuntimeClasspath` configuration that gets resolve to the published versions of modules that also exist in one of the local builds.
+This can be used, for example, to compare published and locally built Jar files.
+
 [[included_build_substitution_requirements]]
 === Cases where included build substitutions must be declared
 

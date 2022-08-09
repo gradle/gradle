@@ -43,9 +43,9 @@ public interface TaskDependencyResolveContext extends Action<Task> {
      *
      * <li>{@link TransformationDependency}</li>
      *
-     * <li>{@link FinalizeAction}</li>
-     *
      * <li>{@link WorkNodeAction}</li>
+     *
+     * </ul>
      */
     void add(Object dependency);
 

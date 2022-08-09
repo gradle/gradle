@@ -30,7 +30,6 @@ import org.gradle.internal.dispatch.Receive;
  * and a different single thread that receives should be perfectly safe</li>
  * <li>should allow stopping or requesting stopping from a different thread than receiving/dispatching</li>
  * <li>don't guarantee allowing multiple threads dispatching</li>
- * </li>
  * </ul>
  */
 public interface Connection<T> extends Dispatch<T>, Receive<T>, Stoppable {

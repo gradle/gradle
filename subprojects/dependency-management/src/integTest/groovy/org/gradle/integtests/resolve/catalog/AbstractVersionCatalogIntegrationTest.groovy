@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -31,7 +30,6 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
         settingsFile << """
             rootProject.name = 'test'
         """
-        FeaturePreviewsFixture.enableVersionCatalog(settingsFile)
         settingsFile << """
             dependencyResolutionManagement {
                 repositories {
@@ -43,5 +41,6 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
         """
         resolve.expectDefaultConfiguration("runtime")
         resolve.prepare()
+        executer.withPluginRepositoryMirrorDisabled() // otherwise the plugin portal fixture doesn't work!
     }
 }

@@ -70,9 +70,11 @@ class SuiteTestClassProcessorTest extends Specification {
         1 * targetProcessor.startProcessing(!null) >> { throw failure }
         1 * resultProcessor.failure('id', !null) >> { args ->
             def e = args[1]
-            assert e instanceof TestSuiteExecutionException
-            assert e.message == 'Could not start <suite>.'
-            assert e.cause == failure
+            assert e instanceof DefaultTestFailure
+            assert !e.details.assertionFailure
+            assert e.rawFailure instanceof TestSuiteExecutionException
+            assert e.rawFailure.message == 'Could not start <suite>.'
+            assert e.rawFailure.cause == failure
         }
     }
 
@@ -87,9 +89,11 @@ class SuiteTestClassProcessorTest extends Specification {
         1 * targetProcessor.processTestClass(testClass) >> { throw failure }
         1 * resultProcessor.failure('id', !null) >> { args ->
             def e = args[1]
-            assert e instanceof TestSuiteExecutionException
-            assert e.message == 'Could not execute test class \'<class-name>\'.'
-            assert e.cause == failure
+            assert e instanceof DefaultTestFailure
+            assert !e.details.assertionFailure
+            assert e.rawFailure instanceof TestSuiteExecutionException
+            assert e.rawFailure.message == 'Could not execute test class \'<class-name>\'.'
+            assert e.rawFailure.cause == failure
         }
     }
 
@@ -104,9 +108,11 @@ class SuiteTestClassProcessorTest extends Specification {
         1 * targetProcessor.stop() >> { throw failure }
         1 * resultProcessor.failure('id', !null) >> { args ->
             def e = args[1]
-            assert e instanceof TestSuiteExecutionException
-            assert e.message == 'Could not complete execution for <suite>.'
-            assert e.cause == failure
+            assert e instanceof DefaultTestFailure
+            assert !e.details.assertionFailure
+            assert e.rawFailure instanceof TestSuiteExecutionException
+            assert e.rawFailure.message == 'Could not complete execution for <suite>.'
+            assert e.rawFailure.cause == failure
         }
         1 * resultProcessor.completed('id', !null)
     }

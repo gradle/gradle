@@ -34,24 +34,16 @@ class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent) {
-        throw new UnsupportedOperationException()
+        return new Logger()
     }
 
     static class Logger implements ProgressLogger {
         String description
-        String loggingHeader
 
         String getDescription() { description }
 
         ProgressLogger setDescription(String description) {
             this.description = description
-            this
-        }
-
-        String getLoggingHeader() { loggingHeader }
-
-        ProgressLogger setLoggingHeader(String loggingHeader) {
-            this.loggingHeader = loggingHeader
             this
         }
 

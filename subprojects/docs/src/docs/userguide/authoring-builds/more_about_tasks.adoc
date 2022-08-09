@@ -366,6 +366,7 @@ Gradle offers multiple ways to skip the execution of a task.
 === Using a predicate
 
 You can use the `onlyIf()` method to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. You implement the predicate as a closure. The closure is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is due to be executed.
+Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped.
 
 .Skipping a task using a predicate
 ====
@@ -376,6 +377,14 @@ include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kt
 ----
 > gradle hello -PskipHello
 include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
+----
+
+It is possible to find the reason for a task being skipped by running the build with the `--info` logging level.
+
+.Output of **`gradle hello -PskipHello --hello`**
+----
+> gradle hello -PskipHello --info
+include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf-info.out[]
 ----
 ====
 
@@ -471,7 +480,7 @@ If you’re implementing a custom task as a class, then it takes just two steps 
 Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter, are ignored.
 ====
 
-Gradle supports three main categories of inputs and outputs:
+Gradle supports four main categories of inputs and outputs:
 
 * Simple values
 +
@@ -479,7 +488,12 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+These consist of `RegularFile`, `Directory` and the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+
+* Dependency resolution results
++
+This includes the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult] type for artifact metadata and the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] type for dependency graphs.
+Note that they are only supported wrapped in a `Provider`.
 
 * Nested values
 +
@@ -556,8 +570,8 @@ Now that you have seen some of the input and output annotations in practice, let
 | Description
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Input.html[Input]`
-| Any `Serializable` type
-| A simple input value
+| Any `Serializable` type or dependency resolution result types
+| A simple input value or dependency resolution results
 
 | `@link:{javadocPath}/org/gradle/api/tasks/InputFile.html[InputFile]`
 | `File`*
@@ -639,7 +653,7 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | Indicates that the property has been replaced by another and should be ignored as an input or output.
 
 | [[skip-when-empty]]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
-| `File`+++*+++
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 Implies `<<#incremental,@Incremental>>`.
@@ -653,22 +667,26 @@ Implies `<<#incremental,@Incremental>>`.
 | Used with any of the property type annotations listed in the link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]`
-| `File`+++*+++
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]`
-| `Iterable&lt;File&gt;`*
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track only changes to the contents of directories and not differences in the directories themselves. For example, removing, renaming or adding an empty directory somewhere in the directory structure will not make the task out-of-date.
+
+| `@link:{javadocPath}/org/gradle/work/NormalizeLineEndings.html[NormalizeLineEndings]`
+| `File` or `Iterable&lt;File&gt;`+++*+++
+| Used with `@InputFiles`, `@InputDirectory` or `@Classpath` to instruct Gradle to normalize line endings when calculating up-to-date checks or build cache keys. For example, switching a file between Unix line endings and Windows line endings (or vice-versa) will not make the task out-of-date.
 |===
 
 [NOTE]
 ====
 [horizontal]
-+++*+++::
+*::
 In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
-+++**+++::
+**::
 Similar to the above, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 ====
 
@@ -677,6 +695,49 @@ Annotations are inherited from all parent types including implemented interfaces
 Annotations on a property declared in a type override similar annotations declared by the superclass and in any implemented interfaces. Superclass annotations take precedence over annotations declared in implemented interfaces.
 
 The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
+
+[[sec:task_input_using_dependency_resolution_results]]
+===== Using dependency resolution results
+
+Dependency resolution results can be consumed as task inputs in two ways.
+First by consuming the graph of the resolved metadata using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult].
+Second by consuming the flat set of the resolved artifacts using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult].
+
+A resolved graph can be obtained lazily from the incoming resolution result of a `Configuration` and wired to an `@Input` property:
+
+.Resolved graph as task input
+====
+.Task declaration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/GraphResolvedComponents.java[tag=inputs]
+----
+.Task configuration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=graphResolvedComponents]
+----
+====
+
+The resolved set of artifacts can be obtained lazily from the incoming artifacts of a `Configuration`.
+Given the `ResolvedArtifactResult` type contains both metadata and file information, instances need to be transformed to metadata only before being wired to an `@Input` property:
+
+.Resolved artifacts as task input
+====
+.Task declaration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/ListResolvedArtifacts.java[tag=inputs]
+----
+.Task configuration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=listResolvedArtifacts]
+----
+====
+
+Both graph and flat results can be combined and augmented with resolved file information.
+This is all demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
 
 [[sec:task_input_using_classpath_annotations]]
 ===== Using the classpath annotations
@@ -704,7 +765,7 @@ When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a 
 When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to an iterable, each element is treated as a separate nested input.
 Each nested input in the iterable is assigned a name, which by default is the dollar sign followed by the index in the iterable, e.g. `$2`.
 If an element of the iterable implements `link:{javadocPath}/org/gradle/api/Named.html[Named]`, then the name is used as property name.
-The ordering of the elements in the iterable is crucial for for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
+The ordering of the elements in the iterable is crucial for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
 Multiple elements which have the same name are not allowed.
 
 When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a map, then for each value a nested input is added, using the key as name.
@@ -753,8 +814,11 @@ There are other task types where this kind of nested inputs are available:
 
 * link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:argumentProviders[JavaExec.getArgumentProviders()] - model e.g. custom tools
 * link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders[JavaExec.getJvmArgumentProviders()] - used for Jacoco Java agent
-* link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders[CompileOptions.getCompilerArgumentProviders()] - model e.g annotation processors
-* link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders[Exec.getArgumentProviders()] - model e.g custom tools
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders[CompileOptions.getCompilerArgumentProviders()] - model e.g. annotation processors
+* link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders[Exec.getArgumentProviders()] - model e.g. custom tools
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:jvmArgumentProviders[JavaCompile.getOptions().getForkOptions().getJvmArgumentProviders()] - model Java compiler daemon command line arguments
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyForkOptions.html#org.gradle.api.tasks.compile.GroovyForkOptions:jvmArgumentProviders[GroovyCompile.getGroovyOptions().getForkOptions().getJvmArgumentProviders()] - model Groovy compiler daemon command line arguments
+* link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaForkOptions.html#org.gradle.api.tasks.scala.ScalaForkOptions:jvmArgumentProviders[ScalaCompile.getScalaOptions().getForkOptions().getJvmArgumentProviders()] - model Scala compiler daemon command line arguments
 
 In the same way, this kind of modelling is available to custom tasks.
 
@@ -1119,17 +1183,20 @@ include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/in
 
 You can of course just add an explicit task dependency via `dependsOn`, but the above approach provides more semantic meaning, explaining why `compileJava` has to run beforehand.
 
-[[sec:custom_up_to_date_logic]]
-==== Providing custom up-to-date logic
+[[sec:disable-state-tracking]]
+==== Disabling up-to-date checks
 
-Gradle automatically handles up-to-date checks for output files and directories, but what if the task output is something else entirely? Perhaps it’s an update to a web service or a database table. Gradle has no way of knowing how to check whether the task is up to date in such cases.
+Gradle automatically handles up-to-date checks for output files and directories, but what if the task output is something else entirely?
+Perhaps it’s an update to a web service or a database table.
+Or sometimes you have a task which should always run.
 
-That’s where the `upToDateWhen()` method on `TaskOutputs` comes in. This takes a predicate function that is used to determine whether a task is up to date or not. One use case is to disable up-to-date checks completely for a task, like so:
+That’s where the `doNotTrackState()` method on `Task` comes in.
+One can use this to disable up-to-date checks completely for a task, like so:
 
 .Ignoring up-to-date checks
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=up-to-date-when]"]
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=up-to-date-when]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=disable-up-to-date-checks]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=disable-up-to-date-checks]"]
 
 .Output of `gradle clean alwaysInstrumentClasses`
 ----
@@ -1144,11 +1211,32 @@ include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/in
 ----
 ====
 
-The `{ false }` closure ensures that `alwaysInstrumentClasses` will always be executed, irrespective of whether there is no change in the inputs or outputs.
+If you are writing your own task that always should run, then you can also use the `@link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask]` annotation on the task class instead of calling `Task.doNotTrackState()`.
 
-You can of course put more complex logic into the closure. You could check whether a particular record in a database table exists or has changed for example. Just be aware that up-to-date checks should _save_ you time. Don’t add checks that cost as much or more time than the standard execution of the task. In fact, if a task ends up running frequently anyway, because it’s rarely up to date, then it may not be worth having an up-to-date check at all. Remember that your checks will always run if the task is in the execution task graph.
+[[sec:untracked_external_tool]]
+==== Integrate an external tool which does its own up-to-date checking
 
-One common mistake is to use `upToDateWhen()` instead of `Task.onlyIf()`. If you want to skip a task on the basis of some condition unrelated to the task inputs and outputs, then you should use `onlyIf()`. For example, in cases where you want to skip a task when a particular property is set or not set.
+Sometimes you want to integrate an external tool like Git or Npm, both of which do their own up-to-date checking.
+In that case it doesn't make much sense for Gradle to also do up-to-date checks.
+You can disable Gradle's up-to-date checks by using the `@link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask]` annotation on the task wrapping the tool.
+Alternatively, you can use the runtime API method `link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
+
+For example, let's say you want to implement a task which clones a Git repository.
+
+.Task for Git clone
+====
+[source,java]
+.buildSrc/src/main/java/org/example/GitClone.java
+----
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/GitClone.java[tag=git-clone]
+----
+
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=git-clone]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=git-clone]"]
+====
+- (1) Declare the task as untracked.
+- (2) Use the output directory to run the external tool.
+- (3) Add the task and configure the output directory in your build.
 
 [[sec:configure_input_normalization]]
 ==== Configure input normalization
@@ -1240,6 +1328,26 @@ include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="bui
 include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-completely]"]
 ====
 
+[[sec:custom_up_to_date_logic]]
+==== Providing custom up-to-date logic
+
+Gradle automatically handles up-to-date checks for output files and directories, but what if the task output is something else entirely?
+Perhaps it’s an update to a web service or a database table.
+Gradle has no way of knowing how to check whether the task is up to date in such cases.
+
+That’s where the `upToDateWhen()` method on `TaskOutputs` comes in.
+This takes a predicate function that is used to determine whether a task is up to date or not.
+For example, you could read the version number of your database schema from the database.
+Or, you could check whether a particular record in a database table exists or has changed for example.
+
+Just be aware that up-to-date checks should _save_ you time.
+Don’t add checks that cost as much or more time than the standard execution of the task.
+In fact, if a task ends up running frequently anyway, because it’s rarely up to date, then it may not be worth having no up-to-date checks at all as described in <<sec:disable-state-tracking>>.
+Remember that your checks will always run if the task is in the execution task graph.
+
+One common mistake is to use `upToDateWhen()` instead of `Task.onlyIf()`.
+If you want to skip a task on the basis of some condition unrelated to the task inputs and outputs, then you should use `onlyIf()`.
+For example, in cases where you want to skip a task when a particular property is set or not set.
 
 [[sec:stale_task_outputs]]
 === Stale task outputs
@@ -1303,7 +1411,7 @@ include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
 ----
 ====
 
-Finalizer tasks will be executed even if the finalized task fails.
+Finalizer tasks will be executed even if the finalized task fails or if the finalized task is considered up to date.
 
 .Task finalizer for a failing task
 ====
@@ -1316,8 +1424,6 @@ include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.g
 include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 ====
-
-On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example if it is considered up to date or if a dependent task fails.
 
 Finalizer tasks are useful in situations where the build creates a resource that has to be cleaned up regardless of the build failing or succeeding. An example of such a resource is a web container that is started before an integration test task and which should be always shut down, even if some of the tests fail.
 

@@ -16,14 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
-
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import spock.lang.Unroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -45,7 +43,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -71,7 +68,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -97,7 +93,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "source generation is skipped when swift sources detected with #scriptDsl build scripts"() {
         setup:

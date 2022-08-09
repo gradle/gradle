@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
@@ -90,7 +89,6 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
         container.stopContainer()
     }
 
-    @Unroll
     def "can use a read-only cache within multiple containers concurrently (daemon in container=#daemon)"() {
         given:
         def ids = (0..3)

@@ -55,6 +55,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
             work::visitIdentityInputs
         );
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
@@ -63,8 +64,8 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
         Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
         return new IdentityContext() {
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override

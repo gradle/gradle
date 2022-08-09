@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.FetchBuildEnvironment
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.GradleProject
 
 @TargetGradleVersion(">=4.1")
 class BuildListenerCrossVersionSpec extends ToolingApiSpecification {
@@ -53,9 +53,9 @@ class BuildListenerCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.model(GradleBuild)
-                .setStandardOutput(output)
-                .get()
+                connection.model(GradleProject)
+                    .setStandardOutput(output)
+                    .get()
         }
 
         then:

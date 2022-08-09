@@ -18,6 +18,9 @@ package org.gradle.initialization.exception;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 public class StackTraceSanitizingExceptionAnalyser implements ExceptionAnalyser {
     private final ExceptionAnalyser analyser;
 
@@ -28,5 +31,15 @@ public class StackTraceSanitizingExceptionAnalyser implements ExceptionAnalyser 
     @Override
     public RuntimeException transform(Throwable failure) {
         return (RuntimeException) StackTraceUtils.deepSanitize(analyser.transform(failure));
+    }
+
+    @Nullable
+    @Override
+    public RuntimeException transform(List<Throwable> failures) {
+        RuntimeException result = analyser.transform(failures);
+        if (result == null) {
+            return null;
+        }
+        return (RuntimeException) StackTraceUtils.deepSanitize(result);
     }
 }

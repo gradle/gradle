@@ -19,13 +19,25 @@ package org.gradle.kotlin.dsl.fixtures
 import org.gradle.api.Project
 
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
 import java.io.File
 
 
-fun newProjectBuilderProjectWith(projectDir: File, name: String = projectDir.name): Project =
-    newProjectBuilderWith(projectDir, name).build()
+/**
+ * Creates a new `ProjectBuilder` project and runs the given block on it.
+ */
+inline fun runWithProjectBuilderProject(projectDir: File, name: String = projectDir.name, block: Project.() -> Unit) {
+    val project = newProjectBuilderWith(projectDir, name).build()
+    try {
+        project.run(block)
+    } finally {
+        ProjectBuilderImpl.stop(project)
+    }
+}
 
 
+@PublishedApi
+internal
 fun newProjectBuilderWith(projectDir: File, name: String = projectDir.name): ProjectBuilder =
     ProjectBuilder.builder().withProjectDir(projectDir).withName(name)

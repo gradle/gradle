@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import groovy.xml.XmlParser
 import groovy.xml.XmlUtil
 import org.custommonkey.xmlunit.XMLUnit
 import org.gradle.plugins.ide.fixtures.IdeProjectFixture

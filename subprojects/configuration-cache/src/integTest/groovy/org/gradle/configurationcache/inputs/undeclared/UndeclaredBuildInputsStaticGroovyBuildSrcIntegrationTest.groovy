@@ -16,10 +16,6 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-
-import spock.lang.Issue
-
-@Issue("https://github.com/gradle/gradle-private/issues/3252")
 class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {
@@ -27,7 +23,7 @@ class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractU
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         staticGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"), read)
         buildFile << """
             apply plugin: SneakyPlugin

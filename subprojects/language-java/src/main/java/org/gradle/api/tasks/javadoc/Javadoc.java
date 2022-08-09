@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -145,6 +146,10 @@ public class Javadoc extends SourceTask {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
+        if (options.getBootClasspath() != null && !options.getBootClasspath().isEmpty()) {
+            // Added so JavaDoc has the same behavior as JavaCompile regarding the bootClasspath
+            getProjectLayout().files(options.getBootClasspath()).getAsPath();
+        }
 
         if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());
@@ -365,7 +370,7 @@ public class Javadoc extends SourceTask {
      *
      * @param block The configuration block for Javadoc generation options.
      */
-    public void options(Closure<?> block) {
+    public void options(@DelegatesTo(MinimalJavadocOptions.class) Closure<?> block) {
         ConfigureUtil.configure(block, getOptions());
     }
 

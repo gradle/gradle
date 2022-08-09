@@ -21,7 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Provides Input/OutputStream implementations that are able to encode/decode using a simple algorithm (byte<->2 digit hex string(2 bytes)).
+ * Provides Input/OutputStream implementations that are able to encode/decode using a simple algorithm (byte&lt;-&gt;2 digit hex string(2 bytes)).
  * Useful when streams are interpreted a text streams as it happens on IBM java for standard input.
  */
 public abstract class EncodedStream {

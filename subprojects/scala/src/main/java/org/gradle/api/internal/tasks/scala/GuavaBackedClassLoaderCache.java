@@ -25,7 +25,7 @@ import com.google.common.cache.RemovalNotification;
 import java.util.concurrent.Callable;
 
 /**
- * Simple guava-based classloader cache. Usually used with a very small size (< 10),
+ * Simple guava-based classloader cache. Usually used with a very small size (&lt; 10),
  * as classloaders are strongly referenced.
  *
  * Keeping them strongly referenced allows us to correctly release resources for the evicted entries.

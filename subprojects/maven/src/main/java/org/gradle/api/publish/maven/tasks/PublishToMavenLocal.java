@@ -24,12 +24,14 @@ import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to the Maven Local repository.
  *
  * @since 1.4
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class PublishToMavenLocal extends AbstractPublishToMaven {
     private final Cached<MavenNormalizedPublication> normalizedPublication = Cached.of(this::computeNormalizedPublication);
 

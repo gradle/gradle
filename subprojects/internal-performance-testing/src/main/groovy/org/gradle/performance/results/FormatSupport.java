@@ -24,6 +24,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -31,11 +33,11 @@ import static org.gradle.performance.measure.DataSeries.confidenceInDifference;
 
 public class FormatSupport {
     public static String executionTimestamp() {
-        return timestamp(new Date());
+        return timestamp(Instant.now());
     }
 
-    public static String timestamp(Date date) {
-        return format(date, "yyyy-MM-dd HH:mm:ss");
+    public static String timestamp(Instant time) {
+        return DateTimeFormatter.ISO_INSTANT.format(time);
     }
 
     public static String date(Date date) {

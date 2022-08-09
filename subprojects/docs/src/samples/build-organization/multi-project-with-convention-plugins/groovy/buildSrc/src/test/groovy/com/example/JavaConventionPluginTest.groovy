@@ -14,8 +14,8 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "fails on checkstyle error"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
+        new File(testProjectDir, 'src/main/java/com/example').mkdirs()
+        new File(testProjectDir, 'src/main/java/com/example/Foo.java') << """
             package com.example;
 
             import java.util.*;
@@ -37,8 +37,8 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "fails on checkstyle warning"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
+        new File(testProjectDir, 'src/main/java/com/example').mkdirs()
+        new File(testProjectDir, 'src/main/java/com/example/Foo.java') << """
             package com.example;
 
             class Foo {
@@ -60,8 +60,8 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "fails on spotbugs error"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
+        new File(testProjectDir, 'src/main/java/com/example').mkdirs()
+        new File(testProjectDir, 'src/main/java/com/example/Foo.java') << """
             package com.example;
 
             class Foo {
@@ -81,8 +81,8 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "warns on deprecated API usage"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
+        new File(testProjectDir, 'src/main/java/com/example').mkdirs()
+        new File(testProjectDir, 'src/main/java/com/example/Foo.java') << """
             package com.example;
 
             public class Foo {
@@ -91,7 +91,7 @@ class JavaConventionPluginTest extends PluginTest {
             }
         """
 
-        testProjectDir.newFile('src/main/java/com/example/Bar.java') << """
+        new File(testProjectDir, 'src/main/java/com/example/Bar.java') << """
             package com.example;
 
             public class Bar {

@@ -16,13 +16,11 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
-    @ToBeFixedForConfigurationCache
     def 'spring dependency management plugin'() {
         given:
         buildFile << """
@@ -50,8 +48,6 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
 
         then:
         result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')
-
-        expectNoDeprecationWarnings(result)
     }
 
     @Override

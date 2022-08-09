@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.fixtures
 
 import groovy.transform.ToString
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.GPathResult
 import org.gradle.internal.Transformers
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.CollectionUtils
@@ -41,7 +41,7 @@ class IdeaModuleFixture extends IdeProjectFixture {
     IdeaContentRoot getContent() {
         def contentRoot = iml.component.content
         def sourceFolders = contentRoot.sourceFolder.collect {
-            new SourceFolder(url: it.@url, isTestSource: "true" == it.@isTestSource)
+            new SourceFolder(url: it.@url, isTestSource: it.@isTestSource)
         }
         def excludeFolders = contentRoot.excludeFolder.collect {
             new ExcludeFolder(url: it.@url)

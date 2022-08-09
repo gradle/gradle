@@ -159,15 +159,22 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private void write(SerializedOperation operation) {
-        String json = JsonOutput.toJson(operation.toMap());
+        Thread currentThread = Thread.currentThread();
+        ClassLoader previousClassLoader = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader(JsonOutput.class.getClassLoader());
         try {
-            synchronized (logOutputStream) {
-                logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
-                logOutputStream.write(NEWLINE);
-                logOutputStream.flush();
+            String json = JsonOutput.toJson(operation.toMap());
+            try {
+                synchronized (logOutputStream) {
+                    logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
+                    logOutputStream.write(NEWLINE);
+                    logOutputStream.flush();
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            currentThread.setContextClassLoader(previousClassLoader);
         }
     }
 

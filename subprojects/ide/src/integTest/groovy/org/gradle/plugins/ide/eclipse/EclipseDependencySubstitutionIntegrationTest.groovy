@@ -47,7 +47,7 @@ project(":project2") {
 """)
 
         def classpath = classpath("project2")
-        assert classpath.projects == ["/project1"]
+        assert classpath.projects.collect { it.name } == ["project1"]
         assert classpath.libs == []
     }
 
@@ -82,7 +82,7 @@ project(":project2") {
 
         def classpath = classpath("project2")
         assert classpath.libs*.jarName == ["module1-1.0.jar"]
-        assert classpath.projects == ["/project1"]
+        assert classpath.projects.collect { it.name } == ["project1"]
     }
 
 

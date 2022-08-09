@@ -1,5 +1,8 @@
 // tag::after-evaluate[]
 allprojects {
+    // Set a default value
+    extra["hasTests"] = false
+
     afterEvaluate {
         if (extra["hasTests"] as Boolean) {
             println("Adding test task to $project")
@@ -12,7 +15,3 @@ allprojects {
     }
 }
 // end::after-evaluate[]
-
-allprojects {
-    extra["hasTests"] = false
-}

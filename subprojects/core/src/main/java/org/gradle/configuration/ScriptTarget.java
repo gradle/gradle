@@ -19,6 +19,7 @@ package org.gradle.configuration;
 import groovy.lang.Script;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.groovy.scripts.BasicScript;
+import org.gradle.groovy.scripts.internal.Permits;
 
 /**
  * A view over the target of a script. Represents the DSL that will be applied to the target.
@@ -53,4 +54,8 @@ public interface ScriptTarget {
      * @param deferrable true when the action can be deferred
      */
     void addConfiguration(Runnable runnable, boolean deferrable);
+
+    default Permits getPluginsBlockPermits() {
+        return Permits.none();
+    }
 }

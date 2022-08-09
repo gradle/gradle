@@ -76,6 +76,47 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         }
     }
 
+    def "inferred Scala class path contains 'scala3-compiler_3' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path"() {
+        project.repositories {
+            mavenCentral()
+        }
+        when:
+        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala3-library_3-3.0.1.jar")])
+        then:
+        assertHasCorrectScala3Dependencies(classpath)
+    }
+
+
+    private void assertHasCorrectScala3Dependencies(classpath) {
+        assert classpath instanceof LazilyInitializedFileCollection
+        assert classpath.sourceCollections.size() == 1
+        with(classpath.sourceCollections[0]) {
+            assert it instanceof Configuration
+            assert it.state == Configuration.State.UNRESOLVED
+            assert it.dependencies.size() == 4
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scala3-compiler_3" &&
+                    d.version == "3.0.1"
+            }
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scala3-sbt-bridge" &&
+                    d.version == "3.0.1"
+            }
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scala3-interfaces" &&
+                    d.version == "3.0.1"
+            }
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scaladoc_3" &&
+                    d.version == "3.0.1"
+            }
+        }
+    }
+
     def "inference fails if 'scalaTools' configuration is empty and no repository declared"() {
         when:
         def scalaClasspath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
@@ -99,39 +140,5 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         then:
         GradleException e = thrown()
         e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test' declare dependency to scala-library? Searched classpath:")
-    }
-
-    def "allows to find Scala Jar on class path"() {
-        when:
-        def file = project.scalaRuntime.findScalaJar([new File("other.jar"), new File("scala-jdbc-1.5.jar"), new File("scala-compiler-1.7.jar")], "jdbc")
-
-        then:
-        file.name == "scala-jdbc-1.5.jar"
-    }
-
-    def "returns null if Scala Jar not found"() {
-        when:
-        def file = project.scalaRuntime.findScalaJar([new File("other.jar"), new File("scala-jdbc-1.5.jar"), new File("scala-compiler-1.7.jar")], "library")
-
-        then:
-        file == null
-    }
-
-    def "allows to determine version of Scala Jar"() {
-        expect:
-        with(project.scalaRuntime) {
-            getScalaVersion(new File("scala-compiler-2.9.2.jar")) == "2.9.2"
-            getScalaVersion(new File("scala-jdbc-2.9.2.jar")) == "2.9.2"
-            getScalaVersion(new File("scala-library-2.10.0-SNAPSHOT.jar")) == "2.10.0-SNAPSHOT"
-            getScalaVersion(new File("scala-library-2.10.0-rc-3.jar")) == "2.10.0-rc-3"
-        }
-    }
-
-    def "returns null if Scala version cannot be determined"() {
-        expect:
-        with(project.scalaRuntime) {
-            getScalaVersion(new File("scala-compiler.jar")) == null
-            getScalaVersion(new File("groovy-compiler-2.1.0.jar")) == null
-        }
     }
 }

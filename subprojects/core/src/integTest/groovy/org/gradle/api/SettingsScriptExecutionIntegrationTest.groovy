@@ -22,13 +22,11 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
 @IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "emits deprecation warnings when enabling inactive #feature feature"() {
         given:
         settingsFile << """
@@ -74,15 +72,17 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
         if (OperatingSystem.current().windows) {
             scriptFile << """
-                exec {
+                def message = providers.exec {
                     commandLine "cmd", "/c", "type", "message"
-                }
+                }.standardOutput.asText.get()
+                print message
             """
         } else {
             scriptFile << """
-                exec {
+                def message = providers.exec {
                     commandLine "cat", "message"
-                }
+                }.standardOutput.asText.get()
+                print message
             """
         }
     }

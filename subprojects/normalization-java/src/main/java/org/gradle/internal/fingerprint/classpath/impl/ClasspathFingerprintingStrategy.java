@@ -21,20 +21,21 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.changedetection.state.DefaultRegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
+import org.gradle.api.internal.changedetection.state.LineEndingNormalizingResourceHasher;
 import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
-import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -51,6 +52,8 @@ import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierar
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -77,13 +80,15 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final Interner<String> stringInterner;
     private final HashCode zipHasherConfigurationHash;
 
-    private ClasspathFingerprintingStrategy(String identifier,
-                                           NonJarFingerprintingStrategy nonZipFingerprintingStrategy,
-                                           ResourceHasher classpathResourceHasher,
-                                           ZipHasher zipHasher,
-                                           ResourceSnapshotterCacheService cacheService,
-                                           Interner<String> stringInterner) {
-        super(identifier);
+    private ClasspathFingerprintingStrategy(
+        String identifier,
+        NonJarFingerprintingStrategy nonZipFingerprintingStrategy,
+        ResourceHasher classpathResourceHasher,
+        ZipHasher zipHasher,
+        ResourceSnapshotterCacheService cacheService,
+        Interner<String> stringInterner
+    ) {
+        super(identifier, zipHasher);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
@@ -95,8 +100,17 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         this.zipHasherConfigurationHash = hasher.hash();
     }
 
-    public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, ResourceEntryFilter manifestAttributeResourceEntryFilter, Map<String, ResourceEntryFilter> propertiesFileFilters, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
-        ResourceHasher resourceHasher = propertiesFileHasher(runtimeClasspathResourceHasher, propertiesFileFilters);
+    public static ClasspathFingerprintingStrategy runtimeClasspath(
+        ResourceFilter classpathResourceFilter,
+        ResourceEntryFilter manifestAttributeResourceEntryFilter,
+        Map<String, ResourceEntryFilter> propertiesFileFilters,
+        RuntimeClasspathResourceHasher runtimeClasspathResourceHasher,
+        ResourceSnapshotterCacheService cacheService,
+        Interner<String> stringInterner,
+        LineEndingSensitivity lineEndingSensitivity
+    ) {
+        ResourceHasher resourceHasher = LineEndingNormalizingResourceHasher.wrap(runtimeClasspathResourceHasher, lineEndingSensitivity);
+        resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
         resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
         resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);
         ZipHasher zipHasher = new ZipHasher(resourceHasher);
@@ -123,11 +137,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
     private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher delegate, ResourceEntryFilter manifestAttributeResourceEntryFilter) {
         return new MetaInfAwareClasspathResourceHasher(delegate, manifestAttributeResourceEntryFilter);
-    }
-
-    @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
-        return "";
     }
 
     @Override
@@ -209,23 +218,28 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         @Nullable
         private HashCode hashContent(RegularFileSnapshot fileSnapshot, RelativePathSupplier relativePath) {
             RegularFileSnapshotContext fileSnapshotContext = new DefaultRegularFileSnapshotContext(() -> Iterables.toArray(relativePath.getSegments(), String.class), fileSnapshot);
-            if (ZipHasher.isZipFile(fileSnapshotContext.getSnapshot().getName())) {
-                return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
-            } else if (relativePath.isRoot()) {
-                return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
-            } else {
-                return classpathResourceHasher.hash(fileSnapshotContext);
+            try {
+                if (ZipHasher.isZipFile(fileSnapshotContext.getSnapshot().getName())) {
+                    return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
+                } else if (relativePath.isRoot()) {
+                    return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
+                } else {
+                    return classpathResourceHasher.hash(fileSnapshotContext);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(failedToNormalize(fileSnapshot), e);
+            } catch (UncheckedIOException e) {
+                throw new UncheckedIOException(failedToNormalize(fileSnapshot), e.getCause());
             }
+        }
+
+        private String failedToNormalize(RegularFileSnapshot snapshot) {
+            return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
         }
     }
 
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.KEEP_ORDER;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return DirectorySensitivity.DEFAULT;
     }
 }

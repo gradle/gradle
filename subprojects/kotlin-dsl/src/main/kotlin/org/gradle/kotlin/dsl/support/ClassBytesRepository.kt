@@ -20,8 +20,6 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-
 import com.google.common.annotations.VisibleForTesting
 
 import java.io.Closeable
@@ -84,7 +82,7 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
 
     private
     fun classBytesSupplierForFilePath(classFilePath: String): ClassBytesSupplier? =
-        classBytesIndex.firstNotNullResult { it(classFilePath) }
+        classBytesIndex.asSequence().mapNotNull { it(classFilePath) }.firstOrNull()
 
     private
     fun sourceNamesFrom(entry: File): Sequence<String> =

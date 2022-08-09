@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.internal.Transformers;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -45,6 +47,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  * @deprecated This class is scheduled for removal in Gradle 8.0. To upload artifacts, use the maven-publish plugin instead.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Produces no cacheable output")
 public class Upload extends ConventionTask {
 
     private Configuration configuration;
@@ -126,7 +129,7 @@ public class Upload extends ConventionTask {
     /**
      * Configures the set of repositories to upload to.
      */
-    public RepositoryHandler repositories(@Nullable Closure configureClosure) {
+    public RepositoryHandler repositories(@Nullable @DelegatesTo(RepositoryHandler.class) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
