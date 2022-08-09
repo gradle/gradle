@@ -63,7 +63,7 @@ public class DependencyNotationParser {
             .toComposite();
     }
 
-    public static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, DefaultExternalModuleDependency> {
+    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, DefaultExternalModuleDependency> {
         private final Instantiator instantiator;
         private final ImmutableAttributesFactory attributesFactory;
         private final NotationParser<Object, Capability> capabilityNotationParser;
