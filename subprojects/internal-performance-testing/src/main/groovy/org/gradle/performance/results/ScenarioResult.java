@@ -31,12 +31,12 @@ public class ScenarioResult {
     }
 
     private final Status status;
-    private final List<ScenarioBuildResultData> individualResults;
-    private final List<ScenarioBuildResultData.ExecutionData> currentBuildExecutions = new ArrayList<>();
-    private final List<ScenarioBuildResultData.ExecutionData> recentExecutions = new ArrayList<>();
+    private final List<PerformanceTestExecutionResult> individualResults;
+    private final List<PerformanceReportScenarioHistoryExecution> currentBuildExecutions = new ArrayList<>();
+    private final List<PerformanceReportScenarioHistoryExecution> recentExecutions = new ArrayList<>();
     private final boolean crossVersion;
 
-    public ScenarioResult(Status status, List<ScenarioBuildResultData> individualResults, boolean crossVersion) {
+    public ScenarioResult(Status status, List<PerformanceTestExecutionResult> individualResults, boolean crossVersion) {
         this.status = status;
         this.individualResults = individualResults;
         this.crossVersion = crossVersion;
@@ -46,15 +46,15 @@ public class ScenarioResult {
         return status;
     }
 
-    public List<ScenarioBuildResultData> getIndividualResults() {
+    public List<PerformanceTestExecutionResult> getIndividualResults() {
         return individualResults;
     }
 
-    public List<ScenarioBuildResultData.ExecutionData> getCurrentBuildExecutions() {
+    public List<PerformanceReportScenarioHistoryExecution> getCurrentBuildExecutions() {
         return currentBuildExecutions;
     }
 
-    public List<ScenarioBuildResultData.ExecutionData> getRecentExecutions() {
+    public List<PerformanceReportScenarioHistoryExecution> getRecentExecutions() {
         return recentExecutions;
     }
 

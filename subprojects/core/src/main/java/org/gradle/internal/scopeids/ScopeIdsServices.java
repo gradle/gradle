@@ -17,8 +17,8 @@
 package org.gradle.internal.scopeids;
 
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
 
@@ -26,11 +26,11 @@ import org.gradle.internal.id.UniqueId;
 public class ScopeIdsServices {
 
     protected PersistentScopeIdLoader createPersistentScopeIdLoader(
-        ProjectCacheDir projectCacheDir,
-        CacheScopeMapping cacheScopeMapping,
+        GlobalScopedCache globalScopedCache,
+        BuildTreeScopedCache buildTreeScopedCache,
         PersistentScopeIdStoreFactory persistentScopeIdStoreFactory
     ) {
-        return new DefaultPersistentScopeIdLoader(projectCacheDir, cacheScopeMapping, persistentScopeIdStoreFactory, UniqueId.factory());
+        return new DefaultPersistentScopeIdLoader(globalScopedCache, buildTreeScopedCache, persistentScopeIdStoreFactory, UniqueId.factory());
     }
 
     protected PersistentScopeIdStoreFactory createPersistentScopeIdStoreFactory(

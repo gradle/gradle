@@ -26,12 +26,13 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
@@ -93,13 +94,12 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
 
 
     private
-    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
-        if (enabledJitAccessors(project)) {
-            require(classLoaderScopeOf(project).isLocked) {
-                "project.classLoaderScope must be locked before querying the project schema"
-            }
-            projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
-        } else null
+    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? {
+        require(classLoaderScopeOf(project).isLocked) {
+            "project.classLoaderScope must be locked before querying the project schema"
+        }
+        return projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
+    }
 }
 
 
@@ -163,7 +163,8 @@ class GenerateProjectAccessors(
             FileValueSupplier(
                 classPath,
                 ClasspathNormalizer::class.java,
-                DirectorySensitivity.IGNORE_DIRECTORIES
+                DirectorySensitivity.IGNORE_DIRECTORIES,
+                LineEndingSensitivity.DEFAULT,
             ) { fileCollectionFactory.fixed(classPath.asFiles) }
         )
     }
@@ -570,13 +571,6 @@ fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
 }
 
 
-private
-fun enabledJitAccessors(project: Project) =
-    project.findProperty("org.gradle.kotlin.dsl.accessors")?.let {
-        it != "false" && it != "off"
-    } ?: true
-
-
 internal
 fun IO.writeAccessorsTo(
     outputFile: File,
@@ -621,6 +615,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 

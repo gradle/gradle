@@ -16,7 +16,6 @@
 
 package org.gradle.play.integtest.external
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.external.RunningPlayApp
 
@@ -31,7 +30,6 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def "can run play app multiple times with continuous build" () {
         when:
         succeeds("runPlay")
@@ -43,22 +41,21 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         file("conf/routes") << "\n# changed"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         when:
         file("conf/routes") << "\n# changed again"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         when:
         file("conf/routes") << "\n# changed yet again"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
     }
 
-    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def "build failure prior to launch does not prevent launch on subsequent build" () {
         executer.withStackTraceChecksDisabled()
         def original = file("app/controllers/Application.scala").text
@@ -73,7 +70,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         file("app/controllers/Application.scala").text = original
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         and:
         appIsRunningAndDeployed()

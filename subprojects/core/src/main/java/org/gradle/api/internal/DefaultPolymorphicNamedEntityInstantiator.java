@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public class DefaultPolymorphicNamedEntityInstantiator<T> implements PolymorphicNamedEntityInstantiator<T> {
     private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
     private final Class<? extends T> baseType;
@@ -68,7 +66,7 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
             String message = String.format("Cannot register a factory for type %s because it is not a subtype of container element type %s.", type.getSimpleName(), baseType.getSimpleName());
             throw new IllegalArgumentException(message);
         }
-        if(factories.containsKey(type)){
+        if (factories.containsKey(type)) {
             throw new GradleException(String.format("Cannot register a factory for type %s because a factory for this type is already registered.", type.getSimpleName()));
         }
         factories.put(type, factory);
@@ -77,16 +75,5 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
     @Override
     public Set<? extends Class<? extends T>> getCreatableTypes() {
         return ImmutableSet.copyOf(factories.keySet());
-    }
-
-    public void copyFactoriesFrom(DefaultPolymorphicNamedEntityInstantiator<T> source) {
-        for (Class<? extends T> languageType : source.factories.keySet()) {
-            copyFactory(source, languageType);
-        }
-    }
-
-    <U extends T> void copyFactory(DefaultPolymorphicNamedEntityInstantiator<T> source, Class<U> type) {
-        NamedDomainObjectFactory<U> factory = uncheckedCast(source.factories.get(type));
-        registerFactory(type, factory);
     }
 }

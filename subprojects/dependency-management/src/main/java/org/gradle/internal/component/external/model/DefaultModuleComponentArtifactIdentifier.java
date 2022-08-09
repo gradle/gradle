@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component.external.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 
@@ -45,20 +45,9 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public String getFileName() {
-        String classifier = GUtil.isTrue(name.getClassifier()) ? "-" + name.getClassifier() : "";
-        String extension = GUtil.isTrue(name.getExtension()) ? "." + name.getExtension() : "";
+        String classifier = StringUtils.isNotEmpty(name.getClassifier()) ? "-" + name.getClassifier() : "";
+        String extension = StringUtils.isNotEmpty(name.getExtension()) ? "." + name.getExtension() : "";
         return name.getName() + "-" + componentIdentifier.getVersion() + classifier + extension;
-    }
-
-    @Override
-    public ModuleComponentArtifactIdentifier getSignatureArtifactId() {
-        return new DefaultModuleComponentArtifactIdentifier(
-            componentIdentifier,
-            name.getName(),
-            "asc",
-            name.getType() + ".asc",
-            name.getClassifier()
-        );
     }
 
     @Override

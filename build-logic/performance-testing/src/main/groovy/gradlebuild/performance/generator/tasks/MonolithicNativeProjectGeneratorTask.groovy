@@ -17,6 +17,7 @@
 package gradlebuild.performance.generator.tasks
 
 import gradlebuild.performance.generator.TestProject
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Generates native projects with prebuilt library dependencies, using a non-standard layout
@@ -34,6 +35,7 @@ import gradlebuild.performance.generator.TestProject
  * to build multiple components where none/some/a lot of the source files are shared between components
  * in a way that doesn't allow us to reuse the compilation steps (we don't do this now).
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     def generateRootProject() {

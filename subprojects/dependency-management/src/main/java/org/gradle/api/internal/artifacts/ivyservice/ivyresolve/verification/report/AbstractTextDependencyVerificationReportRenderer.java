@@ -43,6 +43,9 @@ abstract class AbstractTextDependencyVerificationReportRenderer implements Depen
                 sb.append("signatures and ");
             }
             sb.append("checksums.");
+            if (highLevelErrors.hasFailedSignatures() && highLevelErrors.isKeyServersDisabled()) {
+                sb.append(" Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys.");
+            }
             legend(sb.toString());
         }
         if (highLevelErrors.canSuggestWriteMetadata()) {

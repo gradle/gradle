@@ -23,7 +23,7 @@ class UndeclaredBuildInputsDynamicGroovyBuildScriptIntegrationTest extends Abstr
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         groovyDsl(buildFile, read)
     }
 }

@@ -4,13 +4,15 @@ plugins {
     id("gradlebuild.performance-templates")
 }
 
+description = "Performance tests for the Gradle build tool"
+
 dependencies {
     performanceTestImplementation(project(":base-services"))
+    performanceTestImplementation(project(":enterprise-operations"))
     performanceTestImplementation(project(":core"))
     performanceTestImplementation(project(":model-core"))
     performanceTestImplementation(project(":core-api"))
     performanceTestImplementation(project(":build-option"))
-    performanceTestImplementation(project(":internal-android-performance-testing"))
     performanceTestImplementation(libs.slf4jApi)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.commonsCompress)

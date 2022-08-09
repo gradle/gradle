@@ -24,8 +24,11 @@ import org.gradle.nativeplatform.fixtures.HostPlatform
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assume
 
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
 class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
     @ToBeFixedForConfigurationCache
     def "user receives reasonable error message when no tool chains are available"() {

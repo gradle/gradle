@@ -17,10 +17,8 @@
 package org.gradle.testing.internal.util
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RetryUtilTest extends Specification {
-    @Unroll
     def "exceed retry count of #retryCount throws last exception"() {
         given:
         def closure = Mock(Closure)

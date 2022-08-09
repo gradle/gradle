@@ -17,8 +17,8 @@
 package org.gradle.performance.results.report;
 
 import com.google.common.collect.Sets;
+import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.ResultsStore;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -45,8 +45,8 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected String getTableTitle() {
-                int total = executionDataProvider.getScenarioExecutionData().size();
-                long flakyCount = executionDataProvider.getScenarioExecutionData().stream().filter(FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).count();
+                int total = executionDataProvider.getReportScenarios().size();
+                long flakyCount = executionDataProvider.getReportScenarios().stream().filter(FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).count();
                 return "Scenarios ( total: " + total + ", flaky: " + flakyCount + ")";
             }
 
@@ -56,27 +56,27 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             @Override
-            protected List<ScenarioBuildResultData> getCrossVersionScenarios() {
-                return new ArrayList<>(executionDataProvider.getScenarioExecutionData());
+            protected List<PerformanceReportScenario> getCrossVersionScenarios() {
+                return new ArrayList<>(executionDataProvider.getReportScenarios());
             }
 
             @Override
-            protected List<ScenarioBuildResultData> getCrossBuildScenarios() {
+            protected List<PerformanceReportScenario> getCrossBuildScenarios() {
                 return Collections.emptyList();
             }
 
             @Override
-            protected String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
+            protected String determineScenarioBackgroundColorCss(PerformanceReportScenario scenario) {
                 return isFlaky(scenario) ? "alert-warning" : "alert-info";
             }
 
             @Override
-            protected Set<Tag> determineTags(ScenarioBuildResultData scenario) {
+            protected Set<Tag> determineTags(PerformanceReportScenario scenario) {
                 return isFlaky(scenario) ? Sets.newHashSet(FLAKY) : Collections.emptySet();
             }
 
             @Override
-            protected void renderScenarioButtons(int index, ScenarioBuildResultData scenario) {
+            protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {
             }
         };
     }

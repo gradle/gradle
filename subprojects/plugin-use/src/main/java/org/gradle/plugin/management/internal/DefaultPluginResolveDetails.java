@@ -23,7 +23,7 @@ import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
-    private static final NotationParser<Object, ModuleVersionSelector> NOTATION_PARSER = ModuleVersionSelectorParsers.parser();
+    private static final NotationParser<Object, ModuleVersionSelector> USE_MODULE_NOTATION_PARSER = ModuleVersionSelectorParsers.parser("useModule()");
 
     private final PluginRequestInternal pluginRequest;
     private PluginRequestInternal targetPluginRequest;
@@ -46,7 +46,7 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
             targetPluginRequest.isApply(),
             targetPluginRequest.getLineNumber(),
             targetPluginRequest.getScriptDisplayName(),
-            NOTATION_PARSER.parseNotation(notation),
+            USE_MODULE_NOTATION_PARSER.parseNotation(notation),
             targetPluginRequest.getOriginalRequest()
         );
     }

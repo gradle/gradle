@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -49,12 +50,14 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
 /**
  * Base task for linking a native binary from object files and libraries.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     private final RegularFileProperty linkedFile;
     private final DirectoryProperty destinationDirectory;
@@ -157,9 +160,10 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The source object files to be passed to the linker.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }

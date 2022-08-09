@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.encoding.Identifier
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
@@ -140,13 +139,12 @@ dependencies {
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(58)
+        failure.assertHasLineNumber(53)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
     }
 
-    @Unroll
     def "can access Ivy metadata with #identifier characters"() {
         given:
         def branch = identifier.safeForBranch().decorate("branch")

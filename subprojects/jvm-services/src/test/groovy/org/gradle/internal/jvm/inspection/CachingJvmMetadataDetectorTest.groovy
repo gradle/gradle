@@ -18,30 +18,32 @@ package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.nio.file.Files
 
 class CachingJvmMetadataDetectorTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder
+    @TempDir
+    File temporaryFolder
 
     def "returned metadata from delegate"() {
         def metadata = Mock(JvmInstallationMetadata)
         given:
         def delegate = Mock(JvmMetadataDetector) {
-            getMetadata(_ as File) >> metadata
+            getMetadata(_ as InstallationLocation) >> metadata
         }
 
         def detector = new CachingJvmMetadataDetector(delegate)
 
         when:
-        def actual = detector.getMetadata(new File("jdk"))
+        def actual = detector.getMetadata(testLocation("jdk"))
 
         then:
         actual.is(metadata)
@@ -50,14 +52,14 @@ class CachingJvmMetadataDetectorTest extends Specification {
     def "caches metadata by home"() {
         given:
         def delegate = Mock(JvmMetadataDetector) {
-            getMetadata(_ as File) >> Mock(JvmInstallationMetadata)
+            getMetadata(_ as InstallationLocation) >> Mock(JvmInstallationMetadata)
         }
 
         def detector = new CachingJvmMetadataDetector(delegate)
 
         when:
-        def metadata1 = detector.getMetadata(new File("jdk"))
-        def metadata2 = detector.getMetadata(new File("jdk"))
+        def metadata1 = detector.getMetadata(testLocation("jdk"))
+        def metadata2 = detector.getMetadata(testLocation("jdk"))
 
         then:
         metadata1.is(metadata2)
@@ -69,20 +71,47 @@ class CachingJvmMetadataDetectorTest extends Specification {
         NativeServicesTestFixture.initialize()
         def metaDataDetector = new DefaultJvmMetadataDetector(
             TestFiles.execHandleFactory(),
-            TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root)
+            TestFiles.tmpDirTemporaryFileProvider(temporaryFolder)
         )
         def detector = new CachingJvmMetadataDetector(metaDataDetector)
         File javaHome1 = Jvm.current().javaHome
-        def link = new TestFile(temporaryFolder.newFolder(), "jdklink")
+        def link = new TestFile(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "jdklink")
         link.createLink(javaHome1)
 
         when:
-        def metadata1 = detector.getMetadata(link)
+        def metadata1 = detector.getMetadata(testLocation(link.absolutePath))
         link.createLink(new File("doesntExist"))
-        def metadata2 = detector.getMetadata(link)
+        def metadata2 = detector.getMetadata(testLocation(link.absolutePath))
 
         then:
         metadata1.javaHome.toString().contains(Jvm.current().javaHome.canonicalPath)
         metadata2.errorMessage.contains("No such directory")
+    }
+
+
+    def "invalidation takes predicate into account"() {
+        def location1 = testLocation("jdk1")
+        def location2 = testLocation("jdk2")
+        def metadata1 = Mock(JvmInstallationMetadata)
+        def metadata2 = Mock(JvmInstallationMetadata)
+        def delegate = Mock(JvmMetadataDetector) {
+            getMetadata(location1) >> metadata1
+            getMetadata(location2) >> metadata2
+        }
+        def metadataDetector = new CachingJvmMetadataDetector(delegate)
+        metadataDetector.getMetadata(location1)
+        metadataDetector.getMetadata(location2)
+
+        when: "cache gets invalidated by predicate, and some calls are made that match it and some that don't"
+        metadataDetector.invalidateItemsMatching(it -> it == metadata1)
+        metadataDetector.getMetadata(location1)
+        metadataDetector.getMetadata(location2)
+        then: "only the calls that don't match the predicate get executed again"
+        1 * delegate.getMetadata(location1)
+        0 * delegate.getMetadata(location2)
+    }
+
+    private InstallationLocation testLocation(String filePath) {
+        return new InstallationLocation(new File(filePath), "test")
     }
 }

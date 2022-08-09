@@ -21,8 +21,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 
+@DisableCachingByDefault(because = "Has no cacheable output")
 abstract class KillLeakingJavaProcesses : DefaultTask() {
     @get:Internal
     abstract val tracker: Property<DaemonTracker>

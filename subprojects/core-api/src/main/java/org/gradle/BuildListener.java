@@ -64,6 +64,8 @@ public interface BuildListener {
      * <p>Called when the build is completed. All selected tasks have been executed.</p>
      *
      * @param result The result of the build. Never null.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void buildFinished(BuildResult result);
 }

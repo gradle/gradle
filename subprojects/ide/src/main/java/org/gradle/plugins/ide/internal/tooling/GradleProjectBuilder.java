@@ -97,6 +97,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
             return tasks.getNames().stream().map(t -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), t)).collect(Collectors.toList());
         }
 
+        tasks.discoverTasks();
         tasks.realize();
         SortedSet<String> taskNames = tasks.getNames();
         List<LaunchableGradleTask> out = new ArrayList<LaunchableGradleTask>(taskNames.size());

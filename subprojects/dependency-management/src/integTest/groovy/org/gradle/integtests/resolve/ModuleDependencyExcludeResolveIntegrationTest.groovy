@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
@@ -112,7 +111,6 @@ task check(type: Sync) {
      *
      * Exclude is applied to dependency a->b
      */
-    @Unroll
     def "dependency exclude for group or module applies to child module of dependency (#excluded)"() {
         given:
         def expectResolved = ['a', 'b', 'c', 'd', 'e'] - expectExcluded
@@ -206,7 +204,6 @@ task check(type: Sync) {
      *
      * Selective exclusions are applied to dependency a->b
      */
-    @Unroll
     def "can exclude transitive dependencies (#condition)"() {
         repository {
             'a:a:1.0' {
@@ -541,5 +538,74 @@ task check(type: Sync) {
                 }
             }
         }
+    }
+
+
+    /**
+     * In the project, dependency `c` will be rewritten to dependency `b`.
+     * If we exclude dependency b, both the direct request dependency `b`
+     * and the dependency rewritten from `c` will be excluded
+     * with their transitive dependencies.
+     *
+     * Dependency graph:
+     * a -> b, c, f, g
+     * b -> d
+     * c -> e
+     *
+     * Exclude is applied to configuration conf
+     */
+    def "ensure renamed dependencies are exclude correctly"() {
+        given:
+        buildFile << """
+configurations {
+    conf {
+        exclude group: 'b', module: 'b'
+        resolutionStrategy {
+            dependencySubstitution {
+                all {
+                    if (it.requested instanceof ModuleComponentSelector) {
+                        if (it.requested.group == 'c' && it.requested.module == 'c') {
+                            it.useTarget group: 'b', name: 'b', version: '1.0'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+        def expectResolved = ['a', 'f', 'g']
+        repository {
+            'a:a:1.0' {
+                dependsOn 'b:b:1.0'
+                dependsOn 'c:c:1.0'
+                dependsOn 'f:f:1.0'
+                dependsOn 'g:g:1.0'
+            }
+            'b:b:1.0' {
+                dependsOn 'd:d:1.0'
+            }
+            'c:c:1.0' {
+                dependsOn 'e:e:1.0'
+            }
+            'd:d:1.0'()
+            'e:e:1.0'()
+            'f:f:1.0'()
+            'g:g:1.0'()
+        }
+
+        repositoryInteractions {
+            expectResolved.each {
+                "${it}:${it}:1.0" { expectResolve() }
+            }
+        }
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        def resolvedJars = expectResolved.collect { it + '-1.0.jar'}
+        assertResolvedFiles(resolvedJars)
     }
 }

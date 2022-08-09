@@ -41,17 +41,17 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     @Override
     public Request createRequest(UnitOfWork work) {
         return new Request() {
-            private String rebuildReason;
+            private String nonIncrementalReason;
             private WorkValidationContext validationContext;
 
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
-                    : new DefaultWorkValidationContext(documentationRegistry);
+                    : new DefaultWorkValidationContext(documentationRegistry, work.getTypeOriginInspector());
                 return new ExecutionRequestContext() {
                     @Override
-                    public Optional<String> getRebuildReason() {
-                        return Optional.ofNullable(rebuildReason);
+                    public Optional<String> getNonIncrementalReason() {
+                        return Optional.ofNullable(nonIncrementalReason);
                     }
 
                     @Override
@@ -62,8 +62,8 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             }
 
             @Override
-            public void forceRebuild(String rebuildReason) {
-                this.rebuildReason = rebuildReason;
+            public void forceNonIncremental(String nonIncremental) {
+                this.nonIncrementalReason = nonIncremental;
             }
 
             @Override

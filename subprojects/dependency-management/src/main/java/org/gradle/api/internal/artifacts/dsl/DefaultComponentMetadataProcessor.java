@@ -162,7 +162,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             Action<ComponentMetadataContext> action = collectRulesAndCreateAction(metadataRuleContainer.getOnlyClassRules(), metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
             if (action instanceof InstantiatingAction) {
                 InstantiatingAction<ComponentMetadataContext> ia = (InstantiatingAction<ComponentMetadataContext>) action;
-                if (ia.getRules().isCacheable()) {
+                if (shouldCacheComponentMetadataRule(ia, metadata)) {
                     updatedMetadata = processClassRuleWithCaching(ia, metadata, metadataResolutionContext);
                 } else {
                     MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
@@ -183,6 +183,10 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             throw new ModuleVersionResolveException(updatedMetadata.getModuleVersionId(), () -> String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().getDisplayName(), updatedMetadata.getStatusScheme()));
         }
         return updatedMetadata;
+    }
+
+    private boolean shouldCacheComponentMetadataRule(InstantiatingAction<ComponentMetadataContext> action, ModuleComponentResolveMetadata metadata) {
+        return action.getRules().isCacheable() && metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     protected ComponentMetadataDetails createDetails(MutableModuleComponentResolveMetadata mutableMetadata) {

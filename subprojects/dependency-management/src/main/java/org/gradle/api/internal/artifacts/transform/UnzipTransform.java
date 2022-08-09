@@ -24,7 +24,10 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.UncheckedException;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -35,19 +38,22 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 /**
  * Provides a generic transform from a zipped file to an extracted directory.  The extracted directory
  * is located in the output directory of the transform and is named after the zipped file name
  * minus the extension.
  */
-public interface UnzipTransform extends TransformAction<TransformParameters.None> {
+@DisableCachingByDefault(because = "Not worth caching")
+public abstract class UnzipTransform implements TransformAction<TransformParameters.None> {
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
-    Provider<FileSystemLocation> getZippedFile();
+    public abstract Provider<FileSystemLocation> getZippedFile();
 
     @Override
-    default void transform(TransformOutputs outputs) {
+    public void transform(TransformOutputs outputs) {
         File zippedFile = getZippedFile().get().getAsFile();
         String unzippedDirName = removeExtension(zippedFile.getName());
         File unzipDir = outputs.dir(unzippedDirName);
@@ -58,14 +64,14 @@ public interface UnzipTransform extends TransformAction<TransformParameters.None
         }
     }
 
-    static void unzipTo(File headersZip, File unzipDir) throws IOException {
+    private static void unzipTo(File headersZip, File unzipDir) throws IOException {
         try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)))) {
             ZipEntry entry;
             while ((entry = inputStream.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
                     continue;
                 }
-                File outFile = new File(unzipDir, entry.getName());
+                File outFile = new File(unzipDir, safeZipEntryName(entry.getName()));
                 Files.createParentDirs(outFile);
                 try (FileOutputStream outputStream = new FileOutputStream(outFile)) {
                     IOUtils.copyLarge(inputStream, outputStream);

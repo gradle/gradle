@@ -14,6 +14,7 @@ class TestClassPathProvider implements CommandLineArgumentProvider {
 
     @Override
     List<String> asArguments() {
-        ["-DexpectedClassPath=${testClasspath.asPath}".toString()]
+        FileCollection filteredTestClasspath = testClasspath.filter { f -> f.exists() || ("*".equals(f.getName()) && f.getParentFile() != null && f.getParentFile().exists()) }
+        ["-DexpectedClassPath=${filteredTestClasspath.asPath}".toString()]
     }
 }

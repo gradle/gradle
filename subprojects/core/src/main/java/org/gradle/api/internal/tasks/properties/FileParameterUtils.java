@@ -104,8 +104,15 @@ public class FileParameterUtils {
      *
      * Especially, values of type {@link Map} are resolved.
      */
-    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType,
-                                                      FileCollectionFactory fileCollectionFactory, boolean locationOnly, Consumer<OutputFilePropertySpec> consumer) {
+    public static void resolveOutputFilePropertySpecs(
+        String ownerDisplayName,
+        String propertyName,
+        PropertyValue value,
+        OutputFilePropertyType filePropertyType,
+        FileCollectionFactory fileCollectionFactory,
+        boolean locationOnly,
+        Consumer<OutputFilePropertySpec> consumer
+    ) {
         Object unpackedValue = value.getUnprocessedValue();
         unpackedValue = DeferredUtil.unpackNestableDeferred(unpackedValue);
         if (locationOnly && unpackedValue instanceof FileSystemLocationProperty) {

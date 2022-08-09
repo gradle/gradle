@@ -195,6 +195,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult)
         0 * listener._
@@ -209,6 +210,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult)
         0 * listener._
@@ -224,6 +226,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle) >> { throw failure }
         1 * listener.executionFinished(execHandle, _ as ExecResult) >> { ExecHandle h, ExecResult r ->
             assert r.failure.cause == failure
@@ -245,6 +248,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult) >> { throw failure }
         0 * listener._
@@ -264,6 +268,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult) >> { throw failure }
         0 * listener._
@@ -321,6 +326,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         then:
         out.toString().contains "I'm the daemon"
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         0 * listener.executionFinished(_, _)
 
@@ -328,7 +334,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.abort()
     }
 
-    @Ignore //not yet implemented
     void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build()
@@ -347,7 +352,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    @Ignore //not yet implemented
     void "can detach from fast app then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build()
@@ -480,7 +484,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             System.out.println("I'm the daemon")
             System.out.close()
             System.err.close()
-            int napTime = (args.length == 0) ? 10000L : Integer.valueOf(args[0])
+            int napTime = (args.length == 0) ? 10000L : Integer.parseInt(args[0])
             Thread.sleep(napTime)
         }
     }

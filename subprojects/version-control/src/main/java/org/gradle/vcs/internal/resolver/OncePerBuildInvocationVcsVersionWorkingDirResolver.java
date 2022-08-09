@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.function.Supplier;
 
 /**
- * Ensures that a given resolution from (repo + selector) -> working dir is performed once per build invocation. Allows resolution for different repos to happen in parallel.
+ * Ensures that a given resolution from (repo + selector) -&gt; working dir is performed once per build invocation. Allows resolution for different repos to happen in parallel.
  */
 @ThreadSafe
 public class OncePerBuildInvocationVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {

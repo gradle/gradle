@@ -21,22 +21,23 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
-import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
+import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.security.internal.EmptyPublicKeyService;
 import org.gradle.security.internal.Fingerprint;
-import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyDownloadService;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
-import org.gradle.security.internal.PublicKeyServiceChain;
 import org.gradle.security.internal.SecuritySupport;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -44,63 +45,71 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
+@ServiceScope(Scopes.Build.class)
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
-    private final HttpConnectorFactory httpConnectorFactory;
-    private final CacheRepository cacheRepository;
+
+    private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
+
+    private final RepositoryTransportFactory transportFactory;
+    private final GlobalScopedCache cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final FileHasher fileHasher;
-    private final CacheScopeMapping scopeCacheMapping;
-    private final ProjectCacheDir projectCacheDir;
+    private final BuildScopedCache buildScopedCache;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
 
-    public DefaultSignatureVerificationServiceFactory(HttpConnectorFactory httpConnectorFactory,
-                                                      CacheRepository cacheRepository,
+    public DefaultSignatureVerificationServiceFactory(RepositoryTransportFactory transportFactory,
+                                                      GlobalScopedCache cacheRepository,
                                                       InMemoryCacheDecoratorFactory decoratorFactory,
                                                       BuildOperationExecutor buildOperationExecutor,
                                                       FileHasher fileHasher,
-                                                      CacheScopeMapping scopeCacheMapping,
-                                                      ProjectCacheDir projectCacheDir,
+                                                      BuildScopedCache buildScopedCache,
                                                       BuildCommencedTimeProvider timeProvider,
                                                       boolean refreshKeys) {
-        this.httpConnectorFactory = httpConnectorFactory;
+        this.transportFactory = transportFactory;
         this.cacheRepository = cacheRepository;
         this.decoratorFactory = decoratorFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.fileHasher = fileHasher;
-        this.scopeCacheMapping = scopeCacheMapping;
-        this.projectCacheDir = projectCacheDir;
+        this.buildScopedCache = buildScopedCache;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
     }
 
     @Override
-    public SignatureVerificationService create(File keyringsFile, List<URI> keyServers) {
-        ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
-        });
-        PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
-        PublicKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
-        if (keyringsFile.exists()) {
-            KeyringFilePublicKeyService keyringFilePublicKeyService = new KeyringFilePublicKeyService(keyringsFile);
-            keyService = PublicKeyServiceChain.of(keyringFilePublicKeyService, keyService);
+    public SignatureVerificationService create(BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers) {
+        boolean refreshKeys = this.refreshKeys || !useKeyServers;
+        ExternalResourceRepository repository = transportFactory.createTransport("https", "https", Collections.emptyList(), redirectLocations -> {}).getRepository();
+        PublicKeyService keyService;
+        if (useKeyServers) {
+            PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), repository);
+            keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+        } else {
+            keyService = EmptyPublicKeyService.getInstance();
         }
+        keyService = keyrings.applyTo(keyService);
+        File effectiveKeyringsFile = keyrings.getEffectiveKeyringsFile();
+        HashCode keyringFileHash = effectiveKeyringsFile != null && effectiveKeyringsFile.exists()
+            ? fileHasher.hash(effectiveKeyringsFile)
+            : NO_KEYRING_FILE_HASH;
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
         return new CrossBuildSignatureVerificationService(
             delegate,
             fileHasher,
-            scopeCacheMapping,
-            projectCacheDir,
-            cacheRepository,
+            buildScopedCache,
             decoratorFactory,
             timeProvider,
-            refreshKeys
+            refreshKeys,
+            useKeyServers,
+            keyringFileHash
         );
     }
 

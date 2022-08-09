@@ -22,7 +22,6 @@ import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -30,6 +29,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -70,14 +70,14 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final ProducerGuard<Fingerprint> fingerPrintguard = ProducerGuard.adaptive();
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 
-    public CrossBuildCachingKeyService(CacheRepository cacheRepository,
+    public CrossBuildCachingKeyService(GlobalScopedCache cacheRepository,
                                        InMemoryCacheDecoratorFactory decoratorFactory,
                                        BuildOperationExecutor buildOperationExecutor,
                                        PublicKeyService delegate,
                                        BuildCommencedTimeProvider timeProvider,
                                        boolean refreshKeys) {
         cache = cacheRepository
-            .cache("keyrings")
+            .crossVersionCache("keyrings")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();
@@ -115,7 +115,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             // if a key was found in the cache, it's permanent
             return false;
         }
-        long elapsed = key.timestamp - timeProvider.getCurrentTime();
+        long elapsed = timeProvider.getCurrentTime() - key.timestamp;
         return refreshKeys || elapsed > MISSING_KEY_TIMEOUT;
     }
 
@@ -253,34 +253,6 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
                 encoder.writeBoolean(false);
             }
         }
-    }
-
-    private static class PublicKeyEntrySerializer extends AbstractSerializer<CacheEntry<PGPPublicKey>> {
-        private final PublicKeySerializer keySerializer = new PublicKeySerializer();
-
-        @Override
-        public CacheEntry<PGPPublicKey> read(Decoder decoder) throws Exception {
-            long timestamp = decoder.readLong();
-            boolean present = decoder.readBoolean();
-            if (present) {
-                return new CacheEntry<>(timestamp, keySerializer.read(decoder));
-            } else {
-                return new CacheEntry<>(timestamp, null);
-            }
-        }
-
-        @Override
-        public void write(Encoder encoder, CacheEntry<PGPPublicKey> value) throws Exception {
-            encoder.writeLong(value.timestamp);
-            PGPPublicKey key = value.value;
-            if (key != null) {
-                encoder.writeBoolean(true);
-                keySerializer.write(encoder, key);
-            } else {
-                encoder.writeBoolean(false);
-            }
-        }
-
     }
 
     private static class CacheEntry<T> {

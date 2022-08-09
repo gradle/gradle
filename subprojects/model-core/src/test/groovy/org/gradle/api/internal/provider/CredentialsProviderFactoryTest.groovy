@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
+import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
@@ -170,5 +171,20 @@ class CredentialsProviderFactoryTest extends Specification {
         def e = thrown(ProjectConfigurationException)
         e.message == 'Credentials required for this build could not be resolved.'
         e.causes.size() == 2
+    }
+
+    def "evaluates name and value of header credentials provider"() {
+        given:
+        providerFactory.gradleProperty('myServiceAuthHeaderName') >> new DefaultProvider<>({ 'Private-Token' })
+        providerFactory.gradleProperty('myServiceAuthHeaderValue') >> new DefaultProvider<>({ 'secret' })
+        def provider = factory.provide(HttpHeaderCredentials, 'myService')
+
+        when:
+        def credentials = provider.get()
+
+        then:
+        credentials instanceof HttpHeaderCredentials
+        credentials['name'] == 'Private-Token'
+        credentials['value'] == 'secret'
     }
 }

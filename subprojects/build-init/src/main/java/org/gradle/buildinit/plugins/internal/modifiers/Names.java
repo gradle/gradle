@@ -18,14 +18,16 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.base.Joiner;
 
+import java.util.Locale;
+
 class Names {
     static String displayNameFor(Enum<?> value) {
-        String[] parts = value.name().toLowerCase().split("_");
+        String[] parts = value.name().toLowerCase(Locale.US).split("_");
         return Joiner.on(' ').join(parts);
     }
 
     static String idFor(Enum<?> value) {
-        String[] parts = value.name().toLowerCase().split("_");
+        String[] parts = value.name().toLowerCase(Locale.US).split("_");
         return Joiner.on('-').join(parts);
     }
 }

@@ -24,13 +24,16 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
-    private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
+    @SuppressWarnings("deprecation")
+    private DirectorySensitivity directorySensitivity = DirectorySensitivity.UNSPECIFIED;
+    private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
@@ -106,6 +109,23 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     @Override
     public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreDirectories) {
         this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT;
+        return this;
+    }
+
+    @Override
+    public LineEndingSensitivity getLineEndingNormalization() {
+        return lineEndingSensitivity;
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilder normalizeLineEndings() {
+        this.lineEndingSensitivity = LineEndingSensitivity.NORMALIZE_LINE_ENDINGS;
+        return this;
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilder normalizeLineEndings(boolean ignoreLineEndings) {
+        this.lineEndingSensitivity = ignoreLineEndings ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
         return this;
     }
 

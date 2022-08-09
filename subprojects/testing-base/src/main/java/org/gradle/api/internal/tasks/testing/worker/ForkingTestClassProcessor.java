@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
@@ -40,7 +41,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
-    private final WorkerLeaseRegistry.WorkerLease currentWorkerLease;
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
@@ -50,6 +50,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
     private final Lock lock = new ReentrantLock();
+    private final WorkerThreadRegistry workerThreadRegistry;
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
@@ -57,10 +58,12 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
 
-    public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
-                                     Iterable<File> classPath, Iterable<File> modulePath, List<String> testWorkerImplementationModules,
-                                     Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
-        this.currentWorkerLease = parentWorkerLease;
+    public ForkingTestClassProcessor(
+        WorkerThreadRegistry workerThreadRegistry, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
+        Iterable<File> classPath, Iterable<File> modulePath, List<String> testWorkerImplementationModules,
+        Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry
+    ) {
+        this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -86,7 +89,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
 
             if (remoteProcessor == null) {
-                completion = currentWorkerLease.startChild();
+                completion = workerThreadRegistry.startWorker();
                 try {
                     remoteProcessor = forkProcess();
                 } catch (RuntimeException e) {
@@ -103,7 +106,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     RemoteTestClassProcessor forkProcess() {
-        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
+        @SuppressWarnings("deprecation") // WorkerProcessBuilder#useLegacyAddOpens
+        WorkerProcessBuilder builder =
+            workerFactory.create(new TestWorker(processorFactory))
+                         .setUseLegacyAddOpens(false);
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.setImplementationModulePath(getTestWorkerImplementationModulePath());
@@ -131,11 +137,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-worker-processes").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-files").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-file-temp").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-hashing").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-enterprise-logging").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-enterprise-workers").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
@@ -155,7 +164,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     List<URL> getTestWorkerImplementationModulePath() {
         List<URL> modules = new ArrayList<URL>();
-        for(String moduleName : testWorkerImplementationModules) {
+        for (String moduleName : testWorkerImplementationModules) {
             modules.addAll(moduleRegistry.getExternalModule(moduleName).getImplementationClasspath().getAsURLs());
         }
         return modules;
@@ -183,7 +192,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                     + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
             }
         } finally {
-            if (completion!=null) {
+            if (completion != null) {
                 completion.leaseFinish();
             }
         }

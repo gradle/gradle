@@ -46,7 +46,7 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
 
     @Override
     public ProjectComponentSelector createProjectComponentSelector(String projectPath) {
-        return DefaultProjectComponentSelector.newSelector(currentBuild.getIdentifierForProject(Path.path(projectPath)));
+        return DefaultProjectComponentSelector.newSelector(currentBuild.getProjects().getProject(Path.path(projectPath)).getComponentIdentifier());
     }
 
     @Override

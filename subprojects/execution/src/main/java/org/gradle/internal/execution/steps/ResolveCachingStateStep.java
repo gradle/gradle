@@ -28,25 +28,26 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.caching.CachingStateBuilder;
-import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
-import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.caching.CachingStateFactory;
+import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLogger;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
 
-public class ResolveCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
+public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
     private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
     private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
@@ -68,7 +69,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, BeforeExecutionContext context) {
+    public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
             cachingState = BUILD_CACHE_DISABLED_STATE;
@@ -76,17 +77,14 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             cachingState = VALIDATION_FAILED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()
-                .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
+                .map(beforeExecutionState -> calculateCachingState(work, beforeExecutionState))
                 .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
         }
 
-        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
-        if (disabledReasons.isEmpty()) {
-            //noinspection OptionalGetWithoutIsPresent
-            logCacheKey(cachingState.getKey().get(), work);
-        } else {
-            logDisabledReasons(disabledReasons, work);
-        }
+        cachingState.apply(
+            enabled -> logCacheKey(enabled.getKey(), work),
+            disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
+        );
 
         UpToDateResult result = delegate.execute(work, new CachingContext() {
             @Override
@@ -95,8 +93,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override
@@ -130,8 +128,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
 
             @Override
@@ -156,8 +154,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                return result.getOutputFilesProduceByWork();
+            public Optional<AfterExecutionState> getAfterExecutionState() {
+                return result.getAfterExecutionState();
             }
 
             @Override
@@ -169,29 +167,30 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             public Try<ExecutionResult> getExecutionResult() {
                 return result.getExecutionResult();
             }
+
+            @Override
+            public Duration getDuration() {
+                return result.getDuration();
+            }
         };
     }
 
-    private CachingState calculateCachingState(BeforeExecutionState executionState, UnitOfWork work) {
-        CachingStateBuilder builder = buildCache.isEmitDebugLogging()
-            ? new LoggingCachingStateBuilder()
-            : new DefaultCachingStateBuilder();
+    private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {
+        Logger logger = buildCache.isEmitDebugLogging()
+            ? LOGGER
+            : NOPLogger.NOP_LOGGER;
+        CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
 
+        ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
         if (!buildCache.isEnabled()) {
-            builder.markNotCacheable(BUILD_CACHE_DISABLED_REASON);
+            cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
         }
-        OverlappingOutputs detectedOverlappingOutputs = executionState.getDetectedOverlappingOutputs()
+        OverlappingOutputs detectedOverlappingOutputs = beforeExecutionState.getDetectedOverlappingOutputs()
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
-            .ifPresent(builder::markNotCacheable);
+            .ifPresent(cachingDisabledReasonsBuilder::add);
 
-        builder.withImplementation(executionState.getImplementation());
-        builder.withAdditionalImplementations(executionState.getAdditionalImplementations());
-        builder.withInputValueFingerprints(executionState.getInputProperties());
-        builder.withInputFilePropertyFingerprints(executionState.getInputFileProperties());
-        builder.withOutputPropertyNames(executionState.getOutputFileLocationSnapshots().keySet());
-
-        return builder.build();
+        return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
     }
 
     private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {

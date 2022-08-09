@@ -32,9 +32,38 @@ import java.util.Map;
 import static org.gradle.util.internal.CollectionUtils.toStringList;
 
 /**
- * This class is only here to maintain binary compatibility with existing plugins.
+ * Contains utility methods to configure objects with Groovy Closures.
  * <p>
- * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
+ * Plugins should avoid using this class and methods that use {@link groovy.lang.Closure} as this makes the plugin harder to use in other languages. Instead, plugins should create methods that use {@link Action}.
+ * Here's an example pseudocode:
+ * <pre class='autoTested'>
+ *     interface MyOptions {
+ *         RegularFileProperty getOptionsFile()
+ *     }
+ *     abstract class MyExtension {
+ *         private final MyOptions options
+ *
+ *         {@literal @}Inject abstract ObjectFactory getObjectFactory()
+ *
+ *         public MyExtension() {
+ *             this.options = getObjectFactory().newInstance(MyOptions)
+ *         }
+ *
+ *         public void options(Action{@literal <?} extends MyOptions{@literal >}  action) {
+ *              action.execute(options)
+ *         }
+ *     }
+ *     extensions.create("myExtension", MyExtension)
+ *     myExtension {
+ *         options {
+ *             optionsFile = layout.projectDirectory.file("options.properties")
+ *         }
+ *     }
+ * </pre>
+ * <p>
+ * Gradle automatically generates a Closure-taking method at runtime for each method with an {@link Action} as a single argument as long as the object is created with {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...)}.
+ * <p>
+ * As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
  * @deprecated Will be removed in Gradle 8.0.
  */

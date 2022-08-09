@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.cache.internal.CacheScopeMapping
-import org.gradle.cache.internal.VersionStrategy
+
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -24,15 +24,15 @@ import spock.lang.Specification
 
 class DefaultArtifactCacheMetadataTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    def scopeMapping = Stub(CacheScopeMapping)
+    def cache = Stub(GlobalScopedCache)
 
     def "calculates file store directory"() {
         given:
         TestFile testCacheDir = temporaryFolder.file("test/cache")
-        scopeMapping.getBaseDirectory(null, CacheLayout.ROOT.key, VersionStrategy.SharedCache) >> testCacheDir
+        cache.baseDirForCrossVersionCache(CacheLayout.ROOT.key) >> testCacheDir
 
         when:
-        def metaData = new DefaultArtifactCacheMetadata(scopeMapping)
+        def metaData = new DefaultArtifactCacheMetadata(cache)
         File fileStore = metaData.getFileStoreDirectory()
 
         then:
@@ -42,10 +42,10 @@ class DefaultArtifactCacheMetadataTest extends Specification {
     def "calculates metadata store directory"() {
         given:
         TestFile testCacheDir = temporaryFolder.file("test/cache")
-        scopeMapping.getBaseDirectory(null, CacheLayout.ROOT.key, VersionStrategy.SharedCache) >> testCacheDir
+        cache.baseDirForCrossVersionCache(CacheLayout.ROOT.key) >> testCacheDir
 
         when:
-        def metaData = new DefaultArtifactCacheMetadata(scopeMapping)
+        def metaData = new DefaultArtifactCacheMetadata(cache)
         File metadataStore = metaData.getMetaDataStoreDirectory()
 
         then:

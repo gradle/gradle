@@ -16,45 +16,49 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
-import spock.lang.Unroll
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.junit.Assume.assumeFalse
+import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
-
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 200
-    }
-
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
+        def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = build(workers, 'run')
+        def result = runner(workers, versionNumber, 'run')
+            .deprecations(KotlinDeprecations) {
+                expectKotlinWorkerSubmitDeprecation(workers, version)
+                expectKotlinArtifactTransformDeprecation(version)
+                expectKotlinArchiveNameDeprecation(version)
+                expectKotlinIncrementalTaskInputsDeprecation(version)
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
         assert result.output.contains("Hello world!")
 
-        if (version == TestedVersions.kotlin.latest()) {
-            expectNoDeprecationWarnings(result)
-        }
-
         when:
-        result = build(workers, 'run')
+        result = runner(workers, versionNumber, 'run')
+            .deprecations(KotlinDeprecations) {
+                if (!GradleContextualExecuter.configCache) {
+                    expectKotlinArtifactTransformDeprecation(version)
+                }
+                expectKotlinIncrementalTaskInputsDeprecation(version)
+            }.build()
+
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -67,16 +71,28 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
+
+        // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
+        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1,7))
+
         given:
         useSample("kotlin-js-sample")
         withKotlinBuildFile()
         replaceVariablesInBuildFile(kotlinVersion: version)
+        def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = build(workers, 'compileKotlin2Js')
+        def result = runner(workers, versionNumber, 'compileKotlin2Js')
+            .deprecations(KotlinDeprecations) {
+                expectKotlinWorkerSubmitDeprecation(workers, version)
+                expectKotlin2JsPluginDeprecation(version)
+                expectKotlinParallelTasksDeprecation(version)
+                expectKotlinCompileDestinationDirPropertyDeprecation(version)
+                expectKotlinArchiveNameDeprecation(version)
+                expectKotlinIncrementalTaskInputsDeprecation(version)
+            }.build()
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
@@ -88,8 +104,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
@@ -117,9 +132,15 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
+        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = build(false, 'compileJava')
+        def result = runner(false, versionNumber, 'compileJava')
+            .deprecations(KotlinDeprecations) {
+                expectKotlinArtifactTransformDeprecation(kotlinVersion)
+                expectKotlinArchiveNameDeprecation(kotlinVersion)
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
+            }.build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -129,9 +150,13 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+
+        assumeFalse(kotlinVersion.startsWith("1.3."))
+        assumeFalse(kotlinVersion.startsWith("1.4."))
+        assumeFalse(kotlinVersion.startsWith("1.5."))
+
         given:
         buildFile << """
             plugins {
@@ -148,15 +173,26 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             }
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = build(false, 'build')
+        def result = runner(false, versionNumber, 'build')
+            .deprecations(KotlinDeprecations) {
+                expectKotlinArtifactTransformDeprecation(kotlinVersion)
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = build(false, 'build')
+        result = runner(false, versionNumber, 'build')
+            .deprecations(KotlinDeprecations) {
+                if (!GradleContextualExecuter.configCache) {
+                    expectKotlinArtifactTransformDeprecation(kotlinVersion)
+                }
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -165,13 +201,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    private BuildResult build(boolean workers, String... tasks) {
-        return runner(workers, *tasks).build()
-    }
-
-    private GradleRunner runner(boolean workers, String... tasks) {
-        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-            .forwardOutput()
+    private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
+        return runnerFor(this, workers, kotlinVersion, tasks)
     }
 
     @Override
@@ -190,12 +221,12 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     @Override
     Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        def androidVersion = TestedVersions.androidGradle.latest()
+        def androidVersion = TestedVersions.androidGradle.latestStable()
         if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
             return ['org.jetbrains.kotlin.jvm': version]
         }
         if (isAndroidKotlinPlugin(testedPluginId)) {
-            AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidVersion)
+            AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidVersion, version)
             def extraPlugins = ['com.android.application': androidVersion]
             if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
                 extraPlugins.put('org.jetbrains.kotlin.android', version)
@@ -241,7 +272,61 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         }
     }
 
+    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, String... tasks) {
+        smokeTest.runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
+            .forwardOutput()
+    }
+
+    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, VersionNumber kotlinVersion, String... tasks) {
+        if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            String kotlinOpts = "-Dkotlin.daemon.jvm.options=--add-exports=java.base/sun.nio.ch=ALL-UNNAMED,--add-opens=java.base/java.util=ALL-UNNAMED"
+            return runnerFor(smokeTest, workers, tasks + [kotlinOpts] as String[])
+        }
+        runnerFor(smokeTest, workers, tasks)
+    }
+
     private static boolean isAndroidKotlinPlugin(String pluginId) {
         return pluginId.contains('android')
+    }
+
+    static class KotlinDeprecations extends BaseDeprecations implements WithKotlinDeprecations {
+        private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
+        private static final String ARTIFACT_TRANSFORM_DEPRECATION =
+            "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html for more details."
+
+        private static final String ARCHIVE_NAME_DEPRECATION = "The AbstractArchiveTask.archiveName property has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. Please use the archiveFileName property instead. " +
+            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName for more details."
+
+        KotlinDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectKotlinArtifactTransformDeprecation(String kotlinPluginVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
+            runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION)
+        }
+
+        void expectKotlinArchiveNameDeprecation(String kotlinPluginVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
+            runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION)
+        }
+
+        void expectKotlin2JsPluginDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.4.0'),
+                "The `kotlin2js` Gradle plugin has been deprecated."
+            )
+        }
+
+        void expectKotlinParallelTasksDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectLegacyDeprecationWarningIf(
+                versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.10'),
+                "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
+            )
+        }
     }
 }

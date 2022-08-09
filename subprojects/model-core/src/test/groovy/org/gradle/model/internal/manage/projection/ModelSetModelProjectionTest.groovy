@@ -26,7 +26,6 @@ import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.internal.ClosureBackedAction
-import spock.lang.Unroll
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
@@ -138,7 +137,6 @@ class ModelSetModelProjectionTest extends ProjectRegistrySpec {
         set[1].value == "before after"
     }
 
-    @Unroll
     def "cannot configure children when used as an input - #method"() {
         when:
         registry.registerInstance("things", []).mutate {

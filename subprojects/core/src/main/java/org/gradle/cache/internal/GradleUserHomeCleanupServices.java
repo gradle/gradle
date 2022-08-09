@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -25,17 +26,17 @@ public class GradleUserHomeCleanupServices {
 
     public void configure(
         ServiceRegistration registration,
-        CacheScopeMapping cacheScopeMapping,
+        GlobalScopedCache globalScopedCache,
         Deleter deleter,
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
         ProgressLoggerFactory progressLoggerFactory
     ) {
-        UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(cacheScopeMapping);
+        UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
         // register eagerly so stop() is triggered when services are being stopped
         registration.add(
             GradleUserHomeCleanupService.class,
-            new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, cacheScopeMapping, usedGradleVersions, progressLoggerFactory)
+            new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, globalScopedCache, usedGradleVersions, progressLoggerFactory)
         );
     }
 

@@ -9,6 +9,8 @@ import org.gradle.api.tasks.*;
 public abstract class Instrument extends DefaultTask {
 
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public abstract ConfigurableFileCollection getClassFiles();
 

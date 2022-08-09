@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
-import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -122,7 +121,6 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     }
 
     @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
     def "missing symbolic link causes an exception - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")

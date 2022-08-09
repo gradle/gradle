@@ -54,7 +54,7 @@ public interface CalculatedModelValue<T> {
     /**
      * Sets the current value.
      *
-     * <p>The calling thread< must own the mutable state from which the value is calculated.</p>
+     * <p>The calling thread must own the mutable state from which the value is calculated.</p>
      */
     void set(T newValue);
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.fixtures
 
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.GPathResult
 import org.gradle.test.fixtures.file.TestFile
 
 class IdeaProjectFixture extends IdeWorkspaceFixture {

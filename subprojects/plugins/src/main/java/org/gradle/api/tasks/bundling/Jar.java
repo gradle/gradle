@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Assembles a JAR archive.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Jar extends org.gradle.jvm.tasks.Jar {
     @Override
     public Jar manifest(Closure<?> configureClosure) {

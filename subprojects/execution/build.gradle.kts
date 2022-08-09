@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":build-cache"))
     implementation(project(":build-cache-packaging"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":messaging"))

@@ -17,14 +17,13 @@ package org.gradle.initialization.layout;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
  * Configuration which affects the (static) layout of a build.
  */
-@UsedByScanPlugin
 public class BuildLayoutConfiguration {
     private final File currentDir;
     private final boolean searchUpwards;
@@ -48,6 +47,10 @@ public class BuildLayoutConfiguration {
         return searchUpwards;
     }
 
+    /**
+     * When null, use the default. When not null, use the given value.
+     */
+    @Nullable
     public File getSettingsFile() {
         return settingsFile;
     }

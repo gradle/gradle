@@ -1,0 +1,19 @@
+FILE commons-text-1.9.jar
+  id: commons-text-1.9.jar (org.apache.commons:commons-text:1.9)
+  variant: org.apache.commons:commons-text:1.9 configuration runtime
+  size: 216211
+
+FILE utilities.jar
+  id: utilities.jar (project :utilities)
+  variant: configuration ':utilities:runtimeElements'
+  size: 261
+
+FILE commons-lang3-3.11.jar
+  id: commons-lang3-3.11.jar (org.apache.commons:commons-lang3:3.11)
+  variant: org.apache.commons:commons-lang3:3.11 configuration runtime
+  size: 577742
+
+FILE list.jar
+  id: list.jar (project :list)
+  variant: configuration ':list:runtimeElements'
+  size: 261

@@ -16,6 +16,7 @@
 
 package org.gradle.language.base
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -30,6 +31,7 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
     Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews/groovy")
 
     // NOTE If you change this, you'll also need to change docs/src/doc/snippets/customModel/languageType/groovy/softwareModelExtend-iv-model.out
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "show mutated public view data but no internal view data in model report"() {
         given:
         sample internalViewsSample

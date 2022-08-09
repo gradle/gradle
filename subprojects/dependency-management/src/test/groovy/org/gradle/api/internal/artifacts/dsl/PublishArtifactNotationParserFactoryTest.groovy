@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dsl
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
@@ -26,6 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
@@ -33,17 +33,21 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import java.awt.*
 
 class PublishArtifactNotationParserFactoryTest extends Specification {
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final DependencyMetaDataProvider provider = Mock()
     final TaskResolver taskResolver = Mock()
     final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver)
+    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver, TestFiles.resolver(tmpDir.getTestDirectory()))
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {
@@ -241,14 +245,19 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         given:
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
-        provider.get() >> "broken"
+        provider.get() >> new Object() {
+            @Override
+            String toString() {
+                return "broken"
+            }
+        }
 
         when:
         publishArtifact.file
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "Cannot convert provided value (broken) to a file."
+        def e = thrown(UnsupportedNotationException)
+        e.message.startsWith("Cannot convert the provided notation to a File or URI: broken.")
     }
 
     def createArtifactFromFileInMap() {

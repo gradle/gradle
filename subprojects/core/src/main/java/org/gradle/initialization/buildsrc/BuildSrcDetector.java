@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-class BuildSrcDetector {
+public class BuildSrcDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSrcDetector.class);
     private static final String[] GRADLE_BUILD_FILES = new String[] {
             "settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts"

@@ -26,9 +26,11 @@ import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.file.Directory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.Directory;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
@@ -49,12 +51,13 @@ import java.util.stream.Collectors;
 
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
- * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br/>
+ * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br>
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */
 public class Maven2Gradle {
-    private final BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory();
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
+    private final boolean useIncubatingAPIs;
 
     private final Set<MavenProject> allProjects;
     private final MavenProject rootProject;
@@ -62,13 +65,18 @@ public class Maven2Gradle {
     private final List<MavenProject> dependentWars = new ArrayList<>();
     private final Directory workingDir;
     private final BuildInitDsl dsl;
+    private final InsecureProtocolOption insecureProtocolOption;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl) {
+    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
+
+        this.scriptBuilderFactory = new BuildScriptBuilderFactory(new DocumentationRegistry());
+        this.useIncubatingAPIs = useIncubatingAPIs;
         this.allProjects = mavenProjects;
         this.rootProject = mavenProjects.iterator().next();
         this.workingDir = workingDir;
         this.dsl = dsl;
+        this.insecureProtocolOption = insecureProtocolOption;
     }
 
     public void convert() {
@@ -77,11 +85,11 @@ public class Maven2Gradle {
         if (multimodule) {
             String groupId = rootProject.getGroupId();
 
-            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build");
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "buildSrc/build", useIncubatingAPIs, insecureProtocolOption);
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions");
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", useIncubatingAPIs, insecureProtocolOption);
 
             generateSettings(rootProject.getArtifactId(), allProjects);
 
@@ -109,7 +117,7 @@ public class Maven2Gradle {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
-                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build");
+                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build", useIncubatingAPIs, insecureProtocolOption);
 
                 moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 
@@ -143,10 +151,10 @@ public class Maven2Gradle {
                 moduleScriptBuilder.create(workingDir).generate();
             }
         } else {
-            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "build");
+            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "build", useIncubatingAPIs, insecureProtocolOption);
             generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
 
-            scriptBuilder.plugin(null, "java");
+            scriptBuilder.plugin(null, "java-library");
             scriptBuilder.plugin(null, "maven-publish");
             coordinatesForProject(this.rootProject, scriptBuilder);
             descriptionForProject(this.rootProject, scriptBuilder);
@@ -342,7 +350,7 @@ public class Maven2Gradle {
         if (!compileTimeScope.isEmpty() || !runtimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
             if (!compileTimeScope.isEmpty()) {
                 for (org.apache.maven.model.Dependency dep : compileTimeScope) {
-                    createGradleDep("implementation", result, dep, war);
+                    createGradleDep("api", result, dep, war);
                 }
             }
             if (!runtimeScope.isEmpty()) {
@@ -422,6 +430,7 @@ public class Maven2Gradle {
         String encoding = (String) project.getProperties().get("project.build.sourceEncoding");
         if (StringUtils.isNotEmpty(encoding)) {
             builder.taskPropertyAssignment(null, "JavaCompile", "options.encoding", encoding);
+            builder.taskPropertyAssignment(null, "Javadoc", "options.encoding", encoding);
         }
     }
 
@@ -483,7 +492,7 @@ public class Maven2Gradle {
     }
 
     private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
-        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "settings");
+        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "settings", useIncubatingAPIs, insecureProtocolOption);
 
         scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName);
         Set<MavenProject> modules = modules(projects, true);

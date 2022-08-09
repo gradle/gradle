@@ -20,7 +20,6 @@ import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -34,7 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 
 public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     private final Instantiator instantiator;
@@ -57,7 +56,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         if (artifactTypeDefinitions != null) {
             for (ArtifactTypeDefinition artifactTypeDefinition : artifactTypeDefinitions) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
-                attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, artifactTypeDefinition.getName()), attributes);
+                attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactTypeDefinition.getName()), attributes);
                 if (seen.add(attributes)) {
                     action.accept(attributes);
                 }
@@ -66,7 +65,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
 
         for (ArtifactTransformRegistration transform : transformRegistry.getTransforms()) {
             AttributeContainerInternal sourceAttributes = transform.getFrom();
-            String format = sourceAttributes.getAttribute(ARTIFACT_FORMAT);
+            String format = sourceAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
             // Some format that is not already registered
             if (format != null) {
                 ImmutableAttributes attributes = sourceAttributes.asImmutable();
@@ -89,13 +88,13 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     public ImmutableAttributes mapAttributesFor(File file) {
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         if (file.isDirectory()) {
-            attributes = attributesFactory.of(ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            attributes = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
         } else {
             String extension = Files.getFileExtension(file.getName());
             if (artifactTypeDefinitions != null) {
                 attributes = applyForExtension(attributes, extension);
             }
-            attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, extension), attributes);
+            attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, extension), attributes);
         }
         return attributes;
     }
@@ -120,7 +119,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         }
 
         // Add artifact format as an implicit attribute when all artifacts have the same format
-        if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
+        if (!attributes.contains(ARTIFACT_TYPE_ATTRIBUTE)) {
             String format = null;
             for (ComponentArtifactMetadata artifact : artifacts) {
                 String candidateFormat = artifact.getName().getType();
@@ -132,7 +131,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 }
             }
             if (format != null) {
-                attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
+                attributes = attributesFactory.concat(attributes.asImmutable(), ARTIFACT_TYPE_ATTRIBUTE, format);
             }
         }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.gradle.internal.SystemProperties;
+import org.gradle.util.internal.MavenUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -24,17 +24,13 @@ import java.io.File;
 public class DefaultMavenFileLocations implements MavenFileLocations {
     @Override
     public File getUserMavenDir() {
-        return new File(SystemProperties.getInstance().getUserHome(), ".m2");
+        return MavenUtil.getUserMavenDir();
     }
 
     @Override
     @Nullable
     public File getGlobalMavenDir() {
-        String m2Home = System.getenv("M2_HOME");
-        if (m2Home == null) {
-            return null;
-        }
-        return new File(m2Home);
+        return MavenUtil.getGlobalMavenDir();
     }
 
     @Override

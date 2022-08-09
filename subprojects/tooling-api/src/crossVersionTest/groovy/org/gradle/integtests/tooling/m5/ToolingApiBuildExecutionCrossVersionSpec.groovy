@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
@@ -107,7 +107,6 @@ System.err.println 'this is stderr'
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
         assertHasBuildFailedLogging()
     }

@@ -66,7 +66,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
+        Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
         addCollector(new SingleElement<>(element));
     }
 
@@ -405,6 +405,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Class<C> getType() {
             return type;
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.changingValue(this);
         }
 
         @Override

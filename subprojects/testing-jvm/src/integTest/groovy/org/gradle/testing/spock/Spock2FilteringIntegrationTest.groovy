@@ -17,7 +17,6 @@
 package org.gradle.testing.spock
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
 
@@ -61,7 +60,6 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "can filter tests"() {
         when:
         succeeds("test", "--tests", "SubClass.$testMethod")
@@ -77,7 +75,6 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         testMethod << ["sub test", "super test", "super super test"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "can filter unrolled tests"() {
         when:
         succeeds("test", "--tests", "SubClass.$testMethod")
@@ -94,7 +91,6 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "can filter unrolled tests with parameter name in test header"() {
         when:
         succeeds("test", "--tests", "SubClass.$testMethod param=#param")
@@ -111,7 +107,6 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "can not filter specific iterations of unrolled tests"() {
         when:
         fails("test", "--tests", "SubClass.$testMethod")

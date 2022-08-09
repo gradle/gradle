@@ -18,14 +18,11 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @ToBeFixedForConfigurationCache
     def "can consume published capabilities"() {
         given:
         repository {
@@ -63,7 +60,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5(runtime)]""")
     }
 
-    @Unroll
     def "can detect conflict with capability in different versions and upgrade to latest version (#rule)"() {
         given:
         repository {
@@ -114,7 +110,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "can detect conflict between local project and capability from external dependency"() {
         given:
         repository {
@@ -159,7 +154,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
      * This test illustrates that published modules can declare capabilities, which are then discovered
      * as we visit the graph. And if no published module declares a preference, then build should fail.
      */
-    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message if no module express preference for conflict of modules that publish the same capability"() {
         given:
         repository {
@@ -240,6 +234,34 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
 
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
+
+            tasks.register("dumpCapabilitiesFromArtifactView") {
+                doFirst {
+                    def artifactCollection = configurations.conf.incoming.artifactView {
+                        attributes {
+                            attribute(Attribute.of("artifactType", String), "jar")
+                        }
+                    }.artifacts
+
+                    artifactCollection.artifacts.each {
+                        println "Artifact: \${it.id.componentIdentifier.displayName}"
+                        println "  - artifact: \${it.file}"
+
+                        def capabilities = it.variant.capabilities
+                        if (capabilities.isEmpty()) {
+                            throw new IllegalStateException("Expected default capability to be explicit")
+                        } else {
+                            println "  - capabilities: " + capabilities.collect {
+                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                    throw new IllegalStateException("Unexpected capability type: \$it")
+                                }
+                                "\${it}"
+                            }
+                        }
+                        println("---------")
+                    }
+                }
+            }
         """
 
         when:
@@ -260,7 +282,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 expectGetMetadata()
             }
         }
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ':dumpCapabilitiesFromArtifactView'
 
         then:
         resolve.expectGraph {
@@ -278,10 +300,10 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 }
             }
         }
+        outputContains('capabilities: [capability group=\'org\', name=\'testB\', version=\'1.0\', capability group=\'org\', name=\'cap\', version=\'4\']')
 
     }
 
-    @Unroll
     def "can select a particular module participating do a capability conflict independently of the version (select #expected)"() {
         given:
         repository {

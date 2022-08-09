@@ -1,1 +1,0 @@
-def enabled = project.findProperty('some-property') != null

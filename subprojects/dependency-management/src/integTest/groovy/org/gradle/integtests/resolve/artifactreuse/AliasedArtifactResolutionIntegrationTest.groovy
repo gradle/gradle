@@ -16,8 +16,6 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Ignore
 
 class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def mavenRepo1 = mavenHttpRepo("maven1")
@@ -52,7 +50,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not re-download maven artifact downloaded from a different maven repository when sha1 matches"() {
         when:
         def projectBModuleRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -73,7 +70,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'mavenRepository2'
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not re-download ivy artifact downloaded from a different ivy repository when sha1 matches"() {
         when:
         def projectBRepo1 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -94,7 +90,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'ivyRepository2'
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not re-download ivy artifact downloaded from a maven repository when sha1 matches"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -114,7 +109,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'ivyRepository1'
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not re-download maven artifact downloaded from a ivy repository when sha1 matches"() {
         when:
         def projectBRepo1 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -134,23 +128,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'mavenRepository1'
     }
 
-    @Ignore("File repository does not cache artifacts locally, so they are not used to prevent download")
-    def "does not download artifact previously accessed from a file uri when sha1 matches"() {
-        given:
-        succeedsWith 'fileRepository'
-
-        when:
-        def projectBRepo2 = mavenRepo2.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo2.pom.expectHead()
-        projectBRepo2.pom.sha1.expectGet()
-        projectBRepo2.artifact.expectHead()
-        projectBRepo2.artifact.sha1.expectGet()
-
-        then:
-        succeedsWith 'mavenRepository2'
-    }
-
-    @ToBeFixedForConfigurationCache
     def "does re-download maven artifact downloaded from a different URI when sha1 not found"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -173,7 +150,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'mavenRepository2'
     }
 
-    @ToBeFixedForConfigurationCache
     def "does re-download maven artifact downloaded from a different URI when sha1 does not match"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()

@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class TypedDomainObjectContainerWrapperTest extends Specification {
 
-    DefaultPolymorphicDomainObjectContainer<Type> parent = new DefaultPolymorphicDomainObjectContainer<Type>(Type, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
+    DefaultPolymorphicDomainObjectContainer<Type> parent = new DefaultPolymorphicDomainObjectContainer<Type>(Type, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         parent.add(type("typeOne"))
@@ -139,19 +139,19 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
         true
     }
 
-    def Type type(def name) {
+    Type type(def name) {
         Stub(Type) {
             getName() >> name
         }
     }
 
-    def SubType subtype(def name) {
+    SubType subtype(def name) {
         Stub(SubType) {
             getName() >> name
         }
     }
 
-    def OtherSubType otherSubtype(def name) {
+    OtherSubType otherSubtype(def name) {
         Stub(OtherSubType) {
             getName() >> name
         }

@@ -20,7 +20,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
-import org.gradle.internal.hash.HashValue
+import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.gradle.ArtifactSelectorSpec
 import org.gradle.util.GradleVersion
@@ -196,7 +196,7 @@ class GradleModuleMetadata {
         }
 
         List<File> getFiles() {
-            return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5), new HashValue(it.sha256), new HashValue(it.sha512)) }
+            return (values.files ?: []).collect { new File(it.name, it.url, it.size, HashCode.fromString(it.sha1), HashCode.fromString(it.md5), HashCode.fromString(it.sha256), HashCode.fromString(it.sha512)) }
         }
 
         DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
@@ -533,12 +533,12 @@ class GradleModuleMetadata {
         final String name
         final String url
         final long size
-        final HashValue sha1
-        final HashValue sha256
-        final HashValue sha512
-        final HashValue md5
+        final HashCode sha1
+        final HashCode sha256
+        final HashCode sha512
+        final HashCode md5
 
-        File(String name, String url, long size, HashValue sha1, HashValue md5, HashValue sha256, HashValue sha512) {
+        File(String name, String url, long size, HashCode sha1, HashCode md5, HashCode sha256, HashCode sha512) {
             this.name = name
             this.url = url
             this.size = size

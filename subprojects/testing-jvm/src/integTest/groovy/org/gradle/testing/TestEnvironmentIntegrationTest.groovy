@@ -27,7 +27,7 @@ import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_LAUNCHER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
@@ -68,7 +68,7 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             //
             // See https://github.com/openjdk/skara/pull/66 for details of this workaround
             buildFile.text = buildFile.text.replace('dependencies {', """dependencies {
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher:${LATEST_LAUNCHER_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher:${LATEST_PLATFORM_VERSION}'
                 """)
         }
 
@@ -98,6 +98,9 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def canRunTestsWithCustomSecurityManager() {
+        executer.withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
+
         when:
         run 'test'
 
@@ -105,16 +108,5 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
-    }
-
-    @Requires(TestPrecondition.JDK7_OR_EARLIER)
-    def canRunTestsWithJMockitLoadedWithJavaAgent() {
-        when:
-        run 'test'
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.JMockitTest')
-        result.testClass('org.gradle.JMockitTest').assertTestPassed('testOk')
     }
 }
