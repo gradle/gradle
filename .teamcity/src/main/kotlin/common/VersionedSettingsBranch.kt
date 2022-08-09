@@ -34,6 +34,8 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
     val isExperimental: Boolean
         get() = branchName == EXPERIMENTAL_BRANCH
 
+    fun vcsRootId() = "Gradle${branchName.toCapitalized()}"
+
     fun promoteNightlyTaskName() = nightlyTaskName("promote")
     fun prepNightlyTaskName() = nightlyTaskName("prep")
 
