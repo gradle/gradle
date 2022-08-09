@@ -311,7 +311,7 @@ public class JavaPlugin implements Plugin<Project> {
             testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
             testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
-            suite.getDependencies().implementation(suite.getDependencies().classes(suite.getDependencies().runtimeView(project)));
+            suite.getDependencies().implementation(suite.getDependencies().projectCompileView());
         });
 
         // Force the realization of this test suite, targets and task

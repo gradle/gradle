@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
@@ -147,19 +148,14 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
-    public ModuleDependency runtimeView(Project project) {
-        return runtimeView((ProjectDependency) getDependencyHandler().create(project));
-    }
-
-    @Override
-    public ModuleDependency runtimeView(ModuleDependency moduleDependency) {
-        return moduleDependency.attributes(attrs ->
+    public ModuleDependency projectCompileView() {
+        ModuleDependency compileView =  ((DefaultDependencyHandler) getDependencyHandler()).project().attributes(attrs ->
             attrs.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME))
         );
+        return classes(compileView);
     }
 
-    @Override
-    public ModuleDependency classes(ModuleDependency moduleDependency) {
+    private ModuleDependency classes(ModuleDependency moduleDependency) {
         return moduleDependency.attributes(attrs ->
 //            {}
             attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjectFactory().named(LibraryElements.class, LibraryElements.CLASSES))

@@ -60,6 +60,7 @@ import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.internal.service.scopes.DefaultProjectFinder;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -253,6 +254,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public Dependency project(Map<String, ?> notation) {
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
+    }
+
+    public ProjectDependency project() {
+        return (ProjectDependency) create(((DefaultProjectFinder) projectFinder).getBaseProject());
     }
 
     @Override

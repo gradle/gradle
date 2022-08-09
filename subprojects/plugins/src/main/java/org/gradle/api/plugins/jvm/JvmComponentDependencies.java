@@ -169,35 +169,11 @@ public interface JvmComponentDependencies {
     Dependency testFixtures(ModuleDependency moduleDependency);
 
     /**
-     * Create a dependency on a project's runtime.
-     *
-     * @param project The project to create a dependency from.
+     * Create a dependency on the current project's compile view.
      *
      * @return A new dependency
      *
-     * @since 7.6
+     * @since 7.7
      */
-    ModuleDependency runtimeView(Project project);
-
-    /**
-     * Mutate the provided dependency such that the runtime view is provided.
-     *
-     * @param moduleDependency The dependency to mutate.
-     *
-     * @return The provided dependency, mutated such that it represents the runtime view of itself.
-     *
-     * @since 7.6
-     */
-    ModuleDependency runtimeView(ModuleDependency moduleDependency);
-
-    /**
-     * Request that the classes of a given dependency are requested as opposed to the jar.
-     *
-     * @param moduleDependency The dependency to mutate.
-     *
-     * @return The provided dependency
-     *
-     * @since 7.6
-     */
-    ModuleDependency classes(ModuleDependency moduleDependency);
+    ModuleDependency projectCompileView();
 }
