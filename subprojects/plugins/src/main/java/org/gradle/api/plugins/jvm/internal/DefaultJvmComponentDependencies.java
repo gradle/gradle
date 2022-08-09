@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -29,6 +30,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.provider.ListProperty;
@@ -146,7 +148,17 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
         if (dependency instanceof ProviderConvertible<?>) {
-            doAddLazy(bucket, ((ProviderConvertible<?>) dependency).asProvider(), configuration);
+            doAdd(bucket, ((ProviderConvertible<?>) dependency).asProvider(), configuration);
+        } else if (dependency instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
+            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dep : bundle) {
+                    doAddEager(bucket, dep, configuration);
+                }
+            } else {
+                doAddLazy(bucket, (Provider<?>) dependency, configuration);
+            }
         } else if (dependency instanceof Provider<?>) {
             doAddLazy(bucket, (Provider<?>) dependency, configuration);
         } else {
