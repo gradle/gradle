@@ -274,8 +274,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
-            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
-            result.addAll(dispatchers);
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>(dispatchers);
             for (T listener : listeners) {
                 SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
                 if (!result.contains(dispatch)) {
