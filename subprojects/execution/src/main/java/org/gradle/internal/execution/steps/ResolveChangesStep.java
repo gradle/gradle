@@ -106,10 +106,6 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
         switch (inputChangeTrackingStrategy) {
             case NONE:
                 return IncrementalInputProperties.NONE;
-            //noinspection deprecation
-            case ALL_PARAMETERS:
-                // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
-                return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 InputVisitor visitor = new InputVisitor() {
