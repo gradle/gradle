@@ -66,7 +66,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Nonnull
-    protected Value<? extends OUT> mapValue(Value<? extends IN> value) {
+    private Value<? extends OUT> mapValue(Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();
         }
