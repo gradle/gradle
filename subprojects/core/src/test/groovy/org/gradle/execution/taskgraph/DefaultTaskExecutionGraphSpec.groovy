@@ -79,7 +79,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinator, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
     def executionPlan = newExecutionPlan()
