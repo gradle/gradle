@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestExecutionException;
@@ -35,7 +36,8 @@ import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
-import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -56,7 +58,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     @Override
     public void applyTasksTo(Context context, ExecutionPlan plan) {
-        final Set<Test> allTestTasksToRun = new LinkedHashSet<>();
+        final Set<Task> allTestTasksToRun = new LinkedHashSet<>();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(context, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(context.getGradle(), testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForTestTasks(context, testExecutionRequest));
@@ -64,31 +66,33 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         plan.addEntryTasks(allTestTasksToRun);
     }
 
-    private void configureTestTasks(Set<Test> allTestTasksToRun) {
-        for (Test task : allTestTasksToRun) {
-            task.setIgnoreFailures(true);
-            task.getFilter().setFailOnNoMatchingTests(false);
-            task.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
-            InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
-            if (debugOptions.isDebugMode()) {
-                task.debugOptions(new Action<JavaDebugOptions>() {
-                    @Override
-                    public void execute(JavaDebugOptions javaDebugOptions) {
-                        DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
-                        options.getEnabled().set(true);
-                        options.getPort().set(debugOptions.getPort());
-                        options.getServer().set(false);
-                        options.getSuspend().set(false);
-                    }
-                });
+    private void configureTestTasks(Set<Task> tasks) {
+        for (Task task : tasks) {
+            if (task instanceof Test) {
+                Test test = (Test) task;
+                test.setIgnoreFailures(true);
+                test.getFilter().setFailOnNoMatchingTests(false);
+                task.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
+                InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
+                if (debugOptions.isDebugMode()) {
+                    test.debugOptions(new Action<JavaDebugOptions>() {
+                        @Override
+                        public void execute(JavaDebugOptions javaDebugOptions) {
+                            DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
+                            options.getEnabled().set(true);
+                            options.getPort().set(debugOptions.getPort());
+                            options.getServer().set(false);
+                            options.getSuspend().set(false);
+                        }
+                    });
+                }
             }
         }
     }
 
-    private List<Test> configureBuildForTestDescriptors(Context context, TestExecutionRequestAction testExecutionRequest) {
+    private List<Task> configureBuildForTestDescriptors(Context context, TestExecutionRequestAction testExecutionRequest) {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
-
-        List<Test> testTasksToRun = new ArrayList<Test>();
+        List<Task> testTasksToRun = new ArrayList<>();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
             for (Test testTask : queryTestTasks(context, testTaskPath)) {
@@ -100,23 +104,29 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
             }
         }
 
-        for (InternalTestPatternSpec patternSpec : testExecutionRequest.getTestPatternSpecs()) {
-            for (Test task : queryTestTasks(context, patternSpec.getTaskPath())) {
-                testTasksToRun.add(task);
-                TestFilter filter = task.getFilter();
-                for (String cls : patternSpec.getClasses()) {
-                    filter.includeTest(cls, null);
-                }
-                for (Map.Entry<String, List<String>> entry : patternSpec.getMethods().entrySet()) {
-                    String cls = entry.getKey();
-                    for (String method : entry.getValue()) {
-                        filter.includeTest(cls, method);
+        for (InternalTaskSpec taskSpec : testExecutionRequest.getTaskSpecs()) {
+            if (taskSpec instanceof InternalTestSpec) {
+                InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
+                Set<Test> tasks = queryTestTasks(context, taskSpec.getTaskPath());
+                for (Test task : tasks) {
+                    testTasksToRun.add(task);
+                    TestFilter filter = task.getFilter();
+                    for (String cls : testSpec.getClasses()) {
+                        filter.includeTest(cls, null);
+                    }
+                    for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
+                        String cls = entry.getKey();
+                        for (String method : entry.getValue()) {
+                            filter.includeTest(cls, method);
+                        }
+                    }
+                    filter.getIncludePatterns().addAll(testSpec.getPatterns());
+                    for (String pkg : testSpec.getPackages()) {
+                        filter.getIncludePatterns().add(pkg + ".*");
                     }
                 }
-                filter.getIncludePatterns().addAll(patternSpec.getPatterns());
-                for (String pkg : patternSpec.getPackages()) {
-                    filter.getIncludePatterns().add(pkg + ".*");
-                }
+            } else {
+                testTasksToRun.addAll(queryTasks(context, taskSpec.getTaskPath()));
             }
         }
 

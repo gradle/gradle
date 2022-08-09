@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.TestSpec;
-import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,9 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultTestSpec implements TestSpec, InternalTestPatternSpec {
-
-    private final String taskPath;
+public class DefaultTestSpec extends DefaultTaskSpec implements TestSpec, InternalTestSpec {
     private final List<String> classes;
     private final Map<String, List<String>> methods;
     private final List<String> packages;
@@ -39,7 +37,7 @@ public class DefaultTestSpec implements TestSpec, InternalTestPatternSpec {
     }
 
     public DefaultTestSpec(String taskPath, List<String> classes, Map<String, List<String>> methods, List<String> packages, List<String> patterns) {
-        this.taskPath = taskPath;
+        super(taskPath);
         this.packages = packages;
         this.classes = classes;
         this.methods = methods;
@@ -93,11 +91,6 @@ public class DefaultTestSpec implements TestSpec, InternalTestPatternSpec {
     public TestSpec includePatterns(Collection<String> patterns) {
         this.patterns.addAll(patterns);
         return this;
-    }
-
-    @Override
-    public String getTaskPath() {
-        return taskPath;
     }
 
     @Override
