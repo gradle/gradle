@@ -216,7 +216,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .collect(Collectors.toList());
         writeLn("public static class " + pluginClassName + " extends PluginFactory " + interfaces + "{");
         indent(() -> {
-            writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
+            writeSubAccessorFieldsOf(classNode, AccessorKind.plugin);
             writeLn();
             writeLn("public " + pluginClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
             writeLn();
@@ -233,7 +233,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
-                writeSubAccessor(child, AccessorKind.bundle);
+                writeSubAccessor(child, AccessorKind.plugin);
             }
         });
         writeLn("}");
