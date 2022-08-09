@@ -182,7 +182,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             return doAddConfiguration(configuration, (Configuration) dependencyNotation);
         }
         if (dependencyNotation instanceof ProviderConvertible<?>) {
-            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
+            return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
             if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
