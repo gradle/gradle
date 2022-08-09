@@ -218,8 +218,7 @@ public interface UnitOfWork extends Describable {
         /**
          * Only the incremental parameters should be tracked for input changes.
          */
-        INCREMENTAL_PARAMETERS(true)
-        ;
+        INCREMENTAL_PARAMETERS(true);
 
         private final boolean requiresInputChanges;
 
