@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
@@ -45,14 +46,11 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.api.internal.catalog.DependencyBundleValueSource;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
-import org.gradle.api.internal.provider.TransformBackedProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -188,8 +186,17 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         }
         if (dependencyNotation instanceof ProviderConvertible<?>) {
             return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
-        }
-        if (dependencyNotation instanceof Provider<?>) {
+        } else if (dependencyNotation instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
+            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dependency : bundle) {
+                    doAddRegularDependency(configuration, dependency, configureClosure);
+                }
+                return null;
+            }
+            return doAddProvider(configuration, provider, configureClosure);
+        } else if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);
         } else {
             return doAddRegularDependency(configuration, dependencyNotation, configureClosure);
@@ -204,34 +211,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Nullable
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        if (isBundle(dependencyNotation)) {
-            return doAddListProvider(configuration, dependencyNotation, configureClosure);
-        }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
         return null;
-    }
-
-    /**
-     * Checks if the given provider matches with one produced by {@code org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.BundleFactory#createBundle(String)}.
-     *
-     * <p>
-     *     This is a pretty fragile check, and must be kept in-sync with the aforementioned factory.
-     *     Any additional mapping of the provider will break this check.
-     * </p>
-     * @param dependencyNotation the provider to check
-     * @return true if the provider is a bundle, false otherwise
-     */
-    private static boolean isBundle(Provider<?> dependencyNotation) {
-        if (dependencyNotation instanceof TransformBackedProvider) {
-            Provider<?> baseProvider = ((TransformBackedProvider<?, ?>) dependencyNotation).getProvider();
-            if (baseProvider instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-                Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) baseProvider).getValueSourceType();
-                return valueSourceType.isAssignableFrom(DependencyBundleValueSource.class);
-            }
-        }
-        return false;
     }
 
     private Dependency doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {

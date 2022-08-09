@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
     protected final DefaultVersionCatalog config;
     protected final ProviderFactory providers;
+    protected final ObjectFactory objects;
 
     @SuppressWarnings("unused")
     public static abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
@@ -50,9 +53,12 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
 
     @Inject
     protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
-                                                ProviderFactory providers) {
+                                                ProviderFactory providers,
+                                                ObjectFactory objects
+    ) {
         this.config = config;
         this.providers = providers;
+        this.objects = objects;
     }
 
     @Override
@@ -111,22 +117,26 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     public static class BundleFactory {
         protected final ProviderFactory providers;
         protected final DefaultVersionCatalog config;
+        protected final ObjectFactory objects;
 
-        public BundleFactory(ProviderFactory providers, DefaultVersionCatalog config) {
+        public BundleFactory(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config) {
+            this.objects = objects;
             this.providers = providers;
             this.config = config;
         }
 
         protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
-            return providers.of(
-                DependencyBundleValueSource.class,
-                spec -> spec.parameters(params -> {
-                    params.getConfig().set(config);
-                    params.getBundleName().set(name);
-                })
+            Property<ExternalModuleDependencyBundle> property = objects.property(ExternalModuleDependencyBundle.class);
+            property.convention(providers.of(
+                    DependencyBundleValueSource.class,
+                    spec -> spec.parameters(params -> {
+                        params.getConfig().set(config);
+                        params.getBundleName().set(name);
+                    })
             ).map(dataList -> dataList.stream()
-                .map(AbstractExternalDependencyFactory::createMinimalDependency)
-                .collect(Collectors.toCollection(DefaultBundle::new)));
+                    .map(AbstractExternalDependencyFactory::createMinimalDependency)
+                    .collect(Collectors.toCollection(DefaultBundle::new))));
+            return property;
         }
 
         private static class DefaultBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
