@@ -252,6 +252,14 @@ If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, yo
 
 The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
 
+==== User provided daemon JVM arguments are merged with defaults
+
+Prior to 8.0, setting `org.gradle.jvmargs` would overwrite all default daemon JVM args, however now Gradle's default JVM arguments are merged with the arguments provided by this property. In some cases, this may cause builds which set `org.gradle.jvmargs` to have different memory configuration in Gradle 7.6.
+
+As it was before, the default daemon JVM args are `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`. Previously, if `org.gradle.jvmargs` is set to `-DsomeProperty=123`, the existing behavior would be to resolve the daemon arguments to `-DsomeProperty=123` while the new behavior would resolve to `-DsomeProperty=123 -Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError`.
+
+Since the JVM's default memory arguments are more generous than Gradle's default daemon JVM arguments, this change can cause existing builds to fail with an `OutOfMemoryError` if the build uses more memory than is explicitly set in `org.gradle.jvmargs`.
+
 ==== Remove implicit `--add-opens` for Gradle workers
 Before Gradle 8.0, Gradle workers on JDK9+ automatically opened JDK modules `java.base/java.util` and `java.base/java.lang` by passing `--add-opens` CLI arguments. This enabled code executed in a Gradle worker to perform deep reflection on JDK internals without warning or failing. Workers no longer use these implicit arguments.
 
