@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.protocol.test;
 
-import org.gradle.tooling.TestSpec;
-import org.gradle.tooling.TestSpecs;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class DefaultTestSpecs implements TestSpecs {
-
-    private List<DefaultTestSpec> testSpecs = new ArrayList<DefaultTestSpec>();
-
-    public List<DefaultTestSpec> getTestSpecs() {
-        return testSpecs;
-    }
-
-    @Override
-    public TestSpec forTaskPath(String taskPath) {
-        DefaultTestSpec spec = new DefaultTestSpec(taskPath);
-        testSpecs.add(spec);
-        return spec;
-    }
+/**
+ * Specifies a test pattern
+ *
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 7.6
+ */
+public interface InternalTestSpec extends InternalTaskSpec {
+    List<String> getPackages();
+    List<String> getClasses();
+    Map<String, List<String>> getMethods();
+    List<String> getPatterns();
 }

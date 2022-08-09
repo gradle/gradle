@@ -72,7 +72,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         debugOptions = Mock()
         debugOptions.isDebugMode() >> false
         testExecutionRequest.getDebugOptions() >> debugOptions
-        testExecutionRequest.getTestPatternSpecs() >> []
+        testExecutionRequest.getTaskSpecs() >> []
 
         setupProject()
         setupTestTask()
@@ -90,6 +90,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getInternalJvmTestRequests() >> []
         1 * testExecutionRequest.getTaskAndTests() >> [:]
+        1 * testExecutionRequest.isRunDefaultTasks() >> false
 
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
@@ -106,6 +107,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        1 * testExecutionRequest.isRunDefaultTasks() >> false
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:

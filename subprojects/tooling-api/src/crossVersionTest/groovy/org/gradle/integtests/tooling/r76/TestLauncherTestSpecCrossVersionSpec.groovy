@@ -222,4 +222,5 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
         assertTestExecuted(className: 'example2.MyOtherTest2', methodName: 'baz', task: ':secondTest')
     }
+
 }
