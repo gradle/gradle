@@ -48,7 +48,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVa
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
@@ -63,9 +62,7 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
@@ -214,17 +211,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
-        return null;
-    }
-
-    private Dependency doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
-        ListProperty<Dependency> dependencies = objects.listProperty(Dependency.class);
-        dependencies.set(dependencyNotation.map(notation -> {
-            List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
-            return deps.stream().map(d -> create(d, configureClosure)).collect(Collectors.toList());
-        }));
-        configuration.getDependencies().addAllLater(dependencies);
         return null;
     }
 
