@@ -209,4 +209,9 @@ class GradleEnterprisePluginCheckInFixture {
         assert !output.contains("gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion")
     }
 
+    void assertBackgroundJobCompletedBeforeShutdown(String output, String expectedJobOutput) {
+        def jobOutputPosition = output.indexOf(expectedJobOutput)
+        assert jobOutputPosition >= 0 : "cannot find $expectedJobOutput"
+        assert jobOutputPosition < output.indexOf("gradleEnterprisePlugin.endOfBuild.buildResult.failure")
+    }
 }
