@@ -39,17 +39,20 @@ public class Providers {
         return new FixedValueProvider<>(value);
     }
 
-    public static <T> ProviderInternal<T> nullableValue(ValueSupplier.Value<? extends T> value) {
+    public static <T, S extends T> ProviderInternal<T> nullableValue(ValueSupplier.Value<S> value) {
         if (value.isMissing()) {
             if (value.getPathToOrigin().isEmpty()) {
                 return notDefined();
             } else {
                 return new NoValueProvider<>(value);
             }
+        } else if (value instanceof ValueSupplier.ValueWithSideEffect) {
+            ValueSupplier.ValueWithSideEffect<S> valueWithSideEffect = (ValueSupplier.ValueWithSideEffect<S>) value;
+            ProviderInternal<T> provider = of(valueWithSideEffect.getWithoutSideEffect());
+            ValueSupplier.SideEffect<?> sideEffect = valueWithSideEffect.getSideEffect();
+            return provider.withSideEffect(Cast.uncheckedCast(sideEffect));
         } else {
-            ProviderInternal<T> provider = of(value.getWithoutSideEffect());
-            ValueSupplier.SideEffect<?> sideEffect = value.getSideEffect();
-            return sideEffect == null ? provider : provider.withSideEffect(Cast.uncheckedCast(sideEffect));
+            return of(value.get());
         }
     }
 

@@ -241,10 +241,6 @@ public interface ValueSupplier {
 
         <S> S orElse(S defaultValue);
 
-        default T getWithoutSideEffect() throws IllegalStateException {
-            return get();
-        }
-
         <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
         Value<T> withSideEffect(SideEffect<? super T> sideEffect);
@@ -254,11 +250,6 @@ public interface ValueSupplier {
 
         boolean isMissing();
 
-        @Nullable
-        default SideEffect<? super T> getSideEffect() {
-            return null;
-        }
-
         <S> Value<S> asType();
 
         Value<T> pushWhenMissing(@Nullable DisplayName displayName);
@@ -266,7 +257,14 @@ public interface ValueSupplier {
         Value<T> addPathsFrom(Value<?> rightValue);
     }
 
-    class PresentWithSideEffect<T> extends Present<T> {
+    interface ValueWithSideEffect<T> extends Value<T> {
+
+        SideEffect<? super T> getSideEffect();
+
+        T getWithoutSideEffect() throws IllegalStateException;
+    }
+
+    class PresentWithSideEffect<T> extends Present<T> implements ValueWithSideEffect<T> {
 
         private final SideEffect<? super T> sideEffect;
 
@@ -276,7 +274,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public @Nullable SideEffect<? super T> getSideEffect() {
+        public SideEffect<? super T> getSideEffect() {
             return sideEffect;
         }
 
@@ -315,7 +313,7 @@ public interface ValueSupplier {
             SideEffect<? super T> sideEffect = this.sideEffect;
             // carry over the side effect with a captured value before transform
             SideEffect<R> upstreamSideEffect = ignored -> sideEffect.accept(value);
-            return Value.withSideEffect(result, upstreamSideEffect);
+            return new PresentWithSideEffect<>(result, upstreamSideEffect);
         }
 
         @Override
@@ -546,10 +544,13 @@ public interface ValueSupplier {
         public static <T> ExecutionTimeValue<T> value(Value<T> value) {
             if (value.isMissing()) {
                 return missing();
+            } else if (value instanceof ValueWithSideEffect) {
+                ValueWithSideEffect<T> valueWithSideEffect = (ValueWithSideEffect<T>) value;
+                SideEffect<? super T> sideEffect = valueWithSideEffect.getSideEffect();
+                ExecutionTimeValue<T> executionTimeValue = fixedValue(valueWithSideEffect.getWithoutSideEffect());
+                return executionTimeValue.withSideEffect(sideEffect);
             } else {
-                SideEffect<? super T> sideEffect = value.getSideEffect();
-                ExecutionTimeValue<T> executionTimeValue = fixedValue(value.getWithoutSideEffect());
-                return sideEffect == null ? executionTimeValue : executionTimeValue.withSideEffect(sideEffect);
+                return fixedValue(value.get());
             }
         }
 
