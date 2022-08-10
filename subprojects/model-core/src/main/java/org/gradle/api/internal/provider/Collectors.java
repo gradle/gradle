@@ -115,7 +115,7 @@ public class Collectors {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
             if (value.isMissing()) {
                 visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.isFixedValue()) {
+            } else if (value.hasFixedValue()) {
                 visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.of(value.getFixedValue())));
             } else {
                 visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue()
