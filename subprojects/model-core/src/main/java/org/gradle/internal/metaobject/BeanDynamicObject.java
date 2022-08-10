@@ -19,6 +19,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaBeanProperty;
 import groovy.lang.MetaClass;
+import groovy.lang.MetaClassImpl;
 import groovy.lang.MetaMethod;
 import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
@@ -32,10 +33,13 @@ import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,10 +55,10 @@ import java.util.Map;
  * coercion and error reporting. Enjoy.
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
-//    private static final Method META_PROP_METHOD;
-//    private static final Field MISSING_PROPERTY_GET_METHOD;
-//    private static final Field MISSING_PROPERTY_SET_METHOD;
-//    private static final Field MISSING_METHOD_METHOD;
+    private static final Method META_PROP_METHOD;
+    private static final Field MISSING_PROPERTY_GET_METHOD;
+    private static final Field MISSING_PROPERTY_SET_METHOD;
+    private static final Field MISSING_METHOD_METHOD;
     private final Object bean;
     private final boolean includeProperties;
     private final MetaClassAdapter delegate;
@@ -68,20 +72,20 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private BeanDynamicObject withNoProperties;
     private BeanDynamicObject withNoImplementsMissing;
 
-//    static {
-//        try {
-//            META_PROP_METHOD = MetaClassImpl.class.getDeclaredMethod("getMetaProperty", String.class, boolean.class);
-//            META_PROP_METHOD.setAccessible(true);
-//            MISSING_PROPERTY_GET_METHOD = MetaClassImpl.class.getDeclaredField("propertyMissingGet");
-//            MISSING_PROPERTY_GET_METHOD.setAccessible(true);
-//            MISSING_PROPERTY_SET_METHOD = MetaClassImpl.class.getDeclaredField("propertyMissingSet");
-//            MISSING_PROPERTY_SET_METHOD.setAccessible(true);
-//            MISSING_METHOD_METHOD = MetaClassImpl.class.getDeclaredField("methodMissing");
-//            MISSING_METHOD_METHOD.setAccessible(true);
-//        } catch (Exception e) {
-//            throw UncheckedException.throwAsUncheckedException(e);
-//        }
-//    }
+    static {
+        try {
+            META_PROP_METHOD = MetaClassImpl.class.getDeclaredMethod("getMetaProperty", String.class, boolean.class);
+            META_PROP_METHOD.setAccessible(true);
+            MISSING_PROPERTY_GET_METHOD = MetaClassImpl.class.getDeclaredField("propertyMissingGet");
+            MISSING_PROPERTY_GET_METHOD.setAccessible(true);
+            MISSING_PROPERTY_SET_METHOD = MetaClassImpl.class.getDeclaredField("propertyMissingSet");
+            MISSING_PROPERTY_SET_METHOD.setAccessible(true);
+            MISSING_METHOD_METHOD = MetaClassImpl.class.getDeclaredField("methodMissing");
+            MISSING_METHOD_METHOD.setAccessible(true);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
 
     public BeanDynamicObject(Object bean) {
         this(bean, null, true, true, StringToEnumTransformer.INSTANCE, StringToEnumTransformer.INSTANCE);
@@ -267,14 +271,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Nullable
         private MetaMethod findGetPropertyMissingMethod(MetaClass metaClass) {
-//            if (metaClass instanceof MetaClassImpl) {
-//                // Reach into meta class to avoid lookup
-//                try {
-//                    return (MetaMethod) MISSING_PROPERTY_GET_METHOD.get(metaClass);
-//                } catch (IllegalAccessException e) {
-//                    throw UncheckedException.throwAsUncheckedException(e);
-//                }
-//            }
+            if (metaClass instanceof MetaClassImpl) {
+                // Reach into meta class to avoid lookup
+                try {
+                    return (MetaMethod) MISSING_PROPERTY_GET_METHOD.get(metaClass);
+                } catch (IllegalAccessException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
 
             // Query the declared methods of the meta class
             for (MetaMethod method : metaClass.getMethods()) {
@@ -287,14 +291,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Nullable
         private MetaMethod findSetPropertyMissingMethod(MetaClass metaClass) {
-//            if (metaClass instanceof MetaClassImpl) {
-//                // Reach into meta class to avoid lookup
-//                try {
-//                    return (MetaMethod) MISSING_PROPERTY_SET_METHOD.get(metaClass);
-//                } catch (IllegalAccessException e) {
-//                    throw UncheckedException.throwAsUncheckedException(e);
-//                }
-//            }
+            if (metaClass instanceof MetaClassImpl) {
+                // Reach into meta class to avoid lookup
+                try {
+                    return (MetaMethod) MISSING_PROPERTY_SET_METHOD.get(metaClass);
+                } catch (IllegalAccessException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
 
             // Query the declared methods of the meta class
             for (MetaMethod method : metaClass.getMethods()) {
@@ -307,14 +311,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Nullable
         private MetaMethod findMethodMissingMethod(MetaClass metaClass) {
-//            if (metaClass instanceof MetaClassImpl) {
-//                // Reach into meta class to avoid lookup
-//                try {
-//                    return (MetaMethod) MISSING_METHOD_METHOD.get(metaClass);
-//                } catch (IllegalAccessException e) {
-//                    throw UncheckedException.throwAsUncheckedException(e);
-//                }
-//            }
+            if (metaClass instanceof MetaClassImpl) {
+                // Reach into meta class to avoid lookup
+                try {
+                    return (MetaMethod) MISSING_METHOD_METHOD.get(metaClass);
+                } catch (IllegalAccessException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
 
             // Query the declared methods of the meta class
             for (MetaMethod method : metaClass.getMethods()) {
@@ -333,13 +337,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
          */
         @Nullable
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
-//            if (metaClass instanceof MetaClassImpl) {
-//                try {
-//                    return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
-//                } catch (Throwable e) {
-//                    throw UncheckedException.throwAsUncheckedException(e);
-//                }
-//            }
+            if (metaClass instanceof MetaClassImpl) {
+                try {
+                    return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
+                } catch (Throwable e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
 
             // Some other meta-class implementation - fall back to the public API
             return metaClass.getMetaProperty(name);
