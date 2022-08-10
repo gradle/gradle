@@ -28,7 +28,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-common",
           "version": {
-            "requires": "1.4.31"
+            "requires": "1.5.31"
           }
         }
       ],
@@ -43,19 +43,6 @@
           "md5": "0e7f673c2440c54235d8cc3d425ac943"
         }
       ]
-    },
-    {
-      "name": "metadataApiElements-published",
-      "attributes": {
-        "org.gradle.usage": "kotlin-api",
-        "org.jetbrains.kotlin.platform.type": "common"
-      },
-      "available-at": {
-        "url": "../../kotlin-multiplatform-library-metadata/1.0/kotlin-multiplatform-library-metadata-1.0.module",
-        "group": "example",
-        "module": "kotlin-multiplatform-library-metadata",
-        "version": "1.0"
-      }
     }
   ]
 }

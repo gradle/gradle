@@ -19,7 +19,6 @@
       "name": "fullDebugApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -40,7 +39,6 @@
       "name": "fullDebugRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -50,14 +48,14 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "1.4.31"
+            "requires": "1.5.31"
           }
         },
         {
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-common",
           "version": {
-            "requires": "1.4.31"
+            "requires": "1.5.31"
           }
         }
       ],
@@ -72,19 +70,6 @@
           "md5": "d3a512030f5505f84ed2e6975f9ad5e7"
         }
       ]
-    },
-    {
-      "name": "metadataApiElements-published",
-      "attributes": {
-        "org.gradle.usage": "kotlin-api",
-        "org.jetbrains.kotlin.platform.type": "common"
-      },
-      "available-at": {
-        "url": "../../kotlin-multiplatform-android-library-metadata/1.0/kotlin-multiplatform-android-library-metadata-1.0.module",
-        "group": "example",
-        "module": "kotlin-multiplatform-android-library-metadata",
-        "version": "1.0"
-      }
     }
   ]
 }

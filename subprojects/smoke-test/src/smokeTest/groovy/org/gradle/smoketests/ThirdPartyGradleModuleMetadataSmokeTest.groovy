@@ -33,8 +33,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.4")
-        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.2")
+        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.5.31")
+        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.0")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
         def expectedMetadata = new File(testProjectDir, 'expected-metadata')
@@ -48,10 +48,12 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         publish(kotlinVersion, androidPluginVersion)
 
         then:
-        actualRepo.eachFileRecurse { actual ->
+        def files = []
+        actualRepo.eachFileRecurse { files << it }
+        files.sort().each { actual ->
             def expected = new File(expectedMetadata, actual.name)
             if (expected.name.endsWith('.pom')) {
-                assert expected.text == actual.text: "content mismatch: ${actual.name}]"
+                compareXml(expected, actual)
             }
             if (expected.name.endsWith('.module')) {
                 compareJson(expected, actual)
@@ -131,10 +133,10 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
             .deprecations(KotlinMultiPlatformDeprecations) {
-                expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
                 expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
                 expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+                expectKotlinCompileDestinationDirPropertyDeprecation(kotlinVersion)
             }.build()
     }
 
@@ -156,12 +158,45 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         return runner.build()
     }
 
+    private static compareXml(File expected, File actual) {
+        String sortedExpected = sortDependenciesIfPresent(expected)
+        String sortedActual = sortDependenciesIfPresent(actual)
+
+        assert sortedExpected == sortedActual: "content mismatch: ${actual.name}]"
+    }
+
+    private static String sortDependenciesIfPresent(File pomFile) {
+        def root = new XmlParser().parseText(pomFile.text)
+        if (root.dependencies && root.dependencies[0].dependency && root.dependencies[0].dependency.size() > 1) {
+            def depsClone = root.dependencies[0].clone()
+            root.dependencies[0].value = depsClone.dependency.sort(true) { it.artifactId.text() }
+        }
+
+        StringWriter stringWriter = new StringWriter()
+        XmlNodePrinter nodePrinter = new XmlNodePrinter(new PrintWriter(stringWriter))
+        nodePrinter.setPreserveWhitespace(true)
+        nodePrinter.print(root)
+        return stringWriter.toString()
+    }
+
     private static compareJson(File expected, File actual) {
         def actualJson = removeChangingDetails(new JsonSlurper().parseText(actual.text), actual.name)
         def expectedJson = removeChangingDetails(new JsonSlurper().parseText(expected.text), actual.name)
-        assert actualJson.formatVersion == expectedJson.formatVersion
+        assert actualJson.formatVersion == expectedJson.formatVersion: "version mismatch: ${actual.name}"
         assert actualJson.component == expectedJson.component: "component content mismatch: ${actual.name}"
+
+        sortDependenciesIfPresent(actualJson)
+        sortDependenciesIfPresent(expectedJson)
+
         assert actualJson.variants as Set == expectedJson.variants as Set: "variants content mismatch: ${actual.name}"
+    }
+
+    private static sortDependenciesIfPresent(json) {
+        for (def v in json.variants) {
+            if (v.dependencies != null) {
+                v.dependencies = v.dependencies.sort()
+            }
+        }
     }
 
     private static removeChangingDetails(moduleRoot, String metadataFileName) {

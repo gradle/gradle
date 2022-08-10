@@ -15,7 +15,7 @@
   },
   "variants": [
     {
-      "name": "metadataApiElements-published",
+      "name": "metadataApiElements",
       "attributes": {
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.platform.type": "common"
@@ -36,7 +36,6 @@
       "name": "demoDebugApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "demoDebug",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -52,7 +51,6 @@
       "name": "demoDebugRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "demoDebug",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -68,7 +66,6 @@
       "name": "fullDebugApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -84,7 +81,6 @@
       "name": "fullDebugRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -99,8 +95,6 @@
     {
       "name": "demoReleaseApiElements-published",
       "attributes": {
-        "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "demoRelease",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -115,8 +109,6 @@
     {
       "name": "demoReleaseRuntimeElements-published",
       "attributes": {
-        "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "demoRelease",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -131,8 +123,6 @@
     {
       "name": "fullReleaseApiElements-published",
       "attributes": {
-        "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "fullRelease",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -147,8 +137,6 @@
     {
       "name": "fullReleaseRuntimeElements-published",
       "attributes": {
-        "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "fullRelease",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -206,6 +194,7 @@
     {
       "name": "macosX64ApiElements-published",
       "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.native.target": "macos_x64",
         "org.jetbrains.kotlin.platform.type": "native"
