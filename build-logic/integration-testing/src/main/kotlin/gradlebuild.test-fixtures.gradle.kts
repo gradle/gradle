@@ -97,9 +97,9 @@ plugins.withType<IdeaPlugin> {
     configure<IdeaModel> {
         module {
             val testFixtures = sourceSets.testFixtures.get()
-            testSourceDirs = testSourceDirs + testFixtures.java.srcDirs
-            testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs
-            testResourceDirs = testResourceDirs + testFixtures.resources.srcDirs
+            testSources.from(testFixtures.java.srcDirs)
+            testSources.from(testFixtures.groovy.srcDirs)
+            testResources.from(testFixtures.resources.srcDirs)
         }
     }
 }
