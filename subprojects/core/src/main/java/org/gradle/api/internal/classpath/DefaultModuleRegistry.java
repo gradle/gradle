@@ -71,6 +71,11 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
             classpath.add(classpathFile);
             if (classpathFile.isFile() && !classpathJars.containsKey(classpathFile.getName())) {
                 classpathJars.put(classpathFile.getName(), classpathFile);
+                // FIXME beware of the hack!
+                if (classpathFile.getName().endsWith("-1.9.0.jar")) {
+                    String fakeName = classpathFile.getName().substring(0, classpathFile.getName().length() - "-1.9.0.jar".length());
+                    classpathJars.put(fakeName + "-1.8.2.jar", classpathFile);
+                }
             }
         }
     }
