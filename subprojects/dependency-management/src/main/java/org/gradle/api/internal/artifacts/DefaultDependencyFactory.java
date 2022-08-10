@@ -17,37 +17,44 @@
 package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.Map;
 
-public class DefaultDependencyFactory implements DependencyFactory {
-    private final NotationParser<Object, Dependency> dependencyNotationParser;
+public class DefaultDependencyFactory implements DependencyFactoryInternal {
+    private final DependencyNotationParser dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultDependencyFactory(NotationParser<Object, Dependency> dependencyNotationParser,
-                                    NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
-                                    NotationParser<Object, ClientModule> clientModuleNotationParser,
-                                    NotationParser<Object, Capability> capabilityNotationParser,
-                                    ProjectDependencyFactory projectDependencyFactory,
-                                    ImmutableAttributesFactory attributesFactory) {
+    public DefaultDependencyFactory(
+        DependencyNotationParser dependencyNotationParser,
+        NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
+        NotationParser<Object, ClientModule> clientModuleNotationParser,
+        NotationParser<Object, Capability> capabilityNotationParser,
+        ProjectDependencyFactory projectDependencyFactory,
+        ImmutableAttributesFactory attributesFactory
+    ) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
@@ -62,7 +69,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         if (dependencyNotation instanceof Dependency && !(dependencyNotation instanceof MinimalExternalModuleDependency)) {
             dependency = (Dependency) dependencyNotation;
         } else {
-            dependency = dependencyNotationParser.parseNotation(dependencyNotation);
+            dependency = dependencyNotationParser.getNotationParser().parseNotation(dependencyNotation);
         }
         injectServices(dependency);
         return dependency;
@@ -111,4 +118,28 @@ public class DefaultDependencyFactory implements DependencyFactory {
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         configureClosure.call();
     }
+
+    // region DependencyFactory methods
+
+    @Override
+    public ExternalModuleDependency createFromCharSequence(CharSequence dependencyNotation) {
+        return dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+    }
+
+    @Override
+    public ExternalModuleDependency createFromMap(Map<String, ?> map) {
+        return dependencyNotationParser.getMapNotationParser().parseNotation(map);
+    }
+
+    @Override
+    public FileCollectionDependency createFromFileCollection(FileCollection fileCollection) {
+        return dependencyNotationParser.getFileCollectionNotationParser().parseNotation(fileCollection);
+    }
+
+    @Override
+    public ProjectDependency createFromProject(Project project) {
+        return dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+    }
+
+    // endregion
 }

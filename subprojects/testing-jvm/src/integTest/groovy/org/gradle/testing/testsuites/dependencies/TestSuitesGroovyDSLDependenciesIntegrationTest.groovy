@@ -16,9 +16,8 @@
 
 package org.gradle.testing.testsuites.dependencies
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
-
 
 class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
     private versionCatalog = file('gradle', 'libs.versions.toml')
@@ -266,6 +265,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     $suiteDeclaration {
                         dependencies {
                             implementation(project(':util')) {
+                                println(it)
                                 exclude group: 'org.apache.commons', module: 'commons-lang3'
                             }
                         }
@@ -749,48 +749,6 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         }
         """
 
-        file('src/main/org/sample/Person.java') << """
-            package org.sample;
-
-            public class Person {
-                private String name;
-                private int age;
-
-                public String getName() {
-                    return name;
-                }
-
-                public void setName(String name) {
-                    this.name = name;
-                }
-
-                public int getAge() {
-                    return age;
-                }
-
-                public void setAge(int age) {
-                    this.age = age;
-                }
-            }
-        """
-
-        file('src/test/org/samplePersonTest.java') << """
-            package org.sample;
-
-            import org.apache.commons.beanutils.PropertyUtils;
-
-            public class PersonTest {
-                @Test
-                public void testPerson() {
-                    Object person = new Person();
-                    PropertyUtils.setSimpleProperty(person, "name", "Bart Simpson");
-                    PropertyUtils.setSimpleProperty(person, "age", 38);
-                    assertEquals("Bart Simpson", person.getName());
-                    assertEquals(38, person.getAge());
-                }
-            }
-        """
-
         expect:
         succeeds 'checkConfiguration'
 
@@ -1015,7 +973,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("Could not get unknown property 'implementation' for object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        result.assertHasErrorOutput("No signature of method: org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder.getAt() is applicable for argument types: (ArrayList) values: [[org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre]]")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1047,7 +1005,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("Cannot convert the provided notation to an object of type Dependency: [org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre].")
+        result.assertHasErrorOutput("Could not find method implementation() for arguments [[org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre]]")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1231,7 +1189,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependency providers which provide GAVs to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
+    def 'can NOT add dependency providers which provide GAVs to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
         given :
         buildFile << """
             plugins {
@@ -1270,8 +1228,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
         """
 
-        expect:
-        succeeds 'checkConfiguration'
+        when:
+        fails 'checkConfiguration'
+
+        then:
+        failureHasCause("class java.lang.String cannot be cast to class org.gradle.api.artifacts.Dependency")
     }
 
     def 'can add dependency providers which provide dependency objects with actions (using exclude) to #suiteDesc'() {
@@ -1358,7 +1319,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
 
-    def 'can add dependency providers which provide GAVs with actions (using excludes) to #suiteDesc'() {
+    def 'can NOT add dependency providers which provide GAVs with actions (using excludes) to #suiteDesc'() {
         given :
         buildFile << """
             plugins {
@@ -1392,8 +1353,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
         """
 
-        expect:
-        succeeds 'checkConfiguration'
+        when:
+        fails 'checkConfiguration'
+
+        then:
+        failureHasCause("class java.lang.String cannot be cast to class org.gradle.api.artifacts.Dependency")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1401,7 +1365,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
 
-    def 'can add dependency providers which provide GAVs with actions (using because) to #suiteDesc'() {
+    def 'can NOT add dependency providers which provide GAVs with actions (using because) to #suiteDesc'() {
         given :
         buildFile << """
             plugins {
@@ -1433,8 +1397,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
         """
 
-        expect:
-        succeeds 'checkConfiguration'
+        when:
+        fails 'checkConfiguration'
+
+        then:
+        failureHasCause("class java.lang.String cannot be cast to class org.gradle.api.artifacts.Dependency")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1784,7 +1751,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - Version Catalog
 
     // region dependencies - platforms
-    @Ignore("platforms not yet available in test suites")
+    @NotYetImplemented
     def "can add a platform dependency to #suiteDesc"() {
         given: "a suite that uses a platform dependency"
         settingsFile << """
@@ -1860,7 +1827,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
 
-    @Ignore("platforms not yet available in test suites")
+    @NotYetImplemented
     def "can add an enforced platform dependency to #suiteDesc"() {
         given: "a suite that uses an enforced platform dependency"
         settingsFile << """
@@ -2064,7 +2031,6 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - file collections
 
     // region dependencies - self-resolving dependencies
-    @Ignore("self-resolving methods not yet available in test suites")
     def "can add localGroovy dependency to #suiteDesc"() {
         given:
         buildFile << """
@@ -2107,7 +2073,6 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
 
-    @Ignore("self-resolving methods not yet available in test suites")
     def "can add gradleApi dependency to #suiteDesc"() {
         given:
         buildFile << """
@@ -2150,7 +2115,6 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
 
-    @Ignore("self-resolving methods not yet available in test suites")
     def "can add gradleTestKit dependency to #suiteDesc"() {
         given:
         buildFile << """

@@ -20,10 +20,14 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 
 import java.util.Map;
 
-public interface DependencyFactory {
+/**
+ * Internal API for dependency creation.
+ */
+public interface DependencyFactoryInternal extends DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {
         GRADLE_API("Gradle API"),
@@ -39,7 +43,7 @@ public interface DependencyFactory {
         }
     }
 
-    Dependency createDependency(Object dependencyNotation); //we should consider to change the return type to DirectDependency, which requires adjustment in Kotlin DSL
+    Dependency createDependency(Object dependencyNotation);
     DependencyConstraint createDependencyConstraint(Object dependencyNotation);
     ClientModule createModule(Object dependencyNotation, Closure configureClosure);
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
