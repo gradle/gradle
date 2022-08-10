@@ -183,7 +183,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "JVM has changed"
                 }
                 if (host.startParameterProperties != startParameterProperties) {
-                    return "the set of Gradle properties has changed"
+                    return "the set of Gradle properties has changed (${host.startParameterProperties} != ${startParameterProperties})"
                 }
             }
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
