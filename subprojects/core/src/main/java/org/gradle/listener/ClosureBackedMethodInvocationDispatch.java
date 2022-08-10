@@ -36,7 +36,7 @@ public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInv
         if (message.getMethod().getName().equals(methodName)) {
             Object[] parameters = message.getArguments();
             if (closure.getMaximumNumberOfParameters() < parameters.length) {
-                parameters = Arrays.copyOf(parameters, closure.getMaximumNumberOfParameters());
+                parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
             }
             closure.call(parameters);
         }
