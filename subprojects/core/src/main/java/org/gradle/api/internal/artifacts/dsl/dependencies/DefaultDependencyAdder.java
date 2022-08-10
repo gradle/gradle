@@ -1,0 +1,187 @@
+/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.artifacts.dsl.dependencies;
+
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class DefaultDependencyAdder implements DependencyAdder {
+    private final DependencyFactoryInternal dependencyFactory;
+    private final Configuration configuration;
+
+    @Inject
+    public DefaultDependencyAdder(DependencyFactoryInternal dependencyFactory, Configuration configuration) {
+        this.dependencyFactory = dependencyFactory;
+        this.configuration = configuration;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <D extends Dependency> D finalizeDependency(D dependency) {
+        if (dependency instanceof MinimalExternalModuleDependency) {
+            // This will break if D == MinimalExternalModuleDependency
+            // We assume people won't do that because it's not useful, the type is immutable.
+            return  (D) dependencyFactory.createDependency(dependency);
+        }
+        return dependency;
+    }
+
+    private <D extends Dependency> void doAddEager(D dependency, @Nullable Action<? super D> config) {
+        dependency = finalizeDependency(dependency);
+        if (config != null) {
+            config.execute(dependency);
+        }
+        configuration.getDependencies().add(dependency);
+    }
+
+    private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
+        Provider<D> provider = dependency.map(this::finalizeDependency);
+        if (config != null) {
+            provider = provider.map(d -> {
+                config.execute(d);
+                return d;
+            });
+        }
+        configuration.getDependencies().addLater(provider);
+    }
+
+    private void doAddBundleLazy(Provider<? extends ExternalModuleDependencyBundle> dependency, @Nullable Action<? super ExternalModuleDependency> config) {
+        Provider<? extends Iterable<Dependency>> provider = dependency.map(bundle -> {
+            List<Dependency> newList = new ArrayList<>(bundle.size());
+            for (MinimalExternalModuleDependency dep : bundle) {
+                ExternalModuleDependency converted = finalizeDependency(dep);
+                if (config != null) {
+                    config.execute(converted);
+                }
+                newList.add(converted);
+            }
+            return newList;
+        });
+        configuration.getDependencies().addAllLater(provider);
+    }
+
+    @Override
+    public void add(CharSequence dependencyNotation) {
+        doAddEager(dependencyFactory.createFromCharSequence(dependencyNotation), null);
+    }
+
+    @Override
+    public void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.createFromCharSequence(dependencyNotation), configuration);
+    }
+
+    @Override
+    public void add(Map<String, ?> map) {
+        doAddEager(dependencyFactory.createFromMap(map), null);
+    }
+
+    @Override
+    public void add(Map<String, ?> map, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.createFromMap(map), configuration);
+    }
+
+    @Override
+    public void add(Project project) {
+        doAddEager(dependencyFactory.createFromProject(project), null);
+    }
+
+    @Override
+    public void add(Project project, Action<? super ProjectDependency> configuration) {
+        doAddEager(dependencyFactory.createFromProject(project), configuration);
+    }
+
+    @Override
+    public void add(FileCollection files) {
+        doAddEager(dependencyFactory.createFromFileCollection(files), null);
+    }
+
+    @Override
+    public void add(FileCollection files, Action<? super FileCollectionDependency> configuration) {
+        doAddEager(dependencyFactory.createFromFileCollection(files), configuration);
+    }
+
+    @Override
+    public void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
+        doAddLazy(externalModule.asProvider(), null);
+    }
+
+    @Override
+    public void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration) {
+        doAddLazy(externalModule.asProvider(), configuration);
+    }
+
+    @Override
+    public void add(Dependency dependency) {
+        doAddEager(dependency, null);
+    }
+
+    @Override
+    public <D extends Dependency> void add(D dependency, Action<? super D> configuration) {
+        doAddEager(dependency, configuration);
+    }
+
+    @Override
+    public void add(Provider<? extends Dependency> dependency) {
+        doAddLazy(dependency, null);
+    }
+
+    @Override
+    public <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration) {
+        doAddLazy(dependency, configuration);
+    }
+
+    @Override
+    public void bundle(Provider<? extends ExternalModuleDependencyBundle> bundle) {
+        doAddBundleLazy(bundle, null);
+    }
+
+    @Override
+    public void bundle(Provider<? extends ExternalModuleDependencyBundle> bundle, Action<? super ExternalModuleDependency> configuration) {
+        doAddBundleLazy(bundle, configuration);
+    }
+
+    @Override
+    public void bundle(ProviderConvertible<? extends ExternalModuleDependencyBundle> bundle) {
+        doAddBundleLazy(bundle.asProvider(), null);
+    }
+
+    @Override
+    public void bundle(ProviderConvertible<? extends ExternalModuleDependencyBundle> bundle, Action<? super ExternalModuleDependency> configuration) {
+        doAddBundleLazy(bundle.asProvider(), configuration);
+    }
+
+    @Override
+    public String toString() {
+        return DependencyAdder.class.getSimpleName() + " for " + configuration.getName();
+    }
+}
