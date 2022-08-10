@@ -30,6 +30,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
@@ -58,6 +59,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private GeneratedSource sources
+    final ObjectFactory objects = TestUtil.objectFactory()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
             new DefaultListenerManager(Scopes.Build),
@@ -404,7 +406,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
             factory = cl.loadClass("org.test.$className")
             assert factory
-            factory.newInstance(model, providerFactory)
+            factory.newInstance(model, providerFactory, objects)
         }
     }
 
