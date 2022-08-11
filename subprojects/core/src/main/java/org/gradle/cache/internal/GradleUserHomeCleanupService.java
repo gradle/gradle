@@ -35,7 +35,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final CacheCleanupEnablement cacheCleanupEnablement;
+    private final GradleUserHomeCacheCleanupEnablement cacheCleanupEnablement;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,7 +43,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        CacheCleanupEnablement cacheCleanupEnablement
+        GradleUserHomeCacheCleanupEnablement cacheCleanupEnablement
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
@@ -55,7 +55,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
 
     @Override
     public void stop() {
-        if (!cacheCleanupEnablement.isEnabled()) {
+        if (!cacheCleanupEnablement.isEnabledFor(userHomeDirProvider.getGradleUserHomeDirectory())) {
             return;
         }
 

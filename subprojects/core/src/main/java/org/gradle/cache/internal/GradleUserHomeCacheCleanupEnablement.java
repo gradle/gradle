@@ -22,12 +22,12 @@ import org.gradle.util.internal.GUtil;
 import java.io.File;
 import java.util.Properties;
 
-public class CacheCleanupEnablement {
-    private static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
+public class GradleUserHomeCacheCleanupEnablement {
+    static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
 
     private final GradleUserHomeDirProvider userHomeDirProvider;
 
-    public CacheCleanupEnablement(GradleUserHomeDirProvider userHomeDirProvider) {
+    public GradleUserHomeCacheCleanupEnablement(GradleUserHomeDirProvider userHomeDirProvider) {
         this.userHomeDirProvider = userHomeDirProvider;
     }
 
@@ -42,7 +42,8 @@ public class CacheCleanupEnablement {
         return false;
     }
 
-    public boolean isEnabled() {
-        return !isDisabled();
+    public boolean isEnabledFor(File baseDir) {
+        File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
+        return baseDir.toPath().startsWith(gradleUserHomeDirectory.toPath()) && !isDisabled();
     }
 }
