@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
  */
 @Contextual
 public class WorkValidationException extends GradleException {
-    private static final int MAX_ERR_COUNT = Integer.getInteger("org.gradle.internal.max.validation.errors", 5);
+    private static final String MAX_ERR_COUNT_PROPERTY = "org.gradle.internal.max.validation.errors";
+    private static final int DEFAULT_MAX_ERR_COUNT = 5;
 
     private final List<String> problems;
 
@@ -59,7 +60,9 @@ public class WorkValidationException extends GradleException {
         private final List<String> problems;
 
         public Builder(Collection<String> problems) {
-            this.problems = problems.stream().limit(MAX_ERR_COUNT).collect(ImmutableList.toImmutableList());
+            this.problems = problems.stream()
+                    .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
+                    .collect(ImmutableList.toImmutableList());
         }
 
         public Builder limitTo(int maxProblems) {
