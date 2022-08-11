@@ -17,6 +17,7 @@
 package org.gradle.execution.plan;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -41,6 +42,10 @@ public class OrdinalNodeAccess {
 
     OrdinalNode getOrCreateOutputLocationNode(OrdinalGroup ordinal) {
         return producerLocationNodes.computeIfAbsent(ordinal, this::createProducerLocationNode);
+    }
+
+    List<OrdinalGroup> getAllGroups() {
+        return ordinalGroups.getAllGroups();
     }
 
     Stream<OrdinalNode> getAllNodes() {
@@ -102,5 +107,11 @@ public class OrdinalNodeAccess {
         } else {
             return getOrCreateDestroyableLocationNode(group(ordinal.getOrdinal() - 1));
         }
+    }
+
+    public void reset() {
+        ordinalGroups.reset();
+        destroyerLocationNodes.clear();
+        producerLocationNodes.clear();
     }
 }
