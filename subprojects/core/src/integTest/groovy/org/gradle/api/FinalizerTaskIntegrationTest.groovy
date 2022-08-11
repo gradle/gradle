@@ -158,7 +158,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', ':finalizer2', ':finalizer1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', any(':finalizer2', ':finalizer1')
         }
     }
 
@@ -191,7 +191,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'processResources'
-            result.assertTaskOrder ':processResources', ':compileJava', ':classes', ':generatePermissions', ':assemble'
+            result.assertTaskOrder ':processResources', ':compileJava', ':classes', any(':generatePermissions', ':assemble')
         }
     }
 
