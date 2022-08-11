@@ -8,6 +8,7 @@
                 "Method has been removed"
             ]
         },
+        {
             "type": "org.gradle.api.file.SourceDirectorySet",
             "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
             "acceptation": "Deprecated method removed",
