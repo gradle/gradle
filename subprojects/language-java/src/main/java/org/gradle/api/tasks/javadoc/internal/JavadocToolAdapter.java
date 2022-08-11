@@ -48,5 +48,4 @@ public class JavadocToolAdapter implements JavadocTool {
     public RegularFile getExecutablePath() {
         return javaToolchain.findExecutable("javadoc");
     }
-
 }

@@ -39,5 +39,4 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
     public JavaInstallationMetadata getMetadata() {
         return javaToolchain;
     }
-
 }
