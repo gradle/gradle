@@ -16,12 +16,20 @@
 
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 
 /**
  * This task is <strong>no longer supported</strong> and will <strong>throw an exception</strong> if you try to use it.
@@ -41,5 +49,106 @@ public abstract class Upload extends ConventionTask {
                 "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. See " +
                         getDocumentationRegistry().getDocumentationFor("publishing_maven", "publishing_maven") + " or " +
                         getDocumentationRegistry().getDocumentationFor("publishing_ivy", "publishing_ivy") + " for details");
+    }
+
+    /**
+     * Do not use this method, it will always return {@code false}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Input
+    @Deprecated
+    public boolean isUploadDescriptor() {
+        return false;
+    }
+
+    /**
+     * Do not use this method, it does nothing.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
+    public void setUploadDescriptor(boolean uploadDescriptor) { /* empty */ }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Internal
+    @Nullable
+    @Deprecated
+    public File getDescriptorDestination() {
+        return null;
+    }
+
+    /**
+     * Do not use this method, it does nothing.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
+    public void setDescriptorDestination(@Nullable File descriptorDestination) { /* empty */ }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Internal
+    @Nullable
+    @Deprecated
+    public RepositoryHandler getRepositories() {
+        return null;
+    }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Internal
+    @Nullable
+    @Deprecated
+    public Configuration getConfiguration() {
+        return null;
+    }
+
+    /**
+     * Do not use this method, it does nothing.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
+    public void setConfiguration(@Nullable Configuration configuration) { /* empty */ }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Nullable
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
+    public RepositoryHandler repositories(@Nullable @DelegatesTo(RepositoryHandler.class) Closure configureClosure) {
+        return null;
+    }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Nullable
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
+    public RepositoryHandler repositories(Action<? super RepositoryHandler> configureAction) {
+        return null;
+    }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputFiles
+    @Nullable
+    @Deprecated
+    public FileCollection getArtifacts() {
+        return null;
     }
 }
