@@ -26,7 +26,6 @@ import org.gradle.model.internal.type.ModelType;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -68,8 +67,8 @@ public class WorkValidationException extends GradleException {
         }
 
         public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
-            ValidationErrorSummarizer summarizer = new ValidationErrorSummarizer(validatedObjectName, validationContext);
-            return new BuilderWithSummary(problems, summarizer.apply(problems));
+            String summary = summarizeInContext(validatedObjectName, validationContext);
+            return new BuilderWithSummary(problems, summary);
         }
 
         public BuilderWithSummary withSummaryForPlugin() {
@@ -77,36 +76,22 @@ public class WorkValidationException extends GradleException {
             return new BuilderWithSummary(problems, summary);
         }
 
-        /**
-         * This function can build a formatted String summarizing a list of problems.
-         */
-        public static final class ValidationErrorSummarizer implements Function<List<String>, String> {
-            private final String validatedObjectName;
-            private final WorkValidationContext validationContext;
+        private String summarizeInContext(String validatedObjectName, WorkValidationContext validationContext) {
+            return String.format("%s found with the configuration of %s (%s).",
+                    problems.size() == 1 ? "A problem was" : "Some problems were",
+                    validatedObjectName,
+                    describeTypesChecked(validationContext.getValidatedTypes()));
+        }
 
-            public ValidationErrorSummarizer(String validatedObjectName, WorkValidationContext validationContext) {
-                this.validatedObjectName = validatedObjectName;
-                this.validationContext = validationContext;
-            }
+        private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
+            return types.size() == 1
+                    ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
+                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+        }
 
-            @Override
-            public String apply(List<String> problems) {
-                return String.format("%s found with the configuration of %s (%s).",
-                        problems.size() == 1 ? "A problem was" : "Some problems were",
-                        validatedObjectName,
-                        describeTypesChecked(validationContext.getValidatedTypes()));
-            }
-
-            private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-                return types.size() == 1
-                        ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
-                        : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
-            }
-
-            private String getTypeDisplayName(Class<?> type) {
+        private String getTypeDisplayName(Class<?> type) {
                 return ModelType.of(type).getDisplayName();
             }
-        }
     }
 
     /**
