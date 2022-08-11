@@ -19,8 +19,9 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaLauncher;
 
-public class DefaultToolchainJavaLauncher implements JavaLauncherInternal {
+public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
     private final JavaToolchain javaToolchain;
 
@@ -39,8 +40,4 @@ public class DefaultToolchainJavaLauncher implements JavaLauncherInternal {
         return javaToolchain;
     }
 
-    @Override
-    public void emitUsage() {
-        javaToolchain.emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool.LAUNCHER);
-    }
 }

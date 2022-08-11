@@ -19,12 +19,11 @@ package org.gradle.api.tasks.javadoc.internal;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails;
+import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
-import org.gradle.jvm.toolchain.internal.JavadocToolInternal;
 import org.gradle.process.internal.ExecActionFactory;
 
-public class JavadocToolAdapter implements JavadocToolInternal {
+public class JavadocToolAdapter implements JavadocTool {
 
     private final JavadocGenerator generator;
     private final JavaToolchain javaToolchain;
@@ -50,8 +49,4 @@ public class JavadocToolAdapter implements JavadocToolInternal {
         return javaToolchain.findExecutable("javadoc");
     }
 
-    @Override
-    public void emitUsage() {
-        javaToolchain.emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool.JAVADOC);
-    }
 }

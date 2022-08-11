@@ -19,12 +19,12 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails.JavaTool;
 
 import javax.inject.Inject;
 
@@ -46,8 +46,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec) {
-        Provider<JavaCompilerInternal> toolProvider = queryService.toolFor(spec, JavaToolchain::getJavaCompiler);
-        return Cast.uncheckedNonnullCast(toolProvider);
+        return queryService.toolFor(spec, JavaToolchain::getJavaCompiler, JavaTool.COMPILER);
     }
 
     @Override
@@ -57,8 +56,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaLauncher> launcherFor(JavaToolchainSpec spec) {
-        Provider<JavaLauncherInternal> toolProvider = queryService.toolFor(spec, JavaToolchain::getJavaLauncher);
-        return Cast.uncheckedNonnullCast(toolProvider);
+        return queryService.toolFor(spec, JavaToolchain::getJavaLauncher, JavaTool.LAUNCHER);
     }
 
     @Override
@@ -68,8 +66,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec) {
-        Provider<JavadocToolInternal> toolProvider = queryService.toolFor(spec, JavaToolchain::getJavadocTool);
-        return Cast.uncheckedNonnullCast(toolProvider);
+        return queryService.toolFor(spec, JavaToolchain::getJavadocTool, JavaTool.JAVADOC);
     }
 
     private DefaultToolchainSpec configureToolchainSpec(Action<? super JavaToolchainSpec> config) {

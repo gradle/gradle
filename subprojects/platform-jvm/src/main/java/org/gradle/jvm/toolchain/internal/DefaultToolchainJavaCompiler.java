@@ -20,12 +20,13 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultToolchainJavaCompiler implements JavaCompilerInternal {
+public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolchainJavaCompiler.class);
 
@@ -47,11 +48,6 @@ public class DefaultToolchainJavaCompiler implements JavaCompilerInternal {
     @Internal
     public RegularFile getExecutablePath() {
         return javaToolchain.findExecutable("javac");
-    }
-
-    @Override
-    public void emitUsage() {
-        javaToolchain.emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool.COMPILER);
     }
 
     @SuppressWarnings("unchecked")
