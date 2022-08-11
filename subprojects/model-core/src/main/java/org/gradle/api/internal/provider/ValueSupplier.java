@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -194,8 +194,7 @@ public interface ValueSupplier {
         }
     }
 
-    interface SideEffect<T> extends Serializable {
-        void accept(T t);
+    interface SideEffect<T> extends SerializableAction<T> {
     }
 
     /**
@@ -240,6 +239,8 @@ public interface ValueSupplier {
         T orNull();
 
         <S> S orElse(S defaultValue);
+
+        T getWithoutSideEffect() throws IllegalStateException;
 
         <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
@@ -312,7 +313,7 @@ public interface ValueSupplier {
             // avoid capturing the value wrapper
             SideEffect<? super T> sideEffect = this.sideEffect;
             // carry over the side effect with a captured value before transform
-            SideEffect<R> upstreamSideEffect = ignored -> sideEffect.accept(value);
+            SideEffect<R> upstreamSideEffect = ignored -> sideEffect.execute(value);
             return new PresentWithSideEffect<>(result, upstreamSideEffect);
         }
 
@@ -321,8 +322,8 @@ public interface ValueSupplier {
             // avoid capturing the value wrapper
             SideEffect<? super T> prevSideEffect = this.sideEffect;
             SideEffect<? super T> chainedSideEffect = it -> {
-                prevSideEffect.accept(it);
-                sideEffect.accept(it);
+                prevSideEffect.execute(it);
+                sideEffect.execute(it);
             };
 
             return new PresentWithSideEffect<>(get(), chainedSideEffect);
@@ -330,7 +331,7 @@ public interface ValueSupplier {
 
         private void runSideEffect() {
             T value = super.get();
-            sideEffect.accept(value);
+            sideEffect.execute(value);
         }
     }
 
@@ -359,6 +360,11 @@ public interface ValueSupplier {
         @Override
         public <S> S orElse(S defaultValue) {
             return Cast.uncheckedCast(result);
+        }
+
+        @Override
+        public T getWithoutSideEffect() throws IllegalStateException {
+            return get();
         }
 
         @Override
@@ -421,6 +427,11 @@ public interface ValueSupplier {
         @Override
         public <S> S orElse(S defaultValue) {
             return defaultValue;
+        }
+
+        @Override
+        public T getWithoutSideEffect() throws IllegalStateException {
+            return get();
         }
 
         @Override
@@ -664,8 +675,8 @@ public interface ValueSupplier {
             // avoid capturing the value wrapper
             SideEffect<? super T> prevSideEffect = this.sideEffect;
             SideEffect<? super T> chainedSideEffect = it -> {
-                prevSideEffect.accept(it);
-                sideEffect.accept(it);
+                prevSideEffect.execute(it);
+                sideEffect.execute(it);
             };
             return new FixedWithSideEffectExecutionTimeValue<>(super.getFixedValue(), hasChangingContent(), chainedSideEffect);
         }
@@ -697,7 +708,7 @@ public interface ValueSupplier {
         }
 
         private void runSideEffect() {
-            sideEffect.accept(super.getFixedValue());
+            sideEffect.execute(super.getFixedValue());
         }
     }
 
