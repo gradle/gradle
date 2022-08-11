@@ -266,18 +266,21 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             if (queues.isEmpty()) {
                 return;
             }
-            List<WorkSource.Diagnostics> allDiagnostics = new ArrayList<>(queues.size());
             for (PlanDetails details : queues) {
-                WorkSource.Diagnostics diagnostics = details.source.healthDiagnostics();
-                if (diagnostics.canMakeProgress()) {
+                if (details.source.canMakeProgress()) {
                     return;
                 }
-                allDiagnostics.add(diagnostics);
             }
 
             // Log some diagnostic information to the console, in addition to aborting execution with an exception which will also be logged
             // Given that the execution infrastructure is in an unhealthy state, it may not shut down cleanly and report the execution.
             // So, log some details here just in case
+
+            List<WorkSource.Diagnostics> allDiagnostics = new ArrayList<>(queues.size());
+            for (PlanDetails details : queues) {
+                allDiagnostics.add(details.source.healthDiagnostics());
+            }
+
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Unable to make progress running work. The following items are queued for execution but none of them can be started:");
             formatter.startChildren();
