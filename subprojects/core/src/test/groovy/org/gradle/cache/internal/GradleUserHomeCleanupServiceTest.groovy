@@ -46,8 +46,8 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         getUsedGradleVersions() >> ([] as SortedSet)
     }
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
-    def cacheCleanupEnablement = Stub(CacheCleanupEnablement) {
-        isEnabled() >> true
+    def cacheCleanupEnablement = Stub(GradleUserHomeCacheCleanupEnablement) {
+        isEnabledFor(_) >> true
     }
 
     @Subject def cleanupService = new GradleUserHomeCleanupService(
@@ -102,7 +102,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.stop()
 
         then:
-        cacheCleanupEnablement.isEnabled() >> false
+        cacheCleanupEnablement.isEnabledFor(_) >> false
 
         and:
         oldCacheDir.assertExists()

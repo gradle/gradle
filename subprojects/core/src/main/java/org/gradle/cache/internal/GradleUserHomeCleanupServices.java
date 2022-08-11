@@ -34,8 +34,8 @@ public class GradleUserHomeCleanupServices {
         UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
 
-        CacheCleanupEnablement cacheCleanupEnablement = new CacheCleanupEnablement(gradleUserHomeDirProvider);
-        registration.add(CacheCleanupEnablement.class, cacheCleanupEnablement);
+        GradleUserHomeCacheCleanupEnablement cacheCleanupEnablement = new GradleUserHomeCacheCleanupEnablement(gradleUserHomeDirProvider);
+        registration.add(GradleUserHomeCacheCleanupEnablement.class, cacheCleanupEnablement);
 
         // register eagerly so stop() is triggered when services are being stopped
         registration.add(
