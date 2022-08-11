@@ -196,6 +196,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setScriptBaseClass(scriptBaseClass.getName());
         configuration.setTargetBytecode(CompilerConfiguration.JDK8);
+        if (!configuration.isIndyEnabled()) {
+            logger.info("Enabling indy mode for build script compilation");
+            configuration.getOptimizationOptions().put(CompilerConfiguration.INVOKEDYNAMIC, Boolean.TRUE);
+        }
         return configuration;
     }
 
