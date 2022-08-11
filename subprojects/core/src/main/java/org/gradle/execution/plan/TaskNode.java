@@ -50,6 +50,17 @@ public abstract class TaskNode extends Node {
         return DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
+    @Override
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
+        builder.append(", groupSuccessors=").append(formatNodes(getGroup().getSuccessorsFor(this)));
+        if (!mustSuccessors.isEmpty()) {
+            builder.append(", mustSuccessors=").append(formatNodes(mustSuccessors));
+        }
+        if (!finalizingSuccessors.isEmpty()) {
+            builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
+        }
+    }
+
     public Set<Node> getMustSuccessors() {
         return mustSuccessors;
     }
