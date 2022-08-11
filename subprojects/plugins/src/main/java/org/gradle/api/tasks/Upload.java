@@ -25,9 +25,11 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 
 /**
- * Uploads the artifacts of a {@link Configuration} to a set of repositories.
+ * This task is <strong>no longer supported</strong> and will <strong>throw an exception</strong> if you try to use it.
  *
- * @deprecated This class is scheduled for removal in Gradle 8.0. To upload artifacts, use the maven-publish plugin instead.
+ * It is preserved solely for backwards compatibility and may be removed in a future version.
+ *
+ * @deprecated This class is scheduled for removal in a future version. To upload artifacts, use the maven-publish plugin instead.
  */
 @Deprecated // TODO:Finalize Upload Removal - Issue #21439
 @DisableCachingByDefault(because = "Produces no cacheable output")
