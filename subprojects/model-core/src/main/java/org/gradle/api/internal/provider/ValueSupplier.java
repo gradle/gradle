@@ -371,7 +371,7 @@ public interface ValueSupplier {
             return false;
         }
 
-        public boolean isFixedValue() {
+        public boolean hasFixedValue() {
             return false;
         }
 
@@ -475,7 +475,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public boolean isFixedValue() {
+        public boolean hasFixedValue() {
             return true;
         }
 
