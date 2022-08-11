@@ -1,8 +1,9 @@
+
 import com.google.gson.Gson
 import gradlebuild.basics.releasedVersionsFile
+import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
-import gradlebuild.buildutils.model.ReleasedVersion
 import java.net.URL
 
 
@@ -33,7 +34,7 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
-    minimumSupportedMinor.set("4.1")
+    minimumSupportedMinor.set("7.3")
     fetchNightly.set(false)
     propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
 }

@@ -52,8 +52,4 @@ trait WithKotlinDeprecations {
             ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION
         )
     }
-
-    void expectKotlinJsCompileDestinationDirPropertyDeprecation(String version) {
-        runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
-    }
 }
