@@ -115,7 +115,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.isFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue()));
+            SideEffect<?> sideEffect = value.getSideEffect();
+            if (sideEffect != null) {
+                setSupplier(new FixedWithSideEffectSupplier<>(value.getFixedValue(), Cast.uncheckedNonnullCast(sideEffect)));
+            } else {
+                setSupplier(new FixedSupplier<>(value.getFixedValue()));
+            }
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(value.getChangingValue())));
         }
@@ -318,6 +323,26 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
+    private static class FixedWithSideEffectSupplier<T, C extends Collection<? extends T>> extends FixedSupplier<T, C> {
+
+        private final SideEffect<C> sideEffect;
+
+        public FixedWithSideEffectSupplier(C value, SideEffect<C> sideEffect) {
+            super(value);
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
+            return super.calculateValue(consumer).withSideEffect(sideEffect);
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
+            return super.calculateExecutionTimeValue().withSideEffect(sideEffect);
+        }
+    }
+
     private class CollectingSupplier implements CollectionSupplier<T, C> {
         private final Collector<T> value;
 
@@ -334,11 +359,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public Value<C> calculateValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
-            Value<Void> result = value.collectEntries(consumer, valueCollector, builder);
-            if (result.isMissing()) {
-                return result.asType();
+            Value<Void> collectResult = value.collectEntries(consumer, valueCollector, builder);
+            if (collectResult.isMissing()) {
+                return collectResult.asType();
             }
-            return Value.of(Cast.uncheckedCast(builder.build()));
+
+            Value<C> result = Value.of(Cast.uncheckedCast(builder.build()));
+            SideEffect<? super Void> sideEffect = collectResult.getSideEffect();
+            if (sideEffect != null) {
+                // assuming the side effect already ignores the argument
+                result = result.withSideEffect(Cast.uncheckedNonnullCast(sideEffect));
+            }
+            return result;
         }
 
         @Override
@@ -364,15 +396,26 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
             if (fixed) {
                 ImmutableCollection.Builder<T> builder = collectionFactory.get();
+                List<SideEffect<? super C>> sideEffects = new ArrayList<>();
                 for (ExecutionTimeValue<? extends Iterable<? extends T>> value : values) {
-                    builder.addAll(value.getFixedValue());
+                    Iterable<? extends T> fixedValue = value.getFixedValue();
+                    builder.addAll(fixedValue);
+
+                    SideEffect<?> sideEffect = value.getSideEffect();
+                    if (sideEffect != null) {
+                        sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
+                    }
                 }
                 ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(builder.build()));
                 if (changingContent) {
-                    return mergedValue.withChangingContent();
-                } else {
-                    return mergedValue;
+                    mergedValue = mergedValue.withChangingContent();
                 }
+
+                if (!sideEffects.isEmpty()) {
+                    mergedValue = mergedValue.withSideEffect(SideEffect.composite(sideEffects));
+                }
+
+                return mergedValue;
             }
 
             // At least one of the values is a changing value
@@ -415,14 +458,27 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         protected Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
+            List<SideEffect<? super C>> sideEffects = new ArrayList<>();
             for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
                 Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
-                builder.addAll(value.get());
+                Iterable<? extends T> fixedValue = value.getWithoutSideEffect();
+                builder.addAll(fixedValue);
+
+                SideEffect<?> sideEffect = value.getSideEffect();
+                if (sideEffect != null) {
+                    sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
+                }
             }
-            return Value.of(Cast.uncheckedNonnullCast(builder.build()));
+
+            Value<? extends C> resultValue = Value.of(Cast.uncheckedNonnullCast(builder.build()));
+            if (!sideEffects.isEmpty()) {
+                resultValue = resultValue.withSideEffect(SideEffect.composite(sideEffects));
+            }
+
+            return resultValue;
         }
     }
 
@@ -447,11 +503,27 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<Void> value = left.collectEntries(consumer, collector, dest);
-            if (value.isMissing()) {
-                return value;
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing()) {
+                return leftValue;
             }
-            return right.collectEntries(consumer, collector, dest);
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing()) {
+                return rightValue;
+            }
+
+            SideEffect<? super Void> leftSideEffect = leftValue.getSideEffect();
+            SideEffect<? super Void> rightSideEffect = rightValue.getSideEffect();
+
+            if (leftSideEffect != null && rightSideEffect != null) {
+                return Value.present().withSideEffect(SideEffect.composite(leftSideEffect, rightSideEffect));
+            } else if (leftSideEffect != null) {
+                return Value.present().withSideEffect(leftSideEffect);
+            } else if (rightSideEffect != null) {
+                return Value.present().withSideEffect(rightSideEffect);
+            } else {
+                return Value.present();
+            }
         }
 
         @Override

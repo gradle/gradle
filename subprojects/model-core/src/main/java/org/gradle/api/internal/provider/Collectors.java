@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -101,8 +102,15 @@ public class Collectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.add(value.get(), collection);
-            return Value.present();
+
+            T fixedValue = value.getWithoutSideEffect();
+            collector.add(fixedValue, collection);
+            SideEffect<?> sideEffect = value.getSideEffect();
+            if (sideEffect == null) {
+                return Value.present();
+            }
+
+            return Value.present().withSideEffect(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
         }
 
         @Override
@@ -116,10 +124,11 @@ public class Collectors {
             if (value.isMissing()) {
                 visitor.execute(ExecutionTimeValue.missing());
             } else if (value.isFixedValue()) {
-                visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.of(value.getFixedValue())));
+                // transform preserving side effects
+                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
             } else {
                 visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue()
-                    .map(transformer(e -> ImmutableList.of(e)))
+                    .map(transformer(ImmutableList::of))
                 ));
             }
         }
@@ -221,8 +230,15 @@ public class Collectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.addAll(value.get(), collection);
-            return Value.present();
+
+            Iterable<? extends T> fixedValue = value.getWithoutSideEffect();
+            collector.addAll(fixedValue, collection);
+            SideEffect<?> sideEffect = value.getSideEffect();
+            if (sideEffect == null) {
+                return Value.present();
+            }
+
+            return Value.present().withSideEffect(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
         }
 
         @Override
@@ -325,7 +341,8 @@ public class Collectors {
         }
 
         public void collectInto(ImmutableCollection.Builder<T> builder) {
-            collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
+            // TODO: collectResult can contain a side effect
+            Value<Void> collectResult = collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
         }
 
         @Override

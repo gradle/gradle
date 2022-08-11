@@ -120,7 +120,8 @@ public class MapCollectors {
             if (value.isMissing()) {
                 visitor.execute(ExecutionTimeValue.missing());
             } else if (value.isFixedValue()) {
-                visitor.execute(ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value.getFixedValue())));
+                // transform preserving side effects
+                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(v -> ImmutableMap.of(key, v))));
             } else {
                 visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(v -> ImmutableMap.of(key, v))));
             }

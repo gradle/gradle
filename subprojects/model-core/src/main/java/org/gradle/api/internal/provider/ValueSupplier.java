@@ -197,6 +197,14 @@ public interface ValueSupplier {
 
     interface SideEffect<T> extends SerializableAction<T> {
 
+        static <T, A> SideEffect<T> fixed(A value, SideEffect<A> sideEffect) {
+            return ignored -> sideEffect.execute(value);
+        }
+
+        static <T> SideEffect<T> composite(Iterable<SideEffect<? super T>> sideEffects) {
+            return new CompositeSideEffect<>(sideEffects);
+        }
+
         @SafeVarargs
         static <T> SideEffect<T> composite(SideEffect<? super T>... sideEffects) {
             ArrayList<SideEffect<? super T>> flatSideEffects = new ArrayList<>(sideEffects.length);
@@ -216,7 +224,7 @@ public interface ValueSupplier {
     class CompositeSideEffect<T> implements SideEffect<T> {
         private final List<SideEffect<? super T>> sideEffects;
 
-        public CompositeSideEffect(List<SideEffect<? super T>> sideEffects) {
+        public CompositeSideEffect(Iterable<SideEffect<? super T>> sideEffects) {
             this.sideEffects = ImmutableList.copyOf(sideEffects);
         }
 
@@ -338,9 +346,7 @@ public interface ValueSupplier {
             if (result == null) {
                 return Value.missing();
             }
-            // avoid capturing the value wrapper
-            SideEffect<? super T> sideEffect = this.sideEffect;
-            return Value.withSideEffect(result, ignored -> sideEffect.execute(value));
+            return Value.withSideEffect(result, SideEffect.fixed(value, this.sideEffect));
         }
 
         @Override
