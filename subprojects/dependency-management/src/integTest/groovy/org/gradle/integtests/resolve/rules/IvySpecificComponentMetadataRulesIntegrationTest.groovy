@@ -383,10 +383,7 @@ resolve.doLast { assert ruleInvoked }
     }
 
     private static String sq(String input) {
-        escapeForSingleQuoting(input)
-    }
-
-    private static String escapeForSingleQuoting(String input) {
+        // escape the input for use in a single-quoted string
         input.replace('\\', '\\\\').replace('\'', '\\\'')
     }
 }
