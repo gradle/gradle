@@ -25,22 +25,74 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "configuration cache for help on empty project"() {
+    def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
         settingsFile.createFile()
-        configurationCacheRun "help"
+        configurationCacheRun(task, *options)
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: ${task}.*\n/, '')
             .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(task, *options)
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing configuration cache.\n/, '')
             .replaceAll(/Configuration cache entry reused.\n/, '')
 
         then:
         firstRunOutput == secondRunOutput
+
+        where:
+        task            | options
+        "help"          | []
+        "properties"    | []
+        "dependencies"  | []
+        "help"          | ["--task", "help"]
+    }
+
+    def "can store task selection success/failure for :help --task"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+        task aTask
+        """
+        when:
+        configurationCacheFails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails "help", "--task", "cTask"
+        then:
+        failure.assertHasCause("Task 'cTask' not found in root project")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project")
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails "help", "--task", "cTask"
+        then:
+        failure.assertHasCause("Task 'cTask' not found in root project")
+        configurationCache.assertStateLoaded()
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        configurationCacheRun "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
+        configurationCache.assertStateStored()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18064")
