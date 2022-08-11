@@ -33,8 +33,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.4")
-        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.2")
+        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.6")
+        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.3")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
         def expectedMetadata = new File(testProjectDir, 'expected-metadata')
@@ -131,7 +131,6 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
             .deprecations(KotlinMultiPlatformDeprecations) {
-                expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
                 expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
                 expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
