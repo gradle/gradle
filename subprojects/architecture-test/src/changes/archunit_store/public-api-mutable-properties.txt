@@ -60,6 +60,8 @@ Method <org.gradle.api.artifacts.DependencyArtifact.getUrl()> does not have raw 
 Method <org.gradle.api.artifacts.ExternalDependency.getVersionConstraint()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ExternalDependency.java:0)
 Method <org.gradle.api.artifacts.ExternalDependency.isForce()> does not have raw return type assignable to org.gradle.api.provider.Property in (ExternalDependency.java:0)
 Method <org.gradle.api.artifacts.ExternalModuleDependency.isChanging()> does not have raw return type assignable to org.gradle.api.provider.Property in (ExternalModuleDependency.java:0)
+Method <org.gradle.api.artifacts.MinimalExternalModuleDependency.getModule()> does not have raw return type assignable to org.gradle.api.provider.Provider in (MinimalExternalModuleDependency.java:0)
+Method <org.gradle.api.artifacts.MinimalExternalModuleDependency.getVersionConstraint()> does not have raw return type assignable to org.gradle.api.provider.Provider in (MinimalExternalModuleDependency.java:0)
 Method <org.gradle.api.artifacts.ModuleDependency.getArtifacts()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ModuleDependency.java:0)
 Method <org.gradle.api.artifacts.ModuleDependency.getAttributes()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ModuleDependency.java:0)
 Method <org.gradle.api.artifacts.ModuleDependency.getExcludeRules()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ModuleDependency.java:0)
