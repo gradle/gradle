@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -40,8 +41,13 @@ import java.io.File;
 @Deprecated // TODO:Finalize Upload Removal - Issue #21439
 @DisableCachingByDefault(because = "Produces no cacheable output")
 public abstract class Upload extends ConventionTask {
+    /**
+     * Do not use this method, it is for internal use only.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Deprecated
     @Inject
-    abstract DocumentationRegistry getDocumentationRegistry();
+    public abstract DocumentationRegistry getDocumentationRegistry();
 
     @TaskAction
     protected void upload() {
@@ -141,14 +147,14 @@ public abstract class Upload extends ConventionTask {
     }
 
     /**
-     * Do not use this method, it will always return {@code null}.
+     * Do not use this method, it must return a non-{@code null} value as an input property to all the task to run,
+     * but this value <strong>should not be relied upon</strong> for anything.
      * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
-    @Nullable
     @Deprecated
     public FileCollection getArtifacts() {
-        return null;
+        return getProject().files();
     }
 }
