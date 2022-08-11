@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -195,6 +196,36 @@ public interface ValueSupplier {
     }
 
     interface SideEffect<T> extends SerializableAction<T> {
+
+        @SafeVarargs
+        static <T> SideEffect<T> composite(SideEffect<? super T>... sideEffects) {
+            ArrayList<SideEffect<? super T>> flatSideEffects = new ArrayList<>(sideEffects.length);
+            for (SideEffect<? super T> sideEffect : sideEffects) {
+                if (sideEffect instanceof CompositeSideEffect) {
+                    CompositeSideEffect<? super T> compositeSideEffect = Cast.uncheckedNonnullCast(sideEffect);
+                    flatSideEffects.addAll(compositeSideEffect.sideEffects);
+                } else {
+                    flatSideEffects.add(sideEffect);
+                }
+            }
+
+            return new CompositeSideEffect<>(flatSideEffects);
+        }
+    }
+
+    class CompositeSideEffect<T> implements SideEffect<T> {
+        private final List<SideEffect<? super T>> sideEffects;
+
+        public CompositeSideEffect(List<SideEffect<? super T>> sideEffects) {
+            this.sideEffects = ImmutableList.copyOf(sideEffects);
+        }
+
+        @Override
+        public void execute(T t) {
+            for (SideEffect<? super T> sideEffect : sideEffects) {
+                sideEffect.execute(t);
+            }
+        }
     }
 
     /**
@@ -300,36 +331,25 @@ public interface ValueSupplier {
             return super.get();
         }
 
-        // TODO: do we want to preserve the side effect when transforming? Not needed for the toolchain usage use-case
         @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
-            T value = super.get(); // avoid running the side effect
+            T value = getWithoutSideEffect();
             R result = transformer.transform(value);
             if (result == null) {
                 return Value.missing();
             }
             // avoid capturing the value wrapper
             SideEffect<? super T> sideEffect = this.sideEffect;
-            // carry over the side effect with a captured value before transform
-            SideEffect<R> upstreamSideEffect = ignored -> sideEffect.execute(value);
-            return Value.withSideEffect(result, upstreamSideEffect);
+            return Value.withSideEffect(result, ignored -> sideEffect.execute(value));
         }
 
         @Override
         public Value<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            // avoid capturing the value wrapper
-            SideEffect<? super T> prevSideEffect = this.sideEffect;
-            SideEffect<? super T> chainedSideEffect = it -> {
-                prevSideEffect.execute(it);
-                sideEffect.execute(it);
-            };
-
-            return new PresentWithSideEffect<>(get(), chainedSideEffect);
+            return new PresentWithSideEffect<>(get(), SideEffect.composite(this.sideEffect, sideEffect));
         }
 
         private void runSideEffect() {
-            T value = super.get();
-            sideEffect.execute(value);
+            sideEffect.execute(getWithoutSideEffect());
         }
     }
 
@@ -667,13 +687,10 @@ public interface ValueSupplier {
 
         @Override
         public ExecutionTimeValue<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            // avoid capturing the value wrapper
-            SideEffect<? super T> prevSideEffect = this.sideEffect;
-            SideEffect<? super T> chainedSideEffect = it -> {
-                prevSideEffect.execute(it);
-                sideEffect.execute(it);
-            };
-            return new FixedWithSideEffectExecutionTimeValue<>(super.getFixedValue(), hasChangingContent(), chainedSideEffect);
+            return new FixedWithSideEffectExecutionTimeValue<>(super.getFixedValue(),
+                hasChangingContent(),
+                SideEffect.composite(this.sideEffect, sideEffect)
+            );
         }
 
         @Override
@@ -683,7 +700,6 @@ public interface ValueSupplier {
 
         @Override
         public T getFixedValue() {
-            runSideEffect();
             return super.getFixedValue();
         }
 

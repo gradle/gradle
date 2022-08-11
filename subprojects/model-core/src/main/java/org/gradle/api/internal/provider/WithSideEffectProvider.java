@@ -55,12 +55,9 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
         return provider.calculateExecutionTimeValue().withSideEffect(sideEffect);
     }
 
-
-
     @Override
     public ProviderInternal<T> withSideEffect(SideEffect<? super T> sideEffect) {
-        // TODO: should we chain side effects instead of composing providers here?
-        return super.withSideEffect(sideEffect);
+        return new WithSideEffectProvider<>(provider, SideEffect.composite(this.sideEffect, sideEffect));
     }
 
     @Override
