@@ -46,7 +46,9 @@ TBD
 
 === Potential breaking changes
 
-TBD
+==== Change to `AntBuilder` parent class
+
+Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.AntBuilder` class.  It now extends `groovy.ant.AntBuilder`.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
