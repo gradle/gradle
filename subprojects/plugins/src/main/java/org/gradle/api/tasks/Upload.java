@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.work.DisableCachingByDefault;
@@ -26,25 +25,21 @@ import javax.inject.Inject;
 
 /**
  * This task is <strong>no longer supported</strong> and will <strong>throw an exception</strong> if you try to use it.
- *
  * It is preserved solely for backwards compatibility and may be removed in a future version.
  *
  * @deprecated This class is scheduled for removal in a future version. To upload artifacts, use the maven-publish plugin instead.
  */
 @Deprecated // TODO:Finalize Upload Removal - Issue #21439
 @DisableCachingByDefault(because = "Produces no cacheable output")
-public class Upload extends ConventionTask {
-    private final DocumentationRegistry documentationRegistry;
-
+public abstract class Upload extends ConventionTask {
     @Inject
-    public Upload(DocumentationRegistry documentationRegistry) {
-        this.documentationRegistry = documentationRegistry;
-    }
+    abstract DocumentationRegistry getDocumentationRegistry();
 
     @TaskAction
     protected void upload() {
         throw new InvalidUserCodeException(
-                "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` plugin instead. See " +
-                        documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven") + " for details");
+                "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. See " +
+                        getDocumentationRegistry().getDocumentationFor("publishing_maven", "publishing_maven") + " or " +
+                        getDocumentationRegistry().getDocumentationFor("publishing_ivy", "publishing_ivy") + " for details");
     }
 }

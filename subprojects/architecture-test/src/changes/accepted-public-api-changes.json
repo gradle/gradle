@@ -27,7 +27,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getArtifacts()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -35,7 +35,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getConfiguration()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -43,7 +43,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getDescriptorDestination()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -51,7 +51,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getPublicationServices()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -59,7 +59,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getRepositories()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -67,7 +67,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.isUploadDescriptor()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -75,7 +75,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.repositories(groovy.lang.Closure)",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -83,7 +83,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.repositories(org.gradle.api.Action)",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -91,7 +91,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.setConfiguration(org.gradle.api.artifacts.Configuration)",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -99,7 +99,7 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.setDescriptorDestination(java.io.File)",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -107,17 +107,17 @@
         {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.setUploadDescriptor(boolean)",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
         },
         {
             "type": "org.gradle.api.tasks.Upload",
-            "member": "Constructor org.gradle.api.tasks.Upload()",
-            "acceptation": "Class was previously deprecated and it being removed in Gradle 8.0",
+            "member": "Class org.gradle.api.tasks.Upload",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
             "changes": [
-                "Constructor has been removed"
+                "Class is now abstract"
             ]
         }
     ]
