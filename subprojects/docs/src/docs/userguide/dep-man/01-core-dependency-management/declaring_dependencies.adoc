@@ -147,7 +147,7 @@ include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-c
 include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-custom/kotlin",files="build.gradle.kts[tags=custom-configuration]"]
 ====
 
-A project's configurations are managed by a `configurations` object.
+You can manage project configurations with a `configurations` object.
 Configurations have a name and can extend each other.
 To learn more about this API have a look at link:{groovyDslPath}/org.gradle.api.artifacts.ConfigurationContainer.html[ConfigurationContainer].
 
@@ -320,7 +320,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSaf
 
 The type-safe API has the advantage of providing IDE completion so you don't need to figure out the actual names of the projects.
 
-If you add or remove a project and that you use the Kotlin DSL, build script compilation would fail in case you forget to update a dependency.
+If you add or remove a project that uses the Kotlin DSL, build script compilation fails if you forget to update a dependency.
 
 The project accessors are mapped from the _project path_.
 For example, if a project path is `:commons:utils:some:lib` then the project accessor will be `projects.commons.utils.some.lib` (which is the short-hand notation for `projects.getCommons().getUtils().getSome().getLib()`).
