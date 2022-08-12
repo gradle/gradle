@@ -33,7 +33,8 @@ We would like to thank the following community members for their contributions t
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
-[Xin Wang](https://github.com/scaventz)
+[Xin Wang](https://github.com/scaventz),
+[Craig Andrews](https://github.com/candrews)
 
 
 ## Upgrade instructions
