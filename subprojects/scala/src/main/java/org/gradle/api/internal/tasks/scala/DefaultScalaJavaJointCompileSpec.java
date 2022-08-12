@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 import java.io.File;
 import java.util.Map;
 
 public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
-    private BaseScalaCompileOptions options;
+    private MinimalScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
     private Iterable<File> scalaCompilerPlugins;
@@ -33,7 +32,7 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     private long buildStartTimestamp;
 
     @Override
-    public BaseScalaCompileOptions getScalaCompileOptions() {
+    public MinimalScalaCompileOptions getScalaCompileOptions() {
         return options;
     }
 
@@ -47,7 +46,7 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
         this.analysisFile = analysisFile;
     }
 
-    public void setScalaCompileOptions(BaseScalaCompileOptions options) {
+    public void setScalaCompileOptions(MinimalScalaCompileOptions options) {
         this.options = options;
     }
 

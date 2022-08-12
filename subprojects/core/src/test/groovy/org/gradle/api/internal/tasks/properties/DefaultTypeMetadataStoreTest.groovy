@@ -60,7 +60,6 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.inject.Inject
 import java.lang.annotation.Annotation
@@ -138,6 +137,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .reportAs(WARNING)
                     .forProperty(metadata.propertyName)
                     .withDescription("is broken")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
@@ -152,7 +152,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
-        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblemWithLink(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom annotation that is not relevant can have validation problems"() {
@@ -165,6 +165,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .reportAs(WARNING)
                     .forProperty(metadata.propertyName)
                     .withDescription("is broken")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
@@ -177,7 +178,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
         then:
         propertiesMetadata.empty
-        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblemWithLink(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom type annotation handler can inspect for static type problems"() {
@@ -188,6 +189,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                 .withId(ValidationProblemId.TEST_PROBLEM)
                 .forType(type)
                 .withDescription("type is broken")
+                .documentedAt("id", "section")
                 .happensBecause("Test")
             }
         }
@@ -204,10 +206,9 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == [dummyValidationProblem(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblemWithLink(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
     }
 
-    @Unroll
     def "can override @#parentAnnotation.simpleName property type with @#childAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
@@ -237,7 +238,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [parentAnnotation, childAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, PROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 
-    @Unroll
     def "can override @#processedAnnotation.simpleName property type with @#unprocessedAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
@@ -266,7 +266,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 
-    @Unroll
     def "can override @#unprocessedAnnotation.simpleName property type with @#processedAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
@@ -310,7 +309,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     // Third-party plugins that need to support Gradle versions both pre- and post-3.2
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
-    @Unroll
     def "@#annotation.simpleName is recognized as normalization no matter how it's defined"() {
         when:
         def typeMetadata = metadataStore.getTypeMetadata(sampleType)
@@ -328,7 +326,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         CompileClasspath | CompileClasspathPropertyTask
     }
 
-    @Unroll
     def "all properties on #workClass are ignored"() {
         when:
         def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }

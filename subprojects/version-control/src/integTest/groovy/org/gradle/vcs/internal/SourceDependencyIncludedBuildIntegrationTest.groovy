@@ -54,6 +54,8 @@ class SourceDependencyIncludedBuildIntegrationTest extends AbstractIntegrationSp
         fails("assemble")
 
         then:
-        failure.assertHasDescription("Cannot include build 'child' in build 'buildB'. This is not supported yet.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
+        failure.assertHasCause("Cannot include build 'child' in build 'buildB'. This is not supported yet.")
     }
 }

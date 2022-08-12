@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.gradle.api.Task;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -25,17 +27,42 @@ public interface TaskDetails {
     @Nullable
     String getDescription();
 
-    static TaskDetails of(Path path, @Nullable String description) {
-        return new TaskDetails() {
-            @Override
-            public Path getPath() {
-                return path;
-            }
+    String getTypeName();
 
-            @Override
-            public String getDescription() {
-                return description;
-            }
-        };
+    static TaskDetails of(Path path, Task task) {
+        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription());
+    }
+
+    static TaskDetails of(Path path, String typeName, @Nullable String description) {
+        return new DefaultTaskDetails(path, typeName, description);
+    }
+
+    final class DefaultTaskDetails implements TaskDetails {
+        private final Path path;
+        private final String typeName;
+        @Nullable private final String description;
+
+        private DefaultTaskDetails(Path path, String typeName, @Nullable String description) {
+            this.path = path;
+            this.typeName = typeName;
+            this.description = description;
+        }
+
+        @Override
+        public Path getPath() {
+            return path;
+        }
+
+        @Override
+        public String getTypeName() {
+            return typeName;
+        }
+
+        @Nullable
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
     }
 }

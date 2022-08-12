@@ -9,7 +9,7 @@ plugins {
 
 // tag::jacoco-configuration[]
 jacoco {
-    toolVersion = "0.8.6"
+    toolVersion = "0.8.8"
     reportsDirectory.set(layout.buildDirectory.dir("customJacocoReportDir"))
 }
 // end::jacoco-configuration[]
@@ -60,7 +60,7 @@ tasks.jacocoTestCoverageVerification {
         }
 
         rule {
-            enabled = false
+            isEnabled = false
             element = "CLASS"
             includes = listOf("org.gradle.*")
 

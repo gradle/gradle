@@ -45,13 +45,14 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
     fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
         gradleStep(
             listOf(
-                "-PperformanceBaselines=force-defaults",
                 "clean",
                 "performance:${testProject}PerformanceAdHocTest",
                 tests.map { """--tests "$it"""" }.joinToString(" "),
                 """--warmups 2 --runs 2 --checks none""",
                 "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
                 "-PtestJavaVendor=${os.perfTestJavaVendor}",
+                "-PautoDownloadAndroidStudio=true",
+                "-PrunAndroidStudioInHeadlessMode=true",
                 os.javaInstallationLocations()
             )
         )

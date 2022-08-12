@@ -19,7 +19,6 @@ package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,7 +42,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         }
     }
 
-    @Unroll
     def "project can declare and compile feature [configuration=#configuration][compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -100,7 +98,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         true                      | "myFeatureImplementation"
     }
 
-    @Unroll
     def "Java Library can depend on feature of component [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -204,7 +201,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
     }
 
-    @Unroll
     def "main component doesn't expose dependencies from feature [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -285,7 +281,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         true                      | _
     }
 
-    @Unroll
     def "can build a feature that uses its own source directory [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -351,7 +346,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         true                      | "myFeatureImplementation"
     }
 
-    @Unroll
     def "Java Library can depend on feature of component which uses its own source set [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """

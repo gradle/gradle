@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import java.util.Collection;
+import java.util.Set;
 
 public interface SourceFileClassNameConverter {
     /**
-     * Returns the classes that were compiled from this source file.
+     * Returns the classes that were compiled from this source file or an empty set if unknown.
      */
-    Collection<String> getClassNames(String sourceFileRelativePath);
+    Set<String> getClassNames(String sourceFileRelativePath);
 
     /**
      * Returns the source files that this class was compiled from.
@@ -29,5 +29,5 @@ public interface SourceFileClassNameConverter {
      * This happens e.g. during "copy class" refactorings in IntelliJ.
      * Empty if the source for this class could not be determined.
      */
-    Collection<String> getRelativeSourcePaths(String className);
+    Set<String> getRelativeSourcePaths(String className);
 }

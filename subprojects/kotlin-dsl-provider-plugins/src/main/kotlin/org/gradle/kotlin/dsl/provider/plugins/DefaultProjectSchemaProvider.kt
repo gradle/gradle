@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -79,6 +80,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             }
         }
         if (target is Project) {
+            @Suppress("deprecation")
             accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
@@ -87,6 +89,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
             }
             collectSchemaOf(target.dependencies, typeOfDependencyHandler)
+            collectSchemaOf(target.repositories, typeOfRepositoryHandler)
             // WARN eagerly realize all source sets
             sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
@@ -267,6 +270,10 @@ val typeOfSourceSet = typeOf<SourceSet>()
 
 private
 val typeOfDependencyHandler = typeOf<DependencyHandler>()
+
+
+private
+val typeOfRepositoryHandler = typeOf<RepositoryHandler>()
 
 
 private

@@ -84,7 +84,6 @@ object KotlinMetadataQueries {
             KotlinClassHeader(
                 kind = annotation.getMemberValue("k")?.intValue,
                 metadataVersion = annotation.getMemberValue("mv")?.intArrayValue,
-                bytecodeVersion = annotation.getMemberValue("bv")?.intArrayValue,
                 data1 = annotation.getMemberValue("d1")?.stringArrayValue,
                 data2 = annotation.getMemberValue("d2")?.stringArrayValue,
                 extraString = annotation.getMemberValue("xs")?.stringValue,

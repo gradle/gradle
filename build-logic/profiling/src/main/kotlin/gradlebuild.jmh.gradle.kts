@@ -40,6 +40,6 @@ jmh {
 
 val jmhReport = tasks.register<JmhHTMLReport>("jmhReport") {
     group = "jmh"
-    csv.set(tasks.jmh.map { layout.buildDirectory.file("reports/jmh/results.csv").get() })
+    csv.set(tasks.jmh.map { layout.buildDirectory.file("results/jmh/results.csv").get() })
     destination.set(layout.buildDirectory.dir("reports/jmh-html"))
 }

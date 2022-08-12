@@ -16,8 +16,10 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -28,6 +30,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +40,6 @@ import java.util.Map;
  */
 public class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
-    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("forkOptions", "optimizationOptions", "stubDir", "keepStubs", "fileExtensions");
 
     private boolean failOnError = true;
 
@@ -65,6 +66,13 @@ public class GroovyCompileOptions extends AbstractOptions {
     private boolean javaAnnotationProcessing;
 
     private boolean parameters;
+
+    private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -287,6 +295,18 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
+     * Returns the set of global AST transformations which should not be loaded into the Groovy compiler.
+     *
+     * @see <a href="https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/CompilerConfiguration.html#setDisabledGlobalASTTransformations(java.util.Set)">CompilerConfiguration</a>
+     * @since 7.4
+     */
+    @Incubating
+    @Input
+    public SetProperty<String> getDisabledGlobalASTTransformations() {
+        return disabledGlobalASTTransformations;
+    }
+
+    /**
      * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
      */
@@ -348,23 +368,5 @@ public class GroovyCompileOptions extends AbstractOptions {
         fork = true;
         forkOptions.define(forkArgs);
         return this;
-    }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
-    }
-
-    /**
-     * Internal method.
-     */
-    @Override
-    public Map<String, Object> optionMap() {
-        Map<String, Object> map = super.optionMap();
-        map.putAll(forkOptions.optionMap());
-        if (optimizationOptions.containsKey("indy")) {
-            map.put("indy", optimizationOptions.get("indy"));
-        }
-        return map;
     }
 }

@@ -17,7 +17,8 @@
 package org.gradle.cache.internal
 
 import org.gradle.api.Action
-import org.gradle.cache.CacheRepository
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -48,17 +49,18 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     @Rule
     ConcurrentTestUtil concurrent = new ConcurrentTestUtil(8000)
 
-    def DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
+    def services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .parent(NativeServicesTestFixture.getInstance())
             .provider(LoggingServiceRegistry.NO_OP)
             .provider(new GlobalScopeServices(false))
             .build()
 
-    def CacheFactory factory = services.get(CacheFactory.class)
+    def factory = services.get(CacheFactory.class)
     def currentGradleVersion = GradleVersion.current()
-    def CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, currentGradleVersion)
-    def CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
-    def defaultGeneratedGradleJarCache = new DefaultGeneratedGradleJarCache(cacheRepository, currentGradleVersion.getVersion())
+    def scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, currentGradleVersion)
+    def cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
+    def globalScopedCache = new DefaultGlobalScopedCache(tmpDir.testDirectory, cacheRepository)
+    def defaultGeneratedGradleJarCache = new DefaultGeneratedGradleJarCache(globalScopedCache, currentGradleVersion.getVersion())
 
     def cleanup() {
         defaultGeneratedGradleJarCache.close()

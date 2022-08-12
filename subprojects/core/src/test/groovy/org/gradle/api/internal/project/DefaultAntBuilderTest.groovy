@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.tasks.ant.AntTarget
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.lang.reflect.Field
 
@@ -164,7 +163,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         ant.antProject.targets.size() == 0
 
         when:
-        Field field = groovy.util.AntBuilder.class.getDeclaredField('collectorTarget')
+        Field field = groovy.ant.AntBuilder.class.getDeclaredField('collectorTarget')
         field.accessible = true
         Target target = field.get(ant)
         field = target.class.getDeclaredField('children')
@@ -233,7 +232,6 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         level == AntMessagePriority.DEBUG
     }
 
-    @Unroll
     @Issue('GRADLE-3511')
     def 'Filename #filename is properly masked when adding it as #antType to an ant task'(String filename, antType) {
         given:

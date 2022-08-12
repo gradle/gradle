@@ -32,6 +32,10 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
         super(root, klass);
     }
 
+    public static TestNameTestDirectoryProvider forFatDrive(Class<?> klass) {
+        return new TestNameTestDirectoryProvider(new TestFile(new File("D:\\tmp\\test-files")), klass);
+    }
+
     public static TestNameTestDirectoryProvider newInstance(Class<?> testClass) {
         return new TestNameTestDirectoryProvider(testClass);
     }

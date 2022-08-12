@@ -109,7 +109,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
 
     /*
      * Gradle 5.6 introduced closed project substitution for Buildship: https://github.com/gradle/gradle/pull/9405
-     * The feature is built upon the the EclipseProject TAPI model which is based on the result of the Eclipse plugin.
+     * The feature is built upon the EclipseProject TAPI model which is based on the result of the Eclipse plugin.
      *
      * To distinguish between different task dependencies the closed project substitution feature had to change
      * the equals/hashCode implementation of ProjectDependency which lead to duplicate project dependencies

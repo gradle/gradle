@@ -19,9 +19,10 @@ package org.gradle.integtests.tooling.r26
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.TestLauncherSpec
+import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException
@@ -35,6 +36,7 @@ import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
+import spock.lang.Requires
 import spock.lang.Timeout
 
 @Timeout(120)
@@ -44,10 +46,13 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "test launcher api fires progress events"() {
         given:
         collectDescriptorsFromBuild()
+        events.assertIsABuild()
+
         when:
         launchTests(testDescriptors("example.MyTest"));
+
         then:
-        events.assertIsABuild()
+        events.trees == events.tasks
         assertTaskOperationSuccessfulOrSkippedWithNoSource(":compileJava")
         assertTaskOperationSuccessfulOrSkippedWithNoSource(":processResources")
         events.operation("Task :classes").successful
@@ -145,9 +150,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
     }
 
+    @Requires({ ContinuousBuildToolingApiSpecification.canUseContinuousBuildViaToolingApi() })
+    @TargetGradleVersion(">=3.0")
     def "can run and cancel test execution in continuous mode"() {
         given:
-        events.skipValidation = true
         collectDescriptorsFromBuild()
         and: // Need to run the test task beforehand, since continuous build doesn't handle the new directories created after 'clean'
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"))
@@ -172,8 +178,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
                 assert events.tests.size() == (supportsEfficientClassFiltering() ? 5 : 6)
                 events.clear()
 
-                // Change the tests sources and wait for the tests to run again
-                changeTestSource()
+                // Change the input to tests and wait for the tests to run again
+                removeTestClass()
                 waitingForBuild()
             }
         }
@@ -184,10 +190,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-        events.testTasksAndExecutors.size() in [2, 3, 4] // also accept it as a valid result when the test task get started twice (event: 'Gradle Test Run :secondTest')
-        events.testClassesAndMethods.size() in (supportsEfficientClassFiltering() ? [5, 10] : [6, 12]) // also accept it as a valid result when tests get executed twice
+        events.testTasksAndExecutors.size() in [1, 2]
+        events.testClassesAndMethods.size() == (supportsEfficientClassFiltering() ? 3 : 4)
     }
 
     public <T> T withCancellation(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.CancellationToken"]) Closure<T> cl) {
@@ -256,7 +260,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message == "Requested test task with path ':secondTest' cannot be found."
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("Requested test task with path ':secondTest' cannot be found.")
         assertHasBuildFailedLogging()
     }
@@ -285,7 +288,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
         assertHasBuildFailedLogging()
     }
@@ -424,6 +426,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskExecuted(":sub7:test")
         assertTaskExecuted(":sub8:test")
         assertTaskExecuted(":sub9:test")
+
+        and:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub0:test")
     }
 
     ProgressListener failingProgressListener() {
@@ -463,7 +469,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                ${separateClassesDirs(targetVersion) ? "testClassesDirs": "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs": "classesDir"}
+                ${separateClassesDirs(targetVersion) ? "testClassesDirs" : "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs" : "classesDir"}
             }
 
             build.dependsOn secondTest
@@ -491,25 +497,22 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         """
     }
 
-    def changeTestSource() {
-        // adding two more test methods
-        file("src/test/java/example/MyTest.java").text = """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo2() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo3() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo4() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+    def removeTestClass() {
+        // Removes MyTest.class to trigger a new build because it's input of test task.
+        // Previously we made changes to the source files, but that might trigger
+        // two builds - one is from `MyTest.java` change, another one is from
+        // `MyTest.class` change. The timing of these two builds and cancellation
+        // resulted in flakiness. To resolve this issue,
+        // We now do a change to the class file so there
+        // will be only one continuous build triggered.
+        if (file("build/classes/java/test/example/MyTest.class").exists()) {
+            // for Gradle 4.0+
+            assert file("build/classes/java/test/example/MyTest.class").delete()
+        }
+        if (file("build/classes/test/example/MyTest.class").exists()) {
+            // for Gradle < 4.0
+            assert file("build/classes/test/example/MyTest.class").delete()
+        }
     }
 
     String simpleJavaProject() {

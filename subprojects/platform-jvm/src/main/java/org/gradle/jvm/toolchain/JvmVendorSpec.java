@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
@@ -26,13 +27,44 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
  */
 public abstract class JvmVendorSpec {
 
+    /**
+     * A constant for using <a href="https://projects.eclipse.org/projects/adoptium">Eclipse Adoptium</a> as the JVM vendor.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    public static final JvmVendorSpec ADOPTIUM = matching(KnownJvmVendor.ADOPTIUM);
     public static final JvmVendorSpec ADOPTOPENJDK = matching(KnownJvmVendor.ADOPTOPENJDK);
     public static final JvmVendorSpec AMAZON = matching(KnownJvmVendor.AMAZON);
     public static final JvmVendorSpec APPLE = matching(KnownJvmVendor.APPLE);
     public static final JvmVendorSpec AZUL = matching(KnownJvmVendor.AZUL);
     public static final JvmVendorSpec BELLSOFT = matching(KnownJvmVendor.BELLSOFT);
+
+    /**
+     * A constant for using <a href="https://www.graalvm.org/">GraalVM</a> as the JVM vendor.
+     *
+     * @since 7.1
+     */
+    @Incubating
+    public static final JvmVendorSpec GRAAL_VM = matching(KnownJvmVendor.GRAAL_VM);
+
     public static final JvmVendorSpec HEWLETT_PACKARD = matching(KnownJvmVendor.HEWLETT_PACKARD);
     public static final JvmVendorSpec IBM = matching(KnownJvmVendor.IBM);
+    /**
+     * A constant for using <a href="https://developer.ibm.com/languages/java/semeru-runtimes/">IBM Semeru Runtimes</a> as the JVM vendor.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    public static final JvmVendorSpec IBM_SEMERU = matching(KnownJvmVendor.IBM_SEMERU);
+
+    /**
+     * A constant for using <a href="https://www.microsoft.com/openjdk">Microsoft OpenJDK</a> as the JVM vendor.
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public static final JvmVendorSpec MICROSOFT = matching(KnownJvmVendor.MICROSOFT);
     public static final JvmVendorSpec ORACLE = matching(KnownJvmVendor.ORACLE);
     public static final JvmVendorSpec SAP = matching(KnownJvmVendor.SAP);
 

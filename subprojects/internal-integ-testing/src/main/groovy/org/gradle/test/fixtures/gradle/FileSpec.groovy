@@ -21,16 +21,24 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class FileSpec {
     String name
+    // Url written in the Gradle Module Metadata
     String url
+    // Url where this file will be published.
+    // Normally publishUrl is the same as url, but it can be set differently for testing some broken behavior.
+    String publishUrl
     String ext = 'jar'
 
     FileSpec(String name) {
-        this.name = name
-        this.url = name
+        this(name, name, name)
     }
 
     FileSpec(String name, String url) {
+        this(name, url, url)
+    }
+
+    FileSpec(String name, String url, String publishUrl) {
         this.name = name
         this.url = url
+        this.publishUrl = publishUrl
     }
 }

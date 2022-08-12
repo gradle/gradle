@@ -16,29 +16,30 @@
 package org.gradle.api.internal.changedetection.changes
 
 import org.gradle.StartParameter
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
+import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
 
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.INCREMENTAL
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.RERUN_TASKS_ENABLED
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.UNTRACKED
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.UP_TO_DATE_WHEN_FALSE
 
 class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def startParameter = new StartParameter()
     def repository = new DefaultTaskExecutionModeResolver(startParameter)
-    def inputs = Mock(TaskInputsInternal)
-    def outputs = Mock(TaskOutputsInternal)
+    def inputs = Stub(TaskInputsInternal)
+    def outputs = Stub(TaskOutputsInternal)
     def taskProperties = Mock(TaskProperties)
-    def task = Mock(TaskInternal)
+    def task = Stub(TaskInternal)
     def upToDateSpec = Mock(AndSpec)
 
     def setup() {
@@ -47,29 +48,26 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         _ * outputs.getUpToDateSpec() >> upToDateSpec
     }
 
-    def "no actions with no outputs"() {
+    def "untracked"() {
         when:
         TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == NO_OUTPUTS_WITHOUT_ACTIONS
-        1 * upToDateSpec.isEmpty() >> true
-        1 * taskProperties.hasDeclaredOutputs() >> false
-        1 * task.hasTaskActions() >> false
+        state == UNTRACKED
+        _ * task.getReasonNotToTrackState() >> Optional.of("For testing")
+        0 * _
     }
 
-    def "no actions with outputs"() {
-        def nonIncrementalTaskAction = Mock(InputChangesAwareTaskAction)
-
+    def "no outputs"() {
         when:
         TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == NO_OUTPUTS_WITH_ACTIONS
-        1 * upToDateSpec.isEmpty() >> true
+        state == NO_OUTPUTS
         1 * taskProperties.hasDeclaredOutputs() >> false
-        1 * task.hasTaskActions() >> true
-        1 * task.getTaskActions() >> [nonIncrementalTaskAction]
+        1 * upToDateSpec.isEmpty() >> true
+        _ * task.getTaskActions() >> []
+        0 * _
     }
 
     def "default"() {
@@ -80,6 +78,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         state == INCREMENTAL
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> true
+        0 * _
     }
 
     def "--rerun-tasks enabled"() {
@@ -89,10 +88,12 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == RERUN_TASKS_ENABLED
+        1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.empty >> false
+        0 * _
     }
 
-    def "uoToDateSpec evaluates to false"() {
+    def "upToDateSpec evaluates to false"() {
         when:
         def state = repository.getExecutionMode(task, taskProperties)
 
@@ -100,5 +101,20 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         state == UP_TO_DATE_WHEN_FALSE
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> false
+        0 * _
+    }
+
+    def "fails when no outputs with incremental task action"() {
+        when:
+        repository.getExecutionMode(task, taskProperties)
+
+        then:
+        def ex = thrown InvalidUserCodeException
+        ex.message == "You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API"
+
+        1 * taskProperties.hasDeclaredOutputs() >> false
+        1 * upToDateSpec.isEmpty() >> true
+        _ * task.getTaskActions() >> [Mock(IncrementalInputsTaskAction)]
+        0 * _
     }
 }

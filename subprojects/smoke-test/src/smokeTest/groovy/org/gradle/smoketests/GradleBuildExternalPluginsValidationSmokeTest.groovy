@@ -21,7 +21,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 /**
  * Smoke test verifying the external plugins.
  *
@@ -52,6 +51,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin',
                 'me.champeau.jmh',
                 'kotlin-sam-with-receiver',
+                'org.jetbrains.gradle.plugin.idea-ext',
                 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin',
                 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin',
                 'org.jetbrains.kotlin.jvm',
@@ -62,18 +62,12 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.jetbrains.kotlin.js',
                 'org.asciidoctor.gradle.base.AsciidoctorBasePlugin',
                 'org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin',
+                'org.asciidoctor.gradle.jvm.AsciidoctorJPlugin',
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
                 'kotlin',
                 'com.autonomousapps.dependency-analysis'
             ]
-        }
-        inProject(":") {
-            onPlugin('org.jetbrains.gradle.plugin.idea-ext') {
-                failsWith([
-                    (missingAnnotationMessage { type('org.jetbrains.gradle.ext.BuildIdeArtifact').property('artifact').missingInputOrOutput().includeLink() }): ERROR,
-                ])
-            }
         }
 
         then:

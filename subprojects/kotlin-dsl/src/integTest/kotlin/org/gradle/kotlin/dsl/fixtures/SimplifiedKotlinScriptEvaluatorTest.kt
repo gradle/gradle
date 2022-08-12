@@ -20,12 +20,11 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-
-import org.gradle.api.Project
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
-
 import org.junit.Test
 
 
@@ -34,7 +33,7 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
     @Test
     fun `can eval script against Project mock`() {
 
-        val project = mock<Project>()
+        val project = project()
         eval(
             script = """
                 version = "1.0"
@@ -71,6 +70,11 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
             target = gradle
         )
         verify(gradle).includedBuild("foo")
+    }
+
+    private
+    fun project() = mock<ProjectInternal> {
+        on { extensions } doReturn mock<ExtensionContainerInternal>()
     }
 
     private

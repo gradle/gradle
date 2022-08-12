@@ -1,7 +1,8 @@
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import org.gradle.internal.logging.text.StyledTextOutputFactory
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal
 
 task log {
     doLast {

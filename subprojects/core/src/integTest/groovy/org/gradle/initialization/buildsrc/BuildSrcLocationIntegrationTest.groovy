@@ -41,6 +41,7 @@ class BuildSrcLocationIntegrationTest extends AbstractIntegrationSpec {
 
     def "buildSrc without settings file can execute standalone"() {
         given:
+        settingsFile << "throw new GradleException('this should not be evaluated')"
         def buildSrc = file("buildSrc")
         buildSrc.file("build.gradle") << ''
 

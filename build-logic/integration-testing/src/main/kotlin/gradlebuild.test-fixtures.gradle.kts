@@ -96,8 +96,10 @@ javaComponent.withVariantsFromConfiguration(testFixturesApiElements) {
 plugins.withType<IdeaPlugin> {
     configure<IdeaModel> {
         module {
-            testSourceDirs = testSourceDirs + sourceSets.testFixtures.get().groovy.srcDirs
-            testResourceDirs = testResourceDirs + sourceSets.testFixtures.get().resources.srcDirs
+            val testFixtures = sourceSets.testFixtures.get()
+            testSources.from(testFixtures.java.srcDirs)
+            testSources.from(testFixtures.groovy.srcDirs)
+            testResources.from(testFixtures.resources.srcDirs)
         }
     }
 }

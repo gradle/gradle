@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -55,15 +57,17 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+
+import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
 /**
  * Helpers for Jvm plugins. They are in a separate class so that they don't leak
@@ -79,17 +83,19 @@ public class JvmPluginsHelper {
      * @return the created API configuration
      */
     public static Configuration addApiToSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
-        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
-        apiConfiguration.setVisible(false);
-        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
-        apiConfiguration.setCanBeResolved(false);
-        apiConfiguration.setCanBeConsumed(false);
+        Configuration apiConfiguration = maybeCreateInvisibleConfig(
+            configurations,
+            sourceSet.getApiConfigurationName(),
+            "API dependencies for " + sourceSet + ".",
+            false
+        );
 
-        Configuration compileOnlyApiConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyApiConfigurationName());
-        compileOnlyApiConfiguration.setVisible(false);
-        compileOnlyApiConfiguration.setDescription("Compile only API dependencies for " + sourceSet + ".");
-        compileOnlyApiConfiguration.setCanBeConsumed(false);
-        compileOnlyApiConfiguration.setCanBeResolved(false);
+        Configuration compileOnlyApiConfiguration = maybeCreateInvisibleConfig(
+            configurations,
+            sourceSet.getCompileOnlyApiConfigurationName(),
+            "Compile only API dependencies for " + sourceSet + ".",
+            false
+        );
 
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration, compileOnlyApiConfiguration);
@@ -128,6 +134,7 @@ public class JvmPluginsHelper {
     /***
      * For compatibility with https://plugins.gradle.org/plugin/io.freefair.aspectj
      */
+    @SuppressWarnings("unused")
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
         configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options, AbstractCompile::getDestinationDirectory);
@@ -156,24 +163,75 @@ public class JvmPluginsHelper {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
-                javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());
                 if (javaPluginExtension != null) {
+                    javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());
                     javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
                 }
             });
         }
     }
 
-    public static void configureDocumentationVariantWithArtifact(String variantName, @Nullable String featureName, String docsType, List<Capability> capabilities, String jarTaskName, Object artifactSource, @Nullable AdhocComponentWithVariants component, ConfigurationContainer configurations, TaskContainer tasks, ObjectFactory objectFactory) {
-        Configuration variant = configurations.maybeCreate(variantName);
-        variant.setVisible(false);
-        variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
-        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        variant.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
-        variant.getAttributes().attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        variant.getAttributes().attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
+    /**
+     * @deprecated Use {@link #configureDocumentationVariantWithArtifact(String, String, String, List, String, Object, AdhocComponentWithVariants, ConfigurationContainer, TaskContainer, ObjectFactory, FileResolver)}
+     * instead. Passing {@code null} for the FileResolver will not be legal after this is removed, please provide one.
+     */
+    @Deprecated
+    public static void configureDocumentationVariantWithArtifact(
+        String variantName,
+        @Nullable String featureName,
+        String docsType,
+        List<Capability> capabilities,
+        String jarTaskName,
+        Object artifactSource,
+        @Nullable AdhocComponentWithVariants component,
+        ConfigurationContainer configurations,
+        TaskContainer tasks,
+        ObjectFactory objectFactory
+    ) {
+        DeprecationLogger.deprecateInternalApi("configureDocumentationVariantWithArtifact (no FileResolver)")
+            .replaceWith("configureDocumentationVariantWithArtifact (with FileResolver)")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+            .nagUser();
+        configureDocumentationVariantWithArtifact(
+            variantName,
+            featureName,
+            docsType,
+            capabilities,
+            jarTaskName,
+            artifactSource,
+            component,
+            configurations,
+            tasks,
+            objectFactory,
+            null
+        );
+    }
+
+    public static void configureDocumentationVariantWithArtifact(
+        String variantName,
+        @Nullable String featureName,
+        String docsType,
+        List<Capability> capabilities,
+        String jarTaskName,
+        Object artifactSource,
+        @Nullable AdhocComponentWithVariants component,
+        ConfigurationContainer configurations,
+        TaskContainer tasks,
+        ObjectFactory objectFactory,
+        FileResolver fileResolver
+    ) {
+        Configuration variant = maybeCreateInvisibleConfig(
+            configurations,
+            variantName,
+            docsType + " elements for " + (featureName == null ? "main" : featureName) + ".",
+            true
+        );
+        AttributeContainer attributes = variant.getAttributes();
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+        attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
         capabilities.forEach(variant.getOutgoing()::capability);
 
         if (!tasks.getNames().contains(jarTaskName)) {
@@ -181,17 +239,31 @@ public class JvmPluginsHelper {
                 jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(artifactSource);
-                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
+                jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
             });
             if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
             }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar));
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver));
         if (component != null) {
             component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
         }
+    }
+
+    private static Configuration maybeCreateInvisibleConfig(
+        ConfigurationContainer container,
+        String name,
+        String description,
+        boolean canBeConsumed
+    ) {
+        Configuration configuration = container.maybeCreate(name);
+        configuration.setVisible(false);
+        configuration.setDescription(description);
+        configuration.setCanBeResolved(false);
+        configuration.setCanBeConsumed(canBeConsumed);
+        return configuration;
     }
 
     @Nullable

@@ -18,13 +18,16 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
@@ -35,11 +38,17 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
 
     @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES);
+        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS);
     }
 
     @Override
     protected InputFilePropertyType getFilePropertyType() {
         return InputFilePropertyType.DIRECTORY;
+    }
+
+    @Override
+    protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
+        // Being an input directory implies ignoring of empty directories.
+        return DirectorySensitivity.IGNORE_DIRECTORIES;
     }
 }

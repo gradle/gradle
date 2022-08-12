@@ -28,7 +28,7 @@ import org.gradle.configurationcache.serialization.withBeanTrace
 
 
 internal
-class BeanCodec : Codec<Any> {
+object BeanCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
         encodePreservingIdentityOf(value) {
@@ -39,7 +39,7 @@ class BeanCodec : Codec<Any> {
         }
     }
 
-    override suspend fun ReadContext.decode(): Any? =
+    override suspend fun ReadContext.decode(): Any =
         decodePreservingIdentity { id ->
             val beanType = readClass()
             val generated = readBoolean()

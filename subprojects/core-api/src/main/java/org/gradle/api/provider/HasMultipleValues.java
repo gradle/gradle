@@ -97,6 +97,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @param elements The elements to add
      * @since 4.10
      */
+    @SuppressWarnings("unchecked")
     void addAll(T... elements);
 
     /**

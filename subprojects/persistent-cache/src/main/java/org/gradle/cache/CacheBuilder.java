@@ -60,7 +60,7 @@ public interface CacheBuilder {
     /**
      * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
      *
-     * <p>Note that not every combination of cache type and lock options is supported.
+     * Note that not every combination of cache type and lock options is supported.
      */
     CacheBuilder withLockOptions(LockOptions lockOptions);
 
@@ -85,11 +85,11 @@ public interface CacheBuilder {
      *
      * <p>
      *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
+     * </p>
      * <ul>
      *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
      *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} or {@link org.gradle.cache.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
      * </ul>
-     * </p>
      *
      * @return The cache.
      */

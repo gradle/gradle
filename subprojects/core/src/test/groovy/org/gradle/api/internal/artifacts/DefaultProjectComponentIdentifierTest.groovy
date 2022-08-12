@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.util.Path
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
@@ -34,7 +33,6 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         id.toString() == 'project :id:path'
     }
 
-    @Unroll
     def "can compare with other instance (#projectPath)"() {
         expect:
         def id1 = newProjectId(':myProjectPath1')

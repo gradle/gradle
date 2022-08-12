@@ -16,23 +16,21 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 @LeaksFileHandles
-class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPluginIntegrationTest implements DirectoryBuildCacheFixture {
+class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
     protected String getDefaultBuildFileName() {
         return 'build.gradle.kts'
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "implementations in nested Action property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('org.gradle.api.Action<File>', '.execute')
         buildFile << """
@@ -66,7 +64,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "implementations in nested lambda property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('(File) -> Unit', '')
         buildFile << """
@@ -101,7 +98,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11703")
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()
         def project2 = file("project2").createDir()
@@ -135,6 +131,74 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         then:
         skipped(':myTask')
         project2.file('build/tmp/myTask/output.txt').text == "hello"
+    }
+
+    def "task action defined in Kotlin 1.7 can be tracked when using language version #kotlinVersion"() {
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                kotlin("jvm") version("1.7.10")
+                `java-gradle-plugin`
+            }
+
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            repositories {
+                mavenCentral()
+            }
+
+            gradlePlugin {
+                plugins {
+                    create("myPlugin") {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+
+            tasks.withType<KotlinCompile>().configureEach {
+                kotlinOptions {
+                    apiVersion = "${kotlinVersion}"
+                    languageVersion = "${kotlinVersion}"
+                }
+            }
+        """
+        file("buildSrc/src/main/kotlin/MyPlugin.kt") << """
+            import org.gradle.api.Action
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class MyPlugin : Plugin<Project> {
+                override fun apply(target: Project) {
+                    target.tasks.register("myTask") { task ->
+                        task.outputs.file("build/output.txt")
+                        task.doLast(Action { println("Hello") })
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                `my-plugin`
+            }
+        """
+
+        when:
+        if (kotlinVersion == "1.4") {
+            executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        }
+        run "myTask"
+
+        then:
+        executedAndNotSkipped(":myTask")
+
+        where:
+        kotlinVersion << [
+            "1.4",
+            "1.5",
+            "1.6",
+            "1.7",
+        ]
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

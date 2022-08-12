@@ -74,7 +74,7 @@ class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractInte
     /**
      * This setups a {@link FixedSharedModeCrossProcessCacheAccess} that does initially not see that the cache is already initialised
      * (or in the process of being initialised). This simulates a situation, where two processes happen to find a the cache in an empty state
-     * simultaneously. Then the the second one, attempting to initialize the cache, will fail to obtain an exclusive lock on the cache. Instead
+     * simultaneously. Then the second one, attempting to initialize the cache, will fail to obtain an exclusive lock on the cache. Instead
      * of failing, it should recheck if initialization was performed by calling {@link CacheInitializationAction#requiresInitialization(org.gradle.cache.FileLock)}
      * again. This is simulated here by an requiresInitialization() implementation that returns false after a number of calls to itself.
      */

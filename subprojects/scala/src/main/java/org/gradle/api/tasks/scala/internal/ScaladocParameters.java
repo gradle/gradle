@@ -21,6 +21,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.workers.WorkParameters;
+import org.gradle.api.provider.Property;
 
 public interface ScaladocParameters extends WorkParameters {
     RegularFileProperty getOptionsFile();
@@ -32,4 +33,6 @@ public interface ScaladocParameters extends WorkParameters {
     ListProperty<String> getOptions();
 
     ConfigurableFileCollection getSources();
+
+    Property<Boolean> getIsScala3();
 }

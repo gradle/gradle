@@ -21,7 +21,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 
 class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
     def cancellationToken = new DefaultBuildCancellationToken()
-    def step = new CancelExecutionStep<Context>(cancellationToken, delegate)
+    def step = new CancelExecutionStep<Context, Result>(cancellationToken, delegate)
     def delegateResult = Mock(Result)
 
     def "executes normally when cancellation is not requested"() {

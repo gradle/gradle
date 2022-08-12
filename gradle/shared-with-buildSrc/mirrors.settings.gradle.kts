@@ -15,46 +15,45 @@
  */
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import org.gradle.api.internal.GradleInternal
+import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.internal.nativeintegration.network.HostnameLookup
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
 
 val originalUrls: Map<String, String> = mapOf(
     "jcenter" to "https://jcenter.bintray.com/",
     "mavencentral" to "https://repo.maven.apache.org/maven2/",
     "google" to "https://dl.google.com/dl/android/maven2/",
     "gradle" to "https://repo.gradle.org/gradle/repo",
-    "gradleplugins" to "https://plugins.gradle.org/m2",
+    "gradle-prod-plugins" to "https://plugins.gradle.org/m2",
     "gradlejavascript" to "https://repo.gradle.org/gradle/javascript-public",
-    "gradle-libs" to "https://repo.gradle.org/gradle/libs",
-    "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
-    "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
-    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local",
-    "kotlinx" to "https://kotlin.bintray.com/kotlinx/",
-    "kotlineap" to "https://dl.bintray.com/kotlin/kotlin-eap/",
-    "kotlindev" to "https://dl.bintray.com/kotlin/kotlin-dev/"
+    "gradle-public" to "https://repo.gradle.org/gradle/public",
+    "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates"
 )
 
 val mirrorUrls: Map<String, String> =
-    System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
-        val (name, url) = nameToUrl.split(':', limit = 2)
-        name to url
-    } ?: emptyMap()
+    providers.environmentVariable("REPO_MIRROR_URLS").orNull
+        ?.ifBlank { null }
+        ?.split(',')
+        ?.associate { nameToUrl ->
+            val (name, url) = nameToUrl.split(':', limit = 2)
+            name to url
+        }
+        ?: emptyMap()
 
+fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
 
-fun isEc2Agent() = (gradle as GradleInternal).services.get(HostnameLookup::class.java).hostname.startsWith("ip-")
-
-fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
-
-fun ignoreMirrors() = System.getenv("IGNORE_MIRROR")?.toBoolean() ?: false
+fun isCI() = providers.environmentVariable("CI").isPresent()
 
 fun withMirrors(handler: RepositoryHandler) {
-    if ("CI" !in System.getenv() || isEc2Agent()) {
+    if (!isCI()) {
         return
     }
     handler.all {
         if (this is MavenArtifactRepository) {
             originalUrls.forEach { name, originalUrl ->
                 if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
-                    this.setUrl(mirrorUrls.get(name))
+                    mirrorUrls.get(name)?.let { this.setUrl(it) }
                 }
             }
         }
@@ -64,15 +63,6 @@ fun withMirrors(handler: RepositoryHandler) {
 fun normalizeUrl(url: String): String {
     val result = url.replace("https://", "http://")
     return if (result.endsWith("/")) result else "$result/"
-}
-
-if (System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY) == null && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
-    // https://github.com/gradle/gradle-private/issues/2725
-    // https://github.com/gradle/gradle-private/issues/2951
-    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://dev12.gradle.org/artifactory/gradle-plugins/")
-    gradle.buildFinished {
-        System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
-    }
 }
 
 gradle.allprojects {

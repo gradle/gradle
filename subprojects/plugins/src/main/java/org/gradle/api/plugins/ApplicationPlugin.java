@@ -37,13 +37,11 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.application.CreateStartScripts;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -85,11 +83,6 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     private void configureJavaCompileTask(TaskProvider<JavaCompile> javaCompile, JavaApplication pluginExtension) {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
-    }
-
-    // Enable this back for Gradle 7.0
-    private void configureJarTask(TaskProvider<Jar> jar, JavaApplication pluginExtension) {
-        jar.configure(j -> j.getManifest().attributes(Collections.singletonMap("Main-Class", pluginExtension.getMainClass())));
     }
 
     private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, ApplicationPluginConvention pluginConvention) {

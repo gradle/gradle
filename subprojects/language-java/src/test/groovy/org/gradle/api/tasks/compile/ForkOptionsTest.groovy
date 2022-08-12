@@ -18,8 +18,6 @@ package org.gradle.api.tasks.compile
 
 import spock.lang.Specification
 
-import static org.junit.Assert.assertEquals
-
 class ForkOptionsTest extends Specification {
     static final List PROPS = ['executable', 'memoryInitialSize', 'memoryMaximumSize', 'tempDir']
 
@@ -33,19 +31,6 @@ class ForkOptionsTest extends Specification {
         forkOptions.memoryMaximumSize == null
         forkOptions.tempDir == null
         forkOptions.jvmArgs == []
-    }
-
-    def 'options can be read as Map'() {
-        when:
-        Map optionMap = forkOptions.optionMap()
-        then:
-        assertEquals(0, optionMap.size())
-        when:
-        PROPS.each { forkOptions."$it" = "${it}Value" }
-        optionMap = forkOptions.optionMap()
-        then:
-        assertEquals(4, optionMap.size())
-        PROPS.each { assert optionMap[it] == "${it}Value" as String }
     }
 
     def 'options can be defined via a map'() {

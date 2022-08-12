@@ -27,50 +27,57 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 
-public class MerkleDirectorySnapshotBuilder {
+/**
+ * A builder for {@link DirectorySnapshot} instances.
+ *
+ * This implementation combines the hashes of the children of a directory into a single hash for the directory.
+ * For the hash to be reproducible, the children must be sorted in a consistent order.
+ * The implementation uses {@link FileSystemLocationSnapshot#BY_NAME} ordering.
+ * If you already provide the children in sorted order, use {@link #noSortingRequired()} to avoid the overhead of sorting again.
+ */
+public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final Deque<Directory> directoryStack = new ArrayDeque<>();
     private final boolean sortingRequired;
     private FileSystemLocationSnapshot result;
 
-    public static MerkleDirectorySnapshotBuilder sortingRequired() {
+    public static DirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
     }
 
-    public static MerkleDirectorySnapshotBuilder noSortingRequired() {
+    public static DirectorySnapshotBuilder noSortingRequired() {
         return new MerkleDirectorySnapshotBuilder(false);
     }
 
-    private MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
+    protected MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
         this.sortingRequired = sortingRequired;
     }
 
-    public void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
-        enterDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
-    }
-
+    @Override
     public void enterDirectory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         directoryStack.addLast(new Directory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy));
     }
 
+    @Override
     public void visitLeafElement(FileSystemLeafSnapshot snapshot) {
         collectEntry(snapshot);
     }
 
+    @Override
     public void visitDirectory(DirectorySnapshot directorySnapshot) {
         collectEntry(directorySnapshot);
     }
 
-    public boolean leaveDirectory() {
+    @Override
+    public FileSystemLocationSnapshot leaveDirectory() {
         FileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
-        if (snapshot == null) {
-            return false;
+        if (snapshot != null) {
+            collectEntry(snapshot);
         }
-        collectEntry(snapshot);
-        return true;
+        return snapshot;
     }
 
     private void collectEntry(FileSystemLocationSnapshot snapshot) {
@@ -83,14 +90,9 @@ public class MerkleDirectorySnapshotBuilder {
         }
     }
 
-    @Nullable
+    @Override
     public FileSystemLocationSnapshot getResult() {
         return result;
-    }
-
-    public enum EmptyDirectoryHandlingStrategy {
-        INCLUDE_EMPTY_DIRS,
-        EXCLUDE_EMPTY_DIRS
     }
 
     private class Directory {

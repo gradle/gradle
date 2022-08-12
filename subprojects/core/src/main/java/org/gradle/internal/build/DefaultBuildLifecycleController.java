@@ -17,154 +17,185 @@ package org.gradle.internal.build;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.BuildCompletionListener;
+import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.execution.plan.Node;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.Describables;
+import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
-    private enum Stage {
-        Created, Configure, TaskGraph, Finished;
-
-        String getDisplayName() {
-            if (TaskGraph == this) {
-                return "Build";
-            } else {
-                return "Configure";
-            }
-        }
+    private enum State implements StateTransitionController.State {
+        // Configuring the build, can access build model
+        Configure,
+        // Scheduling tasks for execution
+        TaskSchedule,
+        ReadyToRun,
+        // build has finished and should do no further work
+        Finished
     }
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
-    private final BuildCompletionListener buildCompletionListener;
     private final InternalBuildFinishedListener buildFinishedListener;
-    private final BuildWorkExecutor buildExecuter;
-    private final BuildScopeServices buildServices;
-    private final GradleInternal gradle;
+    private final BuildWorkPreparer workPreparer;
+    private final BuildWorkExecutor workExecutor;
+    private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
-
-    private Stage stage = Stage.Created;
-    @Nullable
-    private RuntimeException stageFailure;
+    private final StateTransitionController<State> state;
+    private final GradleInternal gradle;
+    private boolean hasTasks;
 
     public DefaultBuildLifecycleController(
         GradleInternal gradle,
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
-        BuildCompletionListener buildCompletionListener,
         InternalBuildFinishedListener buildFinishedListener,
-        BuildWorkExecutor buildExecuter,
-        BuildScopeServices buildServices
+        BuildWorkPreparer workPreparer,
+        BuildWorkExecutor workExecutor,
+        BuildToolingModelControllerFactory toolingModelControllerFactory,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
-        this.buildExecuter = buildExecuter;
-        this.buildCompletionListener = buildCompletionListener;
+        this.workPreparer = workPreparer;
+        this.workExecutor = workExecutor;
         this.buildFinishedListener = buildFinishedListener;
-        this.buildServices = buildServices;
+        this.toolingModelControllerFactory = toolingModelControllerFactory;
+        this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
 
     @Override
     public GradleInternal getGradle() {
+        // Should not ignore other threads, however it is currently possible for this to be queried by tasks at execution time (that is, when another thread is
+        // transitioning the task graph state). Instead, it may be better to:
+        // - have the threads use some specific immutable view of the build model state instead of requiring direct access to the build model.
+        // - not have a thread blocked around task execution, so that other threads can use the build model.
+        // - maybe split the states into one for the build model and one for the task graph.
+        state.assertNotInState(State.Finished);
         return gradle;
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() {
-        return withModel(BuildModelController::getLoadedSettings);
+    public void loadSettings() {
+        state.notInState(State.Finished, modelController::getLoadedSettings);
+    }
+
+    @Override
+    public <T> T withSettings(Function<? super SettingsInternal, T> action) {
+        return state.notInState(State.Finished, () -> action.apply(modelController.getLoadedSettings()));
+    }
+
+    @Override
+    public void configureProjects() {
+        state.notInState(State.Finished, modelController::getConfiguredModel);
+    }
+
+    @Override
+    public <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
+        return state.notInState(State.Finished, () -> action.apply(modelController.getConfiguredModel()));
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return withModel(BuildModelController::getConfiguredModel);
+        // Should not ignore other threads. See above.
+        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
     }
 
     @Override
-    public void scheduleTasks(final Iterable<String> taskPaths) {
-        withModel(buildModelController -> {
-            stage = Stage.TaskGraph;
-            buildModelController.scheduleTasks(taskPaths);
-            return null;
+    public void prepareToScheduleTasks() {
+        state.maybeTransition(State.Configure, State.TaskSchedule, () -> {
+            hasTasks = true;
+            modelController.prepareToScheduleTasks();
         });
     }
 
     @Override
-    public void scheduleRequestedTasks() {
-        withModel(buildModelController -> {
-            stage = Stage.TaskGraph;
-            buildModelController.scheduleRequestedTasks();
-            return null;
+    public BuildWorkPlan newWorkGraph() {
+        return state.inState(State.TaskSchedule, () -> {
+            ExecutionPlan plan = workPreparer.newExecutionPlan();
+            modelController.initializeWorkGraph(plan);
+            return new DefaultBuildWorkPlan(this, plan);
         });
     }
 
     @Override
-    public void executeTasks() {
-        withModel(buildModelController -> {
-            runWork();
-            return null;
-        });
+    public void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, workPlan.plan, dest -> action.accept(new DefaultWorkGraphBuilder(dest))));
     }
 
-    private <T> T withModel(Function<BuildModelController, T> action) {
-        if (stageFailure != null) {
-            throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
-        }
-        try {
-            try {
-                return action.apply(modelController);
-            } finally {
-                if (stage == Stage.Created) {
-                    stage = Stage.Configure;
-                }
+    @Override
+    public void finalizeWorkGraph(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
+            for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
+                workPlan.plan.onComplete(handler);
             }
-        } catch (Throwable t) {
-            stageFailure = exceptionAnalyser.transform(t);
-            throw stageFailure;
-        }
+            workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
+        });
     }
 
     @Override
-    public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
-        if (stage == Stage.Created || stage == Stage.Finished) {
-            return;
-        }
-
-        Throwable reportableFailure = failure;
-        if (reportableFailure == null && stageFailure != null) {
-            reportableFailure = stageFailure;
-        }
-        BuildResult buildResult = new BuildResult(stage.getDisplayName(), gradle, reportableFailure);
-        try {
-            buildListener.buildFinished(buildResult);
-            buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
-        } catch (Throwable t) {
-            collector.accept(t);
-        }
-        stage = Stage.Finished;
-        stageFailure = null;
+    public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
+        // Execute tasks and transition back to "configure", as this build may run more tasks;
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.plan));
     }
 
-    private void runWork() {
-        List<Throwable> taskFailures = new ArrayList<>();
-        buildExecuter.execute(gradle, taskFailures);
-        if (!taskFailures.isEmpty()) {
-            throw new MultipleBuildFailures(taskFailures);
+    private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = (DefaultBuildWorkPlan) plan;
+        if (workPlan.owner != this) {
+            throw new IllegalArgumentException("Unexpected plan owner.");
         }
+        return workPlan;
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return action.apply(toolingModelControllerFactory.createController(gradle.getOwner(), this));
+    }
+
+    @Override
+    public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
+        return state.finish(State.Finished, stageFailures -> {
+            // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
+            // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
+            // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
+
+            Throwable reportableFailure = failure;
+            if (reportableFailure == null && !stageFailures.getFailures().isEmpty()) {
+                reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
+            }
+            BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
+            ExecutionResult<Void> finishResult;
+            try {
+                buildListener.buildFinished(buildResult);
+                buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
+                finishResult = ExecutionResult.succeeded();
+            } catch (Throwable t) {
+                finishResult = ExecutionResult.failed(t);
+            }
+            return finishResult;
+        });
     }
 
     /**
@@ -175,18 +206,52 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
      */
     @Override
     public void addListener(Object listener) {
-        gradle.addListener(listener);
+        getGradle().addListener(listener);
     }
 
-    @Override
-    public void stop() {
-        if (stage != Stage.Created && stage != Stage.Finished) {
-            throw new IllegalStateException("This build has not been finished.");
+    private static class DefaultBuildWorkPlan implements BuildWorkPlan {
+        private final DefaultBuildLifecycleController owner;
+        private final ExecutionPlan plan;
+        private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
+
+        public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
+            this.owner = owner;
+            this.plan = plan;
         }
-        try {
-            CompositeStoppable.stoppable(buildServices).stop();
-        } finally {
-            buildCompletionListener.completed();
+
+        @Override
+        public void stop() {
+            plan.close();
+        }
+
+        @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            handlers.add(handler);
+        }
+    }
+
+    private class DefaultWorkGraphBuilder implements WorkGraphBuilder {
+        private final ExecutionPlan plan;
+
+        public DefaultWorkGraphBuilder(ExecutionPlan plan) {
+            this.plan = plan;
+        }
+
+        @Override
+        public void addRequestedTasks() {
+            modelController.scheduleRequestedTasks(plan);
+        }
+
+        @Override
+        public void addEntryTasks(List<? extends Task> tasks) {
+            for (Task task : tasks) {
+                plan.addEntryTasks(Collections.singletonList(task));
+            }
+        }
+
+        @Override
+        public void addNodes(List<? extends Node> nodes) {
+            plan.addNodes(nodes);
         }
     }
 }

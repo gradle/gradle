@@ -38,7 +38,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -67,15 +66,35 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private TaskProvider<?> compileTaskProvider;
 
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
+        this(name, displayName, patternSetFactory.create(), patternSetFactory.create(), fileCollectionFactory, directoryFileTreeFactory, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+    }
+
+    DefaultSourceDirectorySet(String name, String displayName, PatternSet patterns, PatternSet filters, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, DirectoryProperty destinationDirectory, DirectoryProperty classesDirectory) {
         this.name = name;
         this.displayName = displayName;
         this.fileCollectionFactory = fileCollectionFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.patterns = patternSetFactory.create();
-        this.filter = patternSetFactory.create();
+        this.patterns = patterns;
+        this.filter = filters;
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        this.destinationDirectory = objectFactory.directoryProperty();
-        this.classesDirectory = objectFactory.directoryProperty();
+        this.destinationDirectory = destinationDirectory;
+        this.classesDirectory = classesDirectory;
+    }
+
+    public DefaultSourceDirectorySet(SourceDirectorySet sourceSet) {
+        if (!(sourceSet instanceof DefaultSourceDirectorySet)) {
+            throw new RuntimeException("Invalid source set type:" + source.getClass());
+        }
+        DefaultSourceDirectorySet defaultSourceSet = (DefaultSourceDirectorySet) sourceSet;
+        this.name = defaultSourceSet.name;
+        this.displayName = defaultSourceSet.displayName;
+        this.fileCollectionFactory = defaultSourceSet.fileCollectionFactory;
+        this.directoryFileTreeFactory = defaultSourceSet.directoryFileTreeFactory;
+        this.patterns = defaultSourceSet.patterns;
+        this.filter = defaultSourceSet.filter;
+        this.dirs = new FileCollectionAdapter(new SourceDirectories());
+        this.destinationDirectory = defaultSourceSet.destinationDirectory;
+        this.classesDirectory = defaultSourceSet.classesDirectory;
     }
 
     @Override
@@ -170,42 +189,6 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public PatternFilterable getFilter() {
         return filter;
-    }
-
-    @Override
-    @Deprecated
-    public File getOutputDir() {
-        DeprecationLogger.deprecateProperty(SourceDirectorySet.class, "outputDir")
-            .replaceWith("classesDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return destinationDirectory.getAsFile().get();
-    }
-
-    @Override
-    @Deprecated
-    public void setOutputDir(Provider<File> provider) {
-        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(Provider<File>)")
-            .withAdvice("Please use the destinationDirectory property instead.")
-            .willBeRemovedInGradle8()
-            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
-            .nagUser();
-
-        destinationDirectory.set(classesDirectory.fileProvider(provider));
-    }
-
-    @Override
-    @Deprecated
-    public void setOutputDir(File outputDir) {
-        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(File)")
-            .withAdvice("Please use the destinationDirectory property instead.")
-            .willBeRemovedInGradle8()
-            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
-            .nagUser();
-
-        destinationDirectory.set(outputDir);
     }
 
     @Override

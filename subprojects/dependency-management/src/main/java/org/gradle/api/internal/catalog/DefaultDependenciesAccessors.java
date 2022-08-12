@@ -16,6 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -36,7 +37,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
@@ -52,6 +55,7 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -60,6 +64,8 @@ import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -80,6 +86,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependenciesAccessors.class);
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
@@ -122,7 +130,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 models.add(model);
             }
             if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
-                IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
                         writeDependenciesAccessors(model);
@@ -146,7 +153,19 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
+        warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
         executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
+    }
+
+    private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptor project) {
+        if (!(project instanceof DefaultProjectDescriptor)) {
+            return;
+        }
+        DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
+        if (!descriptor.isExplicitName()) {
+            LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
+                    "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
+        }
     }
 
     private void executeWork(UnitOfWork work) {
@@ -208,6 +227,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     @Override
     public void createExtensions(ProjectInternal project) {
         ExtensionContainer container = project.getExtensions();
+        ProviderFactory providerFactory = project.getProviders();
         try {
             if (!models.isEmpty()) {
                 ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
@@ -218,8 +238,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                             factory = factories.computeIfAbsent(model.getName(), n -> loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(n)));
                         }
                         if (factory != null) {
-                            VersionCatalog catalog = container.create(model.getName(), factory, model);
-                            catalogs.put(catalog.getName(), catalog);
+                            container.create(model.getName(), factory, model);
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects()));
                         }
                     }
                 }
@@ -323,8 +343,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private class DependencyAccessorUnitOfWork extends AbstractAccessorUnitOfWork {
-        private static final String IN_DEPENDENCY_ALIASES = "dependencyAliases";
+        private static final String IN_LIBRARIES = "libraries";
         private static final String IN_BUNDLES = "bundles";
+        private static final String IN_PLUGINS = "plugins";
         private static final String IN_VERSIONS = "versions";
         private static final String IN_MODEL_NAME = "modelName";
         private static final String IN_CLASSPATH = "classpath";
@@ -342,15 +363,17 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getDependencyAliases);
+            visitor.visitInputProperty(IN_LIBRARIES, model::getLibraryAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
+            visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
             visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
                 new FileValueSupplier(
                     classPath,
                     ClasspathNormalizer.class,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
+                    LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
         }
 
@@ -499,6 +522,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     // public for injection
     public static class DefaultVersionCatalogsExtension implements VersionCatalogsExtension {
+
         private final Map<String, VersionCatalog> catalogs;
 
         @Inject
@@ -512,6 +536,11 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 return Optional.of(catalogs.get(name));
             }
             return Optional.empty();
+        }
+
+        @Override
+        public Set<String> getCatalogNames() {
+            return ImmutableSet.copyOf(catalogs.keySet());
         }
 
         @Override

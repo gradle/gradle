@@ -16,7 +16,6 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
@@ -31,7 +30,6 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withRepositoryMirrors()
     }
 
-    @ToBeFixedForConfigurationCache
     def recompilesSourceWhenPropertiesChange() {
         expect:
         run('compileScala').assertTasksSkipped(':compileJava')
@@ -39,13 +37,12 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         when:
         file('build.gradle').text += '''
             compileScala.options.debug = false
-'''
+        '''
         then:
         run('compileScala').assertTasksSkipped(':compileJava')
         run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
     }
 
-    @ToBeFixedForConfigurationCache
     def recompilesDependentClasses() {
         given:
         run("classes")
@@ -58,7 +55,6 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#13392")
-    @ToBeFixedForConfigurationCache
     def restoresClassesOnCompilationFailure() {
         given:
         run("classes")
@@ -78,10 +74,11 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2548")
-    @ToBeFixedForConfigurationCache
-    def recompilesScalaWhenJavaChanges() {
+    def "recompiles Scala when Java changes"() {
         file("build.gradle") << """
-            apply plugin: 'scala'
+            plugins {
+                id("scala")
+            }
 
             ${mavenCentralRepository()}
 
@@ -93,8 +90,9 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Person.java") << "public interface Person { String getName(); }"
 
         file("src/main/scala/DefaultPerson.scala") << """class DefaultPerson(name: String) extends Person {
-    def getName(): String = name
-}"""
+            def getName(): String = name
+            }
+        """
         when:
         run('classes') //makes everything up-to-date
 
@@ -104,6 +102,101 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+    }
+
+    @Issue("gradle/gradle#8421")
+    def "incremental compiler detects change in package"() {
+        settingsFile << """
+            include 'lib'
+        """
+        [buildFile, file('lib/build.gradle')].each {
+            it << """
+                plugins {
+                    id 'scala'
+                }
+
+                    ${mavenCentralRepository()}
+
+                dependencies {
+                   implementation 'org.scala-lang:scala-library:2.11.12'
+                }
+            """
+        }
+
+        buildFile << """
+            dependencies {
+                implementation project(":lib")
+            }
+        """
+
+        file("src/main/scala/Hello.scala") << """import pkg1.Other
+
+            class Hello extends Other
+        """
+
+        file("lib/src/main/scala/pkg1/Other.scala") << """
+            package pkg1
+
+            class Other
+        """
+
+        when:
+        run ':build'
+
+        then:
+        executedAndNotSkipped(":lib:compileScala", ":compileScala")
+
+        when:
+        file("lib/src/main/scala/pkg1/Other.scala").delete()
+        file("lib/src/main/scala/pkg2/Other.scala") << """
+            package pkg2
+
+            class Other
+        """
+        fails ':build'
+
+        then:
+        executedAndNotSkipped(":lib:compileScala", ":compileScala")
+        failure.assertHasCause("Compilation failed")
+    }
+
+    def "incremental compiler gracefully handles classes being deleted"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'scala'
+                id 'application'
+            }
+            application {
+                mainClass = "HelloWorld"
+            }
+            dependencies {
+               implementation 'org.scala-lang:scala-library:2.11.12'
+            }
+        """
+
+        file("src/main/scala/Hello.scala") << """
+            object HelloWorld {
+              def main(args: Array[String]): Unit = {
+                println("Hello world")
+              }
+            }
+        """
+
+        when:
+        succeeds "run"
+        then:
+        outputContains("Hello world")
+
+        when:
+        succeeds "cleanCompileScala", "run"
+        then:
+        outputContains("Hello world")
     }
 
 }

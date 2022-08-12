@@ -37,20 +37,19 @@ import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
 class AttributeConfigurationSelectorTest extends Specification {
-    private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+    private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
+    private ComponentGraphResolveState targetState
     private ComponentResolveMetadata targetComponent
     private ConfigurationMetadata selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
     private List<IvyArtifactName> artifacts = []
 
-    @Unroll
     def "selects a variant when there's no ambiguity"() {
         given:
         component(
@@ -118,7 +117,6 @@ All of them match the consumer attributes:
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-runtime' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
-    @Unroll
     def "can select a variant thanks to the capabilities"() {
         given:
         component(
@@ -142,7 +140,6 @@ All of them match the consumer attributes:
         'second' | 'api2'
     }
 
-    @Unroll
     def "can select a variant thanks to the implicit capability"() {
         given:
         component(
@@ -434,13 +431,13 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        selected = AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(
+        selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
                 consumerAttributes,
                 requestedCapabilities,
-                targetComponent,
+                targetState,
                 attributesSchema,
                 artifacts
-        )
+        ).variants[0]
     }
 
     private void requireArtifact(String name = "foo", String type = "jar", String ext = "jar", String classifier = null) {
@@ -481,6 +478,10 @@ All of them match the consumer attributes:
                     ImmutableList.copyOf(variants)
             )
             getAttributesSchema() >> attributesSchema
+        }
+        targetState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> targetComponent
+            resolveArtifactsFor(_) >> { VariantGraphResolveMetadata variant -> variant }
         }
     }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.use;
 
+import org.gradle.api.provider.Provider;
+
 import javax.annotation.Nullable;
 
 /**
@@ -47,6 +49,25 @@ public interface PluginDependencySpec {
      * @return this
      */
     PluginDependencySpec version(@Nullable String version);
+
+    /**
+     * Specify the version of the plugin to depend on.
+     *
+     * <pre>
+     * plugins {
+     *     id "org.company.myplugin" version libs.versions.myplugin
+     * }
+     * </pre>
+     *
+     * @param version the version provider, for example as found in a version catalog
+     * @return this
+     *
+     * @since 7.2
+     */
+    default PluginDependencySpec version(Provider<String> version) {
+        // providers used in plugins block are necessarily at configuration time
+        return this.version(version.get());
+    }
 
     /**
      * Specifies whether the plugin should be applied to the current project. Otherwise it is only put

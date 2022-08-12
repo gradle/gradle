@@ -37,6 +37,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
@@ -56,7 +57,7 @@ public class JacocoTaskExtension {
          * Gets type in format of agent argument.
          */
         public String getAsArg() {
-            return toString().toLowerCase().replaceAll("_", "");
+            return toString().toLowerCase(Locale.US).replaceAll("_", "");
         }
     }
 
@@ -342,7 +343,7 @@ public class JacocoTaskExtension {
             if (value != null
                 && !((value instanceof Collection) && ((Collection) value).isEmpty())
                 && !((value instanceof String) && (StringUtils.isEmpty((String) value)))
-                && !((value instanceof Integer) && (value == Integer.valueOf(0)))) {
+                && !((value instanceof Integer) && ((Integer) value == 0))) {
                 if (anyArgs) {
                     builder.append(',');
                 }

@@ -54,9 +54,12 @@ dependencies {
         // We only need "failureaccess" of Guava's dependencies
         withLibraryDependencies<KeepDependenciesByNameRule>("com.google.guava:guava", setOf("failureaccess"))
 
+        // We only need a few utility classes of this module
+        withLibraryDependencies<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
+
         // Test dependencies - minify: remove unused transitive dependencies
         withLibraryDependencies<DependencyRemovalByNameRule>(
-            "org.gradle.org.littleshoot:littleproxy",
+            "xyz.rogfam:littleproxy",
             setOf("barchart-udt-bundle", "guava", "commons-cli")
         )
 
@@ -67,9 +70,6 @@ dependencies {
             "org.gradle.profiler:gradle-profiler",
             setOf("gradle-tooling-api")
         )
-
-        // used by :internal-android-performance-testing > api("agp")
-        withModule<UnifyTrove4jVersionRule>("com.android.tools.external.com-intellij:intellij-core")
     }
 }
 

@@ -66,6 +66,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.EnumSet;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
@@ -74,74 +75,140 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  */
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static File userHomeDir;
-    private static boolean useNativeIntegrations;
-    private static boolean useFileSystemWatching;
     private static final NativeServices INSTANCE = new NativeServices();
-    private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
-    private static boolean initialized;
 
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
-    /**
-     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
-     */
-    public static void initialize(File userHomeDir) {
-        initialize(userHomeDir, true);
+    private boolean initialized;
+    private boolean useNativeIntegrations;
+    private File userHomeDir;
+    private File nativeBaseDir;
+    private final EnumSet<NativeFeatures> initializedFeatures = EnumSet.noneOf(NativeFeatures.class);
+    private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
+
+    public enum NativeFeatures {
+        FILE_SYSTEM_WATCHING {
+            @Override
+            public boolean initialize(File nativeBaseDir, boolean useNativeIntegrations) {
+                if (useNativeIntegrations) {
+                    try {
+                        FileEvents.init(nativeBaseDir);
+                        LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+                        return true;
+                    } catch (NativeIntegrationUnavailableException ex) {
+                        LOGGER.debug("Native file system watching is not available for this operating system.", ex);
+                        return false;
+                    }
+                }
+                return false;
+            }
+        },
+        JANSI {
+            @Override
+            public boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations) {
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
+                return true;
+            }
+        };
+
+        private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
+
+        public abstract boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations);
     }
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      *
-     * @param initializeAdditionalNativeLibraries Whether to initialize additional native libraries like jansi and file-events.
+     * Initializes all the services needed for the Gradle daemon.
      */
-    public static synchronized void initialize(File userHomeDir, boolean initializeAdditionalNativeLibraries) {
-        try {
-            if (!initialized) {
-                NativeServices.userHomeDir = userHomeDir;
-                useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
-                if (useNativeIntegrations) {
-                    File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
-                    try {
-                        net.rubygrapefruit.platform.Native.init(nativeBaseDir);
-                    } catch (NativeIntegrationUnavailableException ex) {
-                        LOGGER.debug("Native-platform is not available.", ex);
-                        useNativeIntegrations = false;
-                    } catch (NativeException ex) {
-                        if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
-                            LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                            useNativeIntegrations = false;
-                        } else if (ex.getMessage().equals("Could not extract native JNI library.")
-                                && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
-                            //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
-                            LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                            useNativeIntegrations = false;
-                        } else {
-                            throw ex;
-                        }
-                    }
-                    if (initializeAdditionalNativeLibraries) {
-                        if (useNativeIntegrations) {
-                            useFileSystemWatching = true;
-                            try {
-                                FileEvents.init(nativeBaseDir);
-                            } catch (NativeIntegrationUnavailableException ex) {
-                                LOGGER.debug("Native file system watching is not available for this operating system.", ex);
-                                useFileSystemWatching = false;
-                            }
-                        }
-                        JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-                    }
-                    LOGGER.info("Initialized native services in: {}", nativeBaseDir);
-                }
+    public static void initializeOnDaemon(File userHomeDir) {
+        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class));
+    }
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * Initializes all the services needed for the CLI or the Tooling API.
+     */
+    public static void initializeOnClient(File userHomeDir) {
+        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI));
+    }
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * Initializes all the services needed for the CLI or the Tooling API.
+     */
+    public static void initializeOnWorker(File userHomeDir) {
+        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class));
+    }
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
+     */
+    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures) {
+        if (!initialized) {
+            try {
+                initializeNativeIntegrations(userHomeDir);
                 initialized = true;
+                initializeFeatures(requestedFeatures);
+            } catch (RuntimeException e) {
+                throw new ServiceCreationException("Could not initialize native services.", e);
             }
-        } catch (RuntimeException e) {
-            throw new ServiceCreationException("Could not initialize native services.", e);
         }
     }
 
-    public static File getNativeServicesDir(File userHomeDir) {
+    private void initializeNativeIntegrations(File userHomeDir) {
+        this.userHomeDir = userHomeDir;
+        useNativeIntegrations = isNativeIntegrationsEnabled();
+        nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
+        if (useNativeIntegrations) {
+            try {
+                net.rubygrapefruit.platform.Native.init(nativeBaseDir);
+            } catch (NativeIntegrationUnavailableException ex) {
+                LOGGER.debug("Native-platform is not available.", ex);
+                useNativeIntegrations = false;
+            } catch (NativeException ex) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativeIntegrations = false;
+                } else if (ex.getMessage().equals("Could not extract native JNI library.")
+                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
+                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativeIntegrations = false;
+                } else {
+                    throw ex;
+                }
+            }
+            LOGGER.info("Initialized native services in: {}", nativeBaseDir);
+        }
+    }
+
+    private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
+        if (isNativeIntegrationsEnabled()) {
+            for (NativeFeatures requestedFeature : requestedFeatures) {
+                if (initializedFeatures.add(requestedFeature)) {
+                    if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
+                        enabledFeatures.add(requestedFeature);
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean isNativeIntegrationsEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+    }
+
+    private boolean isFeatureEnabled(NativeFeatures feature) {
+        return enabledFeatures.contains(feature);
+    }
+
+    private static File getNativeServicesDir(File userHomeDir) {
         String overrideProperty = getNativeDirOverride();
         if (overrideProperty == null) {
             return new File(userHomeDir, "native");
@@ -155,7 +222,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     public static synchronized NativeServices getInstance() {
-        if (!initialized) {
+        if (!INSTANCE.initialized) {
             // If this occurs while running gradle or running integration tests, it is indicative of a problem.
             // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
             throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
@@ -335,7 +402,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
             @Override
             public boolean useFileSystemWatching() {
-                return useFileSystemWatching;
+                return isFeatureEnabled(NativeFeatures.FILE_SYSTEM_WATCHING);
             }
         };
     }
@@ -361,7 +428,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
             builder.append(SystemProperties.getInstance().getLineSeparator());
             builder.append("caused by: ");
-            builder.append(current.toString());
+            builder.append(current);
         }
         return builder.toString();
     }

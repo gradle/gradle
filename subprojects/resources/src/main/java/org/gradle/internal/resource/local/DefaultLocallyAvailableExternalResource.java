@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceReadResult;
@@ -100,17 +99,6 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
-        return localFile.withContent(readAction);
-    }
-
-    @Override
-    @Nullable
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
-        return localFile.withContentIfPresent(readAction);
-    }
-
-    @Override
     public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException {
         return localFile.withContent(readAction);
     }
@@ -118,6 +106,17 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
     @Override
     @Nullable
     public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
+        return localFile.withContentIfPresent(readAction);
+    }
+
+    @Override
+    public <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
+        return localFile.withContent(readAction);
+    }
+
+    @Override
+    @Nullable
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
         return localFile.withContentIfPresent(readAction);
     }
 }

@@ -33,7 +33,7 @@ public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier
 
     @Inject
     public LinuxInstallationSupplier(ProviderFactory factory) {
-        this(factory, OperatingSystem.current(), "/usr/lib/jvm", "/usr/java");
+        this(factory, OperatingSystem.current(), "/usr/lib/jvm", "/usr/lib64/jvm", "/usr/java");
     }
 
     private LinuxInstallationSupplier(ProviderFactory factory, OperatingSystem os, String... roots) {

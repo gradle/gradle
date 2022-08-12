@@ -24,8 +24,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ExponentialBackoff;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.io.IOQuery;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceReadResult;
+import org.gradle.internal.resource.ExternalResourceRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,9 +48,9 @@ public class PublicKeyDownloadService implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(PublicKeyDownloadService.class);
 
     private final List<URI> keyServers;
-    private final ExternalResourceAccessor client;
+    private final ExternalResourceRepository client;
 
-    public PublicKeyDownloadService(List<URI> keyServers, ExternalResourceAccessor client) {
+    public PublicKeyDownloadService(List<URI> keyServers, ExternalResourceRepository client) {
         this.keyServers = keyServers;
         this.client = client;
     }
@@ -76,14 +78,16 @@ public class PublicKeyDownloadService implements PublicKeyService {
                 URI baseUri = serversLeft.poll();
                 if (baseUri == null) {
                     // no more servers left despite retries
-                    return false;
+                    return IOQuery.Result.successful(false);
                 }
                 try {
-                    URI query = toQuery(baseUri, fingerprint);
-                    ExternalResourceReadResponse response = client.openResource(query, false);
+                    ExternalResourceName query = toQuery(baseUri, fingerprint);
+                    ExternalResourceReadResult<IOQuery.Result<Boolean>> response = client.resource(query).withContentIfPresent(inputStream -> {
+                        extractKeyRing(inputStream, builder, onKeyring);
+                        return IOQuery.Result.successful(true);
+                    });
                     if (response != null) {
-                        extractKeyRing(response, builder, onKeyring);
-                        return true;
+                        return response.getResult();
                     } else {
                         logKeyDownloadAttempt(fingerprint, baseUri);
                         // null means the resource is missing from this repo
@@ -94,7 +98,7 @@ public class PublicKeyDownloadService implements PublicKeyService {
                     serversLeft.add(baseUri);
                 }
                 // retry
-                return null;
+                return IOQuery.Result.notSuccessful(false);
             });
         } catch (InterruptedException | IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -127,10 +131,8 @@ public class PublicKeyDownloadService implements PublicKeyService {
         }
     }
 
-    private void extractKeyRing(ExternalResourceReadResponse response, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) throws IOException {
-
-        try (InputStream stream = response.openStream();
-             InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
+    private void extractKeyRing(InputStream stream, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) throws IOException {
+        try (InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
             PGPObjectFactory objectFactory = new PGPObjectFactory(
                 decoderStream, new BcKeyFingerprintCalculator());
             PGPPublicKeyRing keyring = (PGPPublicKeyRing) objectFactory.nextObject();
@@ -143,14 +145,14 @@ public class PublicKeyDownloadService implements PublicKeyService {
         LOGGER.debug("Cannot download public key " + fingerprint + " from " + baseUri.getHost());
     }
 
-    private URI toQuery(URI baseUri, String fingerprint) throws URISyntaxException {
+    private ExternalResourceName toQuery(URI baseUri, String fingerprint) throws URISyntaxException {
         String scheme = baseUri.getScheme();
         int port = baseUri.getPort();
         if ("hkp".equals(scheme)) {
             scheme = "http";
             port = 11371;
         }
-        return new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + fingerprint, null);
+        return new ExternalResourceName(new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + fingerprint, null));
     }
 
     @Override

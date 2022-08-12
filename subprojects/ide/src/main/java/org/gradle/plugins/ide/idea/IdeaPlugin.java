@@ -38,7 +38,9 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -59,6 +61,7 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
+import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -137,6 +140,7 @@ public class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project);
         configureForWarPlugin(project);
         configureForScalaPlugin();
+        configureForTestSuitesPlugin(project);
         linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
@@ -347,6 +351,15 @@ public class IdeaPlugin extends IdePlugin {
         });
     }
 
+    private void configureForTestSuitesPlugin(final Project project) {
+        project.getPlugins().withType(JvmTestSuitePlugin.class, new Action<JvmTestSuitePlugin>() {
+            @Override
+            public void execute(JvmTestSuitePlugin testSuitePlugin) {
+                configureIdeaModuleForTestSuites(project);
+            }
+        });
+    }
+
     private void configureIdeaModuleForJava(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
@@ -369,42 +382,33 @@ public class IdeaPlugin extends IdePlugin {
 
         // Convention
         ConventionMapping convention = ((IConventionAware) ideaModel.getModule()).getConventionMapping();
+        Set<File> sourceDirs = Sets.newLinkedHashSet();
         convention.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("main").getAllJava().getSrcDirs();
+                sourceDirs.addAll(sourceSets.getByName("main").getAllJava().getSrcDirs());
+                return sourceDirs;
             }
         });
-        convention.map("testSourceDirs", new Callable<Set<File>>() {
+        Set<File> resourceDirs = Sets.newLinkedHashSet();
+        convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("test").getAllJava().getSrcDirs();
+                resourceDirs.addAll(sourceSets.getByName("main").getResources().getSrcDirs());
+                return resourceDirs;
             }
         });
-        convention.map("resourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() throws Exception {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("main").getResources().getSrcDirs();
-            }
-        });
-        convention.map("testResourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() throws Exception {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("test").getResources().getSrcDirs();
-            }
-        });
+
+        Map<String, FileCollection> singleEntryLibraries = new LinkedHashMap<String, FileCollection>(2);
         convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
             @Override
             public Map<String, FileCollection> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                LinkedHashMap<String, FileCollection> map = new LinkedHashMap<String, FileCollection>(2);
-                map.put("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
-                map.put("TEST", sourceSets.getByName("test").getOutput().getDirs());
-                return map;
+                singleEntryLibraries.putIfAbsent("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
+                singleEntryLibraries.putIfAbsent("TEST", sourceSets.getByName("test").getOutput().getDirs());
+                return singleEntryLibraries;
             }
 
         });
@@ -448,6 +452,15 @@ public class IdeaPlugin extends IdePlugin {
         test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
         ideaModel.getModule().setScopes(scopes);
+    }
+
+    private void configureIdeaModuleForTestSuites(final Project project) {
+        final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        final IdeaModule ideaModule = ideaModelFor(project).getModule();
+        testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
+            ideaModule.getTestSources().from(suite.getSources().getAllJava().getSourceDirectories());
+            ideaModule.getTestResources().from(suite.getSources().getResources().getSourceDirectories());
+        });
     }
 
     private void configureIdeaModuleForWar(final Project project) {

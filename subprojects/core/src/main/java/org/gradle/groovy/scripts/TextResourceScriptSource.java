@@ -16,7 +16,6 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
 
@@ -26,6 +25,7 @@ import static java.lang.Character.isJavaIdentifierPart;
 import static java.lang.Character.isJavaIdentifierStart;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
 import static org.apache.commons.lang.StringUtils.substringBeforeLast;
+import static org.gradle.internal.hash.Hashing.hashString;
 
 /**
  * A {@link ScriptSource} which loads the script from a URI.
@@ -89,7 +89,7 @@ public class TextResourceScriptSource implements ScriptSource {
             return classNameFromPath(path);
         }
 
-        return "script_" + HashUtil.createCompactMD5(resource.getText());
+        return "script_" + hashString(resource.getText()).toCompactString();
     }
 
     private String classNameFromPath(String path) {
@@ -101,12 +101,12 @@ public class TextResourceScriptSource implements ScriptSource {
             className.append(
                 isJavaIdentifierPart(ch) ? ch : '_');
         }
-        if (!isJavaIdentifierStart(className.charAt(0))) {
+        if (className.length() > 0 && !isJavaIdentifierStart(className.charAt(0))) {
             className.insert(0, '_');
         }
         className.setLength(Math.min(className.length(), 30));
         className.append('_');
-        className.append(HashUtil.createCompactMD5(path));
+        className.append(hashString(path).toCompactString());
 
         return className.toString();
     }

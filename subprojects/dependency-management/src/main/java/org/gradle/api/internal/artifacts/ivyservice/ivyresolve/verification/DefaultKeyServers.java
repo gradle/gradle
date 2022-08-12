@@ -25,9 +25,9 @@ import java.util.List;
 public abstract class DefaultKeyServers {
     private final static List<URI> DEFAULT_KEYSERVERS = ImmutableList.of(
         uri("hkp://ha.pool.sks-keyservers.net"),
-        uri("https://keys.fedoraproject.org"),
         uri("https://keyserver.ubuntu.com"),
-        uri("https://keys.openpgp.org")
+        uri("https://keys.openpgp.org"),
+        uri("https://pgp.mit.edu")
     );
 
     private static URI uri(String uri) {

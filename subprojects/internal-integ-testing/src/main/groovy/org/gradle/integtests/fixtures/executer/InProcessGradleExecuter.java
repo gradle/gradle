@@ -54,7 +54,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -113,6 +112,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
+import static org.gradle.internal.hash.Hashing.hashString;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -267,7 +267,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             .map(File::toURI)
             .map(Object::toString)
             .collect(Collectors.joining(" "));
-        File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + HashUtil.createCompactMD5(cpString) + ".jar");
+        File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + hashString(cpString).toCompactString() + ".jar");
         if (!cpJar.isFile()) {
             // Make sure the parent exists or the jar creation might fail
             cpJar.getParentFile().mkdirs();
@@ -720,6 +720,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         public ExecutionFailure assertHasFileName(String filename) {
             outputFailure.assertHasFileName(filename);
             assertThat(this.fileNames, hasItem(equalTo(filename)));
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertHasResolutions(String... resolutions) {
+            outputFailure.assertHasResolutions(resolutions);
             return this;
         }
 

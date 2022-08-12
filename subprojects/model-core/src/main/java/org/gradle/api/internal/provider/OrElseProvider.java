@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 
 class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     private final ProviderInternal<T> left;
@@ -31,6 +27,11 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         this.right = right;
     }
 
+    @Override
+    public String toString() {
+        return String.format("or(%s, %s)", left, right);
+    }
+
     @Nullable
     @Override
     public Class<T> getType() {
@@ -39,10 +40,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ValueProducer getProducer() {
-        ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
-        return leftValue.isMissing()
-            ? right.getProducer()
-            : new OrElseValueProducer();
+        return new OrElseValueProducer(left, right, right.getProducer());
     }
 
     @Override
@@ -50,15 +48,27 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         return left.calculatePresence(consumer) || right.calculatePresence(consumer);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
-        if (!leftValue.isMissing()) {
-            // favour left execution time value if present for better configuration cache integration
-            // of idioms like `property.convention(provider.orElse(somethingElse))`
+        if (leftValue.isFixedValue()) {
             return leftValue;
         }
-        return super.calculateExecutionTimeValue();
+        ExecutionTimeValue<? extends T> rightValue = right.calculateExecutionTimeValue();
+        if (leftValue.isMissing()) {
+            return rightValue;
+        }
+        if (rightValue.isMissing()) {
+            // simplify
+            return leftValue;
+        }
+        return ExecutionTimeValue.changingValue(
+            new OrElseProvider(
+                leftValue.getChangingValue(),
+                rightValue.toProvider()
+            )
+        );
     }
 
     @Override
@@ -72,45 +82,5 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
             return rightValue;
         }
         return leftValue.addPathsFrom(rightValue);
-    }
-
-    private class OrElseValueProducer implements ValueProducer {
-
-        final ValueProducer leftProducer = left.getProducer();
-        final ValueProducer rightProducer = right.getProducer();
-
-        @Override
-        public boolean isKnown() {
-            return leftProducer.isKnown()
-                || rightProducer.isKnown();
-        }
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return leftProducer.isProducesDifferentValueOverTime()
-                || rightProducer.isProducesDifferentValueOverTime();
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            ArrayList<Task> leftTasks = producerTasksOf(leftProducer);
-            ArrayList<Task> rightTasks = producerTasksOf(rightProducer);
-            if (leftTasks.isEmpty() && rightTasks.isEmpty()) {
-                return;
-            }
-            // TODO: configuration cache: this condition needs to be evaluated at execution time
-            //  when `leftProducer.isProducesDifferentValueOverTime()`
-            ArrayList<Task> producerTasks = left.isPresent()
-                ? leftTasks
-                : rightTasks;
-            producerTasks.forEach(visitor::execute);
-        }
-
-        private ArrayList<Task> producerTasksOf(ValueProducer producer) {
-            ArrayList<Task> tasks = new ArrayList<>();
-            producer.visitProducerTasks(tasks::add);
-            return tasks;
-        }
-
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -29,8 +30,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-import java.io.File;
 import javax.annotation.Nullable;
+import java.io.File;
 
 public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     FileCollection pchObjects;
@@ -50,8 +51,9 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         this.pchObjects = pchObjects;
     }
 
-    @InputFiles
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.ABSOLUTE)
+    @InputFiles
     public FileCollection getPchObjects() {
         return pchObjects;
     }

@@ -23,11 +23,10 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.GUtil
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -595,54 +594,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         expect:
         // build should still fail
         fails mainCompileTask
-    }
-
-    @Ignore("Test demonstrates missing functionality in incremental build with C++")
-    def "recompiles binary when header file with relative path changes"() {
-        when:
-        buildFile << """
-plugins {
-    id 'cpp'
-}
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-"""
-
-        file("src/main/cpp/main.cpp") << """
-            #include "../not_included/hello.h"
-
-            int main () {
-              sayHello();
-              return 0;
-            }
-"""
-
-        def headerFile = file("src/main/not_included/hello.h") << """
-            void sayHello();
-"""
-
-        file("src/main/cpp/hello.cpp") << """
-            #include <iostream>
-
-            void sayHello() {
-                std::cout << "HELLO" << std::endl;
-            }
-"""
-        then:
-        succeeds "mainExecutable"
-        executable("build/exe/main/main").exec().out == "HELLO\n"
-
-        when:
-        headerFile.text = """
-            NOT A VALID HEADER FILE
-"""
-        then:
-        fails "mainExecutable"
-        and:
-        executedAndNotSkipped "compileMainExecutableMainCpp"
     }
 
     def buildingCorCppWithGcc() {

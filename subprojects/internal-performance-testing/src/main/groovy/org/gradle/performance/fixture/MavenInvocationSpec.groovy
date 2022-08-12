@@ -31,7 +31,7 @@ class MavenInvocationSpec implements InvocationSpec {
     final File mavenHome
     final File workingDirectory
     final List<String> tasksToRun
-    final List<String> jvmOpts
+    final List<String> jvmArguments
     final List<String> mavenOpts
     final List<String> args
 
@@ -41,7 +41,7 @@ class MavenInvocationSpec implements InvocationSpec {
         this.mavenHome = installation.home
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
-        this.jvmOpts = jvmOpts
+        this.jvmArguments = jvmOpts
         this.mavenOpts = mavenOpts
         this.args = args
     }
@@ -61,7 +61,7 @@ class MavenInvocationSpec implements InvocationSpec {
         builder.mavenHome(mavenHome)
         builder.workingDirectory(workingDirectory)
         builder.tasksToRun.addAll(this.tasksToRun)
-        builder.jvmOpts(this.jvmOpts)
+        builder.jvmOpts(this.jvmArguments)
         builder.mavenOpts(this.mavenOpts)
         builder.args(this.args)
         builder

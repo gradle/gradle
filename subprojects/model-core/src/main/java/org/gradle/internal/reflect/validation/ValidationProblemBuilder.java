@@ -67,5 +67,5 @@ public interface ValidationProblemBuilder<T extends ValidationProblemBuilder<T>>
      * or, for example, when a problem happens because of ordering issues
      * and that it can be reported on multiple types.
      */
-    PropertyProblemBuilder typeIsIrrelevantInErrorMessage();
+    T typeIsIrrelevantInErrorMessage();
 }

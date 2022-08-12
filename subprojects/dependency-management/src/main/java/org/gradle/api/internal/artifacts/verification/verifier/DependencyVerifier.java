@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
@@ -45,13 +45,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DependencyVerifier {
-    private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
-    private final DependencyVerificationConfiguration config;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config) {
-        this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
+public class DependencyVerifier {
+    private final Map<String, ComponentVerificationMetadata> verificationMetadata;
+    private final DependencyVerificationConfiguration config;
+    private final List<String> topLevelComments;
+
+    DependencyVerifier(Map<ModuleComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
+        this.verificationMetadata = verificationMetadata.entrySet().stream()
+            .collect(toImmutableMap(entry -> toStringKey(entry.getKey()), Map.Entry::getValue));
         this.config = config;
+        this.topLevelComments = topLevelComments;
     }
 
     public void verify(ChecksumService checksumService,
@@ -94,17 +99,24 @@ public class DependencyVerifier {
 
     private void doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature, ArtifactVerificationResultBuilder builder) {
         PublicKeyService publicKeyService = signatureVerificationService.getPublicKeyService();
-        ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
+        ComponentVerificationMetadata componentVerification = verificationMetadata.get(toStringKey(foundArtifact.getComponentIdentifier()));
         if (componentVerification != null) {
             String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
             for (ArtifactVerificationMetadata verification : verifications) {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
-                    if (signature == null && config.isVerifySignatures()) {
-                        builder.failWith(new MissingSignature(file));
-                    }
-                    if (signature != null) {
+                    if (signature == null) {
+                        // There is no signature file or verify-signature=false
+                        if (config.isVerifySignatures()) {
+                            builder.failWith(new MissingSignature(file));
+                        }
+                        if (verification.getChecksums().isEmpty()) {
+                            builder.failWith(new MissingChecksums(file));
+                            return;
+                        }
+                    } else {
+                        // There is a signature file and verify-signature=true
                         DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
                         verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()), result);
                         if (result.hasOnlyIgnoredKeys()) {
@@ -134,11 +146,17 @@ public class DependencyVerifier {
             if (result.hasError()) {
                 builder.failWith(result.asError(publicKeyService));
                 return;
-            } else if (!result.hasOnlyIgnoredKeys()) {
+            } else if (result.hasOnlyIgnoredKeys()) {
+                builder.failWith(new OnlyIgnoredKeys(file));
+            } else {
                 return;
             }
         }
         builder.failWith(new MissingChecksums(file));
+    }
+
+    private String toStringKey(ModuleComponentIdentifier moduleComponentIdentifier) {
+        return moduleComponentIdentifier.getGroup() + ":" + moduleComponentIdentifier.getModule() + ":" + moduleComponentIdentifier.getVersion();
     }
 
     private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<String> artifactSpecificKeys) {
@@ -224,6 +242,10 @@ public class DependencyVerifier {
 
     public DependencyVerificationConfiguration getConfiguration() {
         return config;
+    }
+
+    public List<String> getTopLevelComments() {
+        return topLevelComments;
     }
 
     public List<String> getSuggestedWriteFlags() {

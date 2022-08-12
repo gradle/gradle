@@ -256,7 +256,7 @@ Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubsti
 
 [WARNING]
 ====
-In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants__ of the substituted module with an equivalent variant in the included build.]
+In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
 ====
 
 [[sec:substitution_with_classifier]]
@@ -264,7 +264,7 @@ In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule th
 
 While external modules are in general addressed via their group/artifact/version coordinates, it is common that such modules are published with additional artifacts that you may want to use in place of the main artifact.
 This is typically the case for _classified_ artifacts, but you may also need to select an artifact with a different file type or extension.
-Gradle discourages use of classifiers in dependencies and prefers to model such artifacts as <<variant_model.adoc#understanding-variant-selection,variants additional variants of a module>>.
+Gradle discourages use of classifiers in dependencies and prefers to model such artifacts as <<variant_model.adoc#understanding-variant-selection,additional variants of a module>>.
 There are lots of advantages of using variants instead of classified artifacts, including, but not only, a different set of dependencies for those artifacts.
 
 However, in order to help bridging the two models, Gradle provides means to change or remove a classifier in a substitution rule.

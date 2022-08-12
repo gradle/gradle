@@ -18,9 +18,10 @@ package org.gradle.nativeplatform.internal;
 
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
+
+import static org.gradle.internal.hash.Hashing.hashString;
 
 public class CompilerOutputFileNamingScheme {
     private String objectFileNameSuffix;
@@ -49,6 +50,6 @@ public class CompilerOutputFileNamingScheme {
     }
 
     protected String generateUniqueNameFor(File sourceFile) {
-        return HashUtil.createCompactMD5(fileResolver.resolveAsRelativePath(sourceFile));
+        return hashString(fileResolver.resolveAsRelativePath(sourceFile)).toCompactString();
     }
 }

@@ -17,10 +17,12 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.client.methods.CloseableHttpResponse
+import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
 class HttpResourceAccessorTest extends Specification {
-    URI uri = new URI("http://somewhere")
+    def uri = new URI("http://somewhere")
+    def name = new ExternalResourceName(uri)
 
     def "should call close() on CloseableHttpResource when getMetaData is called"() {
         def response = Mock(CloseableHttpResponse)
@@ -29,7 +31,7 @@ class HttpResourceAccessorTest extends Specification {
         }
 
         when:
-        new HttpResourceAccessor(http).getMetaData(uri, false)
+        new HttpResourceAccessor(http).getMetaData(name, false)
 
         then:
         1 * response.close()

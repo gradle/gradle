@@ -19,10 +19,12 @@ package org.gradle.language.objectivec.tasks;
 import org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles Objective C header source files into object files.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class ObjectiveCPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {

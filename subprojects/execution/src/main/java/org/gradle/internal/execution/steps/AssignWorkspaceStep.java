@@ -39,8 +39,8 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
         WorkspaceProvider workspaceProvider = work.getWorkspaceProvider();
         return workspaceProvider.withWorkspace(context.getIdentity().getUniqueId(), (workspace, history) -> delegate.execute(work, new WorkspaceContext() {
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override
