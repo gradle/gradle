@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -38,7 +39,9 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     def userHomeDirProvider = Stub(GradleUserHomeDirProvider) {
         getGradleUserHomeDirectory() >> userHomeDir
     }
-    def cacheScopeMapping = new DefaultCacheScopeMapping(userHomeDir, null, GradleVersion.current())
+    def globalScopedCache = Mock(GlobalScopedCache) {
+        getRootDir() >> userHomeDir.createDir("caches")
+    }
     def usedGradleVersions = Stub(UsedGradleVersions) {
         getUsedGradleVersions() >> ([] as SortedSet)
     }
@@ -47,7 +50,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     @Subject def cleanupService = new GradleUserHomeCleanupService(
         TestFiles.deleter(),
         userHomeDirProvider,
-        cacheScopeMapping,
+        globalScopedCache,
         usedGradleVersions,
         progressLoggerFactory
     )

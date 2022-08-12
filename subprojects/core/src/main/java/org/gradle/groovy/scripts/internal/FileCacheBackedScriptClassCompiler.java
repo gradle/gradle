@@ -20,8 +20,8 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -31,7 +31,6 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
@@ -61,13 +60,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final CacheRepository cacheRepository;
+    private final GlobalScopedCache cacheRepository;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
 
-    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                              CachedClasspathTransformer classpathTransformer) {
+    public FileCacheBackedScriptClassCompiler(
+        GlobalScopedCache cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
+        ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CachedClasspathTransformer classpathTransformer) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
@@ -99,7 +99,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         hasher.putString(dslId);
         hasher.putHash(sourceHashCode);
         hasher.putHash(classLoaderHash);
-        String key = HashUtil.compactStringFor(hasher.hash().toByteArray());
+        String key = hasher.hash().toCompactString();
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
         // 1. First, we look for a cache script which (path, hash) matches. This cache is invalidated when the compile classpath of the script changes
@@ -338,7 +338,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             if (RuleVisitor.SOURCE_DESC_TOKEN.equals(name)) {
                 return scriptSource.getDisplayName();
             }
-            return name.replaceAll(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
+            return name.replace(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
         }
 
         private Object remap(Object o) {

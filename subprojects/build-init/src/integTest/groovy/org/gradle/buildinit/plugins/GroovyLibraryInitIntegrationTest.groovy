@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import spock.lang.Unroll
 
 class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -27,7 +26,6 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
@@ -49,7 +47,6 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "supports the Spock test framework with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -71,7 +68,6 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -93,7 +89,30 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/groovy").assertHasDescendants("my/lib/Library.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """

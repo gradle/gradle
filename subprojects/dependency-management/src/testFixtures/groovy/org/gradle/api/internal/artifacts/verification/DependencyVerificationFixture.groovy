@@ -224,6 +224,10 @@ class DependencyVerificationFixture {
     static class Builder {
         private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
 
+        void disableKeyServers() {
+            builder.useKeyServers = false
+        }
+
         void noMetadataVerification() {
             builder.verifyMetadata = false
         }

@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -39,8 +39,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
@@ -55,7 +55,7 @@ class DefaultMetadataProviderTest extends Specification {
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new DefaultMetadataProvider(resolveState)
     def cachePolicy = new DefaultCachePolicy()
-    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
+    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(GlobalScopedCache), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
     def setup() {
         resolveState.getCachePolicy() >> cachePolicy

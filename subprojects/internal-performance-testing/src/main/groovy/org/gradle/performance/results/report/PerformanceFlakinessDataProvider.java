@@ -17,7 +17,7 @@
 package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.PerformanceExperiment;
-import org.gradle.performance.results.ScenarioBuildResultData;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 
 import java.math.BigDecimal;
 
@@ -32,7 +32,7 @@ public interface PerformanceFlakinessDataProvider {
      * in the flakiness detection builds divided by the total number of runs of the scenario.
      *
      * <pre>
-     *  SELECT TESTID, TESTPROJECT, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.97, 1, 0), DECIMAL)) AS FAILURE_RATE,
+     *  SELECT TESTID, TESTPROJECT, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE &gt; 0.97, 1, 0), DECIMAL)) AS FAILURE_RATE,
      *  FROM TESTEXECUTION
      *  WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release')
      *  GROUP BY TESTID
@@ -49,7 +49,7 @@ public interface PerformanceFlakinessDataProvider {
      * <pre>
      *  SELECT TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD
      *  FROM TESTEXECUTION
-     *  WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND DIFFCONFIDENCE > 0.99
+     *  WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND DIFFCONFIDENCE &gt; 0.99
      *  GROUP BY TESTID
      * </pre>
      *
@@ -57,7 +57,7 @@ public interface PerformanceFlakinessDataProvider {
      */
     BigDecimal getFailureThreshold(PerformanceExperiment experiment);
 
-    ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario);
+    ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution);
 
     enum ScenarioRegressionResult {
         STABLE_REGRESSION(true),
@@ -89,7 +89,7 @@ public interface PerformanceFlakinessDataProvider {
         }
 
         @Override
-        public ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario) {
+        public ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution) {
             return ScenarioRegressionResult.STABLE_REGRESSION;
         }
     }

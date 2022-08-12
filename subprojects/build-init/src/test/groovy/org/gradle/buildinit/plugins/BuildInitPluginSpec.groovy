@@ -16,12 +16,16 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class BuildInitPluginSpec extends AbstractProjectBuilderSpec {
+    def setup() {
+        project.gradle.settings = Stub(SettingsInternal)
+    }
 
     def "applies plugin"() {
         when:
@@ -35,10 +39,8 @@ class BuildInitPluginSpec extends AbstractProjectBuilderSpec {
 
     def "no wrapper task configured if build file already exists"() {
         setup:
-        File projectDir = temporaryFolder.createDir("gradle", "projectDir");
-        def buildFile = new File(projectDir, "build.gradle") << '// an empty build'
-        buildFile << '// an empty build'
-        project = TestUtil.createRootProject(projectDir)
+        project.file("build.gradle") << '// an empty file'
+
         when:
         project.pluginManager.apply(BuildInitPlugin)
 

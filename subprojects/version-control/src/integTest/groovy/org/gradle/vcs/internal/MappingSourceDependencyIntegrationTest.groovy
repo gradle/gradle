@@ -52,7 +52,7 @@ class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyInt
         failure.assertHasFileName("Settings file '$settingsFile.path'")
         failure.assertHasLineNumber(5)
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
-        failure.assertHasCause("Could not find method foo()")
+        failure.assertHasCause("No signature of method: org.gradle.vcs.internal.DefaultVcsMapping.foo() is applicable for argument types: () values: []")
     }
 
     def 'emits sensible error when bad module in vcsMappings block'() {

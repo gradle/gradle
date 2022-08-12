@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
@@ -40,7 +43,7 @@ public class IgnoringResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         return resourceFilter.shouldBeIgnored(snapshotContext.getRelativePathSegments()) ? null : delegate.hash(snapshotContext);
     }
 

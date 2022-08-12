@@ -20,10 +20,8 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
@@ -67,7 +65,6 @@ task thing(type: SomeTask) {
         skipped(":thing")
     }
 
-    @Unroll
     def "can define task with abstract Property<#type> getter"() {
         given:
         buildFile << """
@@ -725,7 +722,6 @@ project.extensions.create("some", SomeExtension)
         executedAndNotSkipped(":producer", ":consumer")
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/16775")
     def "orElse does not cause error when map-ing a task property"() {
         buildFile """
@@ -739,7 +735,7 @@ project.extensions.create("some", SomeExtension)
                     outputFile.write("some text")
                 }
             }
-            
+
             abstract class MyExt {
                 abstract DirectoryProperty getArtifactDir()
             }
@@ -747,7 +743,7 @@ project.extensions.create("some", SomeExtension)
             abstract class Consumer extends DefaultTask {
                 @InputFiles
                 abstract ListProperty<String> getFileNames()
-                
+
                 @TaskAction
                 def action() {
                     println("files: " + fileNames.get())
@@ -757,12 +753,12 @@ project.extensions.create("some", SomeExtension)
             def producer = tasks.register("producer", Producer) {
                 output = layout.buildDirectory.dir("producer")
             }
-            
-            def myext = extensions.create("myext", MyExt)
-            myext.artifactDir = producer.flatMap { it.output }
-            
+
+            def myExt = extensions.create("myExt", MyExt)
+            myExt.artifactDir = producer.flatMap { it.output }
+
             tasks.register("consumer", Consumer) {
-               fileNames = myext.artifactDir.map {
+               fileNames = myExt.artifactDir.map {
                   it.asFileTree.collect { it.absolutePath }
                }.orElse([ "else" ])
             }
@@ -770,8 +766,44 @@ project.extensions.create("some", SomeExtension)
 
         when:
         run 'consumer'
+
         then:
         executedAndNotSkipped(":producer", ":consumer")
+    }
+
+    def "can use a mapped value provider"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract ListProperty<String> getStrings()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    def outputFile = output.get().asFile
+                    outputFile.write(strings.get().join(","))
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                strings.add(providers.gradleProperty("my").map { it + "-prop"})
+                output = layout.buildDirectory.file("myTask.txt")
+            }
+        """
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        executedAndNotSkipped(":myTask")
+        file("build/myTask.txt").text == "value1-prop"
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        skipped(":myTask")
+        file("build/myTask.txt").text == "value1-prop"
     }
 
     def "can depend on the output file collection containing an optional output file"() {
@@ -811,5 +843,49 @@ project.extensions.create("some", SomeExtension)
         run "consumer"
         then:
         executedAndNotSkipped(":producer", ":consumer")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13623")
+    def "setter for #fieldModifier property with different type doesn't cause drop of task dependency"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                private $fieldModifier DirectoryProperty foo
+
+                @Inject
+                Producer(ObjectFactory objectFactory) {
+                    foo = objectFactory.directoryProperty()
+                }
+
+                @OutputDirectory
+                DirectoryProperty getFoo() { return foo }
+
+                void setFoo(File foo) { throw RuntimeException("") }
+
+                @TaskAction
+                void produce() { print("Producer ran") }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputDirectory
+                abstract DirectoryProperty getFoo()
+
+                @TaskAction
+                void consume() { print("Consumer ran") }
+            }
+
+            def producer = tasks.register('producer', Producer) {
+                foo.set(project.layout.buildDir.dir('fooDir'))
+            }
+
+            tasks.register('consumer', Consumer) {
+                foo = producer.flatMap { it.foo }
+            }
+        """
+        expect:
+        succeeds("consumer")
+        executedAndNotSkipped(":producer", ":consumer")
+
+        where:
+        fieldModifier << ["", "final"]
     }
 }

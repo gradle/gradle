@@ -52,6 +52,7 @@ public class DependencyNotationParser {
                                                             NotationParser<Object, Capability> capabilityNotationParser) {
         return NotationParserBuilder
             .toType(Dependency.class)
+            .noImplicitConverters()
             .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner))
             .fromType(MinimalExternalModuleDependency.class, new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory, capabilityNotationParser))
             .converter(new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class))

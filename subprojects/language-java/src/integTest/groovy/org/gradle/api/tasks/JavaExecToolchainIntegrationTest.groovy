@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks
 
-import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
-class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java exec task #jdk"() {
         buildFile << """
@@ -66,13 +63,49 @@ class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
+    }
+
+    def "can set java launcher via #type toolchain on manually created java exec task to #jdk with #plugin"() {
+        buildFile << """
+            plugins {
+                id '${plugin}'
+            }
+
+            tasks.register("run", JavaExec) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+                setJvmArgs(['-version'])
+                mainClass = 'None'
+            }
+        """
+
+        when:
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
+            .withArgument("--info")
+            .withTasks("run")
+            .run()
+
+        then:
+        outputContains("Command: ${jdk.javaHome.absolutePath}")
+        noExceptionThrown()
+
+        where:
+        type           | jdk                             | plugin
+
+        'differentJdk' | AvailableJavaHomes.differentJdk | 'java-base'
+        'current'      | Jvm.current()                   | 'java-base'
+
+        'differentJdk' | AvailableJavaHomes.differentJdk | 'jvm-toolchains'
+        'current'      | Jvm.current()                   | 'jvm-toolchains'
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "JavaExec task is configured using default toolchain"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        def someJdk = AvailableJavaHomes.differentJdk
         buildFile << """
             plugins {
                 id 'java'

@@ -31,6 +31,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def setup() {
         toolingApi.withConnector { connector -> connector.useDistribution(distroZip) }
+        settingsFile.touch()
     }
 
     def "tooling api reports an error when requesting a model using a gradle version that does not implement the tooling api"() {

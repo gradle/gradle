@@ -19,9 +19,9 @@ package org.gradle.internal.resource.transport.sftp;
 import com.jcraft.jsch.ChannelSftp;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -36,8 +36,8 @@ public class SftpResourceLister implements ExternalResourceLister {
     }
 
     @Override
-    public List<String> list(URI directory) {
-        LockableSftpClient client = sftpClientFactory.createSftpClient(directory, credentials);
+    public List<String> list(ExternalResourceName directory) {
+        LockableSftpClient client = sftpClientFactory.createSftpClient(directory.getUri(), credentials);
 
         try {
             @SuppressWarnings("unchecked")
@@ -51,7 +51,7 @@ public class SftpResourceLister implements ExternalResourceLister {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw new ResourceException(directory, String.format("Could not list children for resource '%s'.", directory), e);
+            throw new ResourceException(directory.getUri(), String.format("Could not list children for resource '%s'.", directory.getUri()), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }

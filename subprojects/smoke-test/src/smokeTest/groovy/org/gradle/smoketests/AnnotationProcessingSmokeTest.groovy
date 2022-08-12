@@ -18,11 +18,9 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.testkit.runner.GradleRunner
-import spock.lang.Unroll
 
 class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
 
-    @Unroll
     def 'project lombok works when options.fork=#fork'() {
         given:
         buildFile << """

@@ -23,6 +23,8 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.plugin.use.PluginId;
 
+import java.util.Optional;
+
 public interface PluginManagerInternal extends PluginManager {
     void apply(PluginImplementation<?> plugin);
 
@@ -31,6 +33,8 @@ public interface PluginManagerInternal extends PluginManager {
     <P extends Plugin> P addImperativePlugin(Class<P> plugin);
 
     PluginContainer getPluginContainer();
+
+    <P extends Plugin<?>> Optional<PluginId> findPluginIdForClass(Class<P> plugin);
 
     DomainObjectSet<PluginWithId> pluginsForId(String id);
 

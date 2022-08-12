@@ -24,7 +24,7 @@ package org.gradle.internal.component.model;
  *
  * <ul>
  *     <li>sources which can be reconstructed from the caches, for example, the repository source</li>
- *     <li>sources which can't be reconstructed because the cache format looses information, for example a descriptor converted to binary</li>
+ *     <li>sources which can't be reconstructed because the cache format loses information, for example a descriptor converted to binary</li>
  * </ul>
  *
  * The 2d kind, sources which must be stored into the metadata cache, have to implement the {@link PersistentModuleSource}

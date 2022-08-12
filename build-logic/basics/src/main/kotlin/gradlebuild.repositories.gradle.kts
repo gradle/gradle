@@ -16,19 +16,28 @@
 
 repositories {
     maven {
-        name = "Gradle libs"
-        url = uri("https://repo.gradle.org/gradle/libs")
+        name = "Gradle public repository"
+        url = uri("https://repo.gradle.org/gradle/public")
+        content {
+            includeGroup("net.rubygrapefruit")
+            includeModule("flot", "flot")
+            includeModule("org.gradle", "gradle-tooling-api")
+            includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
+            includeModuleByRegex("org.gradle", "docs-asciidoctor-extensions(-base)?")
+        }
+    }
+    google {
+        content {
+            includeGroup("com.android.databinding")
+            includeGroupByRegex("com\\.android\\.tools(\\.[a-z.\\-]*)?")
+        }
     }
     maven {
-        name = "kotlinx"
-        url = uri("https://kotlin.bintray.com/kotlinx/")
+        name = "CHAMP libs"
+        url = uri("https://releases.usethesource.io/maven/")
+        mavenContent {
+            includeGroup("io.usethesource")
+        }
     }
-    maven {
-        name = "kotlin-dev"
-        url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-    }
-    maven {
-        name = "kotlin-eap"
-        url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
-    }
+    mavenCentral()
 }

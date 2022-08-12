@@ -22,7 +22,7 @@ import org.gradle.internal.MutableReference
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -76,7 +76,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root directory is always matched"() {
         def root = temporaryFolder.createFile("root")
-        def unfiltered = new DirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, HashCode.fromInt(789), [])
+        def unfiltered = new DirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, TestHashCodes.hashCodeFrom(789), [])
 
         expect:
         filteredPaths(unfiltered, include("different")) == [root] as Set
@@ -84,7 +84,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root file can be filtered"() {
         def root = temporaryFolder.createFile("root")
-        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), DefaultFileMetadata.file(5, 1234, AccessType.DIRECT))
+        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(5, 1234, AccessType.DIRECT))
 
         expect:
         filteredPaths(regularFileSnapshot, include("different")) == [] as Set

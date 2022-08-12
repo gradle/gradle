@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.platforms
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -28,7 +27,46 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Resolve test fixture doesn't support configuration cache")
+    def "dependency substitution on a dependency enforced by a published platform should not cause an exception"() {
+        settingsFile << """
+            includeBuild 'jackson-core'
+        """
+        file('jackson-core/build.gradle') << """
+            plugins { id 'java-library' }
+            group = 'com.fasterxml.jackson.core'
+            version = '2.12.3-local-patch'
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                api enforcedPlatform('com.fasterxml.jackson:jackson-bom:2.12.3') // This BOM does not have module metadata (!)
+                api 'com.fasterxml.jackson.core:jackson-core'
+            }
+        """
+
+        def resolve = new ResolveTestFixture(buildFile, 'runtimeClasspath')
+        resolve.expectDefaultConfiguration('runtimeElements')
+        resolve.prepare()
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('com.fasterxml.jackson:jackson-bom:2.12.3:enforced-platform-runtime') {
+                    noArtifacts()
+                    constraint('com.fasterxml.jackson.core:jackson-core:2.12.3', 'project :jackson-core', 'com.fasterxml.jackson.core:jackson-core:2.12.3-local-patch')
+                }
+                edge('com.fasterxml.jackson.core:jackson-core', 'project :jackson-core', 'com.fasterxml.jackson.core:jackson-core:2.12.3-local-patch') {}
+            }
+        }
+    }
+
     def "dependency on unsatisfiable range shouldn't trigger null pointer exception"() {
         settingsFile << """
             include 'platform'

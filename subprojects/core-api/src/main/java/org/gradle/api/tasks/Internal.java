@@ -28,6 +28,8 @@ import java.lang.annotation.Target;
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
+ *
+ * @since 3.0
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

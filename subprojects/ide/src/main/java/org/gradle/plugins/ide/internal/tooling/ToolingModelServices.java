@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
@@ -44,19 +44,21 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             final ProjectTaskLister taskLister,
             final ProjectPublicationRegistry projectPublicationRegistry,
             final FileCollectionFactory fileCollectionFactory,
-            final ServiceRegistry services) {
+            final BuildStateRegistry buildStateRegistry,
+            final ProjectStateRegistry projectStateRegistry
+        ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
                 @Override
                 public void execute(ToolingModelBuilderRegistry registry) {
                     GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
-                    IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder, services);
+                    IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
                     registry.register(new RunEclipseTasksBuilder());
-                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, services));
+                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(new GradleBuildBuilder());
+                    registry.register(new GradleBuildBuilder(buildStateRegistry));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));

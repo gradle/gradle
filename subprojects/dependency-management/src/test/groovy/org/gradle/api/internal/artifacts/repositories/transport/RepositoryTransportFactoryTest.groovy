@@ -31,7 +31,6 @@ import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTranspo
 import org.gradle.internal.verifier.HttpRedirectVerifier
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RepositoryTransportFactoryTest extends Specification {
 
@@ -46,8 +45,8 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
-        StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter(), Mock(File))
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService, Stub(FileResourceListener))
+        StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter(), new File("dummy"))
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService, Stub(FileResourceListener))
     }
 
     RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {
@@ -115,7 +114,6 @@ class RepositoryTransportFactoryTest extends Specification {
         new GoodCredentialsAuthentication('good') | ['protocol2a', 'protocol2b']
     }
 
-    @Unroll
     def "should throw when using invalid credentials type"() {
         authentication*.credentials = credentials
 

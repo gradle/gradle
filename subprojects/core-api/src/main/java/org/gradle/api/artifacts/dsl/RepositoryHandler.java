@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -73,7 +74,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
      */
-    FlatDirectoryArtifactRepository flatDir(Closure configureClosure);
+    FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
      * Adds an configures a repository which will look for dependencies in a number of local directories.
@@ -121,7 +122,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action a configuration action
      * @return the added repository
-     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">shutdown</a> in February 2021. Use {@link #mavenCentral()} instead.
+     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">sunset</a> in February 2021. Use {@link #mavenCentral()} instead.
      */
     @Deprecated
     MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action);
@@ -141,7 +142,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @return the added resolver
      * @see #jcenter(Action)
-     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">shutdown</a> in February 2021. Use {@link #mavenCentral()} instead.
+     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">sunset</a> in February 2021. Use {@link #mavenCentral()} instead.
      */
     @Deprecated
     MavenArtifactRepository jcenter();
@@ -305,7 +306,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    MavenArtifactRepository maven(Closure closure);
+    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class) Closure closure);
 
     /**
      * Adds and configures a Maven repository.
@@ -321,7 +322,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    IvyArtifactRepository ivy(Closure closure);
+    IvyArtifactRepository ivy(@DelegatesTo(IvyArtifactRepository.class) Closure closure);
 
     /**
      * Adds and configures an Ivy repository.

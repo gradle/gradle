@@ -78,7 +78,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
             version = "1.0"
 
             jar {
-                enabled = Boolean.valueOf(project.getProperty("jarEnabled"))
+                enabled = Boolean.parseBoolean(project.getProperty("jarEnabled"))
             }
 
             publishing {
@@ -131,7 +131,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             javadocJar {
-                enabled = Boolean.valueOf(project.getProperty("javadocEnabled"))
+                enabled = Boolean.parseBoolean(project.getProperty("javadocEnabled"))
             }
 
             publishing {

@@ -51,12 +51,14 @@ import java.util.Collection;
 public interface ArtifactResolutionQuery {
     /**
      * Specifies the set of components to include in the result.
+     *
      * @param componentIds The identifiers of the components to be queried.
      */
     ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds);
 
     /**
      * Specifies the set of components to include in the result.
+     *
      * @param componentIds The identifiers of the components to be queried.
      */
     ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds);
@@ -67,7 +69,6 @@ public interface ArtifactResolutionQuery {
      * @param group Module group.
      * @param name Module name.
      * @param version Module version.
-     *
      * @since 4.5
      */
     ArtifactResolutionQuery forModule(String group, String name, String version);
@@ -80,8 +81,8 @@ public interface ArtifactResolutionQuery {
      * @param componentType The expected type of the component.
      * @param artifactTypes The artifacts to retrieve for the queried components.
      */
+    @SuppressWarnings("unchecked")
     ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
-
 
     /**
      * Defines the type of component that is expected in the result, and the artifacts to retrieve for components of this type.

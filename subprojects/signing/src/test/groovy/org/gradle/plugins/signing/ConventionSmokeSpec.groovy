@@ -17,7 +17,6 @@ package org.gradle.plugins.signing
 
 
 import org.gradle.plugins.signing.signatory.SignatoryProvider
-import spock.lang.Unroll
 
 class ConventionSmokeSpec extends SigningProjectSpec {
 
@@ -60,7 +59,6 @@ class ConventionSmokeSpec extends SigningProjectSpec {
         signing.signatureType.extension == "asc"
     }
 
-    @Unroll
     def "required has flexible input"() {
         when:
         signing.required = value

@@ -17,10 +17,10 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.Either;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -61,7 +61,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
-        CacheRepository cacheRepository,
+        GlobalScopedCache globalScopedCache,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,
@@ -76,8 +76,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.fileSystemAccess = fileSystemAccess;
         this.globalCacheLocations = globalCacheLocations;
         this.fileLockManager = fileLockManager;
-        this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
-        this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
+        this.cache = classpathTransformerCacheFactory.createCache(globalScopedCache, fileAccessTimeJournal);
+        this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
     }
 
@@ -224,11 +224,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             final Set<HashCode> seen = new HashSet<>();
             for (T input : inputs) {
                 valueOrTransformProvider.apply(input, seen).ifPresent(valueOrTransform ->
-                    valueOrTransform.fold(
-                        value -> {
-                            results.add(value);
-                            return null;
-                        },
+                    valueOrTransform.apply(
+                        value -> results.add(value),
                         transform -> {
                             final int index = results.size();
                             results.add(null);
@@ -236,7 +233,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                                 results.set(index, unchecked(transform));
                                 return null;
                             });
-                            return null;
                         }
                     )
                 );

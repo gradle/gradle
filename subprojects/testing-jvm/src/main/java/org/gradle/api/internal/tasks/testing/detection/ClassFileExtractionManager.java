@@ -47,7 +47,7 @@ public class ClassFileExtractionManager {
     }
 
     /**
-     * Add all packages found in the jar file to the package <> jar(s) index.
+     * Add all packages found in the jar file to the package &lt;&gt; jar(s) index.
      *
      * @param libraryJar Jar file to add to the index.
      */
@@ -58,18 +58,21 @@ public class ClassFileExtractionManager {
                 Set<File> jarFiles = packageJarFilesMappings.get(packageName);
                 if (jarFiles == null) {
                     jarFiles = new TreeSet<File>();
+                    packageJarFilesMappings.put(packageName, jarFiles);
                 }
                 jarFiles.add(libraryJar);
-
-                packageJarFilesMappings.put(packageName, jarFiles);
             }
         });
     }
 
     /**
-     * Retrieve the file that contains the extracted class file. <p/> This method will extract the class file if it is
+     * Retrieve the file that contains the extracted class file.
+     *
+     * <p>
+     * This method will extract the class file if it is
      * not extracted yet. Extracted class files are deleted on exit of the Gradle process. The same class is only
      * extracted once.
+     * </p>
      *
      * @param className Name of the class to extract.
      * @return File that contains the extracted class file.

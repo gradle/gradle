@@ -36,9 +36,9 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         // These are used to discard references to tasks so they can be garbage collected
         Field collectorField;
         try {
-            nodeField = groovy.util.AntBuilder.class.getDeclaredField("lastCompletedNode");
+            nodeField = groovy.ant.AntBuilder.class.getDeclaredField("lastCompletedNode");
             nodeField.setAccessible(true);
-            collectorField = groovy.util.AntBuilder.class.getDeclaredField("collectorTarget");
+            collectorField = groovy.ant.AntBuilder.class.getDeclaredField("collectorTarget");
             collectorField.setAccessible(true);
             Target target = (Target) collectorField.get(this);
             Field childrenField = Target.class.getDeclaredField("children");
@@ -68,7 +68,17 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
     }
 
     @Override
+    public void importBuild(Object antBuildFile, String baseDirectory) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
         throw new UnsupportedOperationException();
     }
 

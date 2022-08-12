@@ -18,6 +18,7 @@ package org.gradle.external.javadoc;
 
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -116,7 +117,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions bootClasspath(File... bootClasspath);
 
-    @Nullable @Optional @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
+    @Nullable @Optional @IgnoreEmptyDirectories @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
     List<File> getExtDirs();
 
     void setExtDirs(@Nullable List<File> extDirs);

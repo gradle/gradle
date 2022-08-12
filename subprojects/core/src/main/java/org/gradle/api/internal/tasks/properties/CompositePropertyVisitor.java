@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
@@ -34,20 +35,24 @@ public class CompositePropertyVisitor implements PropertyVisitor {
         boolean optional,
         boolean skipWhenEmpty,
         DirectorySensitivity directorySensitivity,
+        LineEndingSensitivity lineEndingSensitivity,
         boolean incremental,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,
         PropertyValue value,
         InputFilePropertyType filePropertyType
     ) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitInputFileProperty(propertyName,
-                                            optional,
-                                            skipWhenEmpty,
-                                            directorySensitivity,
-                                            incremental,
-                                            fileNormalizer,
-                                            value,
-                                            filePropertyType);
+            visitor.visitInputFileProperty(
+                propertyName,
+                optional,
+                skipWhenEmpty,
+                directorySensitivity,
+                lineEndingSensitivity,
+                incremental,
+                fileNormalizer,
+                value,
+                filePropertyType
+            );
         }
     }
 

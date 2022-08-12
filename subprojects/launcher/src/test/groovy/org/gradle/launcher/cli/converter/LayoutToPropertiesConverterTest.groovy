@@ -44,7 +44,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         gradleHome.file("gradle.properties") << "foo=bar"
 
         then:
-        converter.convert(properties, layout, []).properties.foo == null
+        converter.convert(properties, layout).properties.foo == null
     }
 
     def "configures from installation home dir"() {
@@ -55,7 +55,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         gradleDistribution.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m -Dprop=value"
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m -Dprop=value'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m -Dprop=value'
     }
 
     def "configures from user home dir"() {
@@ -65,7 +65,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         gradleHome.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m -Dprop=value"
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m -Dprop=value'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m -Dprop=value'
     }
 
     def "configures from build root dir"() {
@@ -76,7 +76,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         rootDir.file("gradle.properties") << "$DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY=125"
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) == "125"
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) == "125"
     }
 
     def "configures from -D command line argument"() {
@@ -85,7 +85,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         def layout = layout(properties)
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) == "125"
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) == "125"
     }
 
     def "configures from system property of current JVM"() {
@@ -95,7 +95,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         System.setProperty(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY, "125")
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) == "125"
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) == "125"
     }
 
     def "configures from root dir in a multiproject build"() {
@@ -108,7 +108,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         rootDir.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx128m"
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx128m'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx128m'
     }
 
     def "root dir properties take precedence over gradle installation home properties"() {
@@ -120,7 +120,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         gradleDistribution.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx512m"
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m'
     }
 
     def "gradle home properties take precedence over root dir properties"() {
@@ -131,7 +131,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         rootDir.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx512m"
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx1024m'
     }
 
     def "system property of current JVM takes precedence over gradle home"() {
@@ -142,7 +142,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         System.setProperty(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY, '-Xmx2048m')
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx2048m'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx2048m'
     }
 
     def "-D command-line option takes precedence over system property of current JVM"() {
@@ -152,7 +152,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         System.setProperty(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY, '-Xmx512m')
 
         then:
-        converter.convert(properties, layout, []).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx2048m'
+        converter.convert(properties, layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx2048m'
     }
 
     def "can merge additional build JVM system properties"() {
@@ -160,7 +160,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         def properties = properties("-Dorg.gradle.parallel=true")
         def layout = layout(properties)
         gradleHome.file("gradle.properties") << "org.gradle.workers.max=12"
-        def result = converter.convert(properties, layout, [])
+        def result = converter.convert(properties, layout)
         result = result.merge(["org.gradle.workers.max": "4", "org.gradle.parallel": "false"])
 
         then:
@@ -175,7 +175,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         System.getProperties().put('foo', NULL_OBJECT)
 
         then:
-        converter.convert(properties, layout, []).properties.foo == null
+        converter.convert(properties, layout).properties.foo == null
     }
 
     InitialProperties properties(String... args) {

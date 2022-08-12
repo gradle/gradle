@@ -38,8 +38,8 @@ public class DefaultHttpSettings implements HttpSettings {
     private final SslContextFactory sslContextFactory;
     private final HostnameVerifier hostnameVerifier;
     private final HttpRedirectVerifier redirectVerifier;
-    private final boolean followRedirects;
-
+    private final int maxRedirects;
+    private final RedirectMethodHandlingStrategy redirectMethodHandlingStrategy;
 
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
@@ -49,17 +49,26 @@ public class DefaultHttpSettings implements HttpSettings {
         return new Builder();
     }
 
-    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, HttpRedirectVerifier redirectVerifier, boolean followRedirects) {
-        this.followRedirects = followRedirects;
+    private DefaultHttpSettings(
+        Collection<Authentication> authenticationSettings,
+        SslContextFactory sslContextFactory,
+        HostnameVerifier hostnameVerifier,
+        HttpRedirectVerifier redirectVerifier,
+        RedirectMethodHandlingStrategy redirectMethodHandlingStrategy, int maxRedirects
+    ) {
+        Preconditions.checkArgument(maxRedirects >= 0, "maxRedirects must be positive");
         Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
         Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
         Preconditions.checkNotNull(hostnameVerifier, "hostnameVerifier");
         Preconditions.checkNotNull(redirectVerifier, "redirectVerifier");
+        Preconditions.checkNotNull(redirectMethodHandlingStrategy, "redirectMethodHandlingStrategy");
 
+        this.maxRedirects = maxRedirects;
         this.authenticationSettings = authenticationSettings;
         this.sslContextFactory = sslContextFactory;
         this.hostnameVerifier = hostnameVerifier;
         this.redirectVerifier = redirectVerifier;
+        this.redirectMethodHandlingStrategy = redirectMethodHandlingStrategy;
     }
 
     @Override
@@ -87,13 +96,18 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     @Override
-    public boolean isFollowRedirects() {
-        return followRedirects;
+    public int getMaxRedirects() {
+        return maxRedirects;
     }
 
     @Override
     public HttpRedirectVerifier getRedirectVerifier() {
         return redirectVerifier;
+    }
+
+    @Override
+    public RedirectMethodHandlingStrategy getRedirectMethodHandlingStrategy() {
+        return redirectMethodHandlingStrategy;
     }
 
     @Override
@@ -116,7 +130,8 @@ public class DefaultHttpSettings implements HttpSettings {
         private SslContextFactory sslContextFactory;
         private HostnameVerifier hostnameVerifier;
         private HttpRedirectVerifier redirectVerifier;
-        private boolean followRedirects = true;
+        private int maxRedirects = 10;
+        private RedirectMethodHandlingStrategy redirectMethodHandlingStrategy = RedirectMethodHandlingStrategy.ALWAYS_FOLLOW_AND_PRESERVE;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
             this.authenticationSettings = authenticationSettings;
@@ -140,13 +155,19 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
-        public Builder followRedirects(boolean followRedirects) {
-            this.followRedirects = followRedirects;
+        public Builder maxRedirects(int maxRedirects) {
+            Preconditions.checkArgument(maxRedirects >= 0);
+            this.maxRedirects = maxRedirects;
+            return this;
+        }
+
+        public Builder withRedirectMethodHandlingStrategy(RedirectMethodHandlingStrategy redirectMethodHandlingStrategy) {
+            this.redirectMethodHandlingStrategy = redirectMethodHandlingStrategy;
             return this;
         }
 
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, followRedirects);
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, redirectMethodHandlingStrategy, maxRedirects);
         }
     }
 

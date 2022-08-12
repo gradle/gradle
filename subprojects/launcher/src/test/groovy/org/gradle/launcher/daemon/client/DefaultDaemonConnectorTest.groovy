@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.internal.specs.ExplainingSpec
-import org.gradle.api.internal.specs.ExplainingSpecs
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.ConnectCompletion
@@ -151,16 +150,16 @@ class DefaultDaemonConnectorTest extends Specification {
         numAllDaemons == 2
     }
 
-    def "connect() starts a new daemon when no daemon matches spec"() {
+    def "connect() returns null when no daemon matches spec"() {
         given:
         startIdleDaemon()
 
         expect:
         def connection = connector.connect({it.pid > 0} as DummyExplainingSpec)
-        connection && connection.connection.num > 0
+        connection == null
 
         and:
-        numAllDaemons == 2
+        numAllDaemons == 1
     }
 
     def "connect() will not use existing connection if it fails the compatibility spec"() {
@@ -169,18 +168,10 @@ class DefaultDaemonConnectorTest extends Specification {
 
         expect:
         def connection = connector.connect({it.pid != 0} as DummyExplainingSpec)
-        connection && connection.connection.num != 0
+        connection == null
 
         and:
-        numAllDaemons == 2
-    }
-
-    def "connect() will fail early if newly started daemon fails the compatibility spec"() {
-        when:
-        connector.connect(ExplainingSpecs.satisfyNone())
-
-        then:
-        thrown(DaemonConnectionException)
+        numAllDaemons == 1
     }
 
     def "suspect address is removed from the registry on connect failure"() {

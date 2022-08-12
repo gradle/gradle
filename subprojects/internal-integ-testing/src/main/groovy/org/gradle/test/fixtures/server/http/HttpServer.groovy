@@ -22,7 +22,7 @@ import groovy.transform.CompileStatic
 import groovy.xml.MarkupBuilder
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.ForbidOne
 import org.gradle.test.fixtures.server.OneRequestServerExpectation
@@ -65,8 +65,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     enum EtagStrategy {
         NONE({ null }),
-        RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
-        NEXUS_ENCODED_SHA1({ "{SHA1{" + HashUtil.sha1(it as byte[]).asHexString() + "}}" })
+        RAW_SHA1_HEX({ Hashing.sha1().hashBytes(it as byte[]).toString() }),
+        NEXUS_ENCODED_SHA1({ "{SHA1{" + Hashing.sha1().hashBytes(it as byte[]) + "}}" })
 
         private final Closure generator
 
@@ -377,6 +377,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Allows one GET request for the given URL. Returns an empty 200 OK response.
+     */
+    HttpResourceInteraction expectGetEmptyOk(String path) {
+        return expect(path, false, ['GET'], ok())
+    }
+
+    /**
      * Forbids one GET request for the given URL. Reads the request content from the given file.
      */
     HttpResourceInteraction forbidGet(String path, File srcFile) {
@@ -427,45 +434,63 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     /**
      * Expects one GET request for the given URL, responding with a redirect.
      */
-    void expectGetRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
-        expectRedirected('GET', path, location, passwordCredentials)
+    void expectGetRedirected(String path, String location, PasswordCredentials passwordCredentials = null, RedirectType redirectType = RedirectType.FOUND_302) {
+        expectRedirected('GET', path, location, passwordCredentials, redirectType)
     }
 
     /**
      * Expects one GET request for the given URL, responding with a redirect.
      */
-    void forbidGetRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
-        forbidRedirected('GET', path, location)
+    void forbidGetRedirected(String path, String location, PasswordCredentials passwordCredentials = null, RedirectType redirectType = RedirectType.FOUND_302) {
+        forbidRedirected('GET', path, location, redirectType)
     }
 
     /**
      * Expects one HEAD request for the given URL, responding with a redirect.
      */
-    void expectHeadRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
-        expectRedirected('HEAD', path, location, passwordCredentials)
+    void expectHeadRedirected(String path, String location, PasswordCredentials passwordCredentials = null, RedirectType redirectType = RedirectType.FOUND_302) {
+        expectRedirected('HEAD', path, location, passwordCredentials, redirectType)
     }
 
     /**
      * Expects one PUT request for the given URL, responding with a redirect.
      */
-    void expectPutRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
-        expectRedirected('PUT', path, location, passwordCredentials)
+    void expectPutRedirected(String path, String location, PasswordCredentials passwordCredentials = null, RedirectType redirectType = RedirectType.FOUND_302) {
+        expectRedirected('PUT', path, location, passwordCredentials, redirectType)
     }
 
     @CompileStatic
-    private void expectRedirected(String method, String path, String location, PasswordCredentials credentials) {
-        expect(path, false, [method], redirectTo(location), credentials)
+    private void expectRedirected(String method, String path, String location, PasswordCredentials credentials, RedirectType redirectType) {
+        expect(path, false, [method], redirectTo(location, redirectType), credentials)
     }
 
     @CompileStatic
-    private void forbidRedirected(String method, String path, String location) {
-        forbid(path, false, [method], redirectTo(location))
+    private void forbidRedirected(String method, String path, String location, RedirectType redirectType) {
+        forbid(path, false, [method], redirectTo(location, redirectType))
     }
 
-    private HttpServer.Action redirectTo(location) {
+    enum RedirectType {
+        PERMANENT_301(301),
+        FOUND_302(302),
+        SEE_OTHER(303),
+        TEMP_307(307),
+        PERMANENT(308)
+
+        @Override
+        String toString() {
+            return super.toString()
+        }
+        int code;
+
+        RedirectType(int code) {
+            this.code = code
+        }
+    }
+    private HttpServer.Action redirectTo(location, RedirectType redirectType = RedirectType.FOUND_302) {
         new ActionSupport("redirect to $location") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendRedirect(location)
+                response.setHeader("location", location)
+                response.setStatus(redirectType.code)
             }
         }
     }
@@ -521,7 +546,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
         response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
-            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())
+            response.addHeader("X-Checksum-Sha1", Hashing.sha1().hashBytes(content).toZeroPaddedString(Hashing.sha1().hexDigits))
         }
 
         addEtag(response, content, etags)

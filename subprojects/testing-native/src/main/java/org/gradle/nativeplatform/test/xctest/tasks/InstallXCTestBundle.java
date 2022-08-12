@@ -39,6 +39,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -52,6 +53,7 @@ import java.util.concurrent.Callable;
  *
  * @since 4.4
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty bundleBinaryFile;

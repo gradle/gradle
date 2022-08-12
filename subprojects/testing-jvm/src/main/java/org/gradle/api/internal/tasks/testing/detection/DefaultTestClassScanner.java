@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -72,7 +73,7 @@ public class DefaultTestClassScanner implements Runnable {
         });
     }
 
-    private abstract class ClassFileVisitor extends EmptyFileVisitor {
+    private abstract class ClassFileVisitor extends EmptyFileVisitor implements ReproducibleFileVisitor {
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
             if (isClass(fileDetails) && !isAnonymousClass(fileDetails)) {
@@ -89,6 +90,11 @@ public class DefaultTestClassScanner implements Runnable {
         private boolean isClass(FileVisitDetails fileVisitDetails) {
             String fileName = fileVisitDetails.getFile().getName();
             return fileName.endsWith(".class") && !"module-info.class".equals(fileName);
+        }
+
+        @Override
+        public boolean isReproducibleFileOrder() {
+            return true;
         }
     }
 

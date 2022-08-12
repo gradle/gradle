@@ -23,11 +23,9 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
 
-    @Unroll
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
         CompileOptions options = new CompileOptions(Mock(ObjectFactory))
         options.fork = fork

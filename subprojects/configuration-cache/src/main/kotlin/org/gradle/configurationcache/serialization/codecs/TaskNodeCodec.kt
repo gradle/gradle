@@ -57,6 +57,7 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -86,12 +87,14 @@ class TaskNodeCodec(
             writeClass(taskType)
             writeString(projectPath)
             writeString(taskName)
+            writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
 
             withDebugFrame({ taskType.name }) {
                 withTaskOf(taskType, task, userTypesCodec) {
                     writeUpToDateSpec(task)
                     writeCollection(task.outputs.cacheIfSpecs)
                     writeCollection(task.outputs.doNotCacheIfSpecs)
+                    writeReasonNotToTrackState(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
                         writeRegisteredPropertiesOf(
@@ -112,13 +115,15 @@ class TaskNodeCodec(
         val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
+        val incompatibleReason = readNullableString()
 
-        val task = createTask(projectPath, taskName, taskType)
+        val task = createTask(projectPath, taskName, taskType, incompatibleReason)
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
             readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
             readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
+            readReasonNotToTrackState(task)
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
             }
@@ -146,6 +151,19 @@ class TaskNodeCodec(
     suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
         if (readBoolean()) {
             task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
+        }
+    }
+
+    private
+    fun WriteContext.writeReasonNotToTrackState(task: TaskInternal) {
+        writeNullableString(task.reasonNotToTrackState.orElse(null))
+    }
+
+    private
+    fun ReadContext.readReasonNotToTrackState(task: TaskInternal) {
+        val reasonNotToTrackState = readNullableString()
+        if (reasonNotToTrackState != null) {
+            task.doNotTrackState(reasonNotToTrackState)
         }
     }
 
@@ -200,15 +218,19 @@ class TaskNodeCodec(
 
 
 private
-inline fun <T> T.withTaskOf(
+suspend fun <T> T.withTaskOf(
     taskType: Class<*>,
-    task: Task,
+    task: TaskInternal,
     codec: Codec<Any?>,
-    action: () -> Unit
+    action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
-            action()
+            if (task.isCompatibleWithConfigurationCache) {
+                action()
+            } else {
+                forIncompatibleType(action)
+            }
         }
     }
 }
@@ -231,7 +253,8 @@ sealed class RegisteredProperty {
         val skipWhenEmpty: Boolean,
         val incremental: Boolean,
         val fileNormalizer: Class<out FileNormalizer>?,
-        val directorySensitivity: DirectorySensitivity
+        val directorySensitivity: DirectorySensitivity,
+        val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
 
     data class OutputFile(
@@ -273,6 +296,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(skipWhenEmpty)
                     writeClass(fileNormalizer!!)
                     writeEnum(directorySensitivity)
+                    writeEnum(lineEndingSensitivity)
                 }
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
@@ -280,6 +304,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
+                else -> throw IllegalStateException()
             }
         }
     }
@@ -335,6 +360,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             optional: Boolean,
             skipWhenEmpty: Boolean,
             directorySensitivity: DirectorySensitivity,
+            lineEndingSensitivity: LineEndingSensitivity,
             incremental: Boolean,
             fileNormalizer: Class<out FileNormalizer>?,
             propertyValue: PropertyValue,
@@ -349,7 +375,8 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     skipWhenEmpty,
                     incremental,
                     fileNormalizer,
-                    directorySensitivity
+                    directorySensitivity,
+                    lineEndingSensitivity
                 )
             )
         }
@@ -392,6 +419,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val skipWhenEmpty = readBoolean()
                     val normalizer = readClass()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
+                    val lineEndingNormalization = readEnum<LineEndingSensitivity>()
                     task.inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
@@ -404,6 +432,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         skipWhenEmpty(skipWhenEmpty)
                         withNormalizer(normalizer.uncheckedCast())
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
+                        normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
                     }
                 }
                 else -> {
@@ -443,5 +472,10 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
-    getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal
+fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, incompatibleReason: String?): TaskInternal {
+    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal
+    if (incompatibleReason != null) {
+        task.notCompatibleWithConfigurationCache(incompatibleReason)
+    }
+    return task
+}

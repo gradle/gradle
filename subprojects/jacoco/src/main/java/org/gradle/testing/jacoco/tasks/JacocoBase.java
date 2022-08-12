@@ -18,10 +18,12 @@ package org.gradle.testing.jacoco.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Base class for Jacoco tasks.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoBase extends DefaultTask {
 
     private FileCollection jacocoClasspath;

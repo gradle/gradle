@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven
 
+import groovy.xml.XmlSlurper
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

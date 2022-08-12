@@ -16,18 +16,21 @@
 
 package org.gradle.launcher;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
-import org.gradle.launcher.bootstrap.ProcessBootstrap;
+import org.gradle.internal.jvm.GradleVersionNumberLoader;
+
+import java.lang.reflect.Method;
 
 public class GradleMain {
-    public static void main(String[] args) {
-        try {
-            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8);
-        } catch (UnsupportedJavaRuntimeException ex) {
-            System.err.println(ex.getMessage());
+    public static void main(String[] args) throws Exception {
+        String javaVersion = System.getProperty("java.specification.version");
+        if (javaVersion.equals("1.6") || javaVersion.equals("1.7")) {
+            String gradleVersion = GradleVersionNumberLoader.loadGradleVersionNumber();
+            System.err.printf("%s %s requires Java 1.8 or later to run. You are currently using Java %s.%n", "Gradle", gradleVersion, javaVersion);
             System.exit(1);
         }
-        new ProcessBootstrap().run("org.gradle.launcher.Main", args);
+
+        Class<?> mainClass = Class.forName("org.gradle.launcher.bootstrap.ProcessBootstrap");
+        Method mainMethod = mainClass.getMethod("run", String.class, String[].class);
+        mainMethod.invoke(null, "org.gradle.launcher.Main", args);
     }
 }

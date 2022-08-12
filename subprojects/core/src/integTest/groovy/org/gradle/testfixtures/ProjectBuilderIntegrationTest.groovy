@@ -16,9 +16,11 @@
 
 package org.gradle.testfixtures
 
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -29,11 +31,21 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties
     @Rule HttpServer server
 
+    Project project
+
     def setup() {
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
         file("settings.gradle") << """
             rootProject.name = 'test'
         """
+    }
+
+    def cleanup() {
+        // unstopped instances of ProjectBuilderImpl projects leak build operations
+        // causing other integration tests to sporadically fail.
+        if (project != null) {
+            ProjectBuilderImpl.stop(project)
+        }
     }
 
     def "can resolve remote dependencies"() {
@@ -42,7 +54,7 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         server.start()
 
         when:
-        def project = ProjectBuilder.builder().build()
+        project = ProjectBuilder.builder().build()
         project.with {
             repositories {
                 maven { url repo.uri }
@@ -68,7 +80,7 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         File customGradleUserHome = temporaryFolder.createDir('gradle-user-home')
 
         when:
-        def project = ProjectBuilder.builder().withGradleUserHomeDir(customGradleUserHome).build()
+        project = ProjectBuilder.builder().withGradleUserHomeDir(customGradleUserHome).build()
 
         then:
         customGradleUserHome.exists()
@@ -79,16 +91,24 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         def threads = 5
         def startSignal = new CountDownLatch(1)
         def doneSignal = new CountDownLatch(threads)
+
+        when:
         threads.times {
             new Thread({
                 startSignal.await()
-                ProjectBuilder.builder().build()
-                doneSignal.countDown()
+                def spawnedProject = ProjectBuilder.builder().build()
+                try {
+                    doneSignal.countDown()
+                } finally {
+                    ProjectBuilderImpl.stop(spawnedProject)
+                }
+
             }).start()
         }
-        expect:
         startSignal.countDown()
-        ProjectBuilder.builder().build() != null
+        project = ProjectBuilder.builder().build()
+
+        then:
         doneSignal.await(60, TimeUnit.SECONDS)
     }
 }

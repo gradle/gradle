@@ -35,7 +35,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 
-public class UrlExternalResource implements ExternalResourceConnector {
+public class UrlExternalResource extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
     public static ExternalResource open(URL url) throws IOException {
         URI uri;
         try {
@@ -49,38 +49,38 @@ public class UrlExternalResource implements ExternalResourceConnector {
 
     @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException {
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
         try {
-            URL url = location.toURL();
+            URL url = location.getUri().toURL();
             URLConnection connection = url.openConnection();
             try {
-                return new DefaultExternalResourceMetaData(location, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+                return new DefaultExternalResourceMetaData(location.getUri(), connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
             } finally {
                 connection.getInputStream().close();
             }
         } catch (FileNotFoundException e) {
             return null;
         } catch (Exception e) {
-            throw ResourceExceptions.getFailed(location, e);
+            throw ResourceExceptions.getFailed(location.getUri(), e);
         }
     }
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(final URI location, boolean revalidate) throws ResourceException {
+    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate) throws ResourceException {
         try {
-            URL url = location.toURL();
+            URL url = location.getUri().toURL();
             final URLConnection connection = url.openConnection();
             final InputStream inputStream = connection.getInputStream();
             return new ExternalResourceReadResponse() {
                 @Override
-                public InputStream openStream() throws IOException {
+                public InputStream openStream() {
                     return inputStream;
                 }
 
                 @Override
                 public ExternalResourceMetaData getMetaData() {
-                    return new DefaultExternalResourceMetaData(location, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+                    return new DefaultExternalResourceMetaData(location.getUri(), connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
                 }
 
                 @Override
@@ -91,18 +91,18 @@ public class UrlExternalResource implements ExternalResourceConnector {
         } catch (FileNotFoundException e) {
             return null;
         } catch (Exception e) {
-            throw ResourceExceptions.getFailed(location, e);
+            throw ResourceExceptions.getFailed(location.getUri(), e);
         }
     }
 
     @Nullable
     @Override
-    public List<String> list(URI parent) throws ResourceException {
+    public List<String> list(ExternalResourceName parent) throws ResourceException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void upload(ReadableContent resource, URI destination) throws IOException {
+    public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
         throw new UnsupportedOperationException();
     }
 }

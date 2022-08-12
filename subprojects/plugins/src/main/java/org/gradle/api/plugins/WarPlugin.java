@@ -28,11 +28,13 @@ import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -85,25 +87,32 @@ public class WarPlugin implements Plugin<Project> {
             warTask.setGroup(BasePlugin.BUILD_GROUP);
         });
 
-        PublishArtifact warArtifact = new LazyPublishArtifact(war);
+        PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(project.getConfigurations());
         configureComponent(project, warArtifact);
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        Configuration provideCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
+        Configuration providedCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        Configuration provideRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
-            extendsFrom(provideCompileConfiguration).
+        deprecateForConsumption(providedCompileConfiguration);
+
+        Configuration providedRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
+            extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
-        configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        deprecateForConsumption(providedRuntimeConfiguration);
+
+        configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(providedCompileConfiguration);
+        configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
+    }
+
+    private static void deprecateForConsumption(Configuration configuration) {
+        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation
+            .willBecomeAnErrorInGradle8()
+            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {

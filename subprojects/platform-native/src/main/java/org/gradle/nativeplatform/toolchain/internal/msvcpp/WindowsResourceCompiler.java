@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 
 import java.util.List;
+import java.util.Optional;
 
 class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCompileSpec> {
 
@@ -44,12 +45,12 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
     private static class RcCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {
         @Override
         protected void addToolSpecificArgs(WindowsResourceCompileSpec spec, List<String> args) {
-            args.add(getLanguageOption());
+            getLanguageOption().ifPresent(args::add);
             args.add("/nologo");
         }
         @Override
-        protected String getLanguageOption() {
-            return "/r";
+        protected Optional<String> getLanguageOption() {
+            return Optional.of("/r");
         }
     }
 }

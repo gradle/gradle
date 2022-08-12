@@ -23,13 +23,13 @@ import groovy.util.Node;
 public interface Dependency {
 
     /**
-     * The scope of this library. If <tt>null</tt>, the scope attribute is not added.
+     * The scope of this library. If <code>null</code>, the scope attribute is not added.
      * @since 4.5
      */
     String getScope();
 
     /**
-     * The scope of this library. If <tt>null</tt>, the scope attribute is not added.
+     * The scope of this library. If <code>null</code>, the scope attribute is not added.
      * @since 4.5
      */
     void setScope(String scope);

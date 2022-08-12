@@ -17,13 +17,13 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Function;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -31,6 +31,8 @@ import java.io.File;
  * Implementations are not yet entirely thread-safe, but should be.
  */
 public interface BuildState {
+    DisplayName getDisplayName();
+
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
      */
@@ -47,13 +49,9 @@ public interface BuildState {
     boolean isImplicitBuild();
 
     /**
-     * The configured settings object for this build, if available.
-     *
-     * This should not be exposed directly, but should be behind some method that coordinates access from multiple threads.
-     *
-     * @throws IllegalStateException When the settings are not available for this build.
+     * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
      */
-    SettingsInternal getLoadedSettings() throws IllegalStateException;
+    boolean isImportableBuild();
 
     /**
      * Note: may change value over the lifetime of this build, as this is often a function of the name of the root project in the build and this is not known until the settings have been configured. A temporary value will be returned when child builds need to create projects for some reason.
@@ -63,12 +61,23 @@ public interface BuildState {
     /**
      * Calculates the identity path for a project in this build.
      */
-    Path getIdentityPathForProject(Path projectPath) throws IllegalStateException;
+    Path calculateIdentityPathForProject(Path projectPath) throws IllegalStateException;
 
     /**
-     * Calculates the identifier for a project in this build.
+     * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
+     * This may include running the settings script for the build, or loading this information from cache.
      */
-    ProjectComponentIdentifier getIdentifierForProject(Path projectPath) throws IllegalStateException;
+    void ensureProjectsLoaded();
+
+    /**
+     * Ensures all projects in this build are configured, if not already done.
+     */
+    void ensureProjectsConfigured();
+
+    /**
+     * Returns the projects of this build. Fails if the projects are not yet loaded for this build.
+     */
+    BuildProjectRegistry getProjects();
 
     /**
      * Asserts that the given build can be included by this build.
@@ -80,10 +89,18 @@ public interface BuildState {
      */
     File getBuildRootDir();
 
-    GradleInternal getBuild();
-
     /**
      * Returns the current state of the mutable model of this build.
      */
     GradleInternal getMutableModel();
+
+    /**
+     * Returns the work graph for this build.
+     */
+    BuildWorkGraphController getWorkGraph();
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 }

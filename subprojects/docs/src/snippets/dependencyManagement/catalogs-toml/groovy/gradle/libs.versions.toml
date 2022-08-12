@@ -10,3 +10,6 @@ commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version 
 
 [bundles]
 groovy = ["groovy-core", "groovy-json", "groovy-nio"]
+
+[plugins]
+jmh = { id = "me.champeau.jmh", version = "0.6.5" }

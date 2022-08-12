@@ -24,7 +24,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -87,7 +86,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skipped ":compileJava"
     }
 
-    @Unroll
     def "cached tasks are executed with #rerunMethod"() {
         expect:
         cacheDir.listFiles() as List == []
@@ -120,6 +118,24 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         where:
         rerunMethod << ["--rerun-tasks", "-PupToDateWhenFalse=true"]
+    }
+
+    def "cached tasks are re-executed with per-task rerun"() {
+        expect:
+        cacheDir.listFiles() as List == []
+
+        when:
+        withBuildCache().run "compileJava", "jar"
+        def originalCacheContents = listCacheFiles()
+        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
+        then:
+        noneSkipped()
+
+        when:
+        withBuildCache().run "compileJava", "jar", "--rerun"
+        then:
+        skipped ":compileJava"
+        executedAndNotSkipped ":jar"
     }
 
     def "task results don't get stored when pushing is disabled"() {

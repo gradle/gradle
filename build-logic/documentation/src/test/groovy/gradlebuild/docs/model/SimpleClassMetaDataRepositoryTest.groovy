@@ -15,15 +15,14 @@
  */
 package gradlebuild.docs.model
 
-
+import java.nio.file.Files
 import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class SimpleClassMetaDataRepositoryTest extends Specification {
-    @Rule TemporaryFolder tmpDir
+    @TempDir File tmpDir
     final SimpleClassMetaDataRepository<TestDomainObject> repository = new SimpleClassMetaDataRepository<TestDomainObject>()
 
     def canAddMetaData() {
@@ -100,7 +99,7 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
 
     def canPersistMetaData() {
         TestDomainObject value = new TestDomainObject('a')
-        File file = tmpDir.newFile()
+        File file = Files.createTempFile(tmpDir.toPath(), null, null).toFile()
         repository.put('class', value)
 
         when:

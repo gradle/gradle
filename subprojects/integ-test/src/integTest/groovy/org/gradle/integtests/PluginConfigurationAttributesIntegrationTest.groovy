@@ -43,16 +43,25 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 id("java-library")
             }
             dependencies {
-                implementation(project(path: ":producer", configuration: "$plugin"))
+                implementation(project(path: ":producer", configuration: "$configuration"))
             }
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("The $plugin configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
+        executer.expectDocumentedDeprecationWarning("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
         succeeds("test")
 
         where:
-        plugin << ['codenarc', 'pmd', 'checkstyle', 'antlr']
+        plugin       | configuration
+        'codenarc'   | 'codenarc'
+        'pmd'        | 'pmd'
+        'checkstyle' | 'checkstyle'
+        'antlr'      | 'antlr'
+        'jacoco'     | 'jacocoAgent'
+        'jacoco'     | 'jacocoAnt'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
@@ -62,8 +71,8 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 id("$plugin")
             }
             configurations {
-                ${plugin}Consumable {
-                    extendsFrom($plugin)
+                ${configuration}Consumable {
+                    extendsFrom($configuration)
                     canBeConsumed = true
                     canBeResolved = false
                     attributes {
@@ -100,7 +109,16 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         succeeds("resolve")
 
         where:
-        plugin << ['codenarc', 'pmd', 'checkstyle', 'antlr']
+        plugin       | configuration
+        'codenarc'   | 'codenarc'
+        'pmd'        | 'pmd'
+        'checkstyle' | 'checkstyle'
+        'antlr'      | 'antlr'
+        'jacoco'     | 'jacocoAgent'
+        'jacoco'     | 'jacocoAnt'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
 }

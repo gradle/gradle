@@ -22,6 +22,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
+import org.gradle.work.DisableCachingByDefault
 import org.w3c.dom.Element
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
@@ -31,6 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Fetch the latest AGP versions and write a properties file.
  * Never up-to-date, non-cacheable.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class UpdateAgpVersions : DefaultTask() {
 
     @get:Internal
@@ -40,17 +42,24 @@ abstract class UpdateAgpVersions : DefaultTask() {
     abstract val minimumSupportedMinor: Property<String>
 
     @get:Internal
+    abstract val fetchNightly: Property<Boolean>
+
+    @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
     @TaskAction
     fun fetch() {
 
         val dbf = DocumentBuilderFactory.newInstance()
-        val latests = dbf.fetchLatests(minimumSupportedMinor.get())
-        val nightly = dbf.fetchNightly()
         val properties = Properties().apply {
+
+            val latests = dbf.fetchLatests(minimumSupportedMinor.get())
             setProperty("latests", latests.joinToString(","))
-            setProperty("nightly", nightly)
+
+            if (fetchNightly.get()) {
+                val nightly = dbf.fetchNightly()
+                setProperty("nightly", nightly)
+            }
         }
         properties.store(
             propertiesFile.get().asFile,

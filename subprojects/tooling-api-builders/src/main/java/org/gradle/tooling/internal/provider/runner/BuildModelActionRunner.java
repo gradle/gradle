@@ -16,25 +16,25 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildResult;
-import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.ProjectConfigurer;
-import org.gradle.internal.InternalBuildAdapter;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelAction;
+import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 public class BuildModelActionRunner implements BuildActionRunner {
+    private final PayloadSerializer payloadSerializer;
+
+    public BuildModelActionRunner(PayloadSerializer payloadSerializer) {
+        this.payloadSerializer = payloadSerializer;
+    }
+
     @Override
     public Result run(BuildAction action, final BuildTreeLifecycleController buildController) {
         if (!(action instanceof BuildModelAction)) {
@@ -42,87 +42,49 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         BuildModelAction buildModelAction = (BuildModelAction) action;
-        GradleInternal gradle = buildController.getGradle();
-        BuildResultAdapter listener = new BuildResultAdapter(gradle, buildModelAction);
 
-        Throwable buildFailure = null;
-        RuntimeException clientFailure = null;
+        ModelCreateAction createAction = new ModelCreateAction(buildModelAction);
         try {
-            gradle.addBuildListener(listener);
-            if (buildModelAction.isRunTasks()) {
-                buildController.run();
+            if (buildModelAction.isCreateModel()) {
+                Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
+                SerializedPayload serializedResult = payloadSerializer.serialize(result);
+                return Result.of(serializedResult);
             } else {
-                buildController.configure();
+                buildController.scheduleAndRunTasks();
+                return Result.of(null);
             }
         } catch (RuntimeException e) {
-            buildFailure = e;
-            clientFailure = e;
+            RuntimeException clientFailure = e;
+            if (createAction.modelLookupFailure != null) {
+                clientFailure = (RuntimeException) new InternalUnsupportedModelException().initCause(createAction.modelLookupFailure);
+            }
+            return Result.failed(e, clientFailure);
         }
-        if (listener.modelFailure != null) {
-            clientFailure = (RuntimeException) new InternalUnsupportedModelException().initCause(listener.modelFailure);
-        }
-        if (buildFailure != null) {
-            return Result.failed(buildFailure, clientFailure);
-        }
-        return Result.of(listener.result);
     }
 
-    private static class BuildResultAdapter extends InternalBuildAdapter {
-        private final GradleInternal gradle;
+    private static class ModelCreateAction implements BuildTreeModelAction<Object> {
         private final BuildModelAction buildModelAction;
-        private Object result;
-        private RuntimeException modelFailure;
+        private UnknownModelException modelLookupFailure;
 
-        private BuildResultAdapter(GradleInternal gradle, BuildModelAction buildModelAction) {
-            this.gradle = gradle;
+        public ModelCreateAction(BuildModelAction buildModelAction) {
             this.buildModelAction = buildModelAction;
         }
 
         @Override
-        public void projectsEvaluated(Gradle gradle) {
-            if (buildModelAction.isCreateModel()) {
-                forceFullConfiguration((GradleInternal) gradle, new HashSet<>());
-            }
+        public void beforeTasks(BuildTreeModelController controller) {
+            // Ignore
         }
 
         @Override
-        public void buildFinished(BuildResult result) {
-            if (result.getFailure() == null) {
-                this.result = buildModel(gradle, buildModelAction);
-            }
-        }
-
-        private Object buildModel(GradleInternal gradle, BuildModelAction buildModelAction) {
+        public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
-            ToolingModelBuilderLookup.Builder builder = getModelBuilder(modelName, gradle);
-            return builder.build(null);
-        }
-
-        private void forceFullConfiguration(GradleInternal gradle, Set<GradleInternal> alreadyConfigured) {
-            gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
-            for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-                if (includedBuild instanceof IncludedBuildState) {
-                    GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-                    if (!alreadyConfigured.contains(build)) {
-                        alreadyConfigured.add(build);
-                        forceFullConfiguration(build, alreadyConfigured);
-                    }
-                }
-            }
-        }
-
-        private ToolingModelBuilderLookup.Builder getModelBuilder(String modelName, GradleInternal gradle) {
-            ToolingModelBuilderLookup builderRegistry = getToolingModelBuilderRegistry(gradle);
+            ToolingModelScope scope = controller.locateBuilderForDefaultTarget(modelName, false);
             try {
-                return builderRegistry.locateForClientOperation(modelName, false, gradle);
+                return scope.getModel(modelName, null);
             } catch (UnknownModelException e) {
-                modelFailure = e;
+                modelLookupFailure = e;
                 throw e;
             }
-        }
-
-        private static ToolingModelBuilderLookup getToolingModelBuilderRegistry(GradleInternal gradle) {
-            return gradle.getDefaultProject().getServices().get(ToolingModelBuilderLookup.class);
         }
     }
 }

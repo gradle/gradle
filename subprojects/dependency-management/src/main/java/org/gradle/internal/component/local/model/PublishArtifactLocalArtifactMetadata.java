@@ -50,6 +50,10 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
         return result.toString();
     }
 
+    public PublishArtifact getPublishArtifact() {
+        return publishArtifact;
+    }
+
     @Override
     public String getCapitalizedDisplayName() {
         return getDisplayName();

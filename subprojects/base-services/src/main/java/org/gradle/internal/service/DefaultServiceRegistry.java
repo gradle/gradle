@@ -51,6 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <p>Subclasses can register services by:</p>
  *
+ * <ul>
+ *
  * <li>Calling {@link #add(Class, Object)} or {@link #add(Object)} to register a service instance.</li>
  *
  * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>

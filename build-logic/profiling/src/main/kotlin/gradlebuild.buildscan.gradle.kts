@@ -16,13 +16,17 @@
 
 import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
+import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
-import gradlebuild.basics.BuildEnvironment.isJenkins
+import gradlebuild.basics.BuildEnvironment.isTeamCity
 import gradlebuild.basics.BuildEnvironment.isTravis
+import gradlebuild.basics.buildBranch
+import gradlebuild.basics.environmentVariable
+import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.basics.logicalBranch
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -33,24 +37,20 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
-import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
 import java.net.InetAddress
 import java.net.URLEncoder
-import java.util.concurrent.atomic.AtomicBoolean
 
 plugins {
+    id("gradlebuild.collect-failed-tasks")
+    id("gradlebuild.cache-miss-monitor")
     id("gradlebuild.module-identity")
 }
 
 val serverUrl = "https://ge.gradle.org"
 val gitCommitName = "gitCommitId"
 val tcBuildTypeName = "tcBuildType"
-
-val cacheMissTagged = AtomicBoolean(false)
 
 // We can not use plugin {} because this is registered by a settings plugin.
 // We do 'findByType' to make this script compile in pre-compiled script compilation.
@@ -62,117 +62,22 @@ inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
 
 extractCiData()
 
-if (isCiServer) {
-    if (!isTravis && !isJenkins) {
-        extractAllReportsFromCI()
-        monitorUnexpectedCacheMisses()
-    }
-}
-
-if (project.testDistributionEnabled()) {
+if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
 }
 
-extractCheckstyleAndCodenarcData()
+if (project.predictiveTestSelectionEnabled.orNull == true) {
+    buildScan?.tag("PTS")
+}
 
 extractWatchFsData()
 
-project.the<ModuleIdentityExtension>().apply {
-    if (logicalBranch.get() != gradleBuildBranch.get()) {
-        buildScan?.tag("PRE_TESTED_COMMIT")
-    }
+if (logicalBranch.orNull != buildBranch.orNull) {
+    buildScan?.tag("PRE_TESTED_COMMIT")
 }
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
     buildScan?.tag("SYNC")
-}
-
-fun monitorUnexpectedCacheMisses() {
-    gradle.taskGraph.afterTask {
-        if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
-            buildScan?.tag("CACHE_MISS")
-        }
-    }
-}
-
-fun buildCacheEnabled() = gradle.startParameter.isBuildCacheEnabled
-
-fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
-
-fun Task.isCacheMiss() = !state.skipped && state.failure == null && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
-
-fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
-
-fun isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
-
-fun Task.isMonitoredCompileTask() = this is AbstractCompile || this is ClasspathManifest
-
-fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
-
-fun isExpectedAsciidoctorCacheMiss() =
-// Expected cache-miss for asciidoctor task:
-// 1. CompileAll is the seed build for docs:distDocs
-// 2. BuildDistributions is the seed build for other asciidoctor tasks
-// 3. buildScanPerformance test, which doesn't depend on compileAll
-// 4. buildScanPerformance test, which doesn't depend on compileAll
-    isInBuild(
-        "Check_CompileAllBuild",
-        "Check_BuildDistributions",
-        "Component_GradlePlugin_Performance_PerformanceLatestMaster",
-        "Component_GradlePlugin_Performance_PerformanceLatestReleased"
-    )
-
-fun isExpectedCompileCacheMiss() =
-// Expected cache-miss:
-// 1. CompileAll is the seed build
-// 2. Gradleception which re-builds Gradle with a new Gradle version
-// 3. buildScanPerformance test, which doesn't depend on compileAll
-// 4. buildScanPerformance test, which doesn't depend on compileAll
-    isInBuild(
-        "Check_CompileAllBuild",
-        "Component_GradlePlugin_Performance_PerformanceLatestMaster",
-        "Component_GradlePlugin_Performance_PerformanceLatestReleased",
-        "Check_Gradleception"
-    )
-
-fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let { currentBuildTypeId ->
-    buildTypeIds.any { currentBuildTypeId.endsWith(it) }
-} ?: false
-
-fun extractCheckstyleAndCodenarcData() {
-    gradle.taskGraph.afterTask {
-        if (state.failure != null) {
-            if (this is Checkstyle && reports.xml.destination.exists()) {
-                val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
-                val errors = checkstyle.getElementsByTag("file").flatMap { file ->
-                    file.getElementsByTag("error").map { error ->
-                        val filePath = project.relativePath(file.attr("name"))
-                        "$filePath:${error.attr("line")}:${error.attr("column")} \u2192 ${error.attr("message")}"
-                    }
-                }
-
-                errors.forEach { buildScan?.value("Checkstyle Issue", it) }
-            }
-
-            if (this is CodeNarc && reports.xml.destination.exists()) {
-                val codenarc = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
-                val errors = codenarc.getElementsByTag("Package").flatMap { codenarcPackage ->
-                    codenarcPackage.getElementsByTag("File").flatMap { file ->
-                        file.getElementsByTag("Violation").map { violation ->
-                            val filePath = project.relativePath(file.attr("name"))
-                            val message = violation.run {
-                                getElementsByTag("Message").first()
-                                    ?: getElementsByTag("SourceLine").first()
-                            }
-                            "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
-                        }
-                    }
-                }
-
-                errors.forEach { buildScan?.value("CodeNarc Issue", it) }
-            }
-        }
-    }
 }
 
 fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
@@ -195,22 +100,38 @@ fun Project.extractCiData() {
             }
         }
     }
+    if (isCodeQl) {
+        buildScan {
+            tag("CODEQL")
+        }
+    }
+    if (isTeamCity && !isKillLeakingProcessesStep() && !isPromotionBuild) {
+        // don't overwrite the nightly version in promotion build
+        buildScan {
+            buildScanPublished {
+                println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
+            }
+        }
+    }
 }
 
+fun Project.isKillLeakingProcessesStep() = gradle.startParameter.taskNames.contains("killExistingProcessesStartedByGradle")
+
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
-    val envValue: String? = System.getenv(envName)
+    val envValue: String? = environmentVariable(envName).orNull
     if (!envValue.isNullOrEmpty()) {
         action(envValue)
     }
 }
 
 fun Project.extractWatchFsData() {
-    gradle.serviceOf<BuildOperationListenerManager>().let { listenerManager ->
-        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, buildScan))
+    val listenerManager = gradle.serviceOf<BuildOperationListenerManager>()
+    buildScan?.background {
+        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, this))
     }
 }
 
-open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension?) : BuildOperationListener {
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
 
     override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
     }
@@ -223,36 +144,17 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
             is RunBuildBuildOperationType.Result -> buildOperationListenerManager.removeListener(this)
             is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
                 if (result.isWatchingEnabled) {
-                    buildScan?.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan.value("watchFsStateInvalidatedAtStart", result.isStateInvalidatedAtStartOfBuild.toString())
                     result.statistics?.let {
-                        buildScan?.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
-                        buildScan?.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
-                        buildScan?.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
-                        buildScan?.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
-                        buildScan?.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
+                        buildScan.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
+                        buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
+                        buildScan.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
+                        buildScan.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
+                        buildScan.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
                     }
                 }
             }
-        }
-    }
-}
-
-fun Project.extractAllReportsFromCI() {
-    val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
-    val basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
-
-    gradle.taskGraph.afterTask {
-        if (state.failure != null && this is Reporting<*>) {
-            this.reports.filter { it.name in capturedReportingTypes && it.isEnabled && it.destination.exists() }
-                .forEach { report ->
-                    val linkName = "${this::class.java.simpleName.split("_")[0]} Report ($path)" // Strip off '_Decorated' addition to class names
-                    // see: ciReporting.gradle
-                    val reportPath =
-                        if (report.destination.isDirectory) "report-${project.name}-${report.destination.name}.zip"
-                        else "report-${project.name}-${report.destination.parentFile.name}-${report.destination.name}"
-                    val reportLink = "$basePath/$reportPath"
-                    buildScan?.link(linkName, reportLink)
-                }
         }
     }
 }

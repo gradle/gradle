@@ -110,9 +110,8 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
         apiTypeProviderFor(jars).use { api ->
 
-            api.type<ContentFilterable>().functions.single { it.name == "expand" }.apply {
+            api.type<ContentFilterable>().functions.single { it.name == "expand" && it.parameters.size == 1 }.apply {
                 assertTrue(typeParameters.isEmpty())
-                assertThat(parameters.size, equalTo(1))
                 parameters.single().type.apply {
                     assertThat(sourceName, equalTo("kotlin.collections.Map"))
                     assertThat(typeArguments.size, equalTo(2))

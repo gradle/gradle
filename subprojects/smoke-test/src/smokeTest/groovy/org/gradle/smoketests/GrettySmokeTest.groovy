@@ -16,10 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -28,15 +26,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 )
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    // Jetty 9 only works with Java 8
-    @Requires(TestPrecondition.JDK8)
-    def 'run with jetty'() {
+    def 'run Jetty with Gretty #grettyConfig.version'() {
         given:
         useSample('gretty-example')
         buildFile << """
             plugins {
                 id "war"
-                id "org.gretty" version "${TestedVersions.gretty}"
+                id "org.gretty" version "${grettyConfig.version}"
             }
 
             ${jcenterRepository()}
@@ -48,19 +44,14 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
             gretty {
                 contextPath = 'quickstart'
 
-                httpPort = 0
+                httpPort = new ServerSocket(0).withCloseable { socket -> socket.getLocalPort() }
                 integrationTestTask = 'checkContainerUp'
-                servletContainer = 'jetty9'
-                logDir = '${testProjectDir.root.absolutePath}/jetty-logs'
-                logFileName = project.name
+                servletContainer = '${grettyConfig.servletContainer}'
             }
 
             task checkContainerUp {
                 doLast {
-                    def jettyLog = new File("\${gretty.logDir}/\${gretty.logFileName}.log").text
-                    def httpPortMatcher = (jettyLog =~ /.* started and listening on port (\\d+)/)
-                    def parsedHttpPort = httpPortMatcher[0][1]
-                    URL url = new URL("http://localhost:\$parsedHttpPort/quickstart")
+                    URL url = new URL("http://localhost:\${gretty.httpPort}/quickstart")
                     assert url.text.contains('hello Gradle')
                 }
             }
@@ -71,15 +62,19 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
-        expectDeprecationWarnings(result, "The JavaExecHandleBuilder.setMain(String) method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties")
+
+        where:
+        grettyConfig << grettyConfigForCurrentJavaVersion()
     }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.gretty': Versions.of(TestedVersions.gretty)
+            'org.gretty': Versions.of(grettyConfigForCurrentJavaVersion().collect { it.version } as String[])
         ]
+    }
+
+    static def grettyConfigForCurrentJavaVersion() {
+        TestedVersions.gretty.findAll { JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) }
     }
 }
