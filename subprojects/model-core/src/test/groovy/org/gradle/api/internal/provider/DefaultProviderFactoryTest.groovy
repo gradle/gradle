@@ -96,7 +96,7 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         def b = withProducer(String, task2, "Hello")
 
         when:
-        def zipped = providerFactory.zip(a, b) { i, s -> s.length() == i }
+        def zipped = providerFactory.zip(a, b) { i, s -> s.length() == i } as ProviderInternal<Boolean>
 
         then:
         assertHasProducer(zipped, task1, task2)
