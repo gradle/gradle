@@ -9,6 +9,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Class org.gradle.api.AntBuilder",
+            "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
+        },
+        {
             "type": "org.gradle.api.file.SourceDirectorySet",
             "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
             "acceptation": "Deprecated method removed",
