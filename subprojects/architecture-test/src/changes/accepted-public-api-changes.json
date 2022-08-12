@@ -35,14 +35,6 @@
         },
         {
             "type": "org.gradle.api.tasks.Upload",
-            "member": "Method org.gradle.api.tasks.Upload.getArtifacts()",
-            "acceptation": "Class to be removed, functionality deleted",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.getConfiguration()",
             "acceptation": "Class to be removed, functionality deleted",
             "changes": [
