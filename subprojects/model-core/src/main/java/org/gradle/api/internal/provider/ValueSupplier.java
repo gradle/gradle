@@ -723,10 +723,6 @@ public interface ValueSupplier {
         public String toString() {
             return String.format("fixed(%s, sideEffect=%s)", super.getFixedValue(), sideEffect);
         }
-
-        private void runSideEffect() {
-            sideEffect.execute(super.getFixedValue());
-        }
     }
 
     class ChangingExecutionTimeValue<T> extends ExecutionTimeValue<T> {
