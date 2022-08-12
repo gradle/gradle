@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 import java.util.jar.Manifest
 
@@ -37,7 +36,6 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
         executer.withRepositoryMirrors()
     }
 
-    @Unroll
     def "can build jar with #dsl dsl"() {
         given:
         TestFile javaprojectDir = sample.dir.file(dsl)

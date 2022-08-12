@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.tooling.model.idea.IdeaDependency;
 
 /**
- * This is used for compatibility with clients <2.14
+ * This is used for compatibility with clients &lt;2.14
  */
 public class IdeaModuleDependencyTargetNameMixin {
     private final IdeaDependency ideaModuleDependency;

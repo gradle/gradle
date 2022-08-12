@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+// tag::use_plugin[]
 plugins {
     `java-library`
     checkstyle
+    alias(libs.plugins.jmh)
 }
+// end::use_plugin[]
 
 // tag::simple_dependency_use[]
 dependencies {
@@ -53,3 +56,14 @@ dependencies {
     implementation(libs.bundles.groovy)
 }
 // end::use_dependency_bundle[]
+
+// tag::type_unsafe_access[]
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+println("Library aliases: ${versionCatalog.libraryAliases}")
+dependencies {
+    versionCatalog.findLibrary("groovy-json").ifPresent {
+        implementation(it)
+    }
+}
+// end::type_unsafe_access[]
+

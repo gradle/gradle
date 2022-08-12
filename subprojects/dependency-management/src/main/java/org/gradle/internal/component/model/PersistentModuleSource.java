@@ -28,7 +28,7 @@ import java.io.IOException;
 public interface PersistentModuleSource extends ModuleSource {
     /**
      * A <b>unique</b> source identifier for this module source. The
-     * id must be >=0 and represent the kind of module source.
+     * id must be &gt;=0 and represent the kind of module source.
      * For example, a module source may have different implementations,
      * but if they represent the same thing, they must return the same
      * id. The id is used during serialization to identify the kind of

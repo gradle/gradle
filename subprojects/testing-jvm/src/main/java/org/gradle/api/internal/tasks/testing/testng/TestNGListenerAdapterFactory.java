@@ -35,6 +35,11 @@ class TestNGListenerAdapterFactory {
     }
 
     public ITestListener createAdapter(ITestListener listener) {
+        Class<?> testNG7Class = tryLoadClass("org.testng.IConfigurationListener");
+        if (testNG7Class != null) {
+            return createProxy(testNG7Class, listener);
+        }
+
         Class<?> testNG6Class = tryLoadClass("org.testng.IConfigurationListener2");
         if (testNG6Class != null) {
             return createProxy(testNG6Class, listener);
@@ -45,7 +50,7 @@ class TestNGListenerAdapterFactory {
             return createProxy(testNG5Class, listener);
         }
 
-        throw new UnsupportedOperationException("Neither found interface 'org.testng.IConfigurationListener2' nor interface 'org.testng.internal.IConfigurationListener'. Which version of TestNG are you using?");
+        throw new UnsupportedOperationException("Could not locate any of these interfaces: 'org.testng.IConfigurationListener', 'org.testng.IConfigurationListener2', 'org.testng.internal.IConfigurationListener'. Which version of TestNG are you using?");
     }
 
     private Class<?> tryLoadClass(String name) {

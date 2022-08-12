@@ -19,11 +19,13 @@ import org.gradle.api.Incubating;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles Objective-C++ source files into object files.
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class ObjectiveCppCompile extends AbstractNativeSourceCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {

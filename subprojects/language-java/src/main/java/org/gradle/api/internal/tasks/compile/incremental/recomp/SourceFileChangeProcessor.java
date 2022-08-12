@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
-import java.io.File;
-import java.util.Collection;
+import java.util.Set;
 
 class SourceFileChangeProcessor {
     private final PreviousCompilation previousCompilation;
@@ -29,17 +27,14 @@ class SourceFileChangeProcessor {
         this.previousCompilation = previousCompilation;
     }
 
-    public void processChange(File inputFile, Collection<String> classNames, RecompilationSpec spec) {
+    public void processChange(Set<String> classNames, RecompilationSpec spec) {
         spec.addClassesToCompile(classNames);
-
-        for (String className : classNames) {
-            DependentsSet actualDependents = previousCompilation.findDependents(className, IntSets.EMPTY_SET);
-            if (actualDependents.isDependencyToAll()) {
-                spec.setFullRebuildCause(actualDependents.getDescription());
-                return;
-            }
-            spec.addClassesToCompile(actualDependents.getAllDependentClasses());
-            spec.addResourcesToGenerate(actualDependents.getDependentResources());
+        DependentsSet actualDependents = previousCompilation.findDependentsOfSourceChanges(classNames);
+        if (actualDependents.isDependencyToAll()) {
+            spec.setFullRebuildCause(actualDependents.getDescription());
+            return;
         }
+        spec.addClassesToCompile(actualDependents.getAllDependentClasses());
+        spec.addResourcesToGenerate(actualDependents.getDependentResources());
     }
 }

@@ -16,18 +16,16 @@
 
 package org.gradle.internal.resources
 
-import org.gradle.api.Action
-import spock.lang.Specification
 
+import spock.lang.Specification
 
 class AbstractTrackedResourceLockTest extends Specification {
     def resourceLockState = Mock(ResourceLockState)
     def coordinationService = Mock(ResourceLockCoordinationService)
-    def lockAction = Mock(Action)
-    def unlockAction = Mock(Action)
-    def lock = new TestTrackedResourceLock("test", coordinationService, lockAction, unlockAction)
+    def container = Mock(ResourceLockContainer)
+    def lock = new TestTrackedResourceLock("test", coordinationService, container)
 
-    def "tracks the lock in the current resource lock state and calls provided actions"()  {
+    def "tracks the lock in the current resource lock state and calls provided actions"() {
         given:
         _ * coordinationService.current >> resourceLockState
 
@@ -35,14 +33,14 @@ class AbstractTrackedResourceLockTest extends Specification {
         lock.tryLock()
 
         then:
-        1 * lockAction.execute(lock)
+        1 * container.lockAcquired(lock)
         1 * resourceLockState.registerLocked(lock)
 
         when:
         lock.unlock()
 
         then:
-        1 * unlockAction.execute(lock)
+        1 * container.lockReleased(lock)
     }
 
     def "throws exception when methods are called without coordination service transform"() {
@@ -58,7 +56,8 @@ class AbstractTrackedResourceLockTest extends Specification {
         when:
         lock.unlock()
 
-        then: thrown(IllegalStateException)
+        then:
+        thrown(IllegalStateException)
 
         when:
         lock.isLockedByCurrentThread()

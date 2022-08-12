@@ -19,7 +19,6 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.results.AllResultsStore;
 import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,13 +45,13 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
 
     @Override
     protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
-        executionDataProvider.getScenarioExecutionData()
+        executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
-                if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isBuildFailed)) {
+                if (scenario.isBuildFailed()) {
                     failureCollector.scenarioFailed();
-                } else if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
-                    Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getRawData().stream()
-                        .map(flakinessDataProvider::getScenarioRegressionResult)
+                } else if (scenario.isRegressed()) {
+                    Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getCurrentExecutions().stream()
+                        .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
                         .collect(Collectors.toSet());
                     if (regressionResults.contains(STABLE_REGRESSION)) {
                         failureCollector.scenarioRegressed();

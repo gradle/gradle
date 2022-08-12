@@ -23,6 +23,7 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
@@ -80,13 +81,13 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
         for (Object mergePath : mergePaths) {
-            DefaultManifest manifestToMerge = createManifest(mergePath, fileResolver, contentCharset);
+            Manifest manifestToMerge = createManifest(mergePath, fileResolver, contentCharset);
             mergedManifest = mergeManifest(mergedManifest, manifestToMerge, fileResolver);
         }
         return mergedManifest;
     }
 
-    private DefaultManifest mergeManifest(DefaultManifest baseManifest, DefaultManifest toMergeManifest, PathToFileResolver fileResolver) {
+    private DefaultManifest mergeManifest(Manifest baseManifest, Manifest toMergeManifest, PathToFileResolver fileResolver) {
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
         mergeSection(null, mergedManifest, baseManifest.getAttributes(), toMergeManifest.getAttributes());
         Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
@@ -98,7 +99,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         return mergedManifest;
     }
 
-    private void mergeSection(String section, DefaultManifest mergedManifest, Attributes baseAttributes, Attributes mergeAttributes) {
+    private void mergeSection(String section, Manifest mergedManifest, Attributes baseAttributes, Attributes mergeAttributes) {
         Map<String, Object> mergeOnlyAttributes = new LinkedHashMap<String, Object>(mergeAttributes);
         Set<DefaultManifestMergeDetails> mergeDetailsSet = new LinkedHashSet<DefaultManifestMergeDetails>();
 
@@ -120,14 +121,24 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     }
 
     private DefaultManifestMergeDetails getMergeDetails(String section, String key, Object baseValue, Object mergeValue) {
-        String value = null;
-        String baseValueString = baseValue != null ? baseValue.toString() : null;
-        String mergeValueString = mergeValue != null ? mergeValue.toString() : null;
-        value = mergeValueString == null ? baseValueString : mergeValueString;
+        String baseValueString = resolveValueToString(baseValue);
+        String mergeValueString = resolveValueToString(mergeValue);
+        String value = mergeValueString == null ? baseValueString : mergeValueString;
         return new DefaultManifestMergeDetails(section, key, baseValueString, mergeValueString, value);
     }
 
-    private void addMergeDetailToManifest(String section, DefaultManifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {
+    private static String resolveValueToString(Object value) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof Provider) {
+            Object providedValue = ((Provider<?>) value).getOrNull();
+            return resolveValueToString(providedValue);
+        } else {
+            return value.toString();
+        }
+    }
+
+    private void addMergeDetailToManifest(String section, Manifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {
         if (!mergeDetails.isExcluded()) {
             if (section == null) {
                 mergedManifest.attributes(WrapUtil.toMap(mergeDetails.getKey(), mergeDetails.getValue()));
@@ -137,9 +148,9 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         }
     }
 
-    private DefaultManifest createManifest(Object mergePath, PathToFileResolver fileResolver, String contentCharset) {
-        if (mergePath instanceof DefaultManifest) {
-            return ((DefaultManifest) mergePath).getEffectiveManifest();
+    private Manifest createManifest(Object mergePath, PathToFileResolver fileResolver, String contentCharset) {
+        if (mergePath instanceof Manifest) {
+            return ((Manifest) mergePath).getEffectiveManifest();
         }
         return new DefaultManifest(mergePath, fileResolver, contentCharset);
     }

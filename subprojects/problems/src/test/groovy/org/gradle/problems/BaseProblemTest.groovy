@@ -21,7 +21,6 @@ package org.gradle.problems
 
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -53,7 +52,6 @@ class BaseProblemTest extends Specification implements ProblemsVerifier {
         }
     }
 
-    @Unroll
     def "some parameters are mandatory (#item)"() {
         when:
         new TestProblem(

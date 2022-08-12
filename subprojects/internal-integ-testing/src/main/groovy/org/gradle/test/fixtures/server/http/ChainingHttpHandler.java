@@ -23,6 +23,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.test.fixtures.ResettableExpectations;
@@ -140,8 +141,7 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                     Throwable failure = responseProducer.getFailure();
                     requestFailed(outcome, failure);
                     String stacktrace = ExceptionUtils.getStackTrace(failure);
-                    // We observed jstack hanging on windows
-//                    dumpThreadsUponTimeout(stacktrace);
+                    dumpThreadsUponTimeout(stacktrace);
                     System.out.printf("[%d] handling failed with exception %s%n", id, stacktrace);
                     sendFailure(httpExchange, 400, outcome);
                 }
@@ -162,8 +162,9 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     }
 
     // Dump all JVMs' threads on the machine to troubleshoot deadlock issues
+    // We observed jstack hanging on windows, so for now we only enable it for Linux
     private void dumpThreadsUponTimeout(String stacktrace) {
-        if (stacktrace.contains("due to a timeout waiting for other requests")) {
+        if (stacktrace.contains("due to a timeout waiting for other requests") && OperatingSystem.current().isLinux()) {
             JavaProcessStackTracesMonitor.printAllStackTracesByJstack(new File("."));
         }
     }

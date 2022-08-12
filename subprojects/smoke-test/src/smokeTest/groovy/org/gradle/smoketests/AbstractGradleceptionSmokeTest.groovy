@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -41,12 +40,11 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     protected BuildResult result
 
     def setup() {
-        new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir.root)
+        new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir)
 
         and:
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
         file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
-
     }
 
     BuildResult getResult() {
@@ -66,14 +64,16 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         result = runnerFor(tasks, testKitDir).buildAndFail()
     }
 
-    private GradleRunner runnerFor(List<String> tasks, File testKitDir) {
+    private SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
         List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
-        return testKitDir != null
+        def runner = testKitDir != null
             ? runnerWithTestKitDir(testKitDir, gradleArgs)
             : runner(*gradleArgs)
+        runner.ignoreDeprecationWarnings("Gradleception smoke tests don't check for deprecation warnings; TODO: we should add expected deprecations for each task being called")
+        return runner
     }
 
-    private GradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
+    private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
         runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
             .withTestKitDir(testKitDir)
     }
@@ -96,8 +96,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         @Override
         boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
-            def version = jvm.languageVersion
-            return version >= JavaVersion.VERSION_1_9 && version <= JavaVersion.VERSION_11
+            return jvm.languageVersion == JavaVersion.VERSION_11
         }
     }
 }

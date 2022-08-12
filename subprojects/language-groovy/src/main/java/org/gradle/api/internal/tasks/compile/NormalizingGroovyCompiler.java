@@ -19,7 +19,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,7 +29,6 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Function;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -47,21 +45,11 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
 
     @Override
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-        return withResolvedClasspath(spec, specWithExtraClasspath -> {
-            resolveAndFilterSourceFiles(specWithExtraClasspath);
-            resolveNonStringsInCompilerArgs(specWithExtraClasspath);
-            logSourceFiles(specWithExtraClasspath);
-            logCompilerArguments(specWithExtraClasspath);
-            return delegateAndHandleErrors(specWithExtraClasspath);
-        });
-    }
-
-    private WorkResult withResolvedClasspath(GroovyJavaJointCompileSpec spec, Function<GroovyJavaJointCompileSpec, WorkResult> function) {
-        List<File> originalClasspath = spec.getCompileClasspath();
-        resolveClasspath(spec);
-        WorkResult result = function.apply(spec);
-        restoreClasspath(spec, originalClasspath);
-        return result;
+        resolveAndFilterSourceFiles(spec);
+        resolveNonStringsInCompilerArgs(spec);
+        logSourceFiles(spec);
+        logCompilerArguments(spec);
+        return delegateAndHandleErrors(spec);
     }
 
     private void resolveAndFilterSourceFiles(final GroovyJavaJointCompileSpec spec) {
@@ -84,22 +72,6 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         });
 
         spec.setSourceFiles(ImmutableSet.copyOf(filtered));
-    }
-
-    private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
-        // Necessary for Groovy compilation to pick up output of regular and joint Java compilation,
-        // and for joint Java compilation to pick up the output of regular Java compilation.
-        // Assumes that output of regular Java compilation (which is not under this task's control) also goes
-        // into spec.getDestinationDir(). We could configure this on source set level, but then spec.getDestinationDir()
-        // would end up on the compile class path of every compile task for that source set, which may not be desirable.
-        List<File> classPath = Lists.newArrayList(spec.getCompileClasspath());
-        classPath.add(spec.getDestinationDir());
-        spec.setCompileClasspath(classPath);
-    }
-
-    private void restoreClasspath(GroovyJavaJointCompileSpec spec, List<File> originalClasspath) {
-        // inverse process of resolveClasspath to make sure IncrementalResultStoringCompiler stores correct result
-        spec.setCompileClasspath(originalClasspath);
     }
 
     private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {

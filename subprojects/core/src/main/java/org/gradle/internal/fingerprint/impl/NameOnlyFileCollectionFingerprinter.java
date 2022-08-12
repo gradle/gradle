@@ -20,18 +20,12 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-
-import static org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy.DEFAULT;
-import static org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy.IGNORE_DIRECTORIES;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public NameOnlyFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(fingerPrintingStrategyFor(directorySensitivity), fileCollectionSnapshotter);
-    }
-
-    private static NameOnlyFingerprintingStrategy fingerPrintingStrategyFor(DirectorySensitivity directorySensitivity) {
-        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? IGNORE_DIRECTORIES : DEFAULT;
+    public NameOnlyFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+        super(new NameOnlyFingerprintingStrategy(directorySensitivity, normalizedContentHasher), fileCollectionSnapshotter);
     }
 
     @Override

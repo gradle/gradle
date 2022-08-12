@@ -18,12 +18,12 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSets
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
 class ClassDependentsAccumulatorTest extends Specification {
 
-    def hash = HashCode.fromInt(0)
+    def hash = TestHashCodes.hashCodeFrom(0)
     def accumulator = new ClassDependentsAccumulator()
 
     def "dependents map is empty by default"() {

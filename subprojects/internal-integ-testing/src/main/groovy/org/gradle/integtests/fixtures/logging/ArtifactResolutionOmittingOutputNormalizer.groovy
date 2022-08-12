@@ -17,8 +17,8 @@ package org.gradle.integtests.fixtures.logging
 
 import groovy.transform.CompileStatic
 import org.gradle.internal.jvm.Jvm
-import org.gradle.samples.executor.ExecutionMetadata
-import org.gradle.samples.test.normalizer.OutputNormalizer
+import org.gradle.exemplar.executor.ExecutionMetadata
+import org.gradle.exemplar.test.normalizer.OutputNormalizer
 
 import javax.annotation.Nullable
 

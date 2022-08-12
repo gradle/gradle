@@ -17,7 +17,9 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -29,21 +31,21 @@ public class ProviderTestUtil {
 
     public static <T> ProviderInternal<T> withValues(T... values) {
         assert values.length > 0;
-        return new TestProvider<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
+        return new TestProvider<>(Cast.uncheckedNonnullCast(values[0].getClass()), Arrays.asList(values), null);
     }
 
     public static <T> ProviderInternal<T> withChangingExecutionTimeValues(T... values) {
         assert values.length > 0;
-        return new TestProviderWithChangingValue<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
+        return new TestProviderWithChangingValue<>(Cast.uncheckedNonnullCast(values[0].getClass()), Arrays.asList(values), null);
     }
 
     public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer, T... values) {
-        Class<T> valueType = values.length == 0 ? type : (Class<T>) values[0].getClass();
+        Class<T> valueType = values.length == 0 ? type : Cast.uncheckedNonnullCast(values[0].getClass());
         return new TestProvider<>(valueType, Arrays.asList(values), producer);
     }
 
     public static <T> ProviderInternal<T> withProducerAndChangingExecutionTimeValue(Class<T> type, Task producer, T... values) {
-        Class<T> valueType = values.length == 0 ? type : (Class<T>) values[0].getClass();
+        Class<T> valueType = values.length == 0 ? type : Cast.uncheckedNonnullCast(values[0].getClass());
         return new TestProviderWithChangingValue<>(valueType, Arrays.asList(values), producer);
     }
 
@@ -52,7 +54,7 @@ public class ProviderTestUtil {
         final Iterator<T> values;
         final Task producer;
 
-        TestProvider(Class<T> type, List<T> values, Task producer) {
+        TestProvider(Class<T> type, List<T> values, @Nullable  Task producer) {
             this.producer = producer;
             this.values = values.iterator();
             this.type = type;
@@ -94,7 +96,7 @@ public class ProviderTestUtil {
     }
 
     private static class TestProviderWithChangingValue<T> extends TestProvider<T> {
-        public TestProviderWithChangingValue(Class<T> type, List<T> values, Task producer) {
+        public TestProviderWithChangingValue(Class<T> type, List<T> values, @Nullable Task producer) {
             super(type, values, producer);
         }
 

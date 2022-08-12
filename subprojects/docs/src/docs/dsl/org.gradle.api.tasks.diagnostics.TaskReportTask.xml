@@ -7,6 +7,18 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>showDetail</td>
+            </tr>
+            <tr>
+                <td>displayGroup</td>
+            </tr>
+            <tr>
+                <td>displayGroups</td>
+            </tr>
+            <tr>
+                <td>showTypes</td>
+            </tr>
         </table>
     </section>
     <section>

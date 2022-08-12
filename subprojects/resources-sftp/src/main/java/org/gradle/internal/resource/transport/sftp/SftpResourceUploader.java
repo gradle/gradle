@@ -20,6 +20,7 @@ import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
@@ -39,12 +40,12 @@ public class SftpResourceUploader implements ExternalResourceUploader {
     }
 
     @Override
-    public void upload(ReadableContent resource, URI destination) throws IOException {
-        LockableSftpClient client = sftpClientFactory.createSftpClient(destination, credentials);
+    public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+        LockableSftpClient client = sftpClientFactory.createSftpClient(destination.getUri(), credentials);
 
         try {
             ChannelSftp channel = client.getSftpClient();
-            ensureParentDirectoryExists(channel, destination);
+            ensureParentDirectoryExists(channel, destination.getUri());
             InputStream sourceStream = resource.open();
             try {
                 channel.put(sourceStream, destination.getPath());
@@ -52,7 +53,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
                 sourceStream.close();
             }
         } catch (com.jcraft.jsch.SftpException e) {
-            throw ResourceExceptions.putFailed(destination, e);
+            throw ResourceExceptions.putFailed(destination.getUri(), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }

@@ -61,7 +61,7 @@ public interface DeprecatableConfiguration extends Configuration {
     /**
      * Allows plugins to deprecate the consumability property (canBeConsumed() == true) of a configuration that will be changed in the next major Gradle version.
      *
-     * @param deprecationMessageBuilder documented deprecation message builder to use for nagging upon consumption of this configuration
+     * @param deprecation deprecation message builder to use for nagging upon consumption of this configuration
      * @return this configuration
      */
     DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation);

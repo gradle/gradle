@@ -28,6 +28,7 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +42,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ENABLED;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
@@ -83,10 +85,17 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void write(DependencyVerifier verifier) throws IOException {
+        verifier.getTopLevelComments().forEach(comment -> {
+            try {
+                writer.comment(comment);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd");
+        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -128,11 +137,15 @@ public class DependencyVerificationsXmlWriter {
     private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys) throws IOException {
         writer.startElement(TRUSTED_KEY);
         writeAttribute(ID, keyId);
-        for (DependencyVerificationConfiguration.TrustedKey trustedKey : trustedKeys) {
-            writer.startElement(TRUSTING);
-            writeTrustCoordinates(trustedKey);
-            writer.endElement();
-        }
+        trustedKeys.stream().sorted().forEach(trustedKey -> {
+            try {
+                writer.startElement(TRUSTING);
+                writeTrustCoordinates(trustedKey);
+                writer.endElement();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         writer.endElement();
     }
 
@@ -167,16 +180,18 @@ public class DependencyVerificationsXmlWriter {
             return;
         }
         writer.startElement(TRUSTED_ARTIFACTS);
-        for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : trustedArtifacts) {
-            writeTrustedArtifact(trustedArtifact);
-        }
+        trustedArtifacts.stream().sorted().forEach(this::writeTrustedArtifact);
         writer.endElement();
     }
 
-    private void writeTrustedArtifact(DependencyVerificationConfiguration.TrustedArtifact trustedArtifact) throws IOException {
-        writer.startElement(TRUST);
-        writeTrustCoordinates(trustedArtifact);
-        writer.endElement();
+    private void writeTrustedArtifact(DependencyVerificationConfiguration.TrustedArtifact trustedArtifact) {
+        try {
+            writer.startElement(TRUST);
+            writeTrustCoordinates(trustedArtifact);
+            writer.endElement();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void writeTrustCoordinates(DependencyVerificationConfiguration.TrustCoordinates trustedArtifact) throws IOException {
@@ -203,8 +218,11 @@ public class DependencyVerificationsXmlWriter {
 
     private void writeKeyServers(DependencyVerificationConfiguration configuration) throws IOException {
         List<URI> keyServers = configuration.getKeyServers();
-        if (!keyServers.isEmpty()) {
+        if (!keyServers.isEmpty() || !configuration.isUseKeyServers()) {
             writer.startElement(KEY_SERVERS);
+            if (!configuration.isUseKeyServers()) {
+                writer.attribute(ENABLED, "false");
+            }
             for (URI keyServer : keyServers) {
                 writer.startElement(KEY_SERVER);
                 writeAttribute(URI, keyServer.toASCIIString());

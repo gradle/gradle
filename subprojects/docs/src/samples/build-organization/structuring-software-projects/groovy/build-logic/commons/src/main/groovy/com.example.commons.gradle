@@ -14,8 +14,7 @@ dependencies {
     implementation(platform('com.example.platform:product-platform'))
 
     testImplementation(platform('com.example.platform:test-platform'))
-    testImplementation('org.junit.jupiter:junit-jupiter-api')
-    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine')
+    testImplementation('org.junit.jupiter:junit-jupiter')
 }
 
 tasks.named("test") {

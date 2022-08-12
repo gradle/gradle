@@ -27,11 +27,11 @@ public class BuildScanReportGenerator extends AbstractReportGenerator<BuildScanR
 
     @Override
     protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
-        executionDataProvider.getScenarioExecutionData()
+        executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
-                if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isBuildFailed)) {
+                if (scenario.isBuildFailed()) {
                     failureCollector.scenarioFailed();
-                } else if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
+                } else if (scenario.isRegressed()) {
                     failureCollector.scenarioRegressed();
                 }
             });

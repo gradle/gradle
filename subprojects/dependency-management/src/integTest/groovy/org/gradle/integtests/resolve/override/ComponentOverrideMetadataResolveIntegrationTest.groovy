@@ -18,9 +18,7 @@ package org.gradle.integtests.resolve.override
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 /**
  * There is more test coverage for 'dependency artifacts' in ArtifactDependenciesIntegrationTest (old test setup).
@@ -74,7 +72,6 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         }
     }
 
-    @Unroll
     def "The first artifact is used as replacement for metadata if multiple artifacts are declared using #declaration"() {
         resolve.expectDefaultConfiguration(useMaven() ? 'runtime' : 'default')
 
@@ -131,7 +128,6 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         'multiple artifact declarations'                       | 'bar'        | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' }; artifact { name = 'bar'; type = 'zip' } }"
     }
 
-    @Unroll
     def "client module for version 1.0 is selected over other dependency with version #otherVersion"() {
         resolve.expectDefaultConfiguration('default')
 
@@ -226,7 +222,6 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "clashing client modules fail the build"() {
         given:
         buildFile << """

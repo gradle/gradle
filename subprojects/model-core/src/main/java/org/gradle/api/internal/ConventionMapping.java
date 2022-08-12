@@ -31,6 +31,11 @@ public interface ConventionMapping {
 
     MappedProperty map(String propertyName, Callable<?> value);
 
+    /**
+     * Mark a property as ineligible for convention mapping.
+     */
+    void ineligible(String propertyName);
+
     @Nullable
     <T> T getConventionValue(@Nullable T actualValue, String propertyName, boolean isExplicitValue);
 

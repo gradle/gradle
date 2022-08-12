@@ -32,6 +32,7 @@ import javax.tools.StandardLocation
 class HelperProcessorFixture extends AnnotationProcessorFixture {
     String message = "greetings"
     boolean writeResources
+    boolean withMultipleOriginatingElements
     String resourceLocation = StandardLocation.CLASS_OUTPUT.toString()
     private String suffix = ""
 
@@ -60,7 +61,7 @@ for (Element element : elements) {
     TypeElement typeElement = (TypeElement) element;
     String className = typeElement.getSimpleName().toString() + "Helper";
     try {
-        JavaFileObject sourceFile = filer.createSourceFile(className, element);
+        JavaFileObject sourceFile = filer.createSourceFile(className, ${withMultipleOriginatingElements ? "elements.toArray(new Element[0])" : "element"});
         Writer writer = sourceFile.openWriter();
         try {
             writer.write("class " + className + " {");
@@ -82,7 +83,7 @@ for (Element element : elements) {
 """
         def resourceCode = writeResources ? """
     try {
-        FileObject resourceFile = filer.createResource($resourceLocation, \"\", className + \"Resource.txt\", element);
+        FileObject resourceFile = filer.createResource($resourceLocation, "", className + "Resource.txt", ${withMultipleOriginatingElements ? "elements.toArray(new Element[0])" : "element"});
         Writer writer = resourceFile.openWriter();
         try {
             String messageFromOptions = options.get("message");

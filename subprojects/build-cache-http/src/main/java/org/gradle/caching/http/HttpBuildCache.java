@@ -17,6 +17,7 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -27,12 +28,26 @@ import java.net.URL;
 /**
  * Configuration object for the HTTP build cache.
  *
- * The build cache only supports BASIC authentication currently.
- *
- * <p>Cache entries are loaded via {@literal GET} and stored via {@literal PUT} requests.</p>
- * For a {@literal GET} request we expect a 200 or 404 response and for {@literal PUT} we expect any 2xx response.
- * Other responses are treated as recoverable or non-recoverable errors, depending on the status code.
- * E.g. we treat authentication failures (401 and 409) as non-recoverable while an internal server error (500) is recoverable.
+ * Cache entries are loaded via {@literal GET} and stored via {@literal PUT} requests.
+ * <p>
+ * A successful {@literal GET} request must return a response with status {@literal 200} (cache hit) or {@literal 404} (cache miss),
+ * with cache hit responses including the cache entry as the response body.
+ * A successful {@literal PUT} request must return any 2xx response.
+ * <p>
+ * {@literal PUT} requests may also return a {@literal 413 Payload Too Large} response to indicate that the payload is larger than can be accepted.
+ * This is useful when {@link #isUseExpectContinue()} is enabled.
+ * <p>
+ * Redirecting responses may be issued with {@literal 301}, {@literal 302}, {@literal 303}, {@literal 307} or {@literal 308} responses.
+ * Redirecting responses to {@literal PUT} requests must use {@literal 307} or {@literal 308} to have the {@literal PUT} replayed.
+ * Otherwise, the redirect will be followed with a {@literal GET} request.
+ * <p>
+ * Any other type of response will be treated as an error, causing the remote cache to be disabled for the remainder of the build.
+ * <p>
+ * When credentials are configured (see {@link #getCredentials()}), they are sent using HTTP Basic Auth.
+ * <p>
+ * Requests that fail during request transmission, after having established a TCP connection, will automatically be retried.
+ * This includes dropped connections, read or write timeouts, and low level network failures such as a connection resets.
+ * Requests will be retried 3 times, before giving up and disabling use of the cache for the remainder of the build.
  *
  * @since 3.5
  */
@@ -41,6 +56,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     private URI url;
     private boolean allowUntrustedServer;
     private boolean allowInsecureProtocol;
+    private boolean useExpectContinue;
 
     public HttpBuildCache() {
         this.credentials = new HttpBuildCacheCredentials();
@@ -110,17 +126,8 @@ public class HttpBuildCache extends AbstractBuildCache {
 
     /**
      * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
-     * <p>
-     * The SSL certificate for the HTTP build cache backend may be untrusted since it is internally provisioned or a self-signed certificate.
-     * <p>
-     * In such a scenario, you can either configure the build JVM environment to trust the certificate,
-     * or set this property to {@code true} to disable verification of the server's identity.
-     * <p>
-     * Allowing communication with untrusted servers keeps data encrypted during transmission,
-     * but makes it easier for a man-in-the-middle to impersonate the intended server and capture data.
-     * <p>
-     * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
      *
+     * @see #isAllowUntrustedServer()
      * @since 4.2
      */
     public void setAllowUntrustedServer(boolean allowUntrustedServer) {
@@ -156,5 +163,36 @@ public class HttpBuildCache extends AbstractBuildCache {
      */
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
+    }
+
+    /**
+     * Specifies whether HTTP expect-continue should be used for store requests.
+     *
+     * @since 7.2
+     */
+    @Incubating
+    public void setUseExpectContinue(boolean useExpectContinue) {
+        this.useExpectContinue = useExpectContinue;
+    }
+
+    /**
+     * Specifies whether HTTP expect-continue should be used for store requests.
+     *
+     * This value defaults to {@code false}.
+     *
+     * When enabled, whether or not a store request would succeed is checked with the server before attempting.
+     * This is particularly useful when potentially dealing with large artifacts that may be rejected by the server with a {@literal 413 Payload Too Large} response,
+     * as it avoids the overhead of transmitting the large file just to have it rejected.
+     * This fail-fast behavior comes at the expense of extra marginal overhead for successful requests,
+     * due to the extra network communication required by the initial check.
+     *
+     * Note: not all HTTP servers support expect-continue.
+     *
+     * @see #setUseExpectContinue(boolean)
+     * @since 7.2
+     */
+    @Incubating
+    public boolean isUseExpectContinue() {
+        return useExpectContinue;
     }
 }

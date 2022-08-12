@@ -140,4 +140,137 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         javaLibrary.assertPublished()
     }
 
+    def "can not publish variant with attribute specifying category = verification"() {
+        given:
+        createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            def testConf = configurations.create('testConf') {
+                canBeResolved = true
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                it.mapToMavenScope("runtime")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        expect:
+        fails('publish')
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+    }
+
+    def "can not publish variant with attribute specifying category = verification if defining new attribute with string"() {
+        given:
+        createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            def testConf = configurations.create('testConf') {
+                canBeResolved = true
+                attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                it.mapToMavenScope("runtime")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        expect:
+        fails('publish')
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+    }
+
+    def "can not publish test results from java test suite"() {
+        given:
+        createBuildScripts("""
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+
+            def testResultsElementsForTest = configurations.testResultsElementsForTest
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testResultsElementsForTest) {
+                it.mapToMavenScope("runtime")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        file("src/test/java/com/example/SampleTest.java") << """
+            package com.example;
+
+            import org.junit.Test;
+
+            public class SampleTest {
+                @Test
+                public void checkSomething() {
+                    // pass
+                }
+            }""".stripIndent()
+
+        expect:
+        fails('test', 'publish')
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+    }
+
+    def "can publish variants with attribute specifying category if not verification"() {
+        given:
+        createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            def testConf = configurations.create('testConf') {
+                canBeResolved = true
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                it.mapToMavenScope("runtime")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        expect:
+        succeeds('publish')
+    }
 }

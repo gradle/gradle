@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Gradle plugin development plugins"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -32,6 +34,7 @@ dependencies {
     implementation(libs.asm)
 
     testImplementation(project(":file-collections"))
+    testImplementation(project(":enterprise-operations"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
@@ -54,3 +57,7 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+
+strictCompile {
+    ignoreDeprecations()
+}

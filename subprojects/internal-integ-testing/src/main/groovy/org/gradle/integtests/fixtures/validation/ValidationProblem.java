@@ -29,5 +29,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface ValidationProblem {
-    Severity getValue() default Severity.WARNING;
+    Severity value() default Severity.WARNING;
 }

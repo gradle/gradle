@@ -19,17 +19,20 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.ExecutionState;
+import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -40,23 +43,24 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep extends BuildOperationStep<ValidationContext, CachingResult> {
+public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
-    private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
+    private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
+        Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -66,9 +70,9 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, ValidationContext context) {
+    public R execute(UnitOfWork work, C context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
-            .map(executionHistoryStore -> captureExecutionStateOp(work, context));
+            .flatMap(history -> captureExecutionState(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
@@ -76,8 +80,8 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override
@@ -115,22 +119,35 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<ValidationResult> getValidationProblems() {
-                return context.getValidationProblems();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
         });
     }
 
-    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, AfterPreviousExecutionContext executionContext) {
+    @Nonnull
+    private Optional<BeforeExecutionState> captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         return operation(operationContext -> {
-                BeforeExecutionState beforeExecutionState = captureExecutionState(work, executionContext);
-                operationContext.setResult(Operation.Result.INSTANCE);
-                return beforeExecutionState;
+                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
+                try {
+                    unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+                } catch (OutputFileSnapshottingException e) {
+                    work.handleUnreadableOutputs(e);
+                    operationContext.setResult(Operation.Result.INSTANCE);
+                    return Optional.empty();
+                }
+
+                try {
+                    BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots);
+                    operationContext.setResult(Operation.Result.INSTANCE);
+                    return Optional.of(executionState);
+                } catch (InputFileFingerprintingException e) {
+                    // Note that we let InputFingerprintException fall through as we've already
+                    // been failing for non-file value fingerprinting problems even for tasks
+                    work.handleUnreadableInputs(e);
+                    operationContext.setResult(Operation.Result.INSTANCE);
+                    return Optional.empty();
+                }
             },
             BuildOperationDescriptor
                 .displayName("Snapshot inputs and outputs before executing " + work.getDisplayName())
@@ -138,8 +155,8 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
         );
     }
 
-    private BeforeExecutionState captureExecutionState(UnitOfWork work, AfterPreviousExecutionContext context) {
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
+    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
+        Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
 
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
@@ -151,19 +168,20 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
             LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState
-            .map(ExecutionState::getInputProperties)
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecutionState
+            .map(InputExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterPreviousExecution = afterPreviousExecutionState
-            .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
+            .map(InputExecutionState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
-
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = previousExecutionState
+            .map(PreviousExecutionState::getOutputFilesProducedByWork)
+            .orElse(ImmutableSortedMap.of());
 
         OverlappingOutputs overlappingOutputs;
         switch (work.getOverlappingOutputHandling()) {
             case DETECT_OVERLAPS:
-                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, unfilteredOutputSnapshots);
+                overlappingOutputs = overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
                 break;
             case IGNORE_OVERLAPS:
                 overlappingOutputs = null;
@@ -174,18 +192,17 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
 
         InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
             previousInputProperties,
+            previousInputFileFingerprints,
             context.getInputProperties(),
             context.getInputFileProperties(),
             work::visitRegularInputs
         );
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), newInputs.getValueSnapshots());
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = union(context.getInputFileProperties(), newInputs.getFileFingerprints());
 
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
-            inputProperties,
-            inputFileFingerprints,
+            newInputs.getAllValueSnapshots(),
+            newInputs.getAllFileFingerprints(),
             unfilteredOutputSnapshots,
             overlappingOutputs
         );
@@ -238,22 +255,6 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
         interface Result {
             Result INSTANCE = new Result() {
             };
-        }
-    }
-
-    private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
-        ImmutableSortedMap<K, V> a,
-        ImmutableSortedMap<K, V> b
-    ) {
-        if (a.isEmpty()) {
-            return b;
-        } else if (b.isEmpty()) {
-            return a;
-        } else {
-            return ImmutableSortedMap.<K, V>naturalOrder()
-                .putAll(a)
-                .putAll(b)
-                .build();
         }
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
@@ -34,7 +35,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.util.internal.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -42,16 +42,16 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree extends AbstractArchiveFileTree {
-    private final File tarFile;
-    private final ReadableResourceInternal resource;
+    private final Provider<File> tarFileProvider;
+    private final Provider<ReadableResourceInternal> resource;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final File tmpDir;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
 
-    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
-        this.tarFile = tarFile;
+    public TarFileTree(Provider<File> tarFileProvider, Provider<ReadableResourceInternal> resource, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
+        this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -62,7 +62,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
     @Override
     public String getDisplayName() {
-        return String.format("TAR '%s'", resource.getDisplayName());
+        return String.format("TAR '%s'", resource.get().getDisplayName());
     }
 
     @Override
@@ -74,7 +74,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
     public void visit(FileVisitor visitor) {
         InputStream inputStream;
         try {
-            inputStream = new BufferedInputStream(resource.read());
+            inputStream = new BufferedInputStream(resource.get().read());
         } catch (ResourceException e) {
             throw cannotExpand(e);
         }
@@ -99,6 +99,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
         TarEntry entry;
         File expandedDir = getExpandedDir();
+        ReadableResourceInternal resource = this.resource.get();
         while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
             if (entry.isDirectory()) {
                 visitor.visitDir(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
@@ -109,14 +110,13 @@ public class TarFileTree extends AbstractArchiveFileTree {
     }
 
     @Override
-    public File getBackingFile() {
-        if (tarFile != null) {
-            return tarFile;
-        }
-        return resource.getBackingFile();
+    public Provider<File> getBackingFileProvider() {
+        return tarFileProvider.orElse(resource.map(ReadableResourceInternal::getBackingFile));
     }
 
     private File getExpandedDir() {
+        File tarFile = tarFileProvider.getOrNull();
+        ReadableResourceInternal resource = this.resource.getOrNull();
         HashCode fileHash = tarFile != null ? hashFile(tarFile) : hashResource(resource);
         String expandedDirName = resource.getBaseName() + "_" + fileHash;
         return new File(tmpDir, expandedDirName);

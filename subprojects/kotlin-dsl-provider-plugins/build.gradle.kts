@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
@@ -24,7 +24,9 @@ dependencies {
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
+    implementation(libs.futureKotlin("compiler-embeddable"))
 
+    implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.inject)
 
@@ -32,6 +34,6 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }

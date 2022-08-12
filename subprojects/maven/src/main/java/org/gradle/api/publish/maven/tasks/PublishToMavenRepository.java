@@ -34,6 +34,7 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.net.URI;
 
@@ -45,6 +46,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.4
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<MavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);

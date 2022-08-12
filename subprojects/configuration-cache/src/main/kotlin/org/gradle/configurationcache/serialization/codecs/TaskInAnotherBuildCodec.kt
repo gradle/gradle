@@ -17,38 +17,31 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.execution.plan.TaskInAnotherBuild
-import org.gradle.util.Path.path
 
 
 class TaskInAnotherBuildCodec(
-    private val includedTaskGraph: IncludedBuildTaskGraph
+    private val includedTaskGraph: BuildTreeWorkGraphController
 ) : Codec<TaskInAnotherBuild> {
 
     override suspend fun WriteContext.encode(value: TaskInAnotherBuild) {
         value.run {
-            writeString(taskIdentityPath.toString())
             writeString(taskPath)
             write(targetBuild)
-            write(thisBuild)
         }
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
-        val taskIdentityPath = path(readString())
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentifier>()
-        val thisBuild = readNonNull<BuildIdentifier>()
-        return TaskInAnotherBuild.of(
-            taskIdentityPath,
+        return TaskInAnotherBuild.lazy(
             taskPath,
             targetBuild,
-            thisBuild,
             includedTaskGraph
         )
     }

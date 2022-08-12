@@ -16,13 +16,20 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
+/**
+ * Coordinates inclusion of builds from the current build.
+ */
+@ServiceScope(Scopes.Build.class)
 public interface BuildIncluder {
-    IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
-    void registerPluginBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
+    IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec);
+
+    void registerPluginBuild(IncludedBuildSpec includedBuildSpec);
+
     Collection<IncludedBuildState> includeRegisteredPluginBuilds();
 }

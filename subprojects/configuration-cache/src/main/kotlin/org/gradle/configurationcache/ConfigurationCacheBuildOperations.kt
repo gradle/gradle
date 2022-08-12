@@ -16,31 +16,46 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
+import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.operations.CallableBuildOperation
 
 
 internal
-fun BuildOperationExecutor.withLoadOperation(block: () -> Unit) =
-    withOperation("Load configuration cache state", block)
+fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
+    withOperation("Load configuration cache state", block, LoadDetails, LoadResult)
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
-    withOperation("Store configuration cache state", block)
+fun BuildOperationExecutor.withStoreOperation(cacheKey: String, block: () -> Unit) =
+    withOperation("Store configuration cache state $cacheKey", block, StoreDetails, StoreResult)
 
 
 private
-fun BuildOperationExecutor.withOperation(displayName: String, block: () -> Unit) {
-    run(object : RunnableBuildOperation {
+object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
+
+private
+object LoadResult : ConfigurationCacheLoadBuildOperationType.Result
+
+
+private
+object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
+
+
+private
+object StoreResult : ConfigurationCacheStoreBuildOperationType.Result
+
+
+private
+fun <T : Any, D : Any, R : Any> BuildOperationExecutor.withOperation(displayName: String, block: () -> T, details: D, result: R): T =
+    call(object : CallableBuildOperation<T> {
         override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor.displayName(displayName)
+            BuildOperationDescriptor.displayName(displayName).details(details)
 
-        override fun run(context: BuildOperationContext) {
-            block()
-        }
+        override fun call(context: BuildOperationContext): T =
+            block().also { context.setResult(result) }
     })
-}

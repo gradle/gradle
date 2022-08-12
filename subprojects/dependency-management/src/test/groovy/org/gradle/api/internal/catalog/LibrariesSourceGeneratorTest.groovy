@@ -28,9 +28,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
@@ -38,11 +38,12 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -58,15 +59,17 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private GeneratedSource sources
+    final ObjectFactory objects = TestUtil.objectFactory()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
-            Stub(ConfigurationTimeBarrier),
             new DefaultListenerManager(Scopes.Build),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
             Stub(GradleProperties),
+            Stub(ExecOperations),
             TestUtil.services()
         ),
+        null,
         null
     )
 
@@ -80,11 +83,10 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         sources.assertClass('Libs')
     }
 
-    @Unroll
     def "generates an accessor for #name as method #method"() {
         when:
         generate {
-            alias(name).to 'g:a:v'
+            library(name, 'g:a:v')
         }
 
         then:
@@ -100,12 +102,11 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         'kotlinx.awesome.lib' | 'getLib'
     }
 
-    @Unroll
     def "generates an accessor for bundle #name as method #method"() {
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g:a:v'
+            library('foo', 'g:a:v')
+            library('bar', 'g:a:v')
             bundle(name, ['foo', 'bar'])
         }
 
@@ -121,7 +122,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         'a.b'         | 'getB'
     }
 
-    @Unroll
     def "generates an accessor for #name as version #method"() {
         when:
         generate {
@@ -147,8 +147,8 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     def "reasonable error message if methods have the same name"() {
         when:
         generate {
-            alias('groovy.json') to 'g:a:v'
-            alias('groovyJson') to 'g:a:v'
+            library('groovy.json', 'g:a:v')
+            library('groovyJson', 'g:a:v')
         }
 
         then:
@@ -160,19 +160,19 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
 
         when:
         generate {
-            alias('groovy.json') to 'g:a:v'
-            alias('groovyJson') to 'g:a:v'
+            library('groovy.json', 'g:a:v')
+            library('groovyJson', 'g:a:v')
 
-            alias('tada_one') to 'g:a:v'
-            alias('tada.one') to 'g:a:v'
-            alias('tadaOne') to 'g:a:v'
+            library('tada_one', 'g:a:v')
+            library('tada.one', 'g:a:v')
+            library('tadaOne', 'g:a:v')
         }
 
         then:
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
 ${nameClash { noIntro().inConflict('groovy.json', 'groovyJson').getterName('getGroovyJson') }}
-${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName('getTadaOne') }}
+${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne') }}
 """)
     }
 
@@ -182,8 +182,8 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName
     def "reasonable error message if bundles have the same name"() {
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g:a:v'
+            library('foo', 'g:a:v')
+            library('bar', 'g:a:v')
             bundle('one.cool', ['foo', 'bar'])
             bundle('oneCool', ['foo', 'bar'])
         }
@@ -191,15 +191,15 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName
         then:
         InvalidUserDataException ex = thrown()
         verify(ex.message, nameClash {
-            kind('bundles')
+            kind('dependency bundles')
             inConflict('one.cool', 'oneCool')
             getterName('getOneCoolBundle')
         })
 
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g:a:v'
+            library('foo', 'g:a:v')
+            library('bar', 'g:a:v')
             bundle('one.cool', ['foo', 'bar'])
             bundle('oneCool', ['foo', 'bar'])
 
@@ -211,17 +211,18 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName
         then:
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool', 'other_cool').getterName('getOtherCoolBundle') }}
-${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
+${nameClash { noIntro().kind('dependency bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
+${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
 """)
     }
 
     def "generated sources can be compiled"() {
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g2:a2:v2'
+            library('foo', 'g:a:v')
+            library('bar', 'g2:a2:v2')
             bundle('myBundle', ['foo', 'bar'])
+            plugin('pl', 'org.plugin') version('1.2')
         }
 
         then:
@@ -238,32 +239,33 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
 
         def bundle = libs.bundles.myBundle.get()
         assert bundle == [foo, bar]
+
+        def plugin = libs.plugins.pl.get()
+        plugin.pluginId == 'org.plugin'
+        plugin.version.requiredVersion == '1.2'
     }
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    def "puts limit on the number of methods"() {
+    def "reasonable error message in case a reserved alias name is used"() {
         when:
         generate {
-            alias(reservedName).to("org:test:1.0")
+            library(reservedName, "org:test:1.0")
         }
 
         then:
         InvalidUserDataException ex = thrown()
         verify ex.message, reservedAlias {
-            alias(reservedName).shouldNotEndWith(suffix)
-            reservedAliasSuffix("bundle", "bundles", "version", "versions")
+            alias(reservedName).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
         }
 
         where:
-        reservedName   | suffix
-        'versions'     | 'versions'
-        'bundles'      | 'bundles'
-        'someVersions' | 'versions'
-        'someBundles'  | 'bundles'
-        'some.version' | 'version'
-        'some.bundle'  | 'bundle'
+        reservedName          | prefix
+        "bundles"             | "bundles"
+        "versions"            | "versions"
+        "plugins"             | "plugins"
     }
 
     @VersionCatalogProblemTestFor(
@@ -273,7 +275,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         when:
         generate {
             16000.times { n ->
-                alias("alias$n").to("g:a$n:1.0")
+                library("alias$n", "g:a$n:1.0")
                 bundle("foo$n", ["alias$n".toString()])
             }
         }
@@ -292,12 +294,12 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         generate {
             description.set("Some description for tests")
             withContext(context) {
-                alias("some-alias").to 'g:a:v'
+                library("some-alias", 'g:a:v')
                 bundle("b0Bundle", ["some-alias"])
                 withContext(innerContext) {
                     version("v0Version", "1.0")
                 }
-                alias("other").to("g", "a").versionRef("v0Version")
+                library("other", "g", "a").versionRef("v0Version")
             }
         }
 
@@ -307,6 +309,30 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         sources.hasBundle('b0Bundle', 'getB0Bundle', "This bundle was declared in ${context}")
         sources.hasVersion('v0Version', 'getV0Version', "This version was declared in ${innerContext}")
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${context}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19752")
+    def "backslashes are escaped when outputting context in javadocs"() {
+        def context = "Windows path: C:\\Users\\user\\Documents\\ultimate plugin"
+        def escapedContext = "Windows path: C:\\Users\\u005cuser\\Documents\\u005cultimate plugin"
+
+        when:
+        generate {
+            description.set("Some description for tests")
+            withContext(context) {
+                library("some-alias", 'g:a:v')
+                bundle("b0Bundle", ["some-alias"])
+                version("v0Version", "1.0")
+                library("other", "g", "a").versionRef("v0Version")
+            }
+        }
+
+        then:
+        sources.assertClass('Generated', 'Some description for tests')
+        sources.hasDependencyAlias('some-alias', 'getAlias', "This dependency was declared in ${escapedContext}")
+        sources.hasBundle('b0Bundle', 'getB0Bundle', "This bundle was declared in ${escapedContext}")
+        sources.hasVersion('v0Version', 'getV0Version', "This version was declared in ${escapedContext}")
+        sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${escapedContext}")
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
@@ -344,6 +370,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() { return create(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -353,6 +380,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -362,6 +390,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -377,7 +406,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
             def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
             factory = cl.loadClass("org.test.$className")
             assert factory
-            factory.newInstance(model, providerFactory)
+            factory.newInstance(model, providerFactory, objects)
         }
     }
 

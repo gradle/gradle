@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
@@ -55,7 +54,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final ConnectionParameters connectionParameters;
     private BuildCancellationToken cancellationToken;
 
-    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ExecutorFactory executorFactory, ConnectionParameters connectionParameters) {
+    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ConnectionParameters connectionParameters) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
@@ -84,7 +83,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     public void disconnect() {
         lock.lock();
         try {
-            if (stopped) {
+            if (stopped || connection == null) {
                 return;
             }
             requestCancellation();

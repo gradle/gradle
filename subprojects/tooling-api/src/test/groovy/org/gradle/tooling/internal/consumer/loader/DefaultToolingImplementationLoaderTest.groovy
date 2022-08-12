@@ -23,6 +23,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
+import org.gradle.tooling.internal.consumer.DefaultConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection
@@ -71,16 +72,16 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
     InternalBuildProgressListener progressListener = Mock()
-    ConnectionParameters connectionParameters = Stub() {
-        getVerboseLogging() >> true
-    }
-    File userHomeDir = Mock()
+    ConnectionParameters connectionParameters = DefaultConnectionParameters.builder()
+        .setProjectDir(tmpDir.testDirectory)
+        .setVerboseLogging(true)
+        .build()
     final BuildCancellationToken cancellationToken = Mock()
     final loader = new DefaultToolingImplementationLoader()
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> DefaultClassPath.of(
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, connectionParameters, cancellationToken) >> DefaultClassPath.of(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -105,7 +106,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> DefaultClassPath.of(
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, connectionParameters, cancellationToken) >> DefaultClassPath.of(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -139,7 +140,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> ClassPath.EMPTY
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, connectionParameters, cancellationToken) >> ClassPath.EMPTY
 
         expect:
         loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken) instanceof NoToolingApiConnection

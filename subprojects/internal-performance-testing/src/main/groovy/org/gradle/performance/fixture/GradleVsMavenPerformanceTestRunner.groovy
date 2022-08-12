@@ -54,7 +54,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
-                tasksToRun(gradleTasks).gradleOpts(jvmOpts.collect { it.toString() })
+                tasksToRun(gradleTasks).jvmArgs(jvmOpts.collect { it.toString() })
             }
         }
         mavenBuildSpec {

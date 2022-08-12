@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
 
@@ -574,7 +573,6 @@ task checkRelease {
         succeeds("checkRelease")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "consumer can use attribute of type #type"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
@@ -660,7 +658,6 @@ task checkRelease {
         "true"            | "false"             | "Boolean"       | "true"                              | "false"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from failure to locate module"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
 
@@ -708,7 +705,6 @@ Required by:
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from failure to download module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -752,7 +748,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to parse module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
         m.moduleMetadata.file.text = 'not-really-json'
@@ -794,7 +789,6 @@ dependencies {
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to locate files"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
         m.artifact(classifier: 'extra')

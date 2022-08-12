@@ -18,6 +18,8 @@ import org.gradle.internal.jvm.Jvm
 import org.junit.Assume
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 /**
  * Tests in this class use on disk build files - see resources/org/gradle/groovy/compile/GroovyCompilerIntegrationSpec/**
  */
@@ -62,10 +64,11 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
     // a class from the Groovy (compiler) Jar that in turn references a class from another Jar
     @Issue("GRADLE-2317")
     def canUseAstTransformThatReferencesGroovyTestCase() {
-        if (versionLowerThan('1.6')) {
+        if (versionLowerThan('3.0')) {
             return
         }
 
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-test", versionNumber)}' }"
         when:
         run("test")
 
@@ -102,7 +105,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
 
     @Issue("gradle/gradle#5908")
     def "canUseAstTransformWithAsm"() {
-        if (versionLowerThan('1.8')) {
+        if (versionLowerThan('3.0')) {
             return
         }
 

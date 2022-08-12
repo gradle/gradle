@@ -32,6 +32,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap;
  * Displays some details about the software components produced by the project.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class ComponentReport extends DefaultTask {
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {

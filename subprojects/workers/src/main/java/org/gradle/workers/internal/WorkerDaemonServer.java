@@ -39,6 +39,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
@@ -74,6 +75,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             .parent(parent)
             .provider(new WorkerSharedGlobalScopeServices())
             .provider(new WorkerDaemonServices())
+            .provider(new WorkerSharedBuildSessionScopeServices())
             .build();
     }
 
@@ -152,7 +154,12 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         protected ExecFactory createExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
-            return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory);
+            return execFactory.forContext()
+                .withFileResolver(fileResolver)
+                .withFileCollectionFactory(fileCollectionFactory)
+                .withInstantiator(instantiator)
+                .withObjectFactory(objectFactory)
+                .build();
         }
 
         protected DefaultResourceHandler.Factory createResourceHandlerFactory() {

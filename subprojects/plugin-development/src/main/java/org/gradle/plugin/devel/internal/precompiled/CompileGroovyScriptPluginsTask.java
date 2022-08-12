@@ -27,6 +27,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -50,34 +51,32 @@ import java.net.URLClassLoader;
 
 @CacheableTask
 abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
-
-    private final ScriptCompilationHandler scriptCompilationHandler;
-    private final CompileOperationFactory compileOperationFactory;
-    private final FileSystemOperations fileSystemOperations;
-    private final ClassLoaderScope classLoaderScope;
-
     private final Provider<Directory> intermediatePluginClassesDirectory;
     private final Provider<Directory> intermediatePluginMetadataDirectory;
 
-    @Inject
-    public CompileGroovyScriptPluginsTask(ScriptCompilationHandler scriptCompilationHandler,
-                                          ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                          CompileOperationFactory compileOperationFactory,
-                                          FileSystemOperations fileSystemOperations) {
-        this.scriptCompilationHandler = scriptCompilationHandler;
-        this.compileOperationFactory = compileOperationFactory;
-        this.fileSystemOperations = fileSystemOperations;
-        this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
-
+    public CompileGroovyScriptPluginsTask() {
         Project project = getProject();
         DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
         this.intermediatePluginClassesDirectory = buildDir.dir("groovy-dsl-plugins/work/classes");
         this.intermediatePluginMetadataDirectory = buildDir.dir("groovy-dsl-plugins/work/metadata");
     }
 
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Inject
+    abstract protected FileSystemOperations getFileSystemOperations();
+
+    @Inject
+    abstract protected ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
+
+    @Inject
+    abstract protected ScriptCompilationHandler getScriptCompilationHandler();
+
+    @Inject
+    abstract protected CompileOperationFactory getCompileOperationFactory();
+
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getScriptFiles();
 
     @Classpath
@@ -91,7 +90,9 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
 
     @TaskAction
     void compileScripts() {
+        ClassLoaderScope classLoaderScope = getClassLoaderScopeRegistry().getCoreAndPluginsScope();
         ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(getClasspath()).getAsURLArray(), classLoaderScope.getLocalClassLoader());
+        FileSystemOperations fileSystemOperations = getFileSystemOperations();
         fileSystemOperations.delete(spec -> spec.delete(intermediatePluginMetadataDirectory, intermediatePluginClassesDirectory));
         intermediatePluginMetadataDirectory.get().getAsFile().mkdirs();
         intermediatePluginClassesDirectory.get().getAsFile().mkdirs();
@@ -110,10 +111,10 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
 
     private void compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
-        CompileOperation<BuildScriptData> scriptCompileOperation = compileOperationFactory.getScriptCompileOperation(scriptPlugin.getBodySource(), target);
+        CompileOperation<BuildScriptData> scriptCompileOperation = getCompileOperationFactory().getScriptCompileOperation(scriptPlugin.getBodySource(), target);
         File scriptMetadataDir = subdirectory(intermediatePluginMetadataDirectory, scriptPlugin.getId());
         File scriptClassesDir = subdirectory(intermediatePluginClassesDirectory, scriptPlugin.getId());
-        scriptCompilationHandler.compileToDir(
+        getScriptCompilationHandler().compileToDir(
             scriptPlugin.getBodySource(), compileClassLoader, scriptClassesDir,
             scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
             ClosureCreationInterceptingVerifier.INSTANCE);
