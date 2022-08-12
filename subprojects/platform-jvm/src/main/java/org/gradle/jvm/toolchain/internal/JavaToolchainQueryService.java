@@ -19,9 +19,9 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
@@ -42,15 +42,13 @@ public class JavaToolchainQueryService {
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
-    private final ObjectFactory objectFactory;
 
     @Inject
     public JavaToolchainQueryService(
         JavaInstallationRegistry registry,
         JavaToolchainFactory toolchainFactory,
         JavaToolchainProvisioningService provisioningService,
-        ProviderFactory factory,
-        ObjectFactory objectFactory
+        ProviderFactory factory
     ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
@@ -58,7 +56,6 @@ public class JavaToolchainQueryService {
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
-        this.objectFactory = objectFactory;
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -68,11 +65,19 @@ public class JavaToolchainQueryService {
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
         if (!filterInternal.isValid()) {
-            // TODO: issue deprecation warning
+            DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
+                .withAdvice("Consider configuring the language version.")
+                .willBecomeAnErrorInGradle8()
+                .withDslReference(JavaToolchainSpec.class, "languageVersion")
+                .nagUser();
         }
+
         return new DefaultProvider<>(() -> {
-            JavaToolchainSpecInternal configuredSpec = filterInternal.isConfigured() ? filterInternal : new CurrentJvmToolchainSpec(objectFactory);
-            return matchingToolchains.computeIfAbsent(configuredSpec, this::query);
+            if (!filterInternal.isConfigured()) {
+                return null;
+            }
+
+            return matchingToolchains.computeIfAbsent(filterInternal, this::query);
         });
     }
 

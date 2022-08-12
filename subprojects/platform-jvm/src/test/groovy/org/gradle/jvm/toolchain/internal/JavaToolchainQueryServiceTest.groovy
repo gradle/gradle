@@ -20,7 +20,11 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
+import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
@@ -59,9 +63,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind               | expectedPath
-        JavaLanguageVersion.of(9)   | "/path/9"
-        JavaLanguageVersion.of(12)  | "/path/12"
+        versionToFind              | expectedPath
+        JavaLanguageVersion.of(9)  | "/path/9"
+        JavaLanguageVersion.of(12) | "/path/12"
     }
 
     def "uses most recent version of multiple matches for version #versionToFind"() {
@@ -80,10 +84,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind               | expectedPath
-        JavaLanguageVersion.of(7)   | "/path/7.9"
-        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
-        JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
+        versionToFind              | expectedPath
+        JavaLanguageVersion.of(7)  | "/path/7.9"
+        JavaLanguageVersion.of(8)  | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
+        JavaLanguageVersion.of(14) | "/path/14.0.2+12"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17195")
@@ -304,6 +308,61 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.2")
     }
 
+    def "nag user about invalid toolchain spec when #description"() {
+        given:
+        def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+        DeprecationLogger.reset()
+        DeprecationLogger.init(Stub(UsageLocationReporter), WarningMode.All, progressEventEmitter)
+
+        def registry = createInstallationRegistry()
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        configureInvalid(filter)
+        def toolchainProvider = queryService.findMatchingToolchain(filter)
+
+        then:
+        !toolchainProvider.present
+        1 * progressEventEmitter._ >> { DefaultDeprecatedUsageProgressDetails details ->
+            assert details.summary == "Using toolchain specifications without setting a language version has been deprecated."
+        }
+        0 * progressEventEmitter._
+
+        cleanup:
+        DeprecationLogger.reset()
+
+        where:
+        description                                | configureInvalid
+        "only vendor is configured"                | { it.vendor.set(JvmVendorSpec.AZUL) }
+        "only implementation is configured"        | { it.implementation.set(JvmImplementation.VENDOR_SPECIFIC) }
+        "vendor and implementation are configured" | { it.vendor.set(JvmVendorSpec.AZUL); it.implementation.set(JvmImplementation.VENDOR_SPECIFIC) }
+    }
+
+    def "do not nag user when toolchain spec is valid"() {
+        given:
+        def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+        DeprecationLogger.reset()
+        DeprecationLogger.init(Stub(UsageLocationReporter), WarningMode.All, progressEventEmitter)
+
+        def registry = createInstallationRegistry()
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(9))
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(9)
+        0 * progressEventEmitter._
+
+        cleanup:
+        DeprecationLogger.reset()
+    }
+
     private JavaToolchainFactory newToolchainFactory() {
         newToolchainFactory(javaHome -> false)
     }
@@ -316,7 +375,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             @Override
             Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
-                if(metadata.isValidInstallation()) {
+                if (metadata.isValidInstallation()) {
                     def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, eventEmitter) {
                         @Override
                         boolean isCurrentJvm() {
@@ -332,7 +391,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     def newMetadata(InstallationLocation javaHome, String vendor = "") {
-        if(javaHome.location.name.contains("broken")) {
+        if (javaHome.location.name.contains("broken")) {
             return JvmInstallationMetadata.failure(javaHome.location, "errorMessage")
         }
         Mock(JvmInstallationMetadata) {
@@ -342,7 +401,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
             hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
-                if(capability[0] == J9_VIRTUAL_MACHINE) {
+                if (capability[0] == J9_VIRTUAL_MACHINE) {
                     return javaHome.location.name.contains("j9")
                 }
                 return false
