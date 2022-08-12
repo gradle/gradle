@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
+@spock.lang.Ignore('Indy script compilation breaks backwards compatibility for the plugin')
 class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     private static final String PLUGIN_ID = 'foo.bar.my-plugin'
