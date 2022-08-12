@@ -52,6 +52,8 @@ project(':java') {
 }
 
 project(':consumer') {
+    apply plugin: 'jvm-ecosystem'
+
     configurations { consume }
     dependencies { consume project(':java') }
     task resolve {
@@ -80,27 +82,6 @@ project(':consumer') {
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            file-dep.jar {artifactType=jar}
-            other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.status=release}
-            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.status=release}
-        """)
-
-        when:
-        buildFile << """
-            // Currently presents different variant attributes when using the java-base plugin
-            project(':consumer') {
-                apply plugin: 'java-base'
-            }
-        """
-
-        resolve()
-
-        then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        assertResolveOutput("""
-            files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
             file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
             other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
             implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-runtime}
@@ -113,29 +94,10 @@ project(':consumer') {
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
-                dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.LibraryElementsCompatibilityRules)
             }
         """
 
         when:
-        resolve()
-
-        then:
-        result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        assertResolveOutput("""
-            files: [java.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
-        """)
-
-        when:
-        buildFile << """
-            // Currently presents different variant attributes when using the java-base plugin
-            project(':consumer') {
-                apply plugin: 'java-base'
-            }
-        """
-
         resolve()
 
         then:
@@ -153,33 +115,10 @@ project(':consumer') {
                 if ($requestJarAttribute) {
                     configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                 }
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
-                dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.LibraryElementsCompatibilityRules)
             }
         """
 
         when:
-        resolve()
-
-        then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        assertResolveOutput("""
-            files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            file-dep.jar {artifactType=jar}
-            other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.status=release}
-            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.status=release}
-        """)
-
-        when:
-        buildFile << """
-            // Currently presents different variant attributes when using the java-base plugin
-            project(':consumer') {
-                apply plugin: 'java-base'
-            }
-        """
-
         resolve()
 
         then:
@@ -213,10 +152,10 @@ project(':consumer') {
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            file-dep.jar {artifactType=jar}
+            file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
             other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.status=release}
-            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.status=release}
+            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-runtime}
+            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-runtime}
         """)
     }
 
@@ -225,33 +164,10 @@ project(':consumer') {
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
-                dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.LibraryElementsCompatibilityRules)
             }
         """
 
         when:
-        resolve()
-
-        then:
-        result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        assertResolveOutput("""
-            files: [main, file-dep.jar, main, implementation-1.0.jar, runtime-only-1.0.jar]
-            main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-runtime}
-            file-dep.jar {artifactType=jar}
-            main (project :other-java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-runtime}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.status=release}
-            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.status=release}
-        """)
-
-        when:
-        buildFile << """
-            // Currently presents different variant attributes when using the java-base plugin
-            project(':consumer') {
-                apply plugin: 'java-base'
-            }
-        """
-
         resolve()
 
         then:
@@ -277,27 +193,6 @@ project(':consumer') {
         """
 
         when:
-        resolve()
-
-        then:
-        result.assertTasksExecuted(":other-java:processResources", ":java:processResources", ":consumer:resolve")
-        assertResolveOutput("""
-            files: [main, file-dep.jar, main, implementation-1.0.jar, runtime-only-1.0.jar]
-            main (project :java) {artifactType=java-resources-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=resources, org.gradle.usage=java-runtime}
-            file-dep.jar {artifactType=jar}
-            main (project :other-java) {artifactType=java-resources-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=resources, org.gradle.usage=java-runtime}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.status=release}
-            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.status=release}
-        """)
-
-        when:
-        buildFile << """
-            // Currently presents different variant attributes when using the java-base plugin
-            project(':consumer') {
-                apply plugin: 'java-base'
-            }
-        """
-
         resolve()
 
         then:
