@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -166,7 +167,7 @@ public class CppLibraryPlugin implements Plugin<Project> {
                     task.getArchiveClassifier().set("cpp-api-headers");
                     task.getArchiveFileName().set("cpp-api-headers.zip");
                 });
-                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip));
+                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip, ((ProjectInternal) project).getFileResolver()));
             });
 
             library.getBinaries().realizeNow();

@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalR
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -31,6 +30,7 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceLister;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -39,7 +39,6 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
     private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
     public ResourceConnectorRepositoryTransport(String name,
-                                                ProgressLoggerFactory progressLoggerFactory,
                                                 TemporaryFileProvider temporaryFileProvider,
                                                 CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                                 BuildCommencedTimeProvider timeProvider,
@@ -51,9 +50,10 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 FileResourceRepository fileResourceRepository,
                                                 ChecksumService checksumService) {
         super(name);
-        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
-        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
-        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader, buildOperationExecutor);
+        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, buildOperationExecutor);
+        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, buildOperationExecutor);
+        ProgressLoggingExternalResourceLister loggingLister = new ProgressLoggingExternalResourceLister(connector, buildOperationExecutor);
+        repository = new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, loggingLister);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, fileResourceRepository, checksumService);
     }
 

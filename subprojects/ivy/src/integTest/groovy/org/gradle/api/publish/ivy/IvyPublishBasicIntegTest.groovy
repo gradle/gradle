@@ -198,6 +198,75 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @ToBeFixedForConfigurationCache
+    def "can publish custom PublishArtifact"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+            group = 'org.gradle.test'
+            version = '1.0'
+            def writeFileProvider = tasks.register("writeFile") {
+                doLast {
+                    try (FileOutputStream out = new FileOutputStream("customArtifact.jar")) {}
+                }
+            }
+            def customArtifact = new PublishArtifact() {
+                @Override
+                String getName() {
+                    return "customArtifact"
+                }
+                @Override
+                String getExtension() {
+                    return "jar"
+                }
+                @Override
+                String getType() {
+                    return "jar"
+                }
+                @Override
+                String getClassifier() {
+                    return null
+                }
+                @Override
+                File getFile() {
+                    return new File("customArtifact.jar")
+                }
+                @Override
+                Date getDate() {
+                    return new Date()
+                }
+                @Override
+                TaskDependency getBuildDependencies() {
+                    return new TaskDependency() {
+                        @Override
+                        Set<? extends Task> getDependencies(Task task) {
+                            return Collections.singleton(writeFileProvider.get())
+                        }
+                    }
+                }
+            }
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        artifact customArtifact
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+    }
+
+    @ToBeFixedForConfigurationCache
     def "warns when trying to publish a transitive = false variant"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))

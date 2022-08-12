@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -29,7 +28,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class KotlinPrecompiledScriptPluginsSmokeTest extends AbstractSmokeTest {
 
     @UnsupportedWithConfigurationCache(because = "previous Gradle versions")
-    @Unroll
     def "can consume kotlin precompiled scripts published using Gradle #pluginPublishGradleVersion"() {
 
         given: 'a published precompiled script plugin exercising generated accessors'

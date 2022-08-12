@@ -25,21 +25,22 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.verifier.HttpRedirectVerifier
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.nio.file.Files
 
 class AdoptOpenJdkDownloaderTest extends Specification {
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     def "cancelled download does not leave destination file behind"() {
         RepositoryTransportFactory transportFactory = newFailingTransportFactory()
 
         given:
         def downloader = new AdoptOpenJdkDownloader(transportFactory)
-        def destinationFile = new File(temporaryFolder.newFolder(), "target")
+        def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
         downloader.download(URI.create("https://foo"), destinationFile)

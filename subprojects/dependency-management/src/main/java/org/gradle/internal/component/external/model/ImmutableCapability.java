@@ -16,11 +16,16 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
 public class ImmutableCapability implements CapabilityInternal {
+
+    public static ImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
+        return new ImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
+    }
 
     private final String group;
     private final String name;

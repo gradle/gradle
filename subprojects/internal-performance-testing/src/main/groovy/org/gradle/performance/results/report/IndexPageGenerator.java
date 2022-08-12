@@ -17,9 +17,10 @@
 package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -27,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.performance.results.report.Tag.FixedTag.FAILED;
 import static org.gradle.performance.results.report.Tag.FixedTag.FROM_CACHE;
@@ -44,12 +44,12 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
     @Override
     public void render(final ResultsStore store, Writer writer) {
-        long successCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isSuccessful).count();
-        long smallRegressions = executionDataProvider.getScenarioExecutionData().stream()
-            .filter(ScenarioBuildResultData::isRegressed)
+        long successCount = executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isSuccessful).count();
+        long smallRegressions = executionDataProvider.getReportScenarios().stream()
+            .filter(PerformanceReportScenario::isRegressed)
             .filter(this::failsBuild)
             .count();
-        long failureCount = executionDataProvider.getScenarioExecutionData().size() - successCount - smallRegressions;
+        long failureCount = executionDataProvider.getReportScenarios().size() - successCount - smallRegressions;
 
         new TableHtml(writer) {
             @Override
@@ -73,17 +73,17 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             @Override
-            protected List<ScenarioBuildResultData> getCrossVersionScenarios() {
-                return executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isCrossVersion).collect(toList());
+            protected List<PerformanceReportScenario> getCrossVersionScenarios() {
+                return executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isCrossVersion).collect(toList());
             }
 
             @Override
-            protected List<ScenarioBuildResultData> getCrossBuildScenarios() {
-                return executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isCrossBuild).collect(toList());
+            protected List<PerformanceReportScenario> getCrossBuildScenarios() {
+                return executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isCrossBuild).collect(toList());
             }
 
             @Override
-            protected String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
+            protected String determineScenarioBackgroundColorCss(PerformanceReportScenario scenario) {
                 if (scenario.isUnknown()) {
                     return "alert-dark";
                 } else if (!scenario.isSuccessful()) {
@@ -98,7 +98,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             @Override
-            protected Set<Tag> determineTags(ScenarioBuildResultData scenario) {
+            protected Set<Tag> determineTags(PerformanceReportScenario scenario) {
                 Set<Tag> result = new HashSet<>();
                 if (scenario.isFromCache()) {
                     result.add(FROM_CACHE);
@@ -124,7 +124,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 return result;
             }
 
-            private void markFlakyTestInfo(ScenarioBuildResultData scenario, Set<Tag> result) {
+            private void markFlakyTestInfo(PerformanceReportScenario scenario, Set<Tag> result) {
                 PerformanceExperiment experiment = scenario.getPerformanceExperiment();
                 BigDecimal rate = flakinessDataProvider.getFlakinessRate(experiment);
                 if (rate != null && rate.doubleValue() > PerformanceFlakinessDataProvider.FLAKY_THRESHOLD) {
@@ -135,11 +135,8 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             @Override
-            protected void renderScenarioButtons(int index, ScenarioBuildResultData scenario) {
-                List<String> webUrls =
-                    scenario.getRawData().isEmpty()
-                        ? of(scenario.getWebUrl())
-                        : scenario.getRawData().stream().map(ScenarioBuildResultData::getWebUrl).collect(toList());
+            protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {
+                List<String> webUrls = scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(toList());
                 if (webUrls.size() == 1) {
                     a().target("_blank").classAttr("btn btn-primary btn-sm").href(webUrls.get(0)).text("Build").end();
                 } else {
@@ -158,11 +155,9 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         };
     }
 
-    private boolean failsBuild(ScenarioBuildResultData scenario) {
-        return scenario.getRawData().stream()
-            .filter(ScenarioBuildResultData::isRegressed)
-            .map(flakinessDataProvider::getScenarioRegressionResult)
+    private boolean failsBuild(PerformanceReportScenario scenario) {
+        return scenario.getCurrentExecutions().stream()
+            .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
             .allMatch(PerformanceFlakinessDataProvider.ScenarioRegressionResult::isFailsBuild);
     }
-
 }

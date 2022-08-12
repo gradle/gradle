@@ -17,19 +17,15 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -49,14 +45,12 @@ import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginR
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
-import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
-import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
+import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
-import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
-
-import java.util.List;
+import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
@@ -72,14 +66,24 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
     private static class SettingsScopeServices {
 
-        protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
-                                                                  PluginResolutionStrategyInternal internalPluginResolutionStrategy, FileResolver fileResolver,
-                                                                  BuildIncluder buildIncluder, GradleInternal gradle) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy, fileResolver, buildIncluder, gradle);
+        protected PluginManagementSpec createPluginManagementSpec(
+            Instantiator instantiator,
+            PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider,
+            PluginResolutionStrategyInternal internalPluginResolutionStrategy,
+            FileResolver fileResolver,
+            BuildIncluder buildIncluder
+        ) {
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoryHandlerProvider, internalPluginResolutionStrategy, fileResolver, buildIncluder);
         }
     }
 
     private static class BuildScopeServices {
+        void configure(ServiceRegistration registration) {
+            registration.add(PluginResolverFactory.class);
+            registration.add(DefaultPluginRequestApplicator.class);
+            registration.add(PluginVersionTracker.class);
+        }
+
         AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
             return new DefaultAutoAppliedPluginRegistry(buildDefinition);
         }
@@ -88,26 +92,11 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new DefaultAutoAppliedPluginHandler(registry);
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry,
-                                                          DocumentationRegistry documentationRegistry,
-                                                          ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
-                                                          PluginDependencyResolutionServices dependencyResolutionServices,
-                                                          List<PluginResolverContributor> pluginResolverContributors,
-                                                          VersionSelectorScheme versionSelectorScheme) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, pluginResolverContributors, versionSelectorScheme);
-        }
-
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,
-                                                              PluginResolverFactory pluginResolverFactory, PluginResolutionStrategyInternal internalPluginResolutionStrategy,
-                                                              PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
-            return new DefaultPluginRequestApplicator(
-                pluginRegistry, pluginResolverFactory, dependencyResolutionServices.getPluginRepositoriesProvider(),
-                internalPluginResolutionStrategy, pluginInspector, cachedClasspathTransformer);
-        }
-
-        ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
-                                                                                    InjectedPluginClasspath injectedPluginClasspath, CachedClasspathTransformer classpathTransformer,
-                                                                                    InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
+        ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
+            ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
+            InjectedPluginClasspath injectedPluginClasspath, CachedClasspathTransformer classpathTransformer,
+            InjectedClasspathInstrumentationStrategy instrumentationStrategy
+        ) {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
@@ -118,16 +107,20 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
-        PluginDependencyResolutionServices createPluginDependencyResolutionServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
-                                                                                    DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider) {
+        PluginDependencyResolutionServices createPluginDependencyResolutionServices(
+            FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
+            DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider
+        ) {
             return new PluginDependencyResolutionServices(
                 makeDependencyResolutionServicesFactory(fileResolver, fileCollectionFactory, dependencyManagementServices, dependencyMetaDataProvider));
         }
 
-        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final FileResolver fileResolver,
-                                                                                              final FileCollectionFactory fileCollectionFactory,
-                                                                                              final DependencyManagementServices dependencyManagementServices,
-                                                                                              final DependencyMetaDataProvider dependencyMetaDataProvider) {
+        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(
+            final FileResolver fileResolver,
+            final FileCollectionFactory fileCollectionFactory,
+            final DependencyManagementServices dependencyManagementServices,
+            final DependencyMetaDataProvider dependencyMetaDataProvider
+        ) {
             return new Factory<DependencyResolutionServices>() {
                 @Override
                 public DependencyResolutionServices create() {

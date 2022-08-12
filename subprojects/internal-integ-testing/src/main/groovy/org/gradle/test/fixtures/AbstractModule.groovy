@@ -20,7 +20,8 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
 import org.gradle.internal.IoActions
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.HashFunction
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
@@ -40,7 +41,7 @@ abstract class AbstractModule implements Module {
      */
     protected void publish(TestFile file, @DelegatesTo(value=Writer, strategy=Closure.DELEGATE_FIRST) Closure cl, byte[] content = null) {
         file.parentFile.mkdirs()
-        def hashBefore = file.exists() ? getHash(file, "sha1") : null
+        def hashBefore = file.exists() ? Hashing.sha1().hashFile(file) : null
         def tmpFile = file.parentFile.file("${file.name}.tmp")
 
         if (content) {
@@ -53,7 +54,7 @@ abstract class AbstractModule implements Module {
             tmpFile.setText(TextUtil.normaliseLineSeparators(tmpFile.getText("utf-8")), "utf-8")
         }
 
-        def hashAfter = getHash(tmpFile, "sha1")
+        def hashAfter = Hashing.sha1().hashFile(tmpFile)
         if (hashAfter == hashBefore) {
             // Already published
             return
@@ -101,50 +102,47 @@ abstract class AbstractModule implements Module {
     }
 
     TestFile getSha1File(TestFile file) {
-        getHashFile(file, "sha1")
+        getHashFile(file, Hashing.sha1())
     }
 
     TestFile sha1File(TestFile file) {
-        hashFile(file, "sha1", 40)
-    }
-
-    TestFile sha256File(TestFile file) {
-        hashFile(file, "sha-256", 64)
-    }
-
-    TestFile sha512File(TestFile file) {
-        hashFile(file, "sha-512", 128)
-    }
-
-    TestFile getMd5File(TestFile file) {
-        getHashFile(file, "md5")
-    }
-
-    TestFile md5File(TestFile file) {
-        hashFile(file, "md5", 32)
+        hashFile(file, Hashing.sha1())
     }
 
     TestFile getSha256File(TestFile file) {
-        getHashFile(file, "sha-256")
+        getHashFile(file, Hashing.sha256())
+    }
+
+    TestFile sha256File(TestFile file) {
+        hashFile(file, Hashing.sha256())
     }
 
     TestFile getSha512File(TestFile file) {
-        getHashFile(file, "sha-512")
+        getHashFile(file, Hashing.sha512())
     }
 
-    private TestFile hashFile(TestFile file, String algorithm, int len) {
-        def hashFile = getHashFile(file, algorithm)
-        def hash = getHash(file, algorithm)
-        hashFile.text = String.format("%0${len}x", hash)
+    TestFile sha512File(TestFile file) {
+        hashFile(file, Hashing.sha512())
+    }
+
+    TestFile getMd5File(TestFile file) {
+        getHashFile(file, Hashing.md5())
+    }
+
+    TestFile md5File(TestFile file) {
+        hashFile(file, Hashing.md5())
+    }
+
+    private TestFile hashFile(TestFile file, HashFunction hashFunction) {
+        def hashFile = getHashFile(file, hashFunction)
+        def hash = hashFunction.hashFile(file)
+        hashFile.text = hash.toZeroPaddedString(hashFunction.hexDigits)
         return hashFile
     }
 
-    private TestFile getHashFile(TestFile file, String algorithm) {
-        file.parentFile.file("${file.name}.${algorithm.replaceAll('-', '')}")
-    }
-
-    protected BigInteger getHash(TestFile file, String algorithm) {
-        HashUtil.createHash(file, algorithm.toUpperCase()).asBigInteger()
+    private TestFile getHashFile(TestFile file, HashFunction hashFunction) {
+        def algorithm = hashFunction.algorithm.toLowerCase(Locale.ROOT).replaceAll('-', '')
+        file.parentFile.file("${file.name}.${algorithm}")
     }
 
     Module withModuleMetadata() {

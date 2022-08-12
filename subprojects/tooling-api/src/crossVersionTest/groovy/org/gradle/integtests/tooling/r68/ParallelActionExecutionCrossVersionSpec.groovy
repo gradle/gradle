@@ -94,8 +94,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         server.expectConcurrent(1, 'root', 'a', 'b')
         def models = withConnection {
             def action = action(new ActionRunsNestedActions())
-            action.standardOutput = System.out
-            action.standardError = System.err
+            collectOutputs(action)
             action.addArguments(args)
             action.run()
         }

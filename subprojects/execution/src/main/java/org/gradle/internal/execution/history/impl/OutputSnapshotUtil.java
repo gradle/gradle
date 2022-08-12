@@ -23,12 +23,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
@@ -41,8 +42,8 @@ import java.util.function.BiPredicate;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformEntries;
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 import static org.gradle.internal.snapshot.SnapshotUtil.index;
 
 public class OutputSnapshotUtil {
@@ -133,7 +134,7 @@ public class OutputSnapshotUtil {
         );
     }
 
-    private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+    private static boolean isOutputEntry(Set<String> previousLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
         // A root is always an output, even when it's missing or unchanged
         if (isRoot) {
             return true;
@@ -148,7 +149,7 @@ public class OutputSnapshotUtil {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousExecutionLocations.contains(afterExecutionSnapshot.getAbsolutePath());
+        return previousLocations.contains(afterExecutionSnapshot.getAbsolutePath());
     }
 
     private static FileSystemSnapshot filterSnapshot(FileSystemSnapshot root, BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {
@@ -168,7 +169,7 @@ public class OutputSnapshotUtil {
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 
         private boolean hasBeenFiltered;
-        private MerkleDirectorySnapshotBuilder merkleBuilder;
+        private DirectorySnapshotBuilder directorySnapshotBuilder;
         private boolean currentRootFiltered;
         private DirectorySnapshot currentRoot;
 
@@ -182,7 +183,7 @@ public class OutputSnapshotUtil {
             EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy = isOutputDir
                 ? INCLUDE_EMPTY_DIRS
                 : EXCLUDE_EMPTY_DIRS;
-            merkleBuilder.enterDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
+            directorySnapshotBuilder.enterDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
         }
 
         @Override
@@ -190,8 +191,8 @@ public class OutputSnapshotUtil {
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
                 public void visitDirectory(DirectorySnapshot directorySnapshot) {
-                    if (merkleBuilder == null) {
-                        merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+                    if (directorySnapshotBuilder == null) {
+                        directorySnapshotBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
                         currentRoot = directorySnapshot;
                         currentRootFiltered = false;
                     }
@@ -216,28 +217,28 @@ public class OutputSnapshotUtil {
                 currentRootFiltered = true;
                 return;
             }
-            if (merkleBuilder == null) {
+            if (directorySnapshotBuilder == null) {
                 newRootsBuilder.add(snapshot);
             } else {
                 if (snapshot instanceof FileSystemLeafSnapshot) {
-                    merkleBuilder.visitLeafElement((FileSystemLeafSnapshot) snapshot);
+                    directorySnapshotBuilder.visitLeafElement((FileSystemLeafSnapshot) snapshot);
                 }
             }
         }
 
         @Override
         public void leaveDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
-            boolean includedDir = merkleBuilder.leaveDirectory();
-            if (!includedDir) {
+            boolean excludedDir = directorySnapshotBuilder.leaveDirectory() == null;
+            if (excludedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
             }
             if (isRoot) {
-                FileSystemLocationSnapshot result = merkleBuilder.getResult();
+                FileSystemLocationSnapshot result = directorySnapshotBuilder.getResult();
                 if (result != null) {
                     newRootsBuilder.add(currentRootFiltered ? result : currentRoot);
                 }
-                merkleBuilder = null;
+                directorySnapshotBuilder = null;
                 currentRoot = null;
             }
         }

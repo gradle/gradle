@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation for interacting with repositories over sftp"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))

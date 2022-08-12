@@ -22,8 +22,8 @@ import spock.lang.Specification
 class VisualCppCompilerArgsTransformerTest extends Specification {
     def transformer = new VisualCppCompilerArgsTransformer<NativeCompileSpec>() {
         @Override
-        protected String getLanguageOption() {
-            return "/GRADLE_DSL"
+        protected Optional<String> getLanguageOption() {
+            return Optional.of("/GRADLE_DSL")
         }
     }
 
@@ -59,6 +59,18 @@ class VisualCppCompilerArgsTransformerTest extends Specification {
 
         and:
         args.indexOf("/I" + includes.last().absoluteFile.toString()) < args.indexOf("/I" + systemIncludes.first().absoluteFile.toString())
+    }
+
+    def "does not include an empty string in compiler options"() {
+        given:
+        def transformer = new VisualCppCompilerArgsTransformer<NativeCompileSpec>() {}
+        def spec = Stub(NativeCompileSpec)
+
+        when:
+        def args = transformer.transform(spec)
+
+        then:
+        !args.contains("")
     }
 
     boolean assertHasArguments(List<String> args, String option, List<File> files) {

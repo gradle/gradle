@@ -41,7 +41,8 @@ class ComponentResultSerializerTest extends SerializerSpec {
             new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
         ),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
-        componentIdentifierSerializer
+        componentIdentifierSerializer,
+        false
     )
 
     def "serializes"() {
@@ -74,7 +75,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         def selection = new DetachedComponentResult(12L,
             newId('org', 'foo', '2.0'),
             ComponentSelectionReasons.requested(),
-            componentIdentifier, [v1, v2],
+            componentIdentifier, [v1, v2], [v1, v2],
             'repoName')
 
         when:
@@ -85,36 +86,38 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
-        result.resolvedVariants.size() == 2
-        result.resolvedVariants[0].displayName == 'v1'
-        result.resolvedVariants[0].attributes == ImmutableAttributes.EMPTY
-        result.resolvedVariants[0].capabilities.size() == 1
-        result.resolvedVariants[0].capabilities[0].group == 'org'
-        result.resolvedVariants[0].capabilities[0].name == 'foo'
-        result.resolvedVariants[0].capabilities[0].version == '1.0'
-        result.resolvedVariants[0].owner == componentIdentifier
-        result.resolvedVariants[1].displayName == 'v2'
-        result.resolvedVariants[1].attributes == attributes.asImmutable()
-        result.resolvedVariants[1].capabilities.size() == 2
-        result.resolvedVariants[1].capabilities[0].group == 'org'
-        result.resolvedVariants[1].capabilities[0].name == 'bar'
-        result.resolvedVariants[1].capabilities[0].version == '1.0'
-        result.resolvedVariants[1].capabilities[1].group == 'org'
-        result.resolvedVariants[1].capabilities[1].name == 'baz'
-        result.resolvedVariants[1].capabilities[1].version == '1.0'
-        result.resolvedVariants[1].owner == componentIdentifier
-        result.resolvedVariants[1].externalVariant.present
-        def external = result.resolvedVariants[1].externalVariant.get()
-        external.displayName == 'v3'
-        external.attributes == attributes.asImmutable()
-        external.capabilities.size() == 2
-        external.capabilities[0].group == 'org'
-        external.capabilities[0].name == 'bar'
-        external.capabilities[0].version == '1.0'
-        external.capabilities[1].group == 'org'
-        external.capabilities[1].name == 'baz'
-        external.capabilities[1].version == '1.0'
-        external.owner == extId
+        for (def variants : [result.resolvedVariants, result.allVariants]) {
+            variants.size() == 2
+            variants[0].displayName == 'v1'
+            variants[0].attributes == ImmutableAttributes.EMPTY
+            variants[0].capabilities.size() == 1
+            variants[0].capabilities[0].group == 'org'
+            variants[0].capabilities[0].name == 'foo'
+            variants[0].capabilities[0].version == '1.0'
+            variants[0].owner == componentIdentifier
+            variants[1].displayName == 'v2'
+            variants[1].attributes == attributes.asImmutable()
+            variants[1].capabilities.size() == 2
+            variants[1].capabilities[0].group == 'org'
+            variants[1].capabilities[0].name == 'bar'
+            variants[1].capabilities[0].version == '1.0'
+            variants[1].capabilities[1].group == 'org'
+            variants[1].capabilities[1].name == 'baz'
+            variants[1].capabilities[1].version == '1.0'
+            variants[1].owner == componentIdentifier
+            variants[1].externalVariant.present
+            def external = variants[1].externalVariant.get()
+            external.displayName == 'v3'
+            external.attributes == attributes.asImmutable()
+            external.capabilities.size() == 2
+            external.capabilities[0].group == 'org'
+            external.capabilities[0].name == 'bar'
+            external.capabilities[0].version == '1.0'
+            external.capabilities[1].group == 'org'
+            external.capabilities[1].name == 'baz'
+            external.capabilities[1].version == '1.0'
+            external.owner == extId
+        }
         result.repositoryName == 'repoName'
     }
 

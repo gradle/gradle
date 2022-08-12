@@ -17,15 +17,19 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.internal.VersionNumber;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,11 +39,14 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 /**
  * A plugin for the <a href="https://pmd.github.io/">PMD</a> source code analyzer.
  * <p>
- * Declares a <tt>pmd</tt> configuration which needs to be configured with the PMD library to be used.
+ * Declares a <code>pmd</code> configuration which needs to be configured with the PMD library to be used.
+ * <p>
+ * Declares a <code>pmdAux</code> configuration to add transitive compileOnly dependencies to the PMD's auxclasspath. This is only needed if PMD complains about NoClassDefFoundError during type
+ * resolution.
  * <p>
  * For each source set that is to be analyzed, a {@link Pmd} task is created and configured to analyze all Java code.
  * <p>
- * All PMD tasks (including user-defined ones) are added to the <tt>check</tt> lifecycle task.
+ * All PMD tasks (including user-defined ones) are added to the <code>check</code> lifecycle task.
  *
  * @see PmdExtension
  * @see Pmd
@@ -47,8 +54,16 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.31.0";
+    public static final String DEFAULT_PMD_VERSION = "6.39.0";
+    private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
+
     private PmdExtension extension;
+
+    @Inject
+    protected JvmPluginServices getJvmPluginServices() {
+        // Constructor injection is not used to keep binary compatibility
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     protected String getToolName() {
@@ -79,6 +94,17 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             // Use same fallback as PMD
             return TargetJdk.VERSION_1_4;
         }
+    }
+
+    @Override
+    protected void createConfigurations() {
+        super.createConfigurations();
+        project.getConfigurations().create(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
+            additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
+            additionalAuxDepsConfiguration.setCanBeResolved(false);
+            additionalAuxDepsConfiguration.setCanBeConsumed(false);
+            additionalAuxDepsConfiguration.setVisible(false);
+        });
     }
 
     @Override
@@ -115,6 +141,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
+        task.getThreads().convention(extension.getThreads());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
@@ -146,7 +173,26 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.setDescription("Run PMD analysis for " + sourceSet.getName() + " classes");
         task.setSource(sourceSet.getAllJava());
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("classpath", () ->
-            sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
+        ConfigurationContainer configurations = project.getConfigurations();
+
+        Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
+
+        // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
+        Configuration pmdAuxClasspath = configurations.create(sourceSet.getName() + "PmdAuxClasspath");
+        pmdAuxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
+        pmdAuxClasspath.setCanBeConsumed(false);
+        pmdAuxClasspath.setVisible(false);
+        // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
+        getJvmPluginServices().configureAsRuntimeClasspath(pmdAuxClasspath);
+
+        // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
+        // classpath of the test sourceSet contains output of the main sourceSet.
+        taskMapping.map("classpath", () -> {
+            // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations are resolved differently (as a compile and as a
+            // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files (e.g. compiled classes directory vs. jar).
+            FileCollection nonConfigurationClasspathEntries = sourceSet.getCompileClasspath().minus(compileClasspath);
+            return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath);
+        });
     }
 }

@@ -1,20 +1,19 @@
 package org.example
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
-    @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir File testProjectDir
     File buildFile
 
     def setup() {
-        testProjectDir.newFile('settings.gradle') << ""
-        buildFile = testProjectDir.newFile('build.gradle')
+        new File(testProjectDir, 'settings.gradle') << ""
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     // tag::functional-test-configuration-cache[]
@@ -44,7 +43,7 @@ class BuildLogicFunctionalTest extends Specification {
 
     def runner() {
         return GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withPluginClasspath()
     }
 }

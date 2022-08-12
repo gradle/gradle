@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.local
 
 import org.gradle.api.Action
-import org.gradle.api.Transformer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.resources.ResourceException
@@ -31,13 +30,13 @@ class LocalFileStandInExternalResourceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def "can apply ContentAction to file contents"() {
+    def "can apply ContentAndMetadataAction to file contents"() {
         def file = tmpDir.createFile("content")
         file.text = "1234"
 
         expect:
         def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
-        def result = resource.withContentIfPresent(new ExternalResource.ContentAction<String>() {
+        def result = resource.withContentIfPresent(new ExternalResource.ContentAndMetadataAction<String>() {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
                 assert metaData.location == file.toURI()
@@ -51,7 +50,7 @@ class LocalFileStandInExternalResourceTest extends Specification {
         result.result == "result 1"
         result.bytesRead == 4
 
-        def result2 = resource.withContent(new ExternalResource.ContentAction<String>() {
+        def result2 = resource.withContent(new ExternalResource.ContentAndMetadataAction<String>() {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
                 assert metaData.location == file.toURI()
@@ -67,11 +66,11 @@ class LocalFileStandInExternalResourceTest extends Specification {
         result2.bytesRead == 2
     }
 
-    def "forwards exception thrown by ContentAction"() {
+    def "forwards exception thrown by ContentAndMetadataAction"() {
         def file = tmpDir.createFile("content")
         file.text = "1234"
         def failure = new RuntimeException()
-        def action = Stub(ExternalResource.ContentAction)
+        def action = Stub(ExternalResource.ContentAndMetadataAction)
         action.execute(_, _) >> { throw failure }
 
         def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
@@ -91,6 +90,130 @@ class LocalFileStandInExternalResourceTest extends Specification {
         e2 == failure
     }
 
+    def "wraps IOException thrown by ContentAndMetadataAction"() {
+        def file = tmpDir.createFile("content")
+        file.text = "1234"
+        def failure = new IOException()
+        def action = Stub(ExternalResource.ContentAndMetadataAction)
+        action.execute(_, _) >> { throw failure }
+
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+
+        when:
+        resource.withContentIfPresent(action)
+
+        then:
+        def e = thrown(ResourceException)
+        e.message == "Could not get resource '${file.toURI()}'."
+        e.cause == failure
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e2 = thrown(ResourceException)
+        e2.message == "Could not get resource '${file.toURI()}'."
+        e2.cause == failure
+    }
+
+    def "can ignore missing file when using ContentAndMetadataAction"() {
+        def file = tmpDir.file("missing")
+
+        expect:
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+        resource.withContentIfPresent({} as ExternalResource.ContentAndMetadataAction) == null
+    }
+
+    def "can fail on missing file when using ContentAndMetadataAction"() {
+        def file = tmpDir.file("missing")
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+
+        when:
+        resource.withContent({} as ExternalResource.ContentAndMetadataAction)
+
+        then:
+        def e = thrown(MissingResourceException)
+        e.location == resource.URI
+    }
+
+    def "can apply ContentAction to file contents"() {
+        def file = tmpDir.createFile("content")
+        file.text = "1234"
+
+        expect:
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+        def result = resource.withContentIfPresent(new ExternalResource.ContentAction<String>() {
+            @Override
+            String execute(InputStream input) throws IOException {
+                assert input.text == "1234"
+                return "result 1"
+            }
+        })
+        result.result == "result 1"
+        result.bytesRead == 4
+
+        def result2 = resource.withContent(new ExternalResource.ContentAction<String>() {
+            @Override
+            String execute(InputStream inputStream) throws IOException {
+                assert inputStream.read() == '1'
+                assert inputStream.read() == '2'
+                return "result 2"
+            }
+        })
+        result2.result == "result 2"
+        result2.bytesRead == 2
+    }
+
+    def "forwards exception thrown by ContentAction"() {
+        def file = tmpDir.createFile("content")
+        file.text = "1234"
+        def failure = new RuntimeException()
+        def action = Stub(ExternalResource.ContentAction)
+        action.execute(_) >> { throw failure }
+
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+
+        when:
+        resource.withContentIfPresent(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2 == failure
+    }
+
+    def "wraps IOException thrown by ContentAction"() {
+        def file = tmpDir.createFile("content")
+        file.text = "1234"
+        def failure = new IOException()
+        def action = Stub(ExternalResource.ContentAction)
+        action.execute(_) >> { throw failure }
+
+        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
+
+        when:
+        resource.withContentIfPresent(action)
+
+        then:
+        def e = thrown(ResourceException)
+        e.message == "Could not get resource '${file.toURI()}'."
+        e.cause == failure
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e2 = thrown(ResourceException)
+        e2.message == "Could not get resource '${file.toURI()}'."
+        e2.cause == failure
+    }
+
     def "can ignore missing file when using ContentAction"() {
         def file = tmpDir.file("missing")
 
@@ -105,78 +228,6 @@ class LocalFileStandInExternalResourceTest extends Specification {
 
         when:
         resource.withContent({} as ExternalResource.ContentAction)
-
-        then:
-        def e = thrown(MissingResourceException)
-        e.location == resource.URI
-    }
-
-    def "can apply Transformer to file contents"() {
-        def file = tmpDir.createFile("content")
-        file.text = "1234"
-
-        expect:
-        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
-        def result = resource.withContentIfPresent(new Transformer<String, InputStream>() {
-            @Override
-            String transform(InputStream input) {
-                assert input.text == "1234"
-                return "result 1"
-            }
-        })
-        result.result == "result 1"
-        result.bytesRead == 4
-
-        def result2 = resource.withContent(new Transformer<String, InputStream>() {
-            @Override
-            String transform(InputStream inputStream) {
-                assert inputStream.read() == '1'
-                assert inputStream.read() == '2'
-                return "result 2"
-            }
-        })
-        result2.result == "result 2"
-        result2.bytesRead == 2
-    }
-
-    def "forwards exception thrown by Transformer"() {
-        def file = tmpDir.createFile("content")
-        file.text = "1234"
-        def failure = new RuntimeException()
-        def transformer = Stub(Transformer)
-        transformer.transform(_) >> { throw failure }
-
-        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
-
-        when:
-        resource.withContentIfPresent(transformer)
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        when:
-        resource.withContent(transformer)
-
-        then:
-        def e2 = thrown(RuntimeException)
-        e2 == failure
-    }
-
-    def "can ignore missing file when using Transformer"() {
-        def file = tmpDir.file("missing")
-
-        expect:
-        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
-        resource.withContentIfPresent({} as Transformer) == null
-    }
-
-    def "can fail on missing file when using Transformer"() {
-        def file = tmpDir.file("missing")
-        def resource = new LocalFileStandInExternalResource(file, TestFiles.fileSystem())
-
-        when:
-        resource.withContent({} as Transformer)
 
         then:
         def e = thrown(MissingResourceException)

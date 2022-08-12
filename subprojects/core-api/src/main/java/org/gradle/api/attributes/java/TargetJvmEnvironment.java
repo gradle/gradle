@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes.java;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 
@@ -28,7 +27,6 @@ import org.gradle.api.attributes.Attribute;
  *
  * @since 7.0
  */
-@Incubating
 public interface TargetJvmEnvironment extends Named {
     Attribute<TargetJvmEnvironment> TARGET_JVM_ENVIRONMENT_ATTRIBUTE = Attribute.of("org.gradle.jvm.environment", TargetJvmEnvironment.class);
 

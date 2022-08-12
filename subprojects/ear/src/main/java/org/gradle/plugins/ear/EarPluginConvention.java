@@ -16,13 +16,17 @@
 package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 /**
  * Ear Plugin Convention.
+ *
+ * @deprecated Instead of using conventions, configure the tasks directly. This class is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public abstract class EarPluginConvention {
     /**
      * The name of the application directory, relative to the project directory.
@@ -76,7 +80,7 @@ public abstract class EarPluginConvention {
      * @param configureClosure The closure.
      * @return This.
      */
-    public abstract EarPluginConvention deploymentDescriptor(Closure configureClosure);
+    public abstract EarPluginConvention deploymentDescriptor(@DelegatesTo(DeploymentDescriptor.class) Closure configureClosure);
 
     /**
      * Configures the deployment descriptor for this EAR archive.

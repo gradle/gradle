@@ -20,7 +20,7 @@ class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     String getBuildScriptConfigurationForValidation() {
         """micronaut {
-                version '${TestedVersions.micronaut.latest()}'
+                version '2.5.4'
            }
 
            pluginManager.withPlugin('io.micronaut.application') {

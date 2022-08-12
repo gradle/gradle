@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.install.internal;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -33,17 +34,22 @@ import java.util.Optional;
 
 public class AdoptOpenJdkRemoteBinary {
 
+    private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
+    private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
+
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
     private final AdoptOpenJdkDownloader downloader;
-    private final Provider<String> rootUrl;
+    private final Provider<String> adoptOpenJdkRootUrl;
+    private final Provider<String> adoptiumRootUrl;
 
     @Inject
     public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
-        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").forUseAtConfigurationTime();
+        this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
+        this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
@@ -55,12 +61,29 @@ public class AdoptOpenJdkRemoteBinary {
         return Optional.of(destinationFile);
     }
 
-    private boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
-        final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
-        final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        JvmVendor vendor = JvmVendor.fromString("adoptopenjdk");
-        boolean matchesVendor = vendorSpec == DefaultJvmVendorSpec.any() || vendorSpec.test(vendor);
+    public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
+        final boolean matchesLanguageVersion = determineLanguageVersion(spec).canCompileOrRun(8);
+        boolean matchesVendor = matchesVendor(spec);
         return matchesLanguageVersion && matchesVendor;
+    }
+
+    private boolean matchesVendor(JavaToolchainSpec spec) {
+        final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        if (vendorSpec == DefaultJvmVendorSpec.any()) {
+            return true;
+        }
+
+        if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTOPENJDK.asJvmVendor())) {
+            DeprecationLogger.deprecateBehaviour("Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.")
+                    .willBeRemovedInGradle8().withUpgradeGuideSection(7, "adoptopenjdk_download").nagUser();
+            return true;
+        }
+
+        if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTIUM.asJvmVendor()) && !isJ9ExplicitlyRequested(spec)) {
+            return true;
+        }
+
+        return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
     URI toDownloadUri(JavaToolchainSpec spec) {
@@ -68,26 +91,35 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private URI constructUri(JavaToolchainSpec spec) {
-        return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + getLanguageVersion(spec).toString() +
-            "/" +
-            determineReleaseState() +
-            "/" +
-            determineOs() +
-            "/" +
-            determineArch() +
-            "/jdk/" +
-            determineImplementation(spec) +
-            "/normal/adoptopenjdk");
+        return URI.create(determineServerBaseUri(spec) +
+                "v3/binary/latest/" + determineLanguageVersion(spec) +
+                "/" +
+                determineReleaseState() +
+                "/" +
+                determineOs() +
+                "/" +
+                determineArch() +
+                "/jdk/" +
+                determineImplementation(spec) +
+                "/normal/" +
+                determineOrganization(spec));
     }
 
-    private String determineImplementation(JavaToolchainSpec spec) {
-        final JvmImplementation implementation = spec.getImplementation().getOrNull();
-        return implementation == JvmImplementation.J9 ? "openj9" : "hotspot";
+    private static String determineImplementation(JavaToolchainSpec spec) {
+        return isJ9Requested(spec) ? "openj9" : "hotspot";
+    }
+
+    private String determineVendor(JavaToolchainSpec spec) {
+        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        if (vendorSpec == DefaultJvmVendorSpec.any()) {
+            return "adoptium";
+        } else {
+            return vendorSpec.toString().toLowerCase();
+        }
     }
 
     public String toFilename(JavaToolchainSpec spec) {
-        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec).toString(), determineArch(), determineOs(), determineFileExtension());
+        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {
@@ -97,7 +129,7 @@ public class AdoptOpenJdkRemoteBinary {
         return "tar.gz";
     }
 
-    private JavaLanguageVersion getLanguageVersion(JavaToolchainSpec spec) {
+    private static JavaLanguageVersion determineLanguageVersion(JavaToolchainSpec spec) {
         return spec.getLanguageVersion().get();
     }
 
@@ -124,16 +156,47 @@ public class AdoptOpenJdkRemoteBinary {
         return operatingSystem.getFamilyName();
     }
 
-    private String determineReleaseState() {
+    private static String determineReleaseState() {
         return "ga";
     }
 
-    private String getServerBaseUri() {
-        String baseUri = rootUrl.getOrElse("https://api.adoptopenjdk.net/");
+    private String determineServerBaseUri(JavaToolchainSpec spec) {
+        String baseUri = adoptiumHasIt(spec) ? adoptiumRootUrl.getOrElse(DEFAULT_ADOPTIUM_ROOT_URL) :
+                adoptOpenJdkRootUrl.getOrElse(DEFAULT_ADOPTOPENJDK_ROOT_URL);
+
         if (!baseUri.endsWith("/")) {
             baseUri += "/";
         }
         return baseUri;
+    }
+
+    private static String determineOrganization(JavaToolchainSpec spec) {
+        return adoptiumHasIt(spec) ? "eclipse" : "adoptopenjdk";
+    }
+
+    private static boolean adoptiumHasIt(JavaToolchainSpec spec) { //TODO: also consider if ADOPTIUM was explicitly requested as the VENDOR?
+        if (isJ9Requested(spec)) {
+            return false;
+        }
+
+        int version = determineLanguageVersion(spec).asInt();
+        return version == 8 || version == 11 || version >= 16; // https://api.adoptium.net/v3/info/available_releases
+    }
+
+    private static boolean isJ9Requested(JavaToolchainSpec spec) {
+        if (isJ9ExplicitlyRequested(spec)) {
+            return true;
+        }
+        return isJ9RequestedViaVendor(spec);
+    }
+
+    private static boolean isJ9ExplicitlyRequested(JavaToolchainSpec spec) {
+        return spec.getImplementation().get() == JvmImplementation.J9;
+    }
+
+    private static boolean isJ9RequestedViaVendor(JavaToolchainSpec spec) {
+        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
 }

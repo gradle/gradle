@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -31,7 +30,6 @@ class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTes
      * org.gradle:test:1.45 -> org.gradle:foo:2.0, org.gradle:bar:3.0, com.company:company:4.0, com.company:other-company:4.0
      * com.company:company:4.0 -> com.enterprise:enterprise:5.0, org.gradle:baz:6.0
      */
-    @Unroll
     def "dependency exclude rule for #condition"() {
         given:
         final String orgGradleGroupId = 'org.gradle'
@@ -141,7 +139,6 @@ task test {
      * +--- org.foo:foo:2.0
      *      \--- org.bar:bar:3.0
      */
-    @Unroll
     @Issue("gradle/gradle#951")
     def "can declare fine-grained transitive dependency #condition"() {
         given:

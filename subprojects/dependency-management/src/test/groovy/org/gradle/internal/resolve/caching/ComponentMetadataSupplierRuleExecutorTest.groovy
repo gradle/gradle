@@ -30,10 +30,10 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -43,8 +43,8 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.StringValueSnapshot
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -55,7 +55,7 @@ import java.time.Duration
 class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     @Subject
     ComponentMetadataSupplierRuleExecutor executor
-    CacheRepository cacheRepository
+    GlobalScopedCache cacheRepository
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {

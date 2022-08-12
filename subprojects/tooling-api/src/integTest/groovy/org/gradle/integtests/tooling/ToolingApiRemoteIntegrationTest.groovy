@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.tooling
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -29,8 +28,11 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -38,23 +40,22 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 @LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    @Rule
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def setup() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test; make sure a <test>NormalizedDistribution dependency is defined."
+        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test; make sure a <test>NormalizedDistribution dependency is defined."
         server.start()
         toolingApi.requireIsolatedUserHome()
+        settingsFile.touch()
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
     def "downloads distribution with valid user-agent information"() {
         given:
-        settingsFile << "";
-        buildFile << "task hello { doLast { println hello } }"
-
-        and:
         server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))
 
         and:
@@ -63,25 +64,22 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        ByteArrayOutputStream buildOutput = new ByteArrayOutputStream()
-
         toolingApi.withConnection { connection ->
-            BuildLauncher launcher = connection.newBuild().forTasks("hello")
-            launcher.standardOutput = buildOutput;
+            BuildLauncher launcher = connection.newBuild().forTasks("help")
             launcher.run()
         }
 
         then:
-        buildOutput.toString().contains('hello')
         toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
-    @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    def "receives distribution download progress events"() {
+    def "loads credentials from gradle.properties"() {
         given:
-        settingsFile << ""
-
-        and:
+        server.withBasicAuthentication("username", "password")
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperUser=username
+            systemProp.gradle.wrapperPassword=password
+        """.stripIndent()
         server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
 
         and:
@@ -91,7 +89,54 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEventsWithStatus()
+        toolingApi.withConnection { connection ->
+            BuildLauncher launcher = connection.newBuild().forTasks("help")
+            launcher.run()
+        }
+
+        then:
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
+    }
+
+    def "supports project-relative distribution download dir"() {
+        given:
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
+        file("gradle/wrapper/gradle-wrapper.properties") << """
+            distributionBase=PROJECT
+            distributionPath=wrapper/dists
+            distributionUrl=http\\://localhost:${server.port}/custom-dist.zip
+            zipStoreBase=PROJECT
+            zipStorePath=wrapper/dists
+        """
+
+        and:
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useBuildDistribution()
+        }
+
+        when:
+        toolingApi.withConnection { connection ->
+            BuildLauncher launcher = connection.newBuild().forTasks("help")
+            launcher.run()
+        }
+
+        then:
+        file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
+    }
+
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    def "receives distribution download progress events"() {
+        given:
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
+
+        and:
+        def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(distUri)
+        }
+
+        when:
+        def events = ProgressEvents.create()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("help")
@@ -101,15 +146,16 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def download = events.buildOperations.first()
+        download.assertIsDownload(distUri, distribution.binDistribution.length())
         download.successful
-        download.descriptor.displayName == "Download " + distUri
 
         !download.statusEvents.empty
 
         download.statusEvents.each { statusEvent ->
-            assert statusEvent.displayName == "Download $distUri $statusEvent.progress/$statusEvent.total bytes downloaded"
-            assert statusEvent.total == distribution.binDistribution.length()
-            assert statusEvent.progress <= distribution.binDistribution.length()
+            def event = statusEvent.event
+            assert event.displayName == "Download $distUri ${event.progress}/${event.total} bytes completed"
+            assert event.total == distribution.binDistribution.length()
+            assert event.progress <= distribution.binDistribution.length()
         }
 
         // Build execution is sibling of download
@@ -133,7 +179,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEventsWithStatus()
+        def events = ProgressEvents.create()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("help")
@@ -149,22 +195,48 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         events.buildOperations.size() == 1
 
         def download = events.buildOperations.first()
+        download.assertIsDownload(distUri, 0)
         !download.successful
-        download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
         download.failures.first().message == "Server returned HTTP response code: 500 for URL: ${distUri}"
+    }
+
+    def "does not receive distribution download progress events when not requested"() {
+        given:
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
+
+        and:
+        def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(distUri)
+        }
+
+        when:
+        def events = ProgressEvents.create()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .addProgressListener(events, EnumSet.complementOf(EnumSet.of(OperationType.FILE_DOWNLOAD)))
+                .run()
+        }
+
+        then:
+        !events.operations.any { it.download }
     }
 
     def "can cancel distribution download"() {
         def userHomeDir = file("user-home-dir")
 
         given:
-        settingsFile << "";
-        buildFile << "task hello { doLast { println hello } }"
         def tokenSource = new DefaultCancellationTokenSource()
         def distUri = server.uri("cancelled-dist.zip")
 
-        def content = distribution.binDistribution.bytes[0..30000] as byte[] // more than one progress tick in output
+        BufferedReader reader = new BufferedReader(new FileReader(distribution.binDistribution))
+        def content = new byte[30000] // more than one progress tick in output
+        for (i in 0..<content.length) {
+            content[i++] = reader.read() as byte
+        }
+
         def downloadHandle = server.get("cancelled-dist.zip").sendSomeAndBlock(content)
         server.expect(downloadHandle)
 
@@ -175,11 +247,11 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEventsWithStatus()
+        def events = ProgressEvents.create()
         def handler = new TestResultHandler()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
-                .forTasks("hello")
+                .forTasks("help")
                 .withCancellationToken(tokenSource.token())
                 .addProgressListener(events)
                 .run(handler)
@@ -200,5 +272,39 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         !download.successful
         download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/15405')
+    def "calling disconnect on uninitialized connection does not trigger wrapper download"() {
+        when:
+        def connector = toolingApi.connector()
+        connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+        connector.connect()
+        connector.disconnect()
+
+        then:
+        !toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/15405')
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    // cannot delete files when daemon is running
+    def "calling disconnect on existing connection does not re-trigger wrapper download"() {
+        setup:
+        server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))
+        def connector = toolingApi.connector()
+        connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+        def connection = connector.connect()
+        connection.newBuild().forTasks("help").run()
+
+        expect:
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
+
+        when:
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").deleteDir()
+        connector.disconnect()
+
+        then:
+        !toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
     }
 }

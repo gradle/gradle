@@ -59,13 +59,13 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         def transformOperation = events.operation(applyTransform("FileSizer"))
         with(transformOperation) {
-            transform
+            assertIsTransform()
             descriptor.transformer.displayName == "FileSizer"
             descriptor.subject.displayName == transformTarget()
             successful
         }
         with(events.operation("Task :app:resolve")) {
-            task
+            assertIsTask()
             successful
             descriptor.dependencies == [transformOperation.descriptor] as Set
         }
@@ -87,7 +87,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         with(events.operation(applyTransform("BrokenTransform"))) {
-            transform
+            assertIsTransform()
             descriptor.transformer.displayName == "BrokenTransform"
             descriptor.subject.displayName == transformTarget()
             !successful
@@ -126,7 +126,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         def taskOperation = events.operation("Task :lib:jar")
         def firstTransformOperation = events.operation(applyTransform("FileSizer"))
         with(firstTransformOperation) {
-            transform
+            assertIsTransform()
             descriptor.transformer.displayName == "FileSizer"
             descriptor.subject.displayName == transformTarget()
             descriptor.dependencies == [taskOperation.descriptor] as Set
@@ -134,7 +134,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         }
         def secondTransformOperation = events.operation(applyTransform("FileNamer"))
         with(secondTransformOperation) {
-            transform
+            assertIsTransform()
             descriptor.transformer.displayName == "FileNamer"
             descriptor.subject.displayName == transformTarget()
             descriptor.dependencies == [firstTransformOperation.descriptor] as Set
@@ -163,14 +163,14 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         def taskOperation = events.operation("Task :included:lib:jar")
         def transformOperation = events.operation(applyTransform("FileSizer", ":included:lib"))
         with(transformOperation) {
-            transform
+            assertIsTransform()
             descriptor.transformer.displayName == "FileSizer"
             descriptor.subject.displayName == transformTarget(":included:lib")
             descriptor.dependencies == [taskOperation.descriptor] as Set
             successful
         }
         with(events.operation("Task :included:app:resolve")) {
-            task
+            assertIsTask()
             successful
             descriptor.dependencies == [transformOperation.descriptor] as Set
         }

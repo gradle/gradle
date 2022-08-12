@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
@@ -24,4 +26,6 @@ public interface LocalComponentMetadata extends ComponentResolveMetadata {
     @Nullable
     @Override
     LocalConfigurationMetadata getConfiguration(String name);
+
+    LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 }

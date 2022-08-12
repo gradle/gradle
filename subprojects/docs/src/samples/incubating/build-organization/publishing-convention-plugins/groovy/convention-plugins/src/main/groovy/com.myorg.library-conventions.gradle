@@ -1,0 +1,39 @@
+// Define Java Library conventions for this organization.
+// Projects need to use the organization's Java conventions and publish using Maven Publish
+
+// tag::plugins[]
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.myorg.java-conventions'
+}
+// end::plugins[]
+
+// Projects have the 'com.myorg' group by convention
+group = 'com.myorg'
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name "myOrgPrivateRepo"
+            url 'build/my-repo'
+        }
+    }
+}
+
+// The project requires libraries to have a README containing sections configured below
+// tag::use-java-class[]
+def readmeCheck = tasks.register('readmeCheck', com.example.ReadmeVerificationTask) {
+    // Expect the README in the project directory
+    readme = layout.projectDirectory.file("README.md")
+    // README must contain a Service API header
+    readmePatterns = ['^## API$', '^## Changelog$']
+}
+// end::use-java-class[]
+
+tasks.named('check') { dependsOn(readmeCheck) }

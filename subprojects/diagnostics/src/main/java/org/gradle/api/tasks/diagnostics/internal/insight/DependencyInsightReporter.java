@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -111,8 +110,7 @@ public class DependencyInsightReporter {
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
-        List<ResolvedVariantResult> selectedVariants = dependency.getSelectedVariants();
-        return new DependencyReportHeader(dependency, reasonShortDescription, selectedVariants, extraDetails);
+        return new DependencyReportHeader(dependency, reasonShortDescription, extraDetails);
     }
 
     private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
@@ -178,7 +176,7 @@ public class DependencyInsightReporter {
 
     private static String render(ComponentSelectionDescriptor descriptor) {
         if (((ComponentSelectionDescriptorInternal) descriptor).hasCustomDescription()) {
-            return prettyCause(descriptor.getCause()) + " : " + descriptor.getDescription();
+            return prettyCause(descriptor.getCause()) + ": " + descriptor.getDescription();
         }
         return prettyCause(descriptor.getCause());
     }

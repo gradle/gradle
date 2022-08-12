@@ -18,6 +18,8 @@ package org.gradle.launcher.cli
 
 import com.google.common.base.Function
 import org.gradle.api.Action
+import org.gradle.api.launcher.cli.WelcomeMessageConfiguration
+import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.launcher.configuration.BuildLayoutResult
@@ -26,8 +28,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
 
@@ -36,27 +38,29 @@ class WelcomeMessageActionTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     BuildLayoutResult buildLayout
     File gradleUserHomeDir
     ToStringLogger log
     Action<ExecutionListener> delegateAction
     ExecutionListener listener
+    WelcomeMessageConfiguration welcomeMessageConfiguration
 
     def setup() {
-        gradleUserHomeDir = temporaryFolder.root
+        gradleUserHomeDir = temporaryFolder
         buildLayout = Mock(BuildLayoutResult) {
             getGradleUserHomeDir() >> gradleUserHomeDir
         }
         log = new ToStringLogger()
         delegateAction = Mock()
         listener = Mock()
+        welcomeMessageConfiguration = Stub()
     }
 
     private WelcomeMessageAction createWelcomeMessage(GradleVersion gradleVersion = GradleVersion.current(), String welcomeMessage) {
-        return new WelcomeMessageAction(log, buildLayout, gradleVersion, { welcomeMessage == null ? null : new ByteArrayInputStream(welcomeMessage.bytes) } as Function, delegateAction)
+        return new WelcomeMessageAction(log, buildLayout, welcomeMessageConfiguration, gradleVersion, { welcomeMessage == null ? null : new ByteArrayInputStream(welcomeMessage.bytes) } as Function, delegateAction)
     }
 
     def "prints highlights when file exists and contains visible content"() {
@@ -117,7 +121,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
                 }
             }
         }
-        def action = new WelcomeMessageAction(log, buildLayout, GradleVersion.version("42.0"), inputStreamProvider, delegateAction)
+        def action = new WelcomeMessageAction(log, buildLayout, welcomeMessageConfiguration, GradleVersion.version("42.0"), inputStreamProvider, delegateAction)
 
         when:
         action.execute(listener)
@@ -183,6 +187,19 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
     def "does not print anything if system property is set to false"() {
         given:
         System.setProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false")
+        def action = createWelcomeMessage(null)
+
+        when:
+        action.execute(listener)
+
+        then:
+        log.toString().isEmpty()
+        1 * delegateAction.execute(_)
+    }
+
+    def "does not print anything if gradle property is set to hide welcome message"() {
+        given:
+        welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.NEVER)
         def action = createWelcomeMessage(null)
 
         when:

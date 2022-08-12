@@ -27,21 +27,65 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
 abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
-    final def targetDir = testDirectory.createDir("some-thing")
-    final def subprojectDir = subprojectName() ? targetDir.file(subprojectName()) : targetDir
+    TestFile containerDir
+    TestFile targetDir
+    TestFile subprojectDir
 
     abstract String subprojectName()
 
     def setup() {
+        file("settings.gradle") << """
+            // This is here to prevent Gradle searching up to find the build's settings.gradle
+        """
+        initializeIntoTestDir()
         executer.withRepositoryMirrors()
+    }
+
+    void initializeIntoTestDir() {
+        containerDir = testDirectory
+        targetDir = containerDir.createDir("some-thing")
+        subprojectDir = subprojectName() ? targetDir.file(subprojectName()) : targetDir
         executer.beforeExecute {
             executer.inDirectory(targetDir)
             executer.ignoreMissingSettingsFile()
         }
     }
 
+    @Override
+    void useTestDirectoryThatIsNotEmbeddedInAnotherBuild() {
+        super.useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        initializeIntoTestDir()
+        assertNoDefinedBuild(targetDir)
+    }
+
+    void assertTestsDoNotExist(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir)
+        assert result.testClassDoesNotExist(className)
+    }
+
+    void assertTestsDidNotRun(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir)
+        result.assertTestClassesNotExecuted(className)
+    }
+
+    void assertIntegrationTestsDoNotExist(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
+        assert result.testClassDoesNotExist(className)
+    }
+
+    void assertIntegrationTestsDidNotRun(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
+        result.assertTestClassesNotExecuted(className)
+    }
+
     void assertTestPassed(String className, String name) {
         def result = new DefaultTestExecutionResult(subprojectDir)
+        result.assertTestClassesExecuted(className)
+        result.testClass(className).assertTestPassed(name)
+    }
+
+    void assertIntegrationTestPassed(String className, String name) {
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }

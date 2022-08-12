@@ -26,17 +26,17 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
@@ -54,13 +54,16 @@ public class DependencyManagementGradleUserHomeScopeServices {
         };
     }
 
-    ArtifactCachesProvider createArtifactCaches(CacheScopeMapping cacheScopeMapping,
-                                                CacheRepository cacheRepository,
-                                                ServiceRegistry registry,
-                                                ListenerManager listenerManager,
-                                                DocumentationRegistry documentationRegistry) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, () -> registry.get(DefaultArtifactCaches.WritableArtifactCacheLockingParameters.class), documentationRegistry);
+    ArtifactCachesProvider createArtifactCaches(
+        GlobalScopedCache globalScopedCache,
+        CacheRepository cacheRepository,
+        DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
+        ListenerManager listenerManager,
+        DocumentationRegistry documentationRegistry
+    ) {
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry);
         listenerManager.addListener(new BuildAdapter() {
+            @SuppressWarnings("deprecation")
             @Override
             public void buildFinished(BuildResult result) {
                 artifactCachesProvider.getWritableCacheLockingManager().useCache(() -> {
@@ -71,19 +74,21 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(CacheRepository cacheRepository) {
-        return new DefaultExecutionHistoryCacheAccess(null, cacheRepository);
+    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCache cacheRepository) {
+        return new DefaultExecutionHistoryCacheAccess(cacheRepository);
     }
 
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner
+            stringInterner,
+            classLoaderHasher
         );
     }
 
@@ -92,8 +97,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheRepository cacheRepository,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
-        GlobalCacheLocations globalCacheLocations
+        ExecutionHistoryStore executionHistoryStore
     ) {
         return new ImmutableTransformationWorkspaceServices(
             cacheRepository
@@ -102,11 +106,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,
             executionHistoryStore,
-            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result
-                .map(transformedFiles -> transformedFiles.stream()
-                    .allMatch(transformedFile -> globalCacheLocations.isInsideGlobalCache(transformedFile.getAbsolutePath()))
-                ).getOrMapFailure(__ -> false)
-            )
+            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)
         );
     }
 }

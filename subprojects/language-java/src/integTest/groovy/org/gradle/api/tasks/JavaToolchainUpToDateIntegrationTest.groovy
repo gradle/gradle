@@ -16,15 +16,15 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
-class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "compile and test reacting to toolchains are up-to-date without changes"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        def someJdk = AvailableJavaHomes.differentJdk
         buildscriptWithToolchain(someJdk)
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -41,7 +41,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
     }
 
     def "compile and test not up-to-date once toolchain changed"() {
-        def someJdk = AvailableJavaHomes.getDifferentVersion()
+        def someJdk = AvailableJavaHomes.differentVersion
         buildscriptWithToolchain(someJdk)
         file("src/main/java/Foo.java") << """
             /** foo */

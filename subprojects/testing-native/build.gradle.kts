@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins, tasks and domain objects for testing native code"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":native"))

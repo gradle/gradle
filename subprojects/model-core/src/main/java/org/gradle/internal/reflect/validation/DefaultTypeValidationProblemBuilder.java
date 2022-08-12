@@ -16,12 +16,13 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.plugin.use.PluginId;
 
 public class DefaultTypeValidationProblemBuilder extends AbstractValidationProblemBuilder<TypeProblemBuilder> implements TypeProblemBuilder {
     private Class<?> type;
 
-    public DefaultTypeValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
+    public DefaultTypeValidationProblemBuilder(DocumentationRegistry documentationRegistry, PluginId pluginId) {
+        super(documentationRegistry, pluginId);
     }
 
     @Override
@@ -40,10 +41,13 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
         if (shortProblemDescription == null) {
             throw new IllegalStateException("You must provide at least a short description of the problem");
         }
+        if (userManualReference == null) {
+            throw new IllegalStateException("You must provide a user manual reference");
+        }
         return new TypeValidationProblem(
             problemId,
             severity,
-            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() :  TypeValidationProblemLocation.inType(type),
+            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() :  TypeValidationProblemLocation.inType(type, pluginId),
             shortProblemDescription,
             longDescription,
             reason,

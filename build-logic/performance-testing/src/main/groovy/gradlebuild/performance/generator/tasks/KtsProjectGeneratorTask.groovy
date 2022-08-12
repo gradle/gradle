@@ -15,6 +15,9 @@
  */
 package gradlebuild.performance.generator.tasks
 
+import org.gradle.work.DisableCachingByDefault
+
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
 
     KtsProjectGeneratorTask() {

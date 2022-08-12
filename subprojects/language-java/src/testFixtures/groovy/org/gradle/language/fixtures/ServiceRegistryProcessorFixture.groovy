@@ -23,13 +23,12 @@ import javax.tools.StandardLocation
 
 /**
  * A processor that collects all types annotated with the @Service annotation
- * and generates a single ServiceRegistry class from them. The registry has
- * one getter for each annotated type, which calls the no-argument constructor
- * of that type.
+ * and generates a single ServiceRegistryResource.txt file from them.
+ * Also creates a class called ServiceRegistry which does not reference any of the
+ * other classes, but could simply serve as an entry point for reading the resource file.
  */
 @CompileStatic
 class ServiceRegistryProcessorFixture extends AnnotationProcessorFixture {
-    boolean writeResources
     String resourceLocation = StandardLocation.CLASS_OUTPUT.toString()
 
     ServiceRegistryProcessorFixture() {
@@ -37,48 +36,46 @@ class ServiceRegistryProcessorFixture extends AnnotationProcessorFixture {
         declaredType = IncrementalAnnotationProcessorType.AGGREGATING
     }
 
-    String getGeneratorCode() {
-        def baseCode = """
-String className = "ServiceRegistry";
-try {
-    JavaFileObject sourceFile = filer.createSourceFile(className, elements.toArray(new Element[0]));
-    Writer writer = sourceFile.openWriter();
-    try {
-        writer.write("class " + className + " {");
-        for (Element element : elements) {
-            TypeElement typeElement = (TypeElement) element;
-            String name = typeElement.getQualifiedName().toString();
-            writer.write("    " + name + " get" + name + "() { return ");
-            writer.write("new " + name + "()");
-            writer.write("; }");
-        }
-        writer.write("}");
-    } finally {
-        writer.close();
+    @Override
+    protected String getMembersBlock() {
+        """
+            int round;
+            Set<Element> allElements = new HashSet<Element>();
+        """
     }
-} catch (IOException e) {
-    messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate source file " + className + ". " + e.getMessage());
-}
-"""
-        def resourceCode = writeResources ? """
-    try {
-        FileObject resourceFile = filer.createResource($resourceLocation, \"\", className + \"Resource.txt\", elements.toArray(new Element[0]));
-        Writer writer = resourceFile.openWriter();
-        try {
-            for (Element element : elements) {
-                TypeElement typeElement = (TypeElement) element;
-                String name = typeElement.getQualifiedName().toString();
-                writer.write(name);
-                writer.write('\\n');
-            }
-        } finally {
-            writer.close();
-        }
-    } catch (Exception e) {
-        messager.printMessage(Diagnostic.Kind.ERROR, "Failed to write resource file .txt : " + e.getMessage());
-    }
-""" : ""
 
-        return baseCode + resourceCode
+    String getGeneratorCode() {
+        return """
+            try {
+                if (round == 0) {
+                    JavaFileObject javaFile = filer.createSourceFile("ServiceRegistry", new Element[0]);
+                    Writer writer = javaFile.openWriter();
+                    try {
+                        writer.write("class ServiceRegistry {}");
+                    } finally {
+                        writer.close();
+                    }
+                }
+                if (roundEnv.processingOver()) {
+                    FileObject resourceFile = filer.createResource($resourceLocation, "", "ServiceRegistryResource.txt", allElements.toArray(new Element[0]));
+                    Writer writer = resourceFile.openWriter();
+                    try {
+                        for (Element element : allElements) {
+                            TypeElement typeElement = (TypeElement) element;
+                            String name = typeElement.getQualifiedName().toString();
+                            writer.write(name);
+                            writer.write('\\n');
+                        }
+                    } finally {
+                        writer.close();
+                    }
+                } else {
+                    allElements.addAll(elements);
+                }
+                round++;
+            } catch (Exception e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Failed to process : " + e.getMessage());
+            }
+        """
     }
 }

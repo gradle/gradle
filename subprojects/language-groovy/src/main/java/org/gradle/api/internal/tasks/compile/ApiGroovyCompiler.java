@@ -165,6 +165,11 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         try {
             configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
+
+        try {
+            configuration.setDisabledGlobalASTTransformations(spec.getGroovyCompileOptions().getDisabledGlobalASTTransformations());
+        } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 2.0.0 */ }
+
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
         final File stubDir = spec.getGroovyCompileOptions().getStubDir();
         stubDir.mkdirs();
@@ -249,7 +254,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         }));
 
                         try {
-                            javaCompiler.execute(spec);
+                            WorkResult javaCompilerResult = javaCompiler.execute(spec);
+                            if (javaCompilerResult instanceof ApiCompilerResult) {
+                                result.getSourceClassesMapping().putAll(((ApiCompilerResult) javaCompilerResult).getSourceClassesMapping());
+                            }
                         } catch (CompilationFailedException e) {
                             cu.getErrorCollector().addFatalError(new SimpleMessage(e.getMessage(), cu));
                         }

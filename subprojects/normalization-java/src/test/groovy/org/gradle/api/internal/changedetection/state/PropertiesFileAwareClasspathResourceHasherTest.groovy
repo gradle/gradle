@@ -18,22 +18,27 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
-import com.google.common.io.ByteStreams
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.SystemProperties
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.hash.HashingOutputStream
+import org.gradle.internal.io.IoFunction
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.gradle.internal.util.PropertiesUtils
 import spock.lang.Specification
-import spock.lang.Unroll
+import spock.lang.TempDir
 
+import java.nio.charset.Charset
+import java.nio.file.Files
 import java.util.function.Supplier
 
-@Unroll
 class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
-    @Rule TemporaryFolder tmpdir = new TemporaryFolder()
+    @TempDir File tmpdir
     Map<String, ResourceEntryFilter> filters = Maps.newHashMap()
     ResourceHasher delegate = new RuntimeClasspathResourceHasher()
     ResourceHasher unfilteredHasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
@@ -269,6 +274,32 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
+    def "hashes original context with delegate for files that do not match a resource filter (filename: #filename)"() {
+        delegate = Mock(ResourceHasher)
+        def hasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
+        def notProperties = unsafeContextFor(filename, "foo".bytes)
+
+        when:
+        hasher.hash(notProperties)
+
+        then:
+        1 * delegate.hash(notProperties)
+
+        where:
+        filename << ['foo.txt', 'foo.properties']
+    }
+
+    def "always hashes directories with delegate"() {
+        delegate = Mock(ResourceHasher)
+        def directory = directoryContextfor("foo.properties")
+
+        when:
+        filteredHasher.hash(directory)
+
+        then:
+        1 * delegate.hash(directory)
+    }
+
     enum SnapshotContext {
         ZIP_ENTRY, FILE_SNAPSHOT
     }
@@ -299,23 +330,31 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         contextFor(context, "META-INF/build-info.properties", attributes, comments)
     }
 
+    static unsafeContextFor(String path, byte[] bytes) {
+        return zipEntry(path, bytes, true)
+    }
+
+    static directoryContextfor(String path) {
+        return zipEntry(path, [] as byte[], true, true)
+    }
+
     static filter(String... properties) {
         return new IgnoringResourceEntryFilter(ImmutableSet.copyOf(properties))
     }
 
-    ZipEntryContext zipEntry(String path, Map<String, String> attributes, String comments = "") {
+    static ZipEntryContext zipEntry(String path, Map<String, String> attributes, String comments = "") {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        properties.store(bos, comments)
+        PropertiesUtils.store(properties, bos, comments, Charset.defaultCharset(), SystemProperties.getInstance().lineSeparator)
         return zipEntry(path, bos.toByteArray())
     }
 
-    ZipEntryContext zipEntry(String path, byte[] bytes) {
+    static ZipEntryContext zipEntry(String path, byte[] bytes, boolean unsafe = false, boolean directory = false) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
-                return false
+                return directory
             }
 
             @Override
@@ -329,45 +368,55 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
-                action.run(new ByteArrayInputStream(bytes))
+            <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+                action.apply(new ByteArrayInputStream(bytes))
             }
 
             @Override
             int size() {
                 return bytes.length
             }
+
+            @Override
+            boolean canReopen() {
+                return !unsafe
+            }
+
+            @Override
+            ZipEntry.ZipCompressionMethod getCompressionMethod() {
+                return ZipEntry.ZipCompressionMethod.DEFLATED
+            }
         }
-        return new ZipEntryContext(zipEntry, path, "foo.zip")
+        return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }
 
     RegularFileSnapshotContext fileSnapshot(String path, Map<String, String> attributes, String comments = "") {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        properties.store(bos, comments)
+        PropertiesUtils.store(properties, bos, comments, Charset.defaultCharset(), SystemProperties.getInstance().lineSeparator)
         return fileSnapshot(path, bos.toByteArray())
     }
 
     RegularFileSnapshotContext fileSnapshot(String path, byte[] bytes) {
-        def dir = tmpdir.newFolder()
+        def dir = Files.createTempDirectory(tmpdir.toPath(), null).toFile()
         def file = new File(dir, path)
         file.parentFile.mkdirs()
         file << bytes
-        return Mock(RegularFileSnapshotContext) {
-            _ * getSnapshot() >> Mock(RegularFileSnapshot) {
-                _ * getAbsolutePath() >> file.absolutePath
-                _ * getHash() >> {
-                    HashingOutputStream hasher = Hashing.primitiveStreamHasher()
-                    ByteStreams.copy(new ByteArrayInputStream(bytes), hasher)
-                    return hasher.hash()
+        return new RegularFileSnapshotContext() {
+            @Override
+            Supplier<String[]> getRelativePathSegments() {
+                return new Supplier<String[]>() {
+                    @Override
+                    String[] get() {
+                        return path.split('/')
+                    }
                 }
             }
-            _ * getRelativePathSegments() >> new Supplier<String[]>() {
-                @Override
-                String[] get() {
-                    return path.split('/')
-                }
+
+            @Override
+            RegularFileSnapshot getSnapshot() {
+                return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.hashBytes(bytes), DefaultFileMetadata.file(0L, bytes.size(), FileMetadata.AccessType.DIRECT))
             }
         }
     }

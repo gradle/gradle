@@ -19,10 +19,10 @@ package org.gradle.api.publish.maven.internal.artifact
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.artifacts.PublishArtifactInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependency
@@ -35,6 +35,9 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import spock.lang.Issue
+
+import java.nio.file.Paths
 
 class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
@@ -42,7 +45,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
     def dependencies = ImmutableSet.of(task)
     def taskDependency = new DefaultTaskDependency(null, dependencies)
     def fileNotationParser = Mock(NotationParser)
-    def publishArtifact = Stub(PublishArtifactInternal) {
+    def publishArtifact = Stub(PublishArtifact) {
         getExtension() >> 'extension'
         getClassifier() >> 'classifier'
         getFile() >> new File('foo')
@@ -54,6 +57,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
     def "setup"() {
         def fileResolver = Stub(FileResolver) {
             asNotationParser() >> fileNotationParser
+            resolve(_) >> { Object path -> fileNotationParser.parseNotation(path) }
         }
         parser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create()
     }
@@ -254,7 +258,28 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         when:
         1 * provider.get() >> regularFile
         1 * regularFile.getAsFile() >> file
-        artifact.file
+        artifact.file == file
+
+        then:
+        0 * _
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15711")
+    def "creates lazy MavenArtifact for Provider<Path> notation"() {
+        def provider = Mock(ProviderInternal)
+        def file = Paths.get("picard.txt")
+        def regularFile = Mock(RegularFile)
+
+        when:
+        def artifact = parser.parseNotation(provider)
+
+        then:
+        0 * provider._
+
+        when:
+        1 * provider.get() >> regularFile
+        1 * regularFile.getAsFile() >> file.toFile()
+        artifact.file == file.toFile()
 
         then:
         0 * _

@@ -19,7 +19,6 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import spock.lang.Ignore
-import spock.lang.Unroll
 
 @TestReproducibleArchives
 class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -55,7 +54,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         subDir.file("B").text = "B"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":zip")
         outputFile.exists()
         outputFile.unzipTo(unpackDir)
@@ -65,11 +64,10 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         sourceDir.file("newdir").createDir()
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":zip")
     }
 
-    @Unroll
     def "using compressed files as inputs - #type #packType #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()
@@ -109,7 +107,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         packDir."$packType"(sourceFile, readonly)
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original"
         outputDir.file("B").text == "new-file"
@@ -127,7 +125,6 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
     }
 
     @Ignore("inputs from resources are ignored")
-    @Unroll
     def "using compressed files as inputs from resources - #source"() {
         given:
         def packDir = file("pack").createDir()
@@ -155,7 +152,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         packDir."$packType"(sourceFile)
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original-changed"
 

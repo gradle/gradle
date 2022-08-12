@@ -33,14 +33,14 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             executer
                 .withTasks('help')
                 .withArguments("--stacktrace")
-            beforeSample()
+            beforeSample(file, tagSuffix)
             executer.run()
             fileToTest.delete()
         }
     }
 
-    void beforeSample() {
-
+    protected void beforeSample(File file, String tagSuffix) {
+        // default is no-op
     }
 
     /**

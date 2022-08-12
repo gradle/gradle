@@ -12,6 +12,8 @@ Options
                        JSON
                        PLAIN
 
+     --rerun     Causes the task to be re-run even if up-to-date.
+
 Description
      Displays current project info
 

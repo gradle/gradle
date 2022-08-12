@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -32,16 +33,20 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaTestFixturesPlugin;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.component.external.model.TestFixturesSupport;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -60,11 +65,16 @@ import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
+import org.gradle.testing.base.TestSuite;
+import org.gradle.testing.base.TestingExtension;
+import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -82,11 +92,18 @@ public class EclipsePlugin extends IdePlugin {
 
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+
+    private final Set<SourceSet> testSourceSetsConvention = new HashSet<>();
+    private final Set<Configuration> testConfigurationsConvention = new HashSet<>();
 
     @Inject
-    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
+    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider,
+                         IdeArtifactRegistry artifactRegistry,
+                         JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -201,6 +218,8 @@ public class EclipsePlugin extends IdePlugin {
             }
 
         });
+        model.getClasspath().getTestSourceSets().convention(testSourceSetsConvention);
+        model.getClasspath().getTestConfigurations().convention(testConfigurationsConvention);
 
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
@@ -233,13 +252,13 @@ public class EclipsePlugin extends IdePlugin {
                 });
 
                 configureScalaDependencies(project, model);
-                configureJavaClasspath(project, task, model);
+                configureJavaClasspath(project, task, model, testSourceSetsConvention, testConfigurationsConvention);
             }
 
         });
     }
 
-    private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model) {
+    private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model, Collection<SourceSet> testSourceSetsConvention, Collection<Configuration> testConfigurationsConvention) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
@@ -276,6 +295,31 @@ public class EclipsePlugin extends IdePlugin {
                         }
                     }
                 });
+
+                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                sourceSets.configureEach(new Action<SourceSet>() {
+                    @Override
+                    public void execute(SourceSet sourceSet) {
+                        if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
+                            // source sets with 'test' in their name are marked as test on the Eclipse classpath
+                            testSourceSetsConvention.add(sourceSet);
+
+                            // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
+                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
+                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                        }
+                    }
+                });
+
+                project.getConfigurations().all(new Action<Configuration>() {
+                    @Override
+                    public void execute(Configuration configuration) {
+                        if (configuration.isCanBeResolved() && configuration.getName().toLowerCase(Locale.ROOT).contains("test")) {
+                            // resolved dependencies from custom configurations with 'test' in their name are marked as test on the Eclipse classpath
+                            testConfigurationsConvention.add(configuration);
+                        }
+                    }
+                });
             }
         });
 
@@ -283,11 +327,38 @@ public class EclipsePlugin extends IdePlugin {
             @Override
             public void execute(JavaTestFixturesPlugin javaTestFixturesPlugin) {
                 model.getClasspath().getContainsTestFixtures().convention(true);
+
+                project.getPluginManager().withPlugin("java", new Action<AppliedPlugin>() {
+                    @Override
+                    public void execute(AppliedPlugin appliedPlugin) {
+                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                        SourceSet sourceSet = sourceSets.getByName(TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME);
+                        // the testFixtures source set is marked as test on the Eclipse classpath
+                        testSourceSetsConvention.add(sourceSet);
+
+                        // resolved dependencies from the testFixtures source set are marked as test on the Eclipse classpath
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                    }
+                });
             }
+        });
+
+        project.getPlugins().withType(TestSuiteBasePlugin.class, testSuiteBasePlugin -> {
+            TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites = testing.getSuites();
+            suites.withType(JvmTestSuite.class).configureEach(jvmTestSuite -> {
+                // jvm test suite source sets are marked as test on the Eclipse classpath
+                testSourceSetsConvention.add(jvmTestSuite.getSources());
+
+                // resolved dependencies from jvm test suites are marked as test on the Eclipse classpath
+                testConfigurationsConvention.add(project.getConfigurations().findByName(jvmTestSuite.getSources().getCompileClasspathConfigurationName()));
+                testConfigurationsConvention.add(project.getConfigurations().findByName(jvmTestSuite.getSources().getRuntimeClasspathConfigurationName()));
+            });
         });
     }
 
-    private static void configureScalaDependencies(final Project project, final EclipseModel model) {
+    private void configureScalaDependencies(final Project project, final EclipseModel model) {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
@@ -305,7 +376,9 @@ public class EclipsePlugin extends IdePlugin {
 
                     })), dependencyInProvided));
                     if (!dependencies.isEmpty()) {
-                        model.getClasspath().getMinusConfigurations().add(project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0])));
+                        Configuration detachedScalaConfiguration = project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
+                        jvmEcosystemUtilities.configureAsRuntimeClasspath(detachedScalaConfiguration);
+                        model.getClasspath().getMinusConfigurations().add(detachedScalaConfiguration);
                     }
                 });
             }

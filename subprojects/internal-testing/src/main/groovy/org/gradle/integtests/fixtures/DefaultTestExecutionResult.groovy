@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
-
 class DefaultTestExecutionResult implements TestExecutionResult {
 
     List<TestExecutionResult> results = []
@@ -47,7 +46,14 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         results.each { result ->
             result.assertTestClassesExecuted(testClasses)
         }
-        this
+        return this
+    }
+
+    TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
+        results.each { result ->
+            result.assertTestClassesNotExecuted(testClasses)
+        }
+        return this
     }
 
     DefaultTestExecutionResult assertTestClassesExecutedJudgementByHtml(String... testClasses) {
@@ -63,6 +69,10 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     boolean testClassExists(String testClass) {
         List<Boolean> testClassResults = results*.testClassExists(testClass)
         return testClassResults.inject { a, b -> a && b }
+    }
+
+    boolean testClassDoesNotExist(String testClass) {
+        return !results || !testClassExists(testClass)
     }
 
     TestClassExecutionResult testClass(String testClass) {

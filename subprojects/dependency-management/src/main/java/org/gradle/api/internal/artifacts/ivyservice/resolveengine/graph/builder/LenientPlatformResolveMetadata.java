@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ComponentVariant;
@@ -38,6 +39,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -77,7 +79,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
-        return null;
+        return EmptySchema.INSTANCE;
     }
 
     @Override
@@ -108,14 +110,14 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false, false
+                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build(), false, false
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");
     }
 
     @Override
-    public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+    public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
         return Optional.absent();
     }
 
@@ -170,7 +172,17 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
+    public boolean isComponentMetadataRuleCachingEnabled() {
+        return true;
+    }
+
+    @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
         throw new UnsupportedOperationException();
     }
 

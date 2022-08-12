@@ -40,8 +40,8 @@ public class NumberUtil {
     /**
      * Percentage (0-...) of given input.
      *
-     * @param fraction the fraction of total, must be >= 0. if 0, the result will be 100.
-     * @param total the total, must be >= 0, if 0, the result will be 0.
+     * @param fraction the fraction of total, must be &gt;= 0. if 0, the result will be 100.
+     * @param total the total, must be &gt;= 0, if 0, the result will be 0.
      */
     public static int percentOf(long fraction, long total) {
         if (total < 0 || fraction < 0) {
@@ -55,7 +55,7 @@ public class NumberUtil {
     }
 
     /**
-     * Formats bytes, e.g. 1010 -> 1010 B, -1025 -> -1 KiB, 1127 -> 1.1 KiB
+     * Formats bytes, e.g. 1010 -&gt; 1010 B, -1025 -&gt; -1 KiB, 1127 -&gt; 1.1 KiB
      */
     public static String formatBytes(@Nullable Long bytes) {
         if (bytes == null) {
@@ -71,7 +71,7 @@ public class NumberUtil {
     }
 
     /**
-     * gets ordinal String representation of given value (e.g. 1 -> 1st, 12 -> 12th, 22 -> 22nd, etc.)
+     * gets ordinal String representation of given value (e.g. 1 -&gt; 1st, 12 -&gt; 12th, 22 -&gt; 22nd, etc.)
      */
     public static String ordinal(int value) {
         switch (value % 100) {
