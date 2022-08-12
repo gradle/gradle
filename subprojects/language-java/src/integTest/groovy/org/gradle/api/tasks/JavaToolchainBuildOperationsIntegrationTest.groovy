@@ -641,17 +641,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         return events
     }
 
-    private <T extends BuildOperationType<?, ?>> List<ProgressEvent> allToolchainEvents() {
-        List<ProgressEvent> events = []
-        operations.walk { buildOperationRecord ->
-            def found = buildOperationRecord.progress.findAll {
-                JavaToolchainUsageProgressDetails.isAssignableFrom(it.detailsType)
-            }.collect { new ProgressEvent(progress: it, parent: buildOperationRecord) }
-            events.addAll(found)
-        }
-        return events
-    }
-
     List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
         events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
     }
