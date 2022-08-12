@@ -16,7 +16,9 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.api.credentials.Credentials
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -52,7 +54,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can publish to an unauthenticated http repo (with extra checksums = #extraChecksums)"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
 
         if (!extraChecksums) {
             executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
@@ -82,7 +84,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
         maxUploadAttempts = 1
 
         when:
@@ -116,8 +118,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
+        buildFile << publicationBuildWithCredentialsProvider(version, group, mavenRemoteRepo.uri)
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, credentials)
+        configureRepositoryCredentials(credentials.username, credentials.password)
 
         server.authenticationScheme = authScheme
 
@@ -146,7 +149,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     def "reports failure publishing with wrong credentials using #authScheme"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('wrong', 'wrong')
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, credentials)
+        buildFile << publicationBuildWithCredentialsProvider(version, group, mavenRemoteRepo.uri)
+        configureRepositoryCredentials(credentials.username, credentials.password)
 
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401, credentials)
@@ -165,7 +169,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def "reports failure when required credentials are not provided #authScheme"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401)
 
@@ -184,9 +188,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Issue("GRADLE-3312")
     def "can publish to a http repo via redirects"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
         redirectServer.start()
-        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"))
+        buildFile.text = publicationBuildWithoutCredentials(version, group, new URI("${redirectServer.uri}/repo"))
 
         redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}")
         module.rootMetaData.expectGetMissing()
@@ -214,8 +218,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         given:
         redirectServer.start()
 
+        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"), "credentials(PasswordCredentials)")
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
-        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"), credentials)
+        configureRepositoryCredentials(credentials.username, credentials.password)
 
         redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}", credentials)
         module.rootMetaData.expectGetMissing()
@@ -241,14 +246,14 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Issue("gradle/gradle#1641")
     def "can publish a new version of a module already present in the target repository"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
         expectModulePublish(module)
 
         when:
         succeeds 'publish'
 
         and:
-        buildFile.text = publicationBuild("3", group, mavenRemoteRepo.uri)
+        buildFile.text = publicationBuildWithoutCredentials("3", group, mavenRemoteRepo.uri)
         module = mavenRemoteRepo.module(group, name, "3")
 
         then:
@@ -280,7 +285,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def "retries artifact upload for transient network error"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
 
         module.artifact.expectPutBroken()
         module.artifact.expectPutBroken()
@@ -317,9 +322,29 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
     }
 
+    @UnsupportedWithConfigurationCache
+    def "can publish to authenticated repository using inlined credentials"() {
+        given:
+        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, """
+            credentials {
+                username '${credentials.username}'
+                password '${credentials.password}'
+            }
+        """)
+        server.authenticationScheme = AuthScheme.BASIC
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublishedAsJavaModule()
+    }
+
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
+        buildFile << publicationBuildWithCredentialsProvider(version, group, mavenRemoteRepo.uri)
 
         when:
         succeeds 'jar'
@@ -341,12 +366,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Issue("https://github.com/gradle/gradle/issues/14902")
     def "does not fail when publishing is set to always up to date"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, """
-        credentials {
-            username 'foo'
-            password 'bar'
-        }
-        """)
+        buildFile << publicationBuildWithCredentialsProvider(version, group, mavenRemoteRepo.uri)
+        configureRepositoryCredentials('foo', 'bar')
+
         server.authenticationScheme = AuthScheme.BASIC
         PasswordCredentials credentials = new DefaultPasswordCredentials('foo', 'bar')
         expectPublishModuleWithCredentials(module, credentials)
@@ -362,14 +384,12 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
     }
 
-    private static String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {
-        String credentialsBlock = credentials ? """
-                        credentials {
-                            username '${credentials.username}'
-                            password '${credentials.password}'
-                        }
-                        """ : ''
-        return publicationBuild(version, group, uri, credentialsBlock)
+    private static String publicationBuildWithoutCredentials(String version, String group, URI uri) {
+        return publicationBuild(version, group, uri, '')
+    }
+
+    private static String publicationBuildWithCredentialsProvider(String version, String group, URI uri, Class<? extends Credentials> credentialsType = PasswordCredentials.class) {
+        return publicationBuild(version, group, uri, "credentials(${credentialsType.simpleName})")
     }
 
     private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
