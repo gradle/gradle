@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
 import org.gradle.api.internal.file.archive.compression.GzipArchiver
 import org.gradle.api.resources.internal.LocalResourceAdapter
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class MaybeCompressedFileResourceTest extends Specification {
 
@@ -34,7 +33,6 @@ class MaybeCompressedFileResourceTest extends Specification {
         new MaybeCompressedFileResource(this.fileResource("foo.tbz2")).resource instanceof Bzip2Archiver
     }
 
-    @Unroll
     def "passes through GzipArchiver resources called #name"() {
         given:
         def resource = new GzipArchiver(fileResource(name))
@@ -47,7 +45,6 @@ class MaybeCompressedFileResourceTest extends Specification {
         name << [ "foo", "foo.tgz", "foo.gz" ]
     }
 
-    @Unroll
     def "passes through Bzip2Archiver resources called #name"() {
         given:
         def resource = new Bzip2Archiver(fileResource(name))

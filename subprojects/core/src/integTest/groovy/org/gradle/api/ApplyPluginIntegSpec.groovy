@@ -107,6 +107,24 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << junitBasedBuildScript()
+        buildFile << """
+            // Needed when using ProjectBuilder
+            class AddOpensArgProvider implements CommandLineArgumentProvider {
+                private final Test test;
+                public AddOpensArgProvider(Test test) {
+                    this.test = test;
+                }
+                @Override
+                Iterable<String> asArguments() {
+                    return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+                        ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+                        : []
+                }
+            }
+            tasks.withType(Test).configureEach {
+                jvmArgumentProviders.add(new AddOpensArgProvider(it))
+            }
+        """
 
         expect:
         executer.withArgument("--info")
@@ -178,7 +196,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             ${basicBuildScript()}
 
             dependencies {
-                testImplementation ('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
+                testImplementation ('org.spockframework:spock-core:2.1-groovy-3.0') {
                     exclude group: 'org.codehaus.groovy'
                 }
             }

@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -46,6 +48,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 /**
  * Assembles a WAR archive.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class War extends Jar {
     public static final String WAR_EXTENSION = "war";
 
@@ -95,7 +98,7 @@ public class War extends Jar {
      * @param configureClosure The closure to execute
      * @return The newly created {@code CopySpec}.
      */
-    public CopySpec webInf(Closure configureClosure) {
+    public CopySpec webInf(@DelegatesTo(CopySpec.class) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getWebInf());
     }
 

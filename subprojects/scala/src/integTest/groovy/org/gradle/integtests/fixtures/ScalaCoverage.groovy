@@ -16,8 +16,14 @@
 
 package org.gradle.integtests.fixtures
 
-class ScalaCoverage {
-    static final String NEWEST = "2.12.10"
+import org.gradle.api.JavaVersion
 
-    static final String[] DEFAULT = [NEWEST, "2.10.7", "2.11.12", "2.13.0", "2.13.1"]
+class ScalaCoverage {
+    static final String NEWEST = "2.13.6"
+
+    static final String[] DEFAULT = [NEWEST, "2.10.7", "2.11.12", "2.12.15", "2.13.0", "2.13.1"]
+
+    //to be used with getOrDefault(version, JavaVersion.VERSION_1_8)
+    static final Map<String, JavaVersion> SCALA_VERSION_TO_MAX_JAVA_VERSION = ["2.13.6" : JavaVersion.VERSION_17, "2.13.1": JavaVersion.VERSION_12]
+
 }

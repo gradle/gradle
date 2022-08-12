@@ -22,7 +22,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -32,9 +31,8 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.component.model.DefaultMultipleCandidateResult
 import org.gradle.internal.jvm.Jvm
-
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -42,7 +40,6 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -275,8 +272,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     private void setupProjectWithToolchain(JavaVersion version) {
         project.pluginManager.apply(JavaPlugin)
         project.java.toolchain.languageVersion = JavaLanguageVersion.of(version.majorVersion)
-        // workaround for https://github.com/gradle/gradle/issues/13122
-        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
 
     def "tasks reflect changes to source set configuration"() {
@@ -407,7 +402,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
     }
 
-    @Unroll
     def "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
         given:
         JavaEcosystemSupport.UsageCompatibilityRules rules = new JavaEcosystemSupport.UsageCompatibilityRules()
@@ -443,7 +437,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     @Issue("gradle/gradle#8700")
-    @Unroll
     def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
@@ -452,15 +445,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
                 usage(Usage.JAVA_RUNTIME),
                 usage(Usage.JAVA_RUNTIME_JARS)
         )
-        MultipleCandidatesDetails details = Mock()
+        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 
         when:
         rules.execute(details)
 
         then:
-        1 * details.getConsumerValue() >> usage(consumer)
-        1 * details.getCandidateValues() >> candidates.collect { usage(it) }
-        1 * details.closestMatch(usage(preferred))
+        details.hasResult()
+        !details.matches.empty
+        details.matches == [usage(preferred)] as Set
+
+        details
 
         where: // not exhaustive, tests pathological cases
         consumer                | candidates                                     | preferred
@@ -470,6 +465,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         //Temporary compatibility
         Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
         Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
+
+        // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
+        // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
 
     }
 

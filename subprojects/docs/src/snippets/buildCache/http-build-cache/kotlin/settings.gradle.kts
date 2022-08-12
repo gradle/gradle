@@ -15,3 +15,12 @@ buildCache {
     }
 }
 // end::allow-untrusted-server[]
+
+// tag::use-expect-continue[]
+buildCache {
+    remote<HttpBuildCache> {
+        url = uri("https://example.com:8123/cache/")
+        isUseExpectContinue = true
+    }
+}
+// end::use-expect-continue[]

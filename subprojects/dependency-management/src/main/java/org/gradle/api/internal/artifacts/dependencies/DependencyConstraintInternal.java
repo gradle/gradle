@@ -20,4 +20,5 @@ import org.gradle.api.artifacts.DependencyConstraint;
 public interface DependencyConstraintInternal extends DependencyConstraint {
     void setForce(boolean force);
     boolean isForce();
+    DependencyConstraint copy();
 }

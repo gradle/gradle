@@ -16,9 +16,12 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.internal.classpath.ClassPath
+
 
 interface CompiledScript {
     val program: Class<*>
+    val classPath: ClassPath
 
     fun onReuse()
 }

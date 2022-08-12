@@ -166,11 +166,11 @@ The Groovy plugin does not add any convention properties to the project.
 [[sec:groovy_source_set_properties]]
 == Source set properties
 
-The Groovy plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
+The Groovy plugin adds the following extensions to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
 === Groovy Plugin — source set properties
 
-`groovy` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+`groovy` — link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet] (read-only)::
 _Default value_: Not null
 +
 The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
@@ -299,9 +299,8 @@ This gives you the following benefits:
 To understand how incremental compilation works, see <<java_plugin.adoc#sec:incremental_compile,Incremental Java compilation>> for a detailed overview.
 Note that there're several differences from Java incremental compilation:
 
-* Unlike Java, Groovy compiler doesn't inline constants, thus changes to constants won't trigger a full recompilation.
-* Groovy compiler doesn't keep `@Retention` in generated annotation class bytecode (https://issues.apache.org/jira/browse/GROOVY-9185[GROOVY-9185]), thus all annotations are `RUNTIME`.
-  This means that changes to source-retention annotations won't trigger a full recompilation.
+The Groovy compiler doesn't keep `@Retention` in generated annotation class bytecode (https://issues.apache.org/jira/browse/GROOVY-9185[GROOVY-9185]), thus all annotations are `RUNTIME`.
+This means that changes to source-retention annotations won't trigger a full recompilation.
 
 [[sec:incremental_groovy_compilation_known_issues]]
 === Known issues

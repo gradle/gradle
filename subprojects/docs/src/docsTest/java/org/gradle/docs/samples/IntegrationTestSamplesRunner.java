@@ -15,10 +15,10 @@
  */
 package org.gradle.docs.samples;
 
-import org.gradle.samples.executor.CommandExecutor;
-import org.gradle.samples.executor.ExecutionMetadata;
-import org.gradle.samples.model.Command;
-import org.gradle.samples.test.runner.SamplesRunner;
+import org.gradle.exemplar.executor.CommandExecutor;
+import org.gradle.exemplar.executor.ExecutionMetadata;
+import org.gradle.exemplar.model.Command;
+import org.gradle.exemplar.test.runner.SamplesRunner;
 import org.junit.runners.model.InitializationError;
 
 import javax.annotation.Nullable;

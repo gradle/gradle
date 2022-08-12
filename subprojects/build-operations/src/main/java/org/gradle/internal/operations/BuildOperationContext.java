@@ -31,7 +31,7 @@ public interface BuildOperationContext {
     /**
      * Finishes the build operation which should only be done once.
      */
-    void setResult(Object result);
+    void setResult(@Nullable Object result);
 
     /**
      * Record a status or outcome for given build operation.
@@ -40,4 +40,14 @@ public interface BuildOperationContext {
      * @since 4.0
      */
     void setStatus(String status);
+
+    /**
+     * Indicates some progress of this build operation.
+     */
+    void progress(String status);
+
+    /**
+     * Indicates some progress of this build operation.
+     */
+    void progress(long progress, long total, String units, String status);
 }

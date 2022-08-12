@@ -22,13 +22,105 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "input files are reported with relative path"() {
+        given:
+        file('provider.txt').text = 'provider'
+        file('fis-path.txt').text = 'fis-path'
+        file('fis-file.txt').text = 'fis-file'
+        file('fis-abs.txt').text = 'fis-abs'
+        buildFile '''
+            providers.fileContents(layout.projectDirectory.file("provider.txt")).with { provider ->
+                println("provider = ${provider.asText.get()}")
+            }
+
+            new FileInputStream("fis-path.txt").withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
+
+            new FileInputStream(new File("fis-file.txt")).withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
+
+            new FileInputStream(file("fis-abs.txt")).withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
+        '''
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        outputContains 'provider = provider'
+        outputContains 'fis = fis-path'
+        outputContains 'fis = fis-file'
+        outputContains 'fis = fis-abs'
+
+        and:
+        problems.assertResultHasProblems(result) {
+            withInput "Build file 'build.gradle': file 'provider.txt'"
+            withInput "Build file 'build.gradle': file 'fis-path.txt'"
+            withInput "Build file 'build.gradle': file 'fis-file.txt'"
+            withInput "Build file 'build.gradle': file 'fis-abs.txt'"
+        }
+    }
+
+    @Ignore("wip: Currently failing on CI for unknown reason")
+    def "report file is content addressable"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'car'
+        """
+
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('broken') {
+                doFirst { println(project.name) }
+            }
+            tasks.register('alsoBroken') {
+                doFirst { println(project.name) }
+            }
+        """
+        def reportDir = {
+            resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)
+        }
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        def reportDir1 = reportDir()
+        reportDir1?.isDirectory()
+
+        when:
+        configurationCacheFails 'alsoBroken'
+
+        then:
+        def reportDir2 = reportDir()
+        reportDir2?.isDirectory()
+        reportDir2 != reportDir1
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        def reportDir3 = reportDir()
+        reportDir3 == reportDir1
+
+        when:
+        configurationCacheFails 'alsoBroken'
+
+        then:
+        def reportDir4 = reportDir()
+        reportDir4 == reportDir2
+    }
 
     def "report is written to root project's buildDir"() {
         file("build.gradle") << """
@@ -42,7 +134,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'broken'
 
         then:
-        resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
     }
 
     def "state serialization errors always halt the build and invalidate the cache"() {
@@ -225,8 +317,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 4
-            withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
@@ -634,7 +726,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
-    @Unroll
     def "reports #invocation access during execution"() {
 
         def configurationCache = newConfigurationCacheFixture()
@@ -716,7 +807,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         'Task.taskDependencies' | 'taskDependencies'
     }
 
-    @Unroll
     def "reports build listener registration on #registrationPoint"() {
 
         given:
@@ -742,7 +832,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
     }
 
-    @Unroll
     def "does not report problems on configuration listener registration on #registrationPoint"() {
 
         given:
@@ -813,10 +902,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(6)
             withUniqueProblems(
-                "Task `:a` of type `SomeTask`: cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with the configuration cache.",
                 "Task `:a` of type `SomeTask`: cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache.",
+                "Task `:a` of type `SomeTask`: cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with the configuration cache.",
+                "Task `:b` of type `SomeTask`: cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache.",
                 "Task `:b` of type `SomeTask`: cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with the configuration cache.",
-                "Task `:b` of type `SomeTask`: cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache."
             )
             problemsWithStackTraceCount = 0
         }
@@ -865,10 +954,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 32 problems.")
-        // TODO - use fixture. Need to be able to accept a range of expected problem counts
-        failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': read system property 'PROP'"))
-        failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
+        outputContains("Configuration cache entry discarded with 17 problems")
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 17
+            withInput("Script 'script.gradle': system property 'PROP'")
+            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
     }
 
     def "reports problems from deferred task configuration action block"() {
@@ -887,9 +978,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Script 'script.gradle': read system property 'PROP'")
+            withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
@@ -910,9 +1001,52 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Script 'script.gradle': read system property 'PROP'")
+            withInput("Script 'script.gradle': system property 'PROP'")
+            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+    }
+
+    def "reports problems from various callbacks on Configuration"() {
+        file("script.gradle") << """
+            configurations.whenObjectAdded {
+                dependencies.whenObjectAdded {
+                    gradle.buildFinished { }
+                }
+                dependencies.matching {
+                    gradle.buildFinished { }
+                    true
+                }.whenObjectAdded {
+                    gradle.buildFinished { }
+                }
+                incoming.beforeResolve {
+                    gradle.buildFinished { }
+                }
+            }
+        """
+        buildFile << """
+            apply from: 'script.gradle'
+            ${mavenCentralRepository()}
+            configurations {
+                thing
+            }
+            dependencies {
+                thing "junit:junit:4.12"
+            }
+            task ok {
+                inputs.files configurations.thing
+                doFirst { }
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        outputContains("Configuration cache entry discarded with 4 problems.")
+        problems.assertFailureHasProblems(failure) {
+            withTotalProblemsCount(4)
             withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
@@ -936,8 +1070,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': registration of listener on 'Gradle.buildFinished' is unsupported")
             withProblem("Build file '${relativePath('a/build.gradle')}': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file '${relativePath('a/build.gradle')}': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 

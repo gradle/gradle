@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.shaded-jar")
 }
 
+description = "Gradle Tooling API - the programmatic API to invoke Gradle"
+
 gradlebuildJava.usedInToolingApi()
 
 tasks.named<Jar>("sourcesJar") {
@@ -22,11 +24,12 @@ dependencies {
     shadedImplementation(libs.slf4jApi)
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))
     implementation(project(":core"))
-    implementation(project(":wrapper"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":persistent-cache"))
 
     implementation(libs.guava)
@@ -75,7 +78,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 

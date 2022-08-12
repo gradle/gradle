@@ -1,1 +1,1 @@
-def enabled = providers.systemProperty('some-property').forUseAtConfigurationTime().present
+def enabled = providers.systemProperty('some-property').present

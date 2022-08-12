@@ -18,9 +18,6 @@ package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.api.internal.composite.CompositeBuildContext
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaBasePlugin
@@ -28,7 +25,6 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
@@ -42,7 +38,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
-import spock.lang.Unroll
 
 @UsesNativeServices
 @CleanupTestDirectory
@@ -135,7 +130,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         eclipseModel.javaSourceSettings == null
     }
 
-    @Unroll
     def "default #type language level are set for #projectType projects if compatibility setting not specified"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -175,7 +169,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    @Unroll
     def "custom #type language level derived Java plugin convention"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -194,7 +187,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    @Unroll
     def "#type language level derived from eclipse jdt overrules java plugin convention configuration"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -215,7 +207,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    @Unroll
     def "multi-project build can have different #type language level per project"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -326,13 +317,9 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
 
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = new GradleProjectBuilder()
-        def serviceRegistry = new DefaultServiceRegistry()
         def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
-            getUniqueName( _ as Project) >> { Project p -> p.getName()}
+            getUniqueName(_ as Project) >> { Project p -> p.getName() }
         }
-        serviceRegistry.add(LocalComponentRegistry, Stub(LocalComponentRegistry))
-        serviceRegistry.add(CompositeBuildContext, Stub(CompositeBuildContext))
-        serviceRegistry.add(ProjectStateRegistry, Stub(ProjectStateRegistry))
-        new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry, uniqueProjectNameProvider)
+        new EclipseModelBuilder(gradleProjectBuilder, uniqueProjectNameProvider)
     }
 }

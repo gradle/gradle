@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 // we only need to check without Gradle metadata, it doesn't matter
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
@@ -78,7 +77,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     void "doesn't fallback to repository listing when empty list version is returned"() {
         withLister([testA: []])
         given:
@@ -126,7 +124,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     void "caches version listing using #lister lister"() {
         ListerInteractions listerInteractions
@@ -188,7 +185,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         'file on repository' | [testA: [1, 2, 3]]
     }
 
-    @ToBeFixedForConfigurationCache
     void "can recover from broken lister"() {
         withBrokenLister()
         given:
@@ -224,7 +220,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     def "can recover from --offline mode"() {
         withLister(['testA': [1, 2, 3]])
 

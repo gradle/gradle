@@ -150,7 +150,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     protected static Integer invocationsForExperiment(BuildExperimentSpec experiment) {
         String overriddenInvocationCount = getExperimentOverride("runs");
         if (overriddenInvocationCount != null) {
-            return Integer.valueOf(overriddenInvocationCount);
+            return Integer.parseInt(overriddenInvocationCount);
         }
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
@@ -181,10 +181,12 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return false;
     }
 
-    protected <T extends BuildInvocationResult> Consumer<T> consumerFor(ScenarioDefinition scenarioDefinition,
-                                                                        AtomicInteger iterationCount,
-                                                                        MeasuredOperationList results,
-                                                                        Consumer<T> scenarioReporter) {
+    protected <T extends BuildInvocationResult> Consumer<T> consumerFor(
+        ScenarioDefinition scenarioDefinition,
+        MeasuredOperationList results,
+        Consumer<T> scenarioReporter
+    ) {
+        AtomicInteger iterationCount = new AtomicInteger(0);
         return invocationResult -> {
             int currentIteration = iterationCount.incrementAndGet();
             if (currentIteration > scenarioDefinition.getWarmUpCount()) {

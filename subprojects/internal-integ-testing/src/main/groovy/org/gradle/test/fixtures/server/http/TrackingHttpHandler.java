@@ -34,6 +34,8 @@ interface TrackingHttpHandler {
     @Nullable
     ResponseProducer selectResponseProducer(int id, HttpExchange exchange);
 
+    boolean expecting(HttpExchange exchange);
+
     /**
      * Returns a precondition that asserts that this handler is not expecting any further requests to be released by the test in order to complete.
      */

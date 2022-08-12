@@ -40,7 +40,6 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class S3ClientIntegrationTest extends Specification {
 
@@ -63,7 +62,6 @@ class S3ClientIntegrationTest extends Specification {
         awsCredentials.setSecretKey(secret)
     }
 
-    @Unroll
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "should perform #authenticationType put get and list on an S3 bucket"() {
         setup:
@@ -216,7 +214,7 @@ class S3ClientIntegrationTest extends Specification {
             def uri = new URI("s3://${bucketName}.${regionForUrl}${key}")
 
             S3RegionalResource s3RegionalResource = new S3RegionalResource(uri)
-            s3Client.amazonS3Client.setRegion(s3RegionalResource.region)
+            s3Client.amazonS3Client.setRegion(s3RegionalResource.getRegion().get())
 
 
             println "Regional uri: ${uri}"

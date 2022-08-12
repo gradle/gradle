@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.provider.ProviderTestUtil.withProducer
 import static org.gradle.api.internal.provider.ProviderTestUtil.withValues
@@ -41,7 +40,6 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         t.message == 'Value cannot be null'
     }
 
-    @Unroll
     def "can create provider for #type"() {
         when:
         def provider = providerFactory.provider({ value })

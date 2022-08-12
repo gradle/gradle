@@ -34,6 +34,7 @@ import org.gradle.vcs.SourceControl;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * <p>Declares the configuration required to instantiate and configure the hierarchy of {@link
@@ -113,7 +114,46 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param projectPaths the projects to add.
      */
-    void include(String... projectPaths);
+    default void include(String... projectPaths) {
+        include(Arrays.asList(projectPaths));
+    }
+
+    /**
+     * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
+     * add to the build. Note that these path are not file paths, but instead specify the location of the new project in
+     * the project hierarchy. As such, the supplied paths must use the ':' character as separator (and NOT '/').</p>
+     *
+     * <p>The last element of the supplied path is used as the project name. The supplied path is converted to a project
+     * directory relative to the root project directory. The project directory can be altered by changing the 'projectDir'
+     * property after the project has been included (see {@link ProjectDescriptor#setProjectDir(File)})</p>
+     *
+     * <p>As an example, the path {@code a:b} adds a project with path {@code :a:b}, name {@code b} and project
+     * directory {@code $rootDir/a/b}. It also adds the a project with path {@code :a}, name {@code a} and project
+     * directory {@code $rootDir/a}, if it does not exist already.</p>
+     *
+     * <p>Some common examples of using the project path are:</p>
+     *
+     * <pre class='autoTestedSettings'>
+     *   // include two projects, 'foo' and 'foo:bar'
+     *   // directories are inferred by replacing ':' with '/'
+     *   include(['foo:bar'])
+     *
+     *   // include one project whose project dir does not match the logical project path
+     *   include(['baz'])
+     *   project(':baz').projectDir = file('foo/baz')
+     *
+     *   // include many projects whose project dirs do not match the logical project paths
+     *   file('subprojects').eachDir { dir -&gt;
+     *     include([dir.name])
+     *     project(":${dir.name}").projectDir = dir
+     *   }
+     * </pre>
+     *
+     * @param projectPaths the projects to add.
+     *
+     * @since 7.4
+     */
+    void include(Iterable<String> projectPaths);
 
     /**
      * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
@@ -126,12 +166,26 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
-     * @deprecated Using a flat project structure is discouraged. For one thing it causes inefficiencies in file-system watching.
-     * Clients should always use a hierarchical project layout and define the structure with {@link #include(String...)}
-     * This method is scheduled for removal in Gradle 8.0.
      */
-    @Deprecated
-    void includeFlat(String... projectNames);
+    default void includeFlat(String... projectNames) {
+        includeFlat(Arrays.asList(projectNames));
+    }
+
+    /**
+     * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
+     * add to the build.</p>
+     *
+     * <p>The supplied name is converted to a project directory relative to the <em>parent</em> directory of the root
+     * project directory.</p>
+     *
+     * <p>As an example, the name {@code a} add a project with path {@code :a}, name {@code a} and project directory
+     * {@code $rootDir/../a}.</p>
+     *
+     * @param projectNames the projects to add.
+     *
+     * @since 7.4
+     */
+    void includeFlat(Iterable<String> projectNames);
 
     /**
      * <p>Returns this settings object.</p>

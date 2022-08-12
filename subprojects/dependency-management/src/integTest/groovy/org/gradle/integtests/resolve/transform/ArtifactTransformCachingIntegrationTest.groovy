@@ -25,12 +25,12 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -207,7 +207,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             def reserved = file("${it}/build/${forbiddenPath}")
             failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
             failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
-                type('org.gradle.api.DefaultTask').property('output')
+                property('output')
                     .forbiddenAt(reserved)
                     .includeLink()
             }))
@@ -646,7 +646,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @Unroll
+    @Flaky
     def "can use configuration parameter of type #type"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -1075,7 +1075,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [${(1..3).collectMany { (["lib${it}.jar00"] * 3) + (["lib${it}.jar10"] * 3) }.join(", ")}, ${((["lib4-1.0.jar00"] * 3) + (["lib4-1.0.jar10"] * 3)).join(", ")}]") == 2
     }
 
-    @Unroll
     def "failure in transformation chain propagates (position in chain: #failingTransform)"() {
         given:
 
@@ -1152,7 +1151,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @ToBeFixedForConfigurationCache(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
-    @Unroll
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()
@@ -1258,7 +1256,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             }
     """
 
-    @Unroll
     def "transform is rerun when output is #action between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withFileLibDependency()
@@ -1331,6 +1328,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
+        def firstBuild = true
+        executer.beforeExecute {
+            if ((firstBuild || !GradleContextualExecuter.isConfigCache()) && !useParameterObject) {
+                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
+            }
+            firstBuild = false
+        }
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -1354,6 +1358,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // change the implementation
         buildFile.text = ""
         buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
+        firstBuild = true
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1380,6 +1385,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")
         otherScript.text = "ext.value = 123"
+        boolean firstBuild = true
+        executer.beforeExecute {
+            if ((firstBuild || !GradleContextualExecuter.configCache) && !useParameterObject) {
+                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
+            }
+            firstBuild = false
+        }
 
         buildFile << """
             apply from: 'other.gradle'
@@ -1407,6 +1419,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         otherScript.replace('123', '123.4')
+        firstBuild = true
         succeeds ":util:resolve", ":app:resolve"
 
         then:

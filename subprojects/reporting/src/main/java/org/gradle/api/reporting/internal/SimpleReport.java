@@ -69,4 +69,34 @@ public abstract class SimpleReport implements ConfigurableReport {
     public Report configure(Closure configure) {
         return ConfigureUtil.configureSelf(configure, this);
     }
+
+    @Override
+    @Deprecated
+    public boolean isEnabled() {
+        DeprecationLogger.deprecateProperty(Report.class, "enabled")
+            .replaceWith("required")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
+        return getRequired().get();
+    }
+
+    @Override
+    @Deprecated
+    public void setEnabled(boolean enabled) {
+        DeprecationLogger.deprecateProperty(Report.class, "enabled")
+            .replaceWith("required")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
+        getRequired().set(enabled);
+    }
+
+    @Override
+    @Deprecated
+    public void setEnabled(Provider<Boolean> enabled) {
+        getRequired().set(enabled);
+    }
 }

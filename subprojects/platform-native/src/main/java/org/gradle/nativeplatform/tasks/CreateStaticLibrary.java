@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -44,12 +45,14 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
 /**
  * Assembles a static library from object files.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
@@ -70,9 +73,10 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * The source object files to be passed to the archiver.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileCollection getSource() {
         return source;
     }

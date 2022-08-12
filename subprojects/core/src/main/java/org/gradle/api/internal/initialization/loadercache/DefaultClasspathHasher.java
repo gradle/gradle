@@ -19,16 +19,16 @@ package org.gradle.api.internal.initialization.loadercache;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 
 public class DefaultClasspathHasher implements ClasspathHasher {
 
-    private final ClasspathFingerprinter fingerprinter;
+    private final FileCollectionFingerprinter fingerprinter;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
+    public DefaultClasspathHasher(FileCollectionFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
         this.fingerprinter = fingerprinter;
         this.fileCollectionFactory = fileCollectionFactory;
     }

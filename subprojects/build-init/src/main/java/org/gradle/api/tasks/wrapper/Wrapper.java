@@ -20,11 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
@@ -32,9 +34,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.util.PropertiesUtils;
-import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.WrapUtil;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.WrapperExecutor;
@@ -64,6 +67,7 @@ import java.util.Properties;
  * generates a small {@code gradle-wrapper.jar} bootstrap JAR file and properties file which should also be committed to
  * your VCS. The scripts delegates to this JAR.
  */
+@DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 
@@ -98,6 +102,7 @@ public class Wrapper extends DefaultTask {
     private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
+    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
 
     public Wrapper() {
@@ -158,6 +163,9 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
+        if (networkTimeout.isPresent()) {
+            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout.get()));
+        }
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
@@ -424,5 +432,19 @@ public class Wrapper extends DefaultTask {
      */
     public void setArchiveBase(PathBase archiveBase) {
         this.archiveBase = archiveBase;
+    }
+
+    /**
+     * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
+     * as downloading the wrapper jar.
+     *
+     * @since 7.6
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
+    public Property<Integer> getNetworkTimeout() {
+        return networkTimeout;
     }
 }

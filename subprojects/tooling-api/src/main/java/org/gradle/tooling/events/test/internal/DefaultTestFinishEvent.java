@@ -24,20 +24,9 @@ import org.gradle.tooling.events.test.TestOperationResult;
 /**
  * Implementation of the {@code TestFinishEvent} interface.
  */
-public final class DefaultTestFinishEvent extends DefaultFinishEvent implements TestFinishEvent {
+public final class DefaultTestFinishEvent extends DefaultFinishEvent<TestOperationDescriptor, TestOperationResult> implements TestFinishEvent {
 
     public DefaultTestFinishEvent(long eventTime, String displayName, TestOperationDescriptor descriptor, TestOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
-
-    @Override
-    public TestOperationDescriptor getDescriptor() {
-        return (TestOperationDescriptor) super.getDescriptor();
-    }
-
-    @Override
-    public TestOperationResult getResult() {
-        return (TestOperationResult) super.getResult();
-    }
-
 }

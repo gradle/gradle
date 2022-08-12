@@ -29,18 +29,3 @@ fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
 
 
 fun Project.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), *args)
-
-
-fun Project.stringPropertyOrNull(projectPropertyName: String): String? =
-    project.findProperty(projectPropertyName) as? String
-
-
-fun Project.stringPropertyOrEmpty(projectPropertyName: String): String = stringPropertyOrNull(projectPropertyName) ?: ""
-
-
-fun Project.selectStringProperties(vararg propertyNames: String): Map<String, String> =
-    propertyNames.mapNotNull { propertyName ->
-        stringPropertyOrNull(propertyName)?.let { propertyValue ->
-            propertyName to propertyValue
-        }
-    }.toMap()

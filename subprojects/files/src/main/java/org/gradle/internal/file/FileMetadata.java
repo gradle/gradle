@@ -42,11 +42,11 @@ public interface FileMetadata {
      *
      * {@link AccessType} only gives information about the queried path, not about parents of the queried path.
      *
-     * If we have a symlink situation like `symlink1` -> `symlink2` -> `target`,
+     * If we have a symlink situation like `symlink1` -&gt; `symlink2` -&gt; `target`,
      * then the metadata for `symlink1` will have an access type {@link AccessType#VIA_SYMLINK}
      * and the metadata of `target`, i.e. the accessor will resolve transitive symlinks.
      *
-     * If the directory `symlinkedDir` -> `targetDir` is a symlink, then the
+     * If the directory `symlinkedDir` -&gt; `targetDir` is a symlink, then the
      * metadata of `symlinkedDir/fileInDir` will be {@link AccessType#DIRECT},
      * given the file `targetDir/fileInDir` exists.
      */

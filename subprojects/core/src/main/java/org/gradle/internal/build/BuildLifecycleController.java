@@ -15,61 +15,126 @@
  */
 package org.gradle.internal.build;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.Node;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Controls the lifecycle of an individual build in the build tree.
  */
-public interface BuildLifecycleController extends Stoppable {
+public interface BuildLifecycleController {
     /**
      * Returns the current state of the mutable model for this build.
+     *
+     * Note: You should avoid using this method, as no thread safety or lifecycling is applied to the return value.
      */
     GradleInternal getGradle();
 
     /**
      * Configures the settings for this build, if not already available.
+     * Can be called multiple times.
+     */
+    void loadSettings();
+
+    /**
+     * Runs the given action against the loaded settings for this build.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
      *
      * @return The loaded settings instance.
      */
-    SettingsInternal getLoadedSettings();
+    <T> T withSettings(Function<? super SettingsInternal, T> action);
 
     /**
-     * Configures the build, if not already available.
+     * Configures the projects of the build, if not already done.
+     * Can be called multiple times.
+     */
+    void configureProjects();
+
+    /**
+     * Runs the given action against the mutable state of this build after configuring the projects of the build.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
+     *
+     * @return The configured Gradle build instance.
+     */
+    <T> T withProjectsConfigured(Function<? super GradleInternal, T> action);
+
+    /**
+     * Configures the build, if not already done.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
+     *
+     * Note: You should not use this method as no thread safety is applied to the return value.
      *
      * @return The configured Gradle build instance.
      */
     GradleInternal getConfiguredBuild();
 
     /**
-     * Schedules the specified tasks for this build. Configures the build, if necessary.
+     * Prepares this build to schedule tasks. May configure the build, if required to later schedule the requested tasks. Can be called multiple times.
      */
-    void scheduleTasks(final Iterable<String> tasks);
+    void prepareToScheduleTasks();
 
     /**
-     * Schedule requested tasks, as defined in the {@link org.gradle.StartParameter} for this build. Configures the build, if necessary.
+     * Creates a new work plan for this build.
+     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times to create multiple plans.
      */
-    void scheduleRequestedTasks();
+    BuildWorkPlan newWorkGraph();
 
     /**
-     * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
+     * Populates the given work plan with tasks and work from this build.
      */
-    void executeTasks();
+    void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action);
+
+    /**
+     * Finalizes the work graph after it has not been populated.
+     */
+    void finalizeWorkGraph(BuildWorkPlan plan);
+
+    /**
+     * Executes the given work for this build. Does not automatically configure the build or schedule any tasks.
+     * Must call {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
+     */
+    ExecutionResult<Void> executeTasks(BuildWorkPlan plan);
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.
      * Failures to finish the build are passed to the given consumer rather than thrown.
      *
      * @param failure The build failure that should be reported to the buildFinished hooks. When null, this launcher may use whatever failure it has already collected.
+     * @return a result containing any failures that happen while finishing the build.
      */
-    void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector);
+    ExecutionResult<Void> finishBuild(@Nullable Throwable failure);
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.
      */
     void addListener(Object listener);
+
+    interface WorkGraphBuilder {
+        /**
+         * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
+         */
+        void addRequestedTasks();
+
+        /**
+         * Adds the given tasks and their dependencies to the work graph for this build.
+         */
+        void addEntryTasks(List<? extends Task> tasks);
+
+        /**
+         * Adds the given nodes to the work graph for this build.
+         */
+        void addNodes(List<? extends Node> nodes);
+    }
 }

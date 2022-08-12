@@ -40,12 +40,14 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Extracts the debug symbols from a binary and stores them in a separate file.
  *
  * @since 4.5
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class ExtractSymbols extends DefaultTask {
     private final RegularFileProperty binaryFile;
     private final RegularFileProperty symbolFile;

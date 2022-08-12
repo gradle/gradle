@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
 
@@ -48,7 +47,6 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         e.cause instanceof NoFactoryRegisteredForTypeException
     }
 
-    @Unroll
     def "can retrieve all creatable types and supported type names"() {
         when:
         types.each { instantiator.registerFactory(it, {}) }
@@ -91,18 +89,5 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         then:
         GradleException e = thrown()
         e.message == "Cannot register a factory for type TestType because a factory for this type is already registered."
-    }
-
-    def "copying factories from a different instantiator"() {
-        given:
-        def source = new DefaultPolymorphicNamedEntityInstantiator<Base>(Base, null)
-        def factoryTypes = [TestType, AnotherTestType] as Set
-        factoryTypes.each { source.registerFactory(it, {}) }
-
-        when:
-        instantiator.copyFactoriesFrom(source)
-
-        then:
-        instantiator.creatableTypes == factoryTypes
     }
 }

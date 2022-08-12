@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.compile
 
 import org.junit.Test
@@ -23,16 +23,6 @@ class DebugOptionsTest {
 
     @Test public void testDebugOptions() {
         assert debugOptions.debugLevel == null
-    }
-
-    @Test public void testOptionMap() {
-        Map optionMap = debugOptions.optionMap()
-        assert optionMap.isEmpty()
-
-        debugOptions.debugLevel = "extreme"
-        optionMap = debugOptions.optionMap()
-        assert optionMap.size() == 1
-        assert optionMap.debugLevel == "extreme"
     }
 
     @Test public void testDefine() {

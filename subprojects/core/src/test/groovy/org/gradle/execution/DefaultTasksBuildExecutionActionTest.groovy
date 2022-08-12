@@ -19,12 +19,14 @@ package org.gradle.execution
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.internal.DefaultTaskExecutionRequest
 import spock.lang.Specification
 
 class DefaultTasksBuildExecutionActionTest extends Specification {
     final projectConfigurer = Mock(ProjectConfigurer)
-    final DefaultTasksBuildExecutionAction action = new DefaultTasksBuildExecutionAction(projectConfigurer)
+    final buildInCommand = Mock(BuiltInCommand)
+    final action = new DefaultTasksBuildExecutionAction(projectConfigurer, [buildInCommand])
     final context = Mock(BuildExecutionContext)
     final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
@@ -60,16 +62,17 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
         1 * context.proceed()
     }
 
-    def "uses the help task if no tasks specified in StartParameter or project"() {
+    def "uses default build-in tasks if no tasks specified in StartParameter or project"() {
         given:
         _ * startParameter.taskRequests >> []
         _ * defaultProject.defaultTasks >> []
+        _ * buildInCommand.asDefaultTask() >> ['default1', 'default2']
 
         when:
         action.configure(context)
 
         then:
-        1 * startParameter.setTaskNames(['help'])
+        1 * startParameter.setTaskNames(['default1', 'default2'])
         1 * context.proceed()
     }
 }

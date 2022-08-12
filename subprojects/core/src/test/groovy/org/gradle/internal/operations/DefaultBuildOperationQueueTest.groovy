@@ -19,10 +19,11 @@ package org.gradle.internal.operations
 import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -58,19 +59,23 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
     }
 
+    ResourceLockCoordinationService coordinationService
     BuildOperationQueue operationQueue
     WorkerLeaseService workerRegistry
+    WorkerLeaseRegistry.WorkerLeaseCompletion lease
 
     void setupQueue(int threads) {
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, threads)) {}
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, threads)) {}
+        lease = workerRegistry.startWorker()
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
     def "cleanup"() {
+        lease?.leaseFinish()
         workerRegistry.stop()
     }
 
-    @Unroll
     def "executes all #runs operations in #threads threads"() {
         given:
         setupQueue(threads)
@@ -110,7 +115,6 @@ class DefaultBuildOperationQueueTest extends Specification {
         thrown IllegalStateException
     }
 
-    @Unroll
     def "failures propagate to caller regardless of when it failed #operations with #threads threads"() {
         given:
         setupQueue(threads)
@@ -156,7 +160,6 @@ class DefaultBuildOperationQueueTest extends Specification {
         e.message.contains(LOG_LOCATION)
     }
 
-    @Unroll
     def "when queue is canceled, unstarted operations do not execute (#runs runs, #threads threads)"() {
         def expectedInvocations = threads <= runs ? threads : runs
         CountDownLatch startedLatch = new CountDownLatch(expectedInvocations)
@@ -165,6 +168,7 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         given:
         setupQueue(threads)
+        lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
 
         when:
         runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
@@ -177,7 +181,9 @@ class DefaultBuildOperationQueueTest extends Specification {
         and:
         // release the running operations to complete
         releaseLatch.countDown()
-        operationQueue.waitForCompletion()
+        workerRegistry.runAsWorkerThread {
+            operationQueue.waitForCompletion()
+        }
 
         then:
         expectedInvocations * operationAction.run()

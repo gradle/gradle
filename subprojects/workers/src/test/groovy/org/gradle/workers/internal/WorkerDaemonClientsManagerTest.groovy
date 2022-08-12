@@ -18,7 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.Transformer
 import org.gradle.api.logging.LogLevel
-import org.gradle.initialization.SessionLifecycleListener
+import org.gradle.internal.session.BuildSessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -157,7 +157,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         when:
         manager.reserveNewClient(options)
         manager.reserveNewClient(options)
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
 
         then:
         1 * client1.getKeepAliveMode() >> KeepAliveMode.SESSION
@@ -176,7 +176,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         when:
         manager.reserveNewClient(options)
         manager.reserveNewClient(options)
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
 
         then:
         1 * client1.getKeepAliveMode() >> KeepAliveMode.SESSION

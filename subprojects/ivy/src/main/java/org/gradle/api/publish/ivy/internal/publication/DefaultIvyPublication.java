@@ -36,6 +36,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -55,6 +56,7 @@ import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
@@ -132,6 +134,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
+    private final DocumentationRegistry documentationRegistry;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
     private boolean populated;
@@ -145,7 +148,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport) {
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport,
+        DocumentationRegistry documentationRegistry) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -159,6 +163,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
         this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -267,6 +272,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
+        PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
+
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
         Set<? extends UsageContext> usageContexts = component.getUsages();
 

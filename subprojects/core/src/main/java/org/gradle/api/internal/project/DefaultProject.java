@@ -45,6 +45,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -73,6 +74,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -120,6 +122,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -178,9 +181,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private Object version;
 
-    private Object status;
-
-    private final Map<String, Project> childProjects = Maps.newTreeMap();
+    private Property<Object> status;
 
     private List<String> defaultTasks = new ArrayList<>();
 
@@ -204,7 +205,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
-    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
+    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -212,16 +213,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private boolean preparedForRuleBasedPlugins;
 
-    public DefaultProject(String name,
-                          @Nullable ProjectInternal parent,
-                          File projectDir,
-                          File buildFile,
-                          ScriptSource buildScriptSource,
-                          GradleInternal gradle,
-                          ProjectState owner,
-                          ServiceRegistryFactory serviceRegistryFactory,
-                          ClassLoaderScope selfClassLoaderScope,
-                          ClassLoaderScope baseClassLoaderScope) {
+    public DefaultProject(
+        String name,
+        @Nullable ProjectInternal parent,
+        File projectDir,
+        File buildFile,
+        ScriptSource buildScriptSource,
+        GradleInternal gradle,
+        ProjectState owner,
+        ServiceRegistryFactory serviceRegistryFactory,
+        ClassLoaderScope selfClassLoaderScope,
+        ClassLoaderScope baseClassLoaderScope
+    ) {
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -251,12 +254,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        ruleBasedPluginListenerBroadcast.add(new RuleBasedPluginListener() {
-            @Override
-            public void prepareForRuleBasedPlugins(Project project) {
-                populateModelRegistry(services.get(ModelRegistry.class));
-            }
-        });
+        ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
     }
 
     @SuppressWarnings("unused")
@@ -329,18 +327,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
-        return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+        return new ListenerBroadcast<>(ProjectEvaluationListener.class);
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, new Factory<File>() {
-            @Override
-            public File create() {
-                return getBuildDir();
-            }
-        });
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, this::getBuildDir);
         registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
         registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
@@ -371,7 +364,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject() {
-        return rootProject;
+        return getRootProject(this);
+    }
+
+    @Override
+    public ProjectInternal getRootProject(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().access(referrer, rootProject);
     }
 
     @Override
@@ -409,9 +407,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getParent() {
-        return parent;
+        return getParent(this);
     }
 
+    @Nullable
+    @Override
+    public ProjectInternal getParent(ProjectInternal referrer) {
+        if (parent == null) {
+            return null;
+        }
+        return getCrossProjectModelAccess().access(referrer, parent);
+    }
+
+    @Nullable
     @Override
     public ProjectIdentifier getParentIdentifier() {
         return parent;
@@ -470,16 +478,28 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object getStatus() {
-        return status == null ? DEFAULT_STATUS : status;
+        return getInternalStatus().get();
     }
 
     @Override
-    public void setStatus(Object status) {
-        this.status = status;
+    public void setStatus(Object s) {
+        getInternalStatus().set(s);
+    }
+
+    @Override
+    public Property<Object> getInternalStatus() {
+        if (status == null) {
+            status = getObjects().property(Object.class).convention(DEFAULT_STATUS);
+        }
+        return status;
     }
 
     @Override
     public Map<String, Project> getChildProjects() {
+        Map<String, Project> childProjects = Maps.newTreeMap();
+        for (ProjectState project : owner.getChildProjects()) {
+            childProjects.put(project.getName(), project.getMutableModel());
+        }
         return childProjects;
     }
 
@@ -542,6 +562,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.configurationContainer = configurationContainer;
     }
 
+    @Deprecated
     @Override
     public Convention getConvention() {
         // TODO (donat) deprecate after all internal usages have been eliminated
@@ -771,11 +792,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public void addChildProject(ProjectInternal childProject) {
-        childProjects.put(childProject.getName(), childProject);
-    }
-
-    @Override
     public File getProjectDir() {
         return projectDir;
     }
@@ -797,8 +813,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void evaluationDependsOnChildren() {
-        for (Project project : childProjects.values()) {
-            DefaultProject defaultProjectToEvaluate = (DefaultProject) project;
+        for (ProjectState project : owner.getChildProjects()) {
+            ProjectInternal defaultProjectToEvaluate = project.getMutableModel();
             evaluationDependsOn(defaultProjectToEvaluate);
         }
     }
@@ -1112,7 +1128,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public WorkResult sync(Action<? super CopySpec> action) {
+    public WorkResult sync(Action<? super SyncSpec> action) {
         return getFileOperations().sync(action);
     }
 
@@ -1393,7 +1409,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
-    public abstract InputNormalizationHandler getNormalization();
+    public abstract InputNormalizationHandlerInternal getNormalization();
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {

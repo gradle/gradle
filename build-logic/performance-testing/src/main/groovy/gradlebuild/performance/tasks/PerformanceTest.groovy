@@ -91,8 +91,7 @@ abstract class PerformanceTest extends DistributionTest {
     String checks
 
     @Nullable
-    @Optional
-    @Input
+    @Internal
     String channel
 
     /************** properties configured by PerformanceTestPlugin ***************/
@@ -168,10 +167,13 @@ abstract class PerformanceTest extends DistributionTest {
                 [resultsJson],
                 databaseParameters,
                 channel,
+                [] as Set,
                 branchName,
                 commitId.get(),
                 classpath,
-                projectName.get()
+                projectName.get(),
+                buildId,
+                false
             )
         }
     }
@@ -211,7 +213,8 @@ abstract class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios
     }
 
-    @Internal
+    @Optional
+    @Input
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     Property<String> getBaselines() {
         return baselines
@@ -242,6 +245,10 @@ abstract class PerformanceTest extends DistributionTest {
     @Input
     abstract Property<String> getProfiler()
 
+    @Option(option = "cross-version-only", description = "Only run cross version performance tests")
+    @Input
+    final Property<Boolean> crossVersionOnly = project.objects.property(Boolean.class).convention(false)
+
     @Optional
     @Input
     String getDatabaseUrl() {
@@ -271,7 +278,7 @@ abstract class PerformanceTest extends DistributionTest {
     }
 
     void generateResultsJson() {
-        Collection<File> xmls = reports.junitXml.destination.listFiles().findAll { it.path.endsWith(".xml") }
+        Collection<File> xmls = reports.junitXml.outputLocation.get().asFile.listFiles().findAll { it.path.endsWith(".xml") }
         List<ScenarioBuildResultData> resultData = xmls
             .collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
             .collect { extractResultFromTestSuite(it, getTestProjectName().get()) }
@@ -313,11 +320,13 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios)
             addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProjectName().getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines.getOrNull())
+            addSystemPropertyIfExist(result, "org.gradle.performance.crossVersionOnly", crossVersionOnly.get())
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)
             addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel)
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
+            addSystemPropertyIfExist(result, "gradleBuildBranch", branchName)
 
             if (profiler.isPresent() && profiler.get() != "none") {
                 addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())

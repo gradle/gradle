@@ -37,6 +37,6 @@ signing {
 // Alternative to signing.required
 // tag::only-if[]
 tasks.withType<Sign>().configureEach {
-    onlyIf { project.extra["isReleaseVersion"] as Boolean }
+    onlyIf("isReleaseVersion is set") { project.extra["isReleaseVersion"] as Boolean }
 }
 // end::only-if[]

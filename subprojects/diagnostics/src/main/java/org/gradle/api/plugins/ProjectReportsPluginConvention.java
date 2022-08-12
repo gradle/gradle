@@ -23,7 +23,10 @@ import java.util.Set;
 
 /**
  * The conventional configuration for the `ProjectReportsPlugin`.
+ *
+ *  @deprecated Please configure the tasks directly. This class is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public abstract class ProjectReportsPluginConvention {
     /**
      * The name of the directory to generate the project reports into, relative to the project's reports dir.

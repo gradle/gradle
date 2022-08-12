@@ -214,6 +214,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when settings script for child build cannot be compiled"() {
         given:
         buildA.settingsFile << """
@@ -250,6 +251,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(6)
     }
 
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when build script for child build fails"() {
         given:
         buildA.settingsFile << """

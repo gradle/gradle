@@ -16,6 +16,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -24,7 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture, ExecutionOptimizationDeprecationFixture {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -574,7 +576,6 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -1081,8 +1082,11 @@ task b(dependsOn: a)
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
-    def "task loaded with custom classloader is never up-to-date"() {
+    def "task loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
         buildFile << """
             def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
@@ -1105,17 +1109,115 @@ task b(dependsOn: a)
             }
         """
         when:
+        expectImplementationUnknownDeprecation {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        }
+        expectImplementationUnknownDeprecation {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        }
         succeeds "customTask"
         then:
         noneSkipped()
 
         when:
-        succeeds "customTask", "--info"
+        expectImplementationUnknownDeprecation {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        }
+        expectImplementationUnknownDeprecation {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        }
+        succeeds "customTask"
         then:
         noneSkipped()
-        output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "can switch between task with implementation from unknown classloader and from known classloader"() {
+        file("input.txt").text = "data"
+        buildFile << """
+            ${customTaskImplementation("CustomTaskFromBuildFile")}
+
+            def CustomTaskFromUnknownClassloader = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.*
+                import org.gradle.api.tasks.*
+
+                ${customTaskImplementation("CustomTaskFromUnknownClassloader")}
+            '''
+
+            def customTaskClass = providers.gradleProperty("unknownClassloader").isPresent()
+                    ? CustomTaskFromUnknownClassloader
+                    : CustomTaskFromBuildFile
+
+            task customTask(type: customTaskClass) {
+                outputs.cacheIf { true }
+                input = file("input.txt")
+                output = file("build/output.txt")
+            }
+        """
+        when:
+        expectImplementationUnknownDeprecation {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+        }
+        expectImplementationUnknownDeprecation {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+        }
+        withBuildCache().run "customTask", "-PunknownClassloader"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        skipped(":customTask")
+
+        when:
+        expectImplementationUnknownDeprecation {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+        }
+        expectImplementationUnknownDeprecation {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+        }
+        withBuildCache().run "customTask", "-PunknownClassloader"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        skipped(":customTask")
+    }
+
+    private static String customTaskImplementation(String className) {
+        """
+            class ${className} extends DefaultTask {
+                @InputFile File input
+                @OutputFile File output
+                @TaskAction action() {
+                    output.parentFile.mkdirs()
+                    output.text = input.text
+                }
+            }
+        """
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
@@ -1153,15 +1255,22 @@ task b(dependsOn: a)
             }
         """
         when:
+        expectImplementationUnknownDeprecation {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskAction')
+        }
         succeeds "customTask"
         then:
         noneSkipped()
 
         when:
-        succeeds "customTask", "--info"
+        expectImplementationUnknownDeprecation {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskAction')
+        }
+        succeeds "customTask"
         then:
         noneSkipped()
-        output.contains "Additional action for task ':customTask': was loaded with an unknown classloader (class 'CustomTaskAction')."
     }
 
     @Issue("gradle/gradle#1168")
@@ -1279,6 +1388,9 @@ task b(dependsOn: a)
         args('-PinputDirs=inputDir1,inputDir2')
 
         then:
+        executer.beforeExecute {
+            expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'MyTask.processFiles' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
+        }
         succeeds('myTask')
 
         when:
@@ -1329,7 +1441,7 @@ task b(dependsOn: a)
 
         then:
         failureDescriptionContains(
-            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input')}
+            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input') }
         )
     }
 
@@ -1428,8 +1540,45 @@ task b(dependsOn: a)
             ignoredAnnotatedPropertyMessage {
                 type('CustomTask').property('classpath')
                 ignoring('Internal')
-                alsoAnnotatedWith('InputFiles', 'Classpath')
+                alsoAnnotatedWith('Classpath', 'InputFiles')
             }
         )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7923")
+    def "task is not up-to-date when the implementation of a named #actionMethodName action changes"() {
+        buildScript """
+            tasks.register('myTask') {
+                outputs.dir(layout.buildDirectory.dir('myDir'))
+                ${actionMethodName}('myAction') { println("printing from action") }
+            }
+        """
+
+        when:
+        run ':myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+        outputContains("printing from action")
+
+        when:
+        buildFile << """
+            tasks.register('other')
+        """
+        run ':myTask', '--info'
+        then:
+        executedAndNotSkipped(':myTask')
+        outputContains("printing from action")
+        outputContains("One or more additional actions for task ':myTask' have changed.")
+
+        when:
+        run ':myTask'
+        then:
+        skipped(':myTask')
+
+        where:
+        actionMethodName << [
+            "doFirst",
+            "doLast",
+        ]
     }
 }

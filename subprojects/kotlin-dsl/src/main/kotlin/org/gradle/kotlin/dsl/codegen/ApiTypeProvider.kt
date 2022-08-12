@@ -567,7 +567,7 @@ fun binaryNameOfInternalName(internalName: String): String =
     Type.getObjectType(internalName).className
 
 
-private
+internal
 fun sourceNameOfBinaryName(binaryName: String): String =
     when (binaryName) {
         "void" -> "Unit"

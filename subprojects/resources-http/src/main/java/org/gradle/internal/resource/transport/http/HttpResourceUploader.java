@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
@@ -33,8 +34,8 @@ public class HttpResourceUploader implements ExternalResourceUploader {
     }
 
     @Override
-    public void upload(ReadableContent resource, URI destination) throws IOException {
-        HttpPut method = new HttpPut(destination);
+    public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+        HttpPut method = new HttpPut(destination.getUri());
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
         try (HttpClientResponse response = http.performHttpRequest(method)) {

@@ -16,11 +16,9 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -28,65 +26,63 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 
-class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationSpec {
-    final def targetDir = testDirectory.createDir("some-thing")
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+    abstract BuildInitDsl getBuildDsl()
+    abstract Language getJvmLanguage()
 
-    def setup() {
-        executer.withRepositoryMirrors()
-        executer.beforeExecute {
-            executer.inDirectory(targetDir)
-            executer.ignoreMissingSettingsFile()
-        }
+    @Override
+    String subprojectName() {
+        return null
     }
 
-    @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*Kotlin build scripts", because = "Kotlin Gradle Plugin")
+    @Unroll("creates multi-project application sample when incubating flag = #incubating")
     def "creates multi-project application sample"() {
         given:
-        def dsl = scriptDsl as BuildInitDsl
+        def dsl = buildDsl
         def language = jvmLanguage.name
         def ext = jvmLanguage.extension
         def settingsFile = dsl.fileNameFor('settings')
         def buildFile = dsl.fileNameFor('build')
 
         when:
-        run('init', '--type', "${language}-application", '--split-project', '--dsl', dsl.id)
+        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
+        run(tasks)
 
         then:
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        targetDir.file("buildSrc").assertHasDescendants(
+        targetDir.file(incubating ? "gradle/plugins" : "buildSrc").assertHasDescendants(
             buildFile,
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}",
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-library-conventions")}",
         )
 
-        targetDir.file("app").assertHasDescendants(
-            buildFile,
-            "src/main/${language}/some/thing/app/App.${ext}",
-            "src/main/${language}/some/thing/app/MessageUtils.${ext}",
-            "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
-            "src/main/resources",
-            "src/test/resources"
-        )
-        targetDir.file("list").assertHasDescendants(
-            buildFile,
-            "src/main/${language}/some/thing/list/LinkedList.${ext}",
-            "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
-            "src/main/resources",
-            "src/test/resources"
-        )
+        def appFiles = [buildFile,
+                        "src/main/${language}/some/thing/app/App.${ext}",
+                        "src/main/${language}/some/thing/app/MessageUtils.${ext}",
+                        "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
+                        "src/main/resources",
+                        "src/test/resources"]
+        targetDir.file("app").assertHasDescendants(appFiles*.toString())
 
-        targetDir.file("utilities").assertHasDescendants(
+        def listFiles = [buildFile,
+                         "src/main/${language}/some/thing/list/LinkedList.${ext}",
+                         "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
+                         "src/main/resources",
+                         "src/test/resources"]
+        targetDir.file("list").assertHasDescendants(listFiles*.toString())
+
+        def utilFiles = [
             buildFile,
             "src/main/${language}/some/thing/utilities/JoinUtils.${ext}",
             "src/main/${language}/some/thing/utilities/SplitUtils.${ext}",
             "src/main/${language}/some/thing/utilities/StringUtils.${ext}",
             "src/main/resources",
             "src/test/resources"
-        )
+        ]*.toString()
+        targetDir.file("utilities").assertHasDescendants(utilFiles)
 
         when:
         succeeds "build"
@@ -105,18 +101,110 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         outputContains("Hello World!")
 
         where:
-        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN, SCALA], ScriptDslFixture.SCRIPT_DSLS].combinations()
+        incubating << [true, false]
     }
 
-    def "can explicitly configure application not to split projects"() {
-        expect:
-        succeeds('init', '--type', "java-application", '--dsl', 'groovy')
-    }
 
     void assertTestPassed(String subprojectName, String className, String name) {
         def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
+}
 
+class GroovyDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return JAVA
+    }
+}
+
+class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return GROOVY
+    }
+}
+
+class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return KOTLIN
+    }
+}
+
+class GroovyDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return SCALA
+    }
+}
+
+
+class KotlinDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return JAVA
+    }
+}
+
+class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return GROOVY
+    }
+}
+
+class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return KOTLIN
+    }
+}
+
+class KotlinDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return SCALA
+    }
 }

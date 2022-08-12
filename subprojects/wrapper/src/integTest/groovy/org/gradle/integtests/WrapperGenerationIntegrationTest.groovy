@@ -17,13 +17,13 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
-
-import static org.gradle.internal.hash.HashUtil.sha256
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
@@ -54,7 +54,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 58 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 60 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -71,7 +71,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        sha256(file("first/gradle/wrapper/gradle-wrapper.jar")).asHexString() == "47a62eb8a42fe3739dbc2c594f1f49f45ef5de951f88aa9568c2fd45f2025447"
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("53018fb29b1af30cb2776fd1ddfede2d1a60bb541d00750cbbb0e40e7c61226b")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -133,6 +133,14 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionSha256Sum=somehash")
+    }
+
+    def "generated wrapper scripts for given network timeout from command-line"() {
+        when:
+        run "wrapper", "--network-timeout", "7000"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=7000")
     }
 
     def "wrapper JAR does not contain version in manifest"() {

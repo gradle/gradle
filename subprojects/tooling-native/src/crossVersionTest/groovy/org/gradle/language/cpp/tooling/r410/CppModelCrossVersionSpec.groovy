@@ -27,9 +27,12 @@ import org.gradle.tooling.model.cpp.CppProject
 import org.gradle.tooling.model.cpp.CppSharedLibrary
 import org.gradle.tooling.model.cpp.CppStaticLibrary
 import org.gradle.tooling.model.cpp.CppTestSuite
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(">=4.10")
 @TargetGradleVersion(">=4.10")
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
 class CppModelCrossVersionSpec extends ToolingApiSpecification {
     def toolchain = AvailableToolChains.defaultToolChain
 
@@ -287,7 +290,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
                     compileTask.get().compilerArgs.add("--compile=\$name")
                     compileTask.get().macros = [VARIANT: name]
                     linkTask.get().linkerArgs.add("--link=\$name")
-                } 
+                }
             }
         """
         def headerDir = file('include')
@@ -425,15 +428,15 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             include 'other'
         """
         buildFile << """
-            project(':app') { 
+            project(':app') {
                 apply plugin: 'cpp-application'
                 application {
                     dependencies { implementation project(':lib') }
                 }
             }
-            project(':lib') { 
-                apply plugin: 'cpp-library' 
-                apply plugin: 'cpp-unit-test' 
+            project(':lib') {
+                apply plugin: 'cpp-library'
+                apply plugin: 'cpp-unit-test'
             }
         """
 
@@ -478,13 +481,13 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             includeBuild 'lib'
         """
         buildFile << """
-            project(':app') { 
-                apply plugin: 'cpp-application' 
+            project(':app') {
+                apply plugin: 'cpp-application'
             }
         """
         file("lib/build.gradle") << """
-                apply plugin: 'cpp-library' 
-                apply plugin: 'cpp-unit-test' 
+                apply plugin: 'cpp-library'
+                apply plugin: 'cpp-unit-test'
         """
 
         when:

@@ -38,7 +38,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
     private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
     public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(NativeToolChain.class, instantiator, collectionCallbackActionDecorator);
+        super(NativeToolChain.class, instantiator, instantiator, collectionCallbackActionDecorator);
         whenObjectAdded(new Action<NativeToolChain>() {
             @Override
             public void execute(NativeToolChain toolChain) {

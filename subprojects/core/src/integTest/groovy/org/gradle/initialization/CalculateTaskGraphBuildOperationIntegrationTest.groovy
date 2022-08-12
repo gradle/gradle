@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -142,7 +143,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath == ":b"
-        taskGraphCalculations[2].result.requestedTaskPaths == [":classes", ":compileJava", ":jar", ":processResources"]
+        taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
     }
 
     def "exposes task plan details"() {
@@ -188,7 +189,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('classes', 'independentTask', 'someTask')
 
         then:
-        with(operations()[0].result.taskPlan) {
+        def operations = this.operations()
+        operations.size() == 2
+        with(operations[0].result.taskPlan) {
             task.taskPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
             task.buildPath == [":", ":", ":", ":", ":", ":", ":", ":"]
             dependencies.taskPath.collect { it.sort() } == [[":compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
@@ -197,7 +200,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
             shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
         }
-        with(operations()[1].result.taskPlan) {
+        with(operations[1].result.taskPlan) {
             task.taskPath == [':compileJava']
             task.buildPath == [':included-build']
         }
@@ -314,11 +317,19 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     private List<BuildOperationRecord> operations() {
-        buildOperations.all(CalculateTaskGraphBuildOperationType)
+        def treeOperations = buildOperations.all(CalculateTreeTaskGraphBuildOperationType)
+        assert treeOperations.size() == 1
+
+        def buildOperations = buildOperations.all(CalculateTaskGraphBuildOperationType)
+        buildOperations.each {
+            assert it.parentId == treeOperations.first().id
+        }
+        return buildOperations
     }
 
     private BuildOperationRecord operation() {
-        buildOperations.first(CalculateTaskGraphBuildOperationType)
+        def operations = operations()
+        assert operations.size() == 1
+        return operations[0]
     }
-
 }

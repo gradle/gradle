@@ -28,7 +28,7 @@ version = '1.0'
 catalog {
     // declare the aliases, bundles and versions in this block
     versionCatalog {
-        alias('my-lib').to('com.mycompany:mylib:1.2')
+        library('my-lib', 'com.mycompany:mylib:1.2')
     }
 }
 // end::catalog_spec[]

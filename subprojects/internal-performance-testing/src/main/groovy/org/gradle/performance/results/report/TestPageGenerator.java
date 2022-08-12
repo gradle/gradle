@@ -31,9 +31,12 @@ import org.gradle.performance.util.Git;
 
 import javax.annotation.Nullable;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
+
+import static org.gradle.performance.results.report.AbstractTablePageGenerator.getTeamCityWebUrlFromBuildId;
+import static org.gradle.util.internal.CollectionUtils.firstOrEmpty;
 
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> implements PerformanceExecutionGraphRenderer {
     private final String projectName;
@@ -152,11 +155,11 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
             private void renderDateAndLink(PerformanceTestExecution results) {
                 td();
-                    String date = FormatSupport.timestamp(new Date(results.getStartTime()));
+                    String date = FormatSupport.timestamp(Instant.ofEpochMilli(results.getStartTime()));
                     if (results.getTeamCityBuildId() == null) {
                         text(date);
                     } else {
-                        a().href("https://builds.gradle.org/viewLog.html?buildId=" + results.getTeamCityBuildId()).target("_blank").text(date).end();
+                        a().href(getTeamCityWebUrlFromBuildId(results.getTeamCityBuildId())).target("_blank").text(date).end();
                     }
                 end();
             }
@@ -282,11 +285,19 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
     }
 
     private String getReproductionInstructions(PerformanceTestHistory history) {
+        String baseline = "";
+        if (history instanceof CrossVersionPerformanceTestHistory) {
+            baseline = firstOrEmpty(((CrossVersionPerformanceTestHistory) history).getResults())
+                .flatMap(result -> firstOrEmpty(result.getBaselineVersions()))
+                .map(baselineVersion -> "-PperformanceBaselines='" + baselineVersion.getVersion() + "'")
+                .orElse("");
+        }
         PerformanceScenario scenario = history.getExperiment().getScenario();
-        return String.format("To reproduce, run ./gradlew :%s:%sPerformanceAdhocTest --tests '%s' -PperformanceBaselines=force-defaults",
+        return String.format("To reproduce, run ./gradlew :%s:%sPerformanceAdhocTest --tests '%s' %s",
             projectName,
             history.getExperiment().getTestProject(),
-            scenario.getClassName() + "." + scenario.getTestName()
+            scenario.getClassName() + "." + scenario.getTestName(),
+            baseline
         );
     }
 

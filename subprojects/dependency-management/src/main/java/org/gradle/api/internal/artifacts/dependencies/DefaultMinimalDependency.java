@@ -21,52 +21,32 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 
 import java.io.Serializable;
 
-public class DefaultMinimalDependency implements MinimalExternalModuleDependency, Serializable {
-    private final ModuleIdentifier module;
-    private final MutableVersionConstraint versionConstraint;
-    private final int hashCode;
-
+public class DefaultMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependency, Serializable {
     public DefaultMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
-        this.module = module;
-        this.versionConstraint = versionConstraint;
-        this.hashCode = doComputeHashCode();
+        super(module, versionConstraint);
     }
 
     @Override
-    public ModuleIdentifier getModule() {
-        return module;
+    public void because(String reason) {
+        validateMutation();
     }
 
     @Override
-    public MutableVersionConstraint getVersionConstraint() {
-        return versionConstraint;
+    protected void validateMutation() {
+        throw new UnsupportedOperationException("Minimal dependencies are immutable.");
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultMinimalDependency that = (DefaultMinimalDependency) o;
-
-        if (!module.equals(that.module)) {
-            return false;
-        }
-        return versionConstraint.equals(that.versionConstraint);
+    protected void validateMutation(Object currentValue, Object newValue) {
+        validateMutation();
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
+    // copy() intentionally not overridden because we use it to go to a mutable version
 
-    private int doComputeHashCode() {
-        int result = module.hashCode();
-        result = 31 * result + versionConstraint.hashCode();
-        return result;
+    public String toString() {
+        String versionConstraintAsString = getVersionConstraint().toString();
+        return versionConstraintAsString.isEmpty()
+            ? getModule().toString()
+            : getModule() + ":" + versionConstraintAsString;
     }
 }

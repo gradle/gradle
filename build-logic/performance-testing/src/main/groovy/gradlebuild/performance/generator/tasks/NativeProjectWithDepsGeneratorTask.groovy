@@ -25,10 +25,12 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Generates a multi-project native build that has project dependencies and tests.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
 
     /** Represents a native library requirement */

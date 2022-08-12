@@ -16,11 +16,10 @@
 
 package org.gradle.internal.jvm;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.util.GradleVersion;
 
-public class UnsupportedJavaRuntimeException extends GradleException {
+public class UnsupportedJavaRuntimeException extends RuntimeException {
 
     public UnsupportedJavaRuntimeException(String message) {
         super(message);

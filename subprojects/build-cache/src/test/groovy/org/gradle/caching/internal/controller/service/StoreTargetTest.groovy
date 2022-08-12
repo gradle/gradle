@@ -56,7 +56,7 @@ class StoreTargetTest extends Specification {
         output.closed
     }
 
-    def "closes output on subsequent use"() {
+    def "can write multiple times"() {
         given:
         def output = new TestOutputStream()
 
@@ -65,7 +65,6 @@ class StoreTargetTest extends Specification {
         target.writeTo(output)
 
         then:
-        thrown IllegalStateException
         output.closed
     }
 

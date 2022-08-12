@@ -39,7 +39,7 @@ description = 'this is a project'
         file('settings.gradle').text = 'rootProject.name = \"test project\"'
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
 
         then:
         project.parent == null
@@ -63,7 +63,7 @@ idea.project {
 """
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
 
         then:
         project.languageLevel.level == "JDK_1_5"
@@ -80,7 +80,7 @@ subprojects {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
 
         then:
         project.children.size() == 3
@@ -100,7 +100,7 @@ idea.module.testOutputDir = file('someTestDir')
 """
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
         def module = project.children[0]
 
         then:
@@ -136,7 +136,7 @@ idea.module.testOutputDir = file('someTestDir')
         }
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
         IdeaModule module = project.children[0]
         IdeaContentRoot root = module.contentRoots[0]
 
@@ -160,7 +160,7 @@ idea.module.excludeDirs += file('foo')
 """
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
         def module = project.children[0]
 
         then:
@@ -177,6 +177,9 @@ idea.module.excludeDirs += file('foo')
         dependency.artifact(classifier: 'javadoc')
         dependency.publish()
 
+        projectDir.file("gradle.properties") << """
+            org.gradle.parallel=$parallel
+        """
         file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -200,7 +203,7 @@ project(':impl') {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
         def module = project.children.find { it.name == 'impl' }
 
         then:
@@ -225,6 +228,9 @@ project(':impl') {
         } else {
             mod.scope.scope == 'COMPILE'
         }
+
+        where:
+        parallel << [true, false]
     }
 
     @TargetGradleVersion('>=2.6 <=2.7')
@@ -250,7 +256,7 @@ project(':contrib:impl') {
         file('settings.gradle').text = "include 'api', 'impl', 'contrib:api', 'contrib:impl'"
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
 
         then:
         def allNames = project.modules*.name
@@ -279,7 +285,7 @@ project(':impl') {
         file('settings.gradle').text = "include 'api', 'impl'; rootProject.name = 'root'"
 
         when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaProject project = loadToolingModel(IdeaProject)
 
         then:
         def impl = project.modules.find { it.name == 'impl'}

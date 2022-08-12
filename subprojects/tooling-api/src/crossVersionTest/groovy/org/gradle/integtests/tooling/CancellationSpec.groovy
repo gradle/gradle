@@ -40,7 +40,14 @@ rootProject.name = 'cancelling'
 '''
     }
 
-    def setupCancelInConfigurationBuild() {
+    void setupCancelInSettingsBuild() {
+        settingsFile << waitForCancel()
+        buildFile << """
+throw new RuntimeException("should not run")
+"""
+    }
+
+    void setupCancelInConfigurationBuild() {
         settingsFile << '''
 include 'sub'
 rootProject.name = 'cancelling'

@@ -65,7 +65,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         """
 
         when:
-        executeTaskViaGardleProjectLaunchable("doSomething")
+        executeTaskViaGradleProjectLaunchable("doSomething")
 
         then:
         assertHasBuildSuccessfulLogging()
@@ -131,7 +131,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         """
 
         when:
-        executeTaskViaGardleProjectLaunchable("doSomething")
+        executeTaskViaGradleProjectLaunchable("doSomething")
 
         then:
         assertHasBuildSuccessfulLogging()
@@ -464,15 +464,15 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("BUILD SUCCESSFUL")
     }
 
-    private void executeTaskViaTAPI(String... task) {
+    private void executeTaskViaTAPI(String... tasks) {
         withConnection { connection ->
             def build = connection.newBuild()
             collectOutputs(build)
-            build.forTasks(task).run()
+            build.forTasks(tasks).run()
         }
     }
 
-    private void executeTaskViaGardleProjectLaunchable(String taskName) {
+    private void executeTaskViaGradleProjectLaunchable(String taskName) {
         withConnection { connection ->
             def gradleProjects = connection.action(new LoadCompositeModel(GradleProject)).run()
             def launchables = findLaunchables(gradleProjects, taskName)

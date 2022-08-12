@@ -203,13 +203,28 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 seen.add(cause);
             }
         }
-        failureOnUnexpectedOutput(String.format("No matching cause found in %s", seen));
+        failureOnUnexpectedOutput(String.format("No matching cause found\nExpected: A cause which is %s\n     but: causes were %s", matcher, seen));
         return this;
     }
 
     @Override
     public ExecutionFailure assertHasResolution(String resolution) {
-        assertThat(this.resolution, containsString(resolution));
+        assertThat(this.resolution, containsString("> " + resolution));
+        return this;
+    }
+
+    @Override
+    public ExecutionFailure assertHasResolutions(String... resolutions) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < resolutions.length; i++) {
+            String expected = resolutions[i];
+            if (i > 0) {
+                builder.append("\n");
+            }
+            builder.append("> ");
+            builder.append(expected);
+        }
+        assertThat(this.resolution, equalTo(builder.toString()));
         return this;
     }
 
@@ -265,7 +280,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             }
             seen.add(problem.description);
         }
-        failureOnUnexpectedOutput(String.format("No matching failure description found in %s", seen));
+        failureOnUnexpectedOutput(String.format("No matching failure description found\nExpected: A failure description which is %s\n     but: failure descriptions were %s", matcher, seen));
     }
 
     @Override

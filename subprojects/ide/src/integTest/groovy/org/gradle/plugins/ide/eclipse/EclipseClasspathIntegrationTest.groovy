@@ -198,7 +198,7 @@ configure(project(":c")){
 """
 
         def libs = classpath("a").libs
-        assert classpath("a").projects == ["/b", "/c"]
+        assert classpath("a").projects.collect { it.name } == ["b", "c"]
         assert libs.size() == 2
         libs[0].assertHasJar(someOtherArtifactJar)
         libs[1].assertHasJar(someArtifactJar)
@@ -246,7 +246,7 @@ configure(project(":c")){
 """
 
         def libs = classpath("a").libs
-        assert classpath("a").projects == ["/b", "/c"]
+        assert classpath("a").projects.collect { it.name } == ["b", "c"]
         assert libs.size() == 2
         libs[0].assertHasJar(someOtherArtifactJar)
         libs[1].assertHasJar(someArtifactJar)
@@ -282,7 +282,7 @@ configure(project(":b")){
 
         then:
         def eclipseClasspath = classpath("a")
-        assert eclipseClasspath.projects == ['/b', '/c']
+        assert eclipseClasspath.projects.collect { it.name } == ['b', 'c']
     }
 
     @Test
@@ -321,7 +321,7 @@ configure(project(":c")){
 """
 
         def eclipseClasspath = classpath("a")
-        assert eclipseClasspath.projects == ['/b', '/c']
+        assert eclipseClasspath.projects.collect { it.name } == ['b', 'c']
         eclipseClasspath.libs[0].assertHasJar(file("a/bar.jar"))
         eclipseClasspath.libs[1].assertHasJar(file("b/baz.jar"))
         eclipseClasspath.libs[2].assertHasJar(file("c/foo.jar"))
@@ -364,7 +364,7 @@ configure(project(":b")){
         executer.withTasks("eclipse").run()
 
         def libs = classpath("a").libs
-        assert classpath("a").projects == ["/b"]
+        assert classpath("a").projects.collect { it.name } == ['b']
         assert libs.size() == 1
         libs[0].assertHasJar(someLib2Jar)
 
@@ -372,7 +372,7 @@ configure(project(":b")){
         executer.withArgument("-PforceDeps=true").withTasks("eclipse").run()
 
         libs = classpath("a").libs
-        assert classpath("a").projects == ["/b"]
+        assert classpath("a").projects.collect { it.name } == ['b']
         assert libs.size() == 1
         libs[0].assertHasJar(someLib1Jar)
     }
@@ -581,7 +581,7 @@ eclipse.classpath {
 """
 
         //then
-        assert classpath.projects == ['/foo', '/bar']
+        assert classpath.projects.collect { it.name } == ['foo', 'bar']
     }
 
     @Test
@@ -1159,7 +1159,7 @@ project(':b') {
         assert classpathA.libs.size() == 1
         classpathA.assertHasLibs('compileOnly-1.0.jar')
         assert classpathB.libs.size() == 1
-        assert classpathB.projects == ['/a']
+        assert classpathB.projects.collect { it.name } == ['a']
         classpathB.assertHasLibs('compile-1.0.jar')
     }
 
@@ -1201,7 +1201,7 @@ project(':b') {
         assert classpathA.libs.size() == 1
         classpathA.assertHasLibs('compileOnly-1.0.jar')
         assert classpathB.libs.size() == 1
-        assert classpathB.projects == ['/a']
+        assert classpathB.projects.collect { it.name } == ['a']
         classpathB.assertHasLibs('compile-1.0.jar')
     }
 
@@ -1248,7 +1248,7 @@ project(':b') {
         assert classpathA.libs.size() == 2
         classpathA.assertHasLibs('conflictingDependency-2.0.jar', 'conflictingDependency-1.0.jar')
         assert classpathB.libs.size() == 1
-        assert classpathB.projects == ['/a']
+        assert classpathB.projects.collect { it.name } == ['a']
         classpathB.assertHasLibs('conflictingDependency-1.0.jar')
     }
 
@@ -1295,7 +1295,7 @@ project(':b') {
         assert classpathA.libs.size() == 2
         classpathA.assertHasLibs('conflictingDependency-2.0.jar', 'conflictingDependency-1.0.jar')
         assert classpathB.libs.size() == 1
-        assert classpathB.projects == ['/a']
+        assert classpathB.projects.collect { it.name } == ['a']
         classpathB.assertHasLibs('conflictingDependency-1.0.jar')
     }
 
@@ -1342,6 +1342,6 @@ project(':b') {
         assert classpathA.libs.size() == 2
         classpathA.assertHasLibs('conflictingDependency-2.0.jar', 'conflictingDependency-1.0.jar')
         assert classpathB.libs.size() == 0
-        assert classpathB.projects == ['/a']
+        assert classpathB.projects.collect { it.name } == ['a']
     }
 }

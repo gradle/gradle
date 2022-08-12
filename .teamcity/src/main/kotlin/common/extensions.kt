@@ -19,10 +19,9 @@ package common
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
-import configurations.checkCleanAndroidUserHomeScriptUnixLike
-import configurations.checkCleanAndroidUserHomeScriptWindows
-import configurations.m2CleanScriptUnixLike
-import configurations.m2CleanScriptWindows
+import configurations.checkCleanDirUnixLike
+import configurations.checkCleanDirWindows
+import configurations.enablePullRequestFeature
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -38,6 +37,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.failOnText
 import jetbrains.buildServer.configs.kotlin.v2019_2.ui.add
+import java.util.Locale
 
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
@@ -62,37 +62,54 @@ fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
 }
 
+fun Requirements.requiresArch(os: Os, arch: Arch) {
+    if (os == Os.MACOS) {
+        contains("teamcity.agent.jvm.os.arch", arch.nameOnMac)
+    } else {
+        contains("teamcity.agent.jvm.os.arch", arch.nameOnLinuxWindows)
+    }
+}
+
 fun Requirements.requiresNoEc2Agent() {
     doesNotContain("teamcity.agent.name", "ec2")
     // US region agents have name "EC2-XXX"
     doesNotContain("teamcity.agent.name", "EC2")
 }
 
-const val failedTestArtifactDestination = ".teamcity/gradle-logs"
+/**
+ * This is an undocumented location that forbids anonymous access.
+ * We put artifacts here to avoid accidentally exposing sensitive information publicly.
+ */
+const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
-        build/report-* => $failedTestArtifactDestination
-        build/tmp/test files/** => $failedTestArtifactDestination/test-files
-        build/errorLogs/** => $failedTestArtifactDestination/errorLogs
+        build/report-* => $hiddenArtifactDestination
+        build/tmp/test files/** => $hiddenArtifactDestination/test-files
+        build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 
-    paramsForBuildToolBuild(buildJvm, os)
+    paramsForBuildToolBuild(buildJvm, os, arch)
     params {
         // The promotion job doesn't have a branch, so %teamcity.build.branch% doesn't work.
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
     }
 
     vcs {
-        root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
+        root(AbsoluteId(VersionedSettingsBranch.fromDslContext().vcsRootId()))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
     }
 
+    features {
+        enablePullRequestFeature()
+    }
+
     requirements {
         requiresOs(os)
+        requiresArch(os, arch)
     }
 
     failureConditions {
@@ -112,29 +129,26 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     }
 }
 
-fun javaHome(jvm: Jvm, os: Os) = "%${os.name.toLowerCase()}.${jvm.version}.${jvm.vendor}.64bit%"
+fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) = "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.${arch.suffix}%"
 
-fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os) {
+fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os, arch: Arch = Arch.AMD64) {
     params {
         param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
         param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
         param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
-        param("env.JAVA_HOME", javaHome(buildJvm, os))
+        param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
+        param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
         if (os == Os.MACOS) {
             // Use fewer parallel forks on macOs, since the agents are not very powerful.
             param("maxParallelForks", "2")
         }
         if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
-        }
-
-        if (os == Os.MACOS) {
-            param("env.REPO_MIRROR_URLS", "")
         }
     }
 }
@@ -143,7 +157,11 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX) {
     script {
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent = if (os == Os.WINDOWS) m2CleanScriptWindows + checkCleanAndroidUserHomeScriptWindows else m2CleanScriptUnixLike + checkCleanAndroidUserHomeScriptUnixLike
+        scriptContent = if (os == Os.WINDOWS) {
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android", false)
+        } else {
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
+        }
     }
 }
 
@@ -154,19 +172,26 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         // for each test task, such that we are independent of whatever default value is defined in the build itself.
         "-Dorg.gradle.workers.max=%maxParallelForks%",
         "-PmaxParallelForks=%maxParallelForks%",
+        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
         "-s",
+        "--no-configuration-cache",
+        "%additional.gradle.parameters%",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )
 
-fun Dependencies.compileAllDependency(compileAllId: String) {
-    // Compile All has to succeed before anything else is started
-    dependency(RelativeId(compileAllId)) {
+fun Dependencies.dependsOn(buildTypeId: RelativeId) {
+    dependency(buildTypeId) {
         snapshot {
-            onDependencyFailure = FailureAction.CANCEL
-            onDependencyCancel = FailureAction.CANCEL
+            onDependencyFailure = FailureAction.FAIL_TO_START
+            onDependencyCancel = FailureAction.FAIL_TO_START
         }
     }
+}
+
+fun Dependencies.compileAllDependency(compileAllId: String) {
+    // Compile All has to succeed before anything else is started
+    dependsOn(RelativeId(compileAllId))
     // Get the build receipt from sanity check to reuse the timestamp
     artifacts(RelativeId(compileAllId)) {
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
@@ -175,17 +200,20 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
-fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: String, testJvmVendor: String): String {
+fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
     val buildScanValues = mapOf(
-        "coverageOs" to os.name.toLowerCase(),
+        "coverageOs" to os.name.lowercase(),
+        "coverageArch" to arch.name.lowercase(),
         "coverageJvmVendor" to testJvmVendor,
         "coverageJvmVersion" to "java$testJvmVersion"
     )
-    return (listOf(
-        "-PtestJavaVersion=$testJvmVersion",
-        "-PtestJavaVendor=$testJvmVendor") +
-        listOf(buildScanTag(buildScanTag)) +
-        buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+    return (
+        listOf(
+            "-PtestJavaVersion=$testJvmVersion",
+            "-PtestJavaVendor=$testJvmVendor"
+        ) +
+            listOf(buildScanTag(buildScanTag)) +
+            buildScanValues.map { buildScanCustomValue(it.key, it.value) }
         ).filter { it.isNotBlank() }.joinToString(separator = " ")
 }
 
@@ -203,10 +231,10 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "killExistingProcessesStartedByGradle"
-            gradleParams = (
-                buildToolGradleParameters(daemon) +
-                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
-                ).joinToString(separator = " ")
+            gradleParams =
+                (buildToolGradleParameters(daemon) + buildScanTag("CleanUpBuild")).joinToString(separator = " ")
         }
     }
 }
+
+fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }

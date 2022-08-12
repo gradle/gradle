@@ -20,6 +20,7 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
@@ -28,6 +29,7 @@ import javax.inject.Inject;
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseClasspath}.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
 
     private EclipseClasspath classpath;

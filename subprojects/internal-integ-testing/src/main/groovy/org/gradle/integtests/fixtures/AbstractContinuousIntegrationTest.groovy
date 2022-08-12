@@ -16,34 +16,27 @@
 
 package org.gradle.integtests.fixtures
 
-import com.google.common.util.concurrent.SimpleTimeLimiter
-import com.google.common.util.concurrent.UncheckedTimeoutException
+
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Retry
+import org.junit.Assume
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-
-import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForEndOfBuildWait
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForMinimumBuildTime
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
-@Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
 
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 60
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 20
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
     private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."
-    private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files of tasks..."
+    private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files..."
 
     GradleHandle gradle
 
@@ -51,17 +44,13 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private int errorOutputBuildMarker = 0
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
-    int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
-    boolean ignoreShutdownTimeoutException
     boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
     void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
-        executer.withArgument("--no-daemon")
         buildTimeout *= 100
-        shutdownTimeout *= 100
     }
 
     def cleanup() {
@@ -73,6 +62,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
+        Assume.assumeFalse("Continuous build doesn't work with --no-daemon", GradleContextualExecuter.noDaemon)
         executer.beforeExecute {
             def initScript = file("init.gradle")
             initScript.text = buildLogicForMinimumBuildTime(minimumBuildTimeMillis)
@@ -97,8 +87,22 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
-        start(tasks)
+        runBuild(tasks)
         waitForBuild()
+        throwOnBuildFailure()
+        result
+    }
+
+    protected ExecutionResult buildTriggeredAndSucceeded() {
+        if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
+        }
+        waitForBuild()
+        throwOnBuildFailure()
+        result
+    }
+
+    private void throwOnBuildFailure() {
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("""build was expected to succeed but failed:
 -- STDOUT --
@@ -109,27 +113,23 @@ ${result.error}
 -- STDERR --
 """)
         }
-        result
-    }
-
-    protected void start(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (!gradle.isRunning()) {
-            throw new UnexpectedBuildFailure("Gradle has exited")
-        }
-        if (gradle == null) {
-            throw new UnexpectedBuildFailure("Gradle never started")
-        }
     }
 
     ExecutionFailure fails(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (!gradle.isRunning()) {
+        runBuild(tasks)
+        waitForBuild()
+        return extractFailure()
+    }
+
+    ExecutionFailure buildTriggeredAndFailed() {
+        if (!gradle.isRunning()) {
             throw new UnexpectedBuildFailure("Gradle has exited")
         }
         waitForBuild()
+        return extractFailure()
+    }
+
+    private ExecutionFailure extractFailure() {
         if (!(result instanceof ExecutionFailure)) {
             throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
         }
@@ -138,6 +138,9 @@ ${result.error}
     }
 
     private void runBuild(String... tasks) {
+        if (!tasks) {
+            throw new IllegalArgumentException("tasks must be specified")
+        }
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
@@ -156,6 +159,10 @@ ${result.error}
     }
 
     protected void waitForBuild() {
+        if (gradle == null) {
+            throw new UnexpectedBuildFailure("Gradle never started")
+        }
+
         def lastOutput = buildOutputSoFar()
         def lastLength = lastOutput.size()
         def lastActivity = monotonicClockMillis()
@@ -254,19 +261,12 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
-                ExecutorService executorService = Executors.newCachedThreadPool()
                 try {
-                    SimpleTimeLimiter.create(executorService).callWithTimeout(
-                        { gradle.waitForExit() },
-                        shutdownTimeout, TimeUnit.SECONDS, false
-                    )
-                } catch (UncheckedTimeoutException e) {
-                    gradle.abort()
-                    if (!ignoreShutdownTimeoutException) {
-                        throw e
-                    }
+                    waitForNotRunning()
                 } finally {
-                    executorService.shutdownNow()
+                    if (gradle.running) {
+                        gradle.abort()
+                    }
                 }
             }
         }
@@ -281,9 +281,11 @@ $lastOutput
             }
             // if we get here it means that there was build output at some point while polling
             throw new UnexpectedBuildStartedException("Expected build not to start, but started with output: " + buildOutputSoFar())
-        } catch (AssertionError e) {
+        } catch (AssertionError ignored) {
             // ok, what we want
         }
+        assert gradle.isRunning()
+        assert !output.contains("Exiting continuous build")
     }
 
     // should be private, but is accessed by closures in this class
