@@ -645,16 +645,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
     }
 
-    class ProgressEvent {
-        BuildOperationRecord.Progress progress
-        BuildOperationRecord parent
-
-        @Override
-        String toString() {
-            return "Progress: parent=$parent event=$progress"
-        }
-    }
-
     private String latestKotlinPluginVersion(String major) {
         return kgpLatestVersions.findAll { it.startsWith(major) }.last()
     }
