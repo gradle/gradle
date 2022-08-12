@@ -24,10 +24,10 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
-    private static final String JUNIT_STR = "'junit:junit:3.8.1'"
-    private static final String JUNIT_IMPL_DEPENDENCY = "implementation $JUNIT_STR"
-    private static final String JUNIT_COMPILE_ONLY_DEPENDENCY = "compileOnly $JUNIT_STR"
-    private static final String JUNIT_PMDAUX_DEPENDENCY = "pmdAux $JUNIT_STR"
+    private static final String ASSERTJ_STR = "'org.assertj:assertj-core:3.23.1'" // Some arbitrary dependency which is not already on the worker classpath.
+    private static final String ASSERTJ_IMPL_DEPENDENCY = "implementation $ASSERTJ_STR"
+    private static final String ASSERTJ_COMPILE_ONLY_DEPENDENCY = "compileOnly $ASSERTJ_STR"
+    private static final String ASSERTJ_PMDAUX_DEPENDENCY = "pmdAux $ASSERTJ_STR"
 
     static boolean supportsAuxclasspath() {
         return VersionNumber.parse("5.2.0") < versionNumber
@@ -93,7 +93,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         package org.gradle.intermediate;
 
         public class IntermediateClass {
-            private static junit.framework.TestCase sTestCase = null;
+            private static org.assertj.core.api.Condition<Object> condition = null;
         }
         """.stripIndent()
     }
@@ -102,7 +102,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         given:
-        setupRuleUsingProject(classExtendingJunit(), JUNIT_IMPL_DEPENDENCY)
+        setupRuleUsingProject(classExtendingAssertj(), ASSERTJ_IMPL_DEPENDENCY)
 
         expect:
         fails ":rule-using:pmdMain"
@@ -116,7 +116,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         given:
-        setupRuleUsingProject(classExtendingJunit(), JUNIT_IMPL_DEPENDENCY)
+        setupRuleUsingProject(classExtendingAssertj(), ASSERTJ_IMPL_DEPENDENCY)
 
         file("rule-using/src/test/java/org/gradle/ruleusing/Class2.java") << testClass()
 
@@ -132,7 +132,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         given:
-        setupRuleUsingProject(classExtendingJunit(), JUNIT_IMPL_DEPENDENCY)
+        setupRuleUsingProject(classExtendingAssertj(), ASSERTJ_IMPL_DEPENDENCY)
 
         buildFile << """
 project("rule-using") {
@@ -153,7 +153,7 @@ project("rule-using") {
     def "auxclasspath contains transitive implementation dependencies"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
-        setupIntermediateProject(JUNIT_IMPL_DEPENDENCY)
+        setupIntermediateProject(ASSERTJ_IMPL_DEPENDENCY)
         setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')")
 
         expect:
@@ -167,7 +167,7 @@ project("rule-using") {
     def "auxclasspath does not contain transitive compileOnly dependencies"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
-        setupIntermediateProject(JUNIT_COMPILE_ONLY_DEPENDENCY)
+        setupIntermediateProject(ASSERTJ_COMPILE_ONLY_DEPENDENCY)
         setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')")
 
         expect:
@@ -181,8 +181,8 @@ project("rule-using") {
     def "auxclasspath contains pmdAux dependencies"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
-        setupIntermediateProject(JUNIT_COMPILE_ONLY_DEPENDENCY)
-        setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')", JUNIT_PMDAUX_DEPENDENCY)
+        setupIntermediateProject(ASSERTJ_COMPILE_ONLY_DEPENDENCY)
+        setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')", ASSERTJ_PMDAUX_DEPENDENCY)
 
         expect:
         fails ":rule-using:pmdMain"
@@ -205,12 +205,12 @@ project("rule-using") {
 
             public class AuxclasspathRule extends AbstractJavaRule {
 
-                private static final String JUNIT_TEST = "junit.framework.TestCase";
+                private static final String ASSERTJ_TEST = "org.assertj.core.configuration.Configuration";
                 private static final String CLASS1 = "org.gradle.ruleusing.Class1";
 
                 @Override
                 public Object visit(final ASTCompilationUnit node, final Object data) {
-                    if (node.getClassTypeResolver().classNameExists(JUNIT_TEST)
+                    if (node.getClassTypeResolver().classNameExists(ASSERTJ_TEST)
                         && node.getClassTypeResolver().classNameExists(CLASS1)) {
                         addViolationWithMessage(data, node, "auxclasspath configured.");
                     } else {
@@ -238,10 +238,10 @@ project("rule-using") {
         """
     }
 
-    private static classExtendingJunit() {
+    private static classExtendingAssertj() {
         """
             package org.gradle.ruleusing;
-            public class Class1 extends junit.framework.TestCase { }
+            public class Class1 extends org.assertj.core.configuration.Configuration { }
         """
     }
 
