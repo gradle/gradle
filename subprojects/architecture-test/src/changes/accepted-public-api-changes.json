@@ -1,16 +1,32 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Class org.gradle.api.AntBuilder",
+            "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
             "acceptation": "Deprecated method removed",
             "changes": [
                 "Method has been removed"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setBinResultsDir(java.io.File)",
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)",
             "acceptation": "Deprecated method removed",
             "changes": [
                 "Method has been removed"
