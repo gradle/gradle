@@ -103,14 +103,16 @@ public class Collectors {
                 return value.asType();
             }
 
-            T fixedValue = value.getWithoutSideEffect();
-            collector.add(fixedValue, collection);
-            SideEffect<?> sideEffect = value.getSideEffect();
-            if (sideEffect == null) {
+            if (value instanceof ValueWithSideEffect) {
+                ValueWithSideEffect<? extends T> valueWithSideEffect = Cast.uncheckedNonnullCast(value);
+                T fixedValue = valueWithSideEffect.getWithoutSideEffect();
+                collector.add(fixedValue, collection);
+                SideEffect<?> sideEffect = valueWithSideEffect.getSideEffect();
+                return Value.present().withSideEffect(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
+            } else {
+                collector.add(value.get(), collection);
                 return Value.present();
             }
-
-            return Value.present().withSideEffect(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
         }
 
         @Override
@@ -231,14 +233,16 @@ public class Collectors {
                 return value.asType();
             }
 
-            Iterable<? extends T> fixedValue = value.getWithoutSideEffect();
-            collector.addAll(fixedValue, collection);
-            SideEffect<?> sideEffect = value.getSideEffect();
-            if (sideEffect == null) {
+            if (value instanceof ValueWithSideEffect) {
+                ValueWithSideEffect<? extends Iterable<? extends T>> valueWithSideEffect = Cast.uncheckedNonnullCast(value);
+                Iterable<? extends T> fixedValue = valueWithSideEffect.getWithoutSideEffect();
+                collector.addAll(fixedValue, collection);
+                SideEffect<?> sideEffect = valueWithSideEffect.getSideEffect();
+                return Value.present().withSideEffect(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
+            } else {
+                collector.addAll(value.get(), collection);
                 return Value.present();
             }
-
-            return Value.present().withSideEffect(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
         }
 
         @Override

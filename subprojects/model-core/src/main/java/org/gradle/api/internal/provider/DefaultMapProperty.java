@@ -219,8 +219,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.isFixedValue()) {
-            SideEffect<?> sideEffect = value.getSideEffect();
-            if (sideEffect != null) {
+            if (value instanceof ExecutionTimeValueWithSideEffect) {
+                SideEffect<?> sideEffect = ((ExecutionTimeValueWithSideEffect<?>) value).getSideEffect();
                 setSupplier(new FixedWithSideEffectSupplier<>(Cast.uncheckedNonnullCast(value.getFixedValue()), Cast.uncheckedNonnullCast(sideEffect)));
             } else {
                 setSupplier(new FixedSuppler<>(Cast.uncheckedNonnullCast(value.getFixedValue())));
@@ -497,11 +497,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                     Map<? extends K, ? extends V> fixedValue = value.getFixedValue();
                     entryCollector.addAll(fixedValue.entrySet(), entries);
 
-                    SideEffect<?> sideEffect = value.getSideEffect();
-                    if (sideEffect != null) {
+                    if (value instanceof ExecutionTimeValueWithSideEffect) {
+                        SideEffect<?> sideEffect = ((ExecutionTimeValueWithSideEffect<?>) value).getSideEffect();
                         sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
                     }
                 }
+
                 ExecutionTimeValue<Map<K, V>> value = ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
                 if (changingContent) {
                     value = value.withChangingContent();
@@ -548,12 +549,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 if (value.isMissing()) {
                     return Value.missing();
                 }
-                Map<? extends K, ? extends V> fixedValue = value.getWithoutSideEffect();
-                entries.putAll(fixedValue);
 
-                SideEffect<?> sideEffect = value.getSideEffect();
-                if (sideEffect != null) {
-                    sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
+                if (value instanceof ValueWithSideEffect) {
+                    ValueWithSideEffect<? extends Map<? extends K, ? extends V>> valueWithSideEffect = Cast.uncheckedNonnullCast(value);
+                    Map<? extends K, ? extends V> fixedValue = valueWithSideEffect.getWithoutSideEffect();
+                    entries.putAll(fixedValue);
+                    sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(valueWithSideEffect.getSideEffect())));
+                } else {
+                    entries.putAll(value.get());
                 }
             }
 

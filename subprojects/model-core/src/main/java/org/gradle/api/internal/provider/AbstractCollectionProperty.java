@@ -115,8 +115,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.isFixedValue()) {
-            SideEffect<?> sideEffect = value.getSideEffect();
-            if (sideEffect != null) {
+            if (value instanceof ExecutionTimeValueWithSideEffect) {
+                SideEffect<?> sideEffect = ((ExecutionTimeValueWithSideEffect<?>) value).getSideEffect();
                 setSupplier(new FixedWithSideEffectSupplier<>(value.getFixedValue(), Cast.uncheckedNonnullCast(sideEffect)));
             } else {
                 setSupplier(new FixedSupplier<>(value.getFixedValue()));
@@ -364,11 +364,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return collectResult.asType();
             }
 
-            Value<C> result = Value.of(Cast.uncheckedCast(builder.build()));
-            SideEffect<? super Void> sideEffect = collectResult.getSideEffect();
-            if (sideEffect != null) {
+            Value<C> result = Value.of(Cast.uncheckedNonnullCast(builder.build()));
+            if (collectResult instanceof ValueWithSideEffect) {
                 // assuming the side effect already ignores the argument
-                result = result.withSideEffect(Cast.uncheckedNonnullCast(sideEffect));
+                result = result.withSideEffect(Cast.uncheckedNonnullCast(((ValueWithSideEffect<Void>) collectResult).getSideEffect()));
             }
             return result;
         }
@@ -401,8 +400,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     Iterable<? extends T> fixedValue = value.getFixedValue();
                     builder.addAll(fixedValue);
 
-                    SideEffect<?> sideEffect = value.getSideEffect();
-                    if (sideEffect != null) {
+                    if (value instanceof ExecutionTimeValueWithSideEffect) {
+                        SideEffect<?> sideEffect = ((ExecutionTimeValueWithSideEffect<?>) value).getSideEffect();
                         sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
                     }
                 }
@@ -464,12 +463,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 if (value.isMissing()) {
                     return Value.missing();
                 }
-                Iterable<? extends T> fixedValue = value.getWithoutSideEffect();
-                builder.addAll(fixedValue);
 
-                SideEffect<?> sideEffect = value.getSideEffect();
-                if (sideEffect != null) {
-                    sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(sideEffect)));
+                if (value instanceof ValueWithSideEffect) {
+                    ValueWithSideEffect<? extends Iterable<? extends T>> valueWithSideEffect = Cast.uncheckedNonnullCast(value);
+                    Iterable<? extends T> fixedValue = valueWithSideEffect.getWithoutSideEffect();
+                    builder.addAll(fixedValue);
+                    sideEffects.add(SideEffect.fixed(fixedValue, Cast.uncheckedNonnullCast(valueWithSideEffect.getSideEffect())));
+                } else {
+                    builder.addAll(value.get());
                 }
             }
 
@@ -512,8 +513,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return rightValue;
             }
 
-            SideEffect<? super Void> leftSideEffect = leftValue.getSideEffect();
-            SideEffect<? super Void> rightSideEffect = rightValue.getSideEffect();
+            SideEffect<? super Void> leftSideEffect = extractSideEffectOrNull(leftValue);
+            SideEffect<? super Void> rightSideEffect = extractSideEffectOrNull(rightValue);
 
             if (leftSideEffect != null && rightSideEffect != null) {
                 return Value.present().withSideEffect(SideEffect.composite(leftSideEffect, rightSideEffect));
@@ -524,6 +525,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             } else {
                 return Value.present();
             }
+        }
+
+        @Nullable
+        private static <T> SideEffect<? super T> extractSideEffectOrNull(Value<T> value) {
+            return value instanceof ValueWithSideEffect ? ((ValueWithSideEffect<T>) value).getSideEffect() : null;
         }
 
         @Override

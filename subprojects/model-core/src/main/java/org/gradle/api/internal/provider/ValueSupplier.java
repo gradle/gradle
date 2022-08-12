@@ -279,8 +279,6 @@ public interface ValueSupplier {
 
         <S> S orElse(S defaultValue);
 
-        T getWithoutSideEffect() throws IllegalStateException;
-
         <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
         Value<T> withSideEffect(SideEffect<? super T> sideEffect);
@@ -290,11 +288,6 @@ public interface ValueSupplier {
 
         boolean isMissing();
 
-        @Nullable
-        default SideEffect<? super T> getSideEffect() {
-            return null;
-        }
-
         <S> Value<S> asType();
 
         Value<T> pushWhenMissing(@Nullable DisplayName displayName);
@@ -302,7 +295,14 @@ public interface ValueSupplier {
         Value<T> addPathsFrom(Value<?> rightValue);
     }
 
-    class PresentWithSideEffect<T> extends Present<T> {
+    interface ValueWithSideEffect<T> extends Value<T> {
+
+        SideEffect<? super T> getSideEffect();
+
+        T getWithoutSideEffect() throws IllegalStateException;
+    }
+
+    class PresentWithSideEffect<T> extends Present<T> implements ValueWithSideEffect<T> {
 
         private final SideEffect<? super T> sideEffect;
 
@@ -312,7 +312,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public @Nullable SideEffect<? super T> getSideEffect() {
+        public SideEffect<? super T> getSideEffect() {
             return sideEffect;
         }
 
@@ -387,11 +387,6 @@ public interface ValueSupplier {
         }
 
         @Override
-        public T getWithoutSideEffect() throws IllegalStateException {
-            return get();
-        }
-
-        @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
             return Value.ofNullable(transformer.transform(result));
         }
@@ -454,18 +449,12 @@ public interface ValueSupplier {
         }
 
         @Override
-        public T getWithoutSideEffect() throws IllegalStateException {
-            return get();
-        }
-
-        @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
             return asType();
         }
 
         @Override
         public Value<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            // TODO: consider if we want to extend sideEffect contract to work with missing values
             return this;
         }
 
@@ -544,11 +533,6 @@ public interface ValueSupplier {
             throw new IllegalStateException();
         }
 
-        @Nullable
-        public SideEffect<? super T> getSideEffect() throws IllegalStateException {
-            return null;
-        }
-
         public Value<T> toValue() throws IllegalStateException {
             throw new IllegalStateException();
         }
@@ -580,15 +564,23 @@ public interface ValueSupplier {
             if (value.isMissing()) {
                 return missing();
             } else {
-                SideEffect<? super T> sideEffect = value.getSideEffect();
-                ExecutionTimeValue<T> executionTimeValue = fixedValue(value.getWithoutSideEffect());
-                return sideEffect == null ? executionTimeValue : executionTimeValue.withSideEffect(sideEffect);
+                if (value instanceof ValueWithSideEffect) {
+                    ValueWithSideEffect<T> valueWithSideEffect = (ValueWithSideEffect<T>) value;
+                    return fixedValue(valueWithSideEffect.getWithoutSideEffect()).withSideEffect(valueWithSideEffect.getSideEffect());
+                } else {
+                    return fixedValue(value.get());
+                }
             }
         }
 
         public static <T> ExecutionTimeValue<T> changingValue(ProviderInternal<T> provider) {
             return new ChangingExecutionTimeValue<>(provider);
         }
+    }
+
+    interface ExecutionTimeValueWithSideEffect<T> {
+
+        SideEffect<? super T> getSideEffect();
     }
 
     class MissingExecutionTimeValue extends ExecutionTimeValue<Object> {
@@ -677,7 +669,7 @@ public interface ValueSupplier {
         }
     }
 
-    class FixedWithSideEffectExecutionTimeValue<T> extends FixedExecutionTimeValue<T> {
+    class FixedWithSideEffectExecutionTimeValue<T> extends FixedExecutionTimeValue<T> implements ExecutionTimeValueWithSideEffect<T> {
 
         private final SideEffect<? super T> sideEffect;
 
