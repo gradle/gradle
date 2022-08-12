@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -135,6 +136,11 @@ class AbstractIntegrationSpec extends Specification {
      */
     void initGitDir() {
         Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
+            // Clear config hierarchy to avoid global configuration loaded from user home
+            for (Config config = git.repository.config; config != null; config = config.getBaseConfig()) {
+                //noinspection GroovyAccessibility
+                config.clear()
+            }
             testDirectory.file('initial-commit').createNewFile()
             git.add().addFilepattern("initial-commit").call()
             git.commit().setMessage("Initial commit").call()
