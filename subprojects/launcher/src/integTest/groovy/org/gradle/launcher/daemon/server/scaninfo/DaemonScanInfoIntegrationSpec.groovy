@@ -26,7 +26,6 @@ import org.gradle.util.internal.GFileUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 @IntegrationTestTimeout(300)
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
@@ -82,7 +81,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         daemon?.abort()
     }
 
-    @Unroll
     def "a daemon expiration listener receives expiration reasons continuous:#continuous"() {
         given:
         buildFile << """

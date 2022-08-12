@@ -16,7 +16,7 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.util.GradleVersion;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
 
 import java.io.File;
 
@@ -24,13 +24,9 @@ public class VcsDirectoryLayout {
     private final File checkoutDir;
     private final File metadataDir;
 
-    public VcsDirectoryLayout(File projectCacheDir) {
-        this.checkoutDir = new File(projectCacheDir, "vcs-1");
-        this.metadataDir = new File(projectCacheDir, GradleVersion.current().getVersion() + "/vcsMetadata-1");
-    }
-
-    public File getCheckoutDir() {
-        return checkoutDir;
+    public VcsDirectoryLayout(BuildTreeScopedCache scopedCache) {
+        this.checkoutDir = scopedCache.baseDirForCrossVersionCache("vcs-1");
+        this.metadataDir = scopedCache.baseDirForCache("vcsMetadata");
     }
 
     public File getMetadataDir() {

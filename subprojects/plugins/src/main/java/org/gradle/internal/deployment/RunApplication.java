@@ -26,10 +26,12 @@ import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Collection;
 
+@DisableCachingByDefault(because = "Produces no cacheable output")
 public class RunApplication extends DefaultTask {
     private String mainClassName;
     private Collection<String> arguments;

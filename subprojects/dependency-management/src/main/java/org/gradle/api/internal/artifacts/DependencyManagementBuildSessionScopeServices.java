@@ -15,18 +15,35 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CachingComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 public class DependencyManagementBuildSessionScopeServices {
 
-    DependenciesAccessorsWorkspaceProvider createDependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        return new DependenciesAccessorsWorkspaceProvider(projectCacheDir, cacheScopeMapping, cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
+    void configure(ServiceRegistration registration) {
+        registration.add(DependenciesAccessorsWorkspaceProvider.class);
     }
 
+    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
+        return new CachingComponentSelectionDescriptorFactory();
+    }
+
+    ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ImmutableAttributesFactory immutableAttributesFactory,
+        NamedObjectInstantiator namedObjectInstantiator,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
+    ) {
+        return new DependencyManagementValueSnapshotterSerializerRegistry(
+            moduleIdentifierFactory,
+            immutableAttributesFactory,
+            namedObjectInstantiator,
+            componentSelectionDescriptorFactory
+        );
+    }
 }

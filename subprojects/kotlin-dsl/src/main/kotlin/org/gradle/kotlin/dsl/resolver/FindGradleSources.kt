@@ -22,9 +22,11 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.kotlin.dsl.support.unzipTo
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
 
@@ -33,7 +35,10 @@ import java.io.File
  * a downloaded ZIP of the Gradle sources, and will return the list of main sources
  * subdirectories for all subprojects.
  */
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindGradleSources : TransformAction<TransformParameters.None> {
+    @get:IgnoreEmptyDirectories
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
@@ -62,6 +67,7 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
 }
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class UnzipDistribution : TransformAction<TransformParameters.None> {
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputArtifact

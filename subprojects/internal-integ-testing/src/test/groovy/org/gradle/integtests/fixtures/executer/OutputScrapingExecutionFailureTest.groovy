@@ -102,14 +102,18 @@ broken!
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('No matching failure description found in []')
+        e2.message.trim().startsWith('''No matching failure description found
+Expected: A failure description which is a string starting with "broken!"
+     but: failure descriptions were []''')
 
         when:
         failure.assertHasCause("broken!")
 
         then:
         def e3 = thrown(AssertionError)
-        e3.message.trim().startsWith('No matching cause found in []')
+        e3.message.trim().startsWith('''No matching cause found
+Expected: A cause which is a string starting with "broken!"
+     but: causes were []''')
 
         when:
         failure.assertHasFileName("build.gradle")
@@ -196,14 +200,16 @@ Reinstalling your operating system
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('No matching failure description found in [something bad, something else bad]')
+        e.message.trim().startsWith('''No matching failure description found
+Expected: A failure description which is a string starting with "other"
+     but: failure descriptions were [something bad, something else bad]''')
 
         when:
         failure.assertHasDescription("cause")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('No matching failure description found in [something bad, something else bad]')
+        e2.message.trim().startsWith('No matching failure description found')
     }
 
     def "can assert that failure with cause is present"() {
@@ -244,14 +250,16 @@ something
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('No matching cause found in [cause 1, cause 2]')
+        e.message.trim().startsWith('''No matching cause found
+Expected: A cause which is a string starting with "other"
+     but: causes were [cause 1, cause 2]''')
 
         when:
         failure.assertHasCause("something")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('No matching cause found in [cause 1, cause 2]')
+        e2.message.trim().startsWith('No matching cause found')
     }
 
     def "log output present assertions ignore content after failure section"() {
@@ -283,13 +291,11 @@ Some error
         error(e).startsWith(error('''
             Did not find expected text in build output.
             Expected: broken
-             
+
             Build output:
             =======
-             
+
             Some message
-             
-            Output:
             '''))
 
         when:
@@ -300,13 +306,11 @@ Some error
         error(e2).startsWith(error('''
             Did not find expected text in error output.
             Expected: broken
-             
+
             Error output:
             =======
-             
+
             Some error
-             
-            Output:
             '''))
     }
 
@@ -335,7 +339,7 @@ Some.Failure
         error(e).startsWith(error('''
             Found unexpected text in build output.
             Expected not present: broken
-             
+
             Output:
             '''))
     }
@@ -365,37 +369,6 @@ Some.Failure
 
         where:
         output << [rawOutput, debugOutput]
-    }
-
-    def "ignores JDK warnings"() {
-        given:
-        def output = """
-FAILURE: broken
-
-* Where: WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by org.codehaus.groovy.reflection.CachedClass (file:/home/tcagent1/agent/work/668602365d1521fc/subprojects/ivy/build/integ%20test/lib/groovy-all-2.4.12.jar) to method java.lang.Object.finalize()
-WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.reflection.CachedClass
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
-Build file 'build.gradle' line: 123
-
-* What went wrong:
-WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by org.codehaus.groovy.reflection.CachedClass (file:/home/tcagent1/agent/work/668602365d1521fc/subprojects/ivy/build/integ%20test/lib/groovy-all-2.4.12.jar) to method java.lang.Object.finalize()
-WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.reflection.CachedClass
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
-  something bad
-* Try:
-  to fix it
-"""
-        when:
-        def failure = OutputScrapingExecutionFailure.from(output, "")
-
-        then:
-        failure.assertHasFileName("Build file 'build.gradle'")
-        failure.assertHasLineNumber(123)
-        failure.assertHasDescription("something bad")
     }
 
     def static getRawOutput() {
@@ -437,17 +410,17 @@ Caused by: java.lang.RuntimeException: broken
 \u001B[0K
 \u001B[0K
 \u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B> IDLE\u001B[6D\u001B[1B\u001B[2A2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] \u001B[31mFAILURE: \u001B[39m\u001B[31mBuild failed with an exception.\u001B[39m
-2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Where:
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Build file 'build.gradle' line: 4
-2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * What went wrong:
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Execution failed for task ':broken'.
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] \u001B[33m> \u001B[39mbroken
-2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Try:
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]  Run with \u001B[1m--scan\u001B[m to get full insights.
-2019-10-03T09:33:09.032+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+2019-10-03T09:33:09.032+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.032+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Exception is:
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken'.
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:103)
@@ -455,10 +428,10 @@ Caused by: java.lang.RuntimeException: broken
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Caused by: java.lang.RuntimeException: broken
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:95)
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   ... 29 more
-2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
-2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
+2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Get more help at \u001B[1mhttps://help.gradle.org\u001B[m
-2019-10-03T09:33:09.034+0200 [ERROR] [org.gradle.internal.buildevents.BuildResultLogger] 
+2019-10-03T09:33:09.034+0200 [ERROR] [org.gradle.internal.buildevents.BuildResultLogger]
 2019-10-03T09:33:09.034+0200 [ERROR] [org.gradle.internal.buildevents.BuildResultLogger] \u001B[31;1mBUILD FAILED\u001B[0;39m in 3s
 2019-10-03T09:33:09.034+0200 [LIFECYCLE] [org.gradle.internal.buildevents.BuildResultLogger] 1 actionable task: 1 executed
 """

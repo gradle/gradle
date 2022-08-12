@@ -16,6 +16,8 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.ResettableExpectations
@@ -130,7 +132,7 @@ class IvyHttpModule extends DelegatingIvyModule<IvyHttpModule> implements Remote
             // MD5 not published for ivy modules
             def sha1File = getSha1File()
             sha1File.assertIsFile()
-            assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(file, "sha1"), 16)
+            assert HashCode.fromString(sha1File.text) == Hashing.sha1().hashFile(file)
         }
     }
 }

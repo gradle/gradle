@@ -26,7 +26,7 @@ import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 /**
  * An adapter for {@link InternalCancellableConnection}.
  *
- * <p>Used for providers >= 2.1.</p>
+ * <p>Used for providers &gt;= 2.1.</p>
  */
 public class CancellableConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ActionRunner actionRunner;

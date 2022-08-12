@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -33,7 +32,6 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7398")
-    @Unroll
     def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (compileClasspath)"() {
         given:
         resolve = new ResolveTestFixture(buildFile, "compileClasspath")
@@ -120,7 +118,6 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         'java'         | 'implementation' | false             | true                      | "jar"
     }
 
-    @Unroll
     def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
         given:
         resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")

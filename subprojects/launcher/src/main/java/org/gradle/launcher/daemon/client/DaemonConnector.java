@@ -43,10 +43,22 @@ public interface DaemonConnector {
     DaemonClientConnection maybeConnect(ExplainingSpec<DaemonContext> constraint);
 
     /**
-     * Connects to a daemon that matches the given constraint, starting one if required.
+     * Mark the daemon as unavailable if the client cannot communicate with the daemon.
      *
-     * @return A connection to a matching daemon. Never returns null.
+     * This is not intended to be used for all communication errors, only the most grave.
+     * For example, if the daemon is communicating in some way, but its responses
+     * are empty or do not appear to be daemon messages.
+     *
+     * @param daemon the daemon that could not be communicated with
      */
+    void markDaemonAsUnavailable(DaemonConnectDetails daemon);
+
+    /**
+     * Connects to a daemon that matches the given constraint.
+     *
+     * @return A connection to a matching daemon. Returns null if no matching daemon is available.
+     */
+    @Nullable
     DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint);
 
     /**

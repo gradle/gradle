@@ -777,18 +777,26 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create ExtensiblePolymorphicDomainObjectContainer instances using named managed types"() {
         given:
         buildFile """
-            interface BaseThing extends Named { }
+            interface BaseThing extends Named { 
+                Property<Integer> getValue()
+            }
             interface ThingA extends BaseThing { }
             interface ThingB extends BaseThing { }
 
             def container = project.objects.polymorphicDomainObjectContainer(BaseThing)
             container.registerBinding(ThingA, ThingA)
             container.registerBinding(ThingB, ThingB)
-            container.register("a", ThingA) { }
-            container.register("b", ThingB) { }
+            container.register("a", ThingA) { 
+                value = 0
+            }
+            container.register("b", ThingB) { 
+                value = 1
+            }
             assert container.size() == 2
             assert container[0] instanceof ThingA
+            assert container[0].value.get() == 0
             assert container[1] instanceof ThingB
+            assert container[1].value.get() == 1
         """
 
         expect:

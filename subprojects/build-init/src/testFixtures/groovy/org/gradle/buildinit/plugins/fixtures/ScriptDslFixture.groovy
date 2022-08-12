@@ -17,6 +17,7 @@ package org.gradle.buildinit.plugins.fixtures
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JvmTestSuitePlugin
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -109,6 +110,30 @@ class ScriptDslFixture {
                 }
             default:
                 return containsString("$configuration '$notation")
+        }
+    }
+
+    void assertDoesNotUseTestSuites() {
+        assert !getBuildFile().text.contains("testing {")
+    }
+
+    void assertHasTestSuite(String expectedTestSuite) {
+        if (expectedTestSuite == JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME) {
+            switch (scriptDsl) {
+                case KOTLIN:
+                    assert getBuildFile().text.contains("val test by getting(JvmTestSuite::class)")
+                    break;
+                default:
+                    assert getBuildFile().text.contains("test {")
+            }
+        } else {
+            switch (scriptDsl) {
+                case KOTLIN:
+                    assert getBuildFile().text.contains("val ${expectedTestSuite} by registering(JvmTestSuite::class)")
+                    break;
+                default:
+                    assert getBuildFile().text.contains("${expectedTestSuite}(JvmTestSuite) {")
+            }
         }
     }
 }

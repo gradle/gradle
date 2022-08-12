@@ -199,7 +199,7 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
-    def taskTypeWithInputFileCollection() {
+    def taskTypeWithInputFileCollection(TestFile buildFile = getBuildFile()) {
         buildFile << """
             class InputFilesTask extends DefaultTask {
                 @InputFiles
@@ -243,6 +243,7 @@ trait TasksWithInputsAndOutputs {
                     println("artifacts = \${collection.artifacts.id}")
                     println("components = \${collection.artifacts.id.componentIdentifier}")
                     println("variants = \${collection.artifacts.variant.attributes}")
+                    println("variant capabilities = \${collection.artifacts.variant.capabilities}")
                     println("files = \${collection.artifactFiles.files.name}")
                 }
             }

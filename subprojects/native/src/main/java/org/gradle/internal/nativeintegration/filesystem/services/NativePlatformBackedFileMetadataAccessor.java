@@ -19,6 +19,7 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
@@ -39,14 +40,18 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
         try {
             stat = files.stat(f, false);
         } catch (NativeException e) {
-            return DefaultFileMetadata.missing(AccessType.DIRECT);
+            throw new UncheckedIOException("Could not stat file " + f.getAbsolutePath(), e);
         }
         AccessType accessType = AccessType.viaSymlink(stat.getType() == FileInfo.Type.Symlink);
         if (accessType == AccessType.VIA_SYMLINK) {
             try {
                 stat = files.stat(f, true);
             } catch (NativeException e) {
-                return DefaultFileMetadata.missing(AccessType.VIA_SYMLINK);
+                // For a symlink cycle, file.exists() returns false when unable to stat the file.
+                if (!f.exists()) {
+                    return DefaultFileMetadata.missing(accessType);
+                }
+                throw new UncheckedIOException("Could not stat file " + f.getAbsolutePath(), e);
             }
         }
         switch (stat.getType()) {
@@ -55,8 +60,9 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
             case Directory:
                 return DefaultFileMetadata.directory(accessType);
             case Missing:
-            case Other:
                 return DefaultFileMetadata.missing(accessType);
+            case Other:
+                throw new UncheckedIOException("Unsupported file type for " + f.getAbsolutePath());
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }

@@ -18,9 +18,11 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
@@ -228,6 +230,11 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         @Override
         public ContentFilterable expand(Map<String, ?> properties) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ContentFilterable expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
             throw new UnsupportedOperationException();
         }
     }

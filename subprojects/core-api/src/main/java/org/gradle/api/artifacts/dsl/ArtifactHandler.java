@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -43,7 +44,7 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <li>A {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}.</li>
  *
- * <li>A {@link org.gradle.api.provider.Provider} of {@link java.io.File}, {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}. The information for publishing the artifact is extracted from the file or directory name. When the provider represents an output of a particular task, that task will be executed if the artifact is required.</li>
+ * <li>A {@link org.gradle.api.provider.Provider} of {@link java.io.File}, {@link org.gradle.api.file.RegularFile}, {@link org.gradle.api.file.Directory} or {@link org.gradle.api.Task}, with the limitation that the latter has to define a single file output property. The information for publishing the artifact is extracted from the file or directory name. When the provider represents an output of a particular task, that task will be executed if the artifact is required.</li>
  *
  * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name.</li>
  *
@@ -92,7 +93,7 @@ public interface ArtifactHandler {
      * @param configureClosure The closure to execute to configure the artifact.
      * @return The artifact.
      */
-    PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure);
+    PublishArtifact add(String configurationName, Object artifactNotation, @DelegatesTo(ConfigurablePublishArtifact.class) Closure configureClosure);
 
     /**
      * Adds an artifact to the given configuration.

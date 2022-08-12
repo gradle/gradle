@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.xml
 
+import groovy.xml.XmlParser
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode

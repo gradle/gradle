@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @Issue("https://issues.gradle.org/browse/GRADLE-3142")
 class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
@@ -88,7 +87,6 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4973")
-    @Unroll
     def "can use a locale without region (#overrideVersion)"() {
         Locale locale = Locale.ENGLISH
         buildScript """
@@ -103,11 +101,12 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        executer.withEnvironmentVars(("${DefaultGradleVersion.VERSION_OVERRIDE_VAR}".toString()): overrideVersion)
+        executer.requireIsolatedDaemons()
+        executer.withGradleVersionOverride(DefaultGradleVersion.version(overrideVersion))
         runWithLocale(locale)
 
         then:
-        outputContains("GradleVersion: Gradle ${overrideVersion}")
+        outputContains("GradleVersion: Gradle ${overrideVersion}\ndefaultLocale")
 
         and:
         ranWithLocale(locale)

@@ -17,17 +17,24 @@ package org.gradle.api.internal.catalog;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.plugin.use.PluginDependency;
 
 import javax.inject.Inject;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
     protected final DefaultVersionCatalog config;
     protected final ProviderFactory providers;
+    protected final ObjectFactory objects;
 
     @SuppressWarnings("unused")
     public static abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
@@ -37,71 +44,36 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
             this.owner = owner;
         }
 
-        protected Provider<MinimalExternalModuleDependency> create(String alias) {
+        @Override
+        public Provider<MinimalExternalModuleDependency> create(String alias) {
             return owner.create(alias);
         }
 
-        @Override
-        public Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
-            return owner.findDependency(alias);
-        }
-
-        @Override
-        public Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
-            return owner.findBundle(bundle);
-        }
-
-        @Override
-        public Optional<VersionConstraint> findVersion(String name) {
-            return owner.findVersion(name);
-        }
-
-        @Override
-        public String getName() {
-            return owner.getName();
-        }
     }
 
     @Inject
     protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
-                                                ProviderFactory providers) {
+                                                ProviderFactory providers,
+                                                ObjectFactory objects
+    ) {
         this.config = config;
         this.providers = providers;
-    }
-
-    protected Provider<MinimalExternalModuleDependency> create(String alias) {
-        return providers.of(DependencyValueSource.class,
-            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)))
-            .forUseAtConfigurationTime();
+        this.objects = objects;
     }
 
     @Override
-    public final Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
-        if (config.getDependencyAliases().contains(alias)) {
-            return Optional.of(create(alias));
-        }
-        return Optional.empty();
+    public Provider<MinimalExternalModuleDependency> create(String alias) {
+        return providers.of(
+            DependencyValueSource.class,
+            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias))
+        ).map(AbstractExternalDependencyFactory::createMinimalDependency);
     }
 
-    @Override
-    public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
-        if (config.getBundleAliases().contains(bundle)) {
-            return Optional.of(new BundleFactory(providers, config).createBundle(bundle));
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public final Optional<VersionConstraint> findVersion(String name) {
-        if (config.getVersionAliases().contains(name)) {
-            return Optional.of(new VersionFactory(providers, config).findVersionConstraint(name));
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public final String getName() {
-        return config.getName();
+    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data) {
+        ImmutableVersionConstraint version = data.getVersion();
+        return new DefaultMinimalDependency(
+            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
+        );
     }
 
     public static class VersionFactory {
@@ -137,7 +109,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
             return version.getPreferredVersion();
         }
 
-        private ImmutableVersionConstraint findVersionConstraint(String name) {
+        protected ImmutableVersionConstraint findVersionConstraint(String name) {
             return config.getVersion(name).getVersion();
         }
     }
@@ -145,19 +117,47 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     public static class BundleFactory {
         protected final ProviderFactory providers;
         protected final DefaultVersionCatalog config;
+        protected final ObjectFactory objects;
 
-        public BundleFactory(ProviderFactory providers, DefaultVersionCatalog config) {
+        public BundleFactory(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config) {
+            this.objects = objects;
             this.providers = providers;
             this.config = config;
         }
 
         protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
-            return providers.of(DependencyBundleValueSource.class,
+            Property<ExternalModuleDependencyBundle> property = objects.property(ExternalModuleDependencyBundle.class);
+            property.convention(providers.of(
+                    DependencyBundleValueSource.class,
+                    spec -> spec.parameters(params -> {
+                        params.getConfig().set(config);
+                        params.getBundleName().set(name);
+                    })
+            ).map(dataList -> dataList.stream()
+                    .map(AbstractExternalDependencyFactory::createMinimalDependency)
+                    .collect(Collectors.toCollection(DefaultBundle::new))));
+            return property;
+        }
+
+        private static class DefaultBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
+        }
+    }
+
+    public static class PluginFactory {
+        protected final ProviderFactory providers;
+        protected final DefaultVersionCatalog config;
+
+        public PluginFactory(ProviderFactory providers, DefaultVersionCatalog config) {
+            this.providers = providers;
+            this.config = config;
+        }
+
+        protected Provider<PluginDependency> createPlugin(String name) {
+            return providers.of(PluginDependencyValueSource.class,
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
-                    params.getBundleName().set(name);
-                }))
-                .forUseAtConfigurationTime();
+                    params.getPluginName().set(name);
+                }));
         }
     }
 }

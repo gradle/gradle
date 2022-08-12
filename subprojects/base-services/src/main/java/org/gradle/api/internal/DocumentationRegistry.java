@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
 
 /**
  * Locates documentation for various features.
  */
+@ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
     private final GradleVersion gradleVersion;
 

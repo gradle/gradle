@@ -23,14 +23,16 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
 import java.util.HashMap;
@@ -41,6 +43,7 @@ import java.util.Map;
  * However, this implementation is not thread safe,
  * but is relying on serialisation guarantees provided by ListenerManager.
  */
+@ServiceScope(Scopes.BuildSession.class)
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
@@ -73,7 +76,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event, testDescriptor.getId())));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
@@ -91,7 +94,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     private static class Details implements ExecuteTestBuildOperationType.Details {
         private final TestDescriptor testDescriptor;
-        private long startTime;
+        private final long startTime;
 
         Details(TestDescriptor testDescriptor, long startTime) {
             this.testDescriptor = testDescriptor;
@@ -111,20 +114,14 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     public static class OutputProgress implements ExecuteTestBuildOperationType.Output {
         private final TestOutputEvent event;
-        private final Object testDescriptorId;
 
-        private OutputProgress(TestOutputEvent event, Object testDescriptorId) {
+        private OutputProgress(TestOutputEvent event) {
             this.event = event;
-            this.testDescriptorId = testDescriptorId;
         }
 
         @Override
         public TestOutputEvent getOutput() {
             return event;
-        }
-
-        public Object getTestDescriptorId() {
-            return testDescriptorId;
         }
     }
 

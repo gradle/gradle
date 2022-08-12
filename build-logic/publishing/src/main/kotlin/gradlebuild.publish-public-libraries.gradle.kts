@@ -18,8 +18,20 @@ import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
+    id("signing")
     `maven-publish`
 }
+
+configureJavadocVariant()
+
+val artifactoryUrl
+    get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
+
+val artifactoryUserName
+    get() = findProperty("artifactoryUserName") as String?
+
+val artifactoryUserPassword
+    get() = findProperty("artifactoryUserPassword") as String?
 
 publishing {
     publications {
@@ -31,7 +43,7 @@ publishing {
         maven {
             name = "remote"
             val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
-            url = uri("https://repo.gradle.org/gradle/libs-${libsType.get()}-local")
+            url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
             credentials {
                 username = artifactoryUserName
                 password = artifactoryUserPassword
@@ -39,6 +51,29 @@ publishing {
         }
     }
     configurePublishingTasks()
+}
+
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
+
+tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
+
+signing {
+    useInMemoryPgpKeys(
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+    )
+    publishing.publications.configureEach {
+        if (signArtifacts) {
+            signing.sign(this)
+        }
+    }
+}
+
+fun configureJavadocVariant() {
+    java {
+        withJavadocJar()
+    }
 }
 
 fun MavenPublication.configureGradleModulePublication() {
@@ -52,12 +87,42 @@ fun MavenPublication.configureGradleModulePublication() {
             fromResolutionResult()
         }
     }
+
+    pom {
+        packaging = "jar"
+        name.set("org.gradle:gradle-${project.name}")
+        description.set(
+            provider {
+                require(project.description != null) { "You must set the description of published project ${project.name}" }
+                project.description
+            }
+        )
+        url.set("https://gradle.org")
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                name.set("The Gradle team")
+                organization.set("Gradle Inc.")
+                organizationUrl.set("https://gradle.org")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/gradle/gradle.git")
+            developerConnection.set("scm:git:ssh://github.com:gradle/gradle.git")
+            url.set("https://github.com/gradle/gradle")
+        }
+    }
 }
 
 fun Project.configurePublishingTasks() {
     tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
         onlyIf { !project.hasProperty("noUpload") }
-        failEarlyIfCredentialsAreNotSet(this)
+        failEarlyIfUrlOrCredentialsAreNotSet(this)
     }
 
     plugins.withId("gradlebuild.shaded-jar") {
@@ -65,9 +130,12 @@ fun Project.configurePublishingTasks() {
     }
 }
 
-fun Project.failEarlyIfCredentialsAreNotSet(publish: Task) {
+fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
     gradle.taskGraph.whenReady {
         if (hasTask(publish)) {
+            if (artifactoryUrl.isEmpty()) {
+                throw GradleException("artifactoryUrl is not set!")
+            }
             if (artifactoryUserName.isNullOrEmpty()) {
                 throw GradleException("artifactoryUserName is not set!")
             }
@@ -77,12 +145,6 @@ fun Project.failEarlyIfCredentialsAreNotSet(publish: Task) {
         }
     }
 }
-
-val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
-
-val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
 
 fun publishNormalizedToLocalRepository() {
     val localRepository = layout.buildDirectory.dir("repo")

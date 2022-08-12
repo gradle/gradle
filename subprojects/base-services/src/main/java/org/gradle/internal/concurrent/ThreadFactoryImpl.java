@@ -16,44 +16,34 @@
 
 package org.gradle.internal.concurrent;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Provides meaningful names to threads created in a thread pool.
- * And mark them as managed by Gradle.
  */
 public class ThreadFactoryImpl implements ThreadFactory {
     private final AtomicLong counter = new AtomicLong();
     private final String displayName;
+    @Nullable
+    private final ClassLoader contextClassloader;
 
-    public ThreadFactoryImpl(String displayName) {
+    public ThreadFactoryImpl(String displayName, @Nullable ClassLoader contextClassloader) {
         this.displayName = displayName;
+        this.contextClassloader = contextClassloader;
     }
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread thread = new Thread(new ManagedThreadRunnable(r));
-        long count = counter.incrementAndGet();
-        if (count == 1) {
-            thread.setName(displayName);
-        } else {
-            thread.setName(displayName + " Thread " + count);
-        }
+        Thread thread = new Thread(r);
+        thread.setName(nextThreadName());
+        thread.setContextClassLoader(contextClassloader);
         return thread;
     }
 
-    private static class ManagedThreadRunnable implements Runnable {
-        private final Runnable delegate;
-
-        private ManagedThreadRunnable(Runnable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void run() {
-            GradleThread.setManaged();
-            delegate.run();
-        }
+    private String nextThreadName() {
+        long count = counter.incrementAndGet();
+        return count == 1 ? displayName : displayName + " Thread " + count;
     }
 }

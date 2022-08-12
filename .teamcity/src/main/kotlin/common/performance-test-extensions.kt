@@ -22,10 +22,12 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
-fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30) {
-    applyDefaultSettings(os = os, timeout = timeout)
+fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, timeout: Int = 30) {
+    applyDefaultSettings(os = os, arch = arch, timeout = timeout)
     artifactRules = """
         build/report-*-performance-tests.zip => .
+        build/report-*-performance.zip => $hiddenArtifactDestination
+        build/report-*PerformanceTest.zip => $hiddenArtifactDestination
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
@@ -37,11 +39,21 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
+fun performanceTestCommandLine(
+    task: String,
+    baselines: String,
+    extraParameters: String = "",
+    os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
+    testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
+    testJavaVendor: String = os.perfTestJavaVendor,
+) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
-    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
-    "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-PtestJavaVersion=$testJavaVersion",
+    "-PtestJavaVendor=$testJavaVendor",
+    "-PautoDownloadAndroidStudio=true",
+    "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
     os.javaInstallationLocations()
 ) + listOf(
@@ -74,7 +86,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
             scriptContent = """
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
-                """.trimIndent()
+            """.trimIndent()
         }
         cleanBuildLogicBuild("P:/build-logic-commons")
         cleanBuildLogicBuild("P:/build-logic")
@@ -99,7 +111,7 @@ private fun BuildSteps.cleanBuildLogicBuild(buildDir: String) {
     // This means that we need to clean buildSrc before running for the first time on the subst drive
     // and before running the first time on the original location again.
     gradleWrapper {
-        name = "CLEAN_${buildDir.toUpperCase().replace("[:/%.]".toRegex(), "_")}"
+        name = "CLEAN_${buildDir.uppercase().replace("[:/%.]".toRegex(), "_")}"
         tasks = "clean"
         workingDir = buildDir
         executionMode = BuildStep.ExecutionMode.ALWAYS

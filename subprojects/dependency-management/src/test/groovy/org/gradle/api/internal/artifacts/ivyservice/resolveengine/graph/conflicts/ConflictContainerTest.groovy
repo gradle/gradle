@@ -72,6 +72,8 @@ class ConflictContainerTest extends Specification {
         container.newElement("b", [3, 4], null)
         expect:
         container.size == 1
+        !container.hasMatchingConflict(val -> val == 2)
+        container.hasMatchingConflict(val -> val == 3)
         container.popConflict().toString() == "a,b:3,4"
     }
 

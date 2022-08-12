@@ -27,8 +27,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 
-import java.io.File;
-
 /**
  * Base plugin for testing.
  *
@@ -39,12 +37,6 @@ import java.io.File;
 public class TestingBasePlugin implements Plugin<Project> {
     public static final String TEST_RESULTS_DIR_NAME = "test-results";
     public static final String TESTS_DIR_NAME = "tests";
-    private static final Transformer<File, Directory> TO_FILE_TRANSFORMER = new Transformer<File, Directory>() {
-        @Override
-        public File transform(Directory directory) {
-            return directory.getAsFile();
-        }
-    };
 
     @Override
     public void apply(final Project project) {
@@ -52,9 +44,9 @@ public class TestingBasePlugin implements Plugin<Project> {
         project.getTasks().withType(AbstractTestTask.class, new Action<AbstractTestTask>() {
             @Override
             public void execute(final AbstractTestTask test) {
-                test.getReports().getHtml().setDestination(getTestReportsDir(project, test).map(TO_FILE_TRANSFORMER));
-                test.getReports().getJunitXml().setDestination(getTestResultsDir(project, test).map(TO_FILE_TRANSFORMER));
-                test.getBinaryResultsDirectory().set(getTestResultsDir(project, test).map(new Transformer<Directory, Directory>() {
+                test.getReports().getHtml().getOutputLocation().convention(getTestReportsDir(project, test));
+                test.getReports().getJunitXml().getOutputLocation().convention(getTestResultsDir(project, test));
+                test.getBinaryResultsDirectory().convention(getTestResultsDir(project, test).map(new Transformer<Directory, Directory>() {
                     @Override
                     public Directory transform(Directory directory) {
                         return directory.dir("binary");

@@ -36,7 +36,6 @@ import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ComponentSelectionRulesProcessorTest extends Specification {
     def processor = new ComponentSelectionRulesProcessor()
@@ -402,7 +401,6 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled == [1]
     }
 
-    @Unroll
     def "rule can have access to component metadata attributes"() {
         def id = Mock(ModuleVersionIdentifier)
         def testAttr = Attribute.of('test', String)

@@ -32,7 +32,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private String arrayValueName;
 
     public SortingAnnotationVisitor(AnnotationMember parentAnnotation, AnnotationVisitor av) {
-        super(Opcodes.ASM7, av);
+        super(Opcodes.ASM9, av);
         this.annotation = parentAnnotation;
     }
 

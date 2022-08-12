@@ -20,8 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Ignore
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -36,7 +34,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.minimumBaseVersion = '5.6.4'
-        runner.targetVersions = ["7.1-20210427170827+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
@@ -52,7 +49,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Unroll
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
         startServer()
 
@@ -80,25 +76,4 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         parallel << [false, true, false, true]
         locking << [false, false, true, true]
     }
-
-    @Ignore
-    def "resolve large dependency graph with strict versions"() {
-        runner.minimumBaseVersion = '6.0'
-        startServer()
-
-        given:
-        runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
-        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '-PuseSubgraphConstraints']
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        cleanup:
-        stopServer()
-    }
-
 }

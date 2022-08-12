@@ -18,8 +18,9 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
@@ -40,8 +41,9 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
         when:
         run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
@@ -51,6 +53,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
 
         when:
         run("build")
@@ -68,8 +71,27 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating')
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite("test")
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -92,7 +114,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
@@ -114,7 +135,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source using junit-jupiter instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id)
@@ -136,7 +156,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', testFramework.id, '--package', 'my.app', '--dsl', scriptDsl.id)
@@ -164,8 +183,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--package', 'my.app', '--dsl', scriptDsl.id)
@@ -193,7 +210,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/java/org/acme/SampleMain.java") << """
@@ -224,5 +240,16 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/17383")
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    def "command line works with different locale"() {
+        setup:
+        executer.withCommandLineGradleOpts('-Duser.language=tr', '-Duser.country=TR')
+
+        expect:
+        succeeds('init', '--type', 'java-application', '--dsl', 'groovy')
     }
 }

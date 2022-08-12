@@ -23,7 +23,6 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class NativePlatformConsoleDetectorTest extends Specification {
     private Terminals terminals = Mock()
@@ -106,7 +105,6 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console == null
     }
 
-    @Unroll
     def "returns null when failing to get #terminal terminal size"() {
         given:
         terminals.isTerminal(terminal) >> true

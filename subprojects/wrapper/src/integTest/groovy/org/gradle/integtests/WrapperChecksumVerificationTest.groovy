@@ -17,7 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -55,7 +55,7 @@ Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.propert
  Distribution Url: ${server.uri}/gradle-bin.zip
 Download Location: $f.absolutePath
 Expected checksum: 'bad'
-  Actual checksum: '${HashUtil.sha256(distribution.binDistribution).asZeroPaddedHexString(64)}'
+  Actual checksum: '${Hashing.sha256().hashFile(distribution.binDistribution).toZeroPaddedString(Hashing.sha256().hexDigits)}'
 """.trim())
     }
 
@@ -64,7 +64,7 @@ Expected checksum: 'bad'
         prepareWrapper(new URI("${server.uri}/gradle-bin.zip"))
 
         and:
-        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(distribution.binDistribution).asZeroPaddedHexString(64)}"
+        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${Hashing.sha256().hashFile(distribution.binDistribution).toZeroPaddedString(Hashing.sha256().hexDigits)}"
 
         when:
         def success = wrapperExecuter.run()

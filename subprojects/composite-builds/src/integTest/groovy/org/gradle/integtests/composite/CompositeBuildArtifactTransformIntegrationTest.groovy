@@ -86,24 +86,28 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         given:
         def buildB = multiProjectBuild('buildB', ['app', 'lib'])
         buildB.buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
             subprojects {
                 apply plugin: "java-library"
             }
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    def output = new File(outputDirectory, input.name + '.txt')
-                    output.text = String.valueOf(input.length())
-                    return [output]
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    File outputFile = outputs.file(input.name + ".txt")
+                    outputFile.text = String.valueOf(input.length())
                 }
             }
             def artifactType = Attribute.of('artifactType', String)
             project(':app') {
                 dependencies {
                     implementation(project(':lib'))
-                    registerTransform {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, 'jar')
                         to.attribute(artifactType, 'size')
-                        artifactTransform(FileSizer)
                     }
                 }
                 task resolve(type: Copy) {

@@ -16,13 +16,14 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
 public class DefaultWorkItemDescriptor extends DefaultOperationDescriptor implements InternalWorkItemDescriptor {
 
     private final String className;
 
-    public DefaultWorkItemDescriptor(Object id, String className, String displayName, Object parentId) {
+    public DefaultWorkItemDescriptor(OperationIdentifier id, String className, String displayName, OperationIdentifier parentId) {
         super(id, displayName, displayName, parentId);
         this.className = className;
     }

@@ -16,16 +16,10 @@
 
 package org.gradle.internal.work
 
-import org.gradle.api.Action
 import org.gradle.internal.Factory
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.TestTrackedResourceLock
-import spock.lang.Specification
 
-class DefaultWorkerLeaseServiceTest extends Specification {
-    def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, 1))
+class DefaultWorkerLeaseServiceTest extends AbstractWorkerLeaseServiceTest {
+    def workerLeaseService = workerLeaseService()
 
     def "can use withLocks to execute a runnable with resources locked"() {
         boolean executed = false
@@ -150,14 +144,6 @@ class DefaultWorkerLeaseServiceTest extends Specification {
         and:
         !lock1.lockedState
         !lock2.lockedState
-    }
-
-    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock = false) {
-        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
-    }
-
-    TestTrackedResourceLock resourceLock(String displayName) {
-        return resourceLock(displayName, false)
     }
 
     Runnable runnable(Closure closure) {

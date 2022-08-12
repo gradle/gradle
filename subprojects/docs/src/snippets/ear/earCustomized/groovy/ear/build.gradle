@@ -16,7 +16,7 @@ dependencies {
 }
 
 ear {
-    appDirName 'src/main/app'  // use application metadata found in this folder
+    appDirectory = file('src/main/app')  // use application metadata found in this folder
     // put dependent libraries into APP-INF/lib inside the generated EAR
     libDirName 'APP-INF/lib'
     deploymentDescriptor {  // custom entries for application.xml:

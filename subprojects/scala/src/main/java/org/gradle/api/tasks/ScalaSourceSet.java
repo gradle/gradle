@@ -16,13 +16,18 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link
+ * A {@code ScalaSourceSet} defines the properties and methods added to a {@link
  * org.gradle.api.tasks.SourceSet} by the {@code ScalaPlugin}.
+ *
+ * @deprecated Using conventions to contribute source sets is deprecated. You can configure the groovy sources via the {@code ScalaSourceDirectorySet} extension (e.g.
+ * {@code sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public interface ScalaSourceSet {
     /**
      * Returns the source to be compiled by the Scala compiler for this source set. This may contain both Java and Scala
@@ -41,7 +46,7 @@ public interface ScalaSourceSet {
      * @return this
      */
     @SuppressWarnings("rawtypes")
-    ScalaSourceSet scala(Closure configureClosure);
+    ScalaSourceSet scala(@DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**
      * Configures the Scala source for this set.

@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -25,7 +24,6 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
-    @ToBeFixedForConfigurationCache
     def "protobuf plugin"() {
         given:
         buildFile << """
@@ -67,8 +65,6 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         then:
         result.task(":generateProto").outcome == SUCCESS
         result.task(":compileJava").outcome == SUCCESS
-
-        expectNoDeprecationWarnings(result)
 
         when:
         result = runner('compileJava').forwardOutput().build()

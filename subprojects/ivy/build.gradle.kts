@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Publishing plugin for Ivy repositories"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

@@ -23,7 +23,6 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
@@ -35,7 +34,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         return new ObjectiveCHelloWorldApp()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "does not recompile when include path has #testCase"() {
         given:

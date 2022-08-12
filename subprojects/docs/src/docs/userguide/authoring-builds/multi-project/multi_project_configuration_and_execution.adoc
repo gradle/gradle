@@ -73,7 +73,7 @@ A very common way for projects to be coupled is by using <<sharing_build_logic_b
 It may not be immediately apparent, but using key Gradle features like the `allprojects` and `subprojects` keywords automatically cause your projects to be coupled.
 This is because these keywords are used in a `build.gradle` file, which defines a project.
 Often this is a “root project” that does nothing more than define common configuration, but as far as Gradle is concerned this root project is still a fully-fledged project, and by using `allprojects` that project is effectively coupled to all other projects.
-Coupling of the root project to subprojects does not impact 'configuration on demand', but using the `allprojects` and `subprojects` in any subproject's `build.gradle` file will have an impact.
+Coupling of the root project to subprojects does not impact <<#sec:configuration_on_demand,configuration on-demand>>, but using the `allprojects` and `subprojects` in any subproject's `build.gradle` file will have an impact.
 
 This means that using any form of shared build script logic or configuration injection (`allprojects`, `subprojects`, etc.) will cause your projects to be coupled.
 As we extend the concept of project decoupling and provide features that take advantage of decoupled projects, we will also introduce new features to help you to solve common use cases (like configuration injection) without causing your projects to be coupled.

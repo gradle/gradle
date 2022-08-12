@@ -45,6 +45,13 @@ Execution failed for task ':failRuntimeClasspathResolve'.
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Doesn't say anything about its elements (required them packaged as a jar)
                   - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
+          - Variant 'javadoc' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a component, and its dependencies declared externally:
+              - Incompatible because this component declares documentation and the consumer needed a library
+              - Other compatible attributes:
+                  - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
           - Variant 'natives-linux-arm32-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar:
               - Incompatible because this component declares a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'linux' and the consumer needed a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'
               - Other compatible attributes:
@@ -85,3 +92,10 @@ Execution failed for task ':failRuntimeClasspathResolve'.
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
+          - Variant 'sources' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a component, and its dependencies declared externally:
+              - Incompatible because this component declares documentation and the consumer needed a library
+              - Other compatible attributes:
+                  - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')

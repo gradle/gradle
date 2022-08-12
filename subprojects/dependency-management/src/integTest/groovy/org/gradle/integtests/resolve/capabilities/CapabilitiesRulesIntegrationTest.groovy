@@ -18,14 +18,11 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @ToBeFixedForConfigurationCache
     def "can declare capabilities using a component metadata rule"() {
         given:
         repository {
@@ -79,7 +76,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
-    @ToBeFixedForConfigurationCache
     def "implicit capability conflict is detected if implicit capability is discovered late"() {
         given:
         repository {
@@ -139,7 +135,8 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
-    @Unroll
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can detect conflict with capability in different versions (#rule)"() {
         given:
         repository {
@@ -153,11 +150,19 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 @Override
                 void execute(ComponentMetadataContext context) {
                     def details = context.details
-                    details.allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
+                    if (details.id.name == 'cglib') {
+                         details.allVariants {
+                             withCapabilities {
+                                 addCapability('cglib', 'random', details.id.version)
+                             }
                          }
-                     }
+                    } else {
+                        details.allVariants {
+                             withCapabilities {
+                                 addCapability('cglib', 'cglib', details.id.version)
+                             }
+                         }
+                    }
                 }
             }
 
@@ -167,11 +172,41 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
                components {
                   withModule('cglib:cglib-nodep', CapabilityRule)
+                  withModule('cglib:cglib', CapabilityRule)
                }
             }
 
             configurations.conf.resolutionStrategy.capabilitiesResolution {
                 $rule
+            }
+
+
+            tasks.register("dumpCapabilitiesFromArtifactView") {
+                doFirst {
+                    def artifactCollection = configurations.conf.incoming.artifactView {
+                        attributes {
+                            attribute(Attribute.of("artifactType", String), "jar")
+                        }
+                    }.artifacts
+
+                    artifactCollection.artifacts.each {
+                        println "Artifact: \${it.id.componentIdentifier.displayName}"
+                        println "  - artifact: \${it.file}"
+
+                        def capabilities = it.variant.capabilities
+                        if (capabilities.isEmpty()) {
+                            throw new IllegalStateException("Expected default capability to be explicit")
+                        } else {
+                            println "  - capabilities: " + capabilities.collect {
+                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                    throw new IllegalStateException("Unexpected capability type: \$it")
+                                }
+                                "\${it}"
+                            }
+                        }
+                        println("---------")
+                    }
+                }
             }
         """
 
@@ -184,7 +219,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 expectResolve()
             }
         }
-        run ':checkDeps'
+        run ':checkDeps', ':dumpCapabilitiesFromArtifactView'
 
         then:
         resolve.expectGraph {
@@ -194,6 +229,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 module('cglib:cglib:3.2.5')
             }
         }
+        outputContains('- capabilities: [capability group=\'cglib\', name=\'cglib\', version=\'3.2.5\', capability group=\'cglib\', name=\'random\', version=\'3.2.5\']')
 
         where:
         rule                                                                                  | reason
@@ -203,7 +239,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         'all { select(candidates.find { it.id.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
     }
 
-    @ToBeFixedForConfigurationCache
     def "can detect conflict between local project and capability from external dependency"() {
         given:
         repository {
@@ -313,8 +348,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
     }
 
     @Issue("gradle/gradle#12011")
-    @ToBeFixedForConfigurationCache
-    @Unroll
     def "can detect capability conflict even when participants belong to a virtual platform (#first, #second)"() {
         given:
         repository {
@@ -377,5 +410,122 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         first   | second
         'aligned:foo:1.0'   | 'indirect:bar:1.0'
         'indirect:bar:1.0'  | 'aligned:foo:1.0'
+    }
+
+    @Issue('gradle/gradle#18494')
+    def 'two capabilities conflict when one is a transitive of the other resolve successfully'() {
+        given:
+        repository {
+            'jakarta:activation:1.0'()
+            'jakarta:xml:1.0' {
+                dependsOn 'jakarta:activation:1.0'
+            }
+            'javax:jaxb:1.0'()
+            'jakarta:xml:2.0'()
+            'sun:jaxb:1.0' {
+                dependsOn 'jakarta:xml:2.0'
+            }
+            'jersey:json:1.0' {
+                dependsOn 'sun:jaxb:1.0'
+            }
+            'hadoop:yarn:1.0' {
+                dependsOn 'javax:jaxb:1.0'
+                dependsOn 'jersey:json:1.0'
+            }
+            'javax:activation:1.0'()
+        }
+
+        buildFile << """
+project.dependencies.components.all { ComponentMetadataDetails details ->
+    def groupName = details.getId().getGroup() + ':' + details.getId().getName();
+
+    String capabilityGroup = null
+    String capabilityName = null
+    if (groupName == 'jakarta:xml' || groupName == 'javax:jaxb') {
+        capabilityGroup = 'capabilities'
+        capabilityName = 'xml'
+    }
+
+    if (groupName == 'javax:activation' || groupName == 'jakarta:activation') {
+        capabilityGroup = 'capabilities'
+        capabilityName = 'activation'
+    }
+
+    if (capabilityGroup != null) {
+        details.allVariants { v ->
+            v.withCapabilities { m ->
+                m.addCapability(capabilityGroup, capabilityName, '0')
+            }
+        }
+    }
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        capabilitiesResolution {
+            withCapability('capabilities', 'xml') {
+                select('jakarta:xml:1.0')
+            }
+            withCapability('capabilities', 'activation') {
+                select('jakarta:activation:1.0')
+            }
+        }
+        eachDependency { details ->
+            if (details.requested.name == 'xml' && details.requested.group == 'jakarta') {
+                details.useVersion('1.0')
+            }
+        }
+    }
+}
+
+dependencies {
+    conf 'jakarta:xml'
+    conf 'hadoop:yarn:1.0'
+    conf 'javax:activation:1.0'
+}
+"""
+        when:
+        repositoryInteractions {
+            'jakarta:activation:1.0' {
+                expectResolve()
+            }
+            'jakarta:xml:1.0' {
+                expectResolve()
+            }
+            'javax:jaxb:1.0' {
+                expectGetMetadata()
+            }
+            'sun:jaxb:1.0' {
+                expectResolve()
+            }
+            'jersey:json:1.0' {
+                expectResolve()
+            }
+            'hadoop:yarn:1.0' {
+                expectResolve()
+            }
+            'javax:activation:1.0' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('jakarta:xml', 'jakarta:xml:1.0') {
+                    module('jakarta:activation:1.0')
+                }
+                module('hadoop:yarn:1.0') {
+                    edge('javax:jaxb:1.0', 'jakarta:xml:1.0')
+                    module('jersey:json:1.0') {
+                        module('sun:jaxb:1.0') {
+                            edge('jakarta:xml:2.0', 'jakarta:xml:1.0')
+                        }
+                    }
+                }
+                edge('javax:activation:1.0', 'jakarta:activation:1.0')
+            }
+        }
     }
 }

@@ -51,7 +51,9 @@ class KotlinDslScriptsModelClient {
                 setJvmArguments(request.jvmOptions + KotlinDslModelsParameters.STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
             }
 
-            forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+            if (request.explicitlyRequestPreparationTasks) {
+                forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+            }
 
             def arguments = request.options +
                 "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}".toString() +
@@ -114,6 +116,11 @@ class KotlinDslScriptsModelRequest {
     final Boolean lenient
 
     /**
+     * Request the kotlin-dsl preparation tasks to be run on the client side.
+     */
+    final Boolean explicitlyRequestPreparationTasks
+
+    /**
      * Request correlation identifier.
      * For client/Gradle logs correlation.
      * Defaults to a time based identifier.
@@ -127,6 +134,7 @@ class KotlinDslScriptsModelRequest {
         List<String> jvmOptions = [],
         List<String> options = [],
         Boolean lenient = false,
+        Boolean explicitlyRequestPreparationTasks = true,
         String correlationId = newCorrelationId()
     ) {
         this.scripts = scripts
@@ -135,6 +143,7 @@ class KotlinDslScriptsModelRequest {
         this.jvmOptions = jvmOptions
         this.options = options
         this.lenient = lenient
+        this.explicitlyRequestPreparationTasks = explicitlyRequestPreparationTasks
         this.correlationId = correlationId
     }
 }

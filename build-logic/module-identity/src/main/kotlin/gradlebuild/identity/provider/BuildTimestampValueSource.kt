@@ -39,6 +39,7 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
         val runningOnCi: Property<Boolean>
 
         val runningInstallTask: Property<Boolean>
+        val runningDocsTestTask: Property<Boolean>
     }
 
     override fun obtain(): String? = parameters.run {
@@ -57,7 +58,7 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
             buildTimestampFromProperty != null -> {
                 timestampFormat.parse(buildTimestampFromProperty)
             }
-            runningInstallTask.get() || runningOnCi.get() -> {
+            runningInstallTask.get() || runningDocsTestTask.get() || runningOnCi.get() -> {
                 Date()
             }
             else -> {
@@ -77,6 +78,7 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
                 buildTimestampFromBuildReceipt.isPresent -> "from build receipt"
                 buildTimestampFromGradleProperty.isPresent -> "from buildTimestamp property"
                 runningInstallTask.get() -> "from current time because installing"
+                runningDocsTestTask.get() -> "from current time because testing docs"
                 runningOnCi.get() -> "from current time because CI"
                 else -> "from current date"
             }

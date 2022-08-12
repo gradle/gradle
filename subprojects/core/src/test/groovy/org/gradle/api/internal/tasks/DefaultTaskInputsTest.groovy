@@ -34,13 +34,13 @@ import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.annotation.Nullable
 import java.util.concurrent.Callable
@@ -305,7 +305,6 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
-    @Unroll
     def "can register more unnamed properties with method #method after properties have been queried"() {
         inputs."$method"("input-1")
         // Trigger naming properties
@@ -316,7 +315,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -345,14 +344,17 @@ class DefaultTaskInputsTest extends Specification {
         def inputFiles = [:]
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName,
-                                        boolean optional,
-                                        boolean skipWhenEmpty,
-                                        DirectorySensitivity emptyDirectorySensitivity,
-                                        boolean incremental,
-                                        @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                                        PropertyValue value,
-                                        InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(
+                String propertyName,
+                boolean optional,
+                boolean skipWhenEmpty,
+                DirectorySensitivity emptyDirectorySensitivity,
+                LineEndingSensitivity lineEndingNormalization,
+                boolean incremental,
+                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType
+            ) {
                 inputFiles[propertyName] = value.call()
             }
         })

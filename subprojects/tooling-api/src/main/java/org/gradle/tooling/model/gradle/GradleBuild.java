@@ -52,14 +52,23 @@ public interface GradleBuild extends Model, BuildModel {
     /**
      * Returns the included builds that were referenced by this build. This is the set of builds that were directly included by this build via its {@link org.gradle.api.initialization.Settings} instance.
      *
+     * <p>Note that this set does not include builds that are added in other ways, such as a `buildSrc` build.
+     * Also note that a build may be included by multiple builds, so that the inclusions form a graph of builds rather than a tree of builds. There may be cycles in this graph.</p>
+     *
+     * <p>In general, it is better to use {@link #getEditableBuilds()} instead of this method.</p>
+     *
      * @since 3.3
      */
     DomainObjectSet<? extends GradleBuild> getIncludedBuilds();
 
     /**
-     * Returns all builds contained in this build for which tooling models should be built when importing into an IDE.
+     * Returns all builds contained in this build that should be imported into an IDE.
      *
-     * <p>This is not always the same the builds returned by {@link #getIncludedBuilds()}. For the root build, the 'editable' builds set contains all builds that participate in the composite build, including those directly included by the root build plus all builds included by any nested included builds transitively. For all other builds, this set is empty.</p>
+     * <p>This is not always the same the builds returned by {@link #getIncludedBuilds()}. For the root build, the set of importable builds contains all builds that participate in the composite build,
+     * including those directly included by the root build plus all builds included transitively. For Gradle 7.2 and later, this set also includes any `buildSrc` builds that may be present.
+     * For all other builds, this set is empty.</p>
+     *
+     * <p>Note that this set does not include the root build itself.</p>
      *
      * @since 4.10
      */

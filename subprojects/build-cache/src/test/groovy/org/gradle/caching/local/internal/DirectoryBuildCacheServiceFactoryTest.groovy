@@ -21,9 +21,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CleanupAction
-import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CleanupActionFactory
-import org.gradle.cache.internal.VersionStrategy
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -40,12 +39,12 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheRepository = Mock(CacheRepository)
-    def cacheScopeMapping = Mock(CacheScopeMapping)
+    def globalScopedCache = Mock(GlobalScopedCache)
     def resolver = Mock(FileResolver)
     def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
     def cleanupActionFactory = Mock(CleanupActionFactory)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, fileStoreFactory, cleanupActionFactory, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root))
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileStoreFactory, cleanupActionFactory, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root))
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -59,7 +58,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> null
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
-        1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
+        1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cleanupActionFactory.create(_) >> Mock(CleanupAction)

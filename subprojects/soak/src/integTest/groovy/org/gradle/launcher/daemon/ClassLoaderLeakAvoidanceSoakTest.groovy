@@ -81,8 +81,9 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
             interface Foo0 extends Named {
             }
             task myTask() {
+                def objFactory = project.objects
                 doLast {
-                    def instance = project.objects.named(Foo0, new String(new byte[10 * 1024 * 1024], "UTF-8"))
+                    def instance = objFactory.named(Foo0, new String(new byte[10 * 1024 * 1024], "UTF-8"))
                     println "\${instance.class.name}"
                 }
             }
@@ -91,7 +92,7 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
         expect:
         for(int i = 0; i < 35; i++) {
             buildFile.text = buildFile.text.replace("Foo$i", "Foo${i + 1}")
-            executer.withBuildJvmOpts("-Xms64m", "-Xmx128m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:MaxMetaspaceSize=64m")
+            executer.withBuildJvmOpts("-Xms64m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:MaxMetaspaceSize=64m")
             assert succeeds("myTask")
         }
     }

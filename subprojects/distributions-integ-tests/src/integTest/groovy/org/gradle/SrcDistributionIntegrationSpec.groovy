@@ -17,12 +17,14 @@
 package org.gradle
 
 import org.apache.tools.ant.taskdefs.Expand
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.AntUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.AntUtil
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -57,11 +59,13 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         executer.with {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
+            withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withArgument("-Porg.gradle.java.installations.paths=${Jvm.current().javaHome.absolutePath}")
             withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
-            withWarningMode(null)
+            withWarningMode(WarningMode.None)
+            noDeprecationChecks()
         }.run()
 
         then:
@@ -77,6 +81,26 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         then:
         TestFile unpackedRoot = new TestFile(contentsDir.file('build/distributions/unzip').listFiles().first())
         unpackedRoot.file("bin/gradle").exists()
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/21114")
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "source distribution must contain generated sources"() {
+        given:
+        TestFile contentsDir = unpackDistribution()
+
+        when:
+        def generatedSourceName = "/org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt"
+        def foundGeneratedSources = false
+        contentsDir.eachFileRecurse {
+            if (it.absolutePath.endsWith(generatedSourceName)) {
+                foundGeneratedSources = true
+            }
+        }
+
+        then:
+        // TODO: remove negation when fixed
+        !foundGeneratedSources
     }
 
 }

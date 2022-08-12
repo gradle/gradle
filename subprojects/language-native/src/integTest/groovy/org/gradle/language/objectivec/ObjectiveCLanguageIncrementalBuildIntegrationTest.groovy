@@ -16,14 +16,13 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.internal.hash.HashUtil
+
 import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
@@ -34,27 +33,6 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLa
     @Override
     boolean languageBuildsOnMultiplePlatforms() {
         return false
-    }
-
-    @Ignore("Demos a problem with clang on ubuntu creating randomly different object files")
-    def "generates always exactly same object file"() {
-        setup:
-        def recordings = []
-        def invocation =  10
-        when:
-        invocation.times{
-            run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def oldHash= HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).asCompactString()
-
-            //to ensure it's not a timestamp issue
-            sleep(1000)
-            run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def newHash = HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).asCompactString()
-            recordings << (oldHash == newHash)
-        }
-        then:
-        recordings.findAll{ it }.size() != 0 // not everytime the .o file differs -> not a timestamp issue
-        recordings.findAll{ it }.size() == invocation
     }
 
     @Override

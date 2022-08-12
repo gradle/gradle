@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation
 
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
+    String pluginId
     boolean hasIntro = true
     private String description
     private String reason
@@ -30,7 +31,13 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     String typeName
     String property
     String section
+    String documentationId = "validation_problems"
     boolean includeLink = false
+
+    T inPlugin(String pluginId) {
+        this.pluginId = pluginId
+        this
+    }
 
     T description(String description) {
         this.description = description
@@ -67,20 +74,35 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         this
     }
 
+    T documentationSection(String documentationSection) {
+        section = documentationSection
+        this
+    }
+
+    T documentationId(String id) {
+        documentationId = id
+        this
+    }
+
     String getPropertyIntro() {
         "property"
     }
 
     private String getIntro() {
         if (hasIntro) {
-            typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+            String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+            if (pluginId) {
+                return "In plugin '${pluginId}' ${intro.uncapitalize()}"
+            } else {
+                return intro
+            }
         } else {
             ''
         }
     }
 
     private String getOutro() {
-        includeLink ? "${checker.learnAt("validation_problems", section)}." : ""
+        includeLink ? "${checker.learnAt(documentationId, section)}." : ""
     }
 
     static String formatEntry(String entry) {
@@ -110,9 +132,9 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
             } else {
                 sb.append("Possible solution: ${formatEntry(solutions[0])}$newLine")
             }
+            sb.append(newLine)
         }
         if (outro) {
-            sb.append(newLine)
             sb.append(outro)
         }
         sb.toString().trim()

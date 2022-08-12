@@ -397,10 +397,6 @@ public class Signature extends AbstractPublishArtifact {
         return super.getBuildDependencies();
     }
 
-    String toKey() {
-        return String.join(":", getName(), getType(), getExtension(), getClassifier());
-    }
-
     /**
      * Generates the signature file.
      *

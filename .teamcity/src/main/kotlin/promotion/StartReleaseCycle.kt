@@ -27,10 +27,6 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMas
         name = "Start Release Cycle"
         description = "Promotes a successful build on master as the start of a new release cycle on the release branch"
 
-        artifactRules = """
-        incoming-build-receipt/build-receipt.properties => incoming-build-receipt
-    """.trimIndent()
-
         params {
             text("gitUserEmail", "", label = "Git user.email Configuration", description = "Enter the git 'user.email' configuration to commit change under", display = ParameterDisplay.PROMPT, allowEmpty = true)
             text("confirmationCode", "", label = "Confirmation Code", description = "Enter the value 'startCycle' (no quotes) to confirm the promotion", display = ParameterDisplay.PROMPT, allowEmpty = false)
@@ -42,16 +38,13 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMas
                 name = "Promote"
                 tasks = "clean promoteStartReleaseCycle"
                 useGradleWrapper = true
-                gradleParams = """-PuseBuildReceipt -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """
+                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_ReadyforNightly_Trigger")}.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """
                 param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
             }
         }
 
         dependencies {
-            artifacts(RelativeId("Check_Stage_ReadyforNightly_Trigger")) {
-                buildRule = lastSuccessful("master")
-                cleanDestination = true
-                artifactRules = "build-receipt.properties => incoming-build-receipt/"
+            snapshot(RelativeId("Check_Stage_ReadyforNightly_Trigger")) {
             }
         }
     }

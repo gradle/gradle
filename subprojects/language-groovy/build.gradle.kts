@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Adds support for building Groovy projects"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -47,7 +49,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 
@@ -25,7 +26,7 @@ public class DefaultTestOutputEvent extends AbstractProgressEvent<InternalOperat
     private final InternalOperationDescriptor descriptor;
     private final InternalTestOutputResult result;
 
-    public DefaultTestOutputEvent(long startTime, InternalOperationDescriptor descriptor, InternalTestOutputResult result) {
+    public DefaultTestOutputEvent(long startTime, InternalTestOutputDescriptor descriptor, InternalTestOutputResult result) {
         super(startTime, descriptor);
         this.descriptor = descriptor;
         this.result = result;

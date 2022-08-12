@@ -15,15 +15,173 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
-
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
+    def version = GradleVersion.current().version
+    def builtInOptions = """
+     --rerun     Causes the task to be re-run even if up-to-date.
+""".readLines().tail().join("\n")
+
+    def "shows help message when tasks #tasks run in a directory with no build definition present"() {
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        executer.requireOwnGradleUserHomeDir()
+
+        when:
+        run(*tasks)
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$testDirectory' does not contain a Gradle build.
+
+To create a new build in this directory, run gradle init
+
+For more detail on the 'init' task, see https://docs.gradle.org/$version/userguide/build_init_plugin.html
+
+For more detail on creating a Gradle build, see https://docs.gradle.org/$version/userguide/tutorial_using_tasks.html
+
+To see a list of command-line options, run gradle --help
+
+For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+
+For troubleshooting, visit https://help.gradle.org
+
+BUILD SUCCESSFUL"""
+
+        and:
+        // Directory is still empty
+        testDirectory.assertIsEmptyDir()
+
+        and:
+        // Uses a directory under the user home for those things that happen to need a cache directory
+        executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertIsDir()
+
+        where:
+        tasks << [["help"], [], [":help"]]
+    }
+
+    def "shows help message when run in a directory under the root directory of another build"() {
+        given:
+        settingsFile.createFile()
+        def sub = file("sub").createDir()
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$sub' does not contain a Gradle build.
+"""
+
+        and:
+        // Directory is still empty
+        sub.assertIsEmptyDir()
+    }
+
+    def "shows help message when run in a buildSrc directory that does not contain build or settings script"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+        settingsFile.createFile()
+        def sub = file("buildSrc").createDir()
+        sub.file("src/main/java/Thing.java") << "class Thing { }"
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        // Current behaviour, not expected behaviour. The directory does actually contain a build definition
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$sub' does not contain a Gradle build.
+"""
+
+        and:
+        sub.file(".gradle").assertIsDir()
+        executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
+    }
+
+    def "shows help message when run in users home directory"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+
+        // the default, if running from user home dir
+        def gradleUserHomeDir = file(".gradle")
+        executer.withGradleUserHomeDir(gradleUserHomeDir)
+
+        when:
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$testDirectory' does not contain a Gradle build.
+"""
+
+        and:
+        // Uses a directory under the user home for those things that happen to need a cache directory
+        gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertIsDir()
+    }
+
+    def "shows help message when build is defined using build script only"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        buildFile.createFile()
+
+        when:
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+To run a build, run gradle <task> ...
+"""
+    }
+
+    def "shows help message when run from subproject directory"() {
+        given:
+        settingsFile << """
+            include("sub")
+        """
+        def sub = file("sub").createDir()
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        output.contains """
+> Task :sub:help
+
+Welcome to Gradle ${version}.
+
+To run a build, run gradle <task> ...
+"""
+    }
 
     def "shows basic welcome message for current project only"() {
         given:
@@ -33,18 +191,21 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
+        result.groupedOutput.taskCount == 1
         output.contains """
 > Task :help
 
-Welcome to Gradle ${GradleVersion.current().version}.
+Welcome to Gradle ${version}.
 
 To run a build, run gradle <task> ...
 
 To see a list of available tasks, run gradle tasks
 
+To see more detail about a task, run gradle help --task <task>
+
 To see a list of command-line options, run gradle --help
 
-To see more detail about a task, run gradle help --task <task>
+For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -65,6 +226,8 @@ Type
 
 Options
      --configuration     The configuration to generate the report for.
+
+${builtInOptions}
 
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
@@ -89,6 +252,8 @@ Type
 
 Options
      --task     The task to show help for.
+
+${builtInOptions}
 
 Description
      Displays a help message.
@@ -125,6 +290,9 @@ Paths
 
 Type
      Task (org.gradle.api.Task)
+
+Options
+${builtInOptions}
 
 Descriptions
      (:hello) hello task from root
@@ -170,6 +338,9 @@ Paths
 Type
      Task (org.gradle.api.Task)
 
+Options
+${builtInOptions}
+
 Description
      -
 
@@ -196,6 +367,9 @@ Path
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
 
+Options
+${builtInOptions}
+
 Description
      Assembles a jar archive containing the main classes.
 
@@ -215,6 +389,9 @@ Paths
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      Assembles a jar archive containing the main classes.
@@ -250,6 +427,9 @@ Path
 Type
      Copy (org.gradle.api.tasks.Copy)
 
+Options
+${builtInOptions}
+
 Description
      a copy operation
 
@@ -263,6 +443,9 @@ Path
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      an archiving operation
@@ -278,11 +461,29 @@ BUILD SUCCESSFUL"""
     def "error message contains possible candidates"() {
         buildFile.text = """
         task aTask
-"""
+        """
         when:
         fails "help", "--task", "bTask"
         then:
         failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        run "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+
+        when:
+        fails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        run "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
     }
 
     def "tasks can be defined by camelCase matching"() {
@@ -301,6 +502,9 @@ Path
 Type
      Task (org.gradle.api.Task)
 
+Options
+${builtInOptions}
+
 Description
      a description
 
@@ -318,7 +522,11 @@ BUILD SUCCESSFUL"""
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
-        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
+        failure.assertHasResolutions(
+            "Run gradle help --task :help to get task usage details.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
@@ -343,6 +551,8 @@ Options
                           ABC
                           DEF
                           GHIJKL
+
+${builtInOptions}
 
 Description
      -
@@ -372,6 +582,8 @@ Options
                             optionA
                             optionB
                             optionC
+
+${builtInOptions}
 
 Description
      -

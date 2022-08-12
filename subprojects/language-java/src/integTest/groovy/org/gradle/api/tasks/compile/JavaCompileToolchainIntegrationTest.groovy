@@ -17,19 +17,17 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeNotNull
 
-class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via #type toolchain on java compile task"() {
         buildFile << """
@@ -53,7 +51,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.getDifferentJdk()
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
     }
 
@@ -230,8 +228,6 @@ public class Foo {
         javaClassFile("Foo.class").exists()
     }
 
-
-    @ToBeFixedForConfigurationCache(because = "Storing the configuration causes the execution exception to be triggered")
     def 'cannot configure both toolchain and source and target compatibility at project level'() {
         def jdk = Jvm.current()
         buildFile << """
@@ -298,7 +294,6 @@ public class Foo {
         outputContains("task.targetCompatibility = ${jdk.javaVersion.majorVersion}")
     }
 
-    @Unroll
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
     def 'source and target compatibility reflect toolchain usage (source #source, target #target)'() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)

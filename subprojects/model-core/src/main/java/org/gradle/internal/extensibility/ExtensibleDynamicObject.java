@@ -17,7 +17,6 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -39,7 +38,8 @@ import java.util.Map;
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
-public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements HasConvention {
+@SuppressWarnings("deprecation")
+public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements org.gradle.api.internal.HasConvention {
 
     public enum Location {
         BeforeConvention, AfterConvention
@@ -47,10 +47,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
-    private Convention convention;
+    private final Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
-    private DynamicObject extraPropertiesDynamicObject;
+    private final DynamicObject extraPropertiesDynamicObject;
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instanceGenerator));
@@ -139,6 +139,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     @Override
+    @Deprecated
     public Convention getConvention() {
         return convention;
     }
@@ -164,7 +165,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     private DynamicObject snapshotInheritable() {
-        final List<DynamicObject> delegates = new ArrayList<DynamicObject>(4);
+        final List<DynamicObject> delegates = new ArrayList<>(4);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
@@ -189,7 +190,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         @Override
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
-                    dynamicDelegate.getDisplayName()));
+                dynamicDelegate.getDisplayName()));
         }
 
         @Override

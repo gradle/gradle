@@ -19,7 +19,8 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 
@@ -27,13 +28,13 @@ class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
     def snapshotterCacheService = Mock(ResourceSnapshotterCacheService)
-    private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), DefaultFileMetadata.file(3456, 456, AccessType.DIRECT))
+    private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, AccessType.DIRECT))
     def snapshotContext = new DefaultRegularFileSnapshotContext({path}, snapshot)
     def cachingHasher = new CachingResourceHasher(delegate, snapshotterCacheService)
 
 
     def "uses cache service for snapshots"() {
-        def expectedHash = HashCode.fromInt(123)
+        def expectedHash = TestHashCodes.hashCodeFrom(123)
         when:
         cachingHasher.hash(snapshotContext)
         then:
@@ -42,9 +43,9 @@ class CachingResourceHasherTest extends Specification {
     }
 
     def "does not cache zip entries"() {
-        def expectedHash = HashCode.fromInt(123)
+        def expectedHash = TestHashCodes.hashCodeFrom(123)
         def zipEntry = Mock(ZipEntry)
-        def zipEntryContext = new ZipEntryContext(zipEntry, "foo", "foo.zip")
+        def zipEntryContext = new DefaultZipEntryContext(zipEntry, "foo", "foo.zip")
 
         when:
         def actualHash = cachingHasher.hash(zipEntryContext)

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.testing
 
 import org.apache.commons.io.FileUtils
-import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -29,8 +28,6 @@ import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
-import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.report.TestReporter
@@ -38,7 +35,7 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
@@ -46,9 +43,6 @@ import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.JavaToolchainInput
 import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.process.CommandLineArgumentProvider
-import org.gradle.process.internal.worker.WorkerProcessBuilder
-
-import java.lang.ref.WeakReference
 
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
 import static org.gradle.util.internal.WrapUtil.toSet
@@ -66,7 +60,6 @@ class TestTest extends AbstractConventionTaskTest {
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
 
-    private WorkerLeaseRegistry.WorkerLeaseCompletion completion
     private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
 
@@ -77,13 +70,8 @@ class TestTest extends AbstractConventionTaskTest {
         resultsDir = temporaryFolder.createDir("testResults")
         binResultsDir = temporaryFolder.createDir("binResults")
         reportDir = temporaryFolder.createDir("report")
-        completion = project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
 
         test = createTask(Test.class)
-    }
-
-    def cleanup() {
-        completion.leaseFinish()
     }
 
     ConventionTask getTask() {
@@ -149,46 +137,6 @@ class TestTest extends AbstractConventionTaskTest {
 
         expect:
         assertIsDirectoryTree(classFiles, toSet("include"), toSet("exclude"))
-    }
-
-    def "sets test framework to null after execution"() {
-        given:
-        configureTask()
-        test.useTestFramework(new TestFramework() {
-
-            TestFrameworkDetector getDetector() {
-                return null
-            }
-
-            TestFrameworkOptions getOptions() {
-                return null
-            }
-
-            WorkerTestClassProcessorFactory getProcessorFactory() {
-                return null
-            }
-
-            Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-                return null
-            }
-
-            List<String> getTestWorkerImplementationModules() {
-                return null
-            }
-        })
-
-        when:
-        WeakReference<TestFramework> weakRef = new WeakReference<TestFramework>(test.getTestFramework())
-        test.executeTests()
-
-        then:
-        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
-
-        when:
-        System.gc() //explicit gc should normally be avoided, but necessary here.
-
-        then:
-        weakRef.get() == null
     }
 
     def "disables parallel execution when in debug mode"() {
@@ -289,7 +237,7 @@ class TestTest extends AbstractConventionTaskTest {
         metadata.getLanguageVersion() >> Jvm.current().javaVersion
         metadata.getCapabilities() >> Collections.emptySet()
         metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
-        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput))
+        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput), Stub(BuildOperationProgressEventEmitter))
         def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:

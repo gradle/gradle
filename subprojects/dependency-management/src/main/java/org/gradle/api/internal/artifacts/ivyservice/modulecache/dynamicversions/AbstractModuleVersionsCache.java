@@ -46,8 +46,11 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
         return entry == null ? null : versionList(entry);
     }
 
-    private CachedModuleVersionList versionList(ModuleVersionsCacheEntry moduleVersionsCacheEntry) {
-        return new DefaultCachedModuleVersionList(moduleVersionsCacheEntry, timeProvider);
+    private CachedModuleVersionList versionList(ModuleVersionsCacheEntry entry) {
+        return new DefaultCachedModuleVersionList(
+            entry.moduleVersionListing,
+            timeProvider.getCurrentTime() - entry.createTimestamp
+        );
     }
 
     private ModuleAtRepositoryKey createKey(ModuleComponentRepository repository, ModuleIdentifier moduleId) {

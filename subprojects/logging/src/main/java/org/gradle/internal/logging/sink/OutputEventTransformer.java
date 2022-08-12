@@ -74,7 +74,7 @@ public class OutputEventTransformer implements OutputEventListener {
                 }
                 listener.onOutput(startEvent);
             } else {
-                // Ignore this progress operation, and map any reference to it to its parent (or whatever its parent is mapped to
+                // Ignore this progress operation, and map any reference to it to its parent (or whatever its parent is mapped to)
                 OperationIdentifier mappedParent = effectiveProgressOperation.get(startEvent.getParentProgressOperationId());
                 if (mappedParent == null) {
                     mappedParent = startEvent.getParentProgressOperationId();

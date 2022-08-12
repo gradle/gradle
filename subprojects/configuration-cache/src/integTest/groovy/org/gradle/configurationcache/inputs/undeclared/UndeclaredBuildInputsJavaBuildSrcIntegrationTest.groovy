@@ -23,7 +23,7 @@ class UndeclaredBuildInputsJavaBuildSrcIntegrationTest extends AbstractUndeclare
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         javaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"), read)
         buildFile << """
             apply plugin: SneakyPlugin

@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization
 
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import java.util.IdentityHashMap
 
 
@@ -43,5 +44,23 @@ class ReadIdentities {
 
     fun putInstance(id: Int, instance: Any) {
         instanceIds[id] = instance
+    }
+}
+
+
+class CircularReferences {
+
+    private
+    val refs = ReferenceOpenHashSet<Any>()
+
+    fun enter(reference: Any) {
+        require(refs.add(reference))
+    }
+
+    operator fun contains(reference: Any) =
+        refs.contains(reference)
+
+    fun leave(reference: Any) {
+        require(refs.remove(reference))
     }
 }
