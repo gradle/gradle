@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -83,16 +84,131 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
             start()
         }
         def remoteRepo = new MavenHttpRepository(server, mavenRepo)
-        def prepareRepository = {
-            def rootModule = remoteRepo.module("group", "root")
-            def credentials = new DefaultPasswordCredentials(username, password)
-            rootModule.pom.expectPublish(true, credentials)
-            rootModule.moduleMetadata.expectPublish(true, credentials)
-            rootModule.rootMetaData.expectGetMissing(credentials)
-            rootModule.rootMetaData.expectPublish(true, credentials)
-        }
 
-        def repositoryName = "CustomHttp"
+        def repositoryName = "testrepo"
+        settingsFile "rootProject.name = 'root'"
+
+        configureRepositoryCredentials(username, password, repositoryName)
+        buildFile buildFileConfiguration("""
+            repositories {
+                maven {
+                    name "${repositoryName}"
+                    url "${remoteRepo.uri}"
+                    allowInsecureProtocol true
+                    credentials(PasswordCredentials)
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+        def metadataFile = file('build/publications/maven/module.json')
+        def tasks = [
+            "generateMetadataFileForMavenPublication",
+            "generatePomFileForMavenPublication",
+            "publishMavenPublicationTo${repositoryName}Repository",
+            "publishAllPublicationsTo${repositoryName}Repository"
+        ]
+
+        expect:
+        !GUtil.isSecureUrl(server.uri)
+
+        when:
+        prepareMavenHttpRepository(remoteRepo, new DefaultPasswordCredentials(username, password))
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateStored()
+        metadataFile.exists()
+
+        when:
+        def storeTimeRepo = mavenRepoFiles()
+        def storeTimeMetadata = metadataFile.text
+        metadataFile.delete()
+        deleteDirectory(mavenRepo.rootDir)
+
+        prepareMavenHttpRepository(remoteRepo, new DefaultPasswordCredentials(username, password))
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateLoaded()
+        def loadTimeRepo = mavenRepoFiles()
+        storeTimeRepo == loadTimeRepo
+        def loadTimeMetadata = metadataFile.text
+        storeTimeMetadata == loadTimeMetadata
+    }
+
+    def "can publish maven publication metadata to non-authenticating remote repository"() {
+        with(server) {
+            // or else insecure protocol enforcement is skipped
+            useHostname()
+            start()
+        }
+        def remoteRepo = new MavenHttpRepository(server, mavenRepo)
+
+        def repositoryName = "testrepo"
+        settingsFile "rootProject.name = 'root'"
+        buildFile buildFileConfiguration("""
+            repositories {
+                maven {
+                    name "${repositoryName}"
+                    url "${remoteRepo.uri}"
+                    allowInsecureProtocol true
+                    // no credentials
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+        def metadataFile = file('build/publications/maven/module.json')
+        def tasks = [
+            "generateMetadataFileForMavenPublication",
+            "generatePomFileForMavenPublication",
+            "publishMavenPublicationTo${repositoryName}Repository",
+            "publishAllPublicationsTo${repositoryName}Repository"
+        ]
+
+        expect:
+        !GUtil.isSecureUrl(server.uri)
+
+        when:
+        prepareMavenHttpRepository(remoteRepo, null)
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateStored()
+        metadataFile.exists()
+
+        when:
+        def storeTimeRepo = mavenRepoFiles()
+        def storeTimeMetadata = metadataFile.text
+        metadataFile.delete()
+        deleteDirectory(mavenRepo.rootDir)
+
+        prepareMavenHttpRepository(remoteRepo, null)
+        configurationCacheRun(*tasks)
+        server.resetExpectations()
+
+        then:
+        configurationCache.assertStateLoaded()
+        def loadTimeRepo = mavenRepoFiles()
+        storeTimeRepo == loadTimeRepo
+        def loadTimeMetadata = metadataFile.text
+        storeTimeMetadata == loadTimeMetadata
+    }
+
+    def "cannot use unsafe credentials provider with configuration cache"() {
+        def username = "someuser"
+        def password = "somepassword"
+        with(server) {
+            requireAuthentication(username, password)
+            // or else insecure protocol enforcement is skipped
+            useHostname()
+            start()
+        }
+        def remoteRepo = new MavenHttpRepository(server, mavenRepo)
+
+        def repositoryName = "testrepo"
         settingsFile "rootProject.name = 'root'"
         buildFile buildFileConfiguration("""
             repositories {
@@ -112,38 +228,20 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         def tasks = [
             "generateMetadataFileForMavenPublication",
             "generatePomFileForMavenPublication",
-            "publishMavenPublicationTo${repositoryName}Repository",
-            "publishAllPublicationsTo${repositoryName}Repository"
+            "publishMavenPublicationTo${repositoryName}Repository"
         ]
 
-        expect:
-        !GUtil.isSecureUrl(server.uri)
-
         when:
-        prepareRepository()
-        configurationCacheRun(*tasks)
+        prepareMavenHttpRepository(remoteRepo, new DefaultPasswordCredentials(username, password))
+        configurationCacheFails(*tasks)
         server.resetExpectations()
 
         then:
         configurationCache.assertStateStored()
-        metadataFile.exists()
-
-        when:
-        def storeTimeRepo = mavenRepoFiles()
-        def storeTimeMetadata = metadataFile.text
-        metadataFile.delete()
-        deleteDirectory(mavenRepo.rootDir)
-
-        prepareRepository()
-        configurationCacheRun(*tasks)
-        server.resetExpectations()
-
-        then:
-        configurationCache.assertStateLoaded()
-        def loadTimeRepo = mavenRepoFiles()
-        storeTimeRepo == loadTimeRepo
-        def loadTimeMetadata = metadataFile.text
-        storeTimeMetadata == loadTimeMetadata
+        outputContains("Configuration cache entry discarded")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Configuration cache problems found in this build")
+        failure.assertHasCause("Credential values found in configuration for: repository testrepo")
     }
 
     def "can publish maven publication metadata to local repository"() {
@@ -222,6 +320,14 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
                 }
             }
         """
+    }
+
+    private void prepareMavenHttpRepository(MavenHttpRepository repository, PasswordCredentials credentials) {
+        def rootModule = repository.module("group", "root")
+        rootModule.pom.expectPublish(true, credentials)
+        rootModule.moduleMetadata.expectPublish(true, credentials)
+        rootModule.rootMetaData.expectGetMissing(credentials)
+        rootModule.rootMetaData.expectPublish(true, credentials)
     }
 
     private Map<File, String> mavenRepoFiles() {

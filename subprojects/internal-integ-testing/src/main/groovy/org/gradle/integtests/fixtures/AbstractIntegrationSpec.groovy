@@ -551,6 +551,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return new MavenLocalRepository(file(repo))
     }
 
+    protected configureRepositoryCredentials(String username, String password, String repositoryName = "maven") {
+        // configuration property prefix - the identity - is determined from the repository name
+        // https://docs.gradle.org/current/userguide/userguide_single.html#sec:handling_credentials
+        propertiesFile << """
+        ${repositoryName}Username=${username}
+        ${repositoryName}Password=${password}
+        """
+    }
+
     public MavenFileRepository publishedMavenModules(String... modulesToPublish) {
         modulesToPublish.each { String notation ->
             def modules = notation.split("->").reverse()
