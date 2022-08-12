@@ -47,7 +47,7 @@ public abstract class Upload extends ConventionTask {
      */
     @Deprecated
     @Inject
-    public abstract DocumentationRegistry getDocumentationRegistry();
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @TaskAction
     protected void upload() {
