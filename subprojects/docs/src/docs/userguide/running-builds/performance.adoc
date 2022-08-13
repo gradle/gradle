@@ -1,22 +1,17 @@
 [[performance_gradle]]
 = Improve the Performance of Gradle Builds
 
-[quote, Donald Knuth]
-Premature optimization is the root of all evil.
-
-But when your project isn't building as fast as you'd like, it's time to optimize.
-
-TIP: Want faster Gradle Builds? https://gradle.com/training/build-cache-deep-dive/?bid=guides-performance[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
-
 Build performance is critical to productivity.
 The longer builds take to complete, the more likely they'll disrupt your development flow.
 Builds run many times a day, so even small waiting periods add up.
-The same is true for Continuous Integration (CI) builds: the faster they are, the faster you can react to new issues
+The same is true for Continuous Integration (CI) builds: the less time they take, the faster you can react to new issues
 and the more often you can experiment.
 
 All this means that it’s worth investing some time and effort into making your build as fast as possible.
 This section offers several ways to make a build faster. Additionally, you'll find details about what leads to
 build performance degradation, and how you can avoid it.
+
+TIP: Want faster Gradle Builds? https://gradle.com/training/build-cache-deep-dive/?bid=guides-performance[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
 
 == Update to the latest Gradle version
 
