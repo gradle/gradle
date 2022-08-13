@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
-import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProjectWith
+import org.gradle.kotlin.dsl.fixtures.runWithProjectBuilderProject
 
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
@@ -190,8 +190,7 @@ class NamedContainersDslTest : AbstractDslTest() {
 
     private
     fun testConfigurationContainerVia(name: String, script: String, configuration: Project.() -> Unit = {}) {
-        newProjectBuilderProjectWith(newFolder(name)).run {
-
+        runWithProjectBuilderProject(newFolder(name)) {
             preExistingConfigurations.forEach { name ->
                 configurations.register(name)
             }

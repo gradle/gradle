@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
@@ -57,7 +58,12 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
     @Override
     public Dependency createDependency(Object dependencyNotation) {
-        Dependency dependency = dependencyNotationParser.parseNotation(dependencyNotation);
+        Dependency dependency;
+        if (dependencyNotation instanceof Dependency && !(dependencyNotation instanceof MinimalExternalModuleDependency)) {
+            dependency = (Dependency) dependencyNotation;
+        } else {
+            dependency = dependencyNotationParser.parseNotation(dependencyNotation);
+        }
         injectServices(dependency);
         return dependency;
     }

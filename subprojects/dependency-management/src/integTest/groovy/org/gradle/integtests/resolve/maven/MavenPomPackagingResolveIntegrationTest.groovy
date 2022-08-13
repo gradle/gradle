@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.Issue
@@ -27,7 +26,7 @@ class MavenPomPackagingResolveIntegrationTest extends AbstractHttpDependencyReso
     MavenHttpModule projectARepo1
     MavenHttpModule projectARepo2
 
-    public setup() {
+    def setup() {
         repo1 = mavenHttpRepo("repo1")
         repo2 = mavenHttpRepo("repo2")
         projectARepo1 = repo1.module('group', 'projectA')
@@ -221,7 +220,6 @@ if (project.hasProperty('skipCache')) {
         succeeds 'retrieve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")

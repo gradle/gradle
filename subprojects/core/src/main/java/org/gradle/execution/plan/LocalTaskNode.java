@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -50,10 +51,10 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext) {
+    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext, BuildOperationRunner buildOperationRunner) {
         this.task = task;
         this.validationContext = workValidationContext;
-        resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator);
+        this.resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator, buildOperationRunner);
     }
 
     /**
@@ -100,21 +101,6 @@ public class LocalTaskNode extends TaskNode {
 
     @Override
     public boolean isPublicNode() {
-        return true;
-    }
-
-    @Override
-    public boolean isCanCancel() {
-        FinalizerGroup finalizerGroup = getFinalizerGroup();
-        if (finalizerGroup != null) {
-            // TODO(mlopatkin) what if this node is some dependency of a finalizer and its group is a CompositeNodeGroup and not just a FinalizerGroup?
-            for (Node node : finalizerGroup.getFinalizedNodes()) {
-                // Cannot cancel this node if something it finalizes has started
-                if (node.isExecuting() || node.isExecuted()) {
-                    return false;
-                }
-            }
-        }
         return true;
     }
 

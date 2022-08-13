@@ -364,4 +364,9 @@ val Project.androidStudioHome: Provider<String>
  * Is a promotion build task called?
  */
 val Project.isPromotionBuild: Boolean
-    get() = gradle.startParameter.taskNames.contains("promotionBuild")
+    get() {
+        val taskNames = gradle.startParameter.taskNames
+        return taskNames.contains("promotionBuild") ||
+            // :updateReleasedVersionsToLatestNightly and :updateReleasedVersions
+            taskNames.any { it.contains("updateReleasedVersions") }
+    }

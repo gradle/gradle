@@ -218,7 +218,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
-        } else if (value.isFixedValue()) {
+        } else if (value.hasFixedValue()) {
             setSupplier(new FixedSuppler<>(Cast.uncheckedNonnullCast(value.getFixedValue())));
         } else {
             setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
