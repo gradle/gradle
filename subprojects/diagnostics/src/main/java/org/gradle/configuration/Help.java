@@ -18,9 +18,10 @@ package org.gradle.configuration;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
@@ -35,7 +36,23 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class Help extends DefaultTask {
-    private String taskPath;
+    private final Property<String> taskPath = getObjectFactory().property(String.class);
+
+    private final Property<TaskDetailsModel> taskModel = getObjectFactory().property(TaskDetailsModel.class).convention(taskPath.map(this::mapFromTaskPath));
+
+    public Help() {
+        // optimization: so value does not need to be recomputed during execution
+        taskModel.finalizeValueOnRead();
+    }
+
+    private Property<String> getTaskPath() {
+        return taskPath;
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
 
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
@@ -71,7 +88,7 @@ public class Help extends DefaultTask {
     void displayHelp() {
         StyledTextOutput output = getTextOutputFactory().create(Help.class);
         BuildClientMetaData metaData = getClientMetaData();
-        if (taskPath != null) {
+        if (getTaskPath().isPresent()) {
             printTaskHelp(output);
         } else {
             printDefaultHelp(output, metaData);
@@ -79,10 +96,8 @@ public class Help extends DefaultTask {
     }
 
     private void printTaskHelp(StyledTextOutput output) {
-        TaskSelector selector = getTaskSelector();
-        TaskSelection selection = selector.getSelection(taskPath);
-        OptionReader optionReader = getOptionReader();
-        TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskPath, selection, optionReader);
+        TaskDetailsModel taskDetailModel = taskModel.get();
+        TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskDetailModel.getTaskPath(), taskDetailModel.getTasks());
         taskDetailPrinter.print(output);
     }
 
@@ -136,6 +151,10 @@ public class Help extends DefaultTask {
 
     @Option(option = "task", description = "The task to show help for.")
     public void setTaskPath(String taskPath) {
-        this.taskPath = taskPath;
+        this.getTaskPath().set(taskPath);
+    }
+
+    private TaskDetailsModel mapFromTaskPath(String taskPath) {
+        return TaskDetailsModel.from(taskPath, getTaskSelector(), getOptionReader());
     }
 }

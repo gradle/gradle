@@ -24,6 +24,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -191,12 +192,13 @@ class JavaToolchainQueryServiceTest extends Specification {
         def vendors = ["amazon", "bellsoft", "ibm", "zulu"]
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
+        def eventEmitter = Stub(BuildOperationProgressEventEmitter)
+        def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
             @Override
             Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
                 def vendor = vendors[Integer.parseInt(javaHome.location.name.substring(2))]
                 def metadata = newMetadata(new InstallationLocation(new File("/path/8"), javaHome.source), vendor)
-                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input))
+                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, eventEmitter))
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
@@ -309,12 +311,13 @@ class JavaToolchainQueryServiceTest extends Specification {
     private JavaToolchainFactory newToolchainFactory(Function<File, Boolean> currentJvmMapper) {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
+        def eventEmitter = Stub(BuildOperationProgressEventEmitter)
+        def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
             @Override
             Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
-                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input) {
+                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, eventEmitter) {
                         @Override
                         boolean isCurrentJvm() {
                             return currentJvmMapper.apply(javaHome.location)

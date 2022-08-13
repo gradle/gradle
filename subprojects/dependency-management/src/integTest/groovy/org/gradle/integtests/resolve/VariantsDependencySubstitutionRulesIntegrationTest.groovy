@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -139,7 +136,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "fails serialization of resolution error")
     def "can substitute a dependency without capabilities with a dependency with capabilities"() {
         mavenRepo.module("org", "lib", "1.0").publish()
 

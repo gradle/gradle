@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -38,9 +39,8 @@ import static org.gradle.util.internal.WrapUtil.toList
 
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
-    int order = 0
 
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {
@@ -1075,7 +1075,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     private void addToGraph(List tasks) {
-        executionPlan.addEntryTasks(tasks, order++)
+        executionPlan.addEntryTasks(tasks)
     }
 
     private void addToGraphAndPopulate(List tasks) {

@@ -16,8 +16,12 @@
 
 package org.gradle.performance.results;
 
+/**
+ * Moved here from OutputDirSelector to work around
+ * <a href="https://issues.apache.org/jira/browse/GROOVY-10591">GROOVY-10591</a>
+ */
 public class OutputDirSelectorUtil {
-    // Moved here from OutputDirSelectorUtil to work around https://issues.apache.org/jira/browse/GROOVY-10591
+
     public static String fileSafeNameFor(String name) {
         String fileSafeName = name.trim().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
         return (fileSafeName.endsWith("-"))

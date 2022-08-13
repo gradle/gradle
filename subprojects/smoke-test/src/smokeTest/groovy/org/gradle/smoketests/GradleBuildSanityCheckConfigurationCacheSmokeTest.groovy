@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
 
+@spock.lang.Ignore("Disabling for 7.5.1 release, remind Rodrigo")
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
     def "can run Gradle sanityCheck with configuration cache enabled"() {

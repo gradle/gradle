@@ -90,7 +90,7 @@ class FixedValueReplacingProviderCodec(
                 // TODO - should preserve information about the source, for diagnostics at execution time
                 writeByte(1)
             }
-            value.isFixedValue -> {
+            value.hasFixedValue() -> {
                 // Can serialize a fixed value and discard the provider
                 // TODO - should preserve information about the source, for diagnostics at execution time
                 writeByte(2)
@@ -208,9 +208,13 @@ class ValueSourceProviderCodec(
     suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
             value.run {
+                val hasParameters = parametersType != null
                 writeClass(valueSourceType)
-                writeClass(parametersType as Class<*>)
-                write(parameters)
+                writeBoolean(hasParameters)
+                if (hasParameters) {
+                    writeClass(parametersType as Class<*>)
+                    write(parameters)
+                }
             }
         }
     }
@@ -219,13 +223,15 @@ class ValueSourceProviderCodec(
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         decodePreservingSharedIdentity {
             val valueSourceType = readClass()
-            val parametersType = readClass()
-            val parameters = read()!!
+            val hasParameters = readBoolean()
+            val parametersType = if (hasParameters) readClass() else null
+            val parameters = if (hasParameters) read()!! else null
+
             val provider =
                 valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
                     valueSourceType.uncheckedCast(),
-                    parametersType.uncheckedCast(),
-                    parameters.uncheckedCast()
+                    parametersType?.uncheckedCast(),
+                    parameters?.uncheckedCast()
                 )
             provider.uncheckedCast()
         }

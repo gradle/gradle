@@ -308,10 +308,12 @@ class ConfigurationCacheState(
             withDebugFrame({ "environment state" }) {
                 writeCachedEnvironmentState(gradle)
             }
+            withDebugFrame({ "gradle enterprise" }) {
+                writeGradleEnterprisePluginManager(gradle)
+            }
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
-            writeGradleEnterprisePluginManager(gradle)
         }
     }
 
@@ -319,8 +321,10 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
-            readBuildCacheConfiguration(gradle)
+            // It is important that the Gradle Enterprise plugin be read before
+            // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
+            readBuildCacheConfiguration(gradle)
         }
     }
 

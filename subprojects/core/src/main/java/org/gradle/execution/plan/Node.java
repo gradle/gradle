@@ -82,16 +82,36 @@ public abstract class Node {
         if (isComplete()) {
             return this + " (state=" + state + ")";
         } else {
-            String specificState = nodeSpecificHealthDiagnostics();
-            if (!specificState.isEmpty()) {
-                specificState = ", " + specificState;
-            }
-            return this + " (state=" + state + ", dependencies=" + dependenciesState + specificState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
+            StringBuilder specificState = new StringBuilder();
+            nodeSpecificHealthDiagnostics(specificState);
+            return this + " (state=" + state
+                + ", dependencies=" + dependenciesState
+                + ", group=" + group
+                + ", dependencies=" + formatNodes(dependencySuccessors)
+                + specificState + " )";
         }
     }
 
-    protected String nodeSpecificHealthDiagnostics() {
-        return "";
+    protected String formatNodes(Iterable<? extends Node> nodes) {
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        boolean first = true;
+        for (Node node : nodes) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(", ");
+            }
+            builder.append(node);
+            if (node.isComplete()) {
+                builder.append(" (complete)");
+            }
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
     }
 
     public NodeGroup getGroup() {
@@ -210,7 +230,7 @@ public abstract class Node {
     }
 
     public boolean isCanCancel() {
-        return true;
+        return group.isCanCancel();
     }
 
     public boolean isInKnownState() {

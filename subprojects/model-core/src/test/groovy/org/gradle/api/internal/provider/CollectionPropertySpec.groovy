@@ -615,7 +615,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasKnownProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.getFixedValue().isEmpty()
     }
@@ -654,7 +654,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.getFixedValue() == toImmutable(["a", "b"])
     }
@@ -667,8 +667,8 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
-        value.getFixedValue() == toImmutable(["a", "b", "c"])
+        value.hasFixedValue()
+        value.fixedValue == toImmutable(["a", "b", "c"])
     }
 
     def "has no producer and fixed execution time value when element provider added"() {
@@ -679,8 +679,8 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
-        value.getFixedValue() == toImmutable(["a", "b"])
+        value.hasFixedValue()
+        value.fixedValue == toImmutable(["a", "b"])
     }
 
     def "has no producer and fixed execution time value when elements provider added"() {
@@ -691,8 +691,8 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
-        value.getFixedValue() == toImmutable(["a", "b", "c"])
+        value.hasFixedValue()
+        value.fixedValue == toImmutable(["a", "b", "c"])
     }
 
     def "has no producer and changing execution time value when elements provider with changing value added"() {

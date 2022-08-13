@@ -374,19 +374,16 @@ resolve.doLast { assert ruleInvoked }
         assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 
-    static NamespaceId ns(String name) {
+    private static NamespaceId ns(String name) {
         return new NamespaceId("http://my.extra.info/${name}", name)
     }
 
-    static String declareNS(String name) {
+    private static String declareNS(String name) {
         "(new javax.xml.namespace.QName('http://my.extra.info/${name}', '${name}'))"
     }
 
-    static String sq(String input) {
-        escapeForSingleQuoting(input)
-    }
-
-    private static String escapeForSingleQuoting(String input) {
+    private static String sq(String input) {
+        // escape the input for use in a single-quoted string
         input.replace('\\', '\\\\').replace('\'', '\\\'')
     }
 }

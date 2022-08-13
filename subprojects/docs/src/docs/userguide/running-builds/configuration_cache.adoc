@@ -26,12 +26,11 @@ In other words, the configuration cache saves the output of the configuration ph
 
 [IMPORTANT]
 ====
-This feature is currently *_incubating_* and not enabled by default.
+This feature is currently *_incubating_* and not enabled by default. This feature has the following limitations:
 
-Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
-Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
-Some Gradle features are <<configuration_cache#config_cache:not_yet_implemented, not yet implemented>>.
-Importing and syncing Gradle builds in IDEs is not improved by configuration caching yet.
+- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
+- Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
+- IDE imports and syncs do not use the configuration cache.
 ====
 
 [[config_cache:intro:how_does_it_work]]
@@ -59,10 +58,14 @@ If a build configuration input has changed, Gradle will not use the entry and wi
 
 Build configuration inputs include:
 
-- Init scripts, settings scripts, build scripts.
-- System properties, Gradle properties, environment variables used during the configuration phase
+- Init scripts
+- Settings scripts
+- Build scripts
+- System properties used during the configuration phase
+- Gradle properties used during the configuration phase
+- Environment variables used during the configuration phase
 - Configuration files accessed using value suppliers such as providers
-- `buildSrc` build configuration inputs and source files.
+- `buildSrc` inputs, including build configuration inputs  and source files.
 
 Gradle uses its own optimized serialization mechanism and format to store the configuration cache entries.
 It automatically serializes the state of arbitrary object graphs.
@@ -98,10 +101,10 @@ BUILD SUCCESSFUL in 4s
 Configuration cache entry stored.
 ----
 
-Running this for the first time, the configuration phase is executed, calculating the task graph.
+Running this for the first time, the configuration phase executes, calculating the task graph.
 
 Then, run the same command again.
-This will reuse the cached configuration:
+This reuses the cached configuration:
 
 ----
 ❯ gradle --configuration-cache help
@@ -125,21 +128,21 @@ Keep reading to learn how to tweak the configuration cache, manually invalidate 
 [[config_cache:usage:enable]]
 === Enabling the configuration cache
 
-By default, the configuration cache is not enabled.
-It can be enabled from the command line:
+By default, Gradle does not use the configuration cache.
+To enable the cache at build time, use the `configuration-cache` flag:
 
 ----
 ❯ gradle --configuration-cache
 ----
 
-It can also be enabled persistently in a `gradle.properties` file:
+You can also enable the cache persistently in a `gradle.properties` file using the `org.gradle.unsafe.configuration-cache` property:
 
 [source,properties]
 ----
 org.gradle.unsafe.configuration-cache=true
 ----
 
-If it is enabled in a `gradle.properties` file, it can be disabled on the command line for one build invocation:
+If enabled in a `gradle.properties` file, you can override that setting and disable the cache at build time with the `no-configuration-cache` flag:
 
 ----
 ❯ gradle --no-configuration-cache
