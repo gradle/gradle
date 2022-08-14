@@ -14,7 +14,7 @@ For older Gradle versions, the
 https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan Plugin User Manual]
 explains how to enable build scans.
 
-Gradle displays the URL where your build scan is available at the end of the build execution:
+Gradle displays a URL where you can find your build scan at the end of your build:
 
 ----
 BUILD SUCCESSFUL in 2s
@@ -28,7 +28,7 @@ This section explains how to profile your build with build scans.
 
 === Profile report
 
-If you prefer not to use build scans, you can generates an HTML report in the
+If you prefer not to use build scans, you can generate an HTML report in the
 `build/reports/profile` directory of your root project. To generate this report,
 use the `--profile` command-line option:
 
@@ -41,14 +41,14 @@ Each profile report has a timestamp in its name to avoid overwriting existing on
 
 The report displays a breakdown of the time taken to run the build.
 However, this breakdown is not as detailed as a build scan.
-Here’s a screenshot of a real profile report showing the different categories:
+The following profile report shows the different categories available:
 
 image::performance/gradle-profile-report.png[title="An example profile report", alt="Sample Gradle profile report"]
 
 === Profile with build scans
 
 The performance page can help use build scans to profile a build.
-To get there, click _"Performance"_ in the left hand navigation menu,
+To get there, click _"Performance"_ in the left hand navigation menu
 or follow the "Explore performance" link on the build scan home page:
 
 image::performance/build-scan-home.png[title="Performance page link on build scan home page"]
@@ -66,7 +66,7 @@ You also get details about environmental properties, such as whether a daemon wa
 [[build-scan-performance]]
 image::performance/build-scan-performance-page.png[title="Build scan performance page"]
 
-In the above build scan, configuration takes over 16 seconds.
+In the above build scan, configuration takes over 13 seconds.
 Click on the _"Configuration"_ tab to break this stage into component parts,
 exposing the cause of the slowness.
 
@@ -79,7 +79,7 @@ Expand that row to see where the build applied this script.
 
 image::performance/script-b-application.png[title="Showing the application of script-b.gradle to the build"]
 
-You can see that this script is applied once, by the project `:app1` from inside of that project's `build.gradle` file.
+You can see that subproject `:app1` applied the script once, from inside of that subproject's `build.gradle` file.
 
 == Low level profiling
 
@@ -88,8 +88,8 @@ This often comes down to inefficiencies in plugins and custom tasks or constrain
 Use the https://github.com/gradle/gradle-profiler[Gradle Profiler] to find these kinds of bottlenecks.
 With the Gradle Profiler, you can define scenarios like "Running 'assemble' after making an ABI-breaking change"
 and run your build several times to collect profiling data.
-Use the Profiler to produce build scans. Or combine it with other major profilers like JProfiler and YourKit.
-These method-level profilers can help you find inefficient algorithms in custom plugins.
+Use the Profiler to produce build scans. Or combine it with method profilers like JProfiler and YourKit.
+These profilers can help you find inefficient algorithms in custom plugins.
 If you find that something in Gradle itself slows down your build, don't hesitate to send a profiler snapshot to performance@gradle.com.
 
 === Understanding the performance categories
@@ -110,17 +110,17 @@ usually see a dramatic drop off in startup time.
 Persistently slow build startup times are usually the result of problems in your init scripts.
 Double check that the work you’re doing there is necessary and performant.
 
-==== Settings and `buildSrc`
+==== Settings and _buildSrc_
 
-Soon after startup, Gradle initializes your project. Usually, Gradle only processes your settings file.
+After startup, Gradle initializes your project. Usually, Gradle only processes your settings file.
 If you have custom build logic in a `buildSrc` directory, Gradle also processes that logic.
-After building _buildSrc_ once, Gradle considers it up to date. The up-to-date checks take significantly less time than logic processing.
-If your _buildSrc_ phase takes too much time, consider breaking it out into a separate project.
+After building `buildSrc` once, Gradle considers it up to date. The up-to-date checks take significantly less time than logic processing.
+If your `buildSrc` phase takes too much time, consider breaking it out into a separate project.
 You can then add that project's JAR artifact as a dependency.
 
 The settings file rarely contains code with significant I/O or computation.
 If you find that Gradle takes a long time to process it, use more traditional profiling methods,
-like the https://github.com/gradle/gradle-profiler[the Gradle Profiler], to determine why.
+like the https://github.com/gradle/gradle-profiler[the Gradle Profiler], to determine the cause.
 
 ==== Loading projects
 
