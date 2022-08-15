@@ -71,6 +71,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.reporting.ConfigurableReport",
+            "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(org.gradle.api.provider.Provider)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

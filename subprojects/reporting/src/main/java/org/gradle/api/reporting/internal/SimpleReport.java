@@ -20,12 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.internal.ConfigureUtil;
-
-import java.io.File;
 
 public abstract class SimpleReport implements ConfigurableReport {
     private final String name;
@@ -54,11 +51,6 @@ public abstract class SimpleReport implements ConfigurableReport {
 
     @Override
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
-
-    @Override
-    public void setDestination(Provider<File> provider) {
-        getOutputLocation().fileProvider(provider);
-    }
 
     @Override
     public OutputType getOutputType() {
