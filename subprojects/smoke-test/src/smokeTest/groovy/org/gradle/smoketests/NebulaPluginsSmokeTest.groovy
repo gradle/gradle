@@ -89,6 +89,12 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
                 " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.",
                 ""
             )
+            .expectDeprecationWarning(
+                "The Report.destination property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the outputLocation property instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details."
+            )
             .build()
     }
 

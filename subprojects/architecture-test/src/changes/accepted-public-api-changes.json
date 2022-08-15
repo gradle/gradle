@@ -50,14 +50,6 @@
         },
         {
             "type": "org.gradle.api.reporting.ConfigurableReport",
-            "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(java.io.File)",
-            "acceptation": "Deprecated method removed",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.reporting.ConfigurableReport",
             "member": "Method org.gradle.api.reporting.ConfigurableReport.setEnabled(org.gradle.api.provider.Provider)",
             "acceptation": "Deprecated method removed",
             "changes": [
