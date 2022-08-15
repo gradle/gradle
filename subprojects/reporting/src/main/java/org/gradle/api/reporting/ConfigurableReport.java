@@ -16,24 +16,10 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.provider.Provider;
-
-import java.io.File;
-
 /**
  * A file based report to be created with a configurable destination.
+ *
+ * Note this is a legacy type which offers no additional functionality.  Reports
+ * should implement {@link Report} directly instead of using this interface.
  */
-public interface ConfigurableReport extends Report {
-
-    /**
-     * Sets the destination for the report.
-     *
-     * @param provider The provider of the destination for the report.
-     * @see #getOutputLocation()
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getOutputLocation()}.set() instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    void setDestination(Provider<File> provider);
-}
+public interface ConfigurableReport extends Report {}
