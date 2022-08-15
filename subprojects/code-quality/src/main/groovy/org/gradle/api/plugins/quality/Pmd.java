@@ -93,12 +93,12 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         this.threads = objects.property(Integer.class);
         // Set default JavaLauncher to current JVM in case
         // PmdPlugin that sets Java launcher convention is not applied
-        this.javaLauncher = getCurrentJvmLauncher();
+        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
     }
 
-    private Property<JavaLauncher> getCurrentJvmLauncher() {
-        Provider<JavaLauncher> currentJvmLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjectFactory()));
-        return getObjectFactory().property(JavaLauncher.class).convention(currentJvmLauncherProvider);
+    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
+        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
+        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     @Inject
@@ -118,9 +118,10 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     @Inject
-    public WorkerExecutor getWorkerExecutor() {
+    protected WorkerExecutor getWorkerExecutor() {
         throw new UnsupportedOperationException();
     }
+
     /**
      * JavaLauncher for toolchain support
      * @since 7.7
