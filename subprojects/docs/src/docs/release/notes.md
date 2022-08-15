@@ -52,6 +52,13 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
 
+#### PMD tasks execute in parallel by default
+
+The [PMD plugin](userguide/pmd_plugin.html) now uses the Gradle worker API and JVM toolchains. PMD analysis now runs as an external worker process. PMD tasks may now run in parallel within one project.
+
+In Java projects, PMD will use the same version of Java required by the project. In other types of projects, PMD will use the same version of Java that is used by the Gradle daemon.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
