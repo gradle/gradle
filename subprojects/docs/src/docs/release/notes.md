@@ -245,7 +245,7 @@ Related issues:
 
 #### Added Java 19 Support
 
-Gradle now supports Java 19.
+Gradle 7.6 supports compiling, testing and running on Java 19.
 
 #### TODO: Introduced support for map notation in JVM `dependencies` block
 
