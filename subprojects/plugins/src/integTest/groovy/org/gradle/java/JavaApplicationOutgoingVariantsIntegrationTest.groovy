@@ -52,8 +52,6 @@ project(':java') {
 }
 
 project(':consumer') {
-    apply plugin: 'jvm-ecosystem'
-
     configurations { consume }
     dependencies { consume project(':java') }
     task resolve {
@@ -73,7 +71,29 @@ project(':consumer') {
         succeeds "resolve"
     }
 
-    def "provides runtime JAR as default variant"() {
+    def "provides runtime JAR as default variant without jvm-ecosystem plugin"() {
+        when:
+        resolve()
+
+        then:
+        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
+        assertResolveOutput("""
+            files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
+            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
+            file-dep.jar {artifactType=jar}
+            other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
+            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.status=release}
+            runtime-only-1.0.jar (test:runtime-only:1.0) {artifactType=jar, org.gradle.status=release}
+        """)
+    }
+
+    def "provides runtime JAR as default variant with jvm-ecosystem plugin"() {
+        buildFile << """
+            project(':consumer') {
+                apply plugin: 'jvm-ecosystem'
+            }
+        """
+
         when:
         resolve()
 
@@ -92,6 +112,7 @@ project(':consumer') {
     def "provides API classes variant"() {
         buildFile << """
             project(':consumer') {
+                apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             }
@@ -111,6 +132,7 @@ project(':consumer') {
     def "provides runtime jar variant - requestJarAttribute: #requestJarAttribute"() {
         buildFile << """
             project(':consumer') {
+                apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 if ($requestJarAttribute) {
                     configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
@@ -139,6 +161,7 @@ project(':consumer') {
     def "provides runtime JAR variant using artifactType attribute"() {
         buildFile << """
             project(':consumer') {
+                apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 configurations.consume.attributes.attribute(artifactType, ArtifactTypeDefinition.JAR_TYPE)
             }
@@ -162,6 +185,7 @@ project(':consumer') {
     def "provides runtime classes variant"() {
         buildFile << """
             project(':consumer') {
+                apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             }
@@ -185,10 +209,9 @@ project(':consumer') {
     def "provides runtime resources variant"() {
         buildFile << """
             project(':consumer') {
+                apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.RESOURCES))
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
-               dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.LibraryElementsCompatibilityRules)
             }
         """
 
