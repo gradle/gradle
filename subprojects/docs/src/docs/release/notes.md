@@ -209,12 +209,6 @@ tasks.register("slowBenchmark") {
 
 The `--info` logging level outputs reason messages in the console.
 
-
-
-
-
-
-
 <a name="plugin"></a>
 ### Plugin
 
@@ -249,6 +243,10 @@ Related issues:
 <a name="jvm"></a>
 ### JVM
 
+#### Added Java 19 Support
+
+Gradle 7.6 supports compiling, testing and running on Java 19.
+
 #### TODO: Introduced support for map notation in JVM `dependencies` block
 
 [Issue](https://github.com/gradle/gradle/issues/19192)
@@ -264,11 +262,8 @@ In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/
 On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
 one of the addresses of the current machine's network interfaces.
 
-Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
+Similarly, the new Gradle property `org.gradle.debug.host` now enables [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
 accepting connections via network on Java 9+.
-
-
-
 
 <a name="ide"></a>
 ### IDE
