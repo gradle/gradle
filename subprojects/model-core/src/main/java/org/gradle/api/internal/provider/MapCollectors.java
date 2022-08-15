@@ -119,7 +119,7 @@ public class MapCollectors {
             ExecutionTimeValue<? extends V> value = providerOfValue.calculateExecutionTimeValue();
             if (value.isMissing()) {
                 visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.isFixedValue()) {
+            } else if (value.hasFixedValue()) {
                 visitor.execute(ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value.getFixedValue())));
             } else {
                 visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(v -> ImmutableMap.of(key, v))));
