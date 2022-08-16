@@ -525,9 +525,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
         node.visitAllNodesWaitingForThisNode(dependent -> {
-            if (dependent.updateAllDependenciesComplete()) {
-                maybeNodeReady(dependent);
-            }
+            dependent.onNodeComplete(node);
+            maybeNodeReady(dependent);
         });
     }
 
@@ -696,17 +695,20 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public void finishedExecuting(Node node, @Nullable Throwable failure) {
         lockCoordinator.assertHasStateLock();
-        if (failure != null) {
-            node.setExecutionFailure(failure);
-        }
-        if (!node.isExecuting()) {
-            throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state.", node));
-        }
         try {
+            runningNodes.remove(node);
+
+            if (failure != null) {
+                node.setExecutionFailure(failure);
+            }
+            if (!node.isExecuting()) {
+                throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state.", node));
+            }
+
             if (maybeNodesReady) {
                 maybeNodesSelectable = true;
             }
-            runningNodes.remove(node);
+
             node.finishExecution(this::recordNodeCompleted);
             if (node.isFailed()) {
                 LOGGER.debug("Node {} failed", node);
