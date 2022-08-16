@@ -106,7 +106,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then:
@@ -124,7 +123,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then: 'dependent sources are recompiled'
@@ -142,7 +140,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then:
