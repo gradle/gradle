@@ -21,7 +21,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
-trait WithKotlinDeprecations {
+trait WithKotlinDeprecations extends WithReportDeprecations {
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
     private static final VersionNumber KOTLIN_VERSION_USING_INPUT_CHANGES_API = VersionNumber.parse('1.6.0')
 
@@ -29,11 +29,6 @@ trait WithKotlinDeprecations {
         "This is scheduled to be removed in Gradle 8.0. " +
         "Please use the destinationDirectory property instead. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
-
-    private static final String REPORT_DESTINATION_DEPRECATION = "The Report.destination property has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use the outputLocation property instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details."
 
     void expectKotlinWorkerSubmitDeprecation(boolean workers, String kotlinPluginVersion) {
         runner.expectLegacyDeprecationWarningIf(workers && kotlinPluginUsesOldWorkerApi(kotlinPluginVersion), WORKER_SUBMIT_DEPRECATION)
@@ -60,9 +55,5 @@ trait WithKotlinDeprecations {
 
     void expectKotlinJsCompileDestinationDirPropertyDeprecation(String version) {
         runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
-    }
-
-    void expectKotlinReportDestinationPropertyDeprecation() {
-        runner.expectDeprecationWarning(REPORT_DESTINATION_DEPRECATION, "https://github.com/gradle/gradle/issues/21533")
     }
 }
