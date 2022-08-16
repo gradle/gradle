@@ -68,7 +68,7 @@ public class JavaToolchainQueryService {
             DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
                 .withAdvice("Consider configuring the language version.")
                 .willBecomeAnErrorInGradle8()
-                .withDslReference(JavaToolchainSpec.class, "languageVersion")
+                .withUserManual("toolchains", "configuring_toolchain_specifications")
                 .nagUser();
         }
 
