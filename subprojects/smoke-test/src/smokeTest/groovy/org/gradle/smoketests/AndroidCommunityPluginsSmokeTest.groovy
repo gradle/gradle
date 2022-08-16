@@ -42,7 +42,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.1'),
             (BUGSNAG_PLUGIN_ID): Versions.of('7.3.0'),
             (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0-agp4.2'),
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0'),
             (SAFEARGS_PLUGIN_ID): Versions.of('2.5.1'),
             (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.43.2'),
             (SENTRY_PLUGIN_ID): Versions.of('3.1.4'),
