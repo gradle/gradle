@@ -19,8 +19,6 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.Issue
@@ -604,7 +602,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ['classLoaderIsolation', 'processIsolation']
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     @Issue("https://github.com/gradle/gradle/issues/8628")
     def "can find resources in the classpath via the context classloader using #isolationMode"() {
         fixture.withWorkActionClassInBuildSrc()
@@ -620,7 +617,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 public void execute() {
                     super.execute()
                     def resource = Thread.currentThread().getContextClassLoader().getResource("foo.txt")
-                    assert resource != null && resource.getPath().endsWith('build/libs/foo.jar!/foo.txt')
+                    assert resource != null && resource.getPath().endsWith('foo.jar!/foo.txt')
                 }
             }
 
@@ -692,6 +689,111 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         where:
         isolationMode << ISOLATION_MODES
+    }
+
+    def "workers which use project outputs do not break clean"() {
+        // This test is intentionally written from an external plugin perspective
+        // as opposed to a Groovy build-script perspective. It seems Groovy automatically
+        // interacts with ClassLoaders of Worker actions written in Groovy, so we write our
+        // action in Java to avoid this.
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'test.worker-running-plugin'
+            }
+        """
+
+        file("settings.gradle") << "includeBuild 'included'"
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("included/build.gradle") << """
+            plugins {
+                id 'java-gradle-plugin'
+            }
+
+            gradlePlugin {
+                plugins {
+                    register("workerRunningPlugin") {
+                        id = "test.worker-running-plugin"
+                        implementationClass = "com.plugin.WorkerRunningPlugin"
+                    }
+                }
+            }
+        """
+        file("included/src/main/resources/TestResource.txt") << "Test Content"
+        file("included/src/main/java/com/plugin/WorkerRunningPlugin.java") << """
+            package com.plugin;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.NamedDomainObjectProvider;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.Configuration;
+            import org.gradle.api.artifacts.ConfigurationContainer;
+            import org.gradle.api.file.ConfigurableFileCollection;
+            import org.gradle.api.tasks.Classpath;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.workers.WorkerExecutor;
+            import org.gradle.workers.WorkAction;
+            import org.gradle.workers.WorkParameters;
+            import org.gradle.workers.WorkQueue;
+
+            import javax.inject.Inject;
+
+            public class WorkerRunningPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    ConfigurationContainer configurations = project.getConfigurations();
+                    NamedDomainObjectProvider<Configuration> bucket = configurations.register("bucket", config -> {
+                        config.setCanBeConsumed(false);
+                        config.setCanBeResolved(false);
+                        config.getDependencies().add(project.getDependencies().create(project));
+                    });
+
+                    NamedDomainObjectProvider<Configuration> resolvable = configurations.register("resolvable", config -> {
+                        config.setCanBeConsumed(false);
+                        config.setCanBeResolved(true);
+                        config.extendsFrom(bucket.get());
+                    });
+
+                    project.getTasks().register("runAction", ActionRunningTask.class, task -> {
+                        task.getClasspath().setFrom(resolvable.get());
+                    });
+                }
+
+                public static abstract class ActionRunningTask extends DefaultTask {
+                    @Classpath
+                    public abstract ConfigurableFileCollection getClasspath();
+
+                    @Inject
+                    public abstract WorkerExecutor getWorkerExecutor();
+
+                    @TaskAction
+                    public void execute() {
+                        // Process Isolation is required here since we are testing that a
+                        // long-lived daemon process doesn't keep project files open between
+                        // separate gradle executions.
+                        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+                            spec.getClasspath().from(getClasspath());
+                        });
+                        workQueue.submit(TestAction.class, x -> {});
+                    }
+                }
+
+                public static abstract class TestAction implements WorkAction<WorkParameters.None> {
+                    @Override
+                    public void execute() {
+                        // Make the ClassLoader "dirty" by trying to load something from it
+                        assert Thread.currentThread().getContextClassLoader().getResource("/TestResource.txt") != null;
+                    }
+                }
+            }
+        """
+
+        expect:
+        // Start the action, which leaves a daemon worker process running after execution is complete.
+        succeeds("runAction")
+        // Now, while the worker is still running, clean the project build files.
+        succeeds("clean")
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {
