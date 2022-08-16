@@ -1,13 +1,14 @@
 [[build_scans]]
-= Using build scans
+= Inspecting Gradle Builds
 
-https://gradle.com/build-scans[Build scans] are a persistent, shareable record of what happened when running a build.
+https://scans.gradle.com/[Build scans] are a persistent, shareable record of what happened when running a build.
 Build scans provide insights into your build that you can use to identify and fix performance bottlenecks.
 
 In Gradle 4.3 and above, you can create a build scan using the `--scan` command line option:
 
+[listing.terminal]
 ----
-❯ gradle build --scan
+$ gradle build --scan
 ----
 
 For older Gradle versions, the
@@ -25,25 +26,6 @@ https://gradle.com/s/e6ircx2wjbf7e
 ----
 
 This section explains how to profile your build with build scans.
-
-=== Profile report
-
-If you prefer not to use build scans, you can generate an HTML report in the
-`build/reports/profile` directory of your root project. To generate this report,
-use the `--profile` command-line option:
-
-[listing.terminal]
-----
-$ gradle --profile <tasks>
-----
-
-Each profile report has a timestamp in its name to avoid overwriting existing ones.
-
-The report displays a breakdown of the time taken to run the build.
-However, this breakdown is not as detailed as a build scan.
-The following profile report shows the different categories available:
-
-image::performance/gradle-profile-report.png[title="An example profile report", alt="Sample Gradle profile report"]
 
 === Profile with build scans
 
@@ -80,6 +62,25 @@ Expand that row to see where the build applied this script.
 image::performance/script-b-application.png[title="Showing the application of script-b.gradle to the build"]
 
 You can see that subproject `:app1` applied the script once, from inside of that subproject's `build.gradle` file.
+
+=== Profile report
+
+If you prefer not to use build scans, you can generate an HTML report in the
+`build/reports/profile` directory of your root project. To generate this report,
+use the `--profile` command-line option:
+
+[listing.terminal]
+----
+$ gradle --profile <tasks>
+----
+
+Each profile report has a timestamp in its name to avoid overwriting existing ones.
+
+The report displays a breakdown of the time taken to run the build.
+However, this breakdown is not as detailed as a build scan.
+The following profile report shows the different categories available:
+
+image::performance/gradle-profile-report.png[title="An example profile report", alt="Sample Gradle profile report"]
 
 == Low level profiling
 
