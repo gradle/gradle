@@ -628,7 +628,7 @@ Only libraries can define `api` dependencies. Use the
 
 == Improving the performance of older Gradle releases
 
-Some Gradle projects cannot easily upgrade to a current Gradle version. While you should
+Some projects cannot easily upgrade to a current Gradle version. While you should
 always upgrade Gradle to a recent version when possible, we recognize that it isn't always
 feasible for certain niche situations. In those select cases, check out these recommendations
 to optimize older versions of Gradle.
