@@ -18,8 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.3")
@@ -55,22 +53,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         configureAndroidProject(testedPluginId)
 
         validatePlugins {
-            switch (testedPluginId) {
-                case SENTRY_PLUGIN_ID:
-                    passing {
-                        it !in [SENTRY_PLUGIN_ID]
-                    }
-                    onPlugins([SENTRY_PLUGIN_ID]) {
-                        failsWith([
-                            (missingAnnotationMessage { type('io.sentry.android.gradle.SentryProguardConfigTask').property('applicationVariant').missingInputOrOutput().includeLink() }): ERROR,
-                        ])
-                    }
-                    break
-                default:
-                    passing {
-                        true
-                    }
-                    break
+            passing {
+                true
             }
         }
     }
@@ -147,8 +131,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
                 buildFile << """
                     dependencies {
-                        implementation "com.google.dagger:hilt-android:2.38.1"
-                        implementation "com.google.dagger:hilt-compiler:2.38.1"
+                        implementation "com.google.dagger:hilt-android:2.43.2"
+                        implementation "com.google.dagger:hilt-compiler:2.43.2"
                     }
                 """
                 break
