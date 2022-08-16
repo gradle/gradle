@@ -438,39 +438,6 @@ If this is the case for you, you can check in this larger memory requirement in 
 org.gradle.jvmargs=-Xmx2048M
 ----
 
-== Daemon
-
-The Gradle daemon reduces build times by:
-
-- caching project information across builds
-- running in the background so every Gradle build doesn't have to wait for JVM startup
-- continuous runtime JVM optimization thanks to HotSpot in OpenJDK
-- watching the file system to calculate exactly what needs to be rebuilt before you run a build
-
-=== Enable the daemon on older Gradle versions
-
-Gradle 3.0 and above enable the daemon by default. If you are using an older version,
-you should <<parallel_execution,update to the latest version of Gradle>>.
-If you cannot update your Gradle version, you can enable the daemon at build time with the `daemon` flag:
-
-[listing.terminal]
-----
-$ gradle <task> --daemon
-----
-
-To enable the daemon by default in older Gradle versions, add the following setting to the
-`gradle.properties` file in the project root:
-
-.gradle.properties
-[source,properties]
-----
-org.gradle.daemon=true
-----
-
-On developer machines, you should see a significant performance improvement.
-On CI machines, long-lived agents can benefit from the daemon. But short-lived machines won't.
-Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so it's safe to leave daemons on.
-
 == Java projects
 
 The following sections apply only to projects that use the `java` plugin or another JVM language.
@@ -587,7 +554,6 @@ Gradle offers a several optimizations for Java compilation:
 * Run the compiler as a separate process
 * Compile avoidance
 * The java-library plugin
-* Incremental compilation
 
 ==== Run the compiler as a separate process
 
@@ -660,13 +626,51 @@ large multi-project builds. Only the `implementation` configuration is available
 Only libraries can define `api` dependencies. Use the
 <<java_library_plugin.adoc#java_library_plugin,`java-library`>> plugin to define API dependencies in your libraries.
 
+== Improving the performance of older Gradle releases
+
+Some Gradle projects cannot easily upgrade to a current Gradle version. While you should
+always upgrade Gradle to a recent version when possible, we recognize that it isn't always
+feasible for certain niche situations. In those select cases, check out these recommendations
+to optimize older versions of Gradle.
+
+=== Enable the daemon on older Gradle versions
+
+The Gradle daemon reduces build times by:
+
+- caching project information across builds
+- running in the background so every Gradle build doesn't have to wait for JVM startup
+- continuous runtime JVM optimization thanks to HotSpot in OpenJDK
+- watching the file system to calculate exactly what needs to be rebuilt before you run a build
+
+Gradle 3.0 and above enable the daemon by default. If you are using an older version,
+you should <<parallel_execution,update to the latest version of Gradle>>.
+If you cannot update your Gradle version, you can enable the daemon at build time with the `daemon` flag:
+
+[listing.terminal]
+----
+$ gradle <task> --daemon
+----
+
+To enable the daemon by default in older Gradle versions, add the following setting to the
+`gradle.properties` file in the project root:
+
+.gradle.properties
+[source,properties]
+----
+org.gradle.daemon=true
+----
+
+On developer machines, you should see a significant performance improvement.
+On CI machines, long-lived agents can benefit from the daemon. But short-lived machines won't.
+Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so it's safe to leave daemons on.
+
 === Incremental compilation
 
 Gradle can analyze dependencies down to the individual class level
 to recompile only the classes affected by a change.
-In Gradle 4.10 and above, incremental compilation is the default.
+Gradle 4.10 and above enable incremental compilation by default.
 To enable incremental compilation by default in older Gradle versions, add the following setting to your
-_build.gradle_ file:
+`build.gradle` file:
 
 .build.gradle
 [source.multi-language-sample,groovy]
