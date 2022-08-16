@@ -16,13 +16,17 @@
 
 package org.gradle.scala.compile
 
+
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.util.Requires
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsHelper.assertToolchainUsages
+import static org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsHelper.toolchainEvents
 
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -64,7 +68,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_11) })
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk9 = AvailableJavaHomes.getJdk(VERSION_11)
+        def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
 
         buildScript(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
         when:
@@ -81,7 +85,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped ':compileScala'
 
         when:
-        executer.withJavaHome(jdk9.javaHome)
+        executer.withJavaHome(jdk11.javaHome)
         run 'compileScala', '--info'
         then:
         executedAndNotSkipped(':compileScala')
@@ -106,4 +110,47 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
+    def "compilation emits toolchain usage events"() {
+        def operations = new BuildOperationsFixture(executer, temporaryFolder)
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+
+        buildScript """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation "org.scala-lang:scala-library:2.12.6"
+            }
+
+            scala {
+                zincVersion = "${ScalaBasePlugin.DEFAULT_ZINC_VERSION}"
+            }
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+        """
+
+        when:
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=${jdkMetadata.javaHome.toAbsolutePath()}")
+        run 'compileScala'
+        def events = toolchainEvents(operations, ':compileScala')
+
+        then:
+        executedAndNotSkipped ':compileScala'
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+
+        when:
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=${jdkMetadata.javaHome.toAbsolutePath()}")
+        run 'compileScala'
+        events = toolchainEvents(operations, ':compileScala')
+
+        then:
+        skipped ':compileScala'
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+    }
 }
