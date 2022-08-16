@@ -76,13 +76,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         then:
         runner('groovydoc')
             .expectDeprecationWarning(
-                "Internal API configureDocumentationVariantWithArtifact (no FileResolver) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use configureDocumentationVariantWithArtifact (with FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
-                ""
-            )
-            .expectDeprecationWarning(
                 "The IdeaModule.testSourceDirs property has been deprecated." +
                 " This is scheduled to be removed in Gradle 8.0." +
                 " Please use the testSources property instead." +
@@ -90,10 +83,11 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
                 ""
             )
             .expectDeprecationWarning(
-                "The Report.destination property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Please use the outputLocation property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details."
+                "The Report.destination property has been deprecated." +
+                " This is scheduled to be removed in Gradle 9.0." +
+                " Please use the outputLocation property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details.",
+                ""
             )
             .build()
     }

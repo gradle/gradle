@@ -59,7 +59,7 @@ public abstract class SimpleReport implements ConfigurableReport {
     public void setDestination(File file) {
         DeprecationLogger.deprecateProperty(Report.class, "destination")
                 .replaceWith("outputLocation")
-                .willBeRemovedInGradle8()
+                .willBeRemovedInGradle9()
                 .withDslReference()
                 .nagUser();
 
