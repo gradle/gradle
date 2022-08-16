@@ -93,9 +93,10 @@ Use the Profiler to produce build scans. Or combine it with method profilers lik
 These profilers can help you find inefficient algorithms in custom plugins.
 If you find that something in Gradle itself slows down your build, don't hesitate to send a profiler snapshot to performance@gradle.com.
 
-=== Understanding the performance categories
+=== Performance categories
 
-Both build scans and local profile reports break build execution down into the same categories, explained in detail below.
+Both build scans and local profile reports break down build execution into the same categories.
+The following sections explain those categories.
 
 ==== Startup
 
