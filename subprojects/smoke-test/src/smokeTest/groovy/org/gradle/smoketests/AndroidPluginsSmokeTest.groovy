@@ -51,9 +51,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def runner = useAgpVersion(agpVersion, runner('sourceSets'))
 
         when:
-        def result = runner.deprecations(AndroidDeprecations) {
-            expectReportDestinationPropertyDeprecation()
-        }.build()
+        def result = runner.build()
 
         then:
         result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
