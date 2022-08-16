@@ -1707,7 +1707,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 $suiteDeclaration {
                     dependencies {
-                        implementation(libs.bundles.groovy)
+                        implementation.bundle(libs.bundles.groovy)
                     }
                 }
             }
