@@ -50,7 +50,7 @@ class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds 'help'
+        succeeds 'tasks'
 
         and:
         fails 'upload'
