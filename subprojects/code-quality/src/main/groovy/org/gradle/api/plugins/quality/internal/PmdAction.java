@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.api.plugins.quality.internal;
 
-import java.io.File;
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
-public interface OutputDirSelector {
+/**
+ * Action to be run via the Worker API which executes a Pmd Ant task.
+ */
+public abstract class PmdAction extends AntWorkAction<PmdActionParameters> {
 
-    File outputDirFor(String testId);
+    @Override
+    protected String getActionName() {
+        return "pmd";
+    }
+
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new PmdInvoker(getParameters());
+    }
 }
