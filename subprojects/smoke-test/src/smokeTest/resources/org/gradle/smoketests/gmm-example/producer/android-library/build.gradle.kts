@@ -14,7 +14,7 @@ android {
         (this as ApplicationBaseFlavor).versionCode = 1
         (this as ApplicationBaseFlavor).versionName = "1.0"
     }
-    flavorDimensions("org.gradle.example.my-own-flavor")
+    flavorDimensions.add("org.gradle.example.my-own-flavor")
     productFlavors {
         create("demo") {
             dimension = "org.gradle.example.my-own-flavor"
