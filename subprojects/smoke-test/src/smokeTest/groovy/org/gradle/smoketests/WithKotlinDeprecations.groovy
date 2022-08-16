@@ -62,7 +62,7 @@ trait WithKotlinDeprecations {
         runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
     }
 
-    void expectKotlinReportDestinationPropertyDepreceation(String version) {
-        runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
+    void expectKotlinReportDestinationPropertyDeprecation(String version) {
+        runner.expectDeprecationWarning(REPORT_DESTINATION_DEPRECATION, "https://github.com/gradle/gradle/issues/21533")
     }
 }
