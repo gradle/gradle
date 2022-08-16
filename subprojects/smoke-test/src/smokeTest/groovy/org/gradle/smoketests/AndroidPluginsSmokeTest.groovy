@@ -51,7 +51,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def runner = useAgpVersion(agpVersion, runner('sourceSets'))
 
         when:
-        def result = runner.build()
+        def result = runner.deprecations(AndroidDeprecations) {
+            expectReportDestinationPropertyDeprecation()
+        }.build()
 
         then:
         result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
@@ -86,6 +88,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then:
@@ -103,6 +106,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then:
@@ -120,6 +124,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then: 'dependent sources are recompiled'
@@ -137,6 +142,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            expectReportDestinationPropertyDeprecation()
         }.build()
 
         then:
