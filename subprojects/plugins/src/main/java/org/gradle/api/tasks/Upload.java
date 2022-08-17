@@ -35,7 +35,7 @@ import java.io.File;
  * This task is <strong>no longer supported</strong> and will <strong>throw an exception</strong> if you try to use it.
  * It is preserved solely for backwards compatibility and may be removed in a future version.
  *
- * @deprecated This class is scheduled for removal in a future version. To upload artifacts, use the maven-publish plugin instead.
+ * @deprecated This class is scheduled for removal in a future version. To upload artifacts, use the `maven-publish` or `ivy-publish` plugins instead.
  */
 @Deprecated // TODO:Finalize Upload Removal - Issue #21439
 @DisableCachingByDefault(because = "Produces no cacheable output")
