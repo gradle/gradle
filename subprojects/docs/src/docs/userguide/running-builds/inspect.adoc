@@ -1,6 +1,14 @@
 [[build_scans]]
 = Inspecting Gradle Builds
 
+Gradle provides multiple ways to inspect your build:
+
+- Profile with build scans
+- Local profile reports
+- Low level profiling
+
+== What is a build scan?
+
 https://scans.gradle.com/[Build scans] are a persistent, shareable record of what happened when running a build.
 Build scans provide insights into your build that you can use to identify and fix performance bottlenecks.
 
@@ -15,7 +23,7 @@ For older Gradle versions, the
 https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan Plugin User Manual]
 explains how to enable build scans.
 
-Gradle displays a URL where you can find your build scan at the end of your build:
+At the end of your build, Gradle displays a URL where you can find your build scan:
 
 ----
 BUILD SUCCESSFUL in 2s
