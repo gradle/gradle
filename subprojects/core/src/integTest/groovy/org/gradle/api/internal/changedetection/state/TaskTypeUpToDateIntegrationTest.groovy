@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 

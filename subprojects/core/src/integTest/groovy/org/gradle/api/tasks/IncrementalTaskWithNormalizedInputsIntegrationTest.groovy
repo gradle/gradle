@@ -16,10 +16,8 @@
 
 package org.gradle.api.tasks
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.TextUtil
-import org.gradle.work.InputChanges
 import spock.lang.Issue
 
 class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegrationSpec {
@@ -31,7 +29,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
         def modifiedInput = inputs[1]
 
-        buildFile << incrementalTaskWithNameOnlyInputFiles(InputChanges, inputs)
+        buildFile << incrementalTaskWithNameOnlyInputFiles(inputs)
         run INCREMENTAL_TASK_NAME, "--info"
 
         when:
@@ -56,7 +54,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def movableInput = inputs[1]
         def renamedInput = file("moved/${movableInput.name}")
 
-        buildFile << incrementalTaskWithNameOnlyInputFiles(InputChanges, inputs + renamedInput)
+        buildFile << incrementalTaskWithNameOnlyInputFiles(inputs + renamedInput)
         run INCREMENTAL_TASK_NAME, "--info"
 
         when:
@@ -75,7 +73,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
     def "incremental task with NAME_ONLY inputs (matching file names and content) detects deleted file"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
 
-        buildFile << incrementalTaskWithNameOnlyInputFiles(InputChanges, inputs)
+        buildFile << incrementalTaskWithNameOnlyInputFiles(inputs)
         run INCREMENTAL_TASK_NAME
 
         when:
@@ -90,7 +88,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
 
     private static Range<String> folderNames() { 'a'..'c' }
 
-    private static String incrementalTaskWithNameOnlyInputFiles(Class<?> incrementalChangesType, List<? extends File> inputs) {
+    private static String incrementalTaskWithNameOnlyInputFiles(List<? extends File> inputs) {
         """
             abstract class IncrementalTask extends DefaultTask {
                 @InputFiles
@@ -102,7 +100,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
                 abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                def action(${incrementalChangesType.name} changes) {}
+                def action(InputChanges changes) {}
             }
 
             task ${INCREMENTAL_TASK_NAME}(type: IncrementalTask) {}
