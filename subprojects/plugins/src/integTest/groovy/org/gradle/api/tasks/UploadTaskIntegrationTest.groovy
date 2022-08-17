@@ -45,7 +45,6 @@ class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
                 configuration = configurations.getByName('compileClasspath')
 
                 def a = artifacts
-                artifacts
             }
         """
 
