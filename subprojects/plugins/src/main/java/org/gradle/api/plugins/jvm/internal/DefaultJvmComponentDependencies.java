@@ -65,7 +65,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     public Dependency testFixtures(Project project) {
-        final ProjectDependency projectDependency = getDependencyFactory().createFromProject(project);
+        final ProjectDependency projectDependency = getDependencyFactory().create(project);
         return testFixtures(projectDependency);
     }
 

@@ -37,7 +37,7 @@ public class DependencyAdderExtensionModule {
      * Add a dependency.
      *
      * @param dependencyNotation dependency to add
-     * @see DependencyFactory#createFromCharSequence(CharSequence) Valid dependency notation for this method
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
     public static void call(DependencyAdder self, CharSequence dependencyNotation) {
         self.add(dependencyNotation);
@@ -48,7 +48,7 @@ public class DependencyAdderExtensionModule {
      *
      * @param dependencyNotation dependency to add
      * @param configuration an action to configure the dependency
-     * @see DependencyFactory#createFromCharSequence(CharSequence) Valid dependency notation for this method
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
     public static void call(DependencyAdder self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(dependencyNotation, ConfigureUtil.configureUsing(configuration));
@@ -58,7 +58,7 @@ public class DependencyAdderExtensionModule {
      * Add a dependency.
      *
      * @param map a map of configuration parameters for the dependency
-     * @see DependencyFactory#createFromMap(Map) Valid dependency notation for this method
+     * @see DependencyFactory#create(Map) Valid dependency notation for this method
      */
     public static void call(DependencyAdder self, Map<String, ?> map) {
         self.add(map);
@@ -69,7 +69,7 @@ public class DependencyAdderExtensionModule {
      *
      * @param map a map of configuration parameters for the dependency
      * @param configuration an action to configure the dependency
-     * @see DependencyFactory#createFromMap(Map) Valid dependency notation for this method
+     * @see DependencyFactory#create(Map) Valid dependency notation for this method
      */
     public static void call(DependencyAdder self, Map<String, ?> map, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(map, ConfigureUtil.configureUsing(configuration));

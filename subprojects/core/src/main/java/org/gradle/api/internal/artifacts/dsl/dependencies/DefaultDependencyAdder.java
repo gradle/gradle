@@ -100,42 +100,42 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     @Override
     public void add(CharSequence dependencyNotation) {
-        doAddEager(dependencyFactory.createFromCharSequence(dependencyNotation), null);
+        doAddEager(dependencyFactory.create(dependencyNotation), null);
     }
 
     @Override
     public void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration) {
-        doAddEager(dependencyFactory.createFromCharSequence(dependencyNotation), configuration);
+        doAddEager(dependencyFactory.create(dependencyNotation), configuration);
     }
 
     @Override
     public void add(Map<String, ?> map) {
-        doAddEager(dependencyFactory.createFromMap(map), null);
+        doAddEager(dependencyFactory.create(map), null);
     }
 
     @Override
     public void add(Map<String, ?> map, Action<? super ExternalModuleDependency> configuration) {
-        doAddEager(dependencyFactory.createFromMap(map), configuration);
+        doAddEager(dependencyFactory.create(map), configuration);
     }
 
     @Override
     public void add(Project project) {
-        doAddEager(dependencyFactory.createFromProject(project), null);
+        doAddEager(dependencyFactory.create(project), null);
     }
 
     @Override
     public void add(Project project, Action<? super ProjectDependency> configuration) {
-        doAddEager(dependencyFactory.createFromProject(project), configuration);
+        doAddEager(dependencyFactory.create(project), configuration);
     }
 
     @Override
     public void add(FileCollection files) {
-        doAddEager(dependencyFactory.createFromFileCollection(files), null);
+        doAddEager(dependencyFactory.create(files), null);
     }
 
     @Override
     public void add(FileCollection files, Action<? super FileCollectionDependency> configuration) {
-        doAddEager(dependencyFactory.createFromFileCollection(files), configuration);
+        doAddEager(dependencyFactory.create(files), configuration);
     }
 
     @Override

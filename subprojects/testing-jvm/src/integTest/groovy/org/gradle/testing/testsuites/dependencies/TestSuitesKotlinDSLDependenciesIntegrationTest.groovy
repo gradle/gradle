@@ -1041,7 +1041,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
-            val beanUtils = dependencyFactory.createFromCharSequence("commons-beanutils:commons-beanutils:1.9.4")
+            val beanUtils = dependencyFactory.create("commons-beanutils:commons-beanutils:1.9.4")
 
             testing {
                 suites {
@@ -1264,7 +1264,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
-            val beanUtils = project.provider { dependencyFactory.createFromCharSequence("commons-beanutils:commons-beanutils:1.9.4") }
+            val beanUtils = project.provider { dependencyFactory.create("commons-beanutils:commons-beanutils:1.9.4") }
 
             testing {
                 suites {
