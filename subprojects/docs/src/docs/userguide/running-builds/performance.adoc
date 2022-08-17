@@ -58,18 +58,22 @@ Most projects consist of more than one subproject. Usually, some of those subpro
 that is, they do not share state. Yet by default, Gradle only runs one task at a time.
 To execute tasks belonging to different subprojects in parallel, use the `parallel` flag:
 
+====
 [listing.terminal]
 ----
 $ gradle <task> --parallel
 ----
+====
 
 To execute project tasks in parallel by default, add the following setting to the `gradle.properties` file in the project root:
 
+====
 .gradle.properties
 [source,properties]
 ----
 org.gradle.parallel=true
 ----
+====
 
 Parallel builds can significantly improve build times; how much depends on your project structure and
 how many dependencies you have between subprojects.
@@ -96,19 +100,23 @@ from enabling the daeomon.
 
 You can enable the daemon at build time with the `daemon` flag:
 
+====
 [listing.terminal]
 ----
 $ gradle <task> --daemon
 ----
+====
 
 To enable the daemon by default in older Gradle versions, add the following setting to the
 `gradle.properties` file in the project root:
 
+====
 .gradle.properties
 [source,properties]
 ----
 org.gradle.daemon=true
 ----
+====
 
 On developer machines, you should see a significant performance improvement.
 On CI machines, long-lived agents benefit from the daemon. But short-lived machines don't benefit much.
@@ -156,17 +164,21 @@ Build configuration inputs include:
 By default, Gradle does not use the configuration cache.
 To enable the configuration cache at build time, use the `configuration-cache` flag:
 
+====
 [listing.terminal]
 ----
 $ gradle <task> --configuration-cache
 ----
+====
 
 To enable the configuration cache by default, add the following setting to the `gradle.properties` file in the project root:
-
+====
+.gradle.properties
 [source,properties]
 ----
 org.gradle.unsafe.configuration-cache=true
 ----
+====
 
 For more information about the configuration cache, check out the
 <<configuration_cache.adoc#config_cache,configuration cache documentation>>.
@@ -213,17 +225,22 @@ When you later run that same task with the same input, Gradle retrieves the outp
 By default, Gradle does not use the build cache.
 To enable the build cache at build time, use the `build-cache` flag:
 
+====
 [listing.terminal]
 ----
 $ gradle <task> --build-cache
 ----
+====
 
 To enable the build cache by default, add the following setting to the `gradle.properties` file in the project root:
 
+====
+.gradle.properties
 [source,properties]
 ----
 org.gradle.caching=true
 ----
+====
 
 You can use a local build cache to speed up repeated builds on a single machine.
 You can also use a shared build cache to speed up repeated builds across multiple machines.
@@ -314,6 +331,7 @@ Alternatively, you can write plugins and tasks in a statically compiled language
 
 The following example defines a task that copies files without dynamic features:
 
+====
 .src/main/groovy/MyPlugin.groovy
 [source,groovy]
 ----
@@ -322,6 +340,7 @@ project.tasks.register('copyFiles', Copy) { Task t ->
     t.from(project.configurations.getByName('compile'))
 }
 ----
+====
 
 This example uses the `register()` and `getByName()` methods available on all Gradle “domain object containers”.
 Domain object containers include tasks, configurations, dependencies, extensions, and more.
@@ -500,11 +519,13 @@ By default, Gradle reserves 1GB of heap space for your build. This is plenty for
 However, some very large builds might need more memory to hold Gradle's model and caches.
 If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
 
+====
 .gradle.properties
 [source,java]
 ----
 org.gradle.jvmargs=-Xmx2048M
 ----
+====
 
 == Java projects
 
@@ -578,6 +599,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="b
 You might want to conditionally enable reports so you don't have to edit the build file to see them.
 To enable the reports based on a project property, check for the presence of a property before disabling reports:
 
+====
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -598,21 +620,26 @@ tasks.withType<Test>().configureEach {
     }
 }
 ----
+====
 
 Then, pass the property with `-PcreateReports` on the command line to generate the reports.
 
+====
 [listing.terminal]
 ----
 $ gradle <task> -PcreateReports
 ----
+====
 
 Or configure the property in the `gradle.properties` file in the root of your project:
 
+====
 .gradle.properties
 [source,properties]
 ----
 createReports=true
 ----
+====
 
 === Optimize the compiler
 
@@ -626,6 +653,7 @@ Gradle offers a several optimizations for Java compilation:
 
 You can run the compiler as a separate process with the following configuration for any `JavaCompile` task:
 
+====
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -636,6 +664,7 @@ You can run the compiler as a separate process with the following configuration 
 ----
 <task>.options.isFork = true
 ----
+====
 
 To apply the configuration to _all_ Java compilation tasks, you can `configureEach` java compilation task:
 
@@ -662,6 +691,7 @@ you can separate downstream-facing `api` dependencies from internal-only `implem
 Implementation dependencies don't leak into the compile classpath of downstream projects.
 When implementation details change, Gradle only recompiles `api` dependencies.
 
+====
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -678,6 +708,7 @@ dependencies {
    implementation("com.google.guava:guava:21.0")
 }
 ----
+====
 
 This can significantly reduce the "ripple" of recompilations caused by a single change in
 large multi-project builds.
@@ -703,6 +734,7 @@ Gradle 4.10 and above enable incremental compilation by default.
 To enable incremental compilation by default in older Gradle versions, add the following setting to your
 `build.gradle` file:
 
+====
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -717,6 +749,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.incremental = true
 }
 ----
+====
 
 === Compile avoidance
 
