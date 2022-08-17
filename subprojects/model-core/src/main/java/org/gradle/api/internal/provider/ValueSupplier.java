@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,7 +199,12 @@ public interface ValueSupplier {
      * An action that can be {@link ProviderInternal#withSideEffect(SideEffect) attached}
      * to a {@code Provider} to be executed when the underlying value is accessed.
      */
-    interface SideEffect<T> extends SerializableAction<T> {
+    interface SideEffect<T> extends Serializable {
+
+        /**
+         * Executes this side effect against the provided value.
+         */
+        void execute(T t);
 
         /**
          * Creates a new side effect that ignores its argument
