@@ -16,14 +16,14 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
  *
@@ -105,7 +105,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-            if (JavaVersion.current().majorVersion.toInteger() > 11 ) {
+            if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }
         }.build()
