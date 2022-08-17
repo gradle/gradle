@@ -522,7 +522,7 @@ public class CompileOptions extends AbstractOptions {
         // Used by Android plugin. Followup with https://github.com/gradle/gradle/issues/16782
         DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
             .replaceWith("generatedSourceOutputDirectory")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 
