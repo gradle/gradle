@@ -175,10 +175,16 @@
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.dsl.DependencyAdder</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>
             </tr>
             <tr>
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
