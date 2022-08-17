@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.versions
+package org.gradle.api.plugins.quality.internal;
+
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
 /**
- * Kotlin Gradle Plugin Versions.
+ * Action to be run via the Worker API which executes a CodeNarc Ant task.
  */
-class KotlinGradlePluginVersions {
+public abstract class CodeNarcAction extends AntWorkAction<CodeNarcActionParameters> {
 
-    // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-    private static final List<String> LATEST_VERSIONS = [
-        '1.4.0', '1.4.31',
-        '1.5.0', '1.5.31',
-        '1.6.0', '1.6.21',
-        '1.7.0', '1.7.10', "1.7.20-Beta",
-    ]
+    @Override
+    protected String getActionName() {
+        return "codenarc";
+    }
 
-    List<String> getLatests() {
-        return LATEST_VERSIONS
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new CodeNarcInvoker(getParameters());
     }
 }
