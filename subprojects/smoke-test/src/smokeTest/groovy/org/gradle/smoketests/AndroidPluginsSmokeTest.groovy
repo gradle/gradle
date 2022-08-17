@@ -125,6 +125,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation()
+            }
         }.build()
 
         then: 'dependent sources are recompiled'
@@ -142,6 +145,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation()
+            }
         }.build()
 
         then:
