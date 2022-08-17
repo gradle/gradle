@@ -82,12 +82,16 @@ class SecuredHandlerCollection implements Handler {
         } else {
             realm = new TestUserRealm(username, password)
             securityHandler = authenticationScheme.handler.createSecurityHandler(path, realm)
-            def server = handlers.server
-            handlers.stop()
+            def shouldRestart = handlers.server?.isStarted() ?: false
+            if (shouldRestart) {
+                handlers.stop()
+            }
             securityHandler.handler = handlers
             delegate = securityHandler
-            delegate.server = server
-            delegate.start()
+            delegate.server = handlers.server
+            if (shouldRestart) {
+                delegate.start()
+            }
         }
     }
 
