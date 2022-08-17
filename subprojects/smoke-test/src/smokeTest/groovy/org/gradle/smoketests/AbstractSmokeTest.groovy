@@ -61,7 +61,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "16.0.1"
+        static nebulaPluginPlugin = "17.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
         static nebulaLint = "17.2.3"
@@ -78,7 +78,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "9.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0", "7.1.0")
+        static shadow = Versions.of("6.1.0", "7.0.0", "7.1.0", "7.1.2")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.2")
