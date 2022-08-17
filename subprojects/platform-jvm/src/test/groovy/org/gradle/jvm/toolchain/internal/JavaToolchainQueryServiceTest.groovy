@@ -20,11 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
@@ -306,66 +302,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.languageVersion == versionToFind
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.2")
-    }
-
-    def "nag user about invalid toolchain spec when #description"() {
-        given:
-        def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.reset()
-        DeprecationLogger.init(Stub(UsageLocationReporter), WarningMode.All, progressEventEmitter)
-
-        def registry = createInstallationRegistry()
-        def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
-
-        when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
-        configureInvalid(filter)
-        def toolchainProvider = queryService.findMatchingToolchain(filter)
-
-        then:
-        !toolchainProvider.present
-        1 * progressEventEmitter._ >> { DefaultDeprecatedUsageProgressDetails details ->
-            assert details.summary == "Using toolchain specifications without setting a language version has been deprecated."
-        }
-        0 * progressEventEmitter._
-
-        cleanup:
-        DeprecationLogger.reset()
-
-        where:
-        description                                | configureInvalid
-        "only vendor is configured"                | { it.vendor.set(JvmVendorSpec.AZUL) }
-        "only implementation is configured"        | { it.implementation.set(JvmImplementation.J9) }
-        "vendor and implementation are configured" | { it.vendor.set(JvmVendorSpec.AZUL); it.implementation.set(JvmImplementation.J9) }
-    }
-
-    def "do not nag user when toolchain spec is valid (#description)"() {
-        given:
-        def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.reset()
-        DeprecationLogger.init(Stub(UsageLocationReporter), WarningMode.All, progressEventEmitter)
-
-        def registry = createInstallationRegistry()
-        def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
-
-        when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
-        configure(filter)
-        queryService.findMatchingToolchain(filter)
-
-        then:
-        0 * progressEventEmitter._
-
-        cleanup:
-        DeprecationLogger.reset()
-
-        where:
-        description                                 | configure
-        "configured with language version"          | { it.languageVersion.set(JavaLanguageVersion.of(9)) }
-        "configured not only with language version" | { it.languageVersion.set(JavaLanguageVersion.of(9)); it.vendor.set(JvmVendorSpec.AZUL) }
-        "unconfigured"                              | {}
     }
 
     private JavaToolchainFactory newToolchainFactory() {
