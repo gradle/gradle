@@ -186,8 +186,10 @@ If a task’s inputs and its outputs have not changed since the last execution, 
 Most built-in tasks provided by Gradle work with incremental build.
 To make a custom task compatible with incremental build, specify the inputs and outputs:
 
+====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+====
 
 For more information about incremental builds, check out the
 <<more_about_tasks.adoc#sec:up_to_date_checks,incremental builds documentation>>.
