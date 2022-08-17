@@ -218,7 +218,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
-        } else if (value.isFixedValue()) {
+        } else if (value.hasFixedValue()) {
             SideEffect<?> sideEffect = value.getSideEffect();
             if (sideEffect != null) {
                 setSupplier(new FixedWithSideEffectSupplier<>(Cast.uncheckedNonnullCast(value.getFixedValue()), Cast.uncheckedNonnullCast(sideEffect)));

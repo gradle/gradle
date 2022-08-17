@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.resource.s3.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Server
@@ -38,11 +37,14 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 
-    @ToBeFixedForConfigurationCache
     def "should fail with an authentication error"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"
 
+        propertiesFile << """
+        mavenAccessKey=someKey
+        mavenSecretKey=someSecret
+        """
         buildFile << """
     apply plugin: 'java'
     apply plugin: 'maven-publish'
@@ -53,11 +55,8 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
     publishing {
         repositories {
                 maven {
-                   url "${mavenS3Repo.uri}"
-                    credentials(AwsCredentials) {
-                        accessKey "someKey"
-                        secretKey "someSecret"
-                    }
+                    url "${mavenS3Repo.uri}"
+                    credentials(AwsCredentials)
                 }
             }
         publications {
@@ -81,7 +80,6 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         failure.assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "should fail without complaining about aws-java-sdk-sts not being in the class path"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"

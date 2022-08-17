@@ -58,7 +58,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'module1.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settingsWithBuildScriptsUseProjectName('core', 'module1'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('core', 'module1'))
         }
 
         when:
@@ -84,7 +84,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'module1.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settingsWithBuildScriptsUseProjectName('core', 'module1'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('core', 'module1'))
         }
 
         when:
@@ -112,7 +112,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
 
         when:
@@ -137,7 +137,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild('// different contents'))
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
 
         when:
@@ -162,7 +162,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
         run 'help'
         def before = scriptDetails()
@@ -186,7 +186,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
         run 'help'
         def before = scriptDetails()
@@ -239,7 +239,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module2 {
                 'module2.gradle'(this.taskThrowingError())
             }
-            'settings.gradle'(settingsWithBuildScriptsUseProjectName('module1', 'module2'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('module1', 'module2'))
         }
 
         when:
@@ -626,8 +626,8 @@ task fastTask { }
                     }
                 }
             }
-            'build.gradle'(simpleBuild('''apply from:'main.gradle' '''))
-            'main.gradle'(simpleBuild('''
+            'build.gradle'(this.simpleBuild('''apply from:'main.gradle' '''))
+            'main.gradle'(this.simpleBuild('''
                 task success {
                     doLast {
                         println 'ok'
