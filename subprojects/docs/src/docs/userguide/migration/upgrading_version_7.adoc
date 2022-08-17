@@ -39,7 +39,12 @@ Some plugins will break with this new version of Gradle, for example because the
 === Warnings that are now errors
 
 ==== Referencing tasks in an included build with `finalizedBy`, `mustRunAfter` or `shouldRunAfter`
-If you use `finalizedBy`, `mustRunAfter` or `shouldRunAfter` to reference tasks contained in an included build, this will now result in an execution time error upon running the referencing tasks.
+
+Referencing tasks contained in an included build with any of the following methods now results in an execution time error:
+
+- `finalizedBy`
+- `mustRunAfter`
+- `shouldRunAfter`
 
 === Removed APIs
 
