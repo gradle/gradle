@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -60,6 +61,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
+    def classpathTransformer = Mock(CachedClasspathTransformer)
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
@@ -68,7 +70,8 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder)
+        _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

@@ -114,7 +114,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     public void fromState(ExecutionTimeValue<? extends C> value) {
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
-        } else if (value.isFixedValue()) {
+        } else if (value.hasFixedValue()) {
             setSupplier(new FixedSupplier<>(value.getFixedValue()));
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(value.getChangingValue())));
