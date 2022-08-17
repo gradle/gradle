@@ -50,8 +50,6 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-
-
 #### PMD and CodeNarc tasks execute in parallel by default
 
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
