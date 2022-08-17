@@ -94,7 +94,6 @@ import static org.gradle.api.internal.file.TestFiles.deleter
 import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.api.internal.file.TestFiles.fileSystemAccess
-import static org.gradle.api.internal.file.TestFiles.genericFileTreeSnapshotter
 import static org.gradle.api.internal.file.TestFiles.virtualFileSystem
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
@@ -130,7 +129,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def virtualFileSystem = virtualFileSystem()
     def fileSystemAccess = fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter(), fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, fileSystem())
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {

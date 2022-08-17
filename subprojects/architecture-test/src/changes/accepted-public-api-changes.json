@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.AntBuilder",
             "member": "Class org.gradle.api.AntBuilder",
             "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",

@@ -55,7 +55,7 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
 
     private void configureAntBuilder(BasicAntBuilder antBuilder, AntLoggingAdapter antLogger) {
         try {
-            Project project = getProject(antBuilder);
+            Project project = antBuilder.getProject();
             Vector<BuildListener> listeners = project.getBuildListeners();
             project.removeBuildListener(listeners.get(0));
             project.addBuildListener(antLogger);
@@ -66,15 +66,11 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
 
     private void disposeBuilder(BasicAntBuilder antBuilder, AntLoggingAdapter antLogger) {
         try {
-            Project project = getProject(antBuilder);
+            Project project = antBuilder.getProject();
             project.removeBuildListener(antLogger);
             antBuilder.close();
         } catch (Exception ex) {
             throw new GradleException("Unable to dispose AntBuilder", ex);
         }
-    }
-
-    private Project getProject(Object antBuilder) throws Exception {
-        return (Project) antBuilder.getClass().getMethod("getProject").invoke(antBuilder);
     }
 }
