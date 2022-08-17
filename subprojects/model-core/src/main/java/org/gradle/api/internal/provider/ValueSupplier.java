@@ -218,6 +218,7 @@ public interface ValueSupplier {
          * Creates a new side effect that executes given side effects sequentially.
          */
         static <T> SideEffect<T> composite(Iterable<SideEffect<? super T>> sideEffects) {
+            // TODO: optimize for empty and single-value cases
             return new CompositeSideEffect<>(sideEffects);
         }
 
@@ -236,6 +237,7 @@ public interface ValueSupplier {
                 }
             }
 
+            // TODO: optimize for empty and single-value cases
             return new CompositeSideEffect<>(flatSideEffects);
         }
     }
@@ -291,7 +293,7 @@ public interface ValueSupplier {
             if (value == null) {
                 throw new IllegalArgumentException();
             }
-            return new PresentWithSideEffect<>(value, sideEffect);
+            return new Present<>(value, sideEffect);
         }
 
         T get() throws IllegalStateException;
@@ -338,68 +340,19 @@ public interface ValueSupplier {
         Value<T> addPathsFrom(Value<?> rightValue);
     }
 
-    class PresentWithSideEffect<T> extends Present<T> {
-
-        private final SideEffect<? super T> sideEffect;
-
-        private PresentWithSideEffect(T result, SideEffect<? super T> sideEffect) {
-            super(result);
-            this.sideEffect = sideEffect;
-        }
-
-        @Override
-        public @Nullable SideEffect<? super T> getSideEffect() {
-            return sideEffect;
-        }
-
-        @Override
-        public T get() throws IllegalStateException {
-            runSideEffect();
-            return super.get();
-        }
-
-        @Override
-        public T orNull() {
-            runSideEffect();
-            return super.orNull();
-        }
-
-        @Override
-        public <S> S orElse(S defaultValue) {
-            runSideEffect();
-            return super.orElse(defaultValue);
-        }
-
-        @Override
-        public T getWithoutSideEffect() throws IllegalStateException {
-            return super.get();
-        }
-
-        @Override
-        public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
-            T value = getWithoutSideEffect();
-            R result = transformer.transform(value);
-            if (result == null) {
-                return Value.missing();
-            }
-            return Value.withSideEffect(result, SideEffect.fixed(value, this.sideEffect));
-        }
-
-        @Override
-        public Value<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            return new PresentWithSideEffect<>(get(), SideEffect.composite(this.sideEffect, sideEffect));
-        }
-
-        private void runSideEffect() {
-            sideEffect.execute(getWithoutSideEffect());
-        }
-    }
 
     class Present<T> implements Value<T> {
         private final T result;
+        private final SideEffect<? super T> sideEffect;
 
         private Present(T result) {
             this.result = result;
+            this.sideEffect = null;
+        }
+
+        private Present(T result, SideEffect<? super T> sideEffect) {
+            this.result = result;
+            this.sideEffect = sideEffect;
         }
 
         @Override
@@ -409,37 +362,54 @@ public interface ValueSupplier {
 
         @Override
         public T get() throws IllegalStateException {
+            runSideEffect();
             return result;
         }
 
         @Override
         public T orNull() {
+            runSideEffect();
             return result;
         }
 
         @Override
         public <S> S orElse(S defaultValue) {
+            runSideEffect();
             return Cast.uncheckedCast(result);
         }
 
         @Override
         public T getWithoutSideEffect() throws IllegalStateException {
-            return get();
+            return result;
         }
 
         @Override
         public <R> Value<R> transform(Transformer<? extends R, ? super T> transformer) {
-            return Value.ofNullable(transformer.transform(result));
+            R transformResult = transformer.transform(result);
+            if (transformResult == null || sideEffect == null) {
+                return Value.ofNullable(transformResult);
+            }
+            return Value.withSideEffect(transformResult, SideEffect.fixed(result, sideEffect));
         }
 
         @Override
         public Value<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            return Value.withSideEffect(result, sideEffect);
+            if (this.sideEffect == null) {
+                return Value.withSideEffect(result, sideEffect);
+            }
+
+            return Value.withSideEffect(result, SideEffect.composite(this.sideEffect, sideEffect));
         }
 
         @Override
         public Value<T> pushWhenMissing(@Nullable DisplayName displayName) {
             return this;
+        }
+
+        @Override
+        @Nullable
+        public SideEffect<? super T> getSideEffect() {
+            return sideEffect;
         }
 
         @Override
@@ -455,6 +425,19 @@ public interface ValueSupplier {
         @Override
         public Value<T> addPathsFrom(Value<?> rightValue) {
             throw new IllegalStateException();
+        }
+
+        private void runSideEffect() {
+            if (sideEffect != null) {
+                sideEffect.execute(result);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return sideEffect == null
+                ? String.format("value(%s)", result)
+                : String.format("valueWithSideEffect(%s, %s)", result, sideEffect);
         }
     }
 
@@ -540,6 +523,11 @@ public interface ValueSupplier {
             builder.addAll(other.path);
             return new Missing<>(builder.build());
         }
+
+        @Override
+        public String toString() {
+            return path.isEmpty() ? "missing" : String.format("missing(path=%s)", path);
+        }
     }
 
     /**
@@ -601,7 +589,7 @@ public interface ValueSupplier {
 
         public static <T> ExecutionTimeValue<T> fixedValue(T value) {
             assert value != null;
-            return new FixedExecutionTimeValue<>(value, false);
+            return new FixedExecutionTimeValue<>(value, false, null);
         }
 
         public static <T> ExecutionTimeValue<T> ofNullable(@Nullable T value) {
@@ -663,10 +651,12 @@ public interface ValueSupplier {
     class FixedExecutionTimeValue<T> extends ExecutionTimeValue<T> {
         private final T value;
         private final boolean changingContent;
+        private final SideEffect<? super T> sideEffect;
 
-        private FixedExecutionTimeValue(T value, boolean changingContent) {
+        private FixedExecutionTimeValue(T value, boolean changingContent, @Nullable SideEffect<? super T> sideEffect) {
             this.value = value;
             this.changingContent = changingContent;
+            this.sideEffect = sideEffect;
         }
 
         @Override
@@ -690,74 +680,40 @@ public interface ValueSupplier {
         }
 
         @Override
-        public Value<T> toValue() {
-            return Value.of(value);
-        }
-
-        @Override
-        public ProviderInternal<T> toProvider() {
-            if (changingContent) {
-                return new Providers.FixedValueWithChangingContentProvider<>(value);
-            }
-            return Providers.of(value);
-        }
-
-        @Override
-        public ExecutionTimeValue<T> withChangingContent() {
-            return new FixedExecutionTimeValue<>(value, true);
-        }
-
-        @Override
-        public ExecutionTimeValue<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            return new FixedWithSideEffectExecutionTimeValue<>(value, changingContent, sideEffect);
-        }
-    }
-
-    class FixedWithSideEffectExecutionTimeValue<T> extends FixedExecutionTimeValue<T> {
-
-        private final SideEffect<? super T> sideEffect;
-
-        private FixedWithSideEffectExecutionTimeValue(T value, boolean changingContent, SideEffect<? super T> sideEffect) {
-            super(value, changingContent);
-            this.sideEffect = sideEffect;
-        }
-
-        @Override
+        @Nullable
         public SideEffect<? super T> getSideEffect() {
             return sideEffect;
         }
 
         @Override
-        public ExecutionTimeValue<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            return new FixedWithSideEffectExecutionTimeValue<>(super.getFixedValue(),
-                hasChangingContent(),
-                SideEffect.composite(this.sideEffect, sideEffect)
-            );
-        }
-
-        @Override
-        public ExecutionTimeValue<T> withChangingContent() {
-            return new FixedWithSideEffectExecutionTimeValue<>(super.getFixedValue(), true, sideEffect);
-        }
-
-        @Override
-        public T getFixedValue() {
-            return super.getFixedValue();
-        }
-
-        @Override
         public Value<T> toValue() {
-            return Value.withSideEffect(super.getFixedValue(), sideEffect);
+            return sideEffect == null ? Value.of(value) : Value.withSideEffect(value, sideEffect);
         }
 
         @Override
         public ProviderInternal<T> toProvider() {
-            return super.toProvider().withSideEffect(sideEffect);
+            ProviderInternal<T> provider;
+            if (changingContent) {
+                provider = new Providers.FixedValueWithChangingContentProvider<>(value);
+            } else {
+                provider = Providers.of(value);
+            }
+
+            return sideEffect == null ? provider : provider.withSideEffect(sideEffect);
         }
 
         @Override
-        public String toString() {
-            return String.format("fixed(%s, sideEffect=%s)", super.getFixedValue(), sideEffect);
+        public ExecutionTimeValue<T> withChangingContent() {
+            return new FixedExecutionTimeValue<>(value, true, sideEffect);
+        }
+
+        @Override
+        public ExecutionTimeValue<T> withSideEffect(SideEffect<? super T> sideEffect) {
+            if (this.sideEffect == null) {
+                return new FixedExecutionTimeValue<>(value, changingContent, sideEffect);
+            }
+
+            return new FixedExecutionTimeValue<>(value, changingContent, SideEffect.composite(this.sideEffect, sideEffect));
         }
     }
 
