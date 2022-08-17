@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -61,7 +62,18 @@ public class DefaultDependencyAdder implements DependencyAdder {
     }
 
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
-        Provider<D> provider = dependency.map(this::finalizeDependency);
+        @SuppressWarnings("unchecked")
+        Provider<D> provider = dependency.map((Object dep) -> {
+            // Generic failure check (for Groovy which ignores this when dynamic)
+            if (!(dep instanceof Dependency)) {
+                throw new InvalidUserCodeException(
+                    "Providers of non-Dependency types ("
+                        + dep.getClass().getName()
+                        + ") are not supported. Create a Dependency using DependencyFactory first."
+                );
+            }
+            return finalizeDependency((D) dep);
+        });
         if (config != null) {
             provider = provider.map(d -> {
                 config.execute(d);

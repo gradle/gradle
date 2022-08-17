@@ -33,6 +33,11 @@ import java.util.Map;
  * Factory class for creating {@link Dependency} instances, with strong typing.
  *
  * <p>
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ * It is also available via {@link Project#getDependencyFactory()}.
+ * </p>
+ *
+ * <p>
  * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * </p>
  *
