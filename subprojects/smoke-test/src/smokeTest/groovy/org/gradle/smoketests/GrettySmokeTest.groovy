@@ -58,7 +58,12 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('checkContainerUp').build()
+        def result = runner('checkContainerUp')
+            .expectDeprecationWarning(
+                "Internal API DependencyFactory.ClassPathNotation has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use an appropriate call to DependencyHandler instead.",
+                "https://github.com/gretty-gradle-plugin/gretty/pull/263"
+            )
+            .build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
