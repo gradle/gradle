@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.work.InputChanges
 
 class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -63,7 +61,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "fails when incremental task is marked as untracked"() {
         file("input/input.txt") << "Content"
-        buildFile(generateUntrackedIncrementalConsumerTask(InputChanges))
+        buildFile(generateUntrackedIncrementalConsumerTask())
         buildFile("""
             tasks.register("consumer", IncrementalConsumer) {
                 inputDir = file("input")
@@ -542,7 +540,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
-    static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
+    static generateUntrackedIncrementalConsumerTask() {
         """
             @UntrackedTask(because = "For testing")
             abstract class IncrementalConsumer extends DefaultTask {
@@ -554,7 +552,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
                 abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                void execute(${inputChangesType.name} changes) {
+                void execute(InputChanges changes) {
                     assert changes != null
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()

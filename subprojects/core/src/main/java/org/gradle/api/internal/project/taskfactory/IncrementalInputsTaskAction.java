@@ -17,18 +17,31 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.work.InputChanges;
 
 import java.lang.reflect.Method;
 
-public class IncrementalInputsTaskAction extends AbstractIncrementalTaskAction {
+public class IncrementalInputsTaskAction extends StandardTaskAction {
+    private InputChangesInternal inputChanges;
+
     public IncrementalInputsTaskAction(Class<? extends Task> type, Method method) {
         super(type, method);
     }
 
     @Override
+    public void setInputChanges(InputChangesInternal inputChanges) {
+        this.inputChanges = inputChanges;
+    }
+
+    @Override
+    public void clearInputChanges() {
+        this.inputChanges = null;
+    }
+
+    @Override
     protected void doExecute(Task task, String methodName) {
-        JavaMethod.of(task, Object.class, methodName, InputChanges.class).invoke(task, getInputChanges());
+        JavaMethod.of(task, Object.class, methodName, InputChanges.class).invoke(task, inputChanges);
     }
 }
