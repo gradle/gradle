@@ -37,8 +37,8 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
                 id 'java-library'
             }
             tasks.withType(Jar.class).named('jar') { javaJar ->
-                // The Jar.archiveName field is of type Property<String>
-                javaJar.conventionMapping('archiveName') { 'some_name' }
+                // The Jar.archiveFileName field is of type Property<String>
+                javaJar.conventionMapping('archiveFileName') { 'some_name' }
             }
         """
 
