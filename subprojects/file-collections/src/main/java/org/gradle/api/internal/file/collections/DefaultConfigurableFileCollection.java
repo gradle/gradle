@@ -248,11 +248,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                builder.add(fileTree);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 builder.add(fileTree);
             }

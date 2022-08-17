@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.encoding.Identifier
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
+class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         buildFile <<
@@ -374,4 +374,16 @@ resolve.doLast { assert ruleInvoked }
         assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 
+    private static NamespaceId ns(String name) {
+        return new NamespaceId("http://my.extra.info/${name}", name)
+    }
+
+    private static String declareNS(String name) {
+        "(new javax.xml.namespace.QName('http://my.extra.info/${name}', '${name}'))"
+    }
+
+    private static String sq(String input) {
+        // escape the input for use in a single-quoted string
+        input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
 }
