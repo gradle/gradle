@@ -32,7 +32,7 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Map;
 
-public class ConfigurationDependencyHandlerExtensionModule {
+public class DependencyAdderExtensionModule {
     /**
      * Add a dependency.
      *
