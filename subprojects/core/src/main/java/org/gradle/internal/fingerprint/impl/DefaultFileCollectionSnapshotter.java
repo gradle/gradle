@@ -25,7 +25,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -36,12 +35,10 @@ import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileSystemAccess fileSystemAccess;
-    private final GenericFileTreeSnapshotter genericFileTreeSnapshotter;
     private final Stat stat;
 
-    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
         this.fileSystemAccess = fileSystemAccess;
-        this.genericFileTreeSnapshotter = genericFileTreeSnapshotter;
         this.stat = stat;
     }
 
@@ -80,12 +77,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             for (File file : contents) {
                 fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             }
-            fileTreeOnly = false;
-        }
-
-        @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            roots.add(genericFileTreeSnapshotter.snapshotFileTree(fileTree));
             fileTreeOnly = false;
         }
 
