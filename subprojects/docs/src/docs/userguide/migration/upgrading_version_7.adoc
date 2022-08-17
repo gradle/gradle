@@ -44,9 +44,9 @@ TBD
 
 ==== Removed support for TAR trees from resources without backing files
 
-Creating a TAR tree from a resource with no backing file is not supported anymore.
+Creating a TAR tree from a resource with no backing file is no longer supported.
 Instead, convert the resource to a file and use `project.tarTree()` on the file.
-See <<tar_tree_no_backing_file>> for more information.
+For more information, see <<tar_tree_no_backing_file>>.
 
 === Potential breaking changes
 
