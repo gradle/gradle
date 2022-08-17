@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -111,7 +110,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
     @Inject
-    public DefaultJvmTestSuite(String name, ConfigurationContainer configurations, DependencyHandler dependencies, SourceSetContainer sourceSets, DependencyFactoryInternal factory) {
+    public DefaultJvmTestSuite(String name, ConfigurationContainer configurations, DependencyHandler dependencies, SourceSetContainer sourceSets) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
 
@@ -141,7 +140,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         this.dependencies = getObjectFactory().newInstance(
             DefaultJvmComponentDependencies.class,
-            new DefaultDependencyAdder(factory, implementation),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, implementation),
             getObjectFactory().newInstance(DefaultDependencyAdder.class, compileOnly),
             getObjectFactory().newInstance(DefaultDependencyAdder.class, runtimeOnly),
             getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)

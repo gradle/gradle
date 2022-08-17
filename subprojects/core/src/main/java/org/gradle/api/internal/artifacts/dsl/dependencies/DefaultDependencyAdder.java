@@ -48,12 +48,8 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     @SuppressWarnings("unchecked")
     private <D extends Dependency> D finalizeDependency(D dependency) {
-        if (dependency instanceof MinimalExternalModuleDependency) {
-            // This will break if D == MinimalExternalModuleDependency
-            // We assume people won't do that because it's not useful, the type is immutable.
-            return  (D) dependencyFactory.createDependency(dependency);
-        }
-        return dependency;
+        // Only done to make MinimalExternalModuleDependency mutable for configuration
+        return (D) dependencyFactory.createDependency(dependency);
     }
 
     private <D extends Dependency> void doAddEager(D dependency, @Nullable Action<? super D> config) {

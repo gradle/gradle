@@ -265,7 +265,6 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     $suiteDeclaration {
                         dependencies {
                             implementation(project(':util')) {
-                                println(it)
                                 exclude group: 'org.apache.commons', module: 'commons-lang3'
                             }
                         }
@@ -1042,7 +1041,6 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
-                dependsOn test
                 doLast {
                     def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
                     def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
