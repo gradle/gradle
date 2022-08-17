@@ -21,7 +21,7 @@ Method <org.gradle.api.plugins.quality.CodeNarc.getMaxPriority2Violations()> doe
 Method <org.gradle.api.plugins.quality.CodeNarc.getMaxPriority3Violations()> does not have raw return type assignable to org.gradle.api.provider.Property in (CodeNarc.java:214)
 Method <org.gradle.api.plugins.quality.CodeNarc.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (CodeNarc.java:230)
 Method <org.gradle.api.plugins.quality.CodeNarc.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (CodeNarc.java:46)
-Method <org.gradle.api.plugins.quality.Pmd.getIgnoreFailures()> does not have raw return type assignable to org.gradle.api.provider.Property in (Pmd.java:295)
+Method <org.gradle.api.plugins.quality.Pmd.getIgnoreFailures()> does not have raw return type assignable to org.gradle.api.provider.Property in (Pmd.java:295)GradleBuildDocu
 Method <org.gradle.api.plugins.quality.Pmd.getIncrementalCacheFile()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Pmd.java:403)
 Method <org.gradle.api.plugins.quality.Pmd.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Pmd.java:283)
 Method <org.gradle.api.plugins.quality.Pmd.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Pmd.java:61)
@@ -117,6 +117,7 @@ Method <org.gradle.api.tasks.WriteProperties.getProperties()> does not have raw 
 Method <org.gradle.api.tasks.ant.AntTarget.getBaseDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (AntTarget.java:66)
 Method <org.gradle.api.tasks.ant.AntTarget.getDescription()> does not have raw return type assignable to org.gradle.api.provider.Property in (AntTarget.java:82)
 Method <org.gradle.api.tasks.ant.AntTarget.getTarget()> does not have raw return type assignable to org.gradle.api.provider.Property in (AntTarget.java:51)
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchivePath()> does not have raw return type assignable to org.gradle.api.provider.Provider in (AbstractArchiveTask.java:156)
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.isPreserveFileTimestamps()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractArchiveTask.java:253)
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.isReproducibleFileOrder()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractArchiveTask.java:282)
 Method <org.gradle.api.tasks.bundling.Tar.getCompression()> does not have raw return type assignable to org.gradle.api.provider.Property in (Tar.java:59)
