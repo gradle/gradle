@@ -505,7 +505,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasKnownProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue.isEmpty()
     }
@@ -544,7 +544,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue == [a: '1', b: '2']
     }
@@ -557,7 +557,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue == [a: '1', b: '2']
     }
@@ -570,7 +570,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue == [a: '1', b: '2']
     }
@@ -583,7 +583,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue == [a: '1', b: '2']
     }

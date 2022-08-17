@@ -84,12 +84,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         this.maxHeapSize = getObjectFactory().property(String.class);
         // Set default JavaLauncher to current JVM in case
         // CheckstylePlugin that sets Java launcher convention is not applied
-        this.javaLauncher = getCurrentJvmLauncher();
+        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
     }
 
-    private Property<JavaLauncher> getCurrentJvmLauncher() {
-        Provider<JavaLauncher> currentJvmLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjectFactory()));
-        return getObjectFactory().property(JavaLauncher.class).convention(currentJvmLauncherProvider);
+    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
+        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
+        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     /**

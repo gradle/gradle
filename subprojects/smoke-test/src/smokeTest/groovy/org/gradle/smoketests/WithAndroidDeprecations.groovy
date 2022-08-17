@@ -20,7 +20,7 @@ import groovy.transform.SelfType
 import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
-trait WithAndroidDeprecations {
+trait WithAndroidDeprecations implements WithReportDeprecations {
     private static final VersionNumber AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY = VersionNumber.parse('7.1.1')
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
 
