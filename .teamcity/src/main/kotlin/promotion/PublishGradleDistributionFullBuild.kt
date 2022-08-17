@@ -16,34 +16,23 @@
 
 package promotion
 
-import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
-abstract class PublishGradleDistributionBothSteps(
+abstract class PublishGradleDistributionFullBuild(
     // The branch to be promoted
     promotedBranch: String,
     prepTask: String,
-    step2TargetTask: String,
+    promoteTask: String,
     triggerName: String,
     gitUserName: String = "bot-teamcity",
     gitUserEmail: String = "bot-teamcity@gradle.com",
     extraParameters: String = "",
     vcsRootId: String = gradlePromotionMaster
-) : BasePublishGradleDistribution(promotedBranch, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
+) : BasePublishGradleDistribution(promotedBranch, prepTask, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
     init {
         steps {
             buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, "uploadAll")
-            buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, step2TargetTask)
+            buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, promoteTask)
         }
-    }
-}
-
-fun BuildSteps.buildStep(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String, prepTask: String, targetTask: String) {
-    gradleWrapper {
-        name = "Promote"
-        tasks = "$prepTask $targetTask"
-        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" %additional.gradle.parameters% """
     }
 }

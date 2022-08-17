@@ -17,19 +17,34 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
+@Requires(TestPrecondition.JDK9_OR_LATER)
 class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
+    TestFile testBuildFile
+
     def setup() {
-        file('src/main/java/module-info.java') << """
+
+        settingsFile << """
+            include 'test'
+"""
+        testBuildFile = testDirectory.file('test/build.gradle')
+
+        testBuildFile << """
+            plugins {
+                id 'java-library'
+            }
+        """
+        file('test/src/main/java/module-info.java') << """
             module test {
                 exports test;
             }
         """
-        file("src/main/java/test/Test.java") << """
+        file("test/src/main/java/test/Test.java") << """
             package test;
 
             import test.internal.TestInternal;
@@ -40,7 +55,7 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        file("src/main/java/test/internal/TestInternal.java") << """
+        file("test/src/main/java/test/internal/TestInternal.java") << """
             package test.internal;
 
             public class TestInternal {
@@ -50,37 +65,45 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "can build javadoc from modularized java"() {
-        buildFile << """
-            apply plugin: 'java-library'
-
-            java {
-                withJavadocJar()
-            }
-        """
-
-        expect:
+        when:
         succeeds("javadoc")
+        then:
+        file("test/build/docs/javadoc/test/test/Test.html").assertExists()
+        file("test/build/docs/javadoc/test/test/internal/TestInternal.html").assertExists()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19726")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "can build javadoc from modularized java with exclusions"() {
-        buildFile << """
-            apply plugin: 'java-library'
-
-            java {
-                withJavadocJar()
-            }
-
+        testBuildFile << """
             tasks.withType(Javadoc) {
                 exclude("test/internal")
+                // This shouldn't be necessarily, but is a workaround for now
+                options.addPathOption('-source-path').value.add(file('src/main/java'))
             }
         """
 
-        expect:
+        when:
         succeeds("javadoc")
+        then:
+        file("test/build/docs/javadoc/test/test/Test.html").assertExists()
+        file("test/build/docs/javadoc/test/test/internal/TestInternal.html").assertDoesNotExist()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21399")
+    def "can build javadoc from modularized java with -module-source-path specified"() {
+
+        testBuildFile << """
+            // Module source path needs a folder structure where the module name appears in the hierarchy
+            tasks.withType(Javadoc) {
+                options.addStringOption('-module-source-path', "\$projectDir/../*/src/main/java")
+            }
+"""
+
+        when:
+        succeeds("javadoc")
+        then:
+        file("test/build/docs/javadoc/test/test/Test.html").assertExists()
+        file("test/build/docs/javadoc/test/test/internal/TestInternal.html").assertExists()
+    }
 }
