@@ -195,16 +195,30 @@ public interface ValueSupplier {
         }
     }
 
+    /**
+     * An action that can be {@link ProviderInternal#withSideEffect(SideEffect) attached}
+     * to a {@code Provider} to be executed when the underlying value is accessed.
+     */
     interface SideEffect<T> extends SerializableAction<T> {
 
+        /**
+         * Creates a new side effect that ignores its argument
+         * and instead always executes against the given {@code value}.
+         */
         static <T, A> SideEffect<T> fixed(A value, SideEffect<A> sideEffect) {
             return ignored -> sideEffect.execute(value);
         }
 
+        /**
+         * Creates a new side effect that executes given side effects sequentially.
+         */
         static <T> SideEffect<T> composite(Iterable<SideEffect<? super T>> sideEffects) {
             return new CompositeSideEffect<>(sideEffects);
         }
 
+        /**
+         * Creates a new side effect that executes given side effects sequentially.
+         */
         @SafeVarargs
         static <T> SideEffect<T> composite(SideEffect<? super T>... sideEffects) {
             ArrayList<SideEffect<? super T>> flatSideEffects = new ArrayList<>(sideEffects.length);
@@ -238,6 +252,9 @@ public interface ValueSupplier {
 
     /**
      * Carries either a value or some diagnostic information about where the value would have come from, had it been present.
+     * <p>
+     * If value is present, it can optionally carry a {@link #getSideEffect() side effect}.
+     * A {@link #isMissing() missing} value never carries a side effect.
      */
     interface Value<T> {
         Value<Object> MISSING = new Missing<>();
@@ -279,8 +296,17 @@ public interface ValueSupplier {
 
         <S> S orElse(S defaultValue);
 
+        /**
+         * Behaves like {@link #get()}, but does not execute a side effect if present.
+         * <p>
+         * This method should only be used when the side effect is {@link #getSideEffect() extracted} separately
+         * to be passed further.
+         */
         T getWithoutSideEffect() throws IllegalStateException;
 
+        /**
+         * Applies the {@code transformer} to the value, preserving a side effect if present.
+         */
         <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
         Value<T> withSideEffect(SideEffect<? super T> sideEffect);
@@ -290,6 +316,11 @@ public interface ValueSupplier {
 
         boolean isMissing();
 
+        /**
+         * Returns a side effect if one is attached to this value.
+         * <p>
+         * A {@link #isMissing() missing} value never carries a side effect.
+         */
         @Nullable
         default SideEffect<? super T> getSideEffect() {
             return null;

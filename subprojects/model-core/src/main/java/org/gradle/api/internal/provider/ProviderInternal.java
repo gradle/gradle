@@ -69,6 +69,19 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
         return new BiProvider<>(this, right, combiner);
     }
 
+    /**
+     * Returns a provider that attaches the side effect to the values it produces.
+     * <p>
+     * The side effect is executed when the underlying value is accessed with methods such as
+     * {@link Provider#get()}, {@link Provider#getOrNull()} and {@link Provider#getOrElse(Object)}.
+     * The side effect will not be executed if the provider returns a missing value.
+     * <p>
+     * Multiple side effects can be attached to a provider, in which case they will be executed sequentially.
+     * <p>
+     * In case the provider is {@link #map transformed}, the value before the transform is captured for this side effect.
+     * The new side effect for the captured value is then attached to the transformed provider.
+     * This new "fixed" side effect will be executed when the resulting provider produces its values.
+     */
     default ProviderInternal<T> withSideEffect(SideEffect<? super T> sideEffect) {
         return new WithSideEffectProvider<>(this, sideEffect);
     }
