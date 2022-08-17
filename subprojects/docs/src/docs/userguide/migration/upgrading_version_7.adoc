@@ -38,19 +38,29 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Warnings that are now errors
 
-TBD
+==== Referencing tasks in an included build with `finalizedBy`, `mustRunAfter` or `shouldRunAfter`
 
-=== Removed APIs
+Referencing tasks contained in an included build with any of the following methods now results in an execution time error:
 
-==== Removed support for TAR trees from resources without backing files
+- `finalizedBy`
+- `mustRunAfter`
+- `shouldRunAfter`
+
+==== Creating TAR trees from resources without backing files
 
 Creating a TAR tree from a resource with no backing file is no longer supported.
 Instead, convert the resource to a file and use `project.tarTree()` on the file.
 For more information, see <<tar_tree_no_backing_file>>.
 
-=== Potential breaking changes
+=== Removed APIs
 
 TBD
+
+=== Potential breaking changes
+
+==== Change to `AntBuilder` parent class
+
+Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.AntBuilder` class.  It now extends `groovy.ant.AntBuilder`.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
