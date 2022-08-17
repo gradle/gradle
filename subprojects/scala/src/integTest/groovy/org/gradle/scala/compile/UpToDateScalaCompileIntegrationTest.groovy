@@ -112,7 +112,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "compilation emits toolchain usage events"() {
         def operations = new BuildOperationsFixture(executer, temporaryFolder)
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.isJava8Compatible() })
 
         buildScript """
             apply plugin: 'scala'
@@ -120,15 +120,21 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:2.12.6"
+                implementation "org.scala-lang:scala-library:2.13.8" // must be above 2.13.1
             }
 
             scala {
-                zincVersion = "${ScalaBasePlugin.DEFAULT_ZINC_VERSION}"
+                zincVersion = "1.7.1"
             }
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+
+            tasks.withType(ScalaCompile) {
+                scalaCompileOptions.with {
+                    additionalParameters = (additionalParameters ?: []) + "-target:8"
                 }
             }
         """
