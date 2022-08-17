@@ -122,22 +122,22 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     // region DependencyFactory methods
 
     @Override
-    public ExternalModuleDependency createFromCharSequence(CharSequence dependencyNotation) {
+    public ExternalModuleDependency create(CharSequence dependencyNotation) {
         return dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
     }
 
     @Override
-    public ExternalModuleDependency createFromMap(Map<String, ?> map) {
+    public ExternalModuleDependency create(Map<String, ?> map) {
         return dependencyNotationParser.getMapNotationParser().parseNotation(map);
     }
 
     @Override
-    public FileCollectionDependency createFromFileCollection(FileCollection fileCollection) {
+    public FileCollectionDependency create(FileCollection fileCollection) {
         return dependencyNotationParser.getFileCollectionNotationParser().parseNotation(fileCollection);
     }
 
     @Override
-    public ProjectDependency createFromProject(Project project) {
+    public ProjectDependency create(Project project) {
         return dependencyNotationParser.getProjectNotationParser().parseNotation(project);
     }
 

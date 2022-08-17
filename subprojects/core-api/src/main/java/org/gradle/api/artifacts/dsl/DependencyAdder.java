@@ -44,7 +44,7 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param dependencyNotation dependency to add
-     * @see DependencyFactory#createFromCharSequence(CharSequence) Valid dependency notation for this method
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
     void add(CharSequence dependencyNotation);
 
@@ -53,7 +53,7 @@ public interface DependencyAdder {
      *
      * @param dependencyNotation dependency to add
      * @param configuration an action to configure the dependency
-     * @see DependencyFactory#createFromCharSequence(CharSequence) Valid dependency notation for this method
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
     void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration);
 
@@ -61,7 +61,7 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param map a map of configuration parameters for the dependency
-     * @see DependencyFactory#createFromMap(Map) Valid dependency notation for this method
+     * @see DependencyFactory#create(Map) Valid dependency notation for this method
      */
     void add(Map<String, ?> map);
 
@@ -70,7 +70,7 @@ public interface DependencyAdder {
      *
      * @param map a map of configuration parameters for the dependency
      * @param configuration an action to configure the dependency
-     * @see DependencyFactory#createFromMap(Map) Valid dependency notation for this method
+     * @see DependencyFactory#create(Map) Valid dependency notation for this method
      */
     void add(Map<String, ?> map, Action<? super ExternalModuleDependency> configuration);
 

@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -57,18 +56,7 @@ public interface DependencyFactory {
      * @param dependencyNotation the dependency notation
      * @return the new dependency
      */
-    ExternalModuleDependency createFromCharSequence(CharSequence dependencyNotation);
-
-    /**
-     * Lazily create an {@link ExternalModuleDependency}, using the same notation as {@link #createFromCharSequence(CharSequence)}.
-     *
-     * @param dependencyNotation the dependency notation
-     * @return a provider for the new dependency
-     */
-    default Provider<ExternalModuleDependency> createFromCharSequence(Provider<? extends CharSequence> dependencyNotation) {
-        return dependencyNotation.map(this::createFromCharSequence);
-    }
-
+    ExternalModuleDependency create(CharSequence dependencyNotation);
 
     /**
      * Create an {@link ExternalModuleDependency} from a {@link Map}. The map may contain the following keys:
@@ -83,17 +71,7 @@ public interface DependencyFactory {
      * @param map the dependency map
      * @return the new dependency
      */
-    ExternalModuleDependency createFromMap(Map<String, ?> map);
-
-    /**
-     * Lazily create an {@link ExternalModuleDependency}, using the same notation as {@link #createFromMap(Map)}.
-     *
-     * @param map the dependency map
-     * @return a provider for the new dependency
-     */
-    default Provider<ExternalModuleDependency> createFromMap(Provider<? extends Map<String, ?>> map) {
-        return map.map(this::createFromMap);
-    }
+    ExternalModuleDependency create(Map<String, ?> map);
 
     /**
      * Create a {@link FileCollectionDependency} from a {@link FileCollection}.
@@ -101,7 +79,7 @@ public interface DependencyFactory {
      * @param fileCollection the file collection
      * @return the new dependency
      */
-    FileCollectionDependency createFromFileCollection(FileCollection fileCollection);
+    FileCollectionDependency create(FileCollection fileCollection);
 
     /**
      * Create a {@link ProjectDependency} from a {@link Project}.
@@ -109,14 +87,5 @@ public interface DependencyFactory {
      * @param project the project
      * @return the new dependency
      */
-    ProjectDependency createFromProject(Project project);
-
-    /**
-     * Lazily create a {@link ProjectDependency}, using the same notation as {@link #createFromProject(Project)}.
-     *
-     * @param project the project
-     */
-    default Provider<ProjectDependency> createFromProject(Provider<? extends Project> project) {
-        return project.map(this::createFromProject);
-    }
+    ProjectDependency create(Project project);
 }

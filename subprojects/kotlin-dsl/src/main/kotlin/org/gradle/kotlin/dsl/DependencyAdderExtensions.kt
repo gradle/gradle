@@ -37,7 +37,7 @@ import org.gradle.api.provider.ProviderConvertible
  * Add a dependency.
  *
  * @param dependencyNotation dependency to add
- * @see DependencyFactory.createFromCharSequence
+ * @see DependencyFactory.create
  * @since 7.6
  */
 operator fun DependencyAdder.invoke(dependencyNotation: CharSequence) = add(dependencyNotation)
@@ -48,7 +48,7 @@ operator fun DependencyAdder.invoke(dependencyNotation: CharSequence) = add(depe
  *
  * @param dependencyNotation dependency to add
  * @param configuration an action to configure the dependency
- * @see DependencyFactory.createFromCharSequence
+ * @see DependencyFactory.create
  * @since 7.6
  */
 operator fun DependencyAdder.invoke(dependencyNotation: CharSequence, configuration: Action<in ExternalModuleDependency>) = add(dependencyNotation, configuration)
@@ -58,7 +58,7 @@ operator fun DependencyAdder.invoke(dependencyNotation: CharSequence, configurat
  * Add a dependency.
  *
  * @param map a map of configuration parameters for the dependency
- * @see DependencyFactory.createFromMap
+ * @see DependencyFactory.create
  * @since 7.6
  */
 operator fun DependencyAdder.invoke(map: Map<String, *>) = add(map)
@@ -69,7 +69,7 @@ operator fun DependencyAdder.invoke(map: Map<String, *>) = add(map)
  *
  * @param map a map of configuration parameters for the dependency
  * @param configuration an action to configure the dependency
- * @see DependencyFactory.createFromMap
+ * @see DependencyFactory.create
  * @since 7.6
  */
 operator fun DependencyAdder.invoke(map: Map<String, *>, configuration: Action<in ExternalModuleDependency>) = add(map, configuration)
