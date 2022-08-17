@@ -111,30 +111,6 @@
             "changes": [
                 "Method has been removed"
             ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(java.io.File)",
-            "acceptation": "Deprecated method removed",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory()",
-            "acceptation": "Deprecated method removed",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(java.io.File)",
-            "acceptation": "Deprecated method removed",
-            "changes": [
-                "Method has been removed"
-            ]
         }
     ]
 }
