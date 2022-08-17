@@ -18,7 +18,7 @@ val archunitVersion = "0.20.1"
 val asmVersion = "9.3"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
-val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
+val googleApiVersion = "1.31.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
@@ -64,11 +64,11 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gcs)                   { version { strictly("v1-rev171-1.25.0") }}
-        api(libs.googleApiClient)       { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
+        api(libs.gcs)                   { version { strictly("v1-rev20210127-1.31.0") }}
+        api(libs.googleApiClient)       { version { strictly(googleApiVersion); because("our GCS version requires 1.31.0") }}
+        api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.31.0") }}
+        api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.31.0") }}
+        api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.31.0") }}
         api(libs.gradleProfiler)        { version { strictly("0.18.0") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
