@@ -972,7 +972,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("No signature of method: org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder.getAt() is applicable for argument types: (ArrayList) values: [[org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre]]")
+        result.assertHasErrorOutput("Could not find method getAt() for arguments [[org.apache.commons:commons-lang3:3.11, com.google.guava:guava:30.1.1-jre]] on DependencyAdder for ${suiteName}Implementation of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder_Decorated.")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1230,7 +1230,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause("class java.lang.String cannot be cast to class org.gradle.api.artifacts.Dependency")
+        failureHasCause("Providers of non-Dependency types (java.lang.String) are not supported. Create a Dependency using DependencyFactory first.")
     }
 
     def 'can add dependency providers which provide dependency objects with actions (using exclude) to #suiteDesc'() {
@@ -1355,7 +1355,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause("class java.lang.String cannot be cast to class org.gradle.api.artifacts.Dependency")
+        failureHasCause("Providers of non-Dependency types (java.lang.String) are not supported. Create a Dependency using DependencyFactory first.")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1399,7 +1399,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause("class java.lang.String cannot be cast to class org.gradle.api.artifacts.Dependency")
+        failureHasCause("Providers of non-Dependency types (java.lang.String) are not supported. Create a Dependency using DependencyFactory first.")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
