@@ -161,6 +161,9 @@ then you can run the following command line:
 
 which would run both Groovy and Kotlin tests.
 
+It is possible to run samples and snippets with the configuration cache enabled to ensure compatibility.
+To do that set the Gradle property `enableConfigurationCacheForDocsTests=true` in the command line or in the `gradle.properties` file.
+
 ## Groovy DSL Reference
 
 The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`. 
