@@ -40,7 +40,7 @@ import org.gradle.api.artifacts.dsl.DependencyAdder;
 public interface JvmComponentDependencies {
     /**
      * Returns a {@link DependencyAdder} to add to the set of implementation dependencies.
-     * <p><br>
+     * <p>
      * <code>implementation</code> dependencies are used at compilation and runtime.
      *
      * @since 7.6
@@ -50,7 +50,7 @@ public interface JvmComponentDependencies {
 
     /**
      * Returns a {@link DependencyAdder} to add to the set of compile-only dependencies.
-     * <p><br>
+     * <p>
      * <code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.
      *
      * @since 7.6
@@ -60,7 +60,7 @@ public interface JvmComponentDependencies {
 
     /**
      * Returns a {@link DependencyAdder} to add to the set of runtime-only dependencies.
-     * <p><br>
+     * <p>
      * <code>runtimeOnly</code> dependencies are not available at compilation and are used only at runtime.
      *
      * @since 7.6
@@ -70,7 +70,7 @@ public interface JvmComponentDependencies {
 
     /**
      * Returns a {@link DependencyAdder} to add to the set of annotation processor dependencies.
-     * <p><br>
+     * <p>
      * <code>annotationProcessor</code> dependencies are used only at compilation, and are added to the annotation processor classpath.
      *
      * @since 7.6
