@@ -16,7 +16,13 @@
 
 package org.gradle.docs.samples;
 
+import org.gradle.exemplar.test.normalizer.FileSeparatorOutputNormalizer;
+import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
+import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormalizer;
+import org.gradle.exemplar.test.runner.SampleModifiers;
+import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
+import org.gradle.integtests.fixtures.executer.UseJdk11OrLaterSampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
@@ -25,11 +31,6 @@ import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
-import org.gradle.exemplar.test.normalizer.FileSeparatorOutputNormalizer;
-import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
-import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormalizer;
-import org.gradle.exemplar.test.runner.SampleModifiers;
-import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,
@@ -45,7 +46,8 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
-    MoreMemorySampleModifier.class
+    MoreMemorySampleModifier.class,
+    UseJdk11OrLaterSampleModifier.class
 })
 /*
  * To run the samples tests:
