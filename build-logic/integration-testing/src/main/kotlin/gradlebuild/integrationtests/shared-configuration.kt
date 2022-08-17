@@ -184,9 +184,8 @@ fun Project.configureIde(testType: TestType) {
     plugins.withType<IdeaPlugin> {
         with(model) {
             module {
-                testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
-                testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
-                testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
+                testSources.from(sourceSet.java.srcDirs, sourceSet.groovy.srcDirs)
+                testResources.from(sourceSet.resources.srcDirs)
             }
         }
     }
