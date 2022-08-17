@@ -383,7 +383,7 @@ include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="b
 include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
 ====
 <1> <<config_cache:requirements:reading_sys_props_and_env_vars, A system property read at configuration time>>
-<2> <<configuration_cache#config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
+<2> <<config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
 
 Running that task fails and print the following in the console:
 
@@ -955,6 +955,15 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build
 
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
+
+[[config_cache:requirements:safe_credentials]]
+
+=== Safe credentials
+
+For security reasons, the configuration cache does not store credentials declared inline.
+
+To use credentials in build scripts with the configuration cache, declare credentials with Gradle Properties. To learn more about using credentials with Gradle Properties, check out the example in the
+<<declaring_repositories.adoc#sec:handling_credentials,credential handling documentation>>.
 
 [[config_cache:not_yet_implemented]]
 == Not yet implemented

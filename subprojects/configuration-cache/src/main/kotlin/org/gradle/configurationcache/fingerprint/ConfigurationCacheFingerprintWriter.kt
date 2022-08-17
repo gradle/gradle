@@ -428,10 +428,6 @@ class ConfigurationCacheFingerprintWriter(
             elements.addAll(contents)
         }
 
-        override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-            elements.addAll(fileTree)
-        }
-
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
             elements.add(directoryFileTreeFactory.create(root, patterns))
         }
