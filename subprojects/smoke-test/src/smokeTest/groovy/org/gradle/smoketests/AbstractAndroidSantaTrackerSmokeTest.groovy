@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
@@ -65,6 +66,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
                 expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+                expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(agpVersion)
             }.build()
     }
 

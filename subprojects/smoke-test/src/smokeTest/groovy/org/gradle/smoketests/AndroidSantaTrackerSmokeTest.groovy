@@ -130,6 +130,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
                 "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
             ])
+            expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(agpVersion)
         }
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
@@ -148,6 +149,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
                 "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
             ])
+            expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(agpVersion)
         }
         runner.withArguments(runner.arguments + "--continue")
         result = runner.buildAndFail()
