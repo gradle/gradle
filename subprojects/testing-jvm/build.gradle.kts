@@ -61,8 +61,8 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 
-    testFixturesCompileOnly(project(":testing-base")) { isTransitive = false }
-    testFixturesCompileOnly(libs.testng) { isTransitive = false }
+    testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(libs.testng)
 }
 
 strictCompile {
