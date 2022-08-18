@@ -108,6 +108,63 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         """.stripIndent()
     }
 
+    def "compile is out of date when changing the java launcher"() {
+        def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
+        def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
+
+        buildScript """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation "org.scala-lang:scala-library:2.13.8" // must be above 2.13.1
+            }
+
+            scala {
+                zincVersion = "1.7.1"
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(
+                        !providers.gradleProperty("changed").isPresent()
+                            ? ${jdk8.languageVersion.majorVersion}
+                            : ${jdk11.languageVersion.majorVersion}
+                    )
+                }
+            }
+
+            tasks.withType(ScalaCompile) {
+                scalaCompileOptions.with {
+                    additionalParameters = (additionalParameters ?: []) + "-target:8"
+                }
+            }
+        """
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala'
+
+        then:
+        executedAndNotSkipped ':compileScala'
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala'
+        then:
+        skipped ':compileScala'
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala', '-Pchanged', '--info'
+        then:
+        executedAndNotSkipped ':compileScala'
+        outputContains("Value of input property 'javaLauncher.metadata.taskInputs.languageVersion' has changed for task ':compileScala'")
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala', '-Pchanged', '--info'
+        then:
+        skipped ':compileScala'
+    }
+
     def "compilation emits toolchain usage events"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.isJava8Compatible() })
 
@@ -123,6 +180,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
             scala {
                 zincVersion = "1.7.1"
             }
+
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
