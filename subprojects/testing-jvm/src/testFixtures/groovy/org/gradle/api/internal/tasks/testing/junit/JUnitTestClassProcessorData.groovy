@@ -323,7 +323,7 @@ public class AnEmptyTestSuite {
 
 public class CustomSuiteRunner extends Suite {
     public CustomSuiteRunner(Class<?> klass, RunnerBuilder builder) {
-        super(builder, klass, [ATestClass.class, BTestClass.class])
+        super(builder, klass, [ATestClass.class, BTestClass.class] as Class<?>[])
     }
 }
 
