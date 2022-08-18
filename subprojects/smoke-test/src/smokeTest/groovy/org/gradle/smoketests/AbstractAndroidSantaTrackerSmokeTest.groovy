@@ -56,6 +56,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             .deprecations(SantaTrackerDeprecations) {
                 expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
                 expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+                expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(agpVersion)
             }.build()
     }
 
