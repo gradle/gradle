@@ -72,7 +72,9 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.10",
         "3.10.1",
         "3.10.2",
-        "3.10.3"
+        "3.10.3",
+        // "3.11", This doesn't work on Java 8, so let's not test it.
+        "3.11.1"
     ]
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
