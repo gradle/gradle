@@ -63,6 +63,7 @@ dependencies {
 
     testFixturesImplementation(project(":testing-base"))
     testFixturesImplementation(libs.testng)
+    testFixturesImplementation(libs.bsh)
 }
 
 strictCompile {
