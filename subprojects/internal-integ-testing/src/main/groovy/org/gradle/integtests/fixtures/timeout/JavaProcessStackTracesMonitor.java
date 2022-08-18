@@ -70,7 +70,7 @@ public class JavaProcessStackTracesMonitor {
     }
 
     public static void main(String[] args) {
-        new JavaProcessStackTracesMonitor(new File(args.length == 0 ? System.getProperty("user.dir") : args[0])).printAllStackTracesByJstack();
+        new JavaProcessStackTracesMonitor(new File(args.length == 0 ? "." : args[0])).printAllStackTracesByJstack();
     }
 
     private static void assertTrue(boolean condition, String message) {
