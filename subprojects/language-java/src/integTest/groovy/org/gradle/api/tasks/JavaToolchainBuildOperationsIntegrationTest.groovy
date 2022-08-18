@@ -16,28 +16,21 @@
 
 package org.gradle.api.tasks
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsHelper
+import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsHelper.assertToolchainUsages
-
-class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
-
-    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         buildFile << """
@@ -581,7 +574,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-
     def runWithInstallation(JvmInstallationMetadata jdkMetadata, String... tasks) {
         runWithInstallationPaths(jdkMetadata.javaHome.toAbsolutePath().toString(), tasks)
     }
@@ -600,14 +592,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
             .withTasks(tasks)
-    }
-
-    List<BuildOperationRecord.Progress> toolchainEvents(String taskPath) {
-        return JavaToolchainBuildOperationsHelper.toolchainEvents(operations, taskPath)
-    }
-
-    List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
-        events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
     }
 
     private String latestKotlinPluginVersion(String major) {

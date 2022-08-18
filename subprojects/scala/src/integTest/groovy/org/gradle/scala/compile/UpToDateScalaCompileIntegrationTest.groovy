@@ -19,15 +19,14 @@ package org.gradle.scala.compile
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.util.Requires
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
-import static org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsHelper.assertToolchainUsages
-import static org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsHelper.toolchainEvents
 
-class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
+class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
 
     def setup() {
         file('src/main/scala/Person.scala') << "class Person(name: String)"
@@ -110,7 +109,6 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "compilation emits toolchain usage events"() {
-        def operations = new BuildOperationsFixture(executer, temporaryFolder)
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.isJava8Compatible() })
 
         buildScript """
@@ -139,23 +137,26 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=${jdkMetadata.javaHome.toAbsolutePath()}")
-        run 'compileScala'
-        def events = toolchainEvents(operations, ':compileScala')
+        withInstallations(jdkMetadata).run ":compileScala"
+        def events = toolchainEvents(":compileScala")
 
         then:
-        executedAndNotSkipped ':compileScala'
+        executedAndNotSkipped ":compileScala"
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         when:
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=${jdkMetadata.javaHome.toAbsolutePath()}")
-        run 'compileScala'
-        events = toolchainEvents(operations, ':compileScala')
+        withInstallations(jdkMetadata).run ":compileScala"
+        events = toolchainEvents(":compileScala")
 
         then:
-        skipped ':compileScala'
+        skipped ":compileScala"
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+    }
+
+    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
+        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        this
     }
 }

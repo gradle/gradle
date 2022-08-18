@@ -16,15 +16,37 @@
 
 package org.gradle.integtests.fixtures.jvm
 
+import groovy.transform.SelfType
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.api.internal.tasks.execution.ResolveTaskMutationsBuildOperationType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
+import org.junit.Before
 
-class JavaToolchainBuildOperationsHelper {
+@SelfType(AbstractIntegrationSpec)
+trait JavaToolchainBuildOperationsFixture {
+
+    private BuildOperationsFixture operations
+
+    @Before
+    void setupBuildOperations() {
+        operations = new BuildOperationsFixture(executer, temporaryFolder)
+    }
+
+    // Spock 2 executes @Before after the setup() methods
+    // this is a workaround for tests that use this fixture from their setup() methods
+    private void initIfNeeded() {
+        if (operations == null) {
+            setupBuildOperations()
+        }
+    }
 
     static void assertToolchainUsages(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata, String tool) {
         assert events.size() > 0
@@ -49,7 +71,12 @@ class JavaToolchainBuildOperationsHelper {
         ]
     }
 
-    static List<BuildOperationRecord.Progress> toolchainEvents(BuildOperationsFixture operations, String taskPath) {
+    static List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
+        events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
+    }
+
+    List<BuildOperationRecord.Progress> toolchainEvents(String taskPath) {
+        initIfNeeded()
         return progressEventsFor(
             operations, JavaToolchainUsageProgressDetails, taskPath,
             ResolveTaskMutationsBuildOperationType, ExecuteTaskBuildOperationType
