@@ -49,7 +49,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener and TaskExecutionGraph.addTaskExecutionListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -81,6 +80,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             .build()
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task.project at execution time in task :autoLintGradle")
     def 'nebula lint plugin'() {
         given:
         buildFile << """

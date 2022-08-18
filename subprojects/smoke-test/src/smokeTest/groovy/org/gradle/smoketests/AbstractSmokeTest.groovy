@@ -64,7 +64,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaPluginPlugin = "17.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.2.3"
+        static nebulaLint = "17.7.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1"
