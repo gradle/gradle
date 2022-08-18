@@ -18,7 +18,7 @@ package org.gradle.execution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class VerificationFailureHandlingIntegraitonTest extends AbstractIntegrationSpec {
+class VerificationFailureHandlingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
