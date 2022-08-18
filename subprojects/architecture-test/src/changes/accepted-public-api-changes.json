@@ -103,6 +103,30 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.setMain(java.lang.String)",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.getMain()",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
+            "acceptation": "Default implementation added to spec for Gradle 8.0",
+            "changes": [
+                "METHOD_ABSTRACT_NOW_DEFAULT"
+            ]
         }
     ]
 }
