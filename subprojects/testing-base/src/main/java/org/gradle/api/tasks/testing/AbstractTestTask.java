@@ -53,7 +53,6 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
@@ -67,7 +66,6 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -204,41 +202,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             }
         }
         throw new AssertionError("could not determine current log level");
-    }
-
-    /**
-     * Returns the root folder for the test results in internal binary format.
-     *
-     * @return the test result directory, containing the test results in binary format.
-     *
-     * @deprecated Use {@link #getBinaryResultsDirectory()} instead. This method will be removed in Gradle 8.0.
-     */
-    @ReplacedBy("binaryResultsDirectory")
-    @Deprecated
-    public File getBinResultsDir() {
-        DeprecationLogger.deprecateProperty(AbstractTestTask.class, "binResultsDir").replaceWith("binaryResultsDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return binaryResultsDirectory.getAsFile().getOrNull();
-    }
-
-    /**
-     * Sets the root folder for the test results in internal binary format.
-     *
-     * @param binResultsDir The root folder
-     *
-     * @deprecated Use {@link #getBinaryResultsDirectory()}.set() instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    public void setBinResultsDir(File binResultsDir) {
-        DeprecationLogger.deprecateProperty(AbstractTestTask.class, "binResultsDir").replaceWith("binaryResultsDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        this.binaryResultsDirectory.set(binResultsDir);
     }
 
     /**

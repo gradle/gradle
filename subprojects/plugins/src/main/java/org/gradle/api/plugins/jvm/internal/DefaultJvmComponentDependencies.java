@@ -22,27 +22,23 @@ import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.catalog.DependencyBundleValueSource;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
@@ -124,7 +120,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     public Dependency localGroovy() {
         return getDependencyHandler().create(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
     }
-    
+
     public Dependency testFixtures(Project project) {
         final ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
         return testFixtures(projectDependency);
@@ -146,7 +142,17 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
         if (dependency instanceof ProviderConvertible<?>) {
-            doAddLazy(bucket, ((ProviderConvertible<?>) dependency).asProvider(), configuration);
+            doAdd(bucket, ((ProviderConvertible<?>) dependency).asProvider(), configuration);
+        } else if (dependency instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
+            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dep : bundle) {
+                    doAddEager(bucket, dep, configuration);
+                }
+            } else {
+                doAddLazy(bucket, (Provider<?>) dependency, configuration);
+            }
         } else if (dependency instanceof Provider<?>) {
             doAddLazy(bucket, (Provider<?>) dependency, configuration);
         } else {
@@ -160,25 +166,8 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     private void doAddLazy(Configuration bucket, Provider<?> dependencyProvider, @Nullable Action<? super Dependency> configuration) {
-        if (dependencyProvider instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyProvider).getValueSourceType();
-            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
-                doAddListProvider(bucket, dependencyProvider, configuration);
-                return;
-            }
-        }
         Provider<Dependency> lazyDependency = dependencyProvider.map(mapDependencyProvider(bucket, configuration));
         bucket.getDependencies().addLater(lazyDependency);
-    }
-
-    private void doAddListProvider(Configuration bucket, Provider<?> dependency, @Nullable Action<? super Dependency> configuration) {
-        // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
-        final ListProperty<Dependency> dependencies = getObjectFactory().listProperty(Dependency.class);
-        dependencies.set(dependency.map(notation -> {
-            List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
-            return deps.stream().map(d -> create(d, configuration)).collect(Collectors.toList());
-        }));
-        bucket.getDependencies().addAllLater(dependencies);
     }
 
     private <T> Transformer<Dependency, T> mapDependencyProvider(Configuration bucket, @Nullable Action<? super Dependency> configuration) {
