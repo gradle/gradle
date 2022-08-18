@@ -33,6 +33,29 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.0]]
+== Upgrading from 7.6 and earlier
+
+=== Warnings that are now errors
+
+==== Referencing tasks in an included build with `finalizedBy`, `mustRunAfter` or `shouldRunAfter`
+
+Referencing tasks contained in an included build with any of the following methods now results in an execution time error:
+
+- `finalizedBy`
+- `mustRunAfter`
+- `shouldRunAfter`
+
+=== Removed APIs
+
+TBD
+
+=== Potential breaking changes
+
+==== Change to `AntBuilder` parent class
+
+Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.AntBuilder` class.  It now extends `groovy.ant.AntBuilder`.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
@@ -287,10 +310,10 @@ Since Checkstyle runs as an external process you can control the memory via the 
 
 ==== Missing files specified with relative paths when running Checkstyle
 
-Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`. 
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
 This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
 
-Previously, the current working directory would depend on how Gradle was executed. When running Gradle from the root directory of a project, this would be the root directory, but when running Gradle from a subproject, the current working directory would be the subproject directory. 
+Previously, the current working directory would depend on how Gradle was executed. When running Gradle from the root directory of a project, this would be the root directory, but when running Gradle from a subproject, the current working directory would be the subproject directory.
 
 === Deprecations
 

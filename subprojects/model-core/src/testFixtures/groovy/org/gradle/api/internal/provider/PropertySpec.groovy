@@ -2464,7 +2464,7 @@ The value of this provider is derived from:
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue == someValue()
     }
@@ -2526,7 +2526,7 @@ The value of this provider is derived from:
         expect:
         assertHasProducer(property, task)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.hasChangingContent()
         value.fixedValue == someValue()
     }
@@ -2579,7 +2579,7 @@ The value of this provider is derived from:
         expect:
         assertHasNoProducer(mapped)
         def value = mapped.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == someOtherValue()
 
         property.attachProducer(owner(task))
@@ -2615,7 +2615,7 @@ The value of this provider is derived from:
         expect:
         assertHasNoProducer(mapped)
         def value = mapped.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == someOtherValue()
 
         property.attachProducer(owner(task))

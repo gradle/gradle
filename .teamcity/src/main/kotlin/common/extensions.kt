@@ -98,7 +98,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
     }
 
     vcs {
-        root(AbsoluteId("GradleMaster"))
+        root(AbsoluteId(VersionedSettingsBranch.fromDslContext().vcsRootId()))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
     }
