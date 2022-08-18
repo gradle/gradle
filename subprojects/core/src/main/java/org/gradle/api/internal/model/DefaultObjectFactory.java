@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
@@ -150,8 +151,13 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedNonnullCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
+
         if (List.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
+            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
+            // Allow this one type to be used with Property until we can fix this elsewhere
+            if (!ExternalModuleDependencyBundle.class.isAssignableFrom(valueType)) {
+                throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
+            }
         } else if (Set.class.isAssignableFrom(valueType)) {
             throw new InvalidUserCodeException(invalidPropertyCreationError("setProperty()", "Set<T>"));
         } else if (Map.class.isAssignableFrom(valueType)) {
