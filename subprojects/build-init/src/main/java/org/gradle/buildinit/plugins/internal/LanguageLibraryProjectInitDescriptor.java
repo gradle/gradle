@@ -57,7 +57,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
                 return buildScriptBuilder.testing().spockSuite(name, libraryVersionProvider);
             case KOTLINTEST:
                 BuildScriptBuilder.SuiteSpec kotlinTestSuite = buildScriptBuilder.testing().kotlinTestSuite(name, libraryVersionProvider);
-                // TODO: Make this work with JUnit 5.6.0 again
+                // TODO: Make this work with JUnit 5.6.0 again, see https://github.com/gradle/gradle/issues/13955
                 kotlinTestSuite.implementation("Use newer version of JUnit Engine for Kotlin Test", "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter"));
                 return kotlinTestSuite;
             case TESTNG:
