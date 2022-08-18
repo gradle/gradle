@@ -356,12 +356,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
-    public boolean canMakeProgress() {
-        // If no nodes are ready and nothing is running, then cannot make progress
-        return !(executionState() == State.NoWorkReadyToStart && runningNodes.isEmpty());
-    }
-
-    @Override
     public Diagnostics healthDiagnostics() {
         lockCoordinator.assertHasStateLock();
 
