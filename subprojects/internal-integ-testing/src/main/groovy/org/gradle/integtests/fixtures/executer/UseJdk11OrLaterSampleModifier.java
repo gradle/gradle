@@ -56,7 +56,7 @@ public class UseJdk11OrLaterSampleModifier implements SampleModifier {
         if (jdk11 != null) {
             File propertiesFile = new File(workingDir, "gradle.properties");
             Properties properties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : new Properties();
-            properties.setProperty(ORG_GRADLE_JAVA_HOME, jdk11.getJavaHome().getAbsolutePath());
+            properties.setProperty(ORG_GRADLE_JAVA_HOME, jdk11.getJavaHome().getAbsolutePath().replace("\\", "/"));
             GUtil.saveProperties(properties, propertiesFile);
         }
     }
