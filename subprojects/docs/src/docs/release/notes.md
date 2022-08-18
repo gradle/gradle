@@ -22,8 +22,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## New features and usability improvements
 
-## New features and usability improvements
-
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
