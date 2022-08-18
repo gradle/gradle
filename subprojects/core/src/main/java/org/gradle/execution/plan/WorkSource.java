@@ -175,14 +175,6 @@ public interface WorkSource<T> {
     void collectFailures(Collection<? super Throwable> failures);
 
     /**
-     * Returns true when either all work is finished or there are further items that can be selected.
-     * Returns false when there are items queued but none of them will be able to be selected, without some external change (eg completion of a task in an included build).
-     *
-     * <p>This is used to monitor the health of the plan.</p>
-     */
-    boolean canMakeProgress();
-
-    /**
      * Returns some diagnostic information about the state of this plan.
      *
      * <p>The implementation does not need to be particularly efficient, as it is called only when a fatal problem is detected.</p>
