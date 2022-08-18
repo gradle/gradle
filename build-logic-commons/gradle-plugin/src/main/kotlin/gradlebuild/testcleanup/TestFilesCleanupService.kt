@@ -34,6 +34,7 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -294,9 +295,13 @@ abstract class TestFilesCleanupService @Inject constructor(
         ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
             srcFiles.forEach { (relativePath: String, file: File) ->
                 val zipEntry = ZipEntry(relativePath)
-                zipOutput.putNextEntry(zipEntry)
-                Files.copy(file.toPath(), zipOutput)
-                zipOutput.closeEntry()
+                try {
+                    zipOutput.putNextEntry(zipEntry)
+                    Files.copy(file.toPath(), zipOutput)
+                    zipOutput.closeEntry()
+                } catch (e: IOException) {
+                    throw GradleException("Error copying file contents to zip. File: " + file.toPath(), e)
+                }
             }
         }
     }
