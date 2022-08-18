@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskActionBuildOperationTy
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
@@ -47,7 +48,8 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 )
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
-    private static final String BASELINE_VERSION = "6.8-milestone-1"
+    // AGP 7.3 requires Gradle 7.4
+    private static final String BASELINE_VERSION = "7.4"
     private static final Map<String, Set<Optimization>> OPTIMIZATIONS = [
         "no optimizations": EnumSet.noneOf(Optimization),
         "FS watching": EnumSet.of(Optimization.WATCH_FS),
@@ -57,6 +59,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     def setup() {
         runner.testGroup = "incremental android changes"
+        configureProjectJavaHomeToJdk11()
     }
 
     def "faster non-abi change (build comparison)"() {
@@ -138,6 +141,11 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         builder.warmUpCount(10)
         builder.invocationCount(30)
         builder.measuredBuildOperations(['org.gradle.internal.execution.steps.ExecuteStep$Operation'])
+    }
+
+    private void configureProjectJavaHomeToJdk11() {
+        def buildJavaHome = AvailableJavaHomes.jdk11.javaHome
+        runner.addBuildMutator { invocation -> new AndroidPerformanceTestFixture.JavaHomeMutator(invocation, buildJavaHome)}
     }
 
     private IncrementalTestProject getTestProject() {
