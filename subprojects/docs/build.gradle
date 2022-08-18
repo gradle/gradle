@@ -840,30 +840,33 @@ tasks.named("check") {
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
 class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider {
-    private Project project
-    private Test testTask
-
-    GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
-        this.project = project
-        this.testTask = testTask
-    }
-
     @Internal
-    final ConfigurableFileCollection gradleHomeDir = project.objects.fileCollection()
+    final ConfigurableFileCollection gradleHomeDir
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
-    final DirectoryProperty samplesdir = project.objects.directoryProperty()
+    final DirectoryProperty samplesdir
 
     @Nested
-    GradleDistribution gradleDistribution = new GradleDistribution(gradleHomeDir)
+    final GradleDistribution gradleDistribution
+
+    private final FileCollection testTaskClasspath
+    private final Directory repoRoot
+
+    GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
+        this.gradleHomeDir = project.objects.fileCollection()
+        this.samplesdir = project.objects.directoryProperty()
+        this.gradleDistribution = new GradleDistribution(gradleHomeDir)
+        this.testTaskClasspath = testTask.classpath
+        this.repoRoot = repoRoot(project)
+    }
 
     @Override
     Iterable<String> asArguments() {
-        def distributionName = testTask.classpath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
+        def distributionName = testTaskClasspath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
         ["-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
          "-DintegTest.samplesdir=${samplesdir.get().asFile}",
-         "-DintegTest.gradleUserHomeDir=${repoRoot(project).dir("intTestHomeDir/$distributionName").asFile}"]
+         "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/$distributionName")}"]
     }
 }
 
