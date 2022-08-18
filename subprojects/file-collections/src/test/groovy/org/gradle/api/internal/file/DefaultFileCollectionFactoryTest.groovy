@@ -411,10 +411,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
             Assert.fail()
         }
 
-        @Override
-        void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            Assert.fail()
-        }
 
         @Override
         void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {

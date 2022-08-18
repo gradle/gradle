@@ -79,16 +79,11 @@ public class CompilationSourceDirs {
 
     private static class SourceRoots implements FileCollectionStructureVisitor {
         private boolean canInferSourceRoots = true;
-        private List<File> sourceRoots = Lists.newArrayList();
+        private final List<File> sourceRoots = Lists.newArrayList();
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             cannotInferSourceRoots(contents);
-        }
-
-        @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            cannotInferSourceRoots(fileTree);
         }
 
         @Override
