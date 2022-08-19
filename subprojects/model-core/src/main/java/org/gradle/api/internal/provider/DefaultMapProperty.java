@@ -223,7 +223,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (sideEffect != null) {
                 setSupplier(new FixedWithSideEffectSupplier<>(Cast.uncheckedNonnullCast(value.getFixedValue()), Cast.uncheckedNonnullCast(sideEffect)));
             } else {
-                setSupplier(new FixedSuppler<>(Cast.uncheckedNonnullCast(value.getFixedValue())));
+                setSupplier(new FixedSupplier<>(Cast.uncheckedNonnullCast(value.getFixedValue())));
             }
         } else {
             setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
@@ -250,7 +250,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
             Map<K, V> entries = result.get();
-            return new FixedSuppler<>(entries);
+            return new FixedSupplier<>(entries);
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -374,10 +374,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class FixedSuppler<K, V> implements MapSupplier<K, V> {
+    private static class FixedSupplier<K, V> implements MapSupplier<K, V> {
         private final Map<K, V> entries;
 
-        public FixedSuppler(Map<K, V> entries) {
+        public FixedSupplier(Map<K, V> entries) {
             this.entries = entries;
         }
 
@@ -412,7 +412,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class FixedWithSideEffectSupplier<K, V> extends FixedSuppler<K, V> {
+    private static class FixedWithSideEffectSupplier<K, V> extends FixedSupplier<K, V> {
 
         private final SideEffect<Map<K, V>> sideEffect;
 
