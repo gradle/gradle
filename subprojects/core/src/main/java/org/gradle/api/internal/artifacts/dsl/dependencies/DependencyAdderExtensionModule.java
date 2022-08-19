@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
@@ -30,7 +31,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 
 public class DependencyAdderExtensionModule {
     /**
@@ -57,22 +60,94 @@ public class DependencyAdderExtensionModule {
     /**
      * Add a dependency.
      *
-     * @param map a map of configuration parameters for the dependency
-     * @see DependencyFactory#create(Map) Valid dependency notation for this method
+     * @param group the group
+     * @param name the name
+     * @param version the version
      */
-    public static void call(DependencyAdder self, Map<String, ?> map) {
-        self.add(map);
+    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version) {
+        self.add(group, name, version);
     }
 
     /**
      * Add a dependency.
      *
+     * @param group the group
+     * @param name the name
+     * @param version the version
+     * @param configuration an action to configure the dependency
+     */
+    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+        self.add(group, name, version, ConfigureUtil.configureUsing(configuration));
+    }
+
+    /**
+     * Add a dependency.
+     *
+     * @param group the group
+     * @param name the name
+     * @param version the version
+     * @param classifier the classifier
+     * @param extension the extension
+     */
+    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
+        self.add(group, name, version, classifier, extension);
+    }
+
+    /**
+     * Add a dependency.
+     *
+     * @param group the group
+     * @param name the name
+     * @param version the version
+     * @param classifier the classifier
+     * @param extension the extension
+     * @param configuration an action to configure the dependency
+     */
+    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+        self.add(group, name, version, classifier, extension, ConfigureUtil.configureUsing(configuration));
+    }
+
+    /**
+     * Add a dependency. The map may contain the following keys:
+     * <ul>
+     *   <li>{@code group}</li>
+     *   <li>{@code name}</li>
+     *   <li>{@code version}</li>
+     *   <li>{@code classifier}</li>
+     *   <li>{@code extension}</li>
+     * </ul>
+     *
+     * @param map a map of configuration parameters for the dependency
+     */
+    public static void call(DependencyAdder self, Map<String, CharSequence> map) {
+        call(self, map, null);
+    }
+
+    private static final Set<String> LEGAL_MAP_KEYS = ImmutableSet.of("group", "name", "version", "classifier", "extension");
+
+    /**
+     * Add a dependency. The map may contain the following keys:
+     * <ul>
+     *   <li>{@code group}</li>
+     *   <li>{@code name}</li>
+     *   <li>{@code version}</li>
+     *   <li>{@code classifier}</li>
+     *   <li>{@code extension}</li>
+     * </ul>
+     *
      * @param map a map of configuration parameters for the dependency
      * @param configuration an action to configure the dependency
-     * @see DependencyFactory#create(Map) Valid dependency notation for this method
      */
-    public static void call(DependencyAdder self, Map<String, ?> map, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
-        self.add(map, ConfigureUtil.configureUsing(configuration));
+    public static void call(DependencyAdder self, Map<String, CharSequence> map, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+        if (!LEGAL_MAP_KEYS.containsAll(map.keySet())) {
+            throw new IllegalArgumentException("The map must contain only the following keys: " + LEGAL_MAP_KEYS);
+        }
+        String group = (map.containsKey("group")) ? map.get("group").toString() : null;
+        String name = (map.containsKey("name")) ? map.get("name").toString() : null;
+        String version = (map.containsKey("version")) ? map.get("version").toString() : null;
+        String classifier = (map.containsKey("classifier")) ? map.get("classifier").toString() : null;
+        String extension = (map.containsKey("extension")) ? map.get("extension").toString() : null;
+        self.add(group, name, version, classifier, extension, ConfigureUtil.configureUsing(configuration));
     }
 
     /**

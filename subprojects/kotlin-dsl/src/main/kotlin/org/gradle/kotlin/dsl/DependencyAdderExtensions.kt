@@ -57,22 +57,30 @@ operator fun DependencyAdder.invoke(dependencyNotation: CharSequence, configurat
 /**
  * Add a dependency.
  *
- * @param map a map of configuration parameters for the dependency
- * @see DependencyFactory.create
+ * @param group the group
+ * @param name the name
+ * @param version the version
+ * @param classifier the classifier
+ * @param extension the extension
  * @since 7.6
  */
-operator fun DependencyAdder.invoke(map: Map<String, *>) = add(map)
+operator fun DependencyAdder.invoke(group: String?, name: String, version: String? = null, classifier: String? = null, extension: String? = null) =
+    add(group, name, version, classifier, extension)
 
 
 /**
  * Add a dependency.
  *
- * @param map a map of configuration parameters for the dependency
+ * @param group the group
+ * @param name the name
+ * @param version the version
+ * @param classifier the classifier
+ * @param extension the extension
  * @param configuration an action to configure the dependency
- * @see DependencyFactory.create
  * @since 7.6
  */
-operator fun DependencyAdder.invoke(map: Map<String, *>, configuration: Action<in ExternalModuleDependency>) = add(map, configuration)
+operator fun DependencyAdder.invoke(group: String?, name: String, version: String? = null, classifier: String? = null, extension: String? = null, configuration: Action<in ExternalModuleDependency>) =
+    add(group, name, version, classifier, extension, configuration)
 
 
 /**

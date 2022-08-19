@@ -35,7 +35,6 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultDependencyAdder implements DependencyAdder {
     private final DependencyFactoryInternal dependencyFactory;
@@ -118,13 +117,23 @@ public class DefaultDependencyAdder implements DependencyAdder {
     }
 
     @Override
-    public void add(Map<String, ?> map) {
-        doAddEager(dependencyFactory.create(map), null);
+    public void add(@Nullable String group, String name, @Nullable String version) {
+        doAddEager(dependencyFactory.create(group, name, version), null);
     }
 
     @Override
-    public void add(Map<String, ?> map, Action<? super ExternalModuleDependency> configuration) {
-        doAddEager(dependencyFactory.create(map), configuration);
+    public void add(@Nullable String group, String name, @Nullable String version, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.create(group, name, version), configuration);
+    }
+
+    @Override
+    public void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String ext) {
+        doAddEager(dependencyFactory.create(group, name, version, classifier, ext), null);
+    }
+
+    @Override
+    public void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String ext, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.create(group, name, version, classifier, ext), configuration);
     }
 
     @Override

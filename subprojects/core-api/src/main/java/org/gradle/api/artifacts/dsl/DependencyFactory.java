@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
 
-import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Factory class for creating {@link Dependency} instances, with strong typing.
@@ -59,19 +59,26 @@ public interface DependencyFactory {
     ExternalModuleDependency create(CharSequence dependencyNotation);
 
     /**
-     * Create an {@link ExternalModuleDependency} from a {@link Map}. The map may contain the following keys:
-     * <ul>
-     *     <li>{@code group}</li>
-     *     <li>{@code name}</li>
-     *     <li>{@code version}</li>
-     *     <li>{@code classifier}</li>
-     *     <li>{@code extension}</li>
-     * </ul>
+     * Create an {@link ExternalModuleDependency} from a series of strings.
      *
-     * @param map the dependency map
+     * @param group the group
+     * @param name the name
+     * @param version the version
      * @return the new dependency
      */
-    ExternalModuleDependency create(Map<String, ?> map);
+    ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version);
+
+    /**
+     * Create an {@link ExternalModuleDependency} from a series of strings.
+     *
+     * @param group the group
+     * @param name the name
+     * @param version the version
+     * @param classifier the classifier
+     * @param extension the extension
+     * @return the new dependency
+     */
+    ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
 
     /**
      * Create a {@link FileCollectionDependency} from a {@link FileCollection}.
