@@ -246,6 +246,45 @@ class WithSideEffectProviderTest extends Specification {
         0 * _
     }
 
+    def "runs side effects for zipped providers when #description value"() {
+        given:
+        def leftSideEffect = Mock(ValueSupplier.SideEffect)
+        def rightSideEffect = Mock(ValueSupplier.SideEffect)
+        def zippedSideEffect = Mock(ValueSupplier.SideEffect)
+        def leftWithSideEffect = Providers.ofNullable(leftValue).withSideEffect(leftSideEffect)
+        def rightWithSideEffect = Providers.ofNullable(rightValue).withSideEffect(rightSideEffect)
+        def zipped = leftWithSideEffect.zip(rightWithSideEffect) { a, b -> a + b } as ProviderInternal<Integer>
+        def provider = zipped.withSideEffect(zippedSideEffect)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        def result = provider.getOrNull()
+
+        then:
+        result == expectedResult
+        leftRuns * leftSideEffect.execute(leftValue)
+
+        then: // ensure ordering
+        rightRuns * rightSideEffect.execute(rightValue)
+
+        then: // ensure ordering
+        (leftRuns + rightRuns > 0 ? 1 : 0) * zippedSideEffect.execute(expectedResult)
+        0 * _
+
+        where:
+        description      | leftValue | leftRuns | rightValue | rightRuns | expectedResult
+        "both have"      | 23        | 1        | 88         | 1         | 23 + 88
+        "only left has"  | 23        | 0        | null       | 0         | null
+        "only right has" | null      | 0        | 88         | 0         | null
+        "none have"      | null      | 0        | null       | 0         | null
+    }
+
     def "carries the side effect in the execution time value for a provider of a fixed value"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
