@@ -16,40 +16,36 @@
 
 package org.gradle.configurationcache
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @NotYetImplemented
     def "doesn't restore convention value to incompatible field type"() {
         given:
         buildFile << """
             abstract class MyTask extends org.gradle.api.internal.ConventionTask {
-                public final Property<String> archiveName
-                MyTask() {
-                    archiveName = project.objects.property(String)
-                    archiveName.convention("something")
-                }
+                private final Property<String> archiveName = project.objects.property(String)
+                @Input Property<String> getArchiveFileName() { return this.archiveName }
 
-                @Internal String getArchiveName() { return archiveName.getOrNull() }
-                void setArchiveName(String value) { this.archiveName.set(value) }
-
-                @Internal Property<String> getAlternate() { return archiveName }
+                @Internal String getArchiveName() { return archiveFileName.getOrNull() }
+                void setArchiveName(String value) { archiveFileName.set(value) }
 
                 @TaskAction
                 void doIt() {
-                    assert archiveName.get() == "something"
+                    assert archiveFileName.get() == "something"
                 }
             }
 
             task myTask(type: MyTask) {
-                archiveName.convention("something")
                 conventionMapping('archiveName') { 'not something' }
+                archiveFileName.convention("something")
             }
         """
 
