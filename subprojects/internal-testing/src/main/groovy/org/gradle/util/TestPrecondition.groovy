@@ -134,6 +134,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK18_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_18
     }),
+    JDK19_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_19
+    }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
