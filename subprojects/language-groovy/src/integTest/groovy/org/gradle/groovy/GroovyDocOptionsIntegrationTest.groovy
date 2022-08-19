@@ -37,12 +37,6 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         return versionNumber >= VersionNumber.parse("1.7.3")
     }
 
-    private static boolean supportsDisablingScriptsInGroovydoc() {
-        // Groovy 3 to 4 doesn't support script flags at all. The Parrot parser doesn't check them.
-        // https://issues.apache.org/jira/browse/GROOVY-10578
-        return supportsScriptsInGroovydoc() && versionNumber < VersionNumber.parse("3.0.0")
-    }
-
     // The flags are available in all versions of Groovydoc, but package/protected only works in 1.7 and above
     private static boolean supportsHidingNonPrivateScopes() {
         return versionNumber >= VersionNumber.parse("1.7")
@@ -90,7 +84,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     def "scripts can be disabled"() {
-        assumeTrue(supportsDisablingScriptsInGroovydoc())
+        assumeTrue(supportsScriptsInGroovydoc())
         when:
         buildFile << "groovydoc { processScripts = false }"
         run "groovydoc"
@@ -101,7 +95,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     def "main method can be disabled for scripts"() {
-        assumeTrue(supportsDisablingScriptsInGroovydoc())
+        assumeTrue(supportsScriptsInGroovydoc())
         when:
         buildFile << "groovydoc { includeMainForScripts = false }"
         run "groovydoc"

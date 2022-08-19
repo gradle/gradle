@@ -117,6 +117,10 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
+==== Upgrade to Groovy 3.0.12
+
+Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.12].
+
 === Deprecations
 
 [[dependency_factory_renamed]]
