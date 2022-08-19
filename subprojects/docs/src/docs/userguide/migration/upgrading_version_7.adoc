@@ -62,6 +62,11 @@ TBD
 
 Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.AntBuilder` class.  It now extends `groovy.ant.AntBuilder`.
 
+==== PluginDeclaration is not serializable
+
+`org.gradle.plugin.devel.PluginDeclaration` is not serializable anymore.
+If you need to serialize it, you can convert it into your own, serializable class.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
