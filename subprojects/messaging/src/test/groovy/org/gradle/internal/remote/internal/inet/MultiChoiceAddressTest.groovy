@@ -20,21 +20,18 @@ import spock.lang.Specification
 
 class MultiChoiceAddressTest extends Specification {
     def "has useful display name"() {
-        InetAddress candidate = Mock()
+        InetAddress candidate = InetAddress.getByName("1.1.1.1")
         UUID uuid = UUID.randomUUID()
         def address = new MultiChoiceAddress(uuid, 1234, [candidate])
 
-        given:
-        candidate.toString() >> '<address>'
-
         expect:
-        address.displayName == "[${uuid} port:1234, addresses:[<address>]]"
+        address.displayName == "[${uuid} port:1234, addresses:[/1.1.1.1]]"
         address.toString() == address.displayName
     }
 
     def "addresses are equal when their canonical id and port and candidate addresses are equal"() {
-        InetAddress address1 = Mock()
-        InetAddress address2 = Mock()
+        InetAddress address1 = InetAddress.getByName("1.1.1.1")
+        InetAddress address2 = InetAddress.getByName("1.0.0.1")
         UUID id = UUID.randomUUID()
         UUID otherId = UUID.randomUUID()
         def address = new MultiChoiceAddress(id, 1234, [address1])
