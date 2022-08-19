@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
