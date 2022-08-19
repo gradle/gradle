@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -34,6 +33,7 @@ import org.gradle.api.provider.ProviderConvertible;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -83,18 +83,27 @@ public class DefaultDependencyAdder implements DependencyAdder {
         configuration.getDependencies().addLater(provider);
     }
 
-    private void doAddBundleLazy(Provider<? extends ExternalModuleDependencyBundle> dependency, @Nullable Action<? super ExternalModuleDependency> config) {
-        Provider<? extends Iterable<Dependency>> provider = dependency.map(bundle -> {
-            List<Dependency> newList = new ArrayList<>(bundle.size());
-            for (MinimalExternalModuleDependency dep : bundle) {
-                ExternalModuleDependency converted = finalizeDependency(dep);
-                if (config != null) {
-                    config.execute(converted);
-                }
-                newList.add(converted);
+    private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
+        List<Dependency> newList = new ArrayList<>(
+            bundle instanceof Collection<?> ? ((Collection<?>) bundle).size() : 0
+        );
+        for (D dep : bundle) {
+            D converted = finalizeDependency(dep);
+            if (config != null) {
+                config.execute(converted);
             }
-            return newList;
-        });
+            newList.add(converted);
+        }
+        return newList;
+    }
+
+    private <D extends Dependency> void doAddBundleEager(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
+        List<Dependency> dependencies = createDependencyList(bundle, config);
+        configuration.getDependencies().addAll(dependencies);
+    }
+
+    private <D extends Dependency> void doAddBundleLazy(Provider<? extends Iterable<? extends D>> dependency, @Nullable Action<? super D> config) {
+        Provider<List<Dependency>> provider = dependency.map(bundle -> createDependencyList(bundle, config));
         configuration.getDependencies().addAllLater(provider);
     }
 
@@ -169,22 +178,32 @@ public class DefaultDependencyAdder implements DependencyAdder {
     }
 
     @Override
-    public void bundle(Provider<? extends ExternalModuleDependencyBundle> bundle) {
+    public <D extends Dependency> void bundle(Iterable<? extends D> bundle) {
+        doAddBundleEager(bundle, null);
+    }
+
+    @Override
+    public <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration) {
+        doAddBundleEager(bundle, configuration);
+    }
+
+    @Override
+    public <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle) {
         doAddBundleLazy(bundle, null);
     }
 
     @Override
-    public void bundle(Provider<? extends ExternalModuleDependencyBundle> bundle, Action<? super ExternalModuleDependency> configuration) {
+    public <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
         doAddBundleLazy(bundle, configuration);
     }
 
     @Override
-    public void bundle(ProviderConvertible<? extends ExternalModuleDependencyBundle> bundle) {
+    public <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle) {
         doAddBundleLazy(bundle.asProvider(), null);
     }
 
     @Override
-    public void bundle(ProviderConvertible<? extends ExternalModuleDependencyBundle> bundle, Action<? super ExternalModuleDependency> configuration) {
+    public <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
         doAddBundleLazy(bundle.asProvider(), configuration);
     }
 
