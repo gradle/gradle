@@ -33,6 +33,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
 
     def setup() {
+        captureBuildOperations()
+
         buildFile << """
             apply plugin: "java"
 
