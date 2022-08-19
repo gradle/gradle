@@ -126,8 +126,7 @@ class FixedValueReplacingProviderCodec(
             2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
             3.toByte() -> {
                 val value = read()
-                @Suppress("UNCHECKED_CAST")
-                val sideEffect = read() as ValueSupplier.SideEffect<in Any>
+                val sideEffect = readNonNull<ValueSupplier.SideEffect<in Any>>()
                 // nullable because serialization may replace value with null, eg when using provider of Task
                 ValueSupplier.ExecutionTimeValue.ofNullable(value).withSideEffect(sideEffect)
             }
