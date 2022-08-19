@@ -21,15 +21,12 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -128,14 +125,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
 
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(
-            getMainClass().orElse(
-                Providers.changing(
-                    // go through 'main' to keep this compatible with existing convention mappings
-                    () -> DeprecationLogger.whileDisabled(this::getMain)
-                )
-            )
-        );
+        javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);
@@ -396,38 +386,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public Property<String> getMainClass() {
         return mainClass;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    @ReplacedBy("mainClass")
-    public String getMain() {
-        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getMainClass().getOrNull();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public JavaExec setMain(String mainClassName) {
-        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        getMainClass().set(mainClassName);
-        return this;
     }
 
     /**
