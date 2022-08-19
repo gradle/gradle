@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
@@ -24,7 +23,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -48,24 +47,22 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ConfigurationContainer configurations;
@@ -96,15 +93,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public void inject(ProjectInternal project, SourceSetContainer sourceSets) {
         this.project = project;
         this.sourceSets = sourceSets;
-    }
-
-    @Override
-    public void configureClassesDirectoryVariant(String configurationName, SourceSet sourceSet) {
-        configurations.all(config -> {
-            if (configurationName.equals(config.getName())) {
-                registerClassesDirVariant(sourceSet, config);
-            }
-        });
     }
 
     @Override
@@ -184,32 +172,35 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         }
     }
 
-    private void registerClassesDirVariant(final SourceSet sourceSet, Configuration configuration) {
-        // Define a classes variant to use for compilation
+    @Override
+    public ConfigurationVariant configureResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("resources");
+        variant.setDescription("Directories containing assembled resource files for " + sourceSet.getName() + ".");
+        variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
+        DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
+        DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
+        if (resourcesContribution != null) {
+            variant.artifact(new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+        }
+        return variant;
+    }
+
+    @Override
+    public ConfigurationVariant configureClassesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
         variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
-        variant.artifactsProvider(new Factory<List<PublishArtifact>>() {
-            @Nullable
-            @Override
-            public List<PublishArtifact> create() {
-                Set<File> classesDirs = sourceSet.getOutput().getClassesDirs().getFiles();
-                DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-                TaskDependency classesContributors = output.getClassesContributors();
-                ImmutableList.Builder<PublishArtifact> artifacts = ImmutableList.builderWithExpectedSize(classesDirs.size());
-                for (File classesDir : classesDirs) {
-                    // this is an approximation: all "compiled" sources will use the same task dependency
-                    artifacts.add(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesContributors) {
-                        @Override
-                        public File getFile() {
-                            return classesDir;
-                        }
-                    });
-                }
-                return artifacts.build();
-            }
+        variant.artifactsProvider(() ->  {
+            DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
+            List<DefaultSourceSetOutput.DirectoryContribution> classesContributors = output.getClassesContributors();
+
+            return classesContributors.stream().map(contribution ->
+                    new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, contribution.getTask(), contribution.getDirectory()))
+                .collect(Collectors.toList());
         });
+        return variant;
     }
 
     private <COMPILE extends AbstractCompile & HasCompileOptions> Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, Set<TaskProvider<COMPILE>> compileTasks) {
@@ -351,7 +342,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 if (sourceSet == null) {
                     throw new IllegalStateException("Cannot add a class directory variant without specifying the source set");
                 }
-                jvmEcosystemUtilities.configureClassesDirectoryVariant(name, sourceSet);
+                jvmEcosystemUtilities.configureClassesDirectoryVariant(cnf, sourceSet);
             }
             if (published) {
                 AdhocComponentWithVariants component = findJavaComponent();
