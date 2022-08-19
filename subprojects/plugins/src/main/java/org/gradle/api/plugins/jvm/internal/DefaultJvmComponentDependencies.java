@@ -120,7 +120,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     public Dependency localGroovy() {
         return getDependencyHandler().create(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
     }
-    
+
     public Dependency testFixtures(Project project) {
         final ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
         return testFixtures(projectDependency);
