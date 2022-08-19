@@ -485,9 +485,6 @@
                 <td>org.gradle.testing.jacoco.tasks.JacocoReport</td>
             </tr>
             <tr>
-                <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
-            </tr>
-            <tr>
                 <td>org.gradle.testing.jacoco.tasks.JacocoCoverageVerification</td>
             </tr>
             <tr>

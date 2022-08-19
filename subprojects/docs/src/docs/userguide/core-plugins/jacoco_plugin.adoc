@@ -179,7 +179,7 @@ The JaCoCo plugin adds the following dependency configurations:
 | Name          | Meaning
 
 | `jacocoAnt`
-| The JaCoCo Ant library used for running the `JacocoReport`, `JacocoMerge` and `JacocoCoverageVerification` tasks.
+| The JaCoCo Ant library used for running the `JacocoReport` and `JacocoCoverageVerification` tasks.
 
 | `jacocoAgent`
 | The JaCoCo agent library used for instrumenting the code under test.
