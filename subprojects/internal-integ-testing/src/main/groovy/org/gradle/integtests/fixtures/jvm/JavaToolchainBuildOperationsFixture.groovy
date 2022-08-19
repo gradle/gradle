@@ -25,23 +25,27 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
-import org.junit.Before
 
+/**
+ * Captures build operations and allows to make assertions about events related to Java Toolchains.
+ * <p>
+ * When using this fixture make sure to first call {@link JavaToolchainBuildOperationsFixture#captureBuildOperations captureBuildOperations}
+ * in the {@code setup} method of the test class or in the beginning of a test itself.
+ */
 @SelfType(AbstractIntegrationSpec)
 trait JavaToolchainBuildOperationsFixture {
 
     private BuildOperationsFixture operations
 
-    @Before
-    void setupBuildOperations() {
-        operations = new BuildOperationsFixture(executer, temporaryFolder)
+    void captureBuildOperations() {
+        if (operations == null) {
+            operations = new BuildOperationsFixture(executer, temporaryFolder)
+        }
     }
 
-    // Spock 2 executes @Before after the setup() methods
-    // this is a workaround for tests that use this fixture from their setup() methods
-    private void initIfNeeded() {
+    private void ensureInitialized() {
         if (operations == null) {
-            setupBuildOperations()
+            throw new IllegalStateException("Make sure to call `captureBuildOperations` before using methods that work on captured operations.")
         }
     }
 
@@ -73,7 +77,7 @@ trait JavaToolchainBuildOperationsFixture {
     }
 
     List<BuildOperationRecord.Progress> toolchainEvents(String taskPath) {
-        initIfNeeded()
+        ensureInitialized()
         return progressEventsFor(
             operations, JavaToolchainUsageProgressDetails, taskPath,
             ResolveTaskMutationsBuildOperationType, ExecuteTaskBuildOperationType
