@@ -25,8 +25,6 @@ class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
 
-            ${mavenCentralRepository()}
-
             javaToolchains.launcherFor {
                 $configureInvalid
             }
@@ -50,10 +48,8 @@ class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
 
-            ${mavenCentralRepository()}
-
             javaToolchains.launcherFor {
-                $configureInvalid
+                $configure
             }
         """
 
@@ -64,7 +60,7 @@ class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':help'
 
         where:
-        description                                 | configureInvalid
+        description                                 | configure
         "configured with language version"          | 'languageVersion = JavaLanguageVersion.of(9)'
         "configured not only with language version" | 'languageVersion = JavaLanguageVersion.of(9); vendor = JvmVendorSpec.AZUL'
         "unconfigured"                              | ''
