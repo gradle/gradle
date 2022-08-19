@@ -56,6 +56,8 @@ abstract class ExternalModulesExtension {
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
     val googleHttpClient = "com.google.http-client:google-http-client"
+    val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
+    val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "org.codehaus.groovy:groovy"
