@@ -28,31 +28,36 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
 
     def "doesn't restore convention value to incompatible field type"() {
         given:
-        settingsFile << """
-            rootProject.name = 'test'
-        """
-
         buildFile << """
-            plugins {
-                id 'java-library'
+            abstract class MyTask extends org.gradle.api.internal.ConventionTask {
+                public final Property<String> archiveName
+                MyTask() {
+                    archiveName = project.objects.property(String)
+                    archiveName.convention("something")
+                }
+
+                @Internal String getArchiveName() { return archiveName.getOrNull() }
+                void setArchiveName(String value) { this.archiveName.set(value) }
+
+                @Internal Property<String> getAlternate() { return archiveName }
+
+                @TaskAction
+                void doIt() {
+                    assert archiveName.get() == "something"
+                }
             }
-            tasks.withType(Jar.class).named('jar') { javaJar ->
-                // The Jar.archiveFileName field is of type Property<String>
-                javaJar.conventionMapping('archiveFileName') { 'some_name' }
+
+            task myTask(type: MyTask) {
+                archiveName.convention("something")
+                conventionMapping('archiveName') { 'not something' }
             }
         """
 
-        when:
-        configurationCacheRun 'jar'
+        expect: 'convention mapping is ignored'
+        configurationCacheRun 'myTask'
 
-        then: 'convention mapping is ignored'
-        new JarTestFixture(file('build/libs/test.jar'))
-
-        when:
-        configurationCacheRun 'jar'
-
-        then: 'convention mapping is ignored just the same'
-        new JarTestFixture(file('build/libs/test.jar'))
+        and: 'convention mapping is ignored just the same'
+        configurationCacheRun 'myTask'
     }
 
     def "restores convention mapped task input property explicitly set to null"() {
