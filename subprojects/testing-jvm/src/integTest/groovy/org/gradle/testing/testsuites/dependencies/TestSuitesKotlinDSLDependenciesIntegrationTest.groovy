@@ -18,7 +18,6 @@ package org.gradle.testing.testsuites.dependencies
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -323,8 +322,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register("checkConfiguration") {
+                val compileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
+
                 doLast {
-                    configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }.contains("commons-lang3-3.11.jar")
+                    assert(!compileClasspathFileNames.contains("commons-lang3-3.11.jar"))
                 }
             }
         """
@@ -749,8 +750,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register("checkConfiguration") {
+                val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
                 doLast {
-                    val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
                     assert(testCompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                     assert(!testCompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
@@ -817,7 +818,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     // region multiple GAV strings
-    @ToBeFixedForConfigurationCache(because = "Task is meant to fail, won't be cached")
     def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (varargs)"() {
         given:
         buildKotlinFile << """
@@ -845,18 +845,19 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn(configurations.getByName("${suiteName}CompileClasspath"))
+                // Due to the named-args method being invoked, we are actually requesting a single dependency
+                val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
+                // We might get junit included too, dependending on the test suite, so filter it
+                val deps = ${suiteName}Implementation.dependencies.filter { it.name != "junit-jupiter" }
+                            .map { listOf(it.group, it.name, it.version ?: "null") }
                 doLast {
-                    // Due to the named-args method being invoked, we are actually requesting a single dependency
-                    val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
-                    // We might get junit included too, dependending on the test suite, so filter it
-                    val deps = ${suiteName}Implementation.dependencies.filter { it.name != "junit-jupiter" }
                     assert(deps.size == 1) { "expected 1 dependency, found " + (deps.size) + " dependencies" }
 
                     // The dependency uses the 2 args we supplied incorrectly
                     val requested = deps.get(0)
-                    assert(requested.group == "org.apache.commons:commons-lang3:3.11") { "expected commons-lang3 group" }
-                    assert(requested.name == "com.google.guava:guava:30.1.1-jre") { "expected guava name" }
-                    assert(requested.version == null) { "expected null version" }
+                    assert(requested[0] == "org.apache.commons:commons-lang3:3.11") { "expected commons-lang3 group" }
+                    assert(requested[1] == "com.google.guava:guava:30.1.1-jre") { "expected guava name" }
+                    assert(requested[2] == "null") { "expected null version" }
                 }
             }
         """
@@ -1025,9 +1026,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register("checkConfiguration") {
                 dependsOn("$suiteName")
+                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
                 doLast {
-                    val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-
                     assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                     assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
                 }
@@ -1535,9 +1535,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register("checkConfiguration") {
             dependsOn("$suiteName")
+            val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
             doLast {
-                val ${suiteName}CompileClasspathFileNames = configurations.getByName("${suiteName}CompileClasspath").files.map { it.name }
-
                 assert(${suiteName}CompileClasspathFileNames.contains("commons-beanutils-1.9.4.jar"))
                 assert(!${suiteName}CompileClasspathFileNames.contains("commons-collections-3.2.2.jar")) { "excluded dependency" }
             }
