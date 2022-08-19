@@ -145,6 +145,10 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                 ant.builder.saveStreams = false
                 formatter(type: consoleOutputType, toConsole: true)
             }
+
+            if (parameters.languageName.isPresent() && parameters.languageVersion.isPresent()) {
+                sourceLanguage(name: parameters.languageName.get(), version: parameters.languageVersion.get())
+            }
         }
         def failureCount = ant.builder.project.properties["pmdFailureCount"]
         if (failureCount) {

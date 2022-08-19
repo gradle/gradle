@@ -83,6 +83,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
     private final Property<JavaLauncher> javaLauncher;
+    private final Property<String> languageName;
+    private final Property<String> languageVersion;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
@@ -91,6 +93,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
         this.threads = objects.property(Integer.class);
+        this.languageName = objects.property(String.class);
+        this.languageVersion = objects.property(String.class);
         // Set default JavaLauncher to current JVM in case
         // PmdPlugin that sets Java launcher convention is not applied
         this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
@@ -170,6 +174,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
             newReport.getOutputLocation().set(report.getOutputLocation());
             return newReport;
         }).collect(Collectors.toList()));
+        parameters.getLanguageName().set(getLanguageName());
+        parameters.getLanguageVersion().set(getLanguageVersion());
     }
 
     public boolean stdOutIsAttachedToTerminal() {
@@ -484,5 +490,30 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @Incubating
     public Property<Integer> getThreads() {
         return threads;
+    }
+
+    /**
+     * Specifies the language name used by PMD.
+     *
+     * @see PmdExtension#getLanguageName()
+     * @since 7.7
+     */
+    @Input
+    @Incubating
+    public Property<String> getLanguageName() {
+        return languageName;
+    }
+
+    /**
+     * Specifies the language version used by PMD.
+     *
+     * @see PmdExtension#getLanguageVersion()
+     * @since 7.7
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Property<String> getLanguageVersion() {
+        return languageVersion;
     }
 }

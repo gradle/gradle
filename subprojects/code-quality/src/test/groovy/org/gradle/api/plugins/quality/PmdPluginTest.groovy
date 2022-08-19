@@ -58,6 +58,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         extension.maxFailures.get() == 0
         extension.rulesMinimumPriority.get() == 5
         extension.threads.get() == 1
+        extension.languageName.get() == "java"
+        extension.languageVersion.getOrElse(null) == null
     }
 
     def "configures pmd task for each source set"() {
@@ -114,6 +116,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert rulesMinimumPriority.get() == 5
             assert incrementalAnalysis.get() == true
             assert threads.get() == 1
+            assert languageName.get() == "java"
+            assert languageVersion.getOrElse(null) == null
         }
     }
 
@@ -134,6 +138,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.rulesMinimumPriority.get() == 5
         task.incrementalAnalysis.get() == true
         task.threads.get() == 1
+        task.languageName.get() == "java"
+        task.languageVersion.getOrElse(null) == null
     }
 
     def "adds pmd tasks to check lifecycle task"() {
@@ -166,6 +172,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             maxFailures = 17
             rulesMinimumPriority = 3
             threads = 2
+            languageName = "java"
+            languageVersion = "11"
         }
 
         expect:
@@ -192,6 +200,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert maxFailures.get() == 17
             assert rulesMinimumPriority.get() == 3
             task.threads.get() == 2
+            task.languageName.get() == "java"
+            task.languageVersion.get() == "11"
         }
     }
 
@@ -206,6 +216,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             maxFailures = 5
             rulesMinimumPriority = 3
             threads = 2
+            languageName = "java"
+            languageVersion = "11"
         }
 
         expect:
@@ -222,6 +234,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.maxFailures.get() == 5
         task.rulesMinimumPriority.get() == 3
         task.threads.get() == 2
+        task.languageName.get() == "java"
+        task.languageVersion.get() == "11"
     }
 
     def "configures pmd classpath based on sourcesets"() {

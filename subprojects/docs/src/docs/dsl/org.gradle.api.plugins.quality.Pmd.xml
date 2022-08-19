@@ -75,6 +75,16 @@
                 <td>javaLauncher</td>
                 <td></td>
             </tr>
+            <tr>
+                <td>languageName</td>
+                <td>
+                    <literal>"java"</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>languageVersion</td>
+                <td></td>
+            </tr>
         </table>
     </section>
     <section>

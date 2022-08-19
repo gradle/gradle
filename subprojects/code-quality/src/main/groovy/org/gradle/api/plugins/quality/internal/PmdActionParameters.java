@@ -59,6 +59,10 @@ public interface PmdActionParameters extends WorkParameters {
 
     ListProperty<EnabledReport> getEnabledReports();
 
+    Property<String> getLanguageName();
+
+    Property<String> getLanguageVersion();
+
     /**
      * Based off of {@link PmdReports}.
      */

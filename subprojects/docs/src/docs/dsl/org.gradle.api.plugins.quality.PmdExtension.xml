@@ -56,6 +56,14 @@
                 <td>threads</td>
                 <td><literal>1</literal></td>
             </tr>
+            <tr>
+                <td>languageName</td>
+                <td><literal>"java"</literal></td>
+            </tr>
+            <tr>
+                <td>languageVersion</td>
+                <td>null</td>
+            </tr>
         </table>
     </section>
     <section>

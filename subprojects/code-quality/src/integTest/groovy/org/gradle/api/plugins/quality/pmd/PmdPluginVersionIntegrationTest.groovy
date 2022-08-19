@@ -318,6 +318,52 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         failure.assertHasCause("Invalid number of threads '-1'.  Number should not be negative.")
     }
 
+    def "gets stacktrace when language name and version are not supported"() {
+        given:
+        goodCode()
+        buildFile << """
+            pmd {
+                languageName = "unsupportedLanguageName"
+                languageVersion = "unsupportedLanguageVersion"
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasCause("The following language is not supported:<sourceLanguage name=\"unsupportedLanguageName\" version=\"unsupportedLanguageVersion\" />.")
+        // pmdMain and pmdTest
+        failure.assertHasFailures(2)
+    }
+
+    def "only defining a language name does nothing"() {
+        given:
+        goodCode()
+        buildFile << """
+            pmd {
+                languageName = "unsupportedLanguageName"
+            }
+        """
+
+        expect:
+        succeeds("check")
+    }
+
+    def "only defining a language version uses 'java' as default language name"() {
+        given:
+        goodCode()
+        buildFile << """
+            pmd {
+                languageVersion = "unsupportedLanguageVersion"
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasCause("The following language is not supported:<sourceLanguage name=\"java\" version=\"unsupportedLanguageVersion\" />.")
+        // pmdMain and pmdTest
+        failure.assertHasFailures(2)
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/2326")
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
