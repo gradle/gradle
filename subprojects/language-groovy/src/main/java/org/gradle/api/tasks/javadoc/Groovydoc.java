@@ -408,11 +408,6 @@ public class Groovydoc extends SourceTask {
     /**
      * Whether to process scripts.
      *
-     * <p>
-     * This option has no effect under Groovy 3.0.0 and later, because it is not
-     * currently checked by the new Parrot-based Groovydoc.
-     * </p>
-     *
      * @since 7.5
      */
     @Input
@@ -422,11 +417,6 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Whether to include main method for scripts.
-     *
-     * <p>
-     * This option has no effect under Groovy 3.0.0 and later, because it is not
-     * currently checked by the new Parrot-based Groovydoc.
-     * </p>
      *
      * @since 7.5
      */
