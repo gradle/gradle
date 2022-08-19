@@ -41,10 +41,6 @@
                 <td><literal>false</literal></td>
             </tr>
             <tr>
-                <td>main</td>
-                <td><literal>null</literal></td>
-            </tr>
-            <tr>
                 <td>mainClass</td>
                 <td><literal>null</literal></td>
             </tr>

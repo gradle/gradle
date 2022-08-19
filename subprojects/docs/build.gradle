@@ -2,10 +2,12 @@ import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
+import org.gradle.internal.os.OperatingSystem
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
+import static gradlebuild.basics.BuildParamsKt.isConfigurationCacheEnabledForDocsTests
+import static gradlebuild.basics.BuildParamsKt.shouldRunBrokenForConfigurationCacheDocsTests
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id 'gradlebuild.internal.java'
@@ -643,6 +645,235 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.building-swift*.sample"
         }
     }
+
+    if (isConfigurationCacheEnabledForDocsTests(project)) {
+        systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
+        systemProperty("org.gradle.integtest.executer", "configCache")
+
+        filter {
+            // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-configuration-cache-*.sample"
+
+            // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
+            def testsForUnsupportedFeatures = [
+                "building-cpp-applications_groovy_build.sample",
+                "building-cpp-applications_kotlin_build.sample",
+                "building-cpp-libraries_groovy_build.sample",
+                "building-cpp-libraries_kotlin_build.sample",
+                "snippet-ant-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget.sample",
+                "snippet-ant-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget.sample",
+                "snippet-ant-depends-on-ant-target_groovy_dependsOnAntTarget.sample",
+                "snippet-ant-depends-on-ant-target_kotlin_dependsOnAntTarget.sample",
+                "snippet-ant-depends-on-task_groovy_dependsOnTask.sample",
+                "snippet-ant-depends-on-task_kotlin_dependsOnTask.sample",
+                "snippet-ant-hello_groovy_antHello.sample",
+                "snippet-ant-hello_kotlin_antHello.sample",
+                "snippet-ant-rename-task_groovy_renameAntDelegate.sample",
+                "snippet-ant-rename-task_kotlin_renameAntDelegate.sample",
+                "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig.sample",
+                "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck.sample",
+                "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy.sample",
+                "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck.sample",
+                "snippet-buildlifecycle-task-execution-events_kotlin_taskExecutionEvents.kotlin.sample",
+                "snippet-custom-model-internal-views_groovy_softwareModelExtend-iv-model.sample",
+                "snippet-custom-model-language-type_groovy_softwareModelExtend-components.sample",
+                "snippet-ide-eclipse_groovy_wtpWithXml.sample",
+                "snippet-ide-eclipse_kotlin_wtpWithXml.sample",
+                "snippet-ide-idea-additional-test-sources_groovy_ideaAdditionalTestSources.sample",
+                "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources.sample",
+                "snippet-ide-idea_groovy_projectWithXml.sample",
+                "snippet-ide-idea_kotlin_projectWithXml.sample",
+                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all.sample",
+                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task.sample",
+                "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired.sample",
+                "snippet-model-rules-configure-elements-of-map_groovy_modelDslModelMapNestedAll.sample",
+                "snippet-model-rules-initialization-rule-runs-before-configuration-rules_groovy_modelDslInitializationRuleRunsBeforeConfigurationRule.sample",
+                "snippet-native-binaries-cpp_groovy_nativeComponentReport.sample",
+                "snippet-native-binaries-cunit_groovy_assembleDependentComponents.sample",
+                "snippet-native-binaries-cunit_groovy_assembleDependentComponentsReport.sample",
+                "snippet-native-binaries-cunit_groovy_buildDependentComponents.sample",
+                "snippet-native-binaries-cunit_groovy_buildDependentComponentsReport.sample",
+                "snippet-native-binaries-cunit_groovy_completeCUnitExample.sample",
+                "snippet-native-binaries-cunit_groovy_dependentComponentsReport.sample",
+                "snippet-native-binaries-cunit_groovy_dependentComponentsReportAll.sample",
+                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
+                "snippet-tutorial-ant-loadfile_kotlin_antLoadfile.sample",
+            ]
+
+            // These tests use third-party plugins at versions that may not support the configuration cache properly.
+            // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
+            def testsWithThirdPartyFailures = [
+                "snippet-kotlin-dsl-android-single-build_kotlin_sanityCheck.sample",
+                "snippet-kotlin-dsl-android-build_kotlin_sanityCheck.sample",
+                "structuring-software-projects_groovy_aggregate-reports.sample",
+                "structuring-software-projects_groovy_build-server-application.sample",
+                "structuring-software-projects_groovy_umbrella-build.sample",
+                "structuring-software-projects_kotlin_aggregate-reports.sample",
+                "structuring-software-projects_kotlin_build-server-application.sample",
+                "structuring-software-projects_kotlin_umbrella-build.sample",
+            ]
+
+            // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
+            // The tests should be removed from this list when the feature becomes supported.
+            def testsForNotYetSupportedFeatures = [
+                "publishing-credentials_groovy_publishCommandLineCredentials.sample",
+                "publishing-credentials_kotlin_publishCommandLineCredentials.sample",
+                "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
+                "snippet-ivy-publish-descriptor-customization_groovy_publishingIvyGenerateDescriptor.sample",
+                "snippet-ivy-publish-descriptor-customization_kotlin_publishingIvyGenerateDescriptor.sample",
+                "snippet-ivy-publish-java-multi-project_groovy_publish-multi-project.sample",
+                "snippet-ivy-publish-java-multi-project_kotlin_publish-multi-project.sample",
+                "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishLifecycle.sample",
+                "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishSingle.sample",
+                "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishLifecycle.sample",
+                "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
+                "snippet-maven-publish-conditional-publishing_groovy_publishingMavenConditionally.sample",
+                "snippet-maven-publish-conditional-publishing_kotlin_publishingMavenConditionally.sample",
+                "snippet-signing-configurations_groovy_signingArchivesOutput.sample",
+                "snippet-signing-configurations_kotlin_signingArchivesOutput.sample",
+                "snippet-signing-maven-publish_groovy_publishingMavenSignAndPublish.sample",
+                "snippet-signing-maven-publish_groovy_signingPluginSignPublication.sample",
+                "snippet-signing-maven-publish_kotlin_publishingMavenSignAndPublish.sample",
+                "snippet-signing-maven-publish_kotlin_signingPluginSignPublication.sample",
+                "snippet-signing-tasks_groovy_signingTaskOutput.sample",
+                "snippet-signing-tasks_kotlin_signingTaskOutput.sample",
+                "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
+            ]
+
+            // Tests that can and has to be fixed to run with the configuration cache enabled.
+            // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
+            def testsToBeFixedForConfigurationCache = [
+                "snippet-artifacts-generated-file-dependencies_kotlin_generatedFileDependencies.sample",
+
+                "snippet-build-cache-cacheable-bundle-task_groovy_cacheableBundleTask.sample",
+                "snippet-build-cache-cacheable-bundle-task_kotlin_cacheableBundleTask.sample",
+
+                "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle-caching.sample",
+                "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle.sample",
+                "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle-caching.sample",
+                "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle.sample",
+
+                "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
+                "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
+
+                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_kotlin_resolve.sample",
+
+                "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
+
+                "snippet-dependency-management-customizing-resolution-classifier-substitution-rule_groovy_resolve.sample",
+                "snippet-dependency-management-customizing-resolution-classifier-substitution-rule_kotlin_resolve.sample",
+
+                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_kotlin_showJarFiles.sample",
+                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_kotlin_showJarFilesLocal.sample",
+
+                "snippet-dependency-management-customizing-resolution-deactivate-global-substitution_kotlin_resolve.sample",
+
+                "snippet-dependency-management-customizing-resolution-ivy-metadata-rule_kotlin_ivyComonentMetadataRule.sample",
+
+                "snippet-dependency-management-customizing-resolution-metadata-rule_kotlin_comonentMetadataRules.sample",
+
+                "snippet-dependency-management-defining-using-configurations-custom_kotlin_custom-configuration.sample",
+
+                "snippet-dependency-management-dependency-verification-disabling-verification_kotlin_disabling_verification.sample",
+
+                "snippet-dependency-management-managing-transitive-dependencies-exclude-for-configuration_kotlin_exclude-transitive-for-configuration.sample",
+
+                "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_kotlin_exclude-transitive-for-dependency.sample",
+
+                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_kotlin_accessingMetadataArtifact.sample",
+
+                "snippet-dependency-management-working-with-dependencies-iterate-artifacts_kotlin_iterating-artifacts.sample",
+
+                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
+
+                "snippet-dependency-management-working-with-dependencies-walk-graph_groovy_walking-dependency-graph.sample",
+                "snippet-dependency-management-working-with-dependencies-walk-graph_kotlin_walking-dependency-graph.sample",
+
+                "snippet-files-archive-naming_kotlin_archiveNaming.sample",
+
+                "snippet-files-archives-changed-base-name_groovy_zipWithArchivesBaseName.sample",
+                "snippet-files-archives-changed-base-name_kotlin_zipWithArchivesBaseName.sample",
+
+                "snippet-files-file-collections_kotlin_fileCollectionsFiltering.sample",
+                "snippet-files-file-collections_kotlin_fileCollectionsUsage.sample",
+                "snippet-files-file-collections_kotlin_fileCollectionsWithClosure.sample",
+
+                "snippet-init-scripts-configuration-injection_kotlin_initScriptConfiguration.kotlin.sample",
+
+                "snippet-init-scripts-plugins_kotlin_usePluginsInInitScripts.kotlin.sample",
+
+                "snippet-java-cross-compilation_kotlin_java7CrossCompilation.sample",
+
+                "snippet-java-custom-dirs_groovy_javaCustomReportDirs.sample",
+                "snippet-java-custom-dirs_kotlin_javaCustomReportDirs.sample",
+
+                "snippet-java-fixtures_kotlin_javaTestFixtures.sample",
+
+                "snippet-java-toolchain-filters_groovy_toolchainFilters.sample",
+                "snippet-java-toolchain-filters_kotlin_toolchainFilters.sample",
+
+                "snippet-kotlin-dsl-multi-project-build_kotlin_build.sample",
+
+                "snippet-providers-implicit-task-input-dependency_groovy_implicitTaskInputDependency.sample",
+                "snippet-providers-implicit-task-input-dependency_kotlin_implicitTaskInputDependency.sample",
+
+                "snippet-providers-property-convention_kotlin_propertyConvention.sample",
+
+                "snippet-tasks-custom-task-with-file-property_kotlin_lazyFileProperties.sample",
+
+                "snippet-tasks-custom-task-with-missing-file-property_kotlin_missingFileProperties.sample",
+
+                "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
+                "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep.sample",
+                "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep2.sample",
+                "snippet-tasks-incremental-build-custom-task-class_kotlin_customTaskClassWithInputOutputAnnotations.sample",
+                "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTask.sample",
+                "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
+                "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
+                "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
+
+                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildCustomMethods.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildCustomMethodsWithTaskArg.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildInputFilesConfig.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildInputFilesConfigUsingTask.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildUpToDateWhen.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_inferredTaskDependencyWithBuiltBy.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildCustomMethods.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildCustomMethodsWithTaskArg.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildInputFilesConfig.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildInputFilesConfigUsingTask.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildUpToDateWhen.sample",
+                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_inferredTaskDependencyWithBuiltBy.sample",
+
+                "snippet-tasks-incremental-task_kotlin_incrementalTaskChangedProperty.sample",
+                "snippet-tasks-incremental-task_kotlin_incrementalTaskFirstRun.sample",
+                "snippet-tasks-incremental-task_kotlin_incrementalTaskNoChange.sample",
+                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedInput.sample",
+                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedOutput.sample",
+                "snippet-tasks-incremental-task_kotlin_incrementalTaskUpdatedInputs.sample",
+
+                "snippet-tutorial-configure-task-using-project-property_groovy_configureTaskUsingProjectProperty.sample",
+                "snippet-tutorial-configure-task-using-project-property_kotlin_configureTaskUsingProjectProperty.sample",
+
+                "snippet-tutorial-extra-properties_kotlin_extraProperties.sample",
+
+                "snippet-tutorial-mkdir-trap_kotlin_mkdirTrap.sample",
+
+                "task-with-arguments_groovy_projectInfoTask.sample",
+                "task-with-arguments_kotlin_projectInfoTask.sample",
+            ]
+
+            def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
+            brokenTests.forEach { testName ->
+                def testMask = "org.gradle.docs.samples.*.$testName"
+                if (shouldRunBrokenForConfigurationCacheDocsTests(project)) {
+                    includeTestsMatching testMask
+                } else {
+                    excludeTestsMatching testMask
+                }
+            }
+        }
+    }
 }
 
 // Publications for the docs subproject:
@@ -665,30 +896,33 @@ tasks.named("check") {
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
 class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider {
-    private Project project
-    private Test testTask
-
-    GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
-        this.project = project
-        this.testTask = testTask
-    }
-
     @Internal
-    final ConfigurableFileCollection gradleHomeDir = project.objects.fileCollection()
+    final ConfigurableFileCollection gradleHomeDir
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
-    final DirectoryProperty samplesdir = project.objects.directoryProperty()
+    final DirectoryProperty samplesdir
 
     @Nested
-    GradleDistribution gradleDistribution = new GradleDistribution(gradleHomeDir)
+    final GradleDistribution gradleDistribution
+
+    private final FileCollection testTaskClasspath
+    private final Directory repoRoot
+
+    GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
+        this.gradleHomeDir = project.objects.fileCollection()
+        this.samplesdir = project.objects.directoryProperty()
+        this.gradleDistribution = new GradleDistribution(gradleHomeDir)
+        this.testTaskClasspath = testTask.classpath
+        this.repoRoot = repoRoot(project)
+    }
 
     @Override
     Iterable<String> asArguments() {
-        def distributionName = testTask.classpath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
+        def distributionName = testTaskClasspath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
         ["-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
          "-DintegTest.samplesdir=${samplesdir.get().asFile}",
-         "-DintegTest.gradleUserHomeDir=${repoRoot(project).dir("intTestHomeDir/$distributionName").asFile}"]
+         "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/$distributionName")}"]
     }
 }
 
