@@ -93,7 +93,8 @@ object Config {
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
-    const val androidStudioVersion = "2021.1.1.19"
+    // Android Studio Electric Eel (2022.1.1) Canary 9
+    const val androidStudioVersion = "2022.1.1.9"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
