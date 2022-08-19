@@ -30,6 +30,13 @@ class WithSideEffectProviderTest extends Specification {
         def provider = parent.withSideEffect(sideEffect)
 
         when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
         def unpackedValue = extract(provider)
 
         then:
@@ -52,6 +59,14 @@ class WithSideEffectProviderTest extends Specification {
         def provider = parent.withSideEffect(sideEffect)
 
         when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        counter.set(23)
         def unpackedValue = extract(provider)
         then:
         unpackedValue == 23
@@ -78,6 +93,13 @@ class WithSideEffectProviderTest extends Specification {
         def provider = parent.withSideEffect(sideEffect)
 
         when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
         def unpackedValue = unpack(provider)
 
         then:
@@ -98,6 +120,13 @@ class WithSideEffectProviderTest extends Specification {
         def provider = parent.withSideEffect(sideEffect)
 
         when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
         provider.get()
 
         then:
@@ -106,12 +135,19 @@ class WithSideEffectProviderTest extends Specification {
         0 * _
     }
 
-    def "chains side effects applied to the same provider"() {
+    def "chains side effects applied to the same provider when calling '#method'"() {
         given:
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
         def parent = Providers.of(23)
         def provider = parent.withSideEffect(sideEffect1).withSideEffect(sideEffect2)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
 
         when:
         extract(provider)
@@ -130,7 +166,7 @@ class WithSideEffectProviderTest extends Specification {
         "getOrElse" | { it.getOrElse(88) }
     }
 
-    def "runs the side effect when getting a value of a provider mapped with '#description'"() {
+    def "runs the side effect when provider is mapped with '#description'"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def counter = new AtomicInteger(23)
@@ -138,6 +174,14 @@ class WithSideEffectProviderTest extends Specification {
         def provider = wrap(parent.withSideEffect(sideEffect)) { it * 2 }
 
         when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        counter.set(23)
         def unpackedValue = provider.get()
 
         then:
@@ -155,9 +199,51 @@ class WithSideEffectProviderTest extends Specification {
 
         where:
         description                 | wrap
-        "ProviderInternal.map"      | { p, m -> p.map(m) }
+        "Provider.map"              | { p, m -> p.map(m) }
+        "Provider.flatMap"          | { p, m -> p.flatMap { Providers.of(m.call(it)) } }
         "TransformerBackedProvider" | { p, m -> new TransformBackedProvider(m, p) }
         "MappingProvider"           | { p, m -> new MappingProvider(Integer, p, m) }
+    }
+
+    def "runs the side effect when provider is flat-mapped to a provider with side effect"() {
+        given:
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def counter = new AtomicInteger(23)
+        def parent = Providers.changing { counter.getAndIncrement() }.withSideEffect(sideEffect1)
+        def provider = Providers.internal(parent.flatMap { Providers.of(it * 2).withSideEffect(sideEffect2) })
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calculating wrapped values
+
+        when:
+        counter.set(23)
+        def unpackedValue = provider.get()
+
+        then:
+        unpackedValue == 46
+        // Side effect of the provider returned by transform is executed first.
+        // See FlatMapProvider for details
+        1 * sideEffect2.execute(46)
+
+        then: // ensure invocation order
+        1 * sideEffect1.execute(23)
+        0 * _
+
+        when:
+        unpackedValue = provider.get()
+
+        then:
+        unpackedValue == 48
+        1 * sideEffect2.execute(48)
+
+        then: // ensure invocation order
+        1 * sideEffect1.execute(24)
+        0 * _
     }
 
     def "carries the side effect in the execution time value for a provider of a fixed value"() {
@@ -171,7 +257,7 @@ class WithSideEffectProviderTest extends Specification {
         value.fixedValue == 23
 
         then:
-        0 * sideEffect.execute(_)
+        0 * _
 
         when:
         value.toValue().get()
@@ -193,7 +279,7 @@ class WithSideEffectProviderTest extends Specification {
         def changingValue = value.getChangingValue()
 
         then:
-        0 * sideEffect.execute(_)
+        0 * _
 
         when:
         changingValue.get()
