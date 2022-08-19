@@ -85,7 +85,7 @@ public class DependencyNotationParser {
                     DeprecationLogger.deprecateInternalApi("DependencyFactory.ClassPathNotation")
                         .replaceWith("an appropriate call to DependencyHandler")
                         .willBeRemovedInGradle8()
-                        .undocumented()
+                        .withUpgradeGuideSection(7, "dependency_factory_renamed")
                         .nagUser();
                     dependencyClassPathNotationConverter.convert(DependencyFactoryInternal.ClassPathNotation.valueOf(
                         notation.name()
