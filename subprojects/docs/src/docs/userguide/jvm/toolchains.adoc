@@ -104,7 +104,9 @@ A `JavaToolchainSpec` is considered _valid_ in two cases:
 2. when `languageVersion` has been set, optionally followed by setting any other property.
 
 In other words, if a vendor or an implementation are specified, they must be accompanied by the language version.
-An empty specification in most cases corresponds to the toolchain that runs the current build.
+Gradle distinguishes between toolchain specifications that configure the language version and the ones that do not.
+A specification without a language version, in most cases, would be treated as a one that selects the toolchain of the current build.
+If the language version is not set then Gradle will ignore values provided for other properties of the specification.
 
 Usage of _invalid_ instances of `JavaToolchainSpec` is deprecated and will be removed in the future versions of Gradle.
 
