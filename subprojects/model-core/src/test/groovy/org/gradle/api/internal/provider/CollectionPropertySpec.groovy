@@ -615,7 +615,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasKnownProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue.isEmpty()
     }
@@ -654,7 +654,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
         value.fixedValue == toImmutable(["a", "b"])
     }
@@ -667,7 +667,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == toImmutable(["a", "b", "c"])
     }
 
@@ -679,7 +679,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == toImmutable(["a", "b"])
     }
 
@@ -691,7 +691,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == toImmutable(["a", "b", "c"])
     }
 

@@ -150,7 +150,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
         for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
-            node.setGroup(group);
+            node.maybeInheritOrdinalAsDependency(group);
+            group.addEntryNode(node);
             entryNodes.add(node);
             queue.add(node);
         }
@@ -271,6 +272,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         reachableCache.clear();
         finalizers.clear();
         preExecutionNodesVisited.clear();
+        ordinalNodeAccess.reset();
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
@@ -356,36 +358,36 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public Diagnostics healthDiagnostics() {
         lockCoordinator.assertHasStateLock();
-        State state = executionState();
-        // If no nodes are ready and nothing is running, then cannot make progress
-        boolean cannotMakeProgress = state == State.NoWorkReadyToStart && runningNodes.isEmpty();
-        if (cannotMakeProgress) {
-            List<String> queuedNodes = new ArrayList<>(executionQueue.size());
-            List<String> otherNodes = new ArrayList<>();
-            List<Node> queue = new ArrayList<>();
-            Set<Node> reported = new HashSet<>();
-            executionQueue.restart();
-            while (executionQueue.hasNext()) {
-                Node node = executionQueue.next();
-                queuedNodes.add(node.healthDiagnostics());
-                reported.add(node);
+
+        List<String> ordinalGroups = new ArrayList<>();
+        for (OrdinalGroup group : ordinalNodeAccess.getAllGroups()) {
+            ordinalGroups.add(group.diagnostics());
+        }
+
+        List<String> queuedNodes = new ArrayList<>(executionQueue.size());
+        List<String> otherNodes = new ArrayList<>();
+        List<Node> queue = new ArrayList<>();
+        Set<Node> reported = new HashSet<>();
+        executionQueue.restart();
+        while (executionQueue.hasNext()) {
+            Node node = executionQueue.next();
+            queuedNodes.add(node.healthDiagnostics());
+            reported.add(node);
+            for (Node successor : node.getHardSuccessors()) {
+                queue.add(successor);
+            }
+        }
+        while (!queue.isEmpty()) {
+            Node node = queue.remove(0);
+            if (reported.add(node)) {
+                otherNodes.add(node.healthDiagnostics());
                 for (Node successor : node.getHardSuccessors()) {
                     queue.add(successor);
                 }
             }
-            while (!queue.isEmpty()) {
-                Node node = queue.remove(0);
-                if (reported.add(node)) {
-                    otherNodes.add(node.healthDiagnostics());
-                    for (Node successor : node.getHardSuccessors()) {
-                        queue.add(successor);
-                    }
-                }
-            }
-            return new Diagnostics(displayName, false, queuedNodes, otherNodes);
-        } else {
-            return new Diagnostics(displayName);
         }
+
+        return new Diagnostics(displayName, ordinalGroups, queuedNodes, otherNodes);
     }
 
     @Override
@@ -517,9 +519,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
         node.visitAllNodesWaitingForThisNode(dependent -> {
-            if (dependent.updateAllDependenciesComplete()) {
-                maybeNodeReady(dependent);
-            }
+            dependent.onNodeComplete(node);
+            maybeNodeReady(dependent);
         });
     }
 
@@ -688,17 +689,20 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public void finishedExecuting(Node node, @Nullable Throwable failure) {
         lockCoordinator.assertHasStateLock();
-        if (failure != null) {
-            node.setExecutionFailure(failure);
-        }
-        if (!node.isExecuting()) {
-            throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state.", node));
-        }
         try {
+            runningNodes.remove(node);
+
+            if (failure != null) {
+                node.setExecutionFailure(failure);
+            }
+            if (!node.isExecuting()) {
+                throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state.", node));
+            }
+
             if (maybeNodesReady) {
                 maybeNodesSelectable = true;
             }
-            runningNodes.remove(node);
+
             node.finishExecution(this::recordNodeCompleted);
             if (node.isFailed()) {
                 LOGGER.debug("Node {} failed", node);

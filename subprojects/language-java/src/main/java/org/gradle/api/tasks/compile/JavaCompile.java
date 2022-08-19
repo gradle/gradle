@@ -87,7 +87,7 @@ import static com.google.common.base.Preconditions.checkState;
  *         id 'java'
  *     }
  *
- *     tasks.withType(JavaCompile) {
+ *     tasks.withType(JavaCompile).configureEach {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
  *     }

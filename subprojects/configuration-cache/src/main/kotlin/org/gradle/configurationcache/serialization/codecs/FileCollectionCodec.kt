@@ -167,9 +167,6 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         }
     }
 
-    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
-        unsupportedFileTree(fileTree)
-
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) =
         unsupportedFileTree(fileTree)
 

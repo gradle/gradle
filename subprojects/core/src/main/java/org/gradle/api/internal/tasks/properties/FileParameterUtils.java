@@ -158,11 +158,6 @@ public class FileParameterUtils {
                 }
 
                 @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    failOnInvalidOutputType(fileTree);
-                }
-
-                @Override
                 public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                     failOnInvalidOutputType(fileTree);
                 }

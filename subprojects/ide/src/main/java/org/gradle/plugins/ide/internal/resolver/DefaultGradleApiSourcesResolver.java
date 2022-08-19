@@ -37,7 +37,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
-    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+)?)-(\\d.*?).jar");
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+?)?)-(\\d.+?)\\.jar");
 
     private final DetachedResolver resolver;
 
