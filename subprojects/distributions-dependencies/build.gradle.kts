@@ -65,7 +65,10 @@ dependencies {
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
-        api(libs.googleHttpClient)      { version { strictly("1.41.7"); because("our Google API Client version requires 1.41.7") }}
+        api(libs.guava)                 { version { strictly("31.1-jre"); because("our Google API Client version requires 31.1-jre")  }}
+        api(libs.googleHttpClientGson)  { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
+        api(libs.googleHttpClientApacheV2) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
+        api(libs.googleHttpClient)      { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
         api(libs.googleOauthClient)     { version { strictly("1.34.1"); because("our Google API Client version requires 1.34.1") }}
         api(libs.gradleProfiler)        { version { strictly("0.18.0") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
@@ -82,7 +85,6 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.9") }}
-        api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
