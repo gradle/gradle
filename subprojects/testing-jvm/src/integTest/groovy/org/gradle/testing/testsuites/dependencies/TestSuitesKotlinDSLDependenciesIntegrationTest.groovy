@@ -467,8 +467,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV map'() {
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using GAV named parameters'() {
         given:
         buildKotlinFile << """
         plugins {
@@ -486,18 +485,18 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 val test by getting(JvmTestSuite::class) {
                     dependencies {
-                        implementation(mapOf("group" to "com.google.guava", "name" to "guava", "version" to "30.1.1-jre"))
-                        compileOnly(mapOf("group" to "javax.servlet", "name" to "servlet-api", "version" to "3.0-alpha-1"))
-                        runtimeOnly(mapOf("group" to "mysql", "name" to "mysql-connector-java", "version" to "8.0.26"))
+                        implementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
+                        compileOnly(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1")
+                        runtimeOnly(group = "mysql", name = "mysql-connector-java", version = "8.0.26")
                     }
                 }
                 val integTest by registering(JvmTestSuite::class) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
                         implementation(project)
-                        implementation(mapOf("group" to "com.google.guava", "name" to "guava", "version" to "29.0-jre"))
-                        compileOnly(mapOf("group" to "javax.servlet", "name" to "servlet-api", "version" to "2.5"))
-                        runtimeOnly(mapOf("group" to "mysql", "name" to "mysql-connector-java", "version" to "6.0.6"))
+                        implementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
+                        compileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
+                        runtimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
                     }
                 }
             }
@@ -599,7 +598,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using a GAV map'() {
+    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using GAV named arguments'() {
         given:
         buildKotlinFile << """
             plugins {
@@ -618,18 +617,18 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
                 implementation("org.apache.commons:commons-lang3:3.11")
 
-                testImplementation(mapOf("group" to "com.google.guava", "name" to "guava", "version" to "30.1.1-jre"))
-                testCompileOnly(mapOf("group" to "javax.servlet", "name" to "servlet-api", "version" to "3.0-alpha-1"))
-                testRuntimeOnly(mapOf("group" to "mysql", "name" to "mysql-connector-java", "version" to "8.0.26"))
+                testImplementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
+                testCompileOnly(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1")
+                testRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "8.0.26")
 
                 // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                 val integTestImplementation by configurations.getting
                 integTestImplementation(project)
-                integTestImplementation(mapOf("group" to "com.google.guava", "name" to "guava", "version" to "29.0-jre"))
+                integTestImplementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
                 val integTestCompileOnly by configurations.getting
-                integTestCompileOnly(mapOf("group" to "javax.servlet", "name" to "servlet-api", "version" to "2.5"))
+                integTestCompileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
                 val integTestRuntimeOnly by configurations.getting
-                integTestRuntimeOnly(mapOf("group" to "mysql", "name" to "mysql-connector-java", "version" to "6.0.6"))
+                integTestRuntimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
             }
 
             tasks.named("check") {
@@ -762,9 +761,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
 
         where:
-        desc                | dependencyNotation
-        'GAV string'        | '"commons-beanutils:commons-beanutils:1.9.4"'
-        'GAV map'           | 'mapOf("group" to "commons-beanutils", "name" to "commons-beanutils", "version" to "1.9.4")' // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
+        desc                  | dependencyNotation
+        'GAV string'          | '"commons-beanutils:commons-beanutils:1.9.4"'
+        'GAV named arguments' | 'group = "commons-beanutils", name = "commons-beanutils", version = "1.9.4"'
     }
 
     def "can add dependencies using a non-String CharSequence: #type"() {
@@ -947,37 +946,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         expect:
         fails 'help'
         result.assertHasErrorOutput("None of the following functions can be called with the arguments supplied")
-
-        where:
-        suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
-    }
-
-    def "can NOT add multiple GAV dependencies to #suiteDesc (varargs)"() {
-        given:
-        buildKotlinFile << """
-            plugins {
-                `java-library`
-            }
-
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
-
-            testing {
-                suites {
-                    $suiteDeclaration {
-                        dependencies {
-                            implementation("org.apache.commons:commons-lang3:3.11", "com.google.guava:guava:30.1.1-jre")
-                        }
-                    }
-                }
-            }
-
-        """
-
-        expect:
-        fails 'help'
-        result.assertHasErrorOutput("Script compilation error")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration

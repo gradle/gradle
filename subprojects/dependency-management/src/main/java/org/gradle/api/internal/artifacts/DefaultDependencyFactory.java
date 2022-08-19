@@ -29,17 +29,22 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class DefaultDependencyFactory implements DependencyFactoryInternal {
+    private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
@@ -48,6 +53,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultDependencyFactory(
+        Instantiator instantiator,
         DependencyNotationParser dependencyNotationParser,
         NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
         NotationParser<Object, ClientModule> clientModuleNotationParser,
@@ -55,6 +61,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         ProjectDependencyFactory projectDependencyFactory,
         ImmutableAttributesFactory attributesFactory
     ) {
+        this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
@@ -127,8 +134,15 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ExternalModuleDependency create(Map<String, ?> map) {
-        return dependencyNotationParser.getMapNotationParser().parseNotation(map);
+    public ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version) {
+        return create(group, name, version, null, null);
+    }
+
+    @Override
+    public ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
+        DefaultExternalModuleDependency dependency = instantiator.newInstance(DefaultExternalModuleDependency.class, group, name, version);
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, extension, classifier);
+        return dependency;
     }
 
     @Override

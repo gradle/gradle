@@ -29,7 +29,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
-import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * <p>A {@code DependencyAdder} is used to add dependencies to a specific configuration.</p>
@@ -39,6 +39,8 @@ import java.util.Map;
 @Incubating
 @NonExtensible
 public interface DependencyAdder {
+    /* IF YOU UPDATE THIS, ALSO UPDATE THE DSL IN DependencyAdderExtensionModule.java AND DependencyAdderExtensions.kt */
+
     /**
      * Add a dependency.
      *
@@ -59,19 +61,44 @@ public interface DependencyAdder {
     /**
      * Add a dependency.
      *
-     * @param map a map of configuration parameters for the dependency
-     * @see DependencyFactory#create(Map) Valid dependency notation for this method
+     * @param group the group
+     * @param name the name
+     * @param version the version
      */
-    void add(Map<String, ?> map);
+    void add(@Nullable String group, String name, @Nullable String version);
 
     /**
      * Add a dependency.
      *
-     * @param map a map of configuration parameters for the dependency
+     * @param group the group
+     * @param name the name
+     * @param version the version
      * @param configuration an action to configure the dependency
-     * @see DependencyFactory#create(Map) Valid dependency notation for this method
      */
-    void add(Map<String, ?> map, Action<? super ExternalModuleDependency> configuration);
+    void add(@Nullable String group, String name, @Nullable String version, Action<? super ExternalModuleDependency> configuration);
+
+    /**
+     * Add a dependency.
+     *
+     * @param group the group
+     * @param name the name
+     * @param version the version
+     * @param classifier the classifier
+     * @param extension the extension
+     */
+    void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
+
+    /**
+     * Add a dependency.
+     *
+     * @param group the group
+     * @param name the name
+     * @param version the version
+     * @param classifier the classifier
+     * @param extension the extension
+     * @param configuration an action to configure the dependency
+     */
+    void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, Action<? super ExternalModuleDependency> configuration);
 
     /**
      * Add a dependency.
