@@ -60,7 +60,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * </p>
      *
-     * @deprecated Use {@link #getMainClass()} instead. This method will be removed in Gradle 8.0.
+     * @deprecated Use {@link #getMainClass()} instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @Nullable @Optional
@@ -74,7 +74,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @return this
      *
-     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 8.0.
+     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @ReplacedBy("mainClass")
