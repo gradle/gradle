@@ -150,7 +150,6 @@ Currently, the following built-in Gradle tasks are cacheable:
     link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc],
     link:{groovyDslPath}/org.gradle.api.plugins.quality.Pmd.html[Pmd]
 * JaCoCo:
-    link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoMerge.html[JacocoMerge],
     link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]
 * Other tasks:
     link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask],

@@ -103,6 +103,102 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Class org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.executionData(java.lang.Object[])",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.executionData(org.gradle.api.Task[])",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.executionData(org.gradle.api.tasks.TaskCollection)",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.getAntBuilder()",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.getDestinationFile()",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.getExecutionData()",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.merge()",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.setDestinationFile(java.io.File)",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.setDestinationFile(org.gradle.api.provider.Provider)",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoMerge.setExecutionData(org.gradle.api.file.FileCollection)",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoMerge",
+            "member": "Constructor org.gradle.testing.jacoco.tasks.JacocoMerge()",
+            "acceptation": "Removing deprecated class in Gradle 8.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
