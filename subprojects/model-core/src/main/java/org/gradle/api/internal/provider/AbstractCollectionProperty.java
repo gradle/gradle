@@ -114,7 +114,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     public void fromState(ExecutionTimeValue<? extends C> value) {
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
-        } else if (value.isFixedValue()) {
+        } else if (value.hasFixedValue()) {
             SideEffect<?> sideEffect = value.getSideEffect();
             if (sideEffect != null) {
                 setSupplier(new FixedWithSideEffectSupplier<>(value.getFixedValue(), Cast.uncheckedNonnullCast(sideEffect)));

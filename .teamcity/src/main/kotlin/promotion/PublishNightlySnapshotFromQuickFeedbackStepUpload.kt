@@ -19,22 +19,23 @@ package promotion
 import common.VersionedSettingsBranch
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshotFromQuickFeedbackStep1(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
+class PublishNightlySnapshotFromQuickFeedbackStepUpload(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
     promotedBranch = branch.branchName,
+    prepTask = branch.prepNightlyTaskName(),
     triggerName = "QuickFeedback",
     vcsRootId = gradlePromotionBranches
 ) {
     init {
-        id("Promotion_SnapshotFromQuickFeedbackStep1")
-        name = "Nightly Snapshot (from QuickFeedback) - Step 1"
+        id("Promotion_SnapshotFromQuickFeedbackStepUpload")
+        name = "Nightly Snapshot (from QuickFeedback) - Upload"
         description = "Builds and uploads the latest successful changes on '${branch.branchName}' from Quick Feedback as a new distribution"
 
         steps {
             buildStep(
-                this@PublishNightlySnapshotFromQuickFeedbackStep1.extraParameters,
-                this@PublishNightlySnapshotFromQuickFeedbackStep1.gitUserName,
-                this@PublishNightlySnapshotFromQuickFeedbackStep1.gitUserEmail,
-                this@PublishNightlySnapshotFromQuickFeedbackStep1.triggerName,
+                this@PublishNightlySnapshotFromQuickFeedbackStepUpload.extraParameters,
+                this@PublishNightlySnapshotFromQuickFeedbackStepUpload.gitUserName,
+                this@PublishNightlySnapshotFromQuickFeedbackStepUpload.gitUserEmail,
+                this@PublishNightlySnapshotFromQuickFeedbackStepUpload.triggerName,
                 branch.prepNightlyTaskName(),
                 "uploadAll"
             )
