@@ -320,7 +320,7 @@ public interface ValueSupplier {
         @Nullable
         T orNull();
 
-        <S> S orElse(S defaultValue);
+        T orElse(T defaultValue);
 
         /**
          * Behaves like {@link #get()}, but does not execute a side effect if present.
@@ -387,14 +387,12 @@ public interface ValueSupplier {
 
         @Override
         public T orNull() {
-            runSideEffect();
-            return result;
+            return get();
         }
 
         @Override
-        public <S> S orElse(S defaultValue) {
-            runSideEffect();
-            return Cast.uncheckedCast(result);
+        public T orElse(T defaultValue) {
+            return get();
         }
 
         @Override
@@ -487,7 +485,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public <S> S orElse(S defaultValue) {
+        public T orElse(T defaultValue) {
             return defaultValue;
         }
 
