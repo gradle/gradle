@@ -114,7 +114,7 @@ public class DependencyAdderExtensionModule {
      *   <li>{@code name}</li>
      *   <li>{@code version}</li>
      *   <li>{@code classifier}</li>
-     *   <li>{@code extension}</li>
+     *   <li>{@code ext}</li>
      * </ul>
      *
      * @param map a map of configuration parameters for the dependency
@@ -123,7 +123,7 @@ public class DependencyAdderExtensionModule {
         call(self, map, null);
     }
 
-    private static final Set<String> LEGAL_MAP_KEYS = ImmutableSet.of("group", "name", "version", "classifier", "extension");
+    private static final Set<String> LEGAL_MAP_KEYS = ImmutableSet.of("group", "name", "version", "classifier", "ext");
 
     /**
      * Add a dependency. The map may contain the following keys:
@@ -132,7 +132,7 @@ public class DependencyAdderExtensionModule {
      *   <li>{@code name}</li>
      *   <li>{@code version}</li>
      *   <li>{@code classifier}</li>
-     *   <li>{@code extension}</li>
+     *   <li>{@code ext}</li>
      * </ul>
      *
      * @param map a map of configuration parameters for the dependency
@@ -146,7 +146,7 @@ public class DependencyAdderExtensionModule {
         String name = (map.containsKey("name")) ? map.get("name").toString() : null;
         String version = (map.containsKey("version")) ? map.get("version").toString() : null;
         String classifier = (map.containsKey("classifier")) ? map.get("classifier").toString() : null;
-        String extension = (map.containsKey("extension")) ? map.get("extension").toString() : null;
+        String extension = (map.containsKey("ext")) ? map.get("ext").toString() : null;
         self.add(group, name, version, classifier, extension, ConfigureUtil.configureUsing(configuration));
     }
 
