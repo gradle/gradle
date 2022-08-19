@@ -22,7 +22,6 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -154,7 +153,7 @@ public interface DependencyAdder {
      *
      * @param bundle the bundle to add
      */
-    void bundle(Provider<? extends ExternalModuleDependencyBundle> bundle);
+    <D extends Dependency> void bundle(Iterable<? extends D> bundle);
 
     /**
      * Add a bundle.
@@ -162,14 +161,14 @@ public interface DependencyAdder {
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
      */
-    void bundle(Provider<? extends ExternalModuleDependencyBundle> bundle, Action<? super ExternalModuleDependency> configuration);
+    <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration);
 
     /**
      * Add a bundle.
      *
      * @param bundle the bundle to add
      */
-    void bundle(ProviderConvertible<? extends ExternalModuleDependencyBundle> bundle);
+    <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
 
     /**
      * Add a bundle.
@@ -177,6 +176,21 @@ public interface DependencyAdder {
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
      */
-    void bundle(ProviderConvertible<? extends ExternalModuleDependencyBundle> bundle, Action<? super ExternalModuleDependency> configuration);
+    <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
+
+    /**
+     * Add a bundle.
+     *
+     * @param bundle the bundle to add
+     */
+    <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
+
+    /**
+     * Add a bundle.
+     *
+     * @param bundle the bundle to add
+     * @param configuration an action to configure each dependency in the bundle
+     */
+    <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
 }
