@@ -178,9 +178,24 @@ class AbstractIntegrationSpec extends Specification {
         'build.gradle.kts'
     }
 
+    /**
+     * Sets (replacing) the contents of the build.gradle file.
+     *
+     * To append, use #buildFile(String).
+     */
     protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
         buildFile.text = script
         buildFile
+    }
+
+    /**
+     * Sets (replacing) the contents of the settings.gradle file.
+     *
+     * To append, use #settingsFile(String)
+     */
+    protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
+        settingsFile.text = script
+        settingsFile
     }
 
     protected TestFile getSettingsFile() {
@@ -534,6 +549,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     public MavenLocalRepository mavenLocal(Object repo) {
         return new MavenLocalRepository(file(repo))
+    }
+
+    protected configureRepositoryCredentials(String username, String password, String repositoryName = "maven") {
+        // configuration property prefix - the identity - is determined from the repository name
+        // https://docs.gradle.org/current/userguide/userguide_single.html#sec:handling_credentials
+        propertiesFile << """
+        ${repositoryName}Username=${username}
+        ${repositoryName}Password=${password}
+        """
     }
 
     public MavenFileRepository publishedMavenModules(String... modulesToPublish) {

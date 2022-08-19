@@ -42,7 +42,7 @@ class JUnitTestClassProcessorTest extends Specification {
         new JUnitTestClassProcessor(spec, new LongIdGenerator(), new TestActorFactory(), Time.clock())
     }
 
-    void process(Class ... clazz) {
+    void process(Class... clazz) {
         process(clazz*.name)
     }
 

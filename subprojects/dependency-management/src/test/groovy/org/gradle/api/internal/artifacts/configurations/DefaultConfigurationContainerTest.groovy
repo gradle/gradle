@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -189,5 +190,15 @@ class DefaultConfigurationContainerTest extends Specification {
 
         then:
         thrown MissingMethodException
+    }
+
+    // withType when used with a class that is not a super-class of the container does not work with registered elements
+    @NotYetImplemented
+    def "can find all configurations even when they're registered"() {
+        when:
+        configurationContainer.register("foo")
+        configurationContainer.create("bar")
+        then:
+        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]
     }
 }
