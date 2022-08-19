@@ -588,21 +588,21 @@ Joe!""")
         file("src/main/java/pkg/Foo.java").java """
             package pkg;
             import pkg.internal.*;
-            
+
             public class Foo implements IFoo {
                 /**
                  * {@inheritDoc}
                  */
-                public void run() { 
+                public void run() {
                 }
             }
         """
         file("src/main/java/pkg/internal/IFoo.java").java """
             package pkg.internal;
-            
+
             public interface IFoo {
                 /**
-                 * Runs internal foo 
+                 * Runs internal foo
                  */
                 void run();
             }

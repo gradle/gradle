@@ -821,7 +821,6 @@ Method <org.gradle.process.ExecSpec.getArgs()> does not have raw return type ass
 Method <org.gradle.process.ExecSpec.getArgumentProviders()> does not have raw return type assignable to org.gradle.api.provider.Provider in (ExecSpec.java:0)
 Method <org.gradle.process.JavaExecSpec.getArgs()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaExecSpec.java:0)
 Method <org.gradle.process.JavaExecSpec.getArgumentProviders()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JavaExecSpec.java:0)
-Method <org.gradle.process.JavaExecSpec.getMain()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaExecSpec.java:0)
 Method <org.gradle.process.JavaExecSpec.getModularity()> does not have raw return type assignable to org.gradle.api.provider.Provider in (JavaExecSpec.java:0)
 Method <org.gradle.process.JavaForkOptions.getAllJvmArgs()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaForkOptions.java:0)
 Method <org.gradle.process.JavaForkOptions.getDebug()> does not have raw return type assignable to org.gradle.api.provider.Property in (JavaForkOptions.java:0)
