@@ -43,6 +43,8 @@ import static java.util.stream.Collectors.toMap;
 
 class IntegrationTestSamplesExecutor extends CommandExecutor {
 
+    private static final String CHECK_LOADING_FROM_CONFIGURATION_CACHE = "org.gradle.integtest.samples.checkLoadingFromConfigurationCache";
+
     private static final String WARNING_MODE_FLAG_PREFIX = "--warning-mode=";
 
     private static final String NO_STACKTRACE_CHECK = "-Dorg.gradle.sampletest.noStackTraceCheck=true";
@@ -62,6 +64,34 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     @Override
     protected int run(String executable, List<String> args, List<String> flags, OutputStream outputStream) {
+        try {
+            GradleExecuter executer = createExecuter(args, flags);
+            if (expectFailure) {
+                // TODO(mlopatkin) sometimes it is still possible to save the configuration cache state in the event of failure.
+                //  We need to figure out how to separate expected failure from the CC store failure.
+                ExecutionFailure result = executer.runWithFailure();
+                outputStream.write((result.getOutput() + result.getError()).getBytes());
+            } else {
+                ExecutionResult result = executer.run();
+                outputStream.write(result.getOutput().getBytes());
+
+                if (shouldCheckLoadingFromConfigurationCache()) {
+                    rerunReusingStoredConfigurationCacheEntry(args, flags);
+                }
+            }
+            return expectFailure ? 1 : 0;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void rerunReusingStoredConfigurationCacheEntry(List<String> args, List<String> flags) {
+        // Rerun tasks. If the task is up-to-date, then its actions aren't executed.
+        // This might hide issues with Groovy closures, as the methods referenced inside the closure are resolved dynamically.
+        createExecuter(args, flags).withArgument("--rerun-tasks").run();
+    }
+
+    private GradleExecuter createExecuter(List<String> args, List<String> flags) {
         WarningMode warningMode = flags.stream()
             .filter(it -> it.startsWith(WARNING_MODE_FLAG_PREFIX))
             .map(it -> WarningMode.valueOf(capitalize(it.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase())))
@@ -90,19 +120,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
         if (!env.isEmpty()) {
             executer.withEnvironmentVars(env);
         }
-
-        try {
-            if (expectFailure) {
-                ExecutionFailure result = executer.runWithFailure();
-                outputStream.write((result.getOutput() + result.getError()).getBytes());
-            } else {
-                ExecutionResult result = executer.run();
-                outputStream.write(result.getOutput().getBytes());
-            }
-            return expectFailure ? 1 : 0;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return executer;
     }
 
     private String getAvailableJdksFlag() {
@@ -115,5 +133,9 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     private static String capitalize(String s) {
         return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    private static boolean shouldCheckLoadingFromConfigurationCache() {
+        return Boolean.parseBoolean(System.getProperty(CHECK_LOADING_FROM_CONFIGURATION_CACHE));
     }
 }
