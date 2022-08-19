@@ -211,7 +211,7 @@ public interface ValueSupplier {
          * and instead always executes against the given {@code value}.
          */
         static <T, A> SideEffect<T> fixed(A value, SideEffect<A> sideEffect) {
-            return ignored -> sideEffect.execute(value);
+            return new FixedSideEffect<>(value, sideEffect);
         }
 
         /**
@@ -242,10 +242,29 @@ public interface ValueSupplier {
         }
     }
 
+    /**
+     * A side effect that ignores its argument and always runs on a fixed value instead.
+     */
+    class FixedSideEffect<T, A> implements SideEffect<T> {
+
+        private final A value;
+        private final SideEffect<? super A> sideEffect;
+
+        private FixedSideEffect(A value, SideEffect<? super A> sideEffect) {
+            this.value = value;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public void execute(T t) {
+            sideEffect.execute(value);
+        }
+    }
+
     class CompositeSideEffect<T> implements SideEffect<T> {
         private final List<SideEffect<? super T>> sideEffects;
 
-        public CompositeSideEffect(Iterable<SideEffect<? super T>> sideEffects) {
+        private CompositeSideEffect(Iterable<SideEffect<? super T>> sideEffects) {
             this.sideEffects = ImmutableList.copyOf(sideEffects);
         }
 
