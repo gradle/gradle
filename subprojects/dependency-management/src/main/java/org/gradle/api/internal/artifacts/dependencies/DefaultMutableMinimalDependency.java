@@ -21,27 +21,11 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 
 import java.io.Serializable;
 
-public class DefaultMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependency, Serializable {
-    public DefaultMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
+public class DefaultMutableMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependency, Serializable {
+    public DefaultMutableMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
         super(module, versionConstraint);
     }
 
-    @Override
-    public void because(String reason) {
-        validateMutation();
-    }
-
-    @Override
-    protected void validateMutation() {
-        throw new UnsupportedOperationException("Minimal dependencies are immutable.");
-    }
-
-    @Override
-    protected void validateMutation(Object currentValue, Object newValue) {
-        validateMutation();
-    }
-
-    // Intentionally changes to the mutable version.
     @Override
     public DefaultMutableMinimalDependency copy() {
         DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()));
