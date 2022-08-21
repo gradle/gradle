@@ -16,8 +16,15 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 
+/**
+ * Dependency APIs available for {@code dependencies} blocks that can build software that relies on Gradle APIs.
+ *
+ * @since 7.6
+ */
+@Incubating
 public interface GradleDependencyDecorator extends DependencyCreators {
     /**
      * Creates a dependency on the API of the current version of Gradle.

@@ -16,11 +16,18 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 
 import javax.inject.Inject;
 
+/**
+ * Universal APIs that are available for all {@code dependencies} blocks.
+ *
+ * @since 7.6
+ */
+@Incubating
 public interface DependencyCreators {
     @Inject
     DependencyFactory getDependencyFactory();

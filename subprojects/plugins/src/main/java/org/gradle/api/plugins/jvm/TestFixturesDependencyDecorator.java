@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -28,6 +29,12 @@ import javax.annotation.Nullable;
 
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
+/**
+ * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Test Fixtures</a> in {@code dependencies} blocks.
+ *
+ * @since 7.6
+ */
+@Incubating
 public interface TestFixturesDependencyDecorator extends DependencyCreators {
 
     default ExternalModuleDependency testFixtures(CharSequence dependencyNotation) {
