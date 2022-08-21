@@ -30,4 +30,9 @@ public class UnknownProjectFinder implements ProjectFinder {
     public ProjectInternal getProject(String path) {
         throw new UnknownProjectException(exceptionMessage);
     }
+
+    @Override
+    public ProjectInternal getBaseProject() {
+        throw new UnknownProjectException(exceptionMessage);
+    }
 }

@@ -25,4 +25,11 @@ public interface ProjectFinder {
      * @return The project belonging to the path, never null.
      */
     ProjectInternal getProject(String path);
+
+    /**
+     * Locates the project that all relative paths will be relative to.
+     *
+     * @return the base project, never null.
+     */
+    ProjectInternal getBaseProject();
 }
