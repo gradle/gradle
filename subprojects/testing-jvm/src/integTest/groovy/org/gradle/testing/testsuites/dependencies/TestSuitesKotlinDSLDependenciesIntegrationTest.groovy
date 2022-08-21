@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testsuites.dependencies
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -1848,7 +1848,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - Version Catalog
 
     // region dependencies - platforms
-    @NotYetImplemented
     def "can add a platform dependency to #suiteDesc"() {
         given: "a suite that uses a platform dependency"
         settingsKotlinFile << """
@@ -1924,7 +1923,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
     }
 
-    @NotYetImplemented
     def "can add an enforced platform dependency to #suiteDesc"() {
         given: "a suite that uses an enforced platform dependency"
         settingsKotlinFile << """
