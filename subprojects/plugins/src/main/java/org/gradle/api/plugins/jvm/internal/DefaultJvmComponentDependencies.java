@@ -16,21 +16,14 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
-import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import javax.inject.Inject;
 
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
-
-public class DefaultJvmComponentDependencies implements JvmComponentDependencies {
+public abstract class DefaultJvmComponentDependencies implements JvmComponentDependencies {
     private final DependencyAdder implementation;
     private final DependencyAdder compileOnly;
     private final DependencyAdder runtimeOnly;
@@ -42,45 +35,6 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         this.compileOnly = compileOnly;
         this.runtimeOnly = runtimeOnly;
         this.annotationProcessor = annotationProcessor;
-    }
-
-    @Inject
-    protected DependencyFactoryInternal getDependencyFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Dependency gradleApi() {
-        return getDependencyFactory().createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
-    }
-
-    @Override
-    public Dependency gradleTestKit() {
-        return getDependencyFactory().createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT);
-    }
-
-    @Override
-    public Dependency localGroovy() {
-        return getDependencyFactory().createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY);
-    }
-
-    public Dependency testFixtures(Project project) {
-        final ProjectDependency projectDependency = getDependencyFactory().create(project);
-        return testFixtures(projectDependency);
-    }
-
-    @Override
-    public Dependency testFixtures(ProjectDependency projectDependency) {
-        projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
-        return projectDependency;
-    }
-
-    @Override
-    public Dependency testFixtures(ModuleDependency moduleDependency) {
-        moduleDependency.capabilities(capabilities -> {
-            capabilities.requireCapability(new ImmutableCapability(moduleDependency.getGroup(), moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
-        });
-        return moduleDependency;
     }
 
     @Override
