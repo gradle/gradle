@@ -103,4 +103,16 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         return this.annotationProcessor;
     }
 
+    @Inject
+    protected abstract ProjectFinder getProjectFinder();
+
+    @Override
+    public ProjectDependency project(String projectPath) {
+        return getDependencyFactory().create(getProjectFinder().getProject(projectPath));
+    }
+
+    @Override
+    public ProjectDependency project() {
+        return getDependencyFactory().create(getProjectFinder().getBaseProject());
+    }
 }

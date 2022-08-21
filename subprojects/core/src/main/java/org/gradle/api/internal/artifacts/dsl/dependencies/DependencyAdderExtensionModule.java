@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
@@ -182,25 +181,6 @@ public class DependencyAdderExtensionModule {
     /**
      * Add a dependency.
      *
-     * @param project project to add as a dependency
-     */
-    public static void call(DependencyAdder self, Project project) {
-        self.add(project);
-    }
-
-    /**
-     * Add a dependency.
-     *
-     * @param project project to add as a dependency
-     * @param configuration an action to configure the dependency
-     */
-    public static void call(DependencyAdder self, Project project, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ProjectDependency") Closure<?> configuration) {
-        self.add(project, ConfigureUtil.configureUsing(configuration));
-    }
-
-    /**
-     * Add a dependency.
-     *
      * @param files files to add as a dependency
      */
     public static void call(DependencyAdder self, FileCollection files) {
@@ -235,7 +215,6 @@ public class DependencyAdderExtensionModule {
     public static void call(DependencyAdder self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(externalModule, ConfigureUtil.configureUsing(configuration));
     }
-
 
     /**
      * Add a dependency.

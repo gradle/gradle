@@ -196,7 +196,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 val integTest by registering(JvmTestSuite::class) {
                     dependencies {
-                        implementation(project)
+                        implementation(project())
                     }
                 }
             }
@@ -427,7 +427,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 val integTest by registering(JvmTestSuite::class) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation(project)
+                        implementation(project())
                         implementation("com.google.guava:guava:29.0-jre")
                         compileOnly("javax.servlet:servlet-api:2.5")
                         runtimeOnly("mysql:mysql-connector-java:6.0.6")
@@ -494,7 +494,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 val integTest by registering(JvmTestSuite::class) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation(project)
+                        implementation(project())
                         implementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
                         compileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
                         runtimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
@@ -2338,7 +2338,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     $suiteDeclaration {
                         useJUnitJupiter()
                         dependencies {
-                            implementation(testFixtures(project))
+                            implementation(testFixtures(project()))
                         }
                     }
                 }
