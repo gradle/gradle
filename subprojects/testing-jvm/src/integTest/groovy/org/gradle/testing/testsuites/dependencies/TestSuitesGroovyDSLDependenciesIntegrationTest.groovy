@@ -181,7 +181,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 integTest(JvmTestSuite) {
                     dependencies {
-                        implementation project
+                        implementation project()
                     }
                 }
             }
@@ -361,7 +361,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation project
+                        implementation project()
                         implementation 'com.google.guava:guava:29.0-jre'
                         compileOnly 'javax.servlet:servlet-api:2.5'
                         runtimeOnly 'mysql:mysql-connector-java:6.0.6'
@@ -428,7 +428,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation project
+                        implementation project()
                         implementation([group: 'com.google.guava', name: 'guava', version: '29.0-jre'])
                         compileOnly([group: 'javax.servlet', name: 'servlet-api', version: '2.5'])
                         runtimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'])
@@ -494,7 +494,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation project
+                        implementation project()
                         implementation(group: 'com.google.guava', name: 'guava', version: '29.0-jre')
                         compileOnly(group: 'javax.servlet', name: 'servlet-api', version: '2.5')
                         runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '6.0.6')
@@ -2231,7 +2231,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     integrationTest(JvmTestSuite) {
                         useJUnitJupiter()
                         dependencies {
-                            implementation(testFixtures(project))
+                            implementation(testFixtures(project()))
                         }
                     }
                 }
