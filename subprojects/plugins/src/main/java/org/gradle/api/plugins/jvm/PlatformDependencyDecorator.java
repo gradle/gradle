@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -29,6 +30,12 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+/**
+ * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html#java_platform_plugin">Platforms</a> in {@code dependencies} blocks.
+ *
+ * @since 7.6
+ */
+@Incubating
 public interface PlatformDependencyDecorator extends DependencyCreators {
 
     @Inject
