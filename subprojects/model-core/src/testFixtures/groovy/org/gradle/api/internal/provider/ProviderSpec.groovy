@@ -441,7 +441,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _ // no side effects when values are not unpacked
 
         when:
-        def unpackedValue = extract(provider)
+        def unpackedValue = extract(provider, someOtherValue())
 
         then:
         unpackedValue == someValue()
@@ -450,9 +450,9 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         where:
         method      | extract
-        "get"       | { it.get() }
-        "getOrNull" | { it.getOrNull() }
-        "getOrElse" | { it.getOrElse(someOtherValue()) }
+        "get"       | { p, _ -> p.get() }
+        "getOrNull" | { p, _ -> p.getOrNull() }
+        "getOrElse" | { p, other -> p.getOrElse(other) }
     }
 
     def "does not run side effect when calling '#method' on provider with no value and attached side effect"() {
@@ -469,17 +469,18 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _ // no side effects when values are not unpacked
 
         when:
-        def unpackedValue = unpack(provider)
+        def someValue = someValue()
+        def unpackedValue = unpack(provider, someValue)
 
         then:
-        unpackedValue == expectedValue
+        unpackedValue == expectedValue(someValue)
         0 * sideEffect.execute(_)
         0 * _
 
         where:
-        method      | unpack                        | expectedValue
-        "getOrNull" | { it.getOrNull() }            | null
-        "getOrElse" | { it.getOrElse(someValue()) } | someValue()
+        method      | unpack                             | expectedValue
+        "getOrNull" | { p, _ -> p.getOrNull() }          | { null }
+        "getOrElse" | { p, other -> p.getOrElse(other) } | { it }
     }
 
     def "does not run side effect when calling 'get' on provider with no value and attached side effect"() {
@@ -519,7 +520,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _ // no side effects when values are not unpacked
 
         when:
-        extract(provider)
+        extract(provider, someOtherValue())
 
         then:
         1 * sideEffect1.execute(someValue())
@@ -530,9 +531,9 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         where:
         method      | extract
-        "get"       | { it.get() }
-        "getOrNull" | { it.getOrNull() }
-        "getOrElse" | { it.getOrElse(someOtherValue()) }
+        "get"       | { p, _ -> p.get() }
+        "getOrNull" | { p, _ -> p.getOrNull() }
+        "getOrElse" | { p, other -> p.getOrElse(other) }
     }
 
     /**
