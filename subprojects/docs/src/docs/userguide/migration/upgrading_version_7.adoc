@@ -67,6 +67,11 @@ Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.Ant
 `org.gradle.plugin.devel.PluginDeclaration` is not serializable anymore.
 If you need to serialize it, you can convert it into your own, serializable class.
 
+==== Gradle does not use equals for serialized values in up-to-date checks
+
+Gradle now does not try to use equals when comparing serialized values in up-to-date checks.
+For more information see <<equals_up_to_date_deprecation>>.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
