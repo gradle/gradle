@@ -150,13 +150,11 @@ public class FinalizerGroup extends HasFinalizers {
 
     @Override
     public boolean isCanCancel() {
-        for (Node node : getFinalizedNodes()) {
-            // Cannot cancel this node if something it finalizes has started or cannot be cancelled
-            if (node.isExecuting() || node.isExecuted() || !node.isCanCancel()) {
-                return false;
-            }
+        if (!isCanCancel(Collections.singletonList(this))) {
+            return false;
+        } else {
+            return delegate.isCanCancel();
         }
-        return delegate.isCanCancel();
     }
 
     @Override
