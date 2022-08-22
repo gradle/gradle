@@ -55,7 +55,9 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations);
         makeCompileOnlyApiVisibleToTests(configurations);
-        jvmEcosystemUtilities.configureClassesDirectoryVariant(sourceSet.getApiElementsConfigurationName(), sourceSet);
+
+        Configuration apiElements = configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        jvmEcosystemUtilities.configureClassesDirectoryVariant(apiElements, sourceSet);
         deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
 

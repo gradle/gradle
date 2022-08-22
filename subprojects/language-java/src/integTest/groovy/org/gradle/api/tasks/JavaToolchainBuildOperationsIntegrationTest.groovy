@@ -16,30 +16,25 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
-import org.gradle.api.internal.tasks.execution.ResolveTaskMutationsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.operations.BuildOperationType
-import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.jvm.toolchain.internal.operations.JavaToolchainUsageProgressDetails
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
 
-    def operations = new BuildOperationsFixture(executer, temporaryFolder)
-
     def setup() {
+        captureBuildOperations()
+
         buildFile << """
             apply plugin: "java"
 
@@ -581,29 +576,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private void assertToolchainUsages(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata, String tool) {
-        assert events.size() > 0
-        events.each { usageEvent ->
-            assertToolchainUsage(tool, jdkMetadata, usageEvent)
-        }
-    }
-
-    private void assertToolchainUsage(String toolName, JvmInstallationMetadata jdkMetadata, BuildOperationRecord.Progress usageEvent) {
-        assert usageEvent.details.toolName == toolName
-
-        def usedToolchain = usageEvent.details.toolchain
-        assert usedToolchain == [
-            javaVersion: jdkMetadata.javaVersion,
-            javaVendor: jdkMetadata.vendor.displayName,
-            runtimeName: jdkMetadata.runtimeName,
-            runtimeVersion: jdkMetadata.runtimeVersion,
-            jvmName: jdkMetadata.jvmName,
-            jvmVersion: jdkMetadata.jvmVersion,
-            jvmVendor: jdkMetadata.jvmVendor,
-            architecture: jdkMetadata.architecture,
-        ]
-    }
-
     def runWithInstallation(JvmInstallationMetadata jdkMetadata, String... tasks) {
         runWithInstallationPaths(jdkMetadata.javaHome.toAbsolutePath().toString(), tasks)
     }
@@ -622,27 +594,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
             .withTasks(tasks)
-    }
-
-    List<BuildOperationRecord.Progress> toolchainEvents(String taskPath) {
-        return toolchainEventsFor(ResolveTaskMutationsBuildOperationType, taskPath) + toolchainEventsFor(ExecuteTaskBuildOperationType, taskPath)
-    }
-
-    private <T extends BuildOperationType<?, ?>> List<BuildOperationRecord.Progress> toolchainEventsFor(Class<T> buildOperationType, String taskPath) {
-        def buildOperationRecord = operations.first(buildOperationType) {
-            it.details.taskPath == taskPath
-        }
-        List<BuildOperationRecord.Progress> events = []
-        operations.walk(buildOperationRecord) {
-            events.addAll(it.progress.findAll {
-                JavaToolchainUsageProgressDetails.isAssignableFrom(it.detailsType)
-            })
-        }
-        return events
-    }
-
-    List<BuildOperationRecord.Progress> filterByJavaVersion(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata) {
-        events.findAll { it.details.toolchain.javaVersion == jdkMetadata.javaVersion }
     }
 
     private String latestKotlinPluginVersion(String major) {
