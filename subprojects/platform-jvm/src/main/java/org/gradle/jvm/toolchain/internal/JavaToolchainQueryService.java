@@ -22,6 +22,7 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
@@ -69,14 +70,22 @@ public class JavaToolchainQueryService {
             .map(toolFunction);
     }
 
-    ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        ToolchainSpecInternal internalSpec = (ToolchainSpecInternal) filter;
+    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
+        if (!filterInternal.isValid()) {
+            DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
+                .withAdvice("Consider configuring the language version.")
+                .willBecomeAnErrorInGradle8()
+                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                .nagUser();
+        }
+
         return new DefaultProvider<>(() -> {
-            if (internalSpec.isConfigured()) {
-                return matchingToolchains.computeIfAbsent(internalSpec, k -> query(k));
-            } else {
+            if (!filterInternal.isConfigured()) {
                 return null;
             }
+
+            return matchingToolchains.computeIfAbsent(filterInternal, this::query);
         });
     }
 
