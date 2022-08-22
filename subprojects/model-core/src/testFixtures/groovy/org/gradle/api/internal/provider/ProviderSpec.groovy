@@ -450,8 +450,8 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         where:
         method      | extract
-        "get"       | { p, _ -> p.get() }
-        "getOrNull" | { p, _ -> p.getOrNull() }
+        "get"       | { p, other -> p.get() }
+        "getOrNull" | { p, other -> p.getOrNull() }
         "getOrElse" | { p, other -> p.getOrElse(other) }
     }
 
@@ -479,7 +479,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         where:
         method      | unpack                             | expectedValue
-        "getOrNull" | { p, _ -> p.getOrNull() }          | { null }
+        "getOrNull" | { p, other -> p.getOrNull() }      | { null }
         "getOrElse" | { p, other -> p.getOrElse(other) } | { it }
     }
 
@@ -531,8 +531,8 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         where:
         method      | extract
-        "get"       | { p, _ -> p.get() }
-        "getOrNull" | { p, _ -> p.getOrNull() }
+        "get"       | { p, other -> p.get() }
+        "getOrNull" | { p, other -> p.getOrNull() }
         "getOrElse" | { p, other -> p.getOrElse(other) }
     }
 
