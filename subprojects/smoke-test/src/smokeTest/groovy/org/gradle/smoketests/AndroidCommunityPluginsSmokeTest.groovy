@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -53,8 +54,24 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         configureAndroidProject(testedPluginId)
 
         validatePlugins {
-            passing {
-                true
+            switch (testedPluginId) {
+                case SENTRY_PLUGIN_ID:
+                    passing {
+                        it !in [SENTRY_PLUGIN_ID]
+                    }
+                    onPlugins([SENTRY_PLUGIN_ID]) {
+                        // https://github.com/getsentry/sentry-android-gradle-plugin/issues/370
+                        failsWith([
+                            (incorrectUseOfInputAnnotation { type('io.sentry.android.gradle.tasks.SentryUploadNativeSymbolsTask').property('buildDir').propertyType('DirectoryProperty').includeLink() }): Severity.ERROR,
+                            (incorrectUseOfInputAnnotation { type('io.sentry.android.gradle.tasks.SentryUploadProguardMappingsTask').property('uuidDirectory').propertyType('DirectoryProperty').includeLink() }): Severity.ERROR
+                        ])
+                    }
+                    break
+                default:
+                    passing {
+                        true
+                    }
+                    break
             }
         }
     }
