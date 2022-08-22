@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
@@ -88,7 +89,13 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
     private void rerunReusingStoredConfigurationCacheEntry(List<String> args, List<String> flags) {
         // Rerun tasks. If the task is up-to-date, then its actions aren't executed.
         // This might hide issues with Groovy closures, as the methods referenced inside the closure are resolved dynamically.
-        createExecuter(args, flags).withArgument("--rerun-tasks").run();
+        try {
+            createExecuter(args, flags).withArgument("--rerun-tasks").run();
+        } catch (UnexpectedBuildFailure e) {
+            UnexpectedBuildFailure tweakedException = new UnexpectedBuildFailure("Failed to rerun the build when reusing the configuration cache entry.\n" + e.getMessage());
+            tweakedException.setStackTrace(e.getStackTrace());
+            throw tweakedException;
+        }
     }
 
     private GradleExecuter createExecuter(List<String> args, List<String> flags) {
