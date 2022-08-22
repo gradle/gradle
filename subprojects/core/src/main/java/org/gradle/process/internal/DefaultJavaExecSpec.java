@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -183,32 +182,6 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     @Override
     public Property<String> getMainClass() {
         return mainClass;
-    }
-
-    @Nullable
-    @Override
-    @Deprecated
-    public String getMain() {
-        DeprecationLogger.deprecateMethod(JavaExecSpec.class, "getMain()")
-            .withAdvice("Please use the mainClass property instead.")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "java_exec_properties")
-            .nagUser();
-
-        return mainClass.getOrNull();
-    }
-
-    @Override
-    @Deprecated
-    public JavaExecSpec setMain(@Nullable String main) {
-        DeprecationLogger.deprecateMethod(JavaExecSpec.class, "setMain(String)")
-            .withAdvice("Please use the mainClass property instead.")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "java_exec_properties")
-            .nagUser();
-
-        mainClass.set(main);
-        return this;
     }
 
     @Override

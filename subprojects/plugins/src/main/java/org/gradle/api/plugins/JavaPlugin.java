@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -25,31 +24,25 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
-import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -57,16 +50,12 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
-import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
-import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 import static org.gradle.api.plugins.JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
@@ -373,28 +362,13 @@ public class JavaPlugin implements Plugin<Project> {
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
-
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        // Define some additional variants
+        // Configure variants
         addJarArtifactToConfiguration(runtimeElementsConfiguration, jarArtifact);
-        jvmServices.configureClassesDirectoryVariant(runtimeElementsConfiguration.getName(), mainSourceSet);
-
-        // Configure resources variant
-        ConfigurationPublications publications = runtimeElementsConfiguration.getOutgoing();
-        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
-        ConfigurationVariantInternal resourcesVariant = (ConfigurationVariantInternal) runtimeVariants.create("resources");
-        resourcesVariant.setDescription("Directories containing the project's assembled resource files for use at runtime.");
-        resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        resourcesVariant.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
-        Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
-        resourcesVariant.artifact(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
-            @Override
-            public File getFile() {
-                return processResources.get().getDestinationDir();
-            }
-        });
+        jvmServices.configureClassesDirectoryVariant(runtimeElementsConfiguration, mainSourceSet);
+        jvmServices.configureResourcesDirectoryVariant(runtimeElementsConfiguration, mainSourceSet);
 
         return runtimeElementsConfiguration;
     }
@@ -404,8 +378,9 @@ public class JavaPlugin implements Plugin<Project> {
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
-
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
+
+        // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);
 
         return apiElementsConfiguration;
@@ -489,8 +464,8 @@ public class JavaPlugin implements Plugin<Project> {
             ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
                 config.componentFilter(componentId -> {
                     if (componentId instanceof OpaqueComponentIdentifier) {
-                        DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-                        return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
+                        DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+                        return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
                     }
                     return true;
                 });

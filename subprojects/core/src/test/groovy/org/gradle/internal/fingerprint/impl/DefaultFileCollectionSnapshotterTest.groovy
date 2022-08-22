@@ -21,9 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
-import org.gradle.api.resources.MissingResourceException
-import org.gradle.api.resources.ReadableResource
-import org.gradle.api.resources.ResourceException
 import org.gradle.api.resources.internal.LocalResourceAdapter
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.internal.Factory
@@ -133,35 +130,6 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
         then:
         assertSingleFileSnapshot(result.snapshot)
-        !result.fileTreeOnly
-
-        when:
-        def readableResource = new ReadableResource() {
-            @Override
-            InputStream read() throws MissingResourceException, ResourceException {
-                return tgz.newInputStream()
-            }
-
-            @Override
-            String getDisplayName() {
-                return tgz.getName()
-            }
-
-            @Override
-            URI getURI() {
-                return tgz.toURI()
-            }
-
-            @Override
-            String getBaseName() {
-                return tgz.getName()
-            }
-        }
-        def resourceTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(readableResource)
-        result = snapshotter.snapshot(resourceTarTree)
-
-        then:
-        result.snapshot == FileSystemSnapshot.EMPTY
         !result.fileTreeOnly
     }
 

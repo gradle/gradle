@@ -43,6 +43,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -147,7 +148,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * @since 7.2
      */
     @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

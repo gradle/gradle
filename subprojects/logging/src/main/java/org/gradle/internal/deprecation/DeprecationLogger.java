@@ -29,18 +29,25 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Provides entry points for constructing and emitting deprecation messages.
  * The basic deprecation message structure is "Summary. DeprecationTimeline. Context. Advice. Documentation."
- *
+ * <p>
  * The deprecateX methods in this class return a builder that guides creation of the deprecation message.
  * Summary is populated by the deprecateX methods in this class.
  * Context can be added in free text using {@link DeprecationMessageBuilder#withContext(String)}.
- * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated. Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated.
+ * Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ * <p>
  * DeprecationTimeline is mandatory and is added using one of:
- * - ${@link DeprecationMessageBuilder#willBeRemovedInGradle8()}
- * - ${@link DeprecationMessageBuilder#willBecomeAnErrorInGradle8()}
+ * <ul>
+ *   <li>{@link DeprecationMessageBuilder#willBeRemovedInGradle8()}
+ *   <li>{@link DeprecationMessageBuilder#willBecomeAnErrorInGradle8()}
+ * </ul>
+ * <p>
  * After DeprecationTimeline is set, Documentation reference must be added using one of:
- * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUpgradeGuideSection(int, String)}
- * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}
- * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUserManual(String, String)}
+ * <ul>
+ *   <li>{@link DeprecationMessageBuilder.WithDeprecationTimeline#withUpgradeGuideSection(int, String)}
+ *   <li>{@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}
+ *   <li>{@link DeprecationMessageBuilder.WithDeprecationTimeline#withUserManual(String, String)}
+ * </ul>
  *
  * In order for the deprecation message to be emitted, terminal operation {@link DeprecationMessageBuilder.WithDocumentation#nagUser()} has to be called after one of the documentation providing methods.
  */
