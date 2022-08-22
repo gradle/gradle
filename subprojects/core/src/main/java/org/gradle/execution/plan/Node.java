@@ -68,7 +68,7 @@ public abstract class Node {
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private boolean filtered;
-    private final NavigableSet<Node> dependencySuccessors = newSortedNodeSet();
+    private final NodeDependencySet dependencySuccessors = new NodeDependencySet(this);
     private final NavigableSet<Node> dependencyPredecessors = newSortedNodeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
@@ -87,7 +87,7 @@ public abstract class Node {
             return this + " (state=" + state
                 + ", dependencies=" + dependenciesState
                 + ", group=" + group
-                + ", dependencies=" + formatNodes(dependencySuccessors)
+                + ", dependencies=" + formatNodes(dependencySuccessors.getOrderedNodes())
                 + specificState + " )";
         }
     }
@@ -377,27 +377,33 @@ public abstract class Node {
     }
 
     public Set<Node> getDependencySuccessors() {
-        return dependencySuccessors;
+        return dependencySuccessors.getOrderedNodes();
     }
 
     public Iterable<Node> getDependencySuccessorsInReverseOrder() {
-        return dependencySuccessors.descendingSet();
+        return dependencySuccessors.getOrderedNodes().descendingSet();
     }
 
     public void addDependencySuccessor(Node toNode) {
-        dependencySuccessors.add(toNode);
+        dependencySuccessors.addDependency(toNode);
         toNode.getDependencyPredecessors().add(this);
+    }
+
+    /**
+     * Called when a node that this node may be waiting for has completed.
+     */
+    public void onNodeComplete(Node node) {
+        dependencySuccessors.onNodeComplete(node);
+        updateAllDependenciesComplete();
     }
 
     @OverridingMethodsMustInvokeSuper
     protected DependenciesState doCheckDependenciesComplete() {
-        for (Node dependency : dependencySuccessors) {
-            if (!dependency.isComplete()) {
-                return DependenciesState.NOT_COMPLETE;
-            } else if (!shouldContinueExecution(dependency)) {
-                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
-            }
+        DependenciesState state = dependencySuccessors.getState();
+        if (state == DependenciesState.NOT_COMPLETE || state == DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL) {
+            return state;
         }
+
         // All dependencies are complete and successful, delegate to the group
         return group.checkSuccessorsCompleteFor(this);
     }
@@ -504,12 +510,12 @@ public abstract class Node {
      */
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getHardSuccessors() {
-        return dependencySuccessors;
+        return dependencySuccessors.getOrderedNodes();
     }
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return dependencySuccessors.descendingSet();
+        return dependencySuccessors.getOrderedNodes().descendingSet();
     }
 
     public Set<Node> getFinalizers() {

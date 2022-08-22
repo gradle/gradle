@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -59,7 +60,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -68,6 +68,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         javaLibrary(mavenRepo.module("org.test", "qux", "1.0-latest")).withModuleMetadata().publish()
 
         createBuildScripts("""
+
             dependencies {
                 api "org.test:foo:1.0"
                 implementation "org.test:bar:1.0"
@@ -82,6 +83,15 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                 }
             }
         """)
+
+        if (GradleContextualExecuter.configCache) {
+            // Configuration cache resolves dependencies before publishing
+            buildFile << """
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            """
+        }
 
         when:
         run "publish"

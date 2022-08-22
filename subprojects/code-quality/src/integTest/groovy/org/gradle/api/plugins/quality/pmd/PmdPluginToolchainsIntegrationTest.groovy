@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 import static org.junit.Assume.assumeNotNull
 
@@ -33,6 +34,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     }
 
     def "uses jdk from toolchains set through java plugin"() {
+        Assume.assumeTrue(fileLockingIssuesSolved())
         given:
         goodCode()
         def jdk = setupExecutorForToolchains()
@@ -46,6 +48,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     }
 
     def "uses jdk from toolchains set through pmd task"() {
+        Assume.assumeTrue(fileLockingIssuesSolved())
         given:
         goodCode()
         def jdk = setupExecutorForToolchains()
@@ -59,6 +62,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     }
 
     def "uses current jdk if not specified otherwise"() {
+        Assume.assumeTrue(fileLockingIssuesSolved())
         given:
         goodCode()
         writeBuildFile()
