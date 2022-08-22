@@ -46,7 +46,7 @@ class BeanPropertyWriter(
             val fieldValue =
                 when (val isExplicitValue = relevantField.isExplicitValueField) {
                     null -> field.get(bean)
-                    else -> conventionValueOf(bean, fieldName, field, isExplicitValue)
+                    else -> conventionValueOf(bean, field, isExplicitValue)
                 }
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
@@ -58,21 +58,25 @@ class BeanPropertyWriter(
     }
 
     private
-    fun conventionValueOf(bean: Any, fieldName: String, field: Field, isExplicitValue: Field) =
+    fun conventionValueOf(bean: Any, field: Field, isExplicitValue: Field) =
         field.get(bean).let { fieldValue ->
             if (isExplicitValue.get(bean).uncheckedCast()) {
                 fieldValue
             } else {
-                bean.uncheckedCast<IConventionAware>()
-                    .conventionMapping
-                    .getConventionValue<Any?>(fieldValue, fieldName, false)
+                getConventionValue(bean, field, fieldValue)
                     ?.takeIf { conventionValue ->
                         // Prevent convention value to be assigned to a field of incompatible type
                         // A common cause is a regular field type being promoted to a Property/Provider type.
                         conventionValue.isAssignableTo(field.type)
-                    }
+                    } ?: fieldValue
             }
         }
+
+    private
+    fun getConventionValue(bean: Any, field: Field, fieldValue: Any?) =
+        bean.uncheckedCast<IConventionAware>()
+            .conventionMapping
+            .getConventionValue<Any?>(fieldValue, field.name, false)
 
     private
     fun Field.debugFrameName() =
@@ -105,6 +109,7 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
                         text("error writing value of type ")
                         reference(GeneratedSubclasses.unpackType(value))
                     }
+
                     else -> {
                         text("error writing null value")
                     }
