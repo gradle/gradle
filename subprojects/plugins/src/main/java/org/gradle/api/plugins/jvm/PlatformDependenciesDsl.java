@@ -44,7 +44,7 @@ public interface PlatformDependenciesDsl extends DependenciesDsl {
 
     <D extends ModuleDependency> D platform(D dependency);
 
-    default Provider<? extends ExternalModuleDependency> platform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
+    default Provider<? extends MinimalExternalModuleDependency> platform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
         return dependency.asProvider().map(this::platform);
     }
 
@@ -64,7 +64,7 @@ public interface PlatformDependenciesDsl extends DependenciesDsl {
 
     <D extends ExternalDependency> D enforcedPlatform(D dependency);
 
-    default Provider<? extends ExternalModuleDependency> enforcedPlatform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
+    default Provider<? extends MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
         return dependency.asProvider().map(this::enforcedPlatform);
     }
 
