@@ -22,6 +22,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -137,7 +138,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
+        this.dependencies = getObjectFactory().newInstance(
+            DefaultJvmComponentDependencies.class,
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, implementation),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, compileOnly),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, runtimeOnly),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)
+        );
 
         addDefaultTestTarget();
 

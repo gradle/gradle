@@ -46,6 +46,12 @@ Referencing tasks contained in an included build with any of the following metho
 - `mustRunAfter`
 - `shouldRunAfter`
 
+==== Creating TAR trees from resources without backing files
+
+Creating a TAR tree from a resource with no backing file is no longer supported.
+Instead, convert the resource to a file and use `project.tarTree()` on the file.
+For more information, see <<tar_tree_no_backing_file>>.
+
 === Removed APIs
 
 TBD
@@ -55,6 +61,11 @@ TBD
 ==== Change to `AntBuilder` parent class
 
 Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.AntBuilder` class.  It now extends `groovy.ant.AntBuilder`.
+
+==== PluginDeclaration is not serializable
+
+`org.gradle.plugin.devel.PluginDeclaration` is not serializable anymore.
+If you need to serialize it, you can convert it into your own, serializable class.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
@@ -131,6 +142,11 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
+=== Deprecations
+
+[[dependency_factory_renamed]]
+==== Internal DependencyFactory was renamed
+The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
 
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
@@ -313,7 +329,12 @@ Since Checkstyle runs as an external process you can control the memory via the 
 Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
 This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
 
-Previously, the current working directory would depend on how Gradle was executed. When running Gradle from the root directory of a project, this would be the root directory, but when running Gradle from a subproject, the current working directory would be the subproject directory.
+Previously, Gradle selected the current working directory based on the directory where you ran Gradle. If you ran Gradle in:
+
+- the root directory of a project: Gradle uses the root directory as the current working directory.
+- a nested directory of a project: Gradle uses the root directory of the subproject as the current working directory.
+
+In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
 
 === Deprecations
 
