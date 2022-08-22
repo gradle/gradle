@@ -52,7 +52,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private static final String UNKNOWN_TEST_CONF_NAME = "unknown"
 
     private ConfigurationContainer configurationContainer = Mock()
-    private DependencyFactory dependencyFactory = Mock()
+    private DependencyFactoryInternal dependencyFactory = Mock()
     private Configuration configuration = Mock()
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
@@ -294,7 +294,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == dependency
 
         and:
-        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API) >> dependency
+        1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API) >> dependency
     }
 
     void "creates Gradle test-kit dependency"() {
@@ -307,7 +307,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == dependency
 
         and:
-        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT) >> dependency
+        1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT) >> dependency
     }
 
     void "creates local groovy dependency"() {
@@ -320,7 +320,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == dependency
 
         and:
-        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY) >> dependency
+        1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY) >> dependency
     }
 
     void "cannot add dependency to unknown configuration"() {

@@ -69,7 +69,7 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
 
 public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactory dependencyFactory;
+    private final DependencyFactoryInternal dependencyFactory;
     private final ProjectFinder projectFinder;
     private final DependencyConstraintHandler dependencyConstraintHandler;
     private final ComponentMetadataHandler componentMetadataHandler;
@@ -83,7 +83,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final DynamicAddDependencyMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
-                                    DependencyFactory dependencyFactory,
+                                    DependencyFactoryInternal dependencyFactory,
                                     ProjectFinder projectFinder,
                                     DependencyConstraintHandler dependencyConstraintHandler,
                                     ComponentMetadataHandler componentMetadataHandler,
@@ -251,17 +251,17 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public Dependency gradleApi() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
     }
 
     @Override
     public Dependency gradleTestKit() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT);
     }
 
     @Override
     public Dependency localGroovy() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY);
     }
 
     @Override

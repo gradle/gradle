@@ -84,6 +84,7 @@ const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
+        build/*.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
         build/tmp/test files/** => $hiddenArtifactDestination/test-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
