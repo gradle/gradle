@@ -25,7 +25,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}               
             toolchainManagement {
                 jdks {
@@ -64,7 +63,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
             toolchainManagement {
@@ -103,9 +101,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def "registering a custom toolchain registry adds dynamic extension"() {
+    def "registering a custom toolchain registry generates accessors"() {
         settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}            
             toolchainManagement {
                 jdks {
@@ -175,7 +172,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "if toolchain registries are explicitly requested, then the default is NOT automatically added to the request"() {
         settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
             toolchainManagement {
                 jdks {
@@ -211,7 +207,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails on name collision when registering repositories"() {
         settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry1", uselessToolchainRegistryCode("UselessToolchainRegistry1"))}            
             ${applyToolchainRegistryPlugin("uselessRegistry", "UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
             toolchainManagement {
@@ -248,7 +243,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "list of requested repositories can be queried"() {
         settingsFile << """
-            ${applyToolchainManagementBasePlugin()}
             ${applyToolchainRegistryPlugin("uselessRegistry1", "UselessToolchainRegistry1", uselessToolchainRegistryCode("UselessToolchainRegistry1"))}            
             ${applyToolchainRegistryPlugin("uselessRegistry2", "UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
             ${applyToolchainRegistryPlugin("uselessRegistry3", "UselessToolchainRegistry3", uselessToolchainRegistryCode("UselessToolchainRegistry3"))}            
@@ -285,26 +279,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.getOutput().contains("Explicitly requested toolchains: [uselessRegistry3, uselessRegistry1]")
     }
 
-    private static String applyToolchainManagementBasePlugin() {
-        //TODO (#21082): the base plugin which injects the "jdks" block will need to be a Gradle core plugin, this is an intermediate state of development
-        """
-            import org.gradle.internal.event.ListenerManager;
-            import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
-
-            public abstract class ToolchainManagementBasePlugin implements Plugin<Settings> {
-                @Inject
-                protected abstract JdksBlockForToolchainManagement getJdksBlockForToolchainManagement();
-
-                void apply(Settings settings) {
-                    settings.getToolchainManagement().getExtensions()
-                        .add(JdksBlockForToolchainManagement.class, "jdks", getJdksBlockForToolchainManagement());
-                }
-            }
-
-            apply plugin: ToolchainManagementBasePlugin
-        """
-    }
-
     private static String applyToolchainRegistryPlugin(String name, String className, String code) {
         """
             public abstract class ${className}Plugin implements Plugin<Settings> {
@@ -312,6 +286,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
             
                 void apply(Settings settings) {
+                    settings.getPlugins().apply("jdk-toolchains");
+                
                     JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
                     registry.register("${name}", ${className}.class)
                 }
