@@ -93,6 +93,7 @@ The Java major version, the vendor (if specified) and implementation (if specifi
 will be tracked as an input for compilation and test execution.
 ====
 
+[[sec:configuring_toolchain_specifications]]
 === Configuring toolchain specifications
 
 Gradle allows configuring multiple properties that affect the selection of a toolchain, such as language version or vendor.

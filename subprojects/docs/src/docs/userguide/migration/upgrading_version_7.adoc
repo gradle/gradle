@@ -69,11 +69,11 @@ systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 [[invalid_toolchain_specification_deprecation]]
 === Usage of invalid Java toolchain specifications is now deprecated
 
-Along with the Java language version, the <<toolchains#,Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
+Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
 Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
 Invalid specifications are deprecated and will become build errors in Gradle 8.0.
 
-See more details about toolchain configuration in the <<toolchains#configuring_toolchain_specifications,user manual>>.
+See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
 
 === Potential breaking changes
 
