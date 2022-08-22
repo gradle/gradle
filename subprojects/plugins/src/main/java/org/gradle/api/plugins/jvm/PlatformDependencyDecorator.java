@@ -21,14 +21,10 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.attributes.Category;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html#java_platform_plugin">Platforms</a> in {@code dependencies} blocks.
@@ -38,9 +34,6 @@ import javax.inject.Inject;
 @Incubating
 public interface PlatformDependencyDecorator extends DependencyCreators {
 
-    @Inject
-    ObjectFactory getObjectFactory();
-
     default ExternalModuleDependency platform(CharSequence dependencyNotation) {
         return platform(getDependencyFactory().create(dependencyNotation));
     }
@@ -49,11 +42,7 @@ public interface PlatformDependencyDecorator extends DependencyCreators {
         return platform(getDependencyFactory().create(group, name, version));
     }
 
-    default <D extends ModuleDependency> D platform(D dependency) {
-        dependency.endorseStrictVersions();
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
-        return dependency;
-    }
+    <D extends ModuleDependency> D platform(D dependency);
 
     default Provider<? extends ExternalModuleDependency> platform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
         return dependency.asProvider().map(this::platform);
@@ -71,16 +60,9 @@ public interface PlatformDependencyDecorator extends DependencyCreators {
         return enforcedPlatform(getDependencyFactory().create(group, name, version));
     }
 
-    default <D extends ModuleDependency> D enforcedPlatform(D dependency) {
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
-        return dependency;
-    }
+    <D extends ModuleDependency> D enforcedPlatform(D dependency);
 
-    default <D extends ExternalDependency> D enforcedPlatform(D dependency) {
-        DeprecationLogger.whileDisabled(() -> dependency.setForce(true));
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
-        return dependency;
-    }
+    <D extends ExternalDependency> D enforcedPlatform(D dependency);
 
     default Provider<? extends ExternalModuleDependency> enforcedPlatform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
         return dependency.asProvider().map(this::enforcedPlatform);
