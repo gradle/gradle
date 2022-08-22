@@ -240,7 +240,12 @@ public class DeprecationLogger {
     static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
-            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(calledFrom));
+            DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage(calledFrom);
+            nagUserWith(featureUsage);
+
+            if (!featureUsage.formattedMessage().contains("deprecated")) {
+                throw new RuntimeException("NO DEPRECATION Message: " + featureUsage.formattedMessage());
+            }
         }
     }
 
