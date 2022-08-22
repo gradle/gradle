@@ -28,7 +28,7 @@ import javax.inject.Inject;
  * @since 7.6
  */
 @Incubating
-public interface DependenciesDsl {
+public interface Dependencies {
     @Inject
     DependencyFactory getDependencyFactory();
     ProjectDependency project(String projectPath);
