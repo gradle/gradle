@@ -20,6 +20,7 @@ Method <org.gradle.api.Project.getConfigurations()> does not have raw return typ
 Method <org.gradle.api.Project.getConvention()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getDefaultTasks()> does not have raw return type assignable to org.gradle.api.provider.Property in (Project.java:0)
 Method <org.gradle.api.Project.getDependencies()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
+Method <org.gradle.api.Project.getDependencyFactory()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getDependencyLocking()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getDepth()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getDescription()> does not have raw return type assignable to org.gradle.api.provider.Property in (Project.java:0)
