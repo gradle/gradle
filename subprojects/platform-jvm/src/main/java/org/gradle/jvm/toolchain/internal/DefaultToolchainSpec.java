@@ -26,7 +26,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 
-public class DefaultToolchainSpec implements ToolchainSpecInternal {
+public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     private final Property<JavaLanguageVersion> languageVersion;
     private final Property<JvmVendorSpec> vendor;
@@ -35,8 +35,8 @@ public class DefaultToolchainSpec implements ToolchainSpecInternal {
     @Inject
     public DefaultToolchainSpec(ObjectFactory factory) {
         this.languageVersion = factory.property(JavaLanguageVersion.class);
-        this.vendor = factory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.any());
-        this.implementation = factory.property(JvmImplementation.class).convention(JvmImplementation.VENDOR_SPECIFIC);
+        this.vendor = factory.property(JvmVendorSpec.class).convention(getConventionVendor());
+        this.implementation = factory.property(JvmImplementation.class).convention(getConventionImplementation());
     }
 
     @Override
@@ -60,6 +60,16 @@ public class DefaultToolchainSpec implements ToolchainSpecInternal {
     }
 
     @Override
+    public boolean isValid() {
+        return languageVersion.isPresent() || isSecondaryPropertiesUnchanged();
+    }
+
+    private boolean isSecondaryPropertiesUnchanged() {
+        return getConventionVendor().equals(vendor.getOrNull()) &&
+            getConventionImplementation() == implementation.getOrNull();
+    }
+
+    @Override
     public String getDisplayName() {
         final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
         builder.omitNullValues();
@@ -78,14 +88,21 @@ public class DefaultToolchainSpec implements ToolchainSpecInternal {
             return false;
         }
         DefaultToolchainSpec that = (DefaultToolchainSpec) o;
-        return Objects.equal(languageVersion.get(), that.languageVersion.get()) &&
-            Objects.equal(vendor.get(), that.vendor.get()) &&
-            Objects.equal(implementation.get(), that.implementation.get());
+        return Objects.equal(languageVersion.getOrNull(), that.languageVersion.getOrNull()) &&
+            Objects.equal(vendor.getOrNull(), that.vendor.getOrNull()) &&
+            Objects.equal(implementation.getOrNull(), that.implementation.getOrNull());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(languageVersion.get(), vendor.get(), implementation.get());
+        return Objects.hashCode(languageVersion.getOrNull(), vendor.getOrNull(), implementation.getOrNull());
     }
 
+    private static JvmVendorSpec getConventionVendor() {
+        return DefaultJvmVendorSpec.any();
+    }
+
+    private static JvmImplementation getConventionImplementation() {
+        return JvmImplementation.VENDOR_SPECIFIC;
+    }
 }
