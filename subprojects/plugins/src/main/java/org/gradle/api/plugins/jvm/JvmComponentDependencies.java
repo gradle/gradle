@@ -33,7 +33,7 @@ import org.gradle.api.artifacts.dsl.DependencyAdder;
  * @since 7.3
  */
 @Incubating
-public interface JvmComponentDependencies extends PlatformDependenciesDsl, TestFixturesDependenciesDsl, GradleDependenciesDsl {
+public interface JvmComponentDependencies extends PlatformDependencyDecorators, TestFixturesDependencyDecorators, GradleDependencies {
     /**
      * Returns a {@link DependencyAdder} to add to the set of implementation dependencies.
      * <p>
