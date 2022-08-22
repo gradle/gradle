@@ -97,12 +97,7 @@ public class CompositeNodeGroup extends HasFinalizers {
 
     @Override
     public boolean isCanCancel() {
-        for (FinalizerGroup group : finalizerGroups) {
-            if (!group.isCanCancel()) {
-                return false;
-            }
-        }
-        return true;
+        return isCanCancel(finalizerGroups);
     }
 
     @Override
