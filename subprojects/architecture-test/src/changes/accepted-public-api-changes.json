@@ -159,6 +159,22 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
