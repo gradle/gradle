@@ -155,7 +155,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform.'
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=FROM} to {TEST=TO}).'
         e.cause.message == 'Cannot configure parameters for artifact transform without parameters.'
     }
 
@@ -169,7 +169,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform.'
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=FROM} to {TEST=TO}).'
         e.cause.message == 'Cannot query parameters for artifact transform without parameters.'
     }
 
@@ -188,13 +188,57 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !(registration instanceof ExtensionAware)
     }
 
-    def "fails when artifactTransform configuration action fails for registration"() {
+    def "fails when artifactTransform configuration action fails for registration (from and to specified"() {
         def failure = new RuntimeException("Bad config")
 
         when:
         registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
+            throw failure
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {TEST=to}).'
+        e.cause == failure
+    }
+
+    def "fails when artifactTransform configuration action fails for registration (only from specified)"() {
+        def failure = new RuntimeException("Bad config")
+
+        when:
+        registry.registerTransform(TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            throw failure
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from}).'
+        e.cause == failure
+    }
+
+    def "fails when artifactTransform configuration action fails for registration (only to specified)"() {
+        def failure = new RuntimeException("Bad config")
+
+        when:
+        registry.registerTransform(TestTransform) {
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+            throw failure
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (to {TEST=to}).'
+        e.cause == failure
+    }
+
+    def "fails when artifactTransform configuration action fails for registration (no attributes specified)"() {
+        def failure = new RuntimeException("Bad config")
+
+        when:
+        registry.registerTransform(TestTransform) {
             throw failure
         }
 
@@ -218,7 +262,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform.'
+        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {TEST=to}).'
         e.cause == failure
     }
 

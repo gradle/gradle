@@ -58,10 +58,11 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        TypedRegistration<T> registration = null;
         try {
             Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
             T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
-            TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
+            registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
             registrationAction.execute(registration);
             register(registration, actionType, parameterObject);
         } catch (VariantTransformConfigurationException e) {
@@ -70,6 +71,21 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not register artifact transform ");
             formatter.appendType(actionType);
+            if (registration != null && !(registration.from.isEmpty() && registration.to.isEmpty())) {
+                formatter.append(" (");
+                if (!registration.from.isEmpty()) {
+                    formatter.append("from ");
+                    formatter.appendValue(registration.from);
+                }
+                if (!registration.to.isEmpty()) {
+                    if (!registration.from.isEmpty()) {
+                        formatter.append(" ");
+                    }
+                    formatter.append("to ");
+                    formatter.appendValue(registration.to);
+                }
+                formatter.append(")");
+            }
             formatter.append(".");
             throw new VariantTransformConfigurationException(formatter.toString(), e);
         }
