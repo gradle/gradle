@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
@@ -37,7 +38,7 @@ class DefaultPlanExecutorTest extends Specification {
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
-    def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, workerLeaseService, cancellationHandler, coordinationService)
+    def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, workerLeaseService, cancellationHandler, coordinationService, Stub(StartParameter))
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)

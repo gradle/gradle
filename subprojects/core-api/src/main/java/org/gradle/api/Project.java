@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -1552,6 +1553,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the dependencies.
      */
     void dependencies(Closure configureClosure);
+
+    /**
+     * Provides access to methods to create various kinds of {@link org.gradle.api.artifacts.Dependency Dependency} instances.
+     *
+     * @return the dependency factory. Never returns null.
+     * @since 7.6
+     */
+    @Incubating
+    DependencyFactory getDependencyFactory();
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build

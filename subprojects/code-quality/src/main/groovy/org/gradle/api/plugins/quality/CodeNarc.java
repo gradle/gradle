@@ -17,12 +17,16 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
+import org.gradle.api.plugins.quality.internal.CodeNarcAction;
+import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -35,10 +39,16 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.stream.Collectors;
 
 /**
  * Runs CodeNarc against some source files.
@@ -62,9 +72,19 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
 
     private boolean ignoreFailures;
 
+    private final Property<JavaLauncher> javaLauncher;
+
     public CodeNarc() {
         reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, this);
         compilationClasspath = getProject().files();
+        // Set default JavaLauncher to current JVM in case
+        // CodeNarcPlugin that sets Java launcher convention is not applied
+        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
+    }
+
+    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
+        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
+        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     /**
@@ -97,13 +117,54 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     }
 
     @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    @Deprecated
     public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected WorkerExecutor getWorkerExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * JavaLauncher for toolchain support
+     * @since 7.7
+     */
+    @Incubating
+    @Nested
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
     @TaskAction
     public void run() {
-        CodeNarcInvoker.invoke(this);
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            spec.getClasspath().from(getCodenarcClasspath());
+        });
+        workQueue.submit(CodeNarcAction.class, this::setupParameters);
+    }
+
+    private void setupParameters(CodeNarcActionParameters parameters) {
+        parameters.getCompilationClasspath().setFrom(getCompilationClasspath());
+        parameters.getConfig().set(getConfigFile());
+        parameters.getMaxPriority1Violations().set(getMaxPriority1Violations());
+        parameters.getMaxPriority2Violations().set(getMaxPriority2Violations());
+        parameters.getMaxPriority3Violations().set(getMaxPriority3Violations());
+        parameters.getEnabledReports().set(getReports().getEnabled().stream().map(report -> {
+            CodeNarcActionParameters.EnabledReport newReport = getObjectFactory().newInstance(CodeNarcActionParameters.EnabledReport.class);
+            newReport.getName().set(report.getName());
+            newReport.getOutputLocation().set(report.getOutputLocation());
+            return newReport;
+        }).collect(Collectors.toList()));
+        parameters.getIgnoreFailures().set(getIgnoreFailures());
+        parameters.getSource().setFrom(getSource());
     }
 
     /**
