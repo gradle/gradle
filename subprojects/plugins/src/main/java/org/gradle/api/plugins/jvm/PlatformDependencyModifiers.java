@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  * @since 7.6
  */
 @Incubating
-public interface PlatformDependencyDecorators extends Dependencies {
+public interface PlatformDependencyModifiers extends Dependencies {
 
     default ExternalModuleDependency platform(CharSequence dependencyNotation) {
         return platform(getDependencyFactory().create(dependencyNotation));

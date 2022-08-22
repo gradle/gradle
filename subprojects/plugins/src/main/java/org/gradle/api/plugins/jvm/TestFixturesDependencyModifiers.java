@@ -35,7 +35,7 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  * @since 7.6
  */
 @Incubating
-public interface TestFixturesDependencyDecorators extends Dependencies {
+public interface TestFixturesDependencyModifiers extends Dependencies {
 
     default ExternalModuleDependency testFixtures(CharSequence dependencyNotation) {
         return testFixtures(getDependencyFactory().create(dependencyNotation));
